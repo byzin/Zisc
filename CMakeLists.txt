@@ -10,7 +10,7 @@ cmake_minimum_required(VERSION 3.4)
 
 
 ## The project information
-project(Zisc LANGUAGES CXX)
+project(Zisc LANGUAGES C CXX)
 include(${PROJECT_SOURCE_DIR}/cmake/project.cmake)
 setZiscProperties()
 message(STATUS "## Zisc version: ${PROJECT_VERSION}")
@@ -41,5 +41,7 @@ include(${PROJECT_SOURCE_DIR}/example/config.cmake)
 buildExample()
 
 # Build unit test
-include(${PROJECT_SOURCE_DIR}/test/config.cmake)
-buildUnitTest()
+if(ZISC_BUILD_TESTS)
+  include(${PROJECT_SOURCE_DIR}/test/config.cmake)
+  buildUnitTest()
+endif()

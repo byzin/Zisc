@@ -11,7 +11,11 @@ set(__test_root__ ${CMAKE_CURRENT_LIST_DIR})
 
 function(getTestWarningOption test_warning_flags)
   set(warning_flags "")
-  if(Z_IS_CLANG)
+  if(Z_IS_VISUAL_STUDIO AND Z_IS_CLANG)
+    list(APPEND warning_flags -Wno-deprecated-declarations
+                              -Wno-sign-compare
+                              )
+  elseif(Z_IS_CLANG)
     list(APPEND warning_flags -Wno-sign-conversion
                               -Wno-float-equal
                               -Wno-used-but-marked-unused
@@ -28,14 +32,12 @@ endfunction(getTestWarningOption)
 
 function(buildUnitTest)
   # Load google test
-  include(${__test_root__}/gtest/config.cmake)
-  loadGoogleTest(SHARED 14 gtest_include_dir gtest_library)
+  include(${PROJECT_SOURCE_DIR}/cmake/googletest.cmake)
+  set(googletest_project_root ${__test_root__}/googletest/googletest)
+  buildGoogleTest(${googletest_project_root} gtest_include_dir gtest_libraries)
 
   ## Build a unit test
-  if(NOT EXISTS ${PROJECT_BINARY_DIR}/resources)
-    execute_process(COMMAND ln -sf ${__test_root__}/resources
-                                   ${PROJECT_BINARY_DIR}/resources)
-  endif()
+  file(COPY ${__test_root__}/resources DESTINATION ${PROJECT_BINARY_DIR})
   #
   file(GLOB unit_test_source_files  ${__test_root__}/unit_test/*.cpp)
   add_executable(UnitTest ${unit_test_source_files} ${zisc_header_files})
@@ -54,7 +56,7 @@ function(buildUnitTest)
   target_link_libraries(UnitTest PRIVATE ${CMAKE_THREAD_LIBS_INIT}
                                          ${cxx_linker_flags}
                                          ${zisc_linker_flags}
-                                         ${gtest_library})
+                                         ${gtest_libraries})
   target_compile_definitions(UnitTest PRIVATE ${environment_definitions}
                                               ${cxx_definitions}
                                               ${zisc_definitions})

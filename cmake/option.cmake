@@ -12,4 +12,7 @@ function(setCommandOption)
 
   set(option_description "Enable C++ sanitizer (Address, Thread, Memory).")
   setBooleanOption(ZISC_ENABLE_CXX_SANITIZER OFF ${option_description})
+
+  set(option_description "Build unit tests.")
+  setBooleanOption(ZISC_BUILD_TESTS OFF ${option_description})
 endfunction(setCommandOption)

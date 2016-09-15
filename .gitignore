@@ -38,11 +38,7 @@
 # Test
 !/test/
 !/test/config.cmake
-!/test/gtest/
-!/test/gtest/config.cmake
-!/test/gtest/gtest-all.cc
-!/test/gtest/gtest/
-!/test/gtest/gtest/gtest.h
+!/test/googletest
 !/test/unit_test/
 !/test/unit_test/*.cpp
 !/test/resources/

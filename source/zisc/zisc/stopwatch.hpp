@@ -23,7 +23,7 @@ namespace zisc {
  \details
  No detailed.
  */
-class Stopwatch : public NonCopyable
+class Stopwatch : public NonCopyable<Stopwatch>
 {
  public:
   //! Clock type

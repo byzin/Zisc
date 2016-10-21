@@ -23,7 +23,7 @@ namespace zisc {
   No detailed.
   */
 template <uint kSize, uint kAlignment>
-class AlignedMemoryPool : public NonCopyable
+class AlignedMemoryPool : public NonCopyable<AlignedMemoryPool<kSize, kAlignment>>
 {
  public:
   //! Create a memory pool

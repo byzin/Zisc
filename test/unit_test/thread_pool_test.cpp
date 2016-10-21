@@ -16,11 +16,13 @@
 #include <thread>
 #include <type_traits>
 #include <utility>
+#include <vector>
 // GoogleTest
 #include "gtest/gtest.h"
 // Zisc
 #include "zisc/aligned_memory_pool.hpp"
 #include "zisc/thread_pool.hpp"
+#include "zisc/pcg_engine.hpp"
 
 TEST(ThreadPoolTest, EnqueueTaskTest)
 {
@@ -141,5 +143,70 @@ TEST(ThreadPoolTest, ParallelTest)
     ASSERT_EQ(2, id_list[2]) << "Loop parallel failed.";
     ASSERT_EQ(3, id_list[3]) << "Loop parallel failed.";
   }
+}
 
+TEST(ThreadPoolTest, ExitWorkerRunningTest)
+{
+  {
+    zisc::ThreadPool thread_pool{24};
+    for (zisc::uint number = 0; number < 1024; ++number) {
+      auto task = [number](const int)
+      {
+        const std::chrono::milliseconds wait_time{100};
+        std::this_thread::sleep_for(wait_time);
+      };
+      thread_pool.enqueue<void>(task);
+    }
+  }
+  SUCCEED();
+}
+
+TEST(ThreadPoolTest, TaskStressTest)
+{
+  constexpr zisc::uint num_of_threads = 1024;
+  constexpr zisc::uint num_of_tasks = 4'000'000;
+
+  std::vector<std::future<void>> result_list;
+  result_list.resize(num_of_tasks);
+
+  zisc::ThreadPool thread_pool{num_of_threads};
+  for (zisc::uint number = 0; number < num_of_tasks; ++number) {
+    auto task = [number](const int)
+    {
+      zisc::PcgMcgRxsMXs32 sampler{number};
+      const auto loop = sampler(0, 1024 * 1024);
+      volatile int value = 0;
+      for (int i = 0; i < loop; ++i) {
+        value = i;
+      }
+    };
+    result_list[number] = thread_pool.enqueue<void>(task);
+  }
+  for (auto& result : result_list)
+    result.get();
+
+  SUCCEED();
+}
+
+TEST(ThreadPoolTest, LoopTaskStressTest)
+{
+  constexpr zisc::uint num_of_threads = 1024;
+  constexpr zisc::uint num_of_tasks = 4'000'000;
+
+  zisc::ThreadPool thread_pool{num_of_threads};
+  auto task = [](const int, const zisc::uint number)
+  {
+    zisc::PcgMcgRxsMXs32 sampler{number};
+    const auto loop = sampler(0, 1024 * 1024);
+    volatile int value = 0;
+    for (int i = 0; i < loop; ++i) {
+      value = i;
+    }
+  };
+  constexpr zisc::uint begin = 0;
+  constexpr zisc::uint end = num_of_tasks;
+  auto result = thread_pool.enqueueLoop(task, begin, end);
+  result.get();
+
+  SUCCEED();
 }

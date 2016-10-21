@@ -18,19 +18,18 @@
 #include <mutex>
 #include <queue>
 #include <thread>
-#include <vector>
 #include <utility>
+#include <vector>
 // Zisc
+#include "zisc/non_copyable.hpp"
 #include "zisc/zisc_config.hpp"
 
 namespace zisc {
 
 /*!
-  \details
-  ThreadPool class is designed based on the following URL
-  http://progsch.net/wordpress/?p=81 and https//github.com/progschj/ThreadPool.
+  \brief ThreadPool class provides task parallel and data parallel thread pool
   */
-class ThreadPool
+class ThreadPool : public NonCopyable<ThreadPool>
 {
  public:
   //! Create threads as many CPU threads as
@@ -43,11 +42,11 @@ class ThreadPool
   ~ThreadPool();
 
 
-  //! Add a task
+  //! A worker thread run a task
   template <typename ReturnType, typename Task>
   std::future<ReturnType> enqueue(Task&& task) noexcept;
 
-  //! Execute a loop task in parallel
+  //! Worker threads run a loop task in parallel
   template <typename Task, typename Iterator>
   std::future<void> enqueueLoop(Task&& task,
                                 Iterator begin,
@@ -56,10 +55,13 @@ class ThreadPool
   //! Get the number of logical cores
   static uint logicalCores() noexcept;
 
-  //! Get the number of threads
+  //! Return the number of threads
   uint numOfThreads() const noexcept;
 
  private:
+  using WorkerTask = std::function<void (int)>;
+
+
   //! Create worker threads
   void createWorkers(const uint num_of_threads) noexcept;
 
@@ -69,19 +71,25 @@ class ThreadPool
 
   //! Execute loop task in parallel
   template <typename Task, typename Iterator>
-  std::future<void> enqueuLoopTask(Task& task,
-                                   Iterator begin,
-                                   Iterator end) noexcept;
+  std::future<void> enqueueLoopTask(Task& task,
+                                    Iterator begin,
+                                    Iterator end) noexcept;
 
-  //! Check if the thread pool is finished
-  bool isFinished() const noexcept;
+  //! Exit workers running
+  void exitWorkersRunning() noexcept;
+
+  //! Take a task from the top of the queue
+  WorkerTask takeTask() noexcept;
+
+  //! Check if the workers (threads) are enable running
+  bool workersAreEnabled() const noexcept;
 
 
-  std::mutex queue_mutex_;
+  std::mutex lock_;
   std::condition_variable condition_;
-  std::queue<std::function<void (int)>> task_queue_;
+  std::queue<WorkerTask> task_queue_;
   std::vector<std::thread> workers_;
-  bool is_finished_;
+  bool workers_are_enabled_;
 };
 
 } // namespace zisc

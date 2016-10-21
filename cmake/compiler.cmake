@@ -88,7 +88,15 @@ function(getCompilerOption cxx_compile_flags cxx_linker_flags cxx_definitions)
     list(APPEND compile_flags -stdlib=libc++)
     list(APPEND linker_flags -stdlib=libc++)
   endif()
-
+  # Sanitizer
+  if (ZISC_ENABLE_SANITIZER)
+    if (Z_IS_CLANG OR Z_IS_GCC)
+      list(APPEND compile_flags -fsanitize=address -fno-omit-frame-pointer)
+      list(APPEND linker_flags -fsanitize=address)
+    else()
+      message(WARNING "The compiler doesn't support sanitizer.")
+    endif()
+  endif()
 
   # Output variables
   set(${cxx_compile_flags} ${compile_flags} PARENT_SCOPE)

@@ -13,7 +13,6 @@
 #include "thread_pool.hpp"
 // Standard C++ library
 #include <atomic>
-#include <cmath>
 #include <functional>
 #include <future>
 #include <iterator>
@@ -22,9 +21,10 @@
 #include <type_traits>
 #include <queue>
 #include <utility>
+#include <vector>
 // Zisc
-#include "aligned_memory_pool.hpp"
 #include "error.hpp"
+#include "non_copyable.hpp"
 #include "type_traits.hpp"
 #include "utility.hpp"
 #include "zisc/zisc_config.hpp"
@@ -47,7 +47,7 @@ ThreadPool::ThreadPool() noexcept :
   */
 inline
 ThreadPool::ThreadPool(const uint num_of_threads) noexcept :
-    is_finished_{false}
+    workers_are_enabled_{true}
 {
   createWorkers(num_of_threads);
 }
@@ -59,19 +59,13 @@ ThreadPool::ThreadPool(const uint num_of_threads) noexcept :
 inline
 ThreadPool::~ThreadPool()
 {
-  {
-    std::unique_lock<std::mutex> lock{queue_mutex_};
-    is_finished_ = true;
-  }
-  condition_.notify_all();
-  for (auto& worker : workers_)
-    worker.join();
+  exitWorkersRunning();
 }
 
 /*!
   \details
   The form of "Task" must be
-  "ReturnType task()" or "ReturnType task(int thread_number)".
+  "ReturnType task()" or "ReturnType task(int thread_id)".
   */
 template <typename ReturnType, typename Task> inline
 std::future<ReturnType> ThreadPool::enqueue(Task&& task) noexcept
@@ -82,14 +76,14 @@ std::future<ReturnType> ThreadPool::enqueue(Task&& task) noexcept
 /*!
   \details
   The form of "Task" must be
-  "void task(iterator i)" or "void task(int thread_number, iterator i)".
+  "void task(iterator i)" or "void task(int thread_id, iterator i)".
   */
 template <typename Task, typename Iterator> inline
 std::future<void> ThreadPool::enqueueLoop(Task&& task,
                                           Iterator begin,
                                           Iterator end) noexcept
 {
-  return enqueuLoopTask(task, begin, end);
+  return enqueueLoopTask(task, begin, end);
 }
 
 /*!
@@ -121,24 +115,24 @@ uint ThreadPool::numOfThreads() const noexcept
 inline
 void ThreadPool::createWorkers(const uint num_of_threads) noexcept
 {
-  uint threads = (num_of_threads == 0)
+  const uint threads = (num_of_threads == 0)
       ? std::thread::hardware_concurrency()
       : num_of_threads;
   workers_.reserve(threads);
-  for (int thread_number = 0; thread_number < cast<int>(threads); ++thread_number) {
-    auto work = [this, thread_number]() noexcept
+  for (int thread_id = 0; thread_id < cast<int>(threads); ++thread_id) {
+    auto work = [this, thread_id]() noexcept
     {
-      std::unique_lock<std::mutex> locker{queue_mutex_};
-      while (!isFinished()) {
-        if (!locker)
-          locker.lock();
-        if (!task_queue_.empty()) {
-          auto task = std::move(task_queue_.front());
-          task_queue_.pop();
-          locker.unlock();
-          task(thread_number);
+      WorkerTask task;
+      while (workersAreEnabled()) {
+        {
+          std::unique_lock<std::mutex> locker{lock_};
+          task = takeTask();
         }
-        else {
+        if (task) {
+          task(thread_id);
+        }
+        else if (workersAreEnabled()){
+          std::unique_lock<std::mutex> locker{lock_};
           condition_.wait(locker);
         }
       }
@@ -152,8 +146,8 @@ namespace zisc_thread_pool {
 //! Process a task
 template <typename ReturnType, typename Task> inline
 ReturnType processTask(
-    Task& task, 
-    const int /* thread_number */,
+    Task& task,
+    const int /* thread_id */,
     EnableIfConstructible<std::function<void ()>, Task> = kEnabler)
         noexcept
 {
@@ -163,19 +157,19 @@ ReturnType processTask(
 //! Process a task
 template <typename ReturnType, typename Task> inline
 ReturnType processTask(
-    Task& task, 
-    const int thread_number,
+    Task& task,
+    const int thread_id,
     EnableIfConstructible<std::function<void (int)>, Task> = kEnabler)
         noexcept
 {
-  return task(thread_number);
+  return task(thread_id);
 }
  
 //! Process a loop task
 template <typename Task, typename Iterator> inline
 void processLoopTask(
-    Task& task, 
-    const int /* thread_number */, 
+    Task& task,
+    const int /* thread_id */,
     Iterator iterator,
     EnableIfConstructible<std::function<void (Iterator)>, Task> = kEnabler)
         noexcept
@@ -186,19 +180,19 @@ void processLoopTask(
 //! Process a loop task
 template <typename Task, typename Iterator> inline
 void processLoopTask(
-    Task& task, 
-    const int thread_number, 
+    Task& task,
+    const int thread_id,
     Iterator iterator,
     EnableIfConstructible<std::function<void (int, Iterator)>, Task> = kEnabler)
         noexcept
 {
-  task(thread_number, iterator);
+  task(thread_id, iterator);
 }
 
 //! Return the distance of two iterators
 template <typename Iterator> inline
-uint distance(Iterator begin, 
-              Iterator end, 
+uint distance(Iterator begin,
+              Iterator end,
               EnableIfIterator<Iterator> = kEnabler) noexcept
 {
   ZISC_ASSERT(begin != end, "The end is same as the begin.");
@@ -207,8 +201,8 @@ uint distance(Iterator begin,
 
 //! Return the distance of two iterators
 template <typename Iterator> inline
-uint distance(Iterator begin, 
-              Iterator end, 
+uint distance(Iterator begin,
+              Iterator end,
               EnableIfInteger<Iterator> = kEnabler) noexcept
 {
   ZISC_ASSERT(begin < end, "The end is ahead of the begin.");
@@ -224,21 +218,21 @@ uint distance(Iterator begin,
 template <typename ReturnType, typename Task> inline
 std::future<ReturnType> ThreadPool::enqueueTask(Task& task) noexcept
 {
-  auto t = [task = std::move(task)](const int thread_number) noexcept
+  // Define the shared resource
+  auto shared_task = new std::packaged_task<ReturnType (int)>{
+  [task = std::move(task)](const int thread_id) noexcept
   {
-    return zisc_thread_pool::processTask<ReturnType>(task, thread_number);
-  };
-  auto shared_task = std::make_shared<std::packaged_task<ReturnType (int)>>(t);
-  auto result = shared_task->get_future();
-
-  std::function<void (int)> wrapped_task{
-  [shared_task](const int thread_number) noexcept
-  {
-    (*shared_task)(thread_number);
+    return zisc_thread_pool::processTask<ReturnType>(task, thread_id);
   }};
-
+  auto result = shared_task->get_future();
+  // Make a task
+  WorkerTask wrapped_task{[shared_task](const int thread_id) noexcept
   {
-    std::unique_lock<std::mutex> lock{queue_mutex_};
+    (*shared_task)(thread_id);
+    delete shared_task;
+  }};
+  {
+    std::unique_lock<std::mutex> lock{lock_};
     task_queue_.emplace(std::move(wrapped_task));
   }
   condition_.notify_one();
@@ -251,31 +245,39 @@ std::future<ReturnType> ThreadPool::enqueueTask(Task& task) noexcept
   No detailed.
   */
 template <typename Task, typename Iterator> inline
-std::future<void> ThreadPool::enqueuLoopTask(Task& task, 
-                                             Iterator begin, 
-                                             Iterator end) noexcept
+std::future<void> ThreadPool::enqueueLoopTask(Task& task,
+                                              Iterator begin,
+                                              Iterator end) noexcept
 {
-  const uint distance = zisc_thread_pool::distance(begin, end);
-
-  auto shared_task = new Task{std::move(task)};
-  auto finish_loop = new std::packaged_task<void ()>{[]() noexcept {}};
-  auto shared_counter = new std::atomic<uint>{distance};
-
-  auto result = finish_loop->get_future();
-
+  // Define the shared resource
+  struct SharedResource : public NonCopyable<SharedResource>
   {
-    std::unique_lock<std::mutex> lock{queue_mutex_};
+    SharedResource(Task& shared_task, const uint initial_count) noexcept :
+        exit_loop_{[]() noexcept {}},
+        shared_task_{std::move(shared_task)},
+        counter_{initial_count} {}
+    std::packaged_task<void ()> exit_loop_; //!< Invoked when all tasks are finished
+    Task shared_task_; //!< Invoked with each iterators
+    std::atomic<uint> counter_; //!< Counts uncompleted tasks
+  };
+  // Make a shared resource
+  const uint distance = zisc_thread_pool::distance(begin, end);
+  auto shared_resource = new SharedResource{task, distance};
+  // Make a result
+  auto result = shared_resource->exit_loop_.get_future();
+  // Make tasks
+  {
+    std::unique_lock<std::mutex> locker{lock_};
     for (auto iterator = begin; iterator != end; ++iterator) {
-      std::function<void (int)> wrapped_task{
-      [shared_task, finish_loop, shared_counter, iterator](const int thread_number) noexcept
+      WorkerTask wrapped_task{
+      [shared_resource, iterator](const int thread_id) noexcept
       {
-        zisc_thread_pool::processLoopTask(*shared_task, thread_number, iterator);
-        const uint count = --(*shared_counter);
+        auto& shared_task = shared_resource->shared_task_;
+        zisc_thread_pool::processLoopTask(shared_task, thread_id, iterator);
+        const uint count = --(shared_resource->counter_);
         if (count == 0) {
-          (*finish_loop)();
-          delete shared_counter;
-          delete finish_loop;
-          delete shared_task;
+          shared_resource->exit_loop_();
+          delete shared_resource;
         }
       }};
       task_queue_.emplace(std::move(wrapped_task));
@@ -289,9 +291,36 @@ std::future<void> ThreadPool::enqueuLoopTask(Task& task,
 /*!
   */
 inline
-bool ThreadPool::isFinished() const noexcept
+void ThreadPool::exitWorkersRunning() noexcept
 {
-  return is_finished_;
+  {
+    std::unique_lock<std::mutex> locker{lock_};
+    workers_are_enabled_ = false;
+  }
+  condition_.notify_all();
+  for (auto& worker : workers_)
+    worker.join();
+}
+
+/*!
+  */
+inline
+auto ThreadPool::takeTask() noexcept -> WorkerTask
+{
+  WorkerTask task;
+  if (!task_queue_.empty()) {
+    task = std::move(task_queue_.front());
+    task_queue_.pop();
+  }
+  return task;
+}
+
+/*!
+  */
+inline
+bool ThreadPool::workersAreEnabled() const noexcept
+{
+  return workers_are_enabled_;
 }
 
 } // namespace zisc

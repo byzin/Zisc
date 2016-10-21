@@ -17,14 +17,16 @@ namespace zisc {
  \details
  No detailed.
  */
+template <typename Type>
 class NonCopyable
 {
  protected:
   NonCopyable() noexcept {}
+  ~NonCopyable() {}
 
  private:
   NonCopyable(const NonCopyable&) = delete;
-  NonCopyable& operator=(const NonCopyable&) = delete;
+  Type& operator=(const Type&) = delete;
 };
 
 } // namespace misc

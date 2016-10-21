@@ -28,7 +28,7 @@ namespace zisc {
  \todo ensure to be sorted.
  */
 template <typename Float>
-class LinearInterp : public NonCopyable
+class LinearInterp : public NonCopyable<LinearInterp<Float>>
 {
   static_assert(std::is_floating_point<Float>::value, 
                 "Float isn't floating point type.");

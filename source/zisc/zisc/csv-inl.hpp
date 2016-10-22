@@ -28,7 +28,7 @@
 
 namespace zisc {
 
-namespace zisc_csv {
+namespace inner {
 
 template <typename Type> inline
 constexpr auto getValuePattern(EnableIfBoolean<Type> = kEnabler) noexcept
@@ -66,7 +66,7 @@ constexpr auto getCsvPattern() noexcept
   return getCsvPattern<Type1>() + "," + getCsvPattern<Type2, Types...>();
 }
 
-} // namespace zisc_csv 
+} // namespace inner 
 
 // public member function
 
@@ -76,7 +76,7 @@ constexpr auto getCsvPattern() noexcept
   */
 template <typename Type, typename ...Types> inline
 Csv<Type, Types...>::Csv() noexcept : 
-    csv_pattern_{zisc_csv::getCsvPattern<Type, Types...>().toCString(), 
+    csv_pattern_{inner::getCsvPattern<Type, Types...>().toCString(), 
                  std::regex_constants::optimize | std::regex_constants::ECMAScript}
 {
 }
@@ -162,7 +162,7 @@ auto Csv<Type, Types...>::get(const uint row) const noexcept -> const FieldType<
   return std::get<column>(record);
 }
 
-namespace zisc_csv {
+namespace inner {
 
 template <uint index, typename RecordType>
 struct CsvConverter
@@ -173,8 +173,8 @@ struct CsvConverter
   {
     using Converter = CsvConverter<index - 1, RecordType>;
     FieldType field = toCxxValue<FieldType>(results[index]);
-    return Converter::toCxx(results, 
-                            std::move(field), 
+    return Converter::toCxx(results,
+                            std::move(field),
                             std::forward<Types>(record)...);
   }
 };
@@ -191,7 +191,7 @@ struct CsvConverter<1, RecordType>
   }
 };
 
-} // namespace zisc_csv 
+} // namespace inner 
 
 /*!
   \details
@@ -211,7 +211,7 @@ auto Csv<Type, Types...>::parseCsvLine(
   }
   if (is_success) {
     constexpr uint size = columnSize();
-    return zisc_csv::CsvConverter<size, RecordType>::toCxx(results);
+    return inner::CsvConverter<size, RecordType>::toCxx(results);
   }
   else {
     return RecordType{};

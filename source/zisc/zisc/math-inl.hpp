@@ -187,7 +187,7 @@ Float invSqrt(const Float n) noexcept
 #endif // ZISC_MATH_INVERSE_SQRT
 }
 
-namespace zisc_math {
+namespace inner {
 
 template <int64 n, typename Float>
 struct TaylorCoefficient
@@ -344,7 +344,7 @@ constexpr Float sqrt(const Float x) noexcept
   return m * s * e;
 }
 
-} // namespace zisc_math
+} // namespace inner
 
 /*!
   \details
@@ -357,7 +357,7 @@ Float sqrt(const Float n) noexcept
 #ifndef ZISC_MATH_SQRT
   return std::sqrt(n);
 #else // ZISC_MATH_SQRT 
-  return zisc_math::sqrt(n);
+  return inner::sqrt(n);
 #endif // ZISC_MATH_SQRT 
 }
 
@@ -421,7 +421,7 @@ Float log2(const Float x) noexcept
 #endif // ZISC_MATH_EFFICIENT_EXPONENTIAL
 }
 
-namespace zisc_math {
+namespace inner {
 
 /*!
   */
@@ -513,7 +513,7 @@ Float arccos(const Float x) noexcept
   return twice * arctan(sqrt(one - power<2>(x)) / (one + x));
 }
 
-} // namespace zisc_math
+} // namespace inner
 
 /*!
   \details
@@ -526,7 +526,7 @@ Float sin(const Float theta) noexcept
 #ifndef ZISC_MATH_SIN
   return std::sin(theta);
 #else // ZISC_MATH_SIN
-  return zisc_math::sin(theta);
+  return inner::sin(theta);
 #endif // ZISC_MATH_SIN
 }
 
@@ -541,7 +541,7 @@ Float cos(const Float theta) noexcept
 #ifndef ZISC_MATH_COS
   return std::cos(theta);
 #else // ZISC_MATH_COS
-  return zisc_math::cos(theta);
+  return inner::cos(theta);
 #endif // ZISC_MATH_COS
 }
 
@@ -560,7 +560,7 @@ Float tan(const Float theta) noexcept
 #ifndef ZISC_MATH_TAN
   return std::tan(theta);
 #else // ZISC_MATH_TAN
-  return zisc_math::tan(theta);
+  return inner::tan(theta);
 #endif // ZISC_MATH_TAN
 }
 
@@ -578,7 +578,7 @@ Float asin(const Float x) noexcept
 #ifndef ZISC_MATH_ASIN
   return std::asin(x);
 #else // ZISC_MATH_ASIN
-  return zisc_math::arcsin(x);
+  return inner::arcsin(x);
 #endif // ZISC_MATH_ASIN
 }
 
@@ -596,7 +596,7 @@ Float acos(const Float x) noexcept
 #ifndef ZISC_MATH_ACOS
   return std::acos(x);
 #else // ZISC_MATH_ACOS
-  return zisc_math::arccos(x);
+  return inner::arccos(x);
 #endif // ZISC_MATH_ACOS
 }
 
@@ -612,7 +612,7 @@ Float atan(const Float x) noexcept
 #ifndef ZISC_MATH_ATAN
   return std::atan(x);
 #else // ZISC_MATH_ATAN
-  return zisc_math::arctan(x);
+  return inner::arctan(x);
 #endif // ZISC_MATH_ATAN
 }
 
@@ -643,7 +643,7 @@ std::tuple<std::array<Float, 2>, uint> solveQuadratic(const Float a,
   return std::make_tuple(x, n);
 }
 
-namespace zisc_math {
+namespace inner {
 
 /*!
   \details
@@ -675,7 +675,7 @@ Float solveCubicOneY(const Float p, const Float q) noexcept
   return y;
 }
 
-} // namespace zisc_math
+} // namespace inner
 
 /*!
   \details
@@ -690,7 +690,7 @@ Float solveCubicOne(const Float b, const Float c, const Float d) noexcept
 
   const Float p = (b * k + c);
   const Float q = (((2.0 / 3.0) * b * k + c) * k + d);
-  const Float y = zisc_math::solveCubicOneY(p, q);
+  const Float y = inner::solveCubicOneY(p, q);
   const Float x = y  +  k;
   return x;
 }
@@ -713,12 +713,12 @@ Float solveCubicOne(const Float a,
 
   const Float p = (b * k + c) * inv_a;
   const Float q = (((2.0 / 3.0) * b * k + c) * k + d) * inv_a;
-  const Float y = zisc_math::solveCubicOneY(p, q);
+  const Float y = inner::solveCubicOneY(p, q);
   const Float x = y  +  k;
   return x;
 }
 
-namespace zisc_math {
+namespace inner {
 
 /*!
   \details
@@ -737,7 +737,7 @@ void sortQuarticResults(const std::array<Float, 2>& x1,
   x[3] = min(x1[1], x2[1]);
 }
 
-} // namespace zisc_math
+} // namespace inner
 
 /*!
   \details
@@ -784,7 +784,7 @@ std::tuple<std::array<Float, 4>, uint> solveQuartic(const Float a,
       x2[1] = 0.5 * (-f - root_d2) + k;
       n += 2;
     }
-    zisc_math::sortQuarticResults(x1, x2, x);
+    inner::sortQuarticResults(x1, x2, x);
   }
   return std::make_tuple(x, n);
 }

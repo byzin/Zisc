@@ -252,25 +252,25 @@ namespace zisc {
 //! Return the regex pattern of boolean
 constexpr auto getBooleanPattern() noexcept
 {
-  return zisc_string::ValueStringPattern::boolean();
+  return inner::ValueStringPattern::boolean();
 }
 
 //! Return the regex pattern of floating-point
-constexpr auto getFloatPattern() noexcept 
+constexpr auto getFloatPattern() noexcept
 {
-  return zisc_string::ValueStringPattern::floatingPoint();
+  return inner::ValueStringPattern::floatingPoint();
 }
 
 //! Return the regex pattern of integer
 constexpr auto getIntegerPattern() noexcept
 {
-  return zisc_string::ValueStringPattern::integer();
+  return inner::ValueStringPattern::integer();
 }
 
 //! Return the regex pattern of string
 constexpr auto getStringPattern() noexcept
 {
-  return zisc_string::ValueStringPattern::string();
+  return inner::ValueStringPattern::string();
 }
 
 } // namespace zisc

@@ -10,12 +10,12 @@
 #ifndef ZISC_SPIN_LOCK_HPP
 #define ZISC_SPIN_LOCK_HPP
 
-namespace zisc {
-
 // Standard C++ library
 #include <atomic>
 // Zisc
 #include "non_copyable.hpp"
+
+namespace zisc {
 
 /*!
   \brief SpinLock class provides spin lock functions

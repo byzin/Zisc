@@ -26,7 +26,7 @@
 
 namespace zisc {
 
-namespace zisc_algorithm {
+namespace inner {
 
 /*!
   \details
@@ -67,7 +67,7 @@ void toBinaryTree(
   }
 }
 
-} // namespace zisc_algorithm
+} // namespace inner
 
 /*!
   \details
@@ -122,11 +122,11 @@ void toBinaryTree(
     for (auto iterator = begin; iterator != end; ++iterator)
       array.emplace_back(std::move(*iterator));
     // Transform an array to a binary tree
-    zisc_algorithm::toBinaryTree(array.begin(), array.end(), 0, begin);
+    inner::toBinaryTree(array.begin(), array.end(), 0, begin);
   }
 }
 
-namespace zisc_algorithm {
+namespace inner {
 
 /*!
   \brief Calculate the hash of string using FNV-1a
@@ -146,7 +146,7 @@ constexpr ValueType toHash(const char* string, const ValueType hash) noexcept
   }
 }
 
-} // namespace zisc_algorithm  
+} // namespace inner  
 
 /*!
   \details
@@ -157,7 +157,7 @@ constexpr uint32 toHash32(const char* string) noexcept
 {
   constexpr uint32 prime = 16777619;
   constexpr uint32 offset = 2166136261;
-  return zisc_algorithm::toHash<uint32, prime>(string, offset);
+  return inner::toHash<uint32, prime>(string, offset);
 }
 
 /*!
@@ -169,7 +169,7 @@ constexpr uint64 toHash64(const char* string) noexcept
 {
   constexpr uint64 prime = 1099511628211;
   constexpr uint64 offset = 14695981039346656037ull;
-  return zisc_algorithm::toHash<uint64, prime>(string, offset);
+  return inner::toHash<uint64, prime>(string, offset);
 }
 
 } // namespace zisc

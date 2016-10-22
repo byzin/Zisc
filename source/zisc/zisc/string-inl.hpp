@@ -271,7 +271,7 @@ constexpr String<N> toString(const char (&string)[N]) noexcept
   return String<N>{string};
 }
 
-namespace zisc_string {
+namespace inner {
 
 /*!
   \details
@@ -321,19 +321,19 @@ class ValueStringPattern
   }
 };
 
-} // namespace zisc_string
+} // namespace inner
 
 /*!
   \details
   No detailed.
   */
 inline
-ValueString::ValueString() noexcept : 
-    float_pattern_{zisc_string::ValueStringPattern::floatingPoint().toCString(),
+ValueString::ValueString() noexcept :
+    float_pattern_{inner::ValueStringPattern::floatingPoint().toCString(),
                    regexOption()},
-    int_pattern_{zisc_string::ValueStringPattern::integer().toCString(), 
+    int_pattern_{inner::ValueStringPattern::integer().toCString(),
                  regexOption()},
-    string_pattern_{zisc_string::ValueStringPattern::string().toCString(),
+    string_pattern_{inner::ValueStringPattern::string().toCString(),
                     regexOption()}
 {
 }
@@ -604,33 +604,33 @@ std::string toCxxString(const std::string& string) noexcept
   return string.substr(1, string.size() - 2);
 }
 
-namespace zisc_string {
+namespace inner {
 
-template <typename String, typename Type> inline
+template <typename Type, typename String> inline
 Type toCxxValue(const String& string, EnableIfBoolean<Type> = kEnabler) noexcept
 {
   return toBoolean(string);
 }
 
-template <typename String, typename Type> inline
+template <typename Type, typename String> inline
 Type toCxxValue(const String& string, EnableIfFloat<Type> = kEnabler) noexcept
 {
   return toFloat<Type>(string);
 }
 
-template <typename String, typename Type> inline
+template <typename Type, typename String> inline
 Type toCxxValue(const String& string, EnableIfInteger<Type> = kEnabler) noexcept
 {
   return toInteger<Type>(string);
 }
 
-template <typename String, typename Type> inline
+template <typename Type, typename String> inline
 Type toCxxValue(const String& string, EnableIfSame<std::string, Type> = kEnabler) noexcept
 {
   return toCxxString(string);
 }
 
-} // namespace zisc_string
+} // namespace inner
 
 /*!
   \details
@@ -639,7 +639,7 @@ Type toCxxValue(const String& string, EnableIfSame<std::string, Type> = kEnabler
 template <typename Type> inline
 Type toCxxValue(const char* string) noexcept
 {
-  return zisc_string::toCxxValue<const char*, Type>(string);
+  return inner::toCxxValue<const char*, Type>(string);
 }
 
 /*!
@@ -649,10 +649,10 @@ Type toCxxValue(const char* string) noexcept
 template <typename Type> inline
 Type toCxxValue(const std::string& string) noexcept
 {
-  return zisc_string::toCxxValue<std::string, Type>(string);
+  return inner::toCxxValue<std::string, Type>(string);
 }
 
-namespace zisc_string {
+namespace inner {
 
 /*!
   \details
@@ -696,7 +696,7 @@ bool isCxxStringString(const Type& string) noexcept
   return std::regex_match(string, string_pattern);
 }
 
-} // namespace zisc_string
+} // namespace inner
 
 /*!
  \details
@@ -727,7 +727,7 @@ bool isBooleanString(const std::string& string) noexcept
 inline
 bool isFloatString(const char* string) noexcept
 {
-  return zisc_string::isFloatString(string);
+  return inner::isFloatString(string);
 }
 
 /*!
@@ -737,7 +737,7 @@ bool isFloatString(const char* string) noexcept
 inline
 bool isFloatString(const std::string& string) noexcept
 {
-  return zisc_string::isFloatString(string);
+  return inner::isFloatString(string);
 }
 
 /*!
@@ -747,7 +747,7 @@ bool isFloatString(const std::string& string) noexcept
 inline
 bool isIntegerString(const char* string) noexcept
 {
-  return zisc_string::isIntegerString(string);
+  return inner::isIntegerString(string);
 }
 
 /*!
@@ -757,7 +757,7 @@ bool isIntegerString(const char* string) noexcept
 inline
 bool isIntegerString(const std::string& string) noexcept
 {
-  return zisc_string::isIntegerString(string);
+  return inner::isIntegerString(string);
 }
 
 /*!
@@ -767,7 +767,7 @@ bool isIntegerString(const std::string& string) noexcept
 inline
 bool isCxxStringString(const char* string) noexcept
 {
-  return zisc_string::isCxxStringString(string);
+  return inner::isCxxStringString(string);
 }
 
 /*!
@@ -777,7 +777,7 @@ bool isCxxStringString(const char* string) noexcept
 inline
 bool isCxxStringString(const std::string& string) noexcept
 {
-  return zisc_string::isCxxStringString(string);
+  return inner::isCxxStringString(string);
 }
 
 /*!

@@ -151,7 +151,7 @@ constexpr uint Matrix<Arithmetic, kRow, kColumn>::columnSize() noexcept
   return kColumn;
 }
 
-namespace zisc_matrix {
+namespace inner {
 
 /*!
   \details
@@ -186,7 +186,7 @@ Arithmetic calculateDeterminant(const Matrix<Arithmetic, 1, 1>& matrix) noexcept
   return matrix(0, 0);
 }
 
-} // namespace zisc_matrix
+} // namespace inner
 
 /*!
   \details
@@ -196,7 +196,7 @@ template <typename Arithmetic, uint kRow, uint kColumn> inline
 Arithmetic Matrix<Arithmetic, kRow, kColumn>::determinant() const noexcept
 {
   static_assert(isSquareMatrix(), "Matrix isn't square matrix.");
-  return zisc_matrix::calculateDeterminant(*this);
+  return inner::calculateDeterminant(*this);
 }
 
 /*!

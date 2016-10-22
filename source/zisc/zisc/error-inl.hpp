@@ -17,7 +17,7 @@
 
 namespace zisc {
 
-namespace zisc_error {
+namespace inner {
 
 /*!
   \details
@@ -40,7 +40,7 @@ void outputErrorMessage(const Type& message, const Types&... messages) noexcept
   outputErrorMessage(messages...);
 }
 
-} // namespace zisc_error
+} // namespace inner
 
 /*!
   \details
@@ -61,7 +61,7 @@ void assertError(const bool condition, const Types& ...messages) noexcept
 template <typename ...Types> inline
 void raiseError(const Types&... messages) noexcept
 {
-  zisc_error::outputErrorMessage(messages..., "\n");
+  inner::outputErrorMessage(messages..., "\n");
   std::exit(EXIT_FAILURE);
 }
 

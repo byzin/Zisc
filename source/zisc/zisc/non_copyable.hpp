@@ -29,6 +29,6 @@ class NonCopyable
   Type& operator=(const Type&) = delete;
 };
 
-} // namespace misc
+} // namespace zisc
 
 #endif // ZISC_NON_COPYABLE_HPP

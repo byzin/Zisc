@@ -141,7 +141,7 @@ void ThreadPool::createWorkers(const uint num_of_threads) noexcept
   }
 }
 
-namespace zisc_thread_pool {
+namespace inner {
 
 //! Process a task
 template <typename ReturnType, typename Task> inline
@@ -209,7 +209,7 @@ uint distance(Iterator begin,
   return cast<uint>(end - begin);
 }
 
-} // namespace zisc_thread_pool
+} // namespace inner
 
 /*!
   \details
@@ -222,7 +222,7 @@ std::future<ReturnType> ThreadPool::enqueueTask(Task& task) noexcept
   auto shared_task = new std::packaged_task<ReturnType (int)>{
   [task = std::move(task)](const int thread_id) noexcept
   {
-    return zisc_thread_pool::processTask<ReturnType>(task, thread_id);
+    return inner::processTask<ReturnType>(task, thread_id);
   }};
   auto result = shared_task->get_future();
   // Make a task
@@ -261,7 +261,7 @@ std::future<void> ThreadPool::enqueueLoopTask(Task& task,
     std::atomic<uint> counter_; //!< Counts uncompleted tasks
   };
   // Make a shared resource
-  const uint distance = zisc_thread_pool::distance(begin, end);
+  const uint distance = inner::distance(begin, end);
   auto shared_resource = new SharedResource{task, distance};
   // Make a result
   auto result = shared_resource->exit_loop_.get_future();
@@ -273,7 +273,7 @@ std::future<void> ThreadPool::enqueueLoopTask(Task& task,
       [shared_resource, iterator](const int thread_id) noexcept
       {
         auto& shared_task = shared_resource->shared_task_;
-        zisc_thread_pool::processLoopTask(shared_task, thread_id, iterator);
+        inner::processLoopTask(shared_task, thread_id, iterator);
         const uint count = --(shared_resource->counter_);
         if (count == 0) {
           shared_resource->exit_loop_();

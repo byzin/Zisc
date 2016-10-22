@@ -19,7 +19,7 @@
 
 namespace zisc {
 
-namespace zisc_type_traits {
+namespace inner {
 
 //! Check if Type is boolean type
 template <typename Type>
@@ -113,7 +113,7 @@ struct IsRandomAccessIterator<void> : std::false_type {};
 template <>
 struct IsRandomAccessIterator<void*> : std::false_type {};
 
-} // namespace zisc_type_traits
+} // namespace inner
 
 } // namespace zisc
 

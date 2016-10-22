@@ -23,30 +23,29 @@ namespace zisc {
 
 //! Check if Type is boolean type
 template <typename Type>
-constexpr bool kIsBoolean = zisc_type_traits::IsBoolean<Type>::value;
+constexpr bool kIsBoolean = inner::IsBoolean<Type>::value;
 
 //! Check if Type is bloating point type
 template <typename Type>
-constexpr bool kIsFloat = zisc_type_traits::IsFloat<Type>::value;
+constexpr bool kIsFloat = inner::IsFloat<Type>::value;
 
 //! Check if Type is integer type
 template <typename Type>
-constexpr bool kIsInteger = zisc_type_traits::IsInteger<Type>::value;
+constexpr bool kIsInteger = inner::IsInteger<Type>::value;
 
 //! Check if Type is unsigned integer type
 template <typename Type>
-constexpr bool kIsUnsignedInteger = zisc_type_traits::IsUnsignedInteger<Type>::value;
+constexpr bool kIsUnsignedInteger = inner::IsUnsignedInteger<Type>::value;
 
 //! Check if Type is signed integer type
 template <typename Type>
-constexpr bool kIsSignedInteger = zisc_type_traits::IsSignedInteger<Type>::value;
+constexpr bool kIsSignedInteger = inner::IsSignedInteger<Type>::value;
 
 template <typename Type>
-constexpr bool kIsIterator = zisc_type_traits::IsIterator<Type>::value;
+constexpr bool kIsIterator = inner::IsIterator<Type>::value;
 
 template <typename Type>
-constexpr bool kIsRandomAccessIterator = 
-    zisc_type_traits::IsRandomAccessIterator<Type>::value;
+constexpr bool kIsRandomAccessIterator = inner::IsRandomAccessIterator<Type>::value;
 
 // SFINAE
 

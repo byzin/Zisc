@@ -18,6 +18,7 @@
 #include <mutex>
 #include <queue>
 #include <thread>
+#include <tuple>
 #include <utility>
 #include <vector>
 // Zisc
@@ -41,6 +42,15 @@ class ThreadPool : public NonCopyable<ThreadPool>
   //! Terminate threads
   ~ThreadPool();
 
+
+  //! Calculate a range of a thread
+  static std::tuple<uint, uint> calcThreadRange(const uint range,
+                                                const uint num_of_threads,
+                                                const uint thread_id) noexcept;
+
+  //! Calculate a range of a thread
+  std::tuple<uint, uint> calcThreadRange(const uint range, 
+                                         const uint thread_id) const noexcept;
 
   //! A worker thread run a task
   template <typename ReturnType, typename Task>

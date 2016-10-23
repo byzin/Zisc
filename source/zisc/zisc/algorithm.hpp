@@ -18,10 +18,18 @@
 
 namespace zisc {
 
+//! Sort a array
+template <typename Type, typename Function>
+void binaryRadixSort(std::vector<Type>* container, Function bits_function) noexcept;
+
+//! Sort a array of uninteger values
+template <typename UnsignedInteger>
+void binaryRadixSort(std::vector<UnsignedInteger>* container) noexcept;
+
 //! Return the iterator pointing that the element is greatest <= value
 template <typename RandomAccessIterator, typename Type>
 RandomAccessIterator searchBinaryTree(
-    const RandomAccessIterator begin, 
+    const RandomAccessIterator begin,
     const RandomAccessIterator end,
     const Type& value,
     EnableIfRandomAccessIterator<RandomAccessIterator> = kEnabler) noexcept;
@@ -29,7 +37,7 @@ RandomAccessIterator searchBinaryTree(
 //! Transform a sorted unique array to a binary tree
 template <typename RandomAccessIterator>
 void toBinaryTree(
-    RandomAccessIterator begin, 
+    RandomAccessIterator begin,
     RandomAccessIterator end,
     EnableIfRandomAccessIterator<RandomAccessIterator> = kEnabler) noexcept;
 

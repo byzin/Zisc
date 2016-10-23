@@ -18,6 +18,7 @@
 #include <iterator>
 #include <memory>
 #include <thread>
+#include <tuple>
 #include <type_traits>
 #include <queue>
 #include <utility>
@@ -61,6 +62,34 @@ ThreadPool::~ThreadPool()
 {
   exitWorkersRunning();
 }
+
+/*!
+  */
+inline
+std::tuple<uint, uint> ThreadPool::calcThreadRange(
+    const uint range,
+    const uint num_of_threads,
+    const uint thread_id) noexcept
+{
+  const uint n = range / num_of_threads;
+  const uint begin = n * thread_id;
+  const uint end = n * (thread_id + 1) +
+      ((cast<uint>(thread_id + 1) == num_of_threads)
+          ? (range % num_of_threads)
+          : 0);
+  return std::make_tuple(begin, end);
+}
+
+/*!
+  */
+inline
+std::tuple<uint, uint> ThreadPool::calcThreadRange(
+    const uint range,
+    const uint thread_id) const noexcept
+{
+  return calcThreadRange(range, numOfThreads(), thread_id);
+}
+
 
 /*!
   \details

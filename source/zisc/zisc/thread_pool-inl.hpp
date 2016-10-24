@@ -156,14 +156,11 @@ void ThreadPool::createWorkers(const uint num_of_threads) noexcept
         {
           std::unique_lock<std::mutex> locker{lock_};
           task = takeTask();
+          if (workersAreEnabled() && !task)
+            condition_.wait(locker);
         }
-        if (task) {
+        if (task)
           task(thread_id);
-        }
-        else if (workersAreEnabled()){
-          std::unique_lock<std::mutex> locker{lock_};
-          condition_.wait(locker);
-        }
       }
     };
     workers_.emplace_back(work);

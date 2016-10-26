@@ -127,7 +127,7 @@ class ArithmeticArray
 
 
   //! Clamp all elements
-  void clamp(const Arithmetic min_value, const Arithmetic max_value) noexcept;
+  void clampAll(const Arithmetic min_value, const Arithmetic max_value) noexcept;
 
   //! Divide a scalar by a array
   ArithmeticArray divideScalar(const Arithmetic scalar) const noexcept;
@@ -141,8 +141,14 @@ class ArithmeticArray
   //! Return the reference by index.
   const Arithmetic& get(const uint index) const noexcept;
 
+  //! Check whether the array has the specified value
+  bool hasValue(const Arithmetic value) const noexcept;
+
+  //! Check whether all elements are between \p lower and \p upper
+  bool isAllInBounds(const Arithmetic lower, const Arithmetic upper) const noexcept;
+
   //! Check whether all elements are zero
-  bool isZeroArray() const noexcept;
+  bool isAllZero() const noexcept;
 
   //! Return the largest element
   Arithmetic max() const noexcept;
@@ -215,7 +221,7 @@ template <typename Arithmetic, uint kN>
 ArithmeticArray<Arithmetic, kN> operator/(
     const Arithmetic scalar,
     const ArithmeticArray<Arithmetic, kN>& array) noexcept;
-                                    
+
 //! Calculate the cross product
 template <typename Arithmetic, uint kN>
 ArithmeticArray<Arithmetic, kN> cross(

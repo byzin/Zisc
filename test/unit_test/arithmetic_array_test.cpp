@@ -30,14 +30,14 @@ TEST(ArithmeticArrayTest, Array3Test)
 
   // IsZero test
   zisc::ArithmeticArray<int, 3> non_zero_array{1, 2, 3};
-  ASSERT_FALSE(non_zero_array.isZeroArray()) << "IsZero test failed.";
+  ASSERT_FALSE(non_zero_array.isAllZero()) << "IsZero test failed.";
   zisc::ArithmeticArray<int, 3> zero_array{0, 0, 0};
-  ASSERT_TRUE(zero_array.isZeroArray()) << "IsZero test failed.";
+  ASSERT_TRUE(zero_array.isAllZero()) << "IsZero test failed.";
 
   // Fill test
   zisc::ArithmeticArray<int, 4> filled_array{0, 1, 2, 3};
   filled_array.fill(0);
-  ASSERT_TRUE(filled_array.isZeroArray()) << "Fill test failed.";
+  ASSERT_TRUE(filled_array.isAllZero()) << "Fill test failed.";
 
   // Addition operation test
   auto addition = array1 + array2;
@@ -81,13 +81,17 @@ TEST(ArithmeticArrayTest, Array3Test)
   }
 
   // Clamp test
-  array3.clamp(0.0, 2.0);
+  array3.clampAll(0.0, 2.0);
   ASSERT_DOUBLE_EQ(0.0, array3.min()) << "Clamp test failed.";
   ASSERT_DOUBLE_EQ(2.0, array3.max()) << "Clamp test failed.";
+  ASSERT_TRUE(array3.isAllInBounds(0.0, 2.0000001));
 
   // Sum test
   const zisc::ArithmeticArray<double, 5> a{1.0, 2.0, 3.0, 4.0, 5.0};
   ASSERT_DOUBLE_EQ(15.0, a.sum());
   const zisc::ArithmeticArray<int, 5> b{1, 2, 3, 4, 5};
   ASSERT_EQ(15, b.sum());
+
+  ASSERT_FALSE(a.hasValue(0.0));
+  ASSERT_TRUE(a.hasValue(1.0));
 }

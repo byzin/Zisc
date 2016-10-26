@@ -331,8 +331,8 @@ const Arithmetic& ArithmeticArray<Arithmetic, kN>::operator[](
   No detailed.
   */
 template <typename Arithmetic, uint kN> inline
-void ArithmeticArray<Arithmetic, kN>::clamp(const Arithmetic min_value,
-                                            const Arithmetic max_value) noexcept
+void ArithmeticArray<Arithmetic, kN>::clampAll(const Arithmetic min_value,
+                                               const Arithmetic max_value) noexcept
 {
   for (auto& element : elements_)
     element = zisc::clamp(element, min_value, max_value);
@@ -387,21 +387,45 @@ const Arithmetic& ArithmeticArray<Arithmetic, kN>::get(const uint index) const n
 }
 
 /*!
+  */
+template <typename Arithmetic, uint kN> inline
+bool ArithmeticArray<Arithmetic, kN>::hasValue(const Arithmetic value) const noexcept
+{
+  bool result = false;
+  for (uint index = 0; (index < size()) && !result; ++index)
+    result = elements_[index] == value;
+  return result;
+}
+
+/*!
   \details
   No detailed.
   */
 template <typename Arithmetic, uint kN> inline
-bool ArithmeticArray<Arithmetic, kN>::isZeroArray() const noexcept
+bool ArithmeticArray<Arithmetic, kN>::isAllInBounds(
+    const Arithmetic lower,
+    const Arithmetic upper) const noexcept
 {
-  bool flag = true;
-  for (uint index = 1; index < size(); ++index) {
+  bool result = true;
+  for (uint index = 0; (index < size()) && result; ++index)
+    result = isInBounds(elements_[index], lower, upper);
+  return result;
+}
+
+
+/*!
+  \details
+  No detailed.
+  */
+template <typename Arithmetic, uint kN> inline
+bool ArithmeticArray<Arithmetic, kN>::isAllZero() const noexcept
+{
+  bool result = true;
+  for (uint index = 0; (index < size()) && result; ++index) {
     constexpr auto zero = cast<Arithmetic>(0);
-    if (elements_[index] != zero) {
-      flag = false;
-      break;
-    }
+    result = elements_[index] == zero;
   }
-  return flag;
+  return result;
 }
 
 /*!
@@ -553,17 +577,13 @@ Type ArithmeticArray<Arithmetic, kN>::sumArray(
   */
 template <typename Arithmetic, uint kN> inline
 bool operator==(
-    const ArithmeticArray<Arithmetic, kN>& a, 
+    const ArithmeticArray<Arithmetic, kN>& a,
     const ArithmeticArray<Arithmetic, kN>& b) noexcept
 {
-  bool flag = true;
-  for (uint index = 0; index < kN; ++index) {
-    if (a[index] != b[index]) {
-      flag = false;
-      break;
-    }
-  }
-  return flag;
+  bool result = true;
+  for (uint index = 0; (index < kN) && result; ++index)
+    result = a[index] == b[index];
+  return result;
 }
 
 /*!
@@ -572,7 +592,7 @@ bool operator==(
   */
 template <typename Arithmetic, uint kN> inline
 bool operator!=(
-    const ArithmeticArray<Arithmetic, kN>& a, 
+    const ArithmeticArray<Arithmetic, kN>& a,
     const ArithmeticArray<Arithmetic, kN>& b) noexcept
 {
   return !(a == b);

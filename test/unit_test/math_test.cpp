@@ -267,19 +267,19 @@ TEST(MathTest, SolveQuarticTest)
 TEST(MathTest, sqrtTaylorCoefficientTest)
 {
   {
-    constexpr auto k = zisc::zisc_math::TaylorCoefficient<1, double>::sqrt();
+    constexpr auto k = zisc::inner::TaylorCoefficient<1, double>::sqrt();
     ASSERT_DOUBLE_EQ(1.0 / 2.0, k);
   }
   {
-    constexpr auto k = zisc::zisc_math::TaylorCoefficient<2, double>::sqrt();
+    constexpr auto k = zisc::inner::TaylorCoefficient<2, double>::sqrt();
     ASSERT_DOUBLE_EQ(-1.0 / 8.0, k);
   }
   {
-    constexpr auto k = zisc::zisc_math::TaylorCoefficient<3, double>::sqrt();
+    constexpr auto k = zisc::inner::TaylorCoefficient<3, double>::sqrt();
     ASSERT_DOUBLE_EQ(1.0 / 16.0, k);
   }
   {
-    constexpr auto k = zisc::zisc_math::TaylorCoefficient<4, double>::sqrt();
+    constexpr auto k = zisc::inner::TaylorCoefficient<4, double>::sqrt();
     ASSERT_DOUBLE_EQ(-5.0 / 128.0, k);
   }
 }
@@ -352,8 +352,8 @@ TEST(MathTest, sqrtLongRangeConvergenceTest)
   constexpr int64 end = 1000'000'000'000;
   constexpr int64 interval = 1000;
   constexpr double k = cast<double>(end);
-  auto zisc1_func = [](const double value){return zisc::zisc_math::sqrt<4>(value);};
-  auto zisc2_func = [](const double value){return zisc::zisc_math::sqrt<3>(value);};
+  auto zisc1_func = [](const double value){return zisc::inner::sqrt<4>(value);};
+  auto zisc2_func = [](const double value){return zisc::inner::sqrt<3>(value);};
   ::testMathAccuracy("sqrt", start, end, interval, k, zisc1_func, zisc2_func);
 }
 
@@ -378,8 +378,8 @@ TEST(MathTest, sqrtSmallRangeConvergenceTest)
   constexpr int64 end = 1'000'000'000;
   constexpr int64 interval = 10;
   constexpr double k = 1.0;
-  auto zisc1_func = [](const double value){return zisc::zisc_math::sqrt<4>(value);};
-  auto zisc2_func = [](const double value){return zisc::zisc_math::sqrt<3>(value);};
+  auto zisc1_func = [](const double value){return zisc::inner::sqrt<4>(value);};
+  auto zisc2_func = [](const double value){return zisc::inner::sqrt<3>(value);};
   ::testMathAccuracy("sqrt", start, end, interval, k, zisc1_func, zisc2_func);
 }
 
@@ -391,22 +391,22 @@ TEST(MathTest, sinTaylorCoefficientTest)
 {
   using zisc::cast;
   {
-    constexpr double v = zisc::zisc_math::TaylorCoefficient<1, double>::sin();
+    constexpr double v = zisc::inner::TaylorCoefficient<1, double>::sin();
     constexpr double reference = -1.0 / cast<double>(zisc::factorial(3));
     ASSERT_DOUBLE_EQ(reference, v);
   }
   {
-    constexpr double v = zisc::zisc_math::TaylorCoefficient<2, double>::sin();
+    constexpr double v = zisc::inner::TaylorCoefficient<2, double>::sin();
     constexpr double reference = 1.0 / cast<double>(zisc::factorial(5));
     ASSERT_DOUBLE_EQ(reference, v);
   }
   {
-    constexpr double v = zisc::zisc_math::TaylorCoefficient<3, double>::sin();
+    constexpr double v = zisc::inner::TaylorCoefficient<3, double>::sin();
     constexpr double reference = -1.0 / cast<double>(zisc::factorial(7));
     ASSERT_DOUBLE_EQ(reference, v);
   }
   {
-    constexpr double v = zisc::zisc_math::TaylorCoefficient<4, double>::sin();
+    constexpr double v = zisc::inner::TaylorCoefficient<4, double>::sin();
     constexpr double reference = 1.0 / cast<double>(zisc::factorial(9));
     ASSERT_DOUBLE_EQ(reference, v);
   }
@@ -587,22 +587,22 @@ TEST(MathTest, arctanTaylorCoefficientTest)
 {
   using zisc::cast;
   {
-    constexpr double v = zisc::zisc_math::TaylorCoefficient<1, double>::arctan();
+    constexpr double v = zisc::inner::TaylorCoefficient<1, double>::arctan();
     constexpr double reference = -1.0 / 3.0;
     ASSERT_DOUBLE_EQ(reference, v);
   }
   {
-    constexpr double v = zisc::zisc_math::TaylorCoefficient<2, double>::arctan();
+    constexpr double v = zisc::inner::TaylorCoefficient<2, double>::arctan();
     constexpr double reference = 1.0 / 5.0;
     ASSERT_DOUBLE_EQ(reference, v);
   }
   {
-    constexpr double v = zisc::zisc_math::TaylorCoefficient<3, double>::arctan();
+    constexpr double v = zisc::inner::TaylorCoefficient<3, double>::arctan();
     constexpr double reference = -1.0 / 7.0;
     ASSERT_DOUBLE_EQ(reference, v);
   }
   {
-    constexpr double v = zisc::zisc_math::TaylorCoefficient<4, double>::arctan();
+    constexpr double v = zisc::inner::TaylorCoefficient<4, double>::arctan();
     constexpr double reference = 1.0 / 9.0;
     ASSERT_DOUBLE_EQ(reference, v);
   }

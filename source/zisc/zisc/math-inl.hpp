@@ -28,7 +28,7 @@ namespace zisc {
 #if defined(ZISC_MATH_EFFICIENT_POWER)
 //#define ZISC_MATH_POW
 //#define ZISC_MATH_INVERSE_SQRT
-#define ZISC_MATH_SQRT
+//#define ZISC_MATH_SQRT
 #endif // ZISC_MATH_EFFICIENT_POWER
 
 #if defined(ZISC_MATH_EFFICIENT_TRIGONOMETRIC)
@@ -206,7 +206,7 @@ struct TaylorCoefficient
     const Fraction64 k{power<n>(-1ll), factorial(2ll * n + 1ll)};
     return k.toFloat<Float>();
   }
-  
+
   static constexpr Float sqrt() noexcept
   {
     int64 p = 1;
@@ -278,71 +278,7 @@ struct IterationMethod<n, end, true>
     constexpr auto k = TaylorCoefficient<n, Float>::arctan();
     return power<2>(x) * k;
   }
-
-  template <typename Float>
-  static constexpr Float sqrtTaylor(const Float x) noexcept
-  {
-    static_assert(kIsFloat<Float>, "Float isn't floating point.");
-    return x * TaylorCoefficient<n, Float>::sqrt();
-  }
-
-  template <typename Float>
-  static constexpr Float sqrtNewton(const Float s, const Float x) noexcept
-  {
-    static_assert(kIsFloat<Float>, "Float isn't floating point.");
-    constexpr Float half = cast<Float>(0.5);
-    return half * (x + s / x);
-  }
 };
-
-/*!
-  */
-template <int64 max_n = 4, typename Float> inline
-constexpr Float sqrtTaylor(const Float x) noexcept
-{
-  static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-  static_assert(0 < max_n, "The n isn't positive.");
-  constexpr Float one = cast<Float>(1.0);
-  return one + IterationMethod<1, max_n>::sqrtTaylor(x - one);
-}
-
-/*!
-  */
-template <int64 max_n = 4, typename Float> inline
-constexpr Float sqrtNewton(const Float s) noexcept
-{
-  static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-  static_assert(0 < max_n, "The n isn't positive.");
-  const Float x0 = sqrtTaylor<8>(s);
-  return IterationMethod<1, max_n>::sqrtNewton(s, x0);
-}
-
-/*!
-  */
-template <int64 max_n = 3, typename Float> inline
-constexpr Float sqrt(const Float x) noexcept
-{
-  // Exponent sqrt
-  static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-  constexpr int N = 8;
-  constexpr auto root2 = sqrtNewton<N>(cast<Float>(2.0));
-  constexpr auto inverse_root2 = sqrtNewton<N>(cast<Float>(0.5));
-  static_assert(root2 == sqrtNewton<N+1>(cast<Float>(2.0)),
-                "sqrt(2.0) isn't converged.");
-  static_assert(inverse_root2 == sqrtNewton<N+1>(cast<Float>(0.5)),
-                "sqrt(0.5) isn't converged.");
-  using FBit = FloatingPointBit<Float>;
-  const auto exponent = FBit::halfExponentBits(FBit::getExponentBits(x));
-  const Float e = FBit::makeFloat(cast<typename FBit::BitType>(0), exponent);
-  const Float s = (!FBit::isOddExponent(x))
-      ? cast<Float>(1.0) : (FBit::isPositiveExponent(x))
-      ? root2
-      : inverse_root2;
-  // Mantissa sqrt
-  auto m = FBit::makeFloat(FBit::getMantissaBits(x), FBit::exponentValueBitMask());
-  m = sqrtNewton<max_n>(m);
-  return m * s * e;
-}
 
 } // namespace inner
 
@@ -357,7 +293,7 @@ Float sqrt(const Float n) noexcept
 #ifndef ZISC_MATH_SQRT
   return std::sqrt(n);
 #else // ZISC_MATH_SQRT 
-  return inner::sqrt(n);
+  static_assert(false, "Optimized sqrt() is not implemented.");
 #endif // ZISC_MATH_SQRT 
 }
 
@@ -572,9 +508,7 @@ template <typename Float> inline
 Float asin(const Float x) noexcept
 {
   static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-  ZISC_ASSERTION_STATEMENT(constexpr auto one = cast<Float>(1.0));
-  ZISC_ASSERT(isInClosedBounds(x, -one, one),
-              "The x is out of range.");
+  ZISC_ASSERT(isInClosedBounds(x, -1.0, 1.0), "The x is out of range.");
 #ifndef ZISC_MATH_ASIN
   return std::asin(x);
 #else // ZISC_MATH_ASIN
@@ -590,9 +524,7 @@ template <typename Float> inline
 Float acos(const Float x) noexcept
 {
   static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-  ZISC_ASSERTION_STATEMENT(constexpr auto one = cast<Float>(1.0));
-  ZISC_ASSERT(isInClosedBounds(x, -one, one),
-              "The x is out of range.");
+  ZISC_ASSERT(isInClosedBounds(x, -1.0, 1.0), "The x is out of range.");
 #ifndef ZISC_MATH_ACOS
   return std::acos(x);
 #else // ZISC_MATH_ACOS
@@ -668,7 +600,7 @@ Float solveCubicOneY(const Float p, const Float q) noexcept
   else {
     ZISC_ASSERT(p < 0.0, "The p is positive: ", p);
     const Float r = sqrt((-1.0 / 3.0) * p);
-    const Float cos_theta = q / (-2.0 * r * r * r);
+    const Float cos_theta = clamp(q / (-2.0 * r * r * r), -1.0, 1.0);
     const Float phi = (1.0 / 3.0) * acos(cos_theta);
     y = 2.0 * r * cos(phi);
   }

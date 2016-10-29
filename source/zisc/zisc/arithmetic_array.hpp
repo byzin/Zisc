@@ -144,8 +144,11 @@ class ArithmeticArray
   //! Check whether the array has the specified value
   bool hasValue(const Arithmetic value) const noexcept;
 
-  //! Check whether all elements are between \p lower and \p upper
+  //! Check whether all elements are between [ \p lower , \p upper )
   bool isAllInBounds(const Arithmetic lower, const Arithmetic upper) const noexcept;
+
+  //! Check whether all elements are between [ \p lower , \p upper ]
+  bool isAllInClosedBounds(const Arithmetic lower, const Arithmetic upper) const noexcept;
 
   //! Check whether all elements are zero
   bool isAllZero() const noexcept;

@@ -412,6 +412,20 @@ bool ArithmeticArray<Arithmetic, kN>::isAllInBounds(
   return result;
 }
 
+/*!
+  \details
+  No detailed.
+  */
+template <typename Arithmetic, uint kN> inline
+bool ArithmeticArray<Arithmetic, kN>::isAllInClosedBounds(
+    const Arithmetic lower,
+    const Arithmetic upper) const noexcept
+{
+  bool result = true;
+  for (uint index = 0; (index < size()) && result; ++index)
+    result = isInClosedBounds(elements_[index], lower, upper);
+  return result;
+}
 
 /*!
   \details

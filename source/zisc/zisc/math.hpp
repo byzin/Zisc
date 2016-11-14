@@ -80,6 +80,10 @@ Float invSqrt(const Float n) noexcept;
 template <typename Float>
 Float sqrt(const Float n) noexcept;
 
+//! Calculate the square root
+template <typename Float>
+constexpr Float squareRoot(const Float n) noexcept;
+
 //! Calculate the cubic root
 template <typename Float>
 Float cbrt(const Float n) noexcept;

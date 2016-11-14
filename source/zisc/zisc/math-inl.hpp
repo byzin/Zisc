@@ -298,6 +298,21 @@ Float sqrt(const Float n) noexcept
 }
 
 /*!
+  */
+template <typename Float> inline
+constexpr Float squareRoot(const Float n) noexcept
+{
+  static_assert(kIsFloat<Float>, "Float isn't floating point type.");
+  Float x = cast<Float>(0.5) * n,
+        pre_x = cast<Float>(0.0);
+  while (x != pre_x) {
+    pre_x = x;
+    x = cast<Float>(0.5) * (pre_x + n / pre_x);
+  }
+  return x;
+}
+
+/*!
   \details
   No detailed.
   */

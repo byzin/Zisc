@@ -162,6 +162,16 @@ TEST(MathTest, powTest)
   ASSERT_DOUBLE_EQ(8.0, zisc::pow(2.0, 3.0));
 }
 
+TEST(MathTest, squareRootTest)
+{
+  constexpr double root2 = zisc::squareRoot(2.0);
+  ASSERT_DOUBLE_EQ(std::sqrt(2.0), root2);
+  ASSERT_DOUBLE_EQ(std::sqrt(3.0), zisc::squareRoot(3.0));
+  ASSERT_DOUBLE_EQ(std::sqrt(1000.0), zisc::squareRoot(1000.0));
+  constexpr double pi = zisc::kPi<double>;
+  ASSERT_DOUBLE_EQ(std::sqrt(pi), zisc::squareRoot(pi));
+}
+
 TEST(MathTest, cbrtTest)
 {
   ASSERT_DOUBLE_EQ(0.0, zisc::cbrt(0.0));

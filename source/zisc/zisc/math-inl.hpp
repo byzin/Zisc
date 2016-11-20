@@ -505,9 +505,6 @@ Float tan(const Float theta) noexcept
 {
   static_assert(kIsFloat<Float>, "Float isn't floating point type.");
   ZISC_ASSERT(theta != cast<Float>(0.0), "The x is 0.");
-  ZISC_ASSERTION_STATEMENT(constexpr auto half_pi = cast<Float>(0.5) * kPi<Float>);
-  ZISC_ASSERT(isInClosedBounds(theta, cast<Float>(0.0), half_pi),
-              "The theta is out of range.");
 #ifndef ZISC_MATH_TAN
   return std::tan(theta);
 #else // ZISC_MATH_TAN

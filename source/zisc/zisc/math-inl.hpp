@@ -612,9 +612,7 @@ Float solveCubicOneY(const Float p, const Float q) noexcept
   else {
     ZISC_ASSERT(p < 0.0, "The p is positive: ", p);
     const Float r = sqrt((-1.0 / 3.0) * p);
-    const Float cos_theta = q / (-2.0 * power<3>(r));
-    ZISC_ASSERT(isInClosedBounds(cos_theta, -1.0, 1.0),
-                "The cos_theta is out of range [-1, 1]: ", cos_theta);
+    const Float cos_theta = clamp(q / (-2.0 * power<3>(r)), -1.0, 1.0);
     const Float phi = (1.0 / 3.0) * acos(cos_theta);
     y = 2.0 * r * cos(phi);
   }

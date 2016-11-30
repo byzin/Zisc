@@ -604,15 +604,17 @@ Float solveCubicOneY(const Float p, const Float q) noexcept
     return sqrt(-p);
 
   Float y;
-  const Float discriminant = q * q + (4.0 / 27.0) * p * p * p;
+  const Float discriminant = power<2>(q) + (4.0 / 27.0) * power<3>(p);
   if (0.0 <= discriminant) {
-    const Float z = cbrt((1.0 / 2.0) * (sqrt(discriminant) - q));
+    const Float z = cbrt(0.5 * (sqrt(discriminant) - q));
     y = z - (p / (3.0 * z));
   }
   else {
     ZISC_ASSERT(p < 0.0, "The p is positive: ", p);
     const Float r = sqrt((-1.0 / 3.0) * p);
-    const Float cos_theta = clamp(q / (-2.0 * r * r * r), -1.0, 1.0);
+    const Float cos_theta = q / (-2.0 * power<3>(r));
+    ZISC_ASSERT(isInClosedBounds(cos_theta, -1.0, 1.0),
+                "The cos_theta is out of range [-1, 1]: ", cos_theta);
     const Float phi = (1.0 / 3.0) * acos(cos_theta);
     y = 2.0 * r * cos(phi);
   }
@@ -644,9 +646,9 @@ Float solveCubicOne(const Float b, const Float c, const Float d) noexcept
   Solve a cubic equation using "cubic reduction" method.
   */
 template <typename Float> inline
-Float solveCubicOne(const Float a, 
-                    const Float b, 
-                    const Float c, 
+Float solveCubicOne(const Float a,
+                    const Float b,
+                    const Float c,
                     const Float d) noexcept
 {
   static_assert(kIsFloat<Float>, "Float isn't floating point type.");

@@ -6,6 +6,7 @@
 # http://opensource.org/licenses/mit-license.php
 # 
 
+
 function(setCommandOption)
   set(option_description "Enable include-what-you-use.")
   setBooleanOption(ZISC_ENABLE_INCLUDE_WHAT_YOU_USE OFF ${option_description})

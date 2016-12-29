@@ -11,17 +11,17 @@ set(__test_root__ ${CMAKE_CURRENT_LIST_DIR})
 
 function(getTestWarningOption test_warning_flags)
   set(warning_flags "")
-  if(Z_IS_VISUAL_STUDIO AND Z_IS_CLANG)
+  if(Z_VISUAL_STUDIO AND Z_CLANG)
     list(APPEND warning_flags -Wno-deprecated-declarations
                               -Wno-sign-compare
                               )
-  elseif(Z_IS_CLANG)
+  elseif(Z_CLANG)
     list(APPEND warning_flags -Wno-sign-conversion
                               -Wno-float-equal
                               -Wno-used-but-marked-unused
                               -Wno-covered-switch-default
                               )
-  elseif(Z_IS_GCC)
+  elseif(Z_GCC)
     list(APPEND warning_flags -Wno-sign-conversion
                               -Wno-strict-overflow
                                )

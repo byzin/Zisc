@@ -13,9 +13,10 @@ cmake_minimum_required(VERSION 3.4)
 project(Zisc LANGUAGES C CXX)
 include(${PROJECT_SOURCE_DIR}/cmake/project.cmake)
 setZiscProperties()
-message(STATUS "## Zisc version: ${PROJECT_VERSION}")
+message(STATUS "Zisc version: ${PROJECT_VERSION}")
 
-# Debug info
+# Configure build types
+set(CMAKE_CONFIGURATION_TYPES "Debug" "RelWithDebInfo" "Release")
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE "Debug")
 endif()

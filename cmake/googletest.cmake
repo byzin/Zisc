@@ -6,17 +6,23 @@
 # http://opensource.org/licenses/mit-license.php
 #
 
+
 # Require GoogleTest project files: 
 function(buildGoogleTest gtest_project_root gtest_include_dir gtest_libraries)
   include(ExternalProject)
   set(googletest_build_dir ${PROJECT_BINARY_DIR}/googletest)
-  if(Z_IS_VISUAL_STUDIO)
-    set(googletest_build_command ${CMAKE_COMMAND} --build . --config Release)
+  set(googletest_build_command ${CMAKE_COMMAND} --build .)
+  if(Z_VISUAL_STUDIO)
+    if(Z_DEBUG_MODE)
+      list(APPEND googletest_build_command --config Debug)
+    else()
+      list(APPEND googletest_build_command --config Release)
+    endif()
     set(googletest_cmake_options -Dgtest_force_shared_crt=ON)
     set(libgtest_file_name "gtest.lib")
     set(libgtestmain_file_name "gtest_main.lib")
   else()
-    if(Z_IS_WINDOWS)
+    if(Z_WINDOWS)
       # For Windows mingw
       set(googletest_cmake_options -Dgtest_disable_pthreads=ON)
     endif()

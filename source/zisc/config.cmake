@@ -21,7 +21,7 @@ function(setZiscOption)
   setBooleanOption(ZISC_MATH_EFFICIENT_TRIGONOMETRIC OFF ${option_description})
 
   set(option_description "Enable zisc debugging.")
-  if(Z_IS_DEBUG_BUILD)
+  if(Z_DEBUG_MODE)
     setBooleanOption(ZISC_ENABLE_ASSERTION ON ${option_description})
   else()
     setBooleanOption(ZISC_ENABLE_ASSERTION OFF ${option_description})
@@ -46,11 +46,11 @@ function(getZiscOption zisc_compile_flags zisc_linker_flags zisc_definitions)
 
   # Warning flags
   set(warning_flags "")
-  if(Z_IS_CLANG)
+  if(Z_CLANG)
     list(APPEND warning_flags -Wno-global-constructors
                               -Wno-padded
                               )
-  elseif(Z_IS_GCC)
+  elseif(Z_GCC)
   endif()
 
   set(${zisc_definitions} ${definitions} PARENT_SCOPE)
@@ -62,29 +62,29 @@ endfunction(getZiscOption)
 #   zisc_include_dirs:
 #   zisc_definitions: 
 function(loadZisc zisc_header_files zisc_include_dirs zisc_compile_flags zisc_linker_options zisc_definitions)
-  ## Set version information
+  # Set version information
   set(zisc_version_major 0)
   set(zisc_version_minor 0)
   set(zisc_version_patch 5)
   set(zisc_version ${zisc_version_major}.${zisc_version_minor}.${zisc_version_patch})
-  message(STATUS "## Zisc version: ${zisc_version}")
+  message(STATUS "Zisc version: ${zisc_version}")
   
   setZiscOption()
   getZiscOption(compile_flags linker_flags definitions)
   
-  ## Make configuration header file
+  # Make configuration header file
   file(MAKE_DIRECTORY ${PROJECT_BINARY_DIR}/include)
   set(zisc_config_path ${PROJECT_BINARY_DIR}/include/zisc)
   configure_file(${__zisc_root__}/zisc/zisc_config.hpp.in
                  ${zisc_config_path}/zisc_config.hpp)
  
-  ## Set source code
+  # Set source code
   file(GLOB hpp_files ${__zisc_root__}/zisc/*.hpp)
   set(hpp_files ${hpp_files} ${zisc_config_path}/zisc_config.hpp)
   source_group(Zisc FILES ${hpp_files})
 
 
-  ## Output variables
+  # Output variables
   set(${zisc_header_files} ${hpp_files} PARENT_SCOPE)
   set(${zisc_include_dirs} ${__zisc_root__}
                            ${PROJECT_BINARY_DIR}/include PARENT_SCOPE)

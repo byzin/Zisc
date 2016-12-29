@@ -11,11 +11,11 @@ set(__example_root__ ${CMAKE_CURRENT_LIST_DIR})
 
 function(getExampleWarningOption example_warning_flags)
   set(warning_flags "")
-  if(Z_IS_CLANG)
+  if(Z_CLANG)
     list(APPEND warning_flags -Wno-sign-conversion 
                               -Wno-float-equal
                               )
-  elseif(Z_IS_GCC)
+  elseif(Z_GCC)
     list(APPEND warning_flags -Wno-sign-conversion 
                               -Wno-strict-overflow
                               )

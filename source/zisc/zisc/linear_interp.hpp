@@ -22,7 +22,7 @@ namespace zisc {
 
 /*!
  \brief Linear interpolation class
- \details.
+ \details
  No detailed.
 
  \todo ensure to be sorted.

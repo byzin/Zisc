@@ -1,5 +1,5 @@
 /*!
-  \fraction.hpp
+  \file fraction.hpp
   \author Sho Ikeda
 
   Copyright (c) 2015-2016 Sho Ikeda

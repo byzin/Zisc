@@ -1,5 +1,5 @@
 /*!
-  \file dsfmt_engin_test.cpp
+  \file dsfmt_engine_test.cpp
   \author Sho Ikeda
 
   Copyright (c) 2015-2016 Sho Ikeda

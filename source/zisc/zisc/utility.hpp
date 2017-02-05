@@ -62,8 +62,8 @@ constexpr bool isInClosedBounds(const Type& value,
                                 const Type& upper) noexcept;
 
 //! Test whether the n is negative
-template <typename Signed>
-constexpr bool isNegative(const Signed n) noexcept;
+template <typename Arithmetic>
+constexpr bool isNegative(const Arithmetic n) noexcept;
 
 //! Test whether the n is odd
 template <typename Integer>

@@ -90,7 +90,7 @@ auto Vector<Arithmetic, kN>::operator*=(const Arithmetic scalar) noexcept -> Vec
 template <typename Arithmetic, uint kN> inline
 Arithmetic Vector<Arithmetic, kN>::inverseNorm() const noexcept
 {
-  return invSqrt(squareNorm());
+  return cast<Arithmetic>(1.0) / sqrt(squareNorm());
 }
 
 /*!

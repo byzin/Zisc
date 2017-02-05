@@ -94,11 +94,12 @@ constexpr bool isInClosedBounds(const Type& value,
  \details
  No detailed.
  */
-template <typename Signed> inline
-constexpr bool isNegative(const Signed n) noexcept
+template <typename Arithmetic> inline
+constexpr bool isNegative(const Arithmetic n) noexcept
 {
-  static_assert(std::is_signed<Signed>::value, "Signed isn't signed type.");
-  constexpr auto zero = static_cast<Signed>(0);
+  static_assert(std::is_arithmetic<Arithmetic>::value,
+                "Arithmetic isn't arithmetic type.");
+  constexpr auto zero = static_cast<Arithmetic>(0);
   return (n < zero);
 }
 
@@ -108,8 +109,8 @@ template <typename Integer> inline
 constexpr bool isOdd(const Integer n) noexcept
 {
   static_assert(std::is_integral<Integer>::value, "Integer isn't integer type.");
-  constexpr auto one = static_cast<Integer>(1);
-  return ((n & one) == one);
+  constexpr auto lsb = static_cast<Integer>(0b01);
+  return ((n & lsb) == lsb);
 }
 
 /*!

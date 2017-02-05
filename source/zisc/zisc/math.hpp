@@ -15,26 +15,20 @@
 #include <cstddef>
 #include <tuple>
 // Zisc
+#include "const_math.hpp"
 #include "zisc/zisc_config.hpp"
 
 namespace zisc {
 
-//! Napier's constant
-template <typename Arithmetic>
-constexpr Arithmetic kE = 
-    static_cast<Arithmetic>(2.718281828459045235360287471352662497e+00l);
-//! Euler constant
-template <typename Arithmetic>
-constexpr Arithmetic kEuler = 
-    static_cast<Arithmetic>(5.772156649015328606065120900824024310e-01l);
+// Constant values
 
-//! Calculate the circular constant
+//! Napier's constant
 template <typename Float>
-constexpr Float calculatePi() noexcept;
+constexpr Float kE = constant::exp(static_cast<Float>(1.0));
 
 //! Circular constant
 template <typename Float>
-constexpr Float kPi = calculatePi<Float>();
+constexpr Float kPi = constant::pi<Float>();
 
 // Basic operations
 
@@ -60,29 +54,22 @@ constexpr Integer sequence(const Integer m, const Integer n) noexcept;
 
 // Power functions
 
-//! Calculate x^(exponent)
+//! Raise a number to the given power
 template <uint kExponent, typename Arithmetic>
-constexpr Arithmetic power(const Arithmetic x) noexcept;
+constexpr Arithmetic power(Arithmetic base) noexcept;
 
-//! Calculate x^(exponent)
-template <typename Arithmetic>
-Arithmetic power(Arithmetic x, int exponent) noexcept;
+//! Raise a number to the given power
+template <typename Arithmetic, typename SignedInteger>
+constexpr Arithmetic power(const Arithmetic base,
+                           const SignedInteger exponent) noexcept;
 
-//! pow
+//! Raise a number to the given power
 template <typename Float>
 Float pow(const Float base, const Float exponent) noexcept;
-
-//! Calculate the inverse square root
-template <typename Float>
-Float invSqrt(const Float n) noexcept;
 
 //! Calculate the square root
 template <typename Float>
 Float sqrt(const Float n) noexcept;
-
-//! Calculate the square root
-template <typename Float>
-constexpr Float squareRoot(const Float n) noexcept;
 
 //! Calculate the cubic root
 template <typename Float>
@@ -90,16 +77,19 @@ Float cbrt(const Float n) noexcept;
 
 // Exponential functions
 
-//! Calculate the exponential
+//! Calculate e raised to the given power
 template <typename Float>
 Float exp(const Float n) noexcept;
 
-//! eを底とするlogを求めます
+//! Calculate the natural logarithm
 template <typename Float>
 Float log(const Float x) noexcept;
 
-//! 2を底とするlogを求めます
+//! Calculate the binary logarithm
 float log2(const float x) noexcept;
+
+//! Calculate the common logarithm
+float log10(const float x) noexcept;
 
 // Trigonometric functions
 
@@ -126,6 +116,32 @@ Float acos(const Float x) noexcept;
 //! Calculate atan(x)
 template <typename Float>
 Float atan(const Float x) noexcept;
+
+// Hyperbolic functions
+
+//! Calculate hyperbolic sine
+template <typename Float>
+Float sinh(const Float x) noexcept;
+
+//! Calculate hyperbolic cosine
+template <typename Float>
+Float cosh(const Float x) noexcept;
+
+//! Calculate hyperbolic tangent
+template <typename Float>
+Float tanh(const Float x) noexcept;
+
+//! Calculate inverse hyperbolic sine
+template <typename Float>
+Float asinh(const Float x) noexcept;
+
+//! Calculate inverse hyperbolic cosine
+template <typename Float>
+Float acosh(const Float x) noexcept;
+
+//! Calculate inverse hyperbolic tangent
+template <typename Float>
+Float atanh(const Float x) noexcept;
 
 // Polynomial
 

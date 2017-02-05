@@ -13,6 +13,7 @@
 #include <chrono>
 #include <cmath>
 #include <cstdint>
+#include <string>
 #include <type_traits>
 #include <tuple>
 // GoogleTest
@@ -24,116 +25,100 @@
 
 namespace {
 
-template <typename MeasureFunc, typename StlFunc, typename ZiscFunc> inline
-void testMathTime(const zisc::int64 max_n,
-                  MeasureFunc measure_time_func,
-                  StlFunc stl_func,
-                  ZiscFunc zisc_func)
+template <typename StlFunc, typename ZiscFunc>
+void testTime(const std::string& func_name,
+              StlFunc stl_func,
+              ZiscFunc zisc_func,
+              const int start,
+              const int end,
+              const int step)
 {
+  std::cout << func_name << " time test." << std::endl;
+
   using zisc::cast;
-  using zisc::int64;
   using std::chrono::duration_cast;
 
-  constexpr int64 loop = 10;
-  std::cout << "Loop count: " << loop << std::endl;
+  constexpr int test_count = 10; // Number of tests
+  std::cout << "  Number of tests: " << test_count << std::endl;
+
+  auto measure_time = [start, end, step](auto func)
+  {
+    using Clock = std::chrono::high_resolution_clock;
+    volatile double result;
+    auto start_time = Clock::now();
+    for (volatile int i = start; i < end; i = i + step)
+      result = func(i);
+    auto end_time = Clock::now();
+    return duration_cast<std::chrono::nanoseconds>(end_time - start_time);
+  };
 
   std::chrono::nanoseconds stl_measure_time{0},
                            zisc_measure_time{0};
-  for (int64 n = 0; n < loop; ++n) {
+  for (volatile int n = 0; n < test_count; ++n) {
+    // STL test
     {
-      auto stl_time = measure_time_func(max_n, stl_func);
-      std::cout << " STL time[" << (n + 1) << "]: " 
+      auto stl_time = measure_time(stl_func);
+      std::cout << "   STL time[" << (n + 1) << "]: " 
           << duration_cast<std::chrono::milliseconds>(stl_time).count() << "ms "
           << "(" << stl_time.count() << " us)." << std::endl;
       stl_measure_time += stl_time;
     }
+    // ZISC test
     {
-      auto zisc_time = measure_time_func(max_n, zisc_func);
-      std::cout << "ZISC time[" << (n + 1) << "]: " 
+      auto zisc_time = measure_time(zisc_func);
+      std::cout << "  ZISC time[" << (n + 1) << "]: " 
           << duration_cast<std::chrono::milliseconds>(zisc_time).count() << "ms "
           << "(" << zisc_time.count() << " us)." << std::endl;
       zisc_measure_time += zisc_time;
     }
   }
-  ASSERT_LT(zisc_measure_time.count(), stl_measure_time.count());
+  EXPECT_LT(zisc_measure_time.count(), stl_measure_time.count())
+      << "zisc::" << func_name << " is slower than std::" << func_name << "."
+      << std::endl;
 }
 
 template <typename StlFunc, typename ZiscFunc>
-void testMathAccuracy(const char* func_name,
-                      const zisc::int64 start,
-                      const zisc::int64 end,
-                      const zisc::int64 interval,
-                      const double k,
-                      StlFunc stl_func,
-                      ZiscFunc zisc_func,
-                      const double* error = nullptr)
+void testAccuracy(const std::string& func_name,
+                  StlFunc stl_func,
+                  ZiscFunc zisc_func,
+                  const int start,
+                  const int end,
+                  const int step, 
+                  const double* error = nullptr)
 {
+  std::cout << func_name << " accuracy test." << std::endl;
+
   using zisc::cast;
-  using zisc::int64;
-  const int64 threshold = (end - start) / (interval * 10);
-  int64 count = threshold;
-  int64 percentage = 0;
-  for (int64 i = start; i < end; i = i + interval) {
-    const volatile double value = k * (cast<double>(i) / cast<double>(end));
-    const auto expected = stl_func(value);
-    const auto actual = zisc_func(value);
+
+  auto print_progress = [start, end, step](const int i)
+  {
+    if (((i - start) % ((end - start) / 10)) == 0) {
+      const int count = (i - start) / ((end - start) / 10);
+      if (count != 0)
+        std::cout << "  [" << (count * 10) << "%] " << std::flush;
+    }
+    if ((i + step) == end)
+      std::cout << std::endl;
+  };
+
+  for (int i = start; i < end; i = i + step) {
+    const auto expected = stl_func(i);
+    const auto result = zisc_func(i);
     if (error == nullptr) {
-      EXPECT_DOUBLE_EQ(expected, actual) 
-          << func_name << "(" << value << ") is failed.";
+      EXPECT_DOUBLE_EQ(expected, result)
+          << "zisc::" << func_name << "(" << i << ") is wrong." << std::endl;
     }
     else {
-      EXPECT_NEAR(expected, actual, *error) 
-          << func_name << "(" << value << ") is failed.";
+      EXPECT_NEAR(expected, result, *error)
+          << "zisc::" << func_name << "(" << i << ") is wrong." << std::endl;
     }
-    --count;
-    if (count == 0) {
-      percentage += 10;
-      std::cout << "[" << percentage << "%] " << std::flush;
-      count = threshold;
-    }
+    print_progress(i);
   }
-  std::cout << std::endl;
 }
 
 } // namespace
 
-TEST(MathTest, piTest)
-{
-  // float 
-  {
-    const float reference = 4.0f * std::atan(1.0f);
-    constexpr float pi = zisc::kPi<float>;
-    ASSERT_FLOAT_EQ(reference, pi);
-    ASSERT_FLOAT_EQ(std::sin(0.25f * pi), std::cos(0.25f * pi));
-  }
-  // double
-  {
-    const double reference = 4.0 * std::atan(1.0);
-    constexpr double pi = zisc::kPi<double>;
-    ASSERT_DOUBLE_EQ(reference, pi);
-    ASSERT_DOUBLE_EQ(std::sin(0.25 * pi), std::cos(0.25 * pi));
-  }
-}
-
-TEST(MathTest, absTest)
-{
-  ASSERT_EQ(1, zisc::abs(1));
-  ASSERT_EQ(1, zisc::abs(-1));
-}
-
-TEST(MathTest, gcdTest)
-{
-  auto test_gcd = [](const int a, const int b, const int gcd)
-  {
-    ASSERT_EQ(gcd, zisc::gcd(a, b));
-    ASSERT_EQ(gcd, zisc::gcd(b, a));
-  };
-  test_gcd(1, 0, 1);
-  test_gcd(40, 4, 4);
-  test_gcd(53, 21, 1);
-}
-
-TEST(MathTest, powerTest)
+TEST(MathTest, PowerTest)
 {
   // Power function test
   ASSERT_EQ(1, zisc::power<0>(2)) << "Power test failed.";
@@ -142,54 +127,24 @@ TEST(MathTest, powerTest)
   ASSERT_EQ(8, zisc::power<3>(2)) << "Power test failed.";
   ASSERT_EQ(16, zisc::power<4>(2)) << "Power test failed.";
   ASSERT_EQ(32, zisc::power<5>(2)) << "Power test failed.";
-
-  //
-  ASSERT_DOUBLE_EQ(0.25, zisc::power(2.0, -2));
-  ASSERT_DOUBLE_EQ(0.5, zisc::power(2.0, -1));
-  ASSERT_DOUBLE_EQ(1.0, zisc::power(2.0, 0));
-  ASSERT_DOUBLE_EQ(2.0, zisc::power(2.0, 1));
-  ASSERT_DOUBLE_EQ(4.0, zisc::power(2.0, 2));
-  ASSERT_DOUBLE_EQ(8.0, zisc::power(2.0, 3));
 }
 
-TEST(MathTest, powTest)
+TEST(MathTest, PowTest)
 {
-  ASSERT_DOUBLE_EQ(0.25, zisc::pow(2.0, -2.0));
-  ASSERT_DOUBLE_EQ(0.5, zisc::pow(2.0, -1.0));
-  ASSERT_DOUBLE_EQ(1.0, zisc::pow(2.0, 0.0));
-  ASSERT_DOUBLE_EQ(2.0, zisc::pow(2.0, 1.0));
-  ASSERT_DOUBLE_EQ(4.0, zisc::pow(2.0, 2.0));
-  ASSERT_DOUBLE_EQ(8.0, zisc::pow(2.0, 3.0));
-}
-
-TEST(MathTest, squareRootTest)
-{
-  constexpr double root2 = zisc::squareRoot(2.0);
-  ASSERT_DOUBLE_EQ(std::sqrt(2.0), root2);
-  ASSERT_DOUBLE_EQ(std::sqrt(3.0), zisc::squareRoot(3.0));
-  ASSERT_DOUBLE_EQ(std::sqrt(1000.0), zisc::squareRoot(1000.0));
-  constexpr double pi = zisc::kPi<double>;
-  ASSERT_DOUBLE_EQ(std::sqrt(pi), zisc::squareRoot(pi));
-}
-
-TEST(MathTest, cbrtTest)
-{
-  ASSERT_DOUBLE_EQ(0.0, zisc::cbrt(0.0));
-  ASSERT_DOUBLE_EQ(1.0, zisc::cbrt(1.0));
-  ASSERT_DOUBLE_EQ(1.2599210498948732, zisc::cbrt(2.0));
-  ASSERT_DOUBLE_EQ(1.4422495703074083, zisc::cbrt(3.0));
-  ASSERT_DOUBLE_EQ(1.5874010519681994, zisc::cbrt(4.0));
-  ASSERT_DOUBLE_EQ(2.0, zisc::cbrt(8.0));
-}
-
-TEST(MathTest, expTest)
-{
-  ASSERT_DOUBLE_EQ(1.0, zisc::exp(0.0));
-  ASSERT_DOUBLE_EQ(zisc::kE<double>, zisc::exp(1.0));
-  ASSERT_DOUBLE_EQ(zisc::power<2>(zisc::kE<double>), zisc::exp(2.0));
-  ASSERT_DOUBLE_EQ(zisc::power<3>(zisc::kE<double>), zisc::exp(3.0));
-  ASSERT_DOUBLE_EQ(zisc::power<4>(zisc::kE<double>), zisc::exp(4.0));
-  ASSERT_DOUBLE_EQ(zisc::power<5>(zisc::kE<double>), zisc::exp(5.0));
+  const std::string func_name{"pow"};
+  constexpr int start = -63;
+  constexpr int end = 63;
+  constexpr int step = 1;
+  auto stl_func = [](const int i)
+  {
+    return std::pow(2.0, i);
+  };
+  auto zisc_func = [](const int i)
+  {
+    return zisc::power(2.0, i);
+  };
+  ::testTime(func_name, stl_func, zisc_func, start, end, step);
+  ::testAccuracy(func_name, stl_func, zisc_func, start, end, step);
 }
 
 TEST(MathTest, SolveCubicOneTest)
@@ -271,397 +226,3 @@ TEST(MathTest, SolveQuarticTest)
   ASSERT_DOUBLE_EQ( 1.0, a6[2]);
   ASSERT_DOUBLE_EQ(-2.0, a6[3]);
 }
-
-#if defined(ZISC_MATH_EFFICIENT_POWER)
-
-TEST(MathTest, sqrtTaylorCoefficientTest)
-{
-  {
-    constexpr auto k = zisc::inner::TaylorCoefficient<1, double>::sqrt();
-    ASSERT_DOUBLE_EQ(1.0 / 2.0, k);
-  }
-  {
-    constexpr auto k = zisc::inner::TaylorCoefficient<2, double>::sqrt();
-    ASSERT_DOUBLE_EQ(-1.0 / 8.0, k);
-  }
-  {
-    constexpr auto k = zisc::inner::TaylorCoefficient<3, double>::sqrt();
-    ASSERT_DOUBLE_EQ(1.0 / 16.0, k);
-  }
-  {
-    constexpr auto k = zisc::inner::TaylorCoefficient<4, double>::sqrt();
-    ASSERT_DOUBLE_EQ(-5.0 / 128.0, k);
-  }
-}
-
-TEST(MathTest, sqrtLongRangeComputationTimeTest)
-{
-  using zisc::cast;
-  using zisc::int64;
-  using Clock = std::chrono::high_resolution_clock;
-  using std::chrono::duration_cast;
-  constexpr int64 max_n = 100'000'000'000;
-  constexpr int64 interval = 10;
-
-  auto stl_func = [](const double value) {return std::sqrt(value);};
-  auto zisc_func = [](const double value) {return zisc::sqrt(value);};
-  auto measure_time_func = [](const int64 max_num, auto func)
-  {
-    auto start = Clock::now();
-    for (int64 v = 0; v < max_num; v = v + interval) {
-      const volatile double value = cast<double>(v);
-      func(value);
-    }
-    auto end = Clock::now();
-    return duration_cast<std::chrono::nanoseconds>(end - start);
-  };
-  ::testMathTime(max_n, measure_time_func, stl_func, zisc_func);
-}
-
-TEST(MathTest, sqrtSmallRangeComputationTimeTest)
-{
-  using zisc::cast;
-  using zisc::int64;
-  using Clock = std::chrono::high_resolution_clock;
-  using std::chrono::duration_cast;
-  constexpr int64 max_n = 1'000'000'000;
-
-  auto stl_func = [](const double value){return std::sqrt(value);};
-  auto zisc_func = [](const double value){return zisc::sqrt(value);};
-  auto measure_time_func = [](const int64 max_num, auto func)
-  {
-    auto start = Clock::now();
-    for (int64 i = 1; i < max_num; ++i) {
-      const volatile double value = cast<double>(i) / cast<double>(max_num);
-      func(value);
-    }
-    auto end = Clock::now();
-    return std::chrono::duration_cast<std::chrono::nanoseconds>(end - start);
-  };
-  ::testMathTime(max_n, measure_time_func, stl_func, zisc_func);
-}
-
-TEST(MathTest, sqrtLongRangeAccuracyTest)
-{
-  using zisc::cast;
-  using zisc::int64;
-  constexpr int64 start = 1; 
-  constexpr int64 end = 1000'000'000'000;
-  constexpr int64 interval = 1000;
-  constexpr double k = cast<double>(end);
-  auto stl_func = [](const double value){return std::sqrt(value);};
-  auto zisc_func = [](const double value){return zisc::sqrt(value);};
-  ::testMathAccuracy("sqrt", start, end, interval, k, stl_func, zisc_func);
-}
-
-TEST(MathTest, sqrtLongRangeConvergenceTest)
-{
-  using zisc::cast;
-  using zisc::int64;
-  constexpr int64 start = 1; 
-  constexpr int64 end = 1000'000'000'000;
-  constexpr int64 interval = 1000;
-  constexpr double k = cast<double>(end);
-  auto zisc1_func = [](const double value){return zisc::inner::sqrt<4>(value);};
-  auto zisc2_func = [](const double value){return zisc::inner::sqrt<3>(value);};
-  ::testMathAccuracy("sqrt", start, end, interval, k, zisc1_func, zisc2_func);
-}
-
-TEST(MathTest, sqrtSmallRangeAccuracyTest)
-{
-  using zisc::cast;
-  using zisc::int64;
-  constexpr int64 start = 1; 
-  constexpr int64 end = 1'000'000'000;
-  constexpr int64 interval = 10;
-  constexpr double k = 1.0;
-  auto stl_func = [](const double value){return std::sqrt(value);};
-  auto zisc_func = [](const double value){return zisc::sqrt(value);};
-  ::testMathAccuracy("sqrt", start, end, interval, k, stl_func, zisc_func);
-}
-
-TEST(MathTest, sqrtSmallRangeConvergenceTest)
-{
-  using zisc::cast;
-  using zisc::int64;
-  constexpr int64 start = 1; 
-  constexpr int64 end = 1'000'000'000;
-  constexpr int64 interval = 10;
-  constexpr double k = 1.0;
-  auto zisc1_func = [](const double value){return zisc::inner::sqrt<4>(value);};
-  auto zisc2_func = [](const double value){return zisc::inner::sqrt<3>(value);};
-  ::testMathAccuracy("sqrt", start, end, interval, k, zisc1_func, zisc2_func);
-}
-
-#endif // ZISC_MATH_EFFICIENT_POWER
-
-#if defined(ZISC_MATH_EFFICIENT_TRIGONOMETRIC)
-
-TEST(MathTest, sinTaylorCoefficientTest)
-{
-  using zisc::cast;
-  {
-    constexpr double v = zisc::inner::TaylorCoefficient<1, double>::sin();
-    constexpr double reference = -1.0 / cast<double>(zisc::factorial(3));
-    ASSERT_DOUBLE_EQ(reference, v);
-  }
-  {
-    constexpr double v = zisc::inner::TaylorCoefficient<2, double>::sin();
-    constexpr double reference = 1.0 / cast<double>(zisc::factorial(5));
-    ASSERT_DOUBLE_EQ(reference, v);
-  }
-  {
-    constexpr double v = zisc::inner::TaylorCoefficient<3, double>::sin();
-    constexpr double reference = -1.0 / cast<double>(zisc::factorial(7));
-    ASSERT_DOUBLE_EQ(reference, v);
-  }
-  {
-    constexpr double v = zisc::inner::TaylorCoefficient<4, double>::sin();
-    constexpr double reference = 1.0 / cast<double>(zisc::factorial(9));
-    ASSERT_DOUBLE_EQ(reference, v);
-  }
-}
-
-TEST(MathTest, sinComputationTimeTest)
-{
-  using zisc::cast;
-  using zisc::int64;
-  using Clock = std::chrono::high_resolution_clock;
-  using std::chrono::duration_cast;
-  constexpr int64 max_n = 1'000'000'000;
-
-  auto stl_func = [](const double value) {return std::sin(value);};
-  auto zisc_func = [](const double value) {return zisc::sin(value);};
-  auto measure_time_func = [](const int64 max_num, auto func)
-  {
-    auto start = Clock::now();
-    for (int64 i = -max_num; i < max_num; ++i) {
-      constexpr double k = 0.5 * zisc::kPi<double>;
-      const volatile double theta = k * (cast<double>(i) / cast<double>(max_num));
-      func(theta);
-    }
-    auto end = Clock::now();
-    return std::chrono::duration_cast<std::chrono::nanoseconds>(end - start);
-  };
-  ::testMathTime(max_n, measure_time_func, stl_func, zisc_func);
-}
-
-TEST(MathTest, sinAccuracyTest)
-{
-  using zisc::cast;
-  using zisc::int64;
-  constexpr int64 start = -1000'000'000; 
-  constexpr int64 end = -start;
-  constexpr int64 interval = 1;
-  constexpr double k = zisc::kPi<double>;
-  constexpr double error = 0.000'000'000'000'001;
-  auto stl_func = [](const double theta){return std::sin(theta);};
-  auto zisc_func = [](const double theta){return zisc::sin(theta);};
-  ::testMathAccuracy("sin", start, end, interval, k, stl_func, zisc_func, &error);
-}
-
-TEST(MathTest, cosAccuracyTest)
-{
-  using zisc::cast;
-  using zisc::int64;
-  constexpr int64 start = -1000'000'000; 
-  constexpr int64 end = -start;
-  constexpr int64 interval = 1;
-  constexpr double k = zisc::kPi<double>;
-  constexpr double error = 0.000'000'000'000'001;
-  auto stl_func = [](const double theta){return std::cos(theta);};
-  auto zisc_func = [](const double theta){return zisc::cos(theta);};
-  ::testMathAccuracy("cos", start, end, interval, k, stl_func, zisc_func, &error);
-}
-
-TEST(MathTest, tanComputationTimeTest)
-{
-  using zisc::cast;
-  using zisc::int64;
-  using Clock = std::chrono::high_resolution_clock;
-  using std::chrono::duration_cast;
-  constexpr int64 max_n = 1'000'000'000;
-
-  auto stl_func = [](const double value) {return std::tan(value);};
-  auto zisc_func = [](const double value) {return zisc::tan(value);};
-  auto measure_time_func = [](const int64 max_num, auto func)
-  {
-    auto start = Clock::now();
-    for (int64 i = 1; i < max_num; ++i) {
-      constexpr double k = 0.5 * zisc::kPi<double>;
-      const volatile double theta = k * (cast<double>(i) / cast<double>(max_num));
-      func(theta);
-    }
-    auto end = Clock::now();
-    return std::chrono::duration_cast<std::chrono::nanoseconds>(end - start);
-  };
-  ::testMathTime(max_n, measure_time_func, stl_func, zisc_func);
-}
-
-TEST(MathTest, tanAccuracyTest)
-{
-  using zisc::cast;
-  using zisc::int64;
-  constexpr int64 start = 0;
-  constexpr int64 end = 1000'000'000; 
-  constexpr int64 interval = 1;
-//  constexpr double k = 0.5 * zisc::kPi<double>;
-  constexpr double k = 0.45 * zisc::kPi<double>;
-  constexpr double error = 0.000'000'000'000'01;
-  auto stl_func = [](const double theta)
-  {
-    return (theta != 0.0) ? std::tan(theta) : 0.0;
-  };
-  auto zisc_func = [](const double theta)
-  {
-    return (theta != 0.0) ? zisc::tan(theta) : 0.0;
-  };
-  ::testMathAccuracy("tan", start, end, interval, k, stl_func, zisc_func, &error);
-}
-
-TEST(MathTest, arcsinComputationTimeTest)
-{
-  using zisc::cast;
-  using zisc::int64;
-  using Clock = std::chrono::high_resolution_clock;
-  using std::chrono::duration_cast;
-  constexpr int64 max_n = 1'000'000'000;
-
-  auto stl_func = [](const double value) {return std::asin(value);};
-  auto zisc_func = [](const double value) {return zisc::asin(value);};
-  auto measure_time_func = [](const int64 max_num, auto func)
-  {
-    auto start = Clock::now();
-    for (int64 i = -max_num; i < max_num; ++i) {
-      const volatile double x = cast<double>(i) / cast<double>(max_num);
-      func(x);
-    }
-    auto end = Clock::now();
-    return std::chrono::duration_cast<std::chrono::nanoseconds>(end - start);
-  };
-  ::testMathTime(max_n, measure_time_func, stl_func, zisc_func);
-}
-
-TEST(MathTest, arcsinAccuracyTest)
-{
-  using zisc::cast;
-  using zisc::int64;
-  constexpr int64 start = -100'000'000; 
-  constexpr int64 end = -start;
-  constexpr int64 interval = 1;
-  constexpr double k = 1.0;
-  constexpr double error = 0.000'000'000'000'1;
-  auto stl_func = [](const double value) {return std::asin(value);};
-  auto zisc_func = [](const double value) {return zisc::asin(value);};
-  ::testMathAccuracy("arcsin", start, end, interval, k, stl_func, zisc_func, &error);
-}
-
-TEST(MathTest, arccosComputationTimeTest)
-{
-  using zisc::cast;
-  using zisc::int64;
-  using Clock = std::chrono::high_resolution_clock;
-  using std::chrono::duration_cast;
-  constexpr int64 max_n = 1'000'000'000;
-
-  auto stl_func = [](const double value) {return std::acos(value);};
-  auto zisc_func = [](const double value) {return zisc::acos(value);};
-  auto measure_time_func = [](const int64 max_num, auto func)
-  {
-    auto start = Clock::now();
-    for (int64 i = -max_num; i < max_num; ++i) {
-      const volatile double x = cast<double>(i) / cast<double>(max_num);
-      func(x);
-    }
-    auto end = Clock::now();
-    return std::chrono::duration_cast<std::chrono::nanoseconds>(end - start);
-  };
-  ::testMathTime(max_n, measure_time_func, stl_func, zisc_func);
-}
-
-TEST(MathTest, arccosAccuracyTest)
-{
-  using zisc::cast;
-  using zisc::int64;
-  constexpr int64 start = -100'000'000; 
-  constexpr int64 end = -start;
-  constexpr int64 interval = 1;
-  constexpr double k = 1.0;
-  constexpr double error = 0.000'000'000'000'1;
-  auto stl_func = [](const double value) {return std::acos(value);};
-  auto zisc_func = [](const double value) {return zisc::acos(value);};
-  ::testMathAccuracy("arccos", start, end, interval, k, stl_func, zisc_func, &error);
-}
-
-TEST(MathTest, arctanTaylorCoefficientTest)
-{
-  using zisc::cast;
-  {
-    constexpr double v = zisc::inner::TaylorCoefficient<1, double>::arctan();
-    constexpr double reference = -1.0 / 3.0;
-    ASSERT_DOUBLE_EQ(reference, v);
-  }
-  {
-    constexpr double v = zisc::inner::TaylorCoefficient<2, double>::arctan();
-    constexpr double reference = 1.0 / 5.0;
-    ASSERT_DOUBLE_EQ(reference, v);
-  }
-  {
-    constexpr double v = zisc::inner::TaylorCoefficient<3, double>::arctan();
-    constexpr double reference = -1.0 / 7.0;
-    ASSERT_DOUBLE_EQ(reference, v);
-  }
-  {
-    constexpr double v = zisc::inner::TaylorCoefficient<4, double>::arctan();
-    constexpr double reference = 1.0 / 9.0;
-    ASSERT_DOUBLE_EQ(reference, v);
-  }
-}
-
-TEST(MathTest, arctanComputationTimeTest)
-{
-  using zisc::cast;
-  using zisc::int64;
-  using Clock = std::chrono::high_resolution_clock;
-  using std::chrono::duration_cast;
-  constexpr int64 max_n = 1'000'000'000;
-
-  auto stl_func = [](const double value) {return std::atan(value);};
-  auto zisc_func = [](const double value) {return zisc::atan(value);};
-  auto measure_time_func = [](const int64 max_num, auto func)
-  {
-    auto start = Clock::now();
-    for (int64 i = -max_num; i < max_num; ++i) {
-      if (i == 0)
-        continue;
-      constexpr double k = 0.5 * zisc::kPi<double>;
-      const volatile double x = k * (cast<double>(i) / cast<double>(max_num));
-      func(x);
-    }
-    auto end = Clock::now();
-    return std::chrono::duration_cast<std::chrono::nanoseconds>(end - start);
-  };
-  ::testMathTime(max_n, measure_time_func, stl_func, zisc_func);
-}
-
-TEST(MathTest, arctanAccuracyTest)
-{
-  using zisc::cast;
-  using zisc::int64;
-  constexpr int64 start = -100'000'000; 
-  constexpr int64 end = -start;
-  constexpr int64 interval = 1;
-  constexpr double k = 0.5 * zisc::kPi<double>;
-  constexpr double error = 0.000'000'000'000'1;
-  auto stl_func = [](const double value)
-  {
-    return (value != 0.0) ? std::atan(value) : 0.0;
-  };
-  auto zisc_func = [](const double value)
-  {
-    return (value != 0.0) ? zisc::atan(value) : 0.0;
-  };
-  ::testMathAccuracy("arctan", start, end, interval, k, stl_func, zisc_func, &error);
-}
-
-#endif // ZISC_MATH_EFFICIENT_TRIGONOMETRIC

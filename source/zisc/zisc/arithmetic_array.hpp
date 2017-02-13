@@ -27,143 +27,143 @@ namespace zisc {
 template <typename Arithmetic, uint kN>
 class ArithmeticArray
 {
-  static_assert(std::is_arithmetic<Arithmetic>::value, 
+  static_assert(std::is_arithmetic<Arithmetic>::value,
                 "The Arithmetic isn't arithmetic type.");
   static_assert(0 < kN, "kN is 0.");
-  using Array = std::array<Arithmetic, kN>;
  public:
   // For STL
-  using value_type = typename Array::value_type;
-  using size_type = typename Array::size_type;
-  using difference_type = typename Array::difference_type;
+  using value_type = Arithmetic;
+  using size_type = std::size_t;
+  using difference_type = std::ptrdiff_t;
   using reference = value_type&;
   using const_reference = const value_type&;
   using pointer = value_type*;
   using const_pointer = const value_type*;
-  using iterator = typename Array::iterator;
-  using const_iterator = typename Array::const_iterator;
-  using reverse_iterator = typename Array::reverse_iterator;
-  using const_reverse_iterator = typename Array::const_reverse_iterator;
+  using iterator = pointer;
+  using const_iterator = const_pointer;
 
 
-  //! Initialize with 0
-  ArithmeticArray() noexcept;
+  //! Initialize all elements with 0
+  constexpr ArithmeticArray() noexcept;
 
   //! Initialize with values
   template <typename ...Types>
-  ArithmeticArray(const Types ...values) noexcept;
+  constexpr ArithmeticArray(const Types ...values) noexcept;
+
+  //! Initialize with a std::array
+  ArithmeticArray(const std::array<Arithmetic, kN>& other) noexcept;
 
   //! Initialize with a array
-  ArithmeticArray(const Array& other) noexcept;
-
-  //! Initialize with a array
-  ArithmeticArray(const ArithmeticArray& other) noexcept;
+  constexpr ArithmeticArray(const ArithmeticArray& other) noexcept;
 
 
   // For STL
   //! Return an iterator to the first element of the container
-  iterator begin() noexcept;
+  constexpr iterator begin() noexcept;
 
   //! Return an iterator to the first element of the container
-  const_iterator begin() const noexcept;
+  constexpr const_iterator begin() const noexcept;
 
   //! Return an iterator to the first element of the container
-  const_iterator cbegin() const noexcept;
+  constexpr const_iterator cbegin() const noexcept;
 
   //! Return an iterator following the last element of the container
-  iterator end() noexcept;
+  constexpr iterator end() noexcept;
 
   //! Return an iterator following the last element of the container
-  const_iterator end() const noexcept;
+  constexpr const_iterator end() const noexcept;
 
   //! Return an iterator following the last element of the container
-  const_iterator cend() const noexcept;
+  constexpr const_iterator cend() const noexcept;
 
 
   //! Apply addition operation to each element in the array
-  ArithmeticArray operator+(const ArithmeticArray& other) const noexcept;
+  constexpr ArithmeticArray operator+(const ArithmeticArray& other) const noexcept;
 
   //! Apply subtraction operation to each element in the array
-  ArithmeticArray operator-(const ArithmeticArray& other) const noexcept;
+  constexpr ArithmeticArray operator-(const ArithmeticArray& other) const noexcept;
 
   //! Multiply each element by a scalar
-  ArithmeticArray operator*(const Arithmetic scalar) const noexcept;
+  constexpr ArithmeticArray operator*(const Arithmetic scalar) const noexcept;
 
   //! Apply multiplication operation to each element in the array
-  ArithmeticArray operator*(const ArithmeticArray& other) const noexcept;
+  constexpr ArithmeticArray operator*(const ArithmeticArray& other) const noexcept;
 
   //! Divide each element by a scalar
-  ArithmeticArray operator/(const Arithmetic scalar) const noexcept;
+  constexpr ArithmeticArray operator/(const Arithmetic scalar) const noexcept;
 
   //! Apply division operation to each element in the array
-  ArithmeticArray operator/(const ArithmeticArray& other) const noexcept;
+  constexpr ArithmeticArray operator/(const ArithmeticArray& other) const noexcept;
 
   //!
-  ArithmeticArray& operator=(const ArithmeticArray& other) noexcept;
+  constexpr ArithmeticArray& operator=(const ArithmeticArray& other) noexcept;
 
   //!
-  ArithmeticArray& operator+=(const ArithmeticArray& other) noexcept;
+  constexpr ArithmeticArray& operator+=(const ArithmeticArray& other) noexcept;
 
   //!
-  ArithmeticArray& operator-=(const ArithmeticArray& other) noexcept;
+  constexpr ArithmeticArray& operator-=(const ArithmeticArray& other) noexcept;
 
   //!
-  ArithmeticArray& operator*=(const Arithmetic scalar) noexcept;
+  constexpr ArithmeticArray& operator*=(const Arithmetic scalar) noexcept;
 
   //!
-  ArithmeticArray& operator*=(const ArithmeticArray& other) noexcept;
+  constexpr ArithmeticArray& operator*=(const ArithmeticArray& other) noexcept;
 
   //!
-  ArithmeticArray& operator/=(const Arithmetic scalar) noexcept;
+  constexpr ArithmeticArray& operator/=(const Arithmetic scalar) noexcept;
 
   //!
-  ArithmeticArray& operator/=(const ArithmeticArray& other) noexcept;
+  constexpr ArithmeticArray& operator/=(const ArithmeticArray& other) noexcept;
 
   //! Return the reference by index
-  Arithmetic& operator[](const uint index) noexcept;
+  constexpr Arithmetic& operator[](const uint index) noexcept;
 
   //! Return the reference by index
-  const Arithmetic& operator[](const uint index) const noexcept;
+  constexpr const Arithmetic& operator[](const uint index) const noexcept;
 
 
   //! Clamp all elements
-  void clampAll(const Arithmetic min_value, const Arithmetic max_value) noexcept;
+  constexpr void clampAll(const Arithmetic min_value,
+                          const Arithmetic max_value) noexcept;
 
   //! Divide a scalar by a array
-  ArithmeticArray divideScalar(const Arithmetic scalar) const noexcept;
+  constexpr ArithmeticArray divideScalar(const Arithmetic scalar) const noexcept;
 
   //! Fill the container with specified value
-  void fill(const Arithmetic value) noexcept;
+  constexpr void fill(const Arithmetic value) noexcept;
 
   //! Return the reference by index.
-  Arithmetic& get(const uint index) noexcept;
+  constexpr Arithmetic& get(const uint index) noexcept;
 
   //! Return the reference by index.
-  const Arithmetic& get(const uint index) const noexcept;
+  constexpr const Arithmetic& get(const uint index) const noexcept;
 
   //! Check whether the array has the specified value
-  bool hasValue(const Arithmetic value) const noexcept;
+  constexpr bool hasValue(const Arithmetic value) const noexcept;
 
   //! Check whether all elements are between [ \p lower , \p upper )
-  bool isAllInBounds(const Arithmetic lower, const Arithmetic upper) const noexcept;
+  constexpr bool isAllInBounds(const Arithmetic lower,
+                               const Arithmetic upper) const noexcept;
 
   //! Check whether all elements are between [ \p lower , \p upper ]
-  bool isAllInClosedBounds(const Arithmetic lower, const Arithmetic upper) const noexcept;
+  constexpr bool isAllInClosedBounds(const Arithmetic lower,
+                                     const Arithmetic upper) const noexcept;
 
   //! Check whether all elements are zero
-  bool isAllZero() const noexcept;
+  constexpr bool isAllZero() const noexcept;
 
   //! Return the largest element
-  Arithmetic max() const noexcept;
+  constexpr Arithmetic max() const noexcept;
 
   //! Return the smallest element
-  Arithmetic min() const noexcept;
+  constexpr Arithmetic min() const noexcept;
 
   //! Compare two arrays and store maximum values
-  ArithmeticArray maxElements(const ArithmeticArray& other) const noexcept;
+  constexpr ArithmeticArray maxElements(const ArithmeticArray& other) const noexcept;
 
   //! Compare two arrays and store minimum values
-  ArithmeticArray minElements(const ArithmeticArray& other) const noexcept;
+  constexpr ArithmeticArray minElements(const ArithmeticArray& other) const noexcept;
 
   //! Return the number of elements
   static constexpr uint size() noexcept;
@@ -179,6 +179,12 @@ class ArithmeticArray
   Arithmetic sum() const noexcept;
 
  private:
+  struct Array
+  {
+    Arithmetic elements_[kN];
+  };
+
+
   //! Set value
   template <uint index, typename ...Types>
   void setElements(const Arithmetic value, const Types ...values) noexcept;
@@ -189,75 +195,75 @@ class ArithmeticArray
 
   //! Return the sum of integer elements
   template <typename Type>
-  static Type sumArray(const std::array<Type, kN>& elements,
+  static Type sumArray(const Array& elements,
                        EnableIfInteger<Type> = kEnabler) noexcept;
 
   //! Return the sum of float elements
   template <typename Type>
-  static Type sumArray(const std::array<Type, kN>& elements,
+  static Type sumArray(const Array& elements,
                        EnableIfFloat<Type> = kEnabler) noexcept;
 
 
-  Array elements_;
+  Array array_;
 };
 
 //! Check whether two arrays are same
 template <typename Arithmetic, uint kN>
-bool operator==(
+constexpr bool operator==(
     const ArithmeticArray<Arithmetic, kN>& a, 
     const ArithmeticArray<Arithmetic, kN>& b) noexcept;
 
 //! Check whether two arrays are not same
 template <typename Arithmetic, uint kN>
-bool operator!=(
+constexpr bool operator!=(
     const ArithmeticArray<Arithmetic, kN>& a, 
     const ArithmeticArray<Arithmetic, kN>& b) noexcept;
 
 //! Multiply each element by a scalar
 template <typename Arithmetic, uint kN>
-ArithmeticArray<Arithmetic, kN> operator*(
+constexpr ArithmeticArray<Arithmetic, kN> operator*(
     const Arithmetic scalar,
     const ArithmeticArray<Arithmetic, kN>& array) noexcept;
 
 //! Divide a scalar by a array
 template <typename Arithmetic, uint kN>
-ArithmeticArray<Arithmetic, kN> operator/(
+constexpr ArithmeticArray<Arithmetic, kN> operator/(
     const Arithmetic scalar,
     const ArithmeticArray<Arithmetic, kN>& array) noexcept;
 
 //! Calculate the cross product
 template <typename Arithmetic, uint kN>
-ArithmeticArray<Arithmetic, kN> cross(
+constexpr ArithmeticArray<Arithmetic, kN> cross(
     const ArithmeticArray<Arithmetic, kN>& a,
     const ArithmeticArray<Arithmetic, kN>& b) noexcept;
 
 //! Calculate the inner product
 template <typename Arithmetic, uint kN>
-Arithmetic dot(
+constexpr Arithmetic dot(
     const ArithmeticArray<Arithmetic, kN>& a, 
     const ArithmeticArray<Arithmetic, kN>& b) noexcept;
 
 //! Compare two arrays and return maximum values
 template <typename Arithmetic, uint kN>
-ArithmeticArray<Arithmetic, kN> maxElements(
+constexpr ArithmeticArray<Arithmetic, kN> maxElements(
     const ArithmeticArray<Arithmetic, kN>& a,
     const ArithmeticArray<Arithmetic, kN>& b) noexcept;
 
 //! Compare two arrays and return minimum values
 template <typename Arithmetic, uint kN>
-ArithmeticArray<Arithmetic, kN> minElements(
+constexpr ArithmeticArray<Arithmetic, kN> minElements(
     const ArithmeticArray<Arithmetic, kN>& a,
     const ArithmeticArray<Arithmetic, kN>& b) noexcept;
 
 //! Compare two arrays and store minimu values to a and maximum values to b
 template <typename Arithmetic, uint kN>
-void minMaxElements(
+constexpr void minMaxElements(
     ArithmeticArray<Arithmetic, kN>& a,
     ArithmeticArray<Arithmetic, kN>& b) noexcept;
 
 //! Swap two array elements by index
 template <typename Arithmetic, uint kN>
-void swapElement(
+constexpr void swapElement(
     const ArithmeticArray<Arithmetic, kN>& a, 
     const ArithmeticArray<Arithmetic, kN>& b, 
     const uint index) noexcept;

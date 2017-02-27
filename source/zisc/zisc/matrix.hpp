@@ -35,55 +35,55 @@ class Matrix
 
 
   //! Initialize with 0
-  Matrix() noexcept;
+  constexpr Matrix() noexcept;
 
   //! Initialize with values
   template <typename ...Types>
-  Matrix(const Types ...elements) noexcept;
+  constexpr Matrix(const Types ...elements) noexcept;
 
 
   //! Check if two matrixes are same
-  bool operator==(const Matrix& matrix) const noexcept;
+  constexpr bool operator==(const Matrix& matrix) const noexcept;
 
   //! Check if two matrixes are not same
-  bool operator!=(const Matrix& matrix) const noexcept;
+  constexpr bool operator!=(const Matrix& matrix) const noexcept;
 
   //! Apply multiplication operation
-  Matrix operator*(const Arithmetic scalar) const noexcept;
+  constexpr Matrix operator*(const Arithmetic scalar) const noexcept;
 
   //! Return the reference by row and column
-  Arithmetic& operator()(const uint row, const uint column) noexcept;
+  constexpr Arithmetic& operator()(const uint row, const uint column) noexcept;
 
   //! Return the reference by row and column
-  const Arithmetic& operator()(const uint row, const uint column) const noexcept;
+  constexpr const Arithmetic& operator()(const uint row, const uint column) const noexcept;
 
 
   //! Calculate the cofactor
-  Arithmetic cofactor(const uint row, const uint column) const noexcept;
+  constexpr Arithmetic cofactor(const uint row, const uint column) const noexcept;
 
   //! Return the cofactor matrix
-  Matrix cofactorMatrix() const noexcept;
+  constexpr Matrix cofactorMatrix() const noexcept;
 
   //! Return column size
   static constexpr uint columnSize() noexcept;
 
   //! Calculate the determinant
-  Arithmetic determinant() const noexcept;
+  constexpr Arithmetic determinant() const noexcept;
 
   //! Return the reference by row and column
-  Arithmetic& get(const uint row, const uint column) noexcept;
+  constexpr Arithmetic& get(const uint row, const uint column) noexcept;
 
   //! Return the reference by row and column
-  const Arithmetic& get(const uint row, const uint column) const noexcept;
+  constexpr const Arithmetic& get(const uint row, const uint column) const noexcept;
 
   //! Return the inverse matrix
-  Matrix inverseMatrix() const noexcept;
+  constexpr Matrix inverseMatrix() const noexcept;
 
   //! Check if the matrix is square matrix
   static constexpr bool isSquareMatrix() noexcept;
 
   //! Calculate the minor determinant
-  Arithmetic minorDeterminant(const uint row, const uint column) const noexcept;
+  constexpr Arithmetic minorDeterminant(const uint row, const uint column) const noexcept;
 
   //! Return row size
   static constexpr uint rowSize() noexcept;
@@ -92,7 +92,7 @@ class Matrix
   void set(const uint row, const uint column, const Arithmetic value) noexcept;
 
   //! Return the transposed matrix
-  Matrix<Arithmetic, kColumn, kRow> transposedMatrix() const noexcept;
+  constexpr Matrix<Arithmetic, kColumn, kRow> transposedMatrix() const noexcept;
 
  private:
   ArrayType elements_;
@@ -100,18 +100,19 @@ class Matrix
 
 //! Multiply two matrixes
 template <typename Arithmetic, uint L, uint M, uint N>
-Matrix<Arithmetic, L, N> operator*(const Matrix<Arithmetic, L, M>& a,
-                                   const Matrix<Arithmetic, M, N>& b) noexcept;
+constexpr Matrix<Arithmetic, L, N> operator*(
+    const Matrix<Arithmetic, L, M>& a,
+    const Matrix<Arithmetic, M, N>& b) noexcept;
 
 //! Multiply two matrixes
 template <typename Arithmetic, uint kRow, uint kColumn>
-Matrix<Arithmetic, kRow, kColumn> operator*(
+constexpr Matrix<Arithmetic, kRow, kColumn> operator*(
     const Arithmetic scalar,
     const Matrix<Arithmetic, kRow, kColumn>& matrix) noexcept;
 
 //! Multiply a matrix and a array
 template <typename Arithmetic, uint kN>
-ArithmeticArray<Arithmetic, kN> operator*(
+constexpr ArithmeticArray<Arithmetic, kN> operator*(
     const Matrix<Arithmetic, kN, kN>& matrix,
     const ArithmeticArray<Arithmetic, kN>& array) noexcept;
 

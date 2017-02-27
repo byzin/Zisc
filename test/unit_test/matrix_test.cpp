@@ -280,3 +280,60 @@ TEST(MatrixTest, ConversionTest)
     }
   }
 }
+
+namespace {
+
+constexpr zisc::Matrix<double, 3, 3> makeConstMatrix()
+{
+  zisc::Matrix<double, 3, 3> matrix;
+  for (uint row = 0; row < 3; ++row) {
+    for (uint column = 0; column < 3; ++column) {
+      matrix(row, column) = zisc::cast<double>(row + column);
+    }
+  }
+  return matrix;
+}
+
+} // namespace
+
+TEST(MatrixTest, ConstexprTest)
+{
+  {
+    constexpr auto matrix = ::makeConstMatrix();
+    constexpr auto determinant = matrix.determinant();
+    static_assert(determinant == 0.0, "The determinant() is wrong.");
+  }
+  {
+    using Matrix4x4 = zisc::Matrix<double, 4, 4>;
+    // Transposed matrix test
+    constexpr Matrix4x4 matrix1{ 1.0,  2.0,  3.0,  4.0,
+                                 5.0,  6.0,  7.0,  8.0,
+                                 9.0, 10.0, 11.0, 12.0,
+                                13.0, 14.0, 15.0, 16.0};
+    constexpr Matrix4x4 matrix2{1.0,  5.0,  9.0, 13.0,
+                                2.0,  6.0, 10.0, 14.0,
+                                3.0,  7.0, 11.0, 15.0,
+                                4.0,  8.0, 12.0, 16.0};
+    constexpr auto transposed_matrix = matrix1.transposedMatrix();
+    for (zisc::uint row = 0; row < 4; ++row) {
+      for (zisc::uint column = 0; column < 4; ++column) {
+        ASSERT_DOUBLE_EQ(matrix2(row, column), transposed_matrix(row, column));
+      }
+    }
+  }
+  {
+    using Matrix3x3 = zisc::Matrix<double, 3, 3>;
+    constexpr auto matrix = Matrix3x3{1.0, 2.0, 1.0,
+                                      1.0, 0.0, 3.0,
+                                      2.0, 1.0, 1.0};
+    constexpr auto inv_matrix1 = matrix.inverseMatrix();
+    constexpr auto inv_matrix2 = (1.0 / 8.0) * Matrix3x3{-3.0,-1.0, 6.0,
+                                                          5.0,-1.0,-2.0,
+                                                          1.0, 3.0,-2.0};
+    for (zisc::uint row = 0; row < 3; ++row) {
+      for (zisc::uint column = 0; column < 3; ++column) {
+        ASSERT_DOUBLE_EQ(inv_matrix1(row, column), inv_matrix2(row, column));
+      }
+    }
+  }
+}

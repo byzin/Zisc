@@ -31,7 +31,18 @@ namespace zisc {
   No detailed.
   */
 template <typename CharType, uint N> inline
+constexpr BasicString<CharType, N>::BasicString() noexcept
+    : string_{'\0'}
+{
+}
+
+/*!
+  \details
+  No detailed.
+  */
+template <typename CharType, uint N> inline
 constexpr BasicString<CharType, N>::BasicString(const CharType (&string)[N]) noexcept
+    : string_{'\0'}
 {
   initialize(string);
 }
@@ -50,11 +61,8 @@ constexpr bool BasicString<CharType, N>::operator==(
   ++m;
 
   bool flag = (N == m);
-  uint i = 0;
-  while (flag && (i != N)) {
+  for (uint i = 0; flag && (i < N); ++i)
     flag = (get(i) == other[i]);
-    ++i;
-  }
   return flag;
 }
 
@@ -67,11 +75,8 @@ constexpr bool BasicString<CharType, N>::operator==(
     const BasicString<CharType, M>& other) const noexcept
 {
   bool flag = (N == M);
-  uint i = 0;
-  while (flag && (i != N)) {
+  for (uint i = 0; flag && (i < N); ++i)
     flag = (get(i) == other[i]);
-    ++i;
-  }
   return flag;
 }
 
@@ -187,6 +192,18 @@ constexpr void BasicString<CharType, N>::initialize(
   \details
   No detailed.
   */
+template <typename CharType, uint N> inline
+constexpr void BasicString<CharType, N>::initialize(
+    const BasicString& other) noexcept
+{
+  for (uint i = 0; i < size(); ++i)
+    string_[i] = other[i];
+}
+
+/*!
+  \details
+  No detailed.
+  */
 template <typename CharType, uint N1, uint N2> inline
 constexpr BasicString<CharType, N1 + N2 - 1> operator+(
     const BasicString<CharType, N1>& string1,
@@ -199,24 +216,24 @@ constexpr BasicString<CharType, N1 + N2 - 1> operator+(
   \details
   No detailed.
   */
-template <typename CharType, uint N1, uint N2> inline
-constexpr BasicString<CharType, N1 + N2 - 1> operator+(
+template <uint N1, uint N2> inline
+constexpr String<N1 + N2 - 1> operator+(
     const char (&string1)[N1],
-    const BasicString<CharType, N2>& string2) noexcept
+    const String<N2>& string2) noexcept
 {
-  return toString(string1) + string2;
+  return concatenate(string1, string2);
 }
 
 /*!
   \details
   No detailed.
   */
-template <typename CharType, uint N1, uint N2> inline
-constexpr BasicString<CharType, N1 + N2 - 1> operator+(
-    const BasicString<CharType, N1>& string1,
+template <uint N1, uint N2> inline
+constexpr String<N1 + N2 - 1> operator+(
+    const String<N1>& string1,
     const char (&string2)[N2]) noexcept
 {
-  return string1 + toString(string2);
+  return concatenate(string1, string2);
 }
 
 /*!
@@ -229,36 +246,41 @@ constexpr BasicString<CharType, N1 + N2 - 1> concatenate(
     const BasicString<CharType, N2>& string2) noexcept
 {
   constexpr uint size = N1 + N2 - 1;
-  char string[size] = {'\0'};
+  BasicString<CharType, size> string;
   for (uint i = 0; i < string1.size(); ++i)
     string[i] = string1[i];
   for (uint i = 0; i < string2.size(); ++i)
     string[i + string1.size()] = string2[i];
-  return BasicString<CharType, size>{string};
+  string[size - 1] = '\0';
+  return string;
 }
 
 /*!
   \details
   No detailed.
   */
-template <typename CharType, uint N1, uint N2> inline
-constexpr BasicString<CharType, N1 + N2 - 1> concatenate(
+template <uint N1, uint N2> inline
+constexpr String<N1 + N2 - 1> concatenate(
     const char (&string1)[N1],
-    const BasicString<CharType, N2>& string2) noexcept
+    const String<N2>& string2) noexcept
 {
-  return concatenate(toString(string1), string2);
+  auto str1 = toString(string1);
+  auto result = concatenate(str1, string2);
+  return result;
 }
 
 /*!
   \details
   No detailed.
   */
-template <typename CharType, uint N1, uint N2> inline
-constexpr BasicString<CharType, N1 + N2 - 1> concatenate(
-    const BasicString<CharType, N1>& string1,
+template <uint N1, uint N2> inline
+constexpr String<N1 + N2 - 1> concatenate(
+    const String<N1>& string1,
     const char (&string2)[N2]) noexcept 
 {
-  return concatenate(string1, toString(string2));
+  auto str2 = toString(string2);
+  auto result = concatenate(string1, str2);
+  return result;
 }
 
 /*!
@@ -279,44 +301,39 @@ namespace inner {
   */
 class ValueStringPattern
 {
- private:
-  // Sub-patterns
-  static constexpr auto digit_ = toString(R"(\d)");
-  static constexpr auto digits_ = digit_ + "+";
-  static constexpr auto frac_ = R"(\.)" + digits_;
-  static constexpr auto e_ = toString(R"(e|E|e\+|E\+|e-|E-)");
-  static constexpr auto exp_ = "(?:" + e_ + ")" + digits_;
-  static constexpr auto character_ = toString(R"([^"\\[:cntrl:]])");
-  static constexpr auto escaped_ = toString(R"(\\["\\/bfnrt])");
-  // Patterns
-  static constexpr auto boolean_ = toString("true|false");
-//  static constexpr auto int_ = "-?(?:" + digit_ + "|[1-9]" + digits_ + ")";
-  static constexpr auto int_ = toString(R"(-?(?:0|[1-9]\d*))");
-  static constexpr auto float_ = int_ + "(?:" + frac_ + ")?" + "(?:" + exp_ + ")?";
-  static constexpr auto string_ = R"("(?:)" + character_ + "|" + escaped_ + R"()*")";
-
  public:
-  static constexpr auto boolean() noexcept -> decltype(boolean_)
+  static constexpr auto boolean() noexcept
   {
-    constexpr auto boolean = boolean_;
+    auto boolean = toString("true|false");
     return boolean;
   }
 
-  static constexpr auto floatingPoint() noexcept -> decltype(float_)
+  static constexpr auto integer() noexcept
   {
-    constexpr auto floating_point = float_;
-    return floating_point;
-  }
-
-  static constexpr auto integer() noexcept -> decltype(int_)
-  {
-    constexpr auto integer = int_;
+    //auto integer = "-?(?:" + digit + "|[1-9]" + digits + ")";
+    auto integer = toString(R"(-?(?:0|[1-9]\d*))");
     return integer;
   }
 
-  static constexpr auto string() noexcept -> decltype(string_)
+  static constexpr auto floatingPoint() noexcept
   {
-    constexpr auto string = string_;
+    // sub-patterns
+    auto digit = toString(R"(\d)");
+    auto digits = digit + "+";
+    auto frac = R"(\.)" + digits;
+    auto e = toString(R"(e|E|e\+|E\+|e-|E-)");
+    auto exp = "(?:" + e + ")" + digits;
+    auto i = integer();
+    // pattern
+    auto floating_point = i + "(?:" + frac + ")?" + "(?:" + exp + ")?";
+    return floating_point;
+  }
+
+  static constexpr auto string() noexcept
+  {
+    auto character = toString(R"([^"\\[:cntrl:]])");
+    auto escaped = toString(R"(\\["\\/bfnrt])");
+    auto string = R"("(?:)" + character + "|" + escaped + R"()*")";
     return string;
   }
 };
@@ -661,10 +678,10 @@ namespace inner {
 template <typename Type> inline
 bool isFloatString(const Type& string) noexcept
 {
-  using Pattern = ValueStringPattern;
   constexpr auto regex_option =  std::regex_constants::nosubs | 
                                  std::regex_constants::ECMAScript;
-  std::regex float_pattern{Pattern::floatingPoint().toCString(), regex_option};
+  constexpr auto float_string = ValueStringPattern::floatingPoint();
+  std::regex float_pattern{float_string.toCString(), regex_option};
   return std::regex_match(string, float_pattern);
 }
 
@@ -675,10 +692,10 @@ bool isFloatString(const Type& string) noexcept
 template <typename Type> inline
 bool isIntegerString(const Type& string) noexcept
 {
-  using Pattern = ValueStringPattern;
   constexpr auto regex_option =  std::regex_constants::nosubs | 
                                  std::regex_constants::ECMAScript;
-  std::regex int_pattern{Pattern::integer().toCString(), regex_option};
+  constexpr auto integer_string = ValueStringPattern::integer();
+  std::regex int_pattern{integer_string.toCString(), regex_option};
   return std::regex_match(string, int_pattern);
 }
 
@@ -689,10 +706,10 @@ bool isIntegerString(const Type& string) noexcept
 template <typename Type> inline
 bool isCxxStringString(const Type& string) noexcept
 {
-  using Pattern = ValueStringPattern;
   constexpr auto regex_option =  std::regex_constants::nosubs | 
                                  std::regex_constants::ECMAScript;
-  std::regex string_pattern{Pattern::string().toCString(), regex_option};
+  constexpr auto string_string = ValueStringPattern::string();
+  std::regex string_pattern{string_string.toCString(), regex_option};
   return std::regex_match(string, string_pattern);
 }
 

@@ -27,6 +27,9 @@ template <typename CharType, uint N>
 class BasicString
 {
  public:
+  //! Create a empty string
+  constexpr BasicString() noexcept;
+
   //! Create a string
   constexpr BasicString(const CharType (&string)[N]) noexcept;
 
@@ -72,8 +75,11 @@ class BasicString
   //! Initialize a string
   constexpr void initialize(const CharType (&string)[N]) noexcept;
 
+  //! Copy a string
+  constexpr void initialize(const BasicString& other) noexcept;
 
-  CharType string_[N] = {'\0'};
+
+  CharType string_[N];
 };
 
 // Constexpr string aliases
@@ -84,19 +90,19 @@ using String = BasicString<char, N>;
 //! Concatenates two strings
 template <typename CharType, uint N1, uint N2>
 constexpr BasicString<CharType, N1 + N2 - 1> operator+(
-    const BasicString<CharType, N1>& string1, 
+    const BasicString<CharType, N1>& string1,
     const BasicString<CharType, N2>& string2) noexcept;
 
 //! Concatenates two strings
-template <typename CharType, uint N1, uint N2>
-constexpr BasicString<CharType, N1 + N2 - 1> operator+(
+template <uint N1, uint N2>
+constexpr String<N1 + N2 - 1> operator+(
     const char (&string1)[N1],
-    const BasicString<CharType, N2>& string2) noexcept;
+    const String<N2>& string2) noexcept;
 
 //! Concatenates two strings
-template <typename CharType, uint N1, uint N2>
-constexpr BasicString<CharType, N1 + N2 - 1> operator+(
-    const BasicString<CharType, N1>& string1, 
+template <uint N1, uint N2>
+constexpr String<N1 + N2 - 1> operator+(
+    const String<N1>& string1,
     const char (&string2)[N2]) noexcept;
 
 //! Concatenates two strings
@@ -106,15 +112,15 @@ constexpr BasicString<CharType, N1 + N2 - 1> concatenate(
     const BasicString<CharType, N2>& string2) noexcept;
 
 //! Concatenates two strings
-template <typename CharType, uint N1, uint N2>
-constexpr BasicString<CharType, N1 + N2 - 1> concatenate(
+template <uint N1, uint N2>
+constexpr String<N1 + N2 - 1> concatenate(
     const char (&string1)[N1],
-    const BasicString<CharType, N2>& string2) noexcept;
+    const String<N2>& string2) noexcept;
 
 //! Concatenates two strings
-template <typename CharType, uint N1, uint N2>
-constexpr BasicString<CharType, N1 + N2 - 1> concatenate(
-    const BasicString<CharType, N1>& string1, 
+template <uint N1, uint N2>
+constexpr String<N1 + N2 - 1> concatenate(
+    const String<N1>& string1, 
     const char (&string2)[N2]) noexcept;
 
 

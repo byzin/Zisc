@@ -286,8 +286,8 @@ namespace {
 constexpr zisc::Matrix<double, 3, 3> makeConstMatrix()
 {
   zisc::Matrix<double, 3, 3> matrix;
-  for (uint row = 0; row < 3; ++row) {
-    for (uint column = 0; column < 3; ++column) {
+  for (zisc::uint row = 0; row < 3; ++row) {
+    for (zisc::uint column = 0; column < 3; ++column) {
       matrix(row, column) = zisc::cast<double>(row + column);
     }
   }

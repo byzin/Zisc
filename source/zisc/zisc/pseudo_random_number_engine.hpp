@@ -12,8 +12,15 @@
 
 // Standard C++ library
 #include <cstdint>
+// Zisc
+#include "type_traits.hpp"
+#include "zisc/zisc_config.hpp"
 
 namespace zisc {
+
+/*!
+  */
+template <uint Byte> struct EngineFloatInfo;
 
 /*!
   \brief Base class of pseudo random number algorithm
@@ -23,44 +30,62 @@ namespace zisc {
 template <typename GeneratorClass, typename Seed, typename Result>
 class PseudoRandomNumberEngine
 {
+  static_assert(kIsUnsignedInteger<Seed>, "Seed isn't unsigned integer type.");
+  static_assert(kIsUnsignedInteger<Result>, "Result isn't unsigned integer type.");
+
  public:
   using GeneratorType = GeneratorClass;
   using SeedType = Seed;
   using ResultType = Result;
+  using FloatType = typename EngineFloatInfo<sizeof(Result)>::FloatType;
 
 
   //! Generate a random number
   ResultType operator()() noexcept;
 
-  //! Generate a random number x satisfying lower <= x < upper 
-  template <typename Arithmetic>
-  Arithmetic operator()(const Arithmetic lower, const Arithmetic upper) noexcept;
+  //! Generate a float random number x satisfying [lower, upper)
+  template <typename Float>
+  Float operator()(const Float lower, const Float upper) noexcept;
 
 
   //! Generate a random number
   ResultType generate() noexcept;
 
-  //! Generate a random number x satisfying lower <= x < upper
-  template <typename Arithmetic>
-  Arithmetic generate(const Arithmetic lower, const Arithmetic upper) noexcept;
+  //! Generate a float random number x satisfying [lower, upper)
+  template <typename Float>
+  Float generate(const Float lower, const Float upper) noexcept;
 
-  //! Set random seed
+  //! Generate a [0, 1) float random number
+  FloatType generate01() noexcept;
+
+  //! Set a random seed
   void setSeed(const SeedType seed) noexcept;
 
  protected:
-  //! Initialize the PRN
+  //! Initialize the PRNE
   PseudoRandomNumberEngine() noexcept;
 
-  //! Copy a PRN
+  //! Copy a PRNE state
   PseudoRandomNumberEngine(const PseudoRandomNumberEngine&) noexcept;
 
+  // Delete function
   PseudoRandomNumberEngine& operator=(const PseudoRandomNumberEngine&) = delete;
+
+ private:
+  //! Used for conversion from integer to float
+  union FloatValue
+  {
+    ResultType integer_;
+    FloatType float_;
+    FloatValue(const ResultType integer) : integer_{integer} {}
+  };
 };
 
 template <typename GeneratorClass>
-using RandomNumberEngine = PseudoRandomNumberEngine<GeneratorClass,
-                                                    typename GeneratorClass::SeedType,
-                                                    typename GeneratorClass::ResultType>;
+using RandomNumberEngine = PseudoRandomNumberEngine<
+                               GeneratorClass,
+                               typename GeneratorClass::SeedType,
+                               typename GeneratorClass::ResultType>;
 
 } // namespace zisc
 

@@ -54,57 +54,7 @@ uint32 XsaddEngine::generate() noexcept
 {
   nextState();
   const auto random = state_[3] + state_[2];
-  ZISC_ASSERT(isInClosedBounds(random, min(), max()), "The random is out of range.");
   return random;
-}
-
-/*!
-  \details
-  No detailed.
-  */
-template <typename Float> inline
-Float XsaddEngine::generate(const Float lower, 
-                            const Float upper,
-                            EnableIfFloat<Float>) noexcept
-{
-  const auto random = generateFloat();
-  return bound(random, lower, upper);
-}
-
-/*!
-  \details
-  No detailed.
-  */
-inline
-double XsaddEngine::generateFloat() noexcept
-{
-  constexpr double k = 1.0 / 18446744073709551616.0;
-  constexpr uint32 t = 0xffffffe0u;
-
-  uint64 a = cast<uint64>(generate() & t);
-  const uint64 b = cast<uint64>(generate());
-	a = (a << 32) | (b << 5);
-	return k * cast<double>(a);
-}
-
-/*!
-  \details
-  No detailed.
-  */
-inline
-constexpr uint32 XsaddEngine::max() noexcept
-{
-  return std::numeric_limits<uint32>::max();
-}
-
-/*!
-  \details
-  No detailed.
-  */
-inline
-constexpr uint32 XsaddEngine::min() noexcept
-{
-  return std::numeric_limits<uint32>::min();
 }
 
 /*!
@@ -192,19 +142,6 @@ void XsaddEngine::setSeed(const std::vector<uint32>& seed_array) noexcept
 
   for (i = 0; i < loop_; ++i)
     nextState();
-}
-
-/*!
-  \details
-  No detailed.
-  */
-template <typename Float> inline
-Float XsaddEngine::bound(const double random, 
-                         const Float lower, 
-                         const Float upper,
-                         EnableIfFloat<Float>) noexcept
-{
-  return lower + cast<Float>(random) * (upper - lower);
 }
 
 /*!

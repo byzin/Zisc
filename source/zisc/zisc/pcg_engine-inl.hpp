@@ -73,12 +73,12 @@ struct PcgMixin<PcgAlgorithm::XshRr, SeedType, ResultType>
     constexpr SeedType bits = cast<SeedType>(sizeof(SeedType) * 8);
     constexpr SeedType xtypebits = cast<SeedType>(sizeof(ResultType) * 8);
     constexpr SeedType sparebits = bits - xtypebits;
-    constexpr SeedType wantedopbits = xtypebits >= 128 ? 7 : 
-                                      xtypebits >=  64 ? 6 : 
-                                      xtypebits >=  32 ? 5 : 
+    constexpr SeedType wantedopbits = xtypebits >= 128 ? 7 :
+                                      xtypebits >=  64 ? 6 :
+                                      xtypebits >=  32 ? 5 :
                                       xtypebits >=  16 ? 4 :
                                                          3;
-    constexpr SeedType opbits = (sparebits >= wantedopbits) ? wantedopbits 
+    constexpr SeedType opbits = (sparebits >= wantedopbits) ? wantedopbits
                                                             : sparebits;
     constexpr SeedType amplifier = wantedopbits - opbits;
     constexpr SeedType mask = (1 << opbits) - 1;
@@ -114,9 +114,9 @@ struct PcgMixin<PcgAlgorithm::RxsMXs, SeedType, ResultType>
     // Constant values
     constexpr SeedType xtypebits = cast<SeedType>(sizeof(ResultType) * 8);
     constexpr SeedType bits = cast<SeedType>(sizeof(SeedType) * 8);
-    constexpr SeedType opbits = xtypebits >= 128 ? 6 : 
-                                xtypebits >=  64 ? 5 : 
-                                xtypebits >=  32 ? 4 : 
+    constexpr SeedType opbits = xtypebits >= 128 ? 6 :
+                                xtypebits >=  64 ? 5 :
+                                xtypebits >=  32 ? 4 :
                                 xtypebits >=  16 ? 3 :
                                                    2;
     constexpr SeedType shift = bits - xtypebits;
@@ -142,46 +142,8 @@ template <PcgBase Base, PcgAlgorithm Algorithm, typename Seed, typename Result> 
 auto PcgEngine<Base, Algorithm, Seed, Result>::generate() noexcept -> ResultType
 {
   const auto random = inner::PcgMixin<Algorithm, Seed, Result>::output(state_);
-  ZISC_ASSERT(isInClosedBounds(random, min(), max()), "The random is out of range.");
   next();
   return random;
-}
-
-/*!
-  \details
-  No detailed.
-  */
-template <PcgBase Base, PcgAlgorithm Algorithm, typename Seed, typename Result>
-template <typename Arithmetic> inline
-Arithmetic PcgEngine<Base, Algorithm, Seed, Result>::generate(
-    const Arithmetic lower,
-    const Arithmetic upper) noexcept
-{
-  static_assert(std::is_arithmetic<Arithmetic>::value,
-                "Arithmetic isn't arithmetic type.");
-  const auto random = generate();
-  ZISC_ASSERT(isInClosedBounds(random, min(), max()), "The random is out of range.");
-  return bound(random, lower, upper);
-}
-
-/*!
-  \details
-  No detailed.
-  */
-template <PcgBase Base, PcgAlgorithm Algorithm, typename Seed, typename Result> inline
-constexpr  auto PcgEngine<Base, Algorithm, Seed, Result>::max() noexcept -> ResultType
-{
-  return std::numeric_limits<ResultType>::max();
-}
-
-/*!
-  \details
-  No detailed.
-  */
-template <PcgBase Base, PcgAlgorithm Algorithm, typename Seed, typename Result> inline
-constexpr auto PcgEngine<Base, Algorithm, Seed, Result>::min() noexcept -> ResultType
-{
-  return std::numeric_limits<ResultType>::min();
 }
 
 /*!
@@ -208,29 +170,6 @@ auto PcgEngine<Base, Algorithm, Seed, Result>::bump(const SeedType state) const 
 
 namespace inner {
 
-template <typename PcgEngine, typename ResultType, typename Integer> inline
-Integer pcgBound(const ResultType random,
-                 const Integer lower,
-                 const Integer upper,
-                 EnableIfInteger<Integer> = kEnabler) noexcept
-{
-  const auto range = cast<ResultType>(upper - lower);
-  return cast<Integer>(cast<ResultType>(lower) + random % range);
-}
-
-template <typename PcgEngine, typename ResultType, typename Float> inline
-Float pcgBound(const ResultType random,
-               const Float lower,
-               const Float upper,
-               EnableIfFloat<Float> = kEnabler) noexcept
-{
-  constexpr Float epsilon = std::numeric_limits<Float>::epsilon();
-  constexpr Float normalizer = (cast<Float>(1.0) - epsilon) / 
-                               cast<Float>(PcgEngine::max());
-  const Float u = cast<Float>(random) * normalizer;
-  return lower + u * (upper - lower);
-}
-
 template <typename Type> constexpr Type increment() noexcept;
 template <> constexpr uint8 increment() noexcept {return 77U;}
 template <> constexpr uint16 increment() noexcept {return 47989U;}
@@ -256,19 +195,6 @@ template <PcgBase Base, PcgAlgorithm Algorithm, typename Seed, typename Result> 
 constexpr auto PcgEngine<Base, Algorithm, Seed, Result>::multiplier() noexcept -> SeedType
 {
   return inner::multiplier<SeedType>();
-}
-
-/*!
-  \details
-  No detailed.
-  */
-template <PcgBase Base, PcgAlgorithm Algorithm, typename Seed, typename Result>
-template <typename Type> inline
-Type PcgEngine<Base, Algorithm, Seed, Result>::bound(const ResultType random,
-                                                     const Type lower,
-                                                     const Type upper) const noexcept
-{
-  return inner::pcgBound<PcgEngine>(random, lower, upper);
 }
 
 /*!

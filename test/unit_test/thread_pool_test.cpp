@@ -21,6 +21,7 @@
 #include "gtest/gtest.h"
 // Zisc
 #include "zisc/aligned_memory_pool.hpp"
+#include "zisc/math.hpp"
 #include "zisc/thread_pool.hpp"
 #include "zisc/pcg_engine.hpp"
 
@@ -174,7 +175,7 @@ TEST(ThreadPoolTest, TaskStressTest)
     auto task = [number](const int)
     {
       zisc::PcgMcgRxsMXs32 sampler{number};
-      const auto loop = sampler(0, 1024 * 1024);
+      const auto loop = static_cast<int>(sampler(0.0, 1.0) * zisc::power<2>(1024.0));
       volatile int value = 0;
       for (int i = 0; i < loop; ++i) {
         value = i;
@@ -197,7 +198,7 @@ TEST(ThreadPoolTest, LoopTaskStressTest)
   auto task = [](const int, const zisc::uint number)
   {
     zisc::PcgMcgRxsMXs32 sampler{number};
-    const auto loop = sampler(0, 1024 * 1024);
+    const auto loop = static_cast<int>(sampler(0.0, 1.0) * zisc::power<2>(1024.0));
     volatile int value = 0;
     for (int i = 0; i < loop; ++i) {
       value = i;

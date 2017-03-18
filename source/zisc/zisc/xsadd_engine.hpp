@@ -43,21 +43,6 @@ class XsaddEngine : public PseudoRandomNumberEngine<XsaddEngine, uint32, uint32>
   //! Generate a random number
   uint32 generate() noexcept;
 
-  //! Generate a bounded random number x satisfying lower <= x < upper 
-  template <typename Float>
-  Float generate(const Float lower, 
-                 const Float upper,
-                 EnableIfFloat<Float> = kEnabler) noexcept;
-
-  //! Generate double precision floating point number x (0.0 <= x < 1.0)
-  double generateFloat() noexcept;
-
-  //! Return the largest possible value in the output range
-  static constexpr uint32 max() noexcept;
-
-  //! Return the sammlest possible value in the output range
-  static constexpr uint32 min() noexcept;
-
   //! Set random seed
   void setSeed(const uint32 seed) noexcept;
 
@@ -65,13 +50,6 @@ class XsaddEngine : public PseudoRandomNumberEngine<XsaddEngine, uint32, uint32>
   void setSeed(const std::vector<uint32>& seed_array) noexcept;
 
  private:
-  //! Return the bounded random number
-  template <typename Float>
-  Float bound(const double random, 
-              const Float lower, 
-              const Float upper,
-              EnableIfFloat<Float> = kEnabler) noexcept;
-
   //! Initialize
   uint32 initializeValue1(const uint32 x) const noexcept;
 

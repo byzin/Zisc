@@ -23,13 +23,13 @@ namespace zisc {
  No detailed.
  */
 template <typename Type>
-class XorshiftEngine : 
+class XorshiftEngine :
     public PseudoRandomNumberEngine<XorshiftEngine<Type>, Type, Type>
 {
  public:
   using SeedType = Type;
   using ResultType = Type;
-  
+
 
   //! Initialize generator using default random seed
   XorshiftEngine() noexcept;
@@ -41,28 +41,10 @@ class XorshiftEngine :
   //! Generate a random number
   ResultType generate() noexcept;
 
-  //! Generate a bounded random number x satisfying lower <= x < upper
-  template <typename Arithmetic>
-  Arithmetic generate(const Arithmetic lower, const Arithmetic upper) noexcept;
-
-  //! Return the largest possible value in the output range
-  static constexpr ResultType max() noexcept;
-
-  //! Return the smallest possible value in the output range
-  static constexpr ResultType min() noexcept;
-
   //! Set random seed
   void setSeed(const SeedType seed) noexcept;
 
  private:
-  //! Return the bounded number
-  template <typename Float>
-  Float bound(const ResultType random, 
-              const Float lower, 
-              const Float upper,
-              EnableIfFloat<Float> = kEnabler) const noexcept;
-
-  
   static constexpr uint N = 16 / sizeof(SeedType);
 
 

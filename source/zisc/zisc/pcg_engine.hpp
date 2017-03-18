@@ -59,16 +59,6 @@ class PcgEngine : public PseudoRandomNumberEngine<
   //! Generate a random number
   ResultType generate() noexcept;
 
-  //! Generate a bounded random number
-  template <typename Arithmetic>
-  Arithmetic generate(const Arithmetic lower, const Arithmetic upper) noexcept;
-
-  //! Return the maximum value
-  static constexpr ResultType max() noexcept;
-
-  //! Return the minimum value
-  static constexpr ResultType min() noexcept;
-
   //! Set seed
   void setSeed(const SeedType seed) noexcept;
 

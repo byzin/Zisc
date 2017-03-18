@@ -15,9 +15,31 @@
 #include <cstdint>
 #include <type_traits>
 // Zisc
+#include "type_traits.hpp"
 #include "utility.hpp"
+#include "zisc/zisc_config.hpp"
 
 namespace zisc {
+
+template <>
+struct EngineFloatInfo<sizeof(float)>
+{
+  using FloatType = float;
+  static constexpr int kFloatBitSize = sizeof(float) * 8;
+  static constexpr int kMantissaBitSize = 23;
+  static constexpr int kNonMantissaBitSize = kFloatBitSize - kMantissaBitSize;
+  static constexpr uint32 kExponentBit = cast<uint32>(127u) << kMantissaBitSize;
+};
+
+template <>
+struct EngineFloatInfo<sizeof(double)>
+{
+  using FloatType = double;
+  static constexpr int kFloatBitSize = sizeof(double) * 8;
+  static constexpr int kMantissaBitSize = 52;
+  static constexpr int kNonMantissaBitSize = kFloatBitSize - kMantissaBitSize;
+  static constexpr uint64 kExponentBit = cast<uint64>(1023ull) << kMantissaBitSize;
+};
 
 /*!
   \details
@@ -35,10 +57,10 @@ auto PseudoRandomNumberEngine<GeneratorClass, Seed, Result>::operator()() noexce
   No detailed.
   */
 template <typename GeneratorClass, typename Seed, typename Result>
-template <typename Arithmetic> inline
-Arithmetic PseudoRandomNumberEngine<GeneratorClass, Seed, Result>::operator()(
-    const Arithmetic lower, 
-    const Arithmetic upper) noexcept
+template <typename Float> inline
+Float PseudoRandomNumberEngine<GeneratorClass, Seed, Result>::operator()(
+    const Float lower,
+    const Float upper) noexcept
 {
   return generate(lower, upper);
 }
@@ -59,14 +81,29 @@ auto PseudoRandomNumberEngine<GeneratorClass, Seed, Result>::generate() noexcept
   No detailed.
   */
 template <typename GeneratorClass, typename Seed, typename Result>
-template <typename Arithmetic> inline
-Arithmetic PseudoRandomNumberEngine<GeneratorClass, Seed, Result>::generate(
-    const Arithmetic lower, 
-    const Arithmetic upper) noexcept
+template <typename Float> inline
+Float PseudoRandomNumberEngine<GeneratorClass, Seed, Result>::generate(
+    const Float lower,
+    const Float upper) noexcept
 {
-  static_assert(std::is_arithmetic<Arithmetic>::value,
-                "Arithmetic isn't arithmetic type.");
-  return cast<GeneratorClass*>(this)->generate(lower, upper);
+  static_assert(kIsFloat<Float>, "Float isn't floating point type.");
+  const Float u = cast<Float>(generate01());
+  return lower + (upper - lower) * u;
+}
+
+/*!
+  */
+template <typename GeneratorClass, typename Seed, typename Result> inline
+auto PseudoRandomNumberEngine<GeneratorClass, Seed, Result>::generate01() noexcept
+    -> FloatType
+{
+  // Generate a integer random number
+  const Result x = generate();
+  // Convert to [0, 1) float value
+  using FloatInfo = EngineFloatInfo<sizeof(Result)>;
+  constexpr auto exponent = FloatInfo::kExponentBit;
+  const FloatValue u{exponent | (x >> FloatInfo::kNonMantissaBitSize)};
+  return u.float_ - cast<FloatType>(1.0);
 }
 
 /*!

@@ -13,7 +13,6 @@
 #include <iomanip>
 // Zisc
 #include "zisc/algorithm.hpp"
-#include "zisc/dsfmt_engine.hpp"
 #include "zisc/pcg_engine.hpp"
 #include "zisc/xsadd_engine.hpp"
 #include "zisc/xorshift_engine.hpp"
@@ -40,9 +39,6 @@ int main()
   // Xorshift32 engine
   zisc::Xorshift32 xorshift_engine{seed32};
   tryPrneExample(xorshift_engine, "Xorshift32");
-  // dSFMT engine
-  zisc::Dsfmt19937 dsfmt_engine{seed32};
-  tryPrneExample(dsfmt_engine, "dSFMT19937");
   // XSadd engine
   zisc::XsaddEngine xsadd_engine{seed32};
   tryPrneExample(xsadd_engine, "XSadd");

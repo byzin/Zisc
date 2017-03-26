@@ -16,6 +16,7 @@
 #include <cstddef>
 #include <type_traits>
 // Zisc
+#include "array.hpp"
 #include "compensated_summation.hpp"
 #include "math.hpp"
 #include "type_traits.hpp"
@@ -43,10 +44,8 @@ constexpr ArithmeticArray<Arithmetic, kN>::ArithmeticArray() noexcept :
 template <typename Arithmetic, uint kN> template <typename ...Types> inline
 constexpr ArithmeticArray<Arithmetic, kN>::ArithmeticArray(
     const Types ...values) noexcept :
-        array_{{cast<Arithmetic>(values)...}}
+        array_{cast<Arithmetic>(values)...}
 {
-  constexpr auto num_of_arguments = sizeof...(Types);
-  static_assert(num_of_arguments == size(), "The num of arguments isn't match kN.");
 }
 
 /*!
@@ -55,11 +54,9 @@ constexpr ArithmeticArray<Arithmetic, kN>::ArithmeticArray(
   */
 template <typename Arithmetic, uint kN> inline
 ArithmeticArray<Arithmetic, kN>::ArithmeticArray(
-    const std::array<Arithmetic, kN>& other) noexcept
+    const std::array<Arithmetic, kN>& other) noexcept :
+        array_{other}
 {
-  ZISC_ASSERT(other.size() == kN, "The size of array is wrong.");
-  for (uint i = 0; i < kN; ++i)
-    get(i) = other[i];
 }
 
 /*!
@@ -80,7 +77,7 @@ constexpr ArithmeticArray<Arithmetic, kN>::ArithmeticArray(
 template <typename Arithmetic, uint kN> inline
 constexpr auto ArithmeticArray<Arithmetic, kN>::begin() noexcept -> iterator
 {
-  return array_.elements_;
+  return array_.begin();
 }
 
 /*!
@@ -90,7 +87,7 @@ constexpr auto ArithmeticArray<Arithmetic, kN>::begin() noexcept -> iterator
 template <typename Arithmetic, uint kN> inline
 constexpr auto ArithmeticArray<Arithmetic, kN>::begin() const noexcept -> const_iterator
 {
-  return array_.elements_;
+  return array_.begin();
 }
 
 /*!
@@ -100,7 +97,7 @@ constexpr auto ArithmeticArray<Arithmetic, kN>::begin() const noexcept -> const_
 template <typename Arithmetic, uint kN> inline
 constexpr auto ArithmeticArray<Arithmetic, kN>::cbegin() const noexcept -> const_iterator
 {
-  return array_.elements_;
+  return array_.cbegin();
 }
 
 /*!
@@ -110,7 +107,7 @@ constexpr auto ArithmeticArray<Arithmetic, kN>::cbegin() const noexcept -> const
 template <typename Arithmetic, uint kN> inline
 constexpr auto ArithmeticArray<Arithmetic, kN>::end() noexcept -> iterator
 {
-  return array_.elements_ + size();
+  return array_.end();
 }
 
 /*!
@@ -120,7 +117,7 @@ constexpr auto ArithmeticArray<Arithmetic, kN>::end() noexcept -> iterator
 template <typename Arithmetic, uint kN> inline
 constexpr auto ArithmeticArray<Arithmetic, kN>::end() const noexcept -> const_iterator
 {
-  return array_.elements_ + size();
+  return array_.end();
 }
 
 /*!
@@ -130,7 +127,7 @@ constexpr auto ArithmeticArray<Arithmetic, kN>::end() const noexcept -> const_it
 template <typename Arithmetic, uint kN> inline
 constexpr auto ArithmeticArray<Arithmetic, kN>::cend() const noexcept -> const_iterator
 {
-  return array_.elements_ + size();
+  return array_.cend();
 }
 
 /*!
@@ -313,8 +310,7 @@ constexpr auto ArithmeticArray<Arithmetic, kN>::operator/=(
   No detailed.
   */
 template <typename Arithmetic, uint kN> inline
-constexpr Arithmetic& ArithmeticArray<Arithmetic, kN>::operator[](
-    const uint index) noexcept
+constexpr Arithmetic& ArithmeticArray<Arithmetic, kN>::operator[](const uint index) noexcept
 {
   return get(index);
 }
@@ -324,8 +320,7 @@ constexpr Arithmetic& ArithmeticArray<Arithmetic, kN>::operator[](
   No detailed.
   */
 template <typename Arithmetic, uint kN> inline
-constexpr const Arithmetic& ArithmeticArray<Arithmetic, kN>::operator[](
-    const uint index) const noexcept
+constexpr const Arithmetic& ArithmeticArray<Arithmetic, kN>::operator[](const uint index) const noexcept
 {
   return get(index);
 }
@@ -363,30 +358,27 @@ constexpr auto ArithmeticArray<Arithmetic, kN>::divideScalar(
   No detailed.
   */
 template <typename Arithmetic, uint kN> inline
-constexpr void ArithmeticArray<Arithmetic, kN>::fill(const Arithmetic value) noexcept
+constexpr void ArithmeticArray<Arithmetic, kN>::fill(const Arithmetic& value) noexcept
 {
-  for (uint index = 0; index < size(); ++index)
-    get(index) = value;
+  array_.fill(value);
 }
 
 /*!
-  \details
-  No detailed.
   */
 template <typename Arithmetic, uint kN> inline
-constexpr Arithmetic& ArithmeticArray<Arithmetic, kN>::get(const uint index) noexcept
+constexpr Arithmetic& ArithmeticArray<Arithmetic, kN>::get(
+    const uint index) noexcept
 {
-  return array_.elements_[index];
+  return array_.get(index);
 }
 
 /*!
-  \details
-  No detailed.
   */
 template <typename Arithmetic, uint kN> inline
-constexpr const Arithmetic& ArithmeticArray<Arithmetic, kN>::get(const uint index) const noexcept
+constexpr const Arithmetic& ArithmeticArray<Arithmetic, kN>::get(
+    const uint index) const noexcept
 {
-  return array_.elements_[index];
+  return array_.get(index);
 }
 
 /*!
@@ -504,21 +496,10 @@ constexpr auto ArithmeticArray<Arithmetic, kN>::minElements(
   No detailed.
   */
 template <typename Arithmetic, uint kN> inline
-constexpr uint ArithmeticArray<Arithmetic, kN>::size() noexcept
+void ArithmeticArray<Arithmetic, kN>::set(const uint index,
+                                          const Arithmetic& value) noexcept
 {
-  return kN;
-}
-
-/*!
-  \details
-  No detailed.
-  */
-template <typename Arithmetic, uint kN> inline
-void ArithmeticArray<Arithmetic, kN>::set(const uint index, 
-                                          const Arithmetic value) noexcept
-{
-  ZISC_ASSERT(index < size(), "The index is out of range.");
-  get(index) = value;
+  array_.set(index, value);
 }
 
 /*!
@@ -526,11 +507,42 @@ void ArithmeticArray<Arithmetic, kN>::set(const uint index,
   No detailed.
   */
 template <typename Arithmetic, uint kN> template <typename ...Types> inline
-void ArithmeticArray<Arithmetic, kN>::setElements(const Types ...values) noexcept
+void ArithmeticArray<Arithmetic, kN>::setElements(Types&& ...values) noexcept
 {
   constexpr auto num_of_arguments = sizeof...(Types);
   static_assert(num_of_arguments == size(), "The num of arguments isn't match kN.");
-  setElements<0>(cast<Arithmetic>(values)...);
+  setElements<0>(std::forward<Types>(values)...);
+}
+
+/*!
+  \details
+  No detailed.
+  */
+template <typename Arithmetic, uint kN>
+template <uint index, typename ...Types> inline
+void ArithmeticArray<Arithmetic, kN>::setElements(const Arithmetic& value,
+                                                  Types&& ...values) noexcept
+{
+  setElements<index>(value);
+  setElements<index + 1>(std::forward<Types>(values)...);
+}
+
+/*!
+  \details
+  No detailed.
+  */
+template <typename Arithmetic, uint kN> template <uint index> inline
+void ArithmeticArray<Arithmetic, kN>::setElements(const Arithmetic& value) noexcept
+{
+  set(index, value);
+}
+
+/*!
+  */
+template <typename Arithmetic, uint kN> inline
+constexpr auto ArithmeticArray<Arithmetic, kN>::size() noexcept -> size_type
+{
+  return BaseArray::size();
 }
 
 /*!
@@ -543,48 +555,23 @@ Arithmetic ArithmeticArray<Arithmetic, kN>::sum() const noexcept
   return sumArray<Arithmetic>(array_);
 }
 
-/*!
-  \details
-  No detailed.
-  */
-template <typename Arithmetic, uint kN>
-template <uint index, typename ...Types> inline
-void ArithmeticArray<Arithmetic, kN>::setElements(const Arithmetic value, 
-                                                  const Types ...values) noexcept
-{
-  setElements<index>(value);
-  setElements<index + 1>(values...);
-}
-
-/*!
-  \details
-  No detailed.
-  */
-template <typename Arithmetic, uint kN> template <uint index> inline
-void ArithmeticArray<Arithmetic, kN>::setElements(const Arithmetic value) noexcept
-{
-  set(index, value);
-}
-
 template <typename Arithmetic, uint kN> template <typename Type> inline
-Type ArithmeticArray<Arithmetic, kN>::sumArray(
-    const Array& array,
-    EnableIfInteger<Type>) noexcept
+Type ArithmeticArray<Arithmetic, kN>::sumArray(const BaseArray& array,
+                                               EnableIfInteger<Type>) noexcept
 {
-  Type sum = array.elements_[0];
+  Type sum = array.get(0);
   for (uint index = 1; index < kN; ++index)
-    sum += array.elements_[index];
+    sum += array.get(index);
   return sum;
 }
 
 template <typename Arithmetic, uint kN> template <typename Type> inline
-Type ArithmeticArray<Arithmetic, kN>::sumArray(
-    const Array& array,
-    EnableIfFloat<Type>) noexcept
+Type ArithmeticArray<Arithmetic, kN>::sumArray(const BaseArray& array,
+                                               EnableIfFloat<Type>) noexcept
 {
-  CompensatedSummation<Type> sum{array.elements_[0]};
+  CompensatedSummation<Type> sum{array.get(0)};
   for (uint index = 1; index < kN; ++index)
-    sum.add(array.elements_[index]);
+    sum.add(array.get(index));
   return sum.get();
 }
 
@@ -645,7 +632,7 @@ constexpr ArithmeticArray<Arithmetic, kN> operator/(
   */
 template <typename Arithmetic> inline
 constexpr ArithmeticArray<Arithmetic, 3>  cross(
-    const ArithmeticArray<Arithmetic, 3>& a, 
+    const ArithmeticArray<Arithmetic, 3>& a,
     const ArithmeticArray<Arithmetic, 3>& b) noexcept
 {
   return ArithmeticArray<Arithmetic, 3>{a[1] * b[2] - a[2] * b[1],
@@ -659,7 +646,7 @@ constexpr ArithmeticArray<Arithmetic, 3>  cross(
   */
 template <typename Arithmetic, uint kN> inline
 constexpr Arithmetic dot(
-    const ArithmeticArray<Arithmetic, kN>& a, 
+    const ArithmeticArray<Arithmetic, kN>& a,
     const ArithmeticArray<Arithmetic, kN>& b) noexcept
 {
   Arithmetic dot = a[0] * b[0];
@@ -707,11 +694,12 @@ constexpr void minMaxElements(
   }
 }
 
+/*!
+  */
 template <typename Arithmetic, uint kN> inline
-constexpr void swapElement(
-    const ArithmeticArray<Arithmetic, kN>& a,
-    const ArithmeticArray<Arithmetic, kN>& b,
-    const uint index) noexcept
+constexpr void swapElement(const ArithmeticArray<Arithmetic, kN>& a,
+                           const ArithmeticArray<Arithmetic, kN>& b,
+                           const uint index) noexcept
 {
   const Arithmetic tmp = b[index];
   b[index] = a[index];

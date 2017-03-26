@@ -15,6 +15,7 @@
 #include <cstddef>
 #include <type_traits>
 // Zisc
+#include "array.hpp"
 #include "type_traits.hpp"
 #include "zisc/zisc_config.hpp"
 
@@ -29,18 +30,19 @@ class ArithmeticArray
 {
   static_assert(std::is_arithmetic<Arithmetic>::value,
                 "The Arithmetic isn't arithmetic type.");
-  static_assert(0 < kN, "kN is 0.");
+  using BaseArray = Array<Arithmetic, kN>;
+
  public:
   // For STL
-  using value_type = Arithmetic;
-  using size_type = std::size_t;
-  using difference_type = std::ptrdiff_t;
-  using reference = value_type&;
-  using const_reference = const value_type&;
-  using pointer = value_type*;
-  using const_pointer = const value_type*;
-  using iterator = pointer;
-  using const_iterator = const_pointer;
+  using value_type = typename BaseArray::value_type;
+  using size_type = typename BaseArray::size_type;
+  using difference_type = typename BaseArray::difference_type;
+  using reference = typename BaseArray::reference;
+  using const_reference = typename BaseArray::const_reference;
+  using pointer = typename BaseArray::pointer;
+  using const_pointer = typename BaseArray::const_pointer;
+  using iterator = typename BaseArray::iterator;
+  using const_iterator = typename BaseArray::const_iterator;
 
 
   //! Initialize all elements with 0
@@ -131,12 +133,12 @@ class ArithmeticArray
   constexpr ArithmeticArray divideScalar(const Arithmetic scalar) const noexcept;
 
   //! Fill the container with specified value
-  constexpr void fill(const Arithmetic value) noexcept;
+  constexpr void fill(const Arithmetic& value) noexcept;
 
-  //! Return the reference by index.
+  //! Return the reference by index
   constexpr Arithmetic& get(const uint index) noexcept;
 
-  //! Return the reference by index.
+  //! Return the reference by index
   constexpr const Arithmetic& get(const uint index) const noexcept;
 
   //! Check whether the array has the specified value
@@ -166,45 +168,39 @@ class ArithmeticArray
   constexpr ArithmeticArray minElements(const ArithmeticArray& other) const noexcept;
 
   //! Return the number of elements
-  static constexpr uint size() noexcept;
+  static constexpr size_type size() noexcept;
 
   //! Set value
-  void set(const uint index, const Arithmetic value) noexcept;
+  void set(const uint index, const Arithmetic& value) noexcept;
 
   //! Set values
   template <typename ...Types>
-  void setElements(const Types ...values) noexcept;
+  void setElements(Types&& ...values) noexcept;
 
   //! Return the sum of elements
   Arithmetic sum() const noexcept;
 
  private:
-  struct Array
-  {
-    Arithmetic elements_[kN];
-  };
-
-
   //! Set value
   template <uint index, typename ...Types>
-  void setElements(const Arithmetic value, const Types ...values) noexcept;
+  void setElements(const Arithmetic& value, Types&& ...values) noexcept;
 
   //! Set value
   template <uint index>
-  void setElements(const Arithmetic value) noexcept;
+  void setElements(const Arithmetic& value) noexcept;
 
   //! Return the sum of integer elements
   template <typename Type>
-  static Type sumArray(const Array& elements,
+  static Type sumArray(const BaseArray& array,
                        EnableIfInteger<Type> = kEnabler) noexcept;
 
   //! Return the sum of float elements
   template <typename Type>
-  static Type sumArray(const Array& elements,
+  static Type sumArray(const BaseArray& array,
                        EnableIfFloat<Type> = kEnabler) noexcept;
 
 
-  Array array_;
+  BaseArray array_;
 };
 
 //! Check whether two arrays are same
@@ -264,8 +260,8 @@ constexpr void minMaxElements(
 //! Swap two array elements by index
 template <typename Arithmetic, uint kN>
 constexpr void swapElement(
-    const ArithmeticArray<Arithmetic, kN>& a, 
-    const ArithmeticArray<Arithmetic, kN>& b, 
+    const ArithmeticArray<Arithmetic, kN>& a,
+    const ArithmeticArray<Arithmetic, kN>& b,
     const uint index) noexcept;
 
 } // namespace zisc

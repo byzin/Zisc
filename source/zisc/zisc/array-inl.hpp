@@ -170,6 +170,7 @@ constexpr auto Array<Type, kN>::operator=(Array&& other) noexcept
 {
   for (uint i = 0; i < kN; ++i)
     get(i) = std::move(other[i]);
+  return *this;
 }
 
 /*!

@@ -7,7 +7,7 @@
 #
 
 
-# Require GoogleTest project files: 
+# Require GoogleTest project files:
 function(buildGoogleTest gtest_project_root gtest_include_dir gtest_libraries)
   include(ExternalProject)
   set(googletest_build_dir ${PROJECT_BINARY_DIR}/googletest)
@@ -32,6 +32,9 @@ function(buildGoogleTest gtest_project_root gtest_include_dir gtest_libraries)
     set(libgtestmain_file_name "libgtest_main.a")
   endif()
   getCompilerOption(googletest_flags googletest_linker_flgas googletest_definitions)
+  string(REPLACE ";" " " googletest_flags "${googletest_flags}")
+  string(REPLACE ";" " " googletest_linker_flgas "${googletest_linker_flgas}")
+  string(REPLACE ";" " " googletest_definitions "${googletest_definitions}")
   externalproject_add(GoogleTest
                       PREFIX ${googletest_build_dir}
                       SOURCE_DIR ${gtest_project_root}

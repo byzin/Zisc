@@ -79,6 +79,12 @@ class Array
   constexpr const_iterator cend() const noexcept;
 
 
+  //! Copy a array
+  constexpr Array& operator=(const Array& other) noexcept;
+
+  //! Move a array
+  constexpr Array& operator=(Array&& other) noexcept;
+
   //! Return the reference by index
   constexpr Type& operator[](const uint index) noexcept;
 

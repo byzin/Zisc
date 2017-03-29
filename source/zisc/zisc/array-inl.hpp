@@ -153,6 +153,26 @@ constexpr auto Array<Type, kN>::cend() const noexcept -> const_iterator
 }
 
 /*!
+  */
+template <typename Type, uint kN> inline
+constexpr auto Array<Type, kN>::operator=(const Array& other) noexcept
+    -> Array&
+{
+  array_ = other.array_;
+  return *this;
+}
+
+/*!
+  */
+template <typename Type, uint kN> inline
+constexpr auto Array<Type, kN>::operator=(Array&& other) noexcept
+    -> Array&
+{
+  for (uint i = 0; i < kN; ++i)
+    get(i) = std::move(other[i]);
+}
+
+/*!
   \details
   No detailed.
   */

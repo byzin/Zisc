@@ -141,6 +141,12 @@ class ArithmeticArray
   //! Return the reference by index
   constexpr const Arithmetic& get(const uint index) const noexcept;
 
+  //! Check whether the array has inf
+  bool hasInf() const noexcept;
+
+  //! Check whether the array has nan
+  bool hasNan() const noexcept;
+
   //! Check whether the array has the specified value
   constexpr bool hasValue(const Arithmetic value) const noexcept;
 

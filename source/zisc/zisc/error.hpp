@@ -26,11 +26,25 @@
 
 #endif // ZISC_ASSERTION
 
+#ifdef ZISC_LOGGING
+
+#define ZISC_LOG(...) zisc::logMessage(__VA_ARGS__)
+
+#else // ZISC_LOGGING
+
+#define ZISC_LOG(...)
+
+#endif // ZISC_LOGGING
+
 namespace zisc {
 
 //! If condition is false, print messages and raise an error
 template <typename ...Types>
 void assertError(const bool condition, const Types&... messages) noexcept;
+
+//! Log messages
+template <typename ...Types>
+void logMessage(const Types&... messages) noexcept;
 
 //! Print messages and raise an error
 template <typename ...Types>

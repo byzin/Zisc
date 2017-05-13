@@ -20,6 +20,23 @@ namespace zisc {
 namespace inner {
 
 /*!
+  */
+template <typename Type> inline
+void outputMessage(const Type& message) noexcept
+{
+  std::cout << message;
+}
+
+/*!
+  */
+template <typename Type, typename ...Types> inline
+void outputMessage(const Type& message, const Types&... messages) noexcept
+{
+  outputMessage(message);
+  outputMessage(messages...);
+}
+
+/*!
   \details
   No detailed.
   */
@@ -52,6 +69,14 @@ void assertError(const bool condition, const Types& ...messages) noexcept
   if (!condition) {
     raiseError(messages...);
   }
+}
+
+/*!
+  */
+template <typename ...Types> inline
+void logMessage(const Types&... messages) noexcept
+{
+  inner::outputMessage(messages..., "\n");
 }
 
 /*!

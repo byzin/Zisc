@@ -13,6 +13,7 @@
 #include "arithmetic_array.hpp"
 // Standard C++ library
 #include <array>
+#include <cmath>
 #include <cstddef>
 #include <type_traits>
 // Zisc
@@ -379,6 +380,28 @@ constexpr const Arithmetic& ArithmeticArray<Arithmetic, kN>::get(
     const uint index) const noexcept
 {
   return array_.get(index);
+}
+
+/*!
+  */
+template <typename Arithmetic, uint kN> inline
+bool ArithmeticArray<Arithmetic, kN>::hasInf() const noexcept
+{
+  bool result = false;
+  for (uint index = 0; (index < size()) && !result; ++index)
+    result = std::isinf(get(index));
+  return result;
+}
+
+/*!
+  */
+template <typename Arithmetic, uint kN> inline
+bool ArithmeticArray<Arithmetic, kN>::hasNan() const noexcept
+{
+  bool result = false;
+  for (uint index = 0; (index < size()) && !result; ++index)
+    result = std::isnan(get(index));
+  return result;
 }
 
 /*!

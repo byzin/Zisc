@@ -19,14 +19,15 @@ namespace zisc {
 
 //! Extract data from stream
 template <typename Type>
-Type read(std::istream* binary_stream,
-          const std::streamsize size = sizeof(Type)) noexcept;
+std::istream& read(Type* data,
+                   std::istream* binary_stream,
+                   const std::streamsize size = sizeof(Type)) noexcept;
 
 //! Insert data into the stream
 template <typename Type>
-void write(const Type& data,
-           std::ostream* binary_stream,
-           const std::streamsize size = sizeof(Type)) noexcept;
+std::ostream& write(const Type* data,
+                    std::ostream* binary_stream,
+                    const std::streamsize size = sizeof(Type)) noexcept;
 
 } // namespace zisc
 

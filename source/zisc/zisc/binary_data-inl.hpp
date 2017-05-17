@@ -24,50 +24,26 @@ namespace zisc {
 
 /*!
   */
-template <> inline
-std::string read<std::string>(std::istream* binary_stream,
-                              const std::streamsize size) noexcept
+template <typename Type> inline
+std::istream& read(Type* data,
+                   std::istream* binary_stream,
+                   const std::streamsize size) noexcept
 {
+  ZISC_ASSERT(data != nullptr, "The data is null.");
   ZISC_ASSERT(binary_stream != nullptr, "The input stream is null.");
-  std::string data;
-  data.resize(cast<std::size_t>(size));
-  binary_stream->read(&data[0], size);
-  return data;
+  return binary_stream->read(reinterpret_cast<char*>(data), size);
 }
 
 /*!
   */
 template <typename Type> inline
-Type read(std::istream* binary_stream,
-          const std::streamsize size) noexcept
+std::ostream& write(const Type* data,
+                    std::ostream* binary_stream,
+                    const std::streamsize size) noexcept
 {
-  ZISC_ASSERT(binary_stream != nullptr, "The input stream is null.");
-  constexpr uint n = sizeof(Type);
-  char data[n];
-  binary_stream->read(data, size);
-  return *treatAs<const Type*>(data);
-}
-
-/*!
-  */
-template <> inline
-void write<std::string>(const std::string& data,
-                        std::ostream* binary_stream,
-                        const std::streamsize size) noexcept
-{
+  ZISC_ASSERT(data != nullptr, "The data is null.");
   ZISC_ASSERT(binary_stream != nullptr, "The output stream is null.");
-  binary_stream->write(data.data(), size);
-}
-
-/*!
-  */
-template <typename Type> inline
-void write(const Type& data,
-           std::ostream* binary_stream,
-           const std::streamsize size) noexcept
-{
-  ZISC_ASSERT(binary_stream != nullptr, "The output stream is null.");
-  binary_stream->write(reinterpret_cast<const char*>(&data), size);
+  return binary_stream->write(reinterpret_cast<const char*>(data), size);
 }
 
 } // namespace zisc

@@ -151,7 +151,7 @@ TEST(ThreadPoolTest, ExitWorkerRunningTest)
   {
     zisc::ThreadPool thread_pool{24};
     for (zisc::uint number = 0; number < 1024; ++number) {
-      auto task = [number](const int)
+      auto task = [/* number */](const int)
       {
         const std::chrono::milliseconds wait_time{100};
         std::this_thread::sleep_for(wait_time);

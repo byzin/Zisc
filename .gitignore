@@ -39,8 +39,8 @@
 !/test/
 !/test/config.cmake
 !/test/googletest
-!/test/unit_test/
-!/test/unit_test/*.cpp
+!/test/unittest/
+!/test/unittest/*.cpp
 !/test/resources/
 !/test/resources/dsfmt*
 !/test/resources/xsadd*

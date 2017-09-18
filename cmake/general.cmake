@@ -1,19 +1,19 @@
 # file: general.cmake
 # author: Sho Ikeda
-#
+# 
 # Copyright (c) 2015-2017 Sho Ikeda
 # This software is released under the MIT License.
 # http://opensource.org/licenses/mit-license.php
-#
+# 
 
 
-# Set boolean option
+# Set boolean value option
 macro(setBooleanOption variable value doc_string)
   set(${variable} ${value} CACHE BOOL ${doc_string})
 endmacro(setBooleanOption)
 
 
-# set string option
+# Set string value option
 macro(setStringOption variable value doc_string)
   set(${variable} ${value} CACHE STRING ${doc_string})
 endmacro(setStringOption)
@@ -56,10 +56,13 @@ function(detectEnvironment environment_definitions)
   if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     set(Z_GCC ON PARENT_SCOPE)
     set(compiler_definition Z_GCC)
-  elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR
+  elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR 
          CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
     set(Z_CLANG ON PARENT_SCOPE)
     set(compiler_definition Z_CLANG)
+  elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    set(Z_MSVC ON PARENT_SCOPE)
+    set(compiler_definition Z_MSVC)
   else()
     set(unsupported_compiler ON)
   endif()
@@ -86,6 +89,7 @@ function(detectEnvironment environment_definitions)
   else()
     message(STATUS "Generator: ${CMAKE_GENERATOR}")
   endif()
+
 
   # Detect build type
   if(CMAKE_BUILD_TYPE STREQUAL "Debug")
@@ -118,7 +122,7 @@ endfunction(detectEnvironment)
 function(setIncludeWhatYouUse target)
   find_program(iwyu include_what_you_use)
   if(iwyu)
-    set_target_properties(${target} 
+    set_target_properties(${target}
                           PROPERTIES CXX_INCLUDE_WHAT_YOU_USE include_what_you_use)
   else()
     message(WARNING "${target}: Could not find include-what-you-use.")

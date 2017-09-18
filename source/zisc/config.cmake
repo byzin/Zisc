@@ -9,7 +9,7 @@
 set(__zisc_root__ ${CMAKE_CURRENT_LIST_DIR})
 
 
-function(setZiscOption)
+function(initZiscOption)
   # Math
   set(option_description "Use efficient power functions instead of std.")
   setBooleanOption(ZISC_MATH_EFFICIENT_POWER OFF ${option_description})
@@ -33,7 +33,7 @@ function(setZiscOption)
   else()
     setBooleanOption(ZISC_ENABLE_LOGGIN OFF ${option_description})
   endif()
-endfunction(setZiscOption)
+endfunction(initZiscOption)
 
 
 function(getZiscOption zisc_compile_flags zisc_linker_flags zisc_definitions)
@@ -54,17 +54,9 @@ function(getZiscOption zisc_compile_flags zisc_linker_flags zisc_definitions)
     list(APPEND definitions ZISC_LOGGING)
   endif()
 
-  # Warning flags
-  set(warning_flags "")
-  if(Z_CLANG)
-    list(APPEND warning_flags -Wno-global-constructors
-                              -Wno-padded
-                              )
-  elseif(Z_GCC)
-  endif()
 
+  # Output variables
   set(${zisc_definitions} ${definitions} PARENT_SCOPE)
-  set(${zisc_compile_flags} ${warning_flags} PARENT_SCOPE)
 endfunction(getZiscOption)
 
 
@@ -79,7 +71,7 @@ function(loadZisc zisc_header_files zisc_include_dirs zisc_compile_flags zisc_li
   set(zisc_version ${zisc_version_major}.${zisc_version_minor}.${zisc_version_patch})
   message(STATUS "Zisc version: ${zisc_version}")
   
-  setZiscOption()
+  initZiscOption()
   getZiscOption(compile_flags linker_flags definitions)
   
   # Make configuration header file

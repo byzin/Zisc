@@ -30,12 +30,16 @@ include(${PROJECT_SOURCE_DIR}/cmake/option.cmake)
 setCommandOption()
 #
 include(${PROJECT_SOURCE_DIR}/cmake/compiler.cmake)
-setCompilerOption()
+initCompilerOption()
 getCompilerOption(cxx_compile_flags cxx_linker_flags cxx_definitions)
 
 # Load zisc
 include(${PROJECT_SOURCE_DIR}/source/zisc/config.cmake)
-loadZisc(zisc_header_files zisc_include_dirs zisc_compile_flags zisc_linker_flags zisc_definitions)
+loadZisc(zisc_header_files
+         zisc_include_dirs
+         zisc_compile_flags
+         zisc_linker_flags
+         zisc_definitions)
 
 # Build example
 include(${PROJECT_SOURCE_DIR}/example/config.cmake)

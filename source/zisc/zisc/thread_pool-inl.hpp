@@ -48,9 +48,9 @@ ThreadPool::ThreadPool() noexcept :
   */
 inline
 ThreadPool::ThreadPool(const uint num_of_threads) noexcept :
-    workers_are_enabled_{true}
+    workers_are_enabled_{kTrue}
 {
-  createWorkers(num_of_threads);
+  initialize(num_of_threads);
 }
 
 /*!
@@ -174,7 +174,7 @@ template <typename ReturnType, typename Task> inline
 ReturnType processTask(
     Task& task,
     const int /* thread_id */,
-    EnableIfConstructible<std::function<void ()>, Task> = kEnabler)
+    EnableIfConstructible<std::function<ReturnType ()>, Task> = kEnabler)
         noexcept
 {
   return task();
@@ -185,12 +185,37 @@ template <typename ReturnType, typename Task> inline
 ReturnType processTask(
     Task& task,
     const int thread_id,
-    EnableIfConstructible<std::function<void (int)>, Task> = kEnabler)
+    EnableIfConstructible<std::function<ReturnType (int)>, Task> = kEnabler)
         noexcept
 {
   return task(thread_id);
 }
+
+//! Process a worker task
+template <typename ReturnType, typename Task> inline
+void processWorkerTask(
+    Task& task,
+    std::promise<ReturnType>& task_promise,
+    const int thread_id,
+    EnableIf<std::is_void<ReturnType>::value> = kEnabler)
+        noexcept
+{
+  processTask<ReturnType>(task, thread_id);
+  task_promise.set_value();
+}
  
+//! Process a worker task
+template <typename ReturnType, typename Task> inline
+void processWorkerTask(
+    Task& task,
+    std::promise<ReturnType>& task_promise,
+    const int thread_id,
+    EnableIf<!std::is_void<ReturnType>::value> = kEnabler)
+        noexcept
+{
+  task_promise.set_value(processTask<ReturnType>(task, thread_id));
+}
+
 //! Process a loop task
 template <typename Task, typename Iterator> inline
 void processLoopTask(
@@ -244,19 +269,19 @@ uint distance(Iterator begin,
 template <typename ReturnType, typename Task> inline
 std::future<ReturnType> ThreadPool::enqueueTask(Task& task) noexcept
 {
-  // Define the shared resource
-  auto shared_task = new std::packaged_task<ReturnType (int)>{
-  [task = std::move(task)](const int thread_id) noexcept
+  // Make promise-future
+  auto task_promise = new std::promise<ReturnType>{};
+  auto result = task_promise->get_future();
+
+  WorkerTask wrapped_task{
+  [worker_task = std::move(task), task_promise](const int thread_id) noexcept
   {
-    return inner::processTask<ReturnType>(task, thread_id);
+    inner::processWorkerTask<ReturnType>(worker_task, *task_promise, thread_id);
+    {
+      delete task_promise;
+    }
   }};
-  auto result = shared_task->get_future();
-  // Make a task
-  WorkerTask wrapped_task{[shared_task](const int thread_id) noexcept
-  {
-    (*shared_task)(thread_id);
-    delete shared_task;
-  }};
+
   {
     std::unique_lock<std::mutex> lock{lock_};
     task_queue_.emplace(std::move(wrapped_task));
@@ -279,18 +304,19 @@ std::future<void> ThreadPool::enqueueLoopTask(Task& task,
   struct SharedResource : public NonCopyable<SharedResource>
   {
     SharedResource(Task& shared_task, const uint initial_count) noexcept :
-        exit_loop_{[]() noexcept {}},
-        shared_task_{std::move(shared_task)},
-        counter_{initial_count} {}
-    std::packaged_task<void ()> exit_loop_; //!< Invoked when all tasks are finished
-    Task shared_task_; //!< Invoked with each iterators
+        task_promise_{},
+        counter_{initial_count},
+        shared_task_{std::move(shared_task)} {}
+    std::promise<void> task_promise_; //!< Invoked when all tasks are finished
     std::atomic<uint> counter_; //!< Counts uncompleted tasks
+    Task shared_task_; //!< Invoked with each iterators
+    static_assert(alignof(std::atomic<uint>) <= alignof(std::promise<void>), "");
   };
   // Make a shared resource
   const uint distance = inner::distance(begin, end);
   auto shared_resource = new SharedResource{task, distance};
   // Make a result
-  auto result = shared_resource->exit_loop_.get_future();
+  auto result = shared_resource->task_promise_.get_future();
   // Make tasks
   {
     std::unique_lock<std::mutex> locker{lock_};
@@ -302,7 +328,7 @@ std::future<void> ThreadPool::enqueueLoopTask(Task& task,
         inner::processLoopTask(shared_task, thread_id, iterator);
         const uint count = --(shared_resource->counter_);
         if (count == 0) {
-          shared_resource->exit_loop_();
+          shared_resource->task_promise_.set_value();
           delete shared_resource;
         }
       }};
@@ -321,7 +347,7 @@ void ThreadPool::exitWorkersRunning() noexcept
 {
   {
     std::unique_lock<std::mutex> locker{lock_};
-    workers_are_enabled_ = false;
+    workers_are_enabled_ = kFalse;
   }
   condition_.notify_all();
   for (auto& worker : workers_)
@@ -344,9 +370,31 @@ auto ThreadPool::takeTask() noexcept -> WorkerTask
 /*!
   */
 inline
+void ThreadPool::initialize(const uint num_of_threads) noexcept
+{
+  createWorkers(num_of_threads);
+
+  // Avoid padding warning
+  for (int i = 0; i < 7; ++i)
+    padding_[i] = 0;
+
+  // Check the alignment of member variables
+  static_assert(alignof(std::condition_variable) <=
+                alignof(std::mutex), "");
+  static_assert(alignof(std::queue<WorkerTask>) <=
+                alignof(std::condition_variable), "");
+  static_assert(alignof(std::vector<std::thread>) <=
+                alignof(std::queue<WorkerTask>), "");
+  static_assert(alignof(uint8) <=
+                alignof(std::vector<std::thread>), "");
+}
+
+/*!
+  */
+inline
 bool ThreadPool::workersAreEnabled() const noexcept
 {
-  return workers_are_enabled_;
+  return workers_are_enabled_ == kTrue;
 }
 
 } // namespace zisc

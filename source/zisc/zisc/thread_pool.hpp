@@ -11,7 +11,6 @@
 #define ZISC_THREAD_POOL_HPP
 
 // Standard C++ library
-#include <atomic>
 #include <cstddef>
 #include <functional>
 #include <future>
@@ -88,6 +87,9 @@ class ThreadPool : public NonCopyable<ThreadPool>
   //! Exit workers running
   void exitWorkersRunning() noexcept;
 
+  //! Initialize thread pool
+  void initialize(const uint num_of_threads) noexcept;
+
   //! Take a task from the top of the queue
   WorkerTask takeTask() noexcept;
 
@@ -99,7 +101,8 @@ class ThreadPool : public NonCopyable<ThreadPool>
   std::condition_variable condition_;
   std::queue<WorkerTask> task_queue_;
   std::vector<std::thread> workers_;
-  bool workers_are_enabled_;
+  uint8 workers_are_enabled_;
+  uint8 padding_[7];
 };
 
 } // namespace zisc

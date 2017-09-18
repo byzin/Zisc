@@ -31,6 +31,10 @@ using uint16 = std::uint16_t;
 using uint32 = std::uint32_t;
 using uint64 = std::uint64_t;
 
+// Boolean values
+constexpr uint8 kFalse = 0;
+constexpr uint8 kTrue = 1;
+
 } // namespace zisc
 
 #endif // ZISC_CONFIG_HPP

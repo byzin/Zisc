@@ -77,7 +77,7 @@ void AlignedMemoryPool<kSize, kAlignment>::reset() noexcept
 template <uint kSize, uint kAlignment> inline
 constexpr uint AlignedMemoryPool<kSize, kAlignment>::size() noexcept
 {
-  return kLength * kAlignment;
+  return kBlockLength * kAlignment;
 }
 
 /*!

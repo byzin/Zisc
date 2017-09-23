@@ -138,19 +138,9 @@ constexpr const Type& min(const Type& a, const Type& b) noexcept
   No detailed.
   */
 template <typename Type, typename T> inline
-constexpr Type treatAs(const T* object) noexcept
+Type treatAs(T* object) noexcept
 {
-  return static_cast<Type>(static_cast<const void*>(object));
-}
-
-/*!
-  \details
-  No detailed.
-  */
-template <typename Type, typename T> inline
-constexpr Type treatAs(T* object) noexcept
-{
-  return static_cast<Type>(static_cast<void*>(object));
+  return reinterpret_cast<Type>(object);
 }
 
 } // namespace zisc

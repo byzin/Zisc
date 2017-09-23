@@ -82,13 +82,13 @@ bool Stopwatch::isRunState() const noexcept
 inline
 auto Stopwatch::pause() noexcept -> Clock::duration
 {
-  if (state_ != State::Run)
-    return Clock::duration::zero();
-
-  const auto current_time = Clock::now();
-  const auto time = current_time - start_time_;
-  elapsed_time_ += time;
-  state_ = State::Pause;
+  auto time = Clock::duration::zero();
+  if (state_ == State::Run) {
+    const auto current_time = Clock::now();
+    time = current_time - start_time_;
+    elapsed_time_ += time;
+    state_ = State::Pause;
+  }
   return time;
 }
 

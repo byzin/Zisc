@@ -79,11 +79,7 @@ constexpr const Type& min(const Type& a, const Type& b) noexcept;
 
 //! Treat T* as Type*
 template <typename Type, typename T>
-constexpr Type treatAs(const T* object) noexcept;
-
-//! Treat T* as Type*
-template <typename Type, typename T>
-constexpr Type treatAs(T* object) noexcept;
+Type treatAs(T* object) noexcept;
 
 } // namespace zisc
 

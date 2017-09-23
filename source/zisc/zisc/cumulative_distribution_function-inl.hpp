@@ -118,7 +118,6 @@ bool CumulativeDistributionFunction<XType, PdfType>::initialize(
   static_assert(kIsFloat<PdfType_>, "PdfIterator isn't floating point iterator.");
 
   // Size check
-
   const auto size = std::distance(x_begin, x_end);
   const auto pdf_size = std::distance(pdf_begin, pdf_end);
   ZISC_ASSERT(size == pdf_size, "The x array size isn't match pdf array size.");

@@ -202,11 +202,10 @@ void toBinaryTree(
   ZISC_ASSERT(end == std::unique(begin, end), "The array isn't unique array.");
 
   const auto size = std::distance(begin, end);
-  if (size != 0) {
+  if (1 < size) {
     // Create a temp array
     std::vector<Type> array;
-    using ArraySizeType = typename decltype(array)::size_type;
-    array.reserve(static_cast<ArraySizeType>(size));
+    array.reserve(static_cast<std::size_t>(size));
     for (auto iterator = begin; iterator != end; ++iterator)
       array.emplace_back(std::move(*iterator));
     // Transform an array to a binary tree

@@ -50,12 +50,12 @@ class AlignedMemoryPool : public NonCopyable<AlignedMemoryPool<kSize, kAlignment
   using AlignedBlock = typename std::aligned_storage<kAlignment, kAlignment>::type;
 
 
-  static constexpr uint kLength = ((kSize % kAlignment) == 0)
+  static constexpr uint kBlockLength = ((kSize % kAlignment) == 0)
       ? kSize / kAlignment
       : kSize / kAlignment + 1;
 
 
-  AlignedBlock memory_[kLength];
+  AlignedBlock memory_[kBlockLength];
   uint index_;
 };
 

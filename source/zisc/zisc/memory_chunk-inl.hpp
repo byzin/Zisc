@@ -196,6 +196,7 @@ std::size_t MemoryChunk::size() const noexcept
 
 /*!
   */
+inline
 std::size_t MemoryChunk::stride() const noexcept
 {
   const std::size_t s = size() + offset1() + offset2();

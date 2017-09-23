@@ -10,6 +10,7 @@
 // Standard C++ library
 #include <array>
 #include <cmath>
+#include <cstddef>
 #include <fstream>
 #include <string>
 // GoogleTest
@@ -86,6 +87,11 @@ void testFloatDistribution()
 
 TEST(Xoroshiro128PlusEngineTest, GenerateTest)
 {
+  constexpr std::size_t s = sizeof(zisc::Xoroshiro128PlusEngine);
+  static_assert(s == 16, "The size of xoroshiro128+ is wrong.");
+  constexpr std::size_t a = alignof(zisc::Xoroshiro128PlusEngine);
+  static_assert(a == 8, "The alignment of xoroshiro128+ is wrong.");
+
   ::testXoroshiro128Plus();
   ::testFloatDistribution();
 }

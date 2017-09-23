@@ -125,6 +125,10 @@ template <typename GeneratorClass, typename Seed, typename Result> inline
 PseudoRandomNumberEngine<GeneratorClass, Seed, Result>::PseudoRandomNumberEngine()
     noexcept
 {
+  static_assert(sizeof(FloatValue) == sizeof(ResultType), "The union is invalid.");
+  static_assert(sizeof(FloatValue) == sizeof(FloatType), "The union is invalid.");
+  static_assert(alignof(FloatValue) == alignof(ResultType), "The union is invalid.");
+  static_assert(alignof(FloatValue) == alignof(FloatType), "The union is invalid.");
 }
 
 /*!

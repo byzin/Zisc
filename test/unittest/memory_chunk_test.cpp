@@ -17,6 +17,7 @@
 // Zisc
 #include "zisc/memory_chunk.hpp"
 #include "zisc/utility.hpp"
+#include "zisc/zisc_config.hpp"
 
 namespace {
 
@@ -71,7 +72,7 @@ TEST(MemoryChunkTest, InitTest)
   }
   // Test2
   {
-    constexpr uint n = 3;
+    constexpr zisc::uint n = 3;
     constexpr std::size_t s = zisc::cast<std::size_t>(n) * sizeof(::TestData2);
     std::size_t memory_space = sizeof(::MemoryPool);
 

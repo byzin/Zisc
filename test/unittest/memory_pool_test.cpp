@@ -160,7 +160,7 @@ TEST(MemoryPoolTest, AllocationTest)
     ASSERT_EQ(3, value) << "The new operator is broken.";
 
     // Create integer instances
-    constexpr uint num_of_int = 2;
+    constexpr zisc::uint num_of_int = 2;
     auto chunk3 = pool.allocate<int>(num_of_int);
     new(chunk3) int[num_of_int];
     ASSERT_EQ(sizeof(int) * 2, chunk3->size()) << "The array allocation failed.";

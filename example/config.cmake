@@ -53,8 +53,6 @@ function(buildExample)
   # Build examples
   setExample(AlgorithmExample 
              ${__example_root__}/algorithm_example.cpp)
-  setExample(AlignedMemoryPoolExample 
-             ${__example_root__}/aligned_memory_pool_example.cpp)
   setExample(CumulativeDistributionFunctionExample
              ${__example_root__}/cumulative_distribution_function_example.cpp)
   setExample(CompensatedSummationExample

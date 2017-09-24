@@ -20,7 +20,6 @@
 // GoogleTest
 #include "gtest/gtest.h"
 // Zisc
-#include "zisc/aligned_memory_pool.hpp"
 #include "zisc/math.hpp"
 #include "zisc/thread_pool.hpp"
 #include "zisc/pcg_engine.hpp"

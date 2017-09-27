@@ -10,6 +10,10 @@ set(__zisc_root__ ${CMAKE_CURRENT_LIST_DIR})
 
 
 function(initZiscOption)
+  # Algorithm
+  set(option_description "Use efficient binary tree algorithm.")
+  setBooleanOption(ZISC_ALGORITHM_BINARY_TREE ON ${option_description})
+
   # Math
   set(option_description "Use efficient power functions instead of std.")
   setBooleanOption(ZISC_MATH_EFFICIENT_POWER OFF ${option_description})
@@ -38,6 +42,9 @@ endfunction(initZiscOption)
 
 function(getZiscOption zisc_compile_flags zisc_linker_flags zisc_definitions)
   # Options
+  if(${ZISC_ALGORITHM_BINARY_TREE})
+    list(APPEND definitions ZISC_ALGORITHM_BINARY_TREE)
+  endif()
   if(${ZISC_MATH_EFFICIENT_POWER})
     list(APPEND definitions ZISC_MATH_EFFICIENT_POWER)
   endif()

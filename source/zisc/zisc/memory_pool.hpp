@@ -33,6 +33,10 @@ class MemoryPool : public NonCopyable<MemoryPool>
   MemoryPool(MemoryPool&& other) noexcept;
 
 
+  //! Move a memory pool
+  MemoryPool& operator=(MemoryPool&& other) noexcept;
+
+
   //! Allocate the memory space for Type instances
   template <typename Type>
   MemoryChunk* allocate(const uint n = 1) noexcept;

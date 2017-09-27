@@ -15,6 +15,7 @@
 #include <cstdint>
 #include <type_traits>
 // Zisc
+#include "error.hpp"
 #include "type_traits.hpp"
 #include "utility.hpp"
 #include "zisc/zisc_config.hpp"
@@ -88,7 +89,10 @@ Float PseudoRandomNumberEngine<GeneratorClass, Seed, Result>::generate(
 {
   static_assert(kIsFloat<Float>, "Float isn't floating point type.");
   const Float u = cast<Float>(generate01());
-  return lower + (upper - lower) * u;
+  const Float value = lower + (upper - lower) * u;
+  ZISC_ASSERT(isInBounds(value, lower, upper),
+              "The value is out of range [lower, upper).");
+  return value;
 }
 
 /*!
@@ -103,7 +107,10 @@ auto PseudoRandomNumberEngine<GeneratorClass, Seed, Result>::generate01() noexce
   using FloatInfo = EngineFloatInfo<sizeof(Result)>;
   constexpr auto exponent = FloatInfo::kExponentBit;
   const FloatValue u{exponent | (x >> FloatInfo::kNonMantissaBitSize)};
-  return u.float_ - cast<FloatType>(1.0);
+  const FloatType value = u.float_ - cast<FloatType>(1.0);
+  ZISC_ASSERT(isInBounds(value, cast<FloatType>(0.0), cast<FloatType>(1.0)),
+              "The value is out of range [0, 1).");
+  return value;
 }
 
 /*!

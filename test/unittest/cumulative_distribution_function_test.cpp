@@ -8,8 +8,10 @@
   */
 
 // Standard C++ library
-#include <array>
+#include <cstddef>
 #include <memory>
+#include <utility>
+#include <vector>
 // GoogleTest
 #include "gtest/gtest.h"
 // Zisc
@@ -20,16 +22,14 @@ TEST(CumulativeDistributionFunctionTest, InverseFunctionTest)
 {
   using zisc::cast;
 
+  constexpr std::size_t n = 5;
+
   // Initialization
   using Cdf = zisc::CumulativeDistributionFunction<int, double>;
-  constexpr int n = 5;
-  std::unique_ptr<Cdf> cdf;
-  {
-    std::array<int, n> x_list{{0, 1, 2, 3, 4}};
-    std::array<double, n> pdf_list{{0.2, 0.3, 0.0, 0.3, 0.2}};
-    cdf = std::make_unique<Cdf>(x_list.begin(), x_list.end(), 
-                                pdf_list.begin(), pdf_list.end());
-  }
+
+  std::vector<int> x_list{{0, 1, 2, 3, 4}};
+  std::vector<double> y_list{{0.2, 0.3, 0.0, 0.3, 0.2}};
+  auto cdf = std::make_unique<Cdf>(std::move(x_list), std::move(y_list));
 
   // Test
   constexpr int loop = 1000;
@@ -41,7 +41,7 @@ TEST(CumulativeDistributionFunctionTest, InverseFunctionTest)
     const auto x = cast<decltype(count_list)::size_type>(cdf->inverseFunction(y));
     ++count_list[x];
   }
-  for (int i = 0; i < n; ++i) {
+  for (int i = 0; i < static_cast<int>(n); ++i) {
     EXPECT_EQ(reference_list[i], count_list[i])
         << "The inverseFunction test failed.";
   }

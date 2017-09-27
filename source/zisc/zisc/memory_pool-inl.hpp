@@ -45,6 +45,17 @@ MemoryPool::MemoryPool(MemoryPool&& other) noexcept :
 
 /*!
   */
+inline
+MemoryPool& MemoryPool::operator=(MemoryPool&& other) noexcept
+{
+  memory_pool_ = std::move(other.memory_pool_);
+  used_bytes_ = other.used_bytes_;
+  num_of_chunks_ = other.num_of_chunks_;
+  return *this;
+}
+
+/*!
+  */
 template <typename Type> inline
 MemoryChunk* MemoryPool::allocate(const uint n) noexcept
 {

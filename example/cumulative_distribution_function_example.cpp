@@ -8,20 +8,31 @@
   */
 
 // Standard C++ library
-#include <array>
+#include <cstddef>
 #include <iostream>
+#include <utility>
+#include <vector>
 // Zisc
 #include "zisc/cumulative_distribution_function.hpp"
 
 int main()
 {
   std::cout << "## CumulativeDistributionFunction example" << std::endl;
-  std::array<int, 10> value{{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}};
-  std::array<double, 10> pdf;
-  pdf.fill(0.1);
 
-  zisc::CumulativeDistributionFunction<int, double> cdf{value.begin(), value.end(), 
-                                                        pdf.begin(), pdf.end()};
+  const std::size_t n = 10;
+
+  std::vector<int> value_list;
+  std::vector<double> pdf_list;
+  value_list.resize(n);
+  pdf_list.resize(n);
+  for (int i = 0; i < static_cast<int>(n); ++i) {
+    value_list[i] = i;
+    pdf_list[i] = 0.1;
+  }
+
+  using Cdf = zisc::CumulativeDistributionFunction<int, double>;
+  const Cdf cdf{std::move(value_list), std::move(pdf_list)};
+
   std::cout << "P^{-1}(0.5) == " << cdf.inverseFunction(0.5) << std::endl;
 
   return 0;

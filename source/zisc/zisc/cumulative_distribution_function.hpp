@@ -11,9 +11,12 @@
 #define ZISC_CUMULATIVE_DISTRIBUTION_FUNCTION_HPP
 
 // Standard C++ library
+#include <cstddef>
+#include <memory>
 #include <vector>
 // Zisc
 #include "type_traits.hpp"
+#include "zisc/zisc_config.hpp"
 
 namespace zisc {
 
@@ -27,12 +30,9 @@ class CumulativeDistributionFunction
   static_assert(kIsFloat<PdfType>, "PdfType isn't floating point type.");
 
  public:
-  //! Create a CDF and move x and pdf data to CDF
-  template <typename XIterator, typename PdfIterator>
-  CumulativeDistributionFunction(XIterator x_begin,
-                                 XIterator x_end,
-                                 PdfIterator pdf_begin,
-                                 PdfIterator pdf_end) noexcept;
+  //! Create a CDF
+  CumulativeDistributionFunction(std::vector<XType>&& x_list,
+                                 std::vector<PdfType>&& y_list) noexcept;
 
   //! Move data
   CumulativeDistributionFunction(CumulativeDistributionFunction&& other) noexcept;
@@ -44,25 +44,45 @@ class CumulativeDistributionFunction
 
 
   //! Return the x value associated with the y value
-  const XType& inverseFunction(const PdfType& y) const noexcept;
+  const XType& inverseFunction(const PdfType y) const noexcept;
+
+  //! Return the size of the lists
+  uint size() const noexcept;
 
   //! Return the x list
-  const std::vector<XType>& xList() const noexcept;
+  XType* xList() noexcept;
+
+  //! Return the x list
+  const XType* xList() const noexcept;
 
   //! Return the y list
-  const std::vector<PdfType>& yList() const noexcept;
+  PdfType* yList() noexcept;
+
+  //! Return the y list
+  const PdfType* yList() const noexcept;
 
  private:
-  //! Create a CDF and move x and pdf data to CDF
-  template <typename XIterator, typename PdfIterator>
-  bool initialize(XIterator x_begin,
-                  XIterator x_end,
-                  PdfIterator pdf_begin,
-                  PdfIterator pdf_end) noexcept;
+  //! Create a CDF
+  void initialize(std::vector<XType>&& x_list,
+                  std::vector<PdfType>&& y_list) noexcept;
+
+  //! Return the begin of the x list
+  const XType* xBegin() const noexcept;
+
+  //! Return the end of the x list
+  const XType* xEnd() const noexcept;
+
+  //! Return the begin of the y list
+  const PdfType* yBegin() const noexcept;
+
+  //! Return the end of the y list
+  const PdfType* yEnd() const noexcept;
 
 
-  std::vector<XType> x_list_;
-  std::vector<PdfType> y_list_;
+  std::unique_ptr<XType[]> x_list_;
+  std::unique_ptr<PdfType[]> y_list_;
+  uint32 size_;
+  uint32 padding_;
 };
 
 } // namespace zisc

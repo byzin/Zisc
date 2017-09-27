@@ -13,7 +13,7 @@
 namespace zisc {
 
 /*!
- \brief A class that is super class of NonCopyable is Prohibited copy operation
+ \brief A class that derives from this class can't be copied or assigned
  \details
  No detailed.
  */
@@ -21,11 +21,12 @@ template <typename Type>
 class NonCopyable
 {
  protected:
-  NonCopyable() noexcept {}
+  NonCopyable() {}
   ~NonCopyable() {}
 
  private:
   NonCopyable(const NonCopyable&) = delete;
+  NonCopyable& operator=(const NonCopyable&) = delete;
   Type& operator=(const Type&) = delete;
 };
 

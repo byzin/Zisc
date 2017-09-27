@@ -8,6 +8,7 @@
   */
 
 // Standard C++ library
+#include <array>
 #include <list>
 #include <string>
 #include <vector>
@@ -349,6 +350,9 @@ TEST(TypeTraitsTest, IsRandomAccessIteratorTest)
   EXPECT_TRUE(zisc::kIsRandomAccessIterator<std::vector<int>*>);
   EXPECT_FALSE(zisc::kIsRandomAccessIterator<std::list<int>>);
   EXPECT_TRUE(zisc::kIsRandomAccessIterator<std::list<int>*>);
+  using Array = std::array<int, 2>;
+  EXPECT_TRUE(zisc::kIsRandomAccessIterator<Array::iterator>);
+  EXPECT_TRUE(zisc::kIsRandomAccessIterator<Array::iterator*>);
   EXPECT_TRUE(zisc::kIsRandomAccessIterator<std::vector<int>::iterator>);
   EXPECT_TRUE(zisc::kIsRandomAccessIterator<std::vector<int>::iterator*>);
   EXPECT_TRUE(zisc::kIsRandomAccessIterator<std::vector<std::string>::iterator>);

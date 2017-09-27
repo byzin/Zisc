@@ -17,7 +17,6 @@
 #include <cstddef>
 #include <iterator>
 #include <string>
-#include <tuple>
 #include <type_traits>
 #include <utility>
 // Zisc
@@ -114,74 +113,106 @@ void binaryRadixSort(std::vector<UnsignedInteger>* container) noexcept
   binaryRadixSort(container, bits_function);
 }
 
-namespace inner {
+namespace stl_implementation {
 
 /*!
-  \details
-  No detailed.
   */
-template <typename RandomAccessIterator, typename OutputIterator>
-inline
+template <typename RandomAccessIterator, typename Type> inline
+RandomAccessIterator searchBinaryTree(
+    const RandomAccessIterator begin,
+    const RandomAccessIterator end,
+    const Type& value,
+    EnableIfRandomAccessIterator<RandomAccessIterator> = kEnabler) noexcept
+{
+  auto result = std::lower_bound(begin, end, value);
+  result = (*result == value) ? result : result - 1;
+  return result;
+}
+
+} // namespace stl_implementation
+
+namespace zisc_implementation {
+
+/*!
+  */
+template <typename RandomAccessIterator, typename Type> inline
+RandomAccessIterator searchBinaryTree(
+    const RandomAccessIterator begin,
+    const RandomAccessIterator end,
+    const Type& value,
+    EnableIfRandomAccessIterator<RandomAccessIterator> = kEnabler) noexcept
+{
+  const std::size_t n = cast<std::size_t>(std::distance(begin, end));
+  std::size_t index = 0;
+  while (index < n) {
+    const auto node = begin + index;
+    index = (index << 1) + ((value < *node) ? 1 : 2);
+  }
+  while (isOdd(index))
+    index = index >> 1;
+  ZISC_ASSERT(2 <= index, "The index is invalid.");
+  index = (index >> 1) - 1;
+  return begin + index;
+}
+
+/*!
+  */
+template <typename RandomAccessIterator, typename OutputIterator> inline
 void toBinaryTree(
     RandomAccessIterator begin, 
     RandomAccessIterator end,
-    const uint index,
+    const std::size_t index,
     OutputIterator first,
     EnableIfRandomAccessIterator<RandomAccessIterator> = kEnabler) noexcept
 {
-  const uint n = cast<uint>(std::distance(begin, end));
+  const std::size_t n = cast<std::size_t>(std::distance(begin, end));
   if (n == 1) {
-    auto leaf = begin;
+    auto& leaf = begin;
     *(first + index) = std::move(*leaf);
   }
   else if (1 < n) {
-    auto size = n;
-    uint s = 1;
-    while (1 != size) {
-      s = s << 1;
-      size = size >> 1;
-    }
+    std::size_t s = 1;
+    for (; s <= n; s = s << 1);
     s = s >> 1;
     // Find the center node
-    const auto c = ((3 * s - 1) < n) ? (2 * s - 1) : (n - s);
-    auto center = begin + c;
+    const auto c = ((s >> 1) - 1) +
+                   ((3 * (s >> 1) <= n + 1) ? (s >> 1) : (n + 1 - s));
+    ZISC_ASSERT(isInBounds(c, 0ul, n),
+                "The center index is out of range. n:", n, " i:", index, " c:", c);
+    auto center = begin + c; 
     *(first + index) = std::move(*center);
     // Left child
-    const uint left_index = (index << 1) + 1;
-    toBinaryTree(begin, center, left_index, first);
+    {
+      const std::size_t left_index = (index << 1) + 1;
+      toBinaryTree(begin, center, left_index, first);
+    }
     // Right child
-    const auto right_index = left_index + 1;
-    toBinaryTree(center + 1, end, right_index, first);
+    {
+      const std::size_t right_index = (index << 1) + 2;
+      toBinaryTree(center + 1, end, right_index, first);
+    }
   }
 }
 
-} // namespace inner
+} // namespace zisc_implementation
 
 /*!
   \details
   No detailed.
   */
-template <typename RandomAccessIterator, typename Type>
+template <typename RandomAccessIterator, typename Type> inline
 RandomAccessIterator searchBinaryTree(
     const RandomAccessIterator begin,
     const RandomAccessIterator end,
     const Type& value,
     EnableIfRandomAccessIterator<RandomAccessIterator>) noexcept
 {
-  static_assert(kIsRandomAccessIterator<RandomAccessIterator>,
-                "Iterator isn't RandomAccessIterator.");
-
-  const uint n = cast<uint>(std::distance(begin, end));
-  uint index = 0;
-  while (index < n) {
-    const auto node = begin + index;
-    index = (index << 1) + ((value < *node) ? 1 : 2);
-  }
-  while ((index & 1) == 1)
-    index = index >> 1;
-  ZISC_ASSERT(index != 0, "The value is invalid.");
-  index = (index >> 1) - 1;
-  return begin + index;
+  ZISC_ASSERT(0 < std::distance(begin, end), "The end is in advance of the begin.");
+#ifdef ZISC_ALGORITHM_BINARY_TREE
+  return zisc_implementation::searchBinaryTree(begin, end, value);
+#else // ZISC_ALGORITHM_BINARY_TREE
+  return stl_implementation::searchBinaryTree(begin, end, value);
+#endif // ZISC_ALGORITHM_BINARY_TREE
 }
 
 /*!
@@ -194,22 +225,22 @@ void toBinaryTree(
     RandomAccessIterator end,
     EnableIfRandomAccessIterator<RandomAccessIterator>) noexcept
 {
-  static_assert(kIsRandomAccessIterator<RandomAccessIterator>,
-                "Iterator isn't RandomAccessIterator.");
-
-  using Type = typename std::iterator_traits<RandomAccessIterator>::value_type;
   ZISC_ASSERT(std::is_sorted(begin, end), "The array isn't sorted.");
   ZISC_ASSERT(end == std::unique(begin, end), "The array isn't unique array.");
 
   const auto size = std::distance(begin, end);
+  ZISC_ASSERT(0 < size, "The end is in advance of the begin.");
   if (1 < size) {
+#ifdef ZISC_ALGORITHM_BINARY_TREE
     // Create a temp array
+    using Type = typename std::iterator_traits<RandomAccessIterator>::value_type;
     std::vector<Type> array;
-    array.reserve(static_cast<std::size_t>(size));
+    array.reserve(cast<std::size_t>(size));
     for (auto iterator = begin; iterator != end; ++iterator)
       array.emplace_back(std::move(*iterator));
     // Transform an array to a binary tree
-    inner::toBinaryTree(array.begin(), array.end(), 0, begin);
+    zisc_implementation::toBinaryTree(array.begin(), array.end(), 0, begin);
+#endif // ZISC_ALGORITHM_BINARY_TREE
   }
 }
 
@@ -233,7 +264,7 @@ constexpr ValueType toHash(const char* string, const ValueType hash) noexcept
   }
 }
 
-} // namespace inner  
+} // namespace inner
 
 /*!
   \details

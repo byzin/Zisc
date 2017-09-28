@@ -582,8 +582,8 @@ template <typename Arithmetic, uint kN> template <typename Type> inline
 Type ArithmeticArray<Arithmetic, kN>::sumArray(const BaseArray& array,
                                                EnableIfInteger<Type>) noexcept
 {
-  Type sum = array.get(0);
-  for (uint index = 1; index < kN; ++index)
+  Type sum = cast<Type>(0);
+  for (uint index = 0; index < kN; ++index)
     sum += array.get(index);
   return sum;
 }
@@ -672,8 +672,8 @@ constexpr Arithmetic dot(
     const ArithmeticArray<Arithmetic, kN>& a,
     const ArithmeticArray<Arithmetic, kN>& b) noexcept
 {
-  Arithmetic dot = a[0] * b[0];
-  for (uint index = 1; index < kN; ++index)
+  Arithmetic dot = cast<Arithmetic>(0);
+  for (uint index = 0; index < kN; ++index)
     dot += a[index] * b[index];
   return dot;
 }

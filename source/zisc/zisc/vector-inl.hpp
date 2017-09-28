@@ -130,7 +130,7 @@ Arithmetic Vector<Arithmetic, kN>::squareNorm() const noexcept
 template <typename Arithmetic, uint kN> inline
 Vector<Arithmetic, kN> operator-(const Vector<Arithmetic, kN>& vector) noexcept
 {
-  auto reverse_vector = vector;
+  Vector<Arithmetic, kN> reverse_vector;
   for (uint i = 0; i < kN; ++i)
     reverse_vector.set(i, -vector[i]);
   return reverse_vector;

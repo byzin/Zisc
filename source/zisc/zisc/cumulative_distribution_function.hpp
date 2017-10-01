@@ -31,6 +31,10 @@ class CumulativeDistributionFunction
 
  public:
   //! Create a CDF
+  CumulativeDistributionFunction(const std::vector<XType>& x_list,
+                                 const std::vector<PdfType>& y_list) noexcept;
+
+  //! Create a CDF
   CumulativeDistributionFunction(std::vector<XType>&& x_list,
                                  std::vector<PdfType>&& y_list) noexcept;
 
@@ -43,11 +47,22 @@ class CumulativeDistributionFunction
       CumulativeDistributionFunction&& other) noexcept;
 
 
+  //! Return the size of the capacity
+  uint capacity() const noexcept;
+
   //! Return the x value associated with the y value
   const XType& inverseFunction(const PdfType y) const noexcept;
 
   //! Return the size of the lists
   uint size() const noexcept;
+
+  //! Set a CDF data
+  void set(const std::vector<XType>& x_list,
+           const std::vector<PdfType>& y_list) noexcept;
+
+  //! Set a CDF data
+  void set(std::vector<XType>&& x_list,
+           std::vector<PdfType>&& y_list) noexcept;
 
   //! Return the x list
   XType* xList() noexcept;
@@ -62,18 +77,32 @@ class CumulativeDistributionFunction
   const PdfType* yList() const noexcept;
 
  private:
-  //! Create a CDF
-  void initialize(std::vector<XType>&& x_list,
-                  std::vector<PdfType>&& y_list) noexcept;
+  //! Initialize the CDF
+  void initCdf() noexcept;
+
+  //! Set the size of the list
+  void setSize(const uint list_size) noexcept;
+
+  //! Return the begin of the x list
+  XType* xBegin() noexcept;
 
   //! Return the begin of the x list
   const XType* xBegin() const noexcept;
 
   //! Return the end of the x list
+  XType* xEnd() noexcept;
+
+  //! Return the end of the x list
   const XType* xEnd() const noexcept;
 
   //! Return the begin of the y list
+  PdfType* yBegin() noexcept;
+
+  //! Return the begin of the y list
   const PdfType* yBegin() const noexcept;
+
+  //! Return the end of the y list
+  PdfType* yEnd() noexcept;
 
   //! Return the end of the y list
   const PdfType* yEnd() const noexcept;
@@ -82,7 +111,7 @@ class CumulativeDistributionFunction
   std::unique_ptr<XType[]> x_list_;
   std::unique_ptr<PdfType[]> y_list_;
   uint32 size_;
-  uint32 padding_;
+  uint32 capacity_;
 };
 
 } // namespace zisc

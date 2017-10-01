@@ -226,7 +226,6 @@ void toBinaryTree(
     EnableIfRandomAccessIterator<RandomAccessIterator>) noexcept
 {
   ZISC_ASSERT(std::is_sorted(begin, end), "The array isn't sorted.");
-  ZISC_ASSERT(end == std::unique(begin, end), "The array isn't unique array.");
 
   const auto size = std::distance(begin, end);
   ZISC_ASSERT(0 < size, "The end is in advance of the begin.");

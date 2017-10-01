@@ -56,7 +56,7 @@ template <typename Type> inline
 Type* MemoryChunk::data() noexcept
 {
   auto p = headerPointer() + (headerSize() + offset1());
-  return cast<Type*>(p);
+  return treatAs<Type*>(p);
 }
 
 /*!
@@ -65,7 +65,7 @@ template <typename Type> inline
 const Type* MemoryChunk::data() const noexcept
 {
   auto p = headerPointer() + (headerSize() + offset1());
-  return cast<const Type*>(p);
+  return treatAs<const Type*>(p);
 }
 
 /*!

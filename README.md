@@ -2,7 +2,7 @@
 
 **Zisc** provides commonly used C++ classes and functions.
 
-Version: 0.0.29
+Version: 0.0.30
 
 ## Requirement ##
 

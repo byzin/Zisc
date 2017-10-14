@@ -266,7 +266,7 @@ void MemoryPool::initialize(const std::size_t memory_size) noexcept
   static_assert(alignof(uint32) <= alignof(std::size_t), "");
 
   // Avoid warnings
-  padding_ = 0;
+  static_cast<void>(padding_);
 }
 
 } // namespace zisc

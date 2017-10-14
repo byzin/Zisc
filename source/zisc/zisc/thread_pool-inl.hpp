@@ -376,7 +376,7 @@ void ThreadPool::initialize(const uint num_of_threads) noexcept
   createWorkers(num_of_threads);
 
   // Avoid padding warning
-  padding_.fill(0);
+  static_cast<void>(padding_);
 
   // Check the alignment of member variables
   static_assert(alignof(std::condition_variable) <=

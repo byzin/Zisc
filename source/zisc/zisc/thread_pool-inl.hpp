@@ -12,6 +12,7 @@
 
 #include "thread_pool.hpp"
 // Standard C++ library
+#include <array>
 #include <atomic>
 #include <functional>
 #include <future>
@@ -375,8 +376,7 @@ void ThreadPool::initialize(const uint num_of_threads) noexcept
   createWorkers(num_of_threads);
 
   // Avoid padding warning
-  for (int i = 0; i < 7; ++i)
-    padding_[i] = 0;
+  padding_.fill(0);
 
   // Check the alignment of member variables
   static_assert(alignof(std::condition_variable) <=

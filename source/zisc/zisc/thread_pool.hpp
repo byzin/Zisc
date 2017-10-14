@@ -11,6 +11,7 @@
 #define ZISC_THREAD_POOL_HPP
 
 // Standard C++ library
+#include <array>
 #include <cstddef>
 #include <functional>
 #include <future>
@@ -102,7 +103,7 @@ class ThreadPool : public NonCopyable<ThreadPool>
   std::queue<WorkerTask> task_queue_;
   std::vector<std::thread> workers_;
   uint8 workers_are_enabled_;
-  uint8 padding_[7];
+  std::array<uint8, 7> padding_;
 };
 
 } // namespace zisc

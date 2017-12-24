@@ -20,46 +20,50 @@ template <typename Type, typename T>
 constexpr Type cast(const T value) noexcept;
 
 //! Clamp the value x to be between min and max
-template <typename Type>
-constexpr Type clamp(const Type x, 
-                     const Type min_value, 
-                     const Type max_value) noexcept;
+template <typename Type, typename LowerType, typename UpperType>
+constexpr Type clamp(const Type value, 
+                     const LowerType lower, 
+                     const UpperType upper) noexcept;
 
 //! Test whether a value is in a range
-template <bool kIsLeftClosed = true, bool kIsRightCloed = false, typename Type>
+template <bool kIsLeftClosed = true,
+          bool kIsRightCloed = false,
+          typename Type,
+          typename LowerType,
+          typename UpperType>
 constexpr bool isInBounds(const Type& value, 
-                          const Type& lower, 
-                          const Type& upper) noexcept;
+                          const LowerType& lower, 
+                          const UpperType& upper) noexcept;
 
 //! Test whether a value is in a range: (lower, upper)
-template <typename Type>
+template <typename Type, typename LowerType, typename UpperType>
 constexpr bool isInOpenBounds(const Type& value, 
-                              const Type& lower, 
-                              const Type& upper) noexcept;
+                              const LowerType& lower, 
+                              const UpperType& upper) noexcept;
 
 //! Test whether a value is in a range: [lower, upper)
-template <typename Type>
+template <typename Type, typename LowerType, typename UpperType>
 constexpr bool isInLClosedROpenBounds(const Type& value, 
-                                      const Type& lower, 
-                                      const Type& upper) noexcept;
+                                      const LowerType& lower, 
+                                      const UpperType& upper) noexcept;
 
 //! Test whether a value is in a range: [lower, upper)
-template <typename Type>
+template <typename Type, typename LowerType, typename UpperType>
 constexpr bool isInLClosedROpenBounds(const Type& value, 
-                                      const Type& lower, 
-                                      const Type& upper) noexcept;
+                                      const LowerType& lower, 
+                                      const UpperType& upper) noexcept;
 
 //! Test whether a value is in a range: (lower, upper]
-template <typename Type>
+template <typename Type, typename LowerType, typename UpperType>
 constexpr bool isInLOpenRClosedBounds(const Type& value, 
-                                      const Type& lower, 
-                                      const Type& upper) noexcept;
+                                      const LowerType& lower, 
+                                      const UpperType& upper) noexcept;
 
 //! Test whether a value is in a range: [lower, upper]
-template <typename Type>
+template <typename Type, typename LowerType, typename UpperType>
 constexpr bool isInClosedBounds(const Type& value, 
-                                const Type& lower, 
-                                const Type& upper) noexcept;
+                                const LowerType& lower, 
+                                const UpperType& upper) noexcept;
 
 //! Test whether the n is negative
 template <typename Arithmetic>

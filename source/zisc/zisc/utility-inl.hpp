@@ -31,20 +31,24 @@ constexpr Type cast(const T value) noexcept
  \details
  No detailed.
 */
-template <typename Type> inline
-constexpr Type clamp(const Type x, 
-                     const Type min_value, 
-                     const Type max_value) noexcept
+template <typename Type, typename LowerType, typename UpperType> inline
+constexpr Type clamp(const Type value, 
+                     const LowerType lower, 
+                     const UpperType upper) noexcept
 {
-  return min(max(x, min_value), max_value);
+  return min(max(value, lower), upper);
 }
 
 /*!
   */
-template <bool kIsLeftClosed, bool kIsRightClosed, typename Type> inline
+template <bool kIsLeftClosed,
+          bool kIsRightClosed,
+          typename Type,
+          typename LowerType,
+          typename UpperType> inline
 constexpr bool isInBounds(const Type& value, 
-                          const Type& lower, 
-                          const Type& upper) noexcept
+                          const LowerType& lower, 
+                          const UpperType& upper) noexcept
 {
   return ((kIsLeftClosed) ? !(value < lower) : (lower < value)) &&
          ((kIsRightClosed) ? !(upper < value) : (value < upper));
@@ -52,40 +56,40 @@ constexpr bool isInBounds(const Type& value,
 
 /*!
   */
-template <typename Type> inline
+template <typename Type, typename LowerType, typename UpperType> inline
 constexpr bool isInOpenBounds(const Type& value, 
-                              const Type& lower, 
-                              const Type& upper) noexcept
+                              const LowerType& lower, 
+                              const UpperType& upper) noexcept
 {
   return isInBounds<false, false>(value, lower, upper);
 }
 
 /*!
   */
-template <typename Type> inline
+template <typename Type, typename LowerType, typename UpperType> inline
 constexpr bool isInLClosedROpenBounds(const Type& value, 
-                                      const Type& lower, 
-                                      const Type& upper) noexcept
+                                      const LowerType& lower, 
+                                      const UpperType& upper) noexcept
 {
   return isInBounds<true, false>(value, lower, upper);
 }
 
 /*!
   */
-template <typename Type> inline
+template <typename Type, typename LowerType, typename UpperType> inline
 constexpr bool isInLOpenRClosedBounds(const Type& value, 
-                                      const Type& lower, 
-                                      const Type& upper) noexcept
+                                      const LowerType& lower, 
+                                      const UpperType& upper) noexcept
 {
   return isInBounds<false, true>(value, lower, upper);
 }
 
 /*!
   */
-template <typename Type> inline
+template <typename Type, typename LowerType, typename UpperType> inline
 constexpr bool isInClosedBounds(const Type& value, 
-                                const Type& lower, 
-                                const Type& upper) noexcept
+                                const LowerType& lower, 
+                                const UpperType& upper) noexcept
 {
   return isInBounds<true, true>(value, lower, upper);
 }

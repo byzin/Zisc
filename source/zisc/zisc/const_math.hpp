@@ -12,6 +12,7 @@
 
 // Standard C++ library
 #include <cstddef>
+#include <type_traits>
 // Zisc
 #include "zisc/zisc_config.hpp"
 
@@ -29,23 +30,38 @@ constexpr Float pi() noexcept;
 template <typename Arithmetic>
 constexpr Arithmetic abs(const Arithmetic x) noexcept;
 
-//! Return the greatest common divisor of two integer m and n
-template <typename Integral>
-constexpr Integral gcd(Integral m, Integral n) noexcept;
+//! Compute the greatest common divisor of the integers m and n
+template <typename Integer1, typename Integer2>
+constexpr std::common_type_t<Integer1, Integer2> gcd(Integer1 m,
+                                                     Integer2 n) noexcept;
+
+//! Compute the least common multiple of the integers m and n
+template <typename Integer1, typename Integer2>
+constexpr std::common_type_t<Integer1, Integer2> lcm(Integer1 m,
+                                                     Integer2 n) noexcept;
 
 //! Return a inverse number
 template <typename Float>
 constexpr Float invert(const Float x) noexcept;
 
+//! Compute the remainder of the division operation x/y
+template <auto y, typename Integer>
+constexpr std::common_type_t<decltype(y), Integer> mod(Integer x) noexcept;
+
 //!
-template <typename Integer>
-constexpr Integer sequence(const Integer m, const Integer n) noexcept;
+template <typename Integer1, typename Integer2>
+constexpr std::common_type_t<Integer1, Integer2> sequence(const Integer1 m,
+                                                          const Integer2 n) noexcept;
 
 //!
 template <typename Integer>
 constexpr Integer factorial(const Integer x) noexcept;
 
 // Power functions
+
+//! Calculate the value of base raised to the power exponent
+template <int kExponent, typename Arithmetic>
+constexpr Arithmetic power(Arithmetic base) noexcept;
 
 //! Calculate the value of base raised to the power exponent
 template <typename Arithmetic, typename SignedInteger>

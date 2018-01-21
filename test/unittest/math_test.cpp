@@ -127,6 +127,10 @@ TEST(MathTest, PowerTest)
   ASSERT_EQ(8, zisc::power<3>(2)) << "Power test failed.";
   ASSERT_EQ(16, zisc::power<4>(2)) << "Power test failed.";
   ASSERT_EQ(32, zisc::power<5>(2)) << "Power test failed.";
+  // Inverse pow test
+  ASSERT_DOUBLE_EQ(0.5, zisc::power<-1>(2.0)) << "Power test failed.";
+  ASSERT_DOUBLE_EQ(0.25, zisc::power<-2>(2.0)) << "Power test failed.";
+  ASSERT_DOUBLE_EQ(0.125, zisc::power<-3>(2.0)) << "Power test failed.";
 }
 
 TEST(MathTest, PowTest)

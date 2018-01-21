@@ -23,23 +23,27 @@
 namespace zisc {
 
 template <>
-struct EngineFloatInfo<sizeof(float)>
+struct PrnEngineFloatInfo<sizeof(float)>
 {
+  using BitType = uint32;
   using FloatType = float;
   static constexpr int kFloatBitSize = sizeof(float) * 8;
   static constexpr int kMantissaBitSize = 23;
   static constexpr int kNonMantissaBitSize = kFloatBitSize - kMantissaBitSize;
   static constexpr uint32 kExponentBit = cast<uint32>(127u) << kMantissaBitSize;
+  static constexpr int kOffsetFrom32Bit = 0;
 };
 
 template <>
-struct EngineFloatInfo<sizeof(double)>
+struct PrnEngineFloatInfo<sizeof(double)>
 {
+  using BitType = uint64;
   using FloatType = double;
   static constexpr int kFloatBitSize = sizeof(double) * 8;
   static constexpr int kMantissaBitSize = 52;
   static constexpr int kNonMantissaBitSize = kFloatBitSize - kMantissaBitSize;
   static constexpr uint64 kExponentBit = cast<uint64>(1023ull) << kMantissaBitSize;
+  static constexpr int kOffsetFrom32Bit = 32;
 };
 
 /*!
@@ -103,8 +107,17 @@ auto PseudoRandomNumberEngine<GeneratorClass, Seed, Result>::generate01() noexce
 {
   // Generate a integer random number
   const Result x = generate();
-  // Convert to [0, 1) float value
-  using FloatInfo = EngineFloatInfo<sizeof(Result)>;
+  // Map to a [0, 1) float
+  return mapTo01Float(x);
+}
+
+/*!
+  */
+template <typename GeneratorClass, typename Seed, typename Result> inline
+auto PseudoRandomNumberEngine<GeneratorClass, Seed, Result>::mapTo01Float(
+    const ResultType x) noexcept -> FloatType
+{
+  using FloatInfo = PrnEngineFloatInfo<sizeof(Result)>;
   constexpr auto exponent = FloatInfo::kExponentBit;
   const FloatValue u{exponent | (x >> FloatInfo::kNonMantissaBitSize)};
   const FloatType value = u.float_ - cast<FloatType>(1.0);

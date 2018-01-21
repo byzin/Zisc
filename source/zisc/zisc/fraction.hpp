@@ -24,9 +24,13 @@ template <typename SignedInteger>
 class Fraction
 {
   static_assert(kIsSignedInteger<SignedInteger>,
-                "Fraction must be specified a signed integral type.");
-          
+                "SignedInteger isn't signed integer type.");
+
  public:
+  //! The type that is used in Fraction for arithmetic
+  using ArithmeticType = SignedInteger;
+
+
   //! Creata a fraction (0 / 1)
   constexpr Fraction() noexcept;
 
@@ -38,29 +42,35 @@ class Fraction
 
 
   //!
-  Fraction& operator+=(const Fraction& other) noexcept;
+  constexpr Fraction operator-() const noexcept;
 
   //!
-  Fraction& operator-=(const Fraction& other) noexcept;
+  constexpr Fraction& operator+=(const Fraction& other) noexcept;
 
   //!
-  Fraction& operator*=(const Fraction& other) noexcept;
+  constexpr Fraction& operator-=(const Fraction& other) noexcept;
 
   //!
-  Fraction& operator/=(const Fraction& other) noexcept;
+  constexpr Fraction& operator*=(const Fraction& other) noexcept;
+
+  //!
+  constexpr Fraction& operator/=(const Fraction& other) noexcept;
 
 
   //! Return the denominator
-  constexpr SignedInteger denominator() const noexcept;
+  constexpr SignedInteger& denominator() noexcept;
+
+  //! Return the denominator
+  constexpr const SignedInteger& denominator() const noexcept;
 
   //! Return the numerator 
-  constexpr SignedInteger numerator() const noexcept;
+  constexpr SignedInteger& numerator() noexcept;
+
+  //! Return the numerator 
+  constexpr const SignedInteger& numerator() const noexcept;
 
   //! Return a inverse fraction
   constexpr Fraction invert() const noexcept;
-
-  //! Multiplay two fractions
-  constexpr Fraction multiply(const Fraction& other) const noexcept;
 
   //! Convert a fraction to a float
   template <typename Float>
@@ -69,9 +79,6 @@ class Fraction
  private:
   //! Return the absolute value
   static constexpr SignedInteger abs(const SignedInteger n) noexcept;
-
-  //! Return the greatest common divisor of two integer m and n
-  static constexpr SignedInteger gcd(SignedInteger m, SignedInteger n) noexcept;
 
 
   SignedInteger numerator_,
@@ -83,25 +90,25 @@ using Fraction16 = Fraction<int16>;
 using Fraction32 = Fraction<int32>;
 using Fraction64 = Fraction<int64>;
 
-//! 
+//! Perform addition operation on two values
 template <typename SignedInteger>
 constexpr Fraction<SignedInteger> operator+(
     const Fraction<SignedInteger>& lhs,
     const Fraction<SignedInteger>& rhs) noexcept;
  
-//!
+//! Perform subtraction operation on two values
 template <typename SignedInteger>
 constexpr Fraction<SignedInteger> operator-(
     const Fraction<SignedInteger>& lhs,
     const Fraction<SignedInteger>& rhs) noexcept;
 
-//!
+//! Perform multiplication operation on two values
 template <typename SignedInteger>
 constexpr Fraction<SignedInteger> operator*(
     const Fraction<SignedInteger>& lhs,
     const Fraction<SignedInteger>& rhs) noexcept;
 
-//!
+//! Perform division operation on two values
 template <typename SignedInteger>
 constexpr Fraction<SignedInteger> operator/(
     const Fraction<SignedInteger>& lhs,

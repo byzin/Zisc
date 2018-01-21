@@ -22,7 +22,7 @@ namespace zisc {
   No detailed.
   */
 template <typename Type, typename T> inline
-constexpr Type cast(const T value) noexcept
+constexpr Type cast(T&& value) noexcept
 {
   return static_cast<Type>(value);
 }
@@ -32,9 +32,10 @@ constexpr Type cast(const T value) noexcept
  No detailed.
 */
 template <typename Type, typename LowerType, typename UpperType> inline
-constexpr Type clamp(const Type value, 
-                     const LowerType lower, 
-                     const UpperType upper) noexcept
+constexpr std::common_type_t<Type, LowerType, UpperType> clamp(
+    const Type value, 
+    const LowerType lower, 
+    const UpperType upper) noexcept
 {
   return min(max(value, lower), upper);
 }
@@ -101,10 +102,15 @@ constexpr bool isInClosedBounds(const Type& value,
 template <typename Arithmetic> inline
 constexpr bool isNegative(const Arithmetic n) noexcept
 {
-  static_assert(std::is_arithmetic<Arithmetic>::value,
+  static_assert(std::is_arithmetic_v<Arithmetic>,
                 "Arithmetic isn't arithmetic type.");
-  constexpr auto zero = static_cast<Arithmetic>(0);
-  return (n < zero);
+  if constexpr (std::is_signed_v<Arithmetic>) {
+    constexpr auto zero = cast<Arithmetic>(0);
+    return n < zero;
+  }
+  else {
+    return false;
+  }
 }
 
 /*!
@@ -112,17 +118,27 @@ constexpr bool isNegative(const Arithmetic n) noexcept
 template <typename Integer> inline
 constexpr bool isOdd(const Integer n) noexcept
 {
-  static_assert(std::is_integral<Integer>::value, "Integer isn't integer type.");
-  constexpr auto lsb = static_cast<Integer>(0b01);
+  static_assert(std::is_integral_v<Integer>, "Integer isn't integer type.");
+  constexpr auto lsb = cast<Integer>(0b01);
   return ((n & lsb) == lsb);
+}
+
+/*!
+  */
+template <typename Integer> inline
+constexpr bool isPowerOf2(const Integer x) noexcept
+{
+  static_assert(std::is_integral_v<Integer>, "Integer isn't integer type.");
+  return (x & (x - 1)) == 0;
 }
 
 /*!
   \details
   No detailed.
   */
-template <typename Type> inline
-constexpr const Type& max(const Type& a, const Type& b) noexcept
+template <typename Type1, typename Type2> inline
+constexpr const std::common_type_t<Type1, Type2>& max(const Type1& a,
+                                                      const Type2& b) noexcept
 {
   return (b < a) ? a : b;
 }
@@ -131,8 +147,9 @@ constexpr const Type& max(const Type& a, const Type& b) noexcept
   \details
   No detailed.
   */
-template <typename Type> inline
-constexpr const Type& min(const Type& a, const Type& b) noexcept
+template <typename Type1, typename Type2> inline
+constexpr const std::common_type_t<Type1, Type2>& min(const Type1& a,
+                                                      const Type2& b) noexcept
 {
   return (b < a) ? b : a;
 }
@@ -144,7 +161,10 @@ constexpr const Type& min(const Type& a, const Type& b) noexcept
 template <typename Type, typename T> inline
 Type treatAs(T* object) noexcept
 {
-  return reinterpret_cast<Type>(object);
+  if constexpr (std::is_same_v<Type, T*>)
+    return object;
+  else
+    return reinterpret_cast<Type>(object);
 }
 
 } // namespace zisc

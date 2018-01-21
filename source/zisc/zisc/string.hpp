@@ -11,6 +11,7 @@
 #define ZISC_STRING_HPP
 
 // Standard C++ library
+#include <cstddef>
 #include <string>
 #include <regex>
 // Zisc
@@ -128,6 +129,8 @@ constexpr String<N1 + N2 - 1> concatenate(
 template <uint N>
 constexpr String<N> toString(const char (&string)[N]) noexcept;
 
+//! Return the length of the string
+constexpr std::size_t getStringLength(const char* string) noexcept;
 
 /*!
   \details

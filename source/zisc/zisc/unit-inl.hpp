@@ -16,6 +16,7 @@
 #include <type_traits>
 // Zisc
 #include "math.hpp"
+#include "type_traits.hpp"
 #include "utility.hpp"
 
 namespace zisc {
@@ -30,9 +31,8 @@ namespace zisc {
 template <typename Float> inline
 constexpr Float toRadian(const Float angle) noexcept
 {
-  static_assert(std::is_floating_point<Float>::value,
-                "Float isn't floating point type.");
-  constexpr auto k = cast<Float>(kPi<long double> / 180.0l);
+  static_assert(kIsFloat<Float>, "Float isn't floating point type.");
+  constexpr Float k = kPi<Float> / cast<Float>(180.0);
   return k * angle;
 }
 
@@ -46,19 +46,9 @@ constexpr Float toRadian(const Float angle) noexcept
 template <typename Float> inline
 constexpr Float toAngle(const Float radian) noexcept
 {
-  static_assert(std::is_floating_point<Float>::value,
-                "Float isn't floating point type.");
-  constexpr auto k = cast<Float>(180.0l / kPi<long double>);
+  static_assert(kIsFloat<Float>, "Float isn't floating point type.");
+  constexpr Float k = cast<Float>(180.0) / kPi<Float>;
   return k * radian;
-}
-
-/*!
-  \details
-  No detailed.
-  */
-constexpr double toMegaByte(const std::size_t byte) noexcept
-{
-  return cast<double>(byte) * (1.0 / zisc::power<2>(1024.0));
 }
 
 } // namespace zisc

@@ -45,6 +45,7 @@
 !/test/resources/dsfmt*
 !/test/resources/xsadd*
 !/test/resources/pcg*
+!/test/resources/sip_hash*
 
 # Example
 !/example/

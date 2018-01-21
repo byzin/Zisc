@@ -243,52 +243,6 @@ void toBinaryTree(
   }
 }
 
-namespace inner {
-
-/*!
-  \brief Calculate the hash of string using FNV-1a
-  \details
-  The details of this algorithm are explained in the following URL
-  http://www.isthe.com/chongo/tech/comp/fnv/
-  */
-template <typename ValueType, ValueType kPrime> inline
-constexpr ValueType toHash(const char* string, const ValueType hash) noexcept
-{
-  if (*string != '\0') {
-    const ValueType updated_hash = (hash ^ cast<ValueType>(*string)) * kPrime;
-    return toHash<ValueType, kPrime>(string + 1, updated_hash);
-  }
-  else {
-    return hash;
-  }
-}
-
-} // namespace inner
-
-/*!
-  \details
-  No detailed.
-  */
-inline
-constexpr uint32 toHash32(const char* string) noexcept
-{
-  constexpr uint32 prime = 16777619;
-  constexpr uint32 offset = 2166136261;
-  return inner::toHash<uint32, prime>(string, offset);
-}
-
-/*!
-  \details
-  No detailed.
-  */
-inline
-constexpr uint64 toHash64(const char* string) noexcept
-{
-  constexpr uint64 prime = 1099511628211;
-  constexpr uint64 offset = 14695981039346656037ull;
-  return inner::toHash<uint64, prime>(string, offset);
-}
-
 } // namespace zisc
 
 #endif // ZISC_ALGORITHM_INL_HPP

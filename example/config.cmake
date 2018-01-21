@@ -28,10 +28,9 @@ function(setExample example_name)
   # Build a example
   add_executable(${example_name} ${ARGN})
   #
-  set_target_properties(${example_name} PROPERTIES CXX_STANDARD 14
+  set_target_properties(${example_name} PROPERTIES CXX_STANDARD 17
                                                    CXX_STANDARD_REQUIRED ON
                                                    RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/Examples)
-  checkCompilerHasCxx14Features(${example_name})
   getCxxWarningOption(cxx_warning_flags)
   getExampleWarningOption(example_warning_flags)
   target_compile_options(${example_name} PRIVATE ${cxx_compile_flags} 
@@ -71,4 +70,8 @@ function(buildExample)
              ${__example_root__}/thread_pool_example.cpp)
   setExample(StringExample
              ${__example_root__}/string_example.cpp)
+  setExample(CmjEngineExample
+             ${__example_root__}/correlated_multi_jittered_engine_example.cpp)
+  setExample(ErrorExample
+             ${__example_root__}/error_example.cpp)
 endfunction(buildExample)

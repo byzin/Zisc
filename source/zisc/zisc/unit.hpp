@@ -23,9 +23,6 @@ constexpr Float toRadian(const Float angle) noexcept;
 template <typename Float>
 constexpr Float toAngle(const Float radian) noexcept;
 
-//! Return the Mega byte size
-constexpr double toMegaByte(const std::size_t byte) noexcept;
-
 } // namespace zisc
 
 #include "unit-inl.hpp"

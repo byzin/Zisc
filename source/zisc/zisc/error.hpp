@@ -10,25 +10,36 @@
 #ifndef ZISC_ERROR_HPP
 #define ZISC_ERROR_HPP
 
+// Standard C++ library
+#include <ostream>
+
+// Preprocessor
+
+#define ZISC_GET_FILE_NAME __FILE__
+
+#define ZISC_GET_LINE_NUMBER __LINE__
+
 #ifdef ZISC_ASSERTION
 
 #define ZISC_ASSERT(condition, ...) \
-    zisc::assertError(condition, "AssertError in ", __FILE__, " at ", __LINE__, \
-                      ": ", __VA_ARGS__)
-
-#define ZISC_ASSERTION_STATEMENT(statement) statement
+    zisc::assertIfFalse(condition, \
+                        "AssertError in ", \
+                        ZISC_GET_FILE_NAME, \
+                        " at ", \
+                        ZISC_GET_LINE_NUMBER, \
+                        ": ", \
+                        __VA_ARGS__)
 
 #else // ZISC_ASSERTION
 
-#define ZISC_ASSERT(condition, ...)
-
-#define ZISC_ASSERTION_STATEMENT(statement)
+#define ZISC_ASSERT(...)
 
 #endif // ZISC_ASSERTION
 
 #ifdef ZISC_LOGGING
 
-#define ZISC_LOG(...) zisc::logMessage(__VA_ARGS__)
+#define ZISC_LOG(log_stream, ...) \
+    zisc::outputMessage(log_stream, __VA_ARGS__)
 
 #else // ZISC_LOGGING
 
@@ -40,15 +51,16 @@ namespace zisc {
 
 //! If condition is false, print messages and raise an error
 template <typename ...Types>
-void assertError(const bool condition, const Types&... messages) noexcept;
+void assertIfFalse(const bool condition, Types&&... messages) noexcept;
 
-//! Log messages
+//! Send messages to the 'output_stream' stream
 template <typename ...Types>
-void logMessage(const Types&... messages) noexcept;
+std::ostream& outputMessage(std::ostream& output_stream,
+                            Types&&... messages) noexcept;
 
 //! Print messages and raise an error
 template <typename ...Types>
-void raiseError(const Types&... messages) noexcept;
+void raiseError(Types&&... messages) noexcept;
 
 } // namespace zisc
 

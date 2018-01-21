@@ -45,11 +45,10 @@ function(buildUnitTest)
   file(COPY ${__test_root__}/resources DESTINATION ${PROJECT_BINARY_DIR})
   file(GLOB unittest_source_files  ${__test_root__}/unittest/*.cpp)
   add_executable(UnitTest ${unittest_source_files} ${zisc_header_files})
-  set_target_properties(UnitTest PROPERTIES CXX_STANDARD 14
+  set_target_properties(UnitTest PROPERTIES CXX_STANDARD 17
                                             CXX_STANDARD_REQUIRED ON)
   getCxxWarningOption(cxx_warning_flags)
   getTestWarningOption(test_warning_flags)
-  checkCompilerHasCxx14Features(UnitTest)
   target_compile_options(UnitTest PRIVATE ${cxx_compile_flags}
                                           ${zisc_compile_flags}
                                           ${cxx_warning_flags}

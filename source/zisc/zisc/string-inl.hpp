@@ -14,6 +14,7 @@
 // Standard C++ library
 #include <algorithm>
 #include <cctype>
+#include <cstddef>
 #include <cstdlib>
 #include <regex>
 #include <string>
@@ -56,8 +57,7 @@ constexpr bool BasicString<CharType, N>::operator==(
     const CharType* other) const noexcept
 {
   uint m = 0;
-  while (other[m] != '\0')
-    ++m;
+  for (; other[m] != '\0'; ++m) {}
   ++m;
 
   bool flag = (N == m);
@@ -291,6 +291,16 @@ template <uint N> inline
 constexpr String<N> toString(const char (&string)[N]) noexcept
 {
   return String<N>{string};
+}
+
+/*!
+  */
+inline
+constexpr std::size_t getStringLength(const char* string) noexcept
+{
+  std::size_t n = 0;
+  for (; string[n] != '\0'; ++n) {}
+  return n;
 }
 
 namespace inner {

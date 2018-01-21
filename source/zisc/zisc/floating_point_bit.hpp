@@ -1,5 +1,5 @@
 /*!
-  \file floating_point.hpp
+  \file floating_point_bit.hpp
   \author Sho Ikeda
 
   Copyright (c) 2015-2017 Sho Ikeda
@@ -7,8 +7,8 @@
   http://opensource.org/licenses/mit-license.php
   */
 
-#ifndef ZISC_FLOATING_POINT_HPP
-#define ZISC_FLOATING_POINT_HPP
+#ifndef ZISC_FLOATING_POINT_BIT_HPP
+#define ZISC_FLOATING_POINT_BIT_HPP
 
 // Zisc
 #include "type_traits.hpp"
@@ -105,6 +105,6 @@ using DoubleBit = FloatingPointBit<double>;
 
 } // namespace zisc
 
-#include "floating_point-inl.hpp"
+#include "floating_point_bit-inl.hpp"
 
-#endif // ZISC_FLOATING_POINT_HPP
+#endif // ZISC_FLOATING_POINT_BIT_HPP

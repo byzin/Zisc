@@ -82,6 +82,50 @@ TEST(ConstMathTest, FactorialTest)
   }
 }
 
+TEST(ConstMathTest, ModTest)
+{
+  {
+    constexpr int result = zisc::constant::mod<1>(10);
+    EXPECT_EQ(0, result) << "The result of mod<1>(10) is wrong.";
+  }
+  {
+    constexpr int result = zisc::constant::mod<2>(10);
+    EXPECT_EQ(0, result) << "The result of mod<2>(10) is wrong.";
+  }
+  {
+    constexpr int result = zisc::constant::mod<2>(9);
+    EXPECT_EQ(1, result) << "The result of mod<2>(9) is wrong.";
+  }
+  {
+    constexpr int result = zisc::constant::mod<3>(10);
+    EXPECT_EQ(1, result) << "The result of mod<3>(10) is wrong.";
+  }
+  {
+    constexpr int result = zisc::constant::mod<3>(9);
+    EXPECT_EQ(0, result) << "The result of mod<3>(9) is wrong.";
+  }
+  {
+    constexpr int result = zisc::constant::mod<4>(12);
+    EXPECT_EQ(0, result) << "The result of mod<4>(12) is wrong.";
+  }
+  {
+    constexpr int result = zisc::constant::mod<4>(15);
+    EXPECT_EQ(3, result) << "The result of mod<4>(15) is wrong.";
+  }
+  {
+    constexpr int result = zisc::constant::mod<8>(5);
+    EXPECT_EQ(5, result) << "The result of mod<8>(5) is wrong.";
+  }
+  {
+    constexpr int result = zisc::constant::mod<8>(8);
+    EXPECT_EQ(0, result) << "The result of mod<8>(8) is wrong.";
+  }
+  {
+    constexpr int result = zisc::constant::mod<8>(13);
+    EXPECT_EQ(5, result) << "The result of mod<8>(13) is wrong.";
+  }
+}
+
 namespace {
 
 template <int scale, int end, int step, int i>

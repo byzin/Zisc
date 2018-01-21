@@ -44,6 +44,7 @@ constexpr bool kIsSignedInteger = inner::IsSignedInteger<Type>::value;
 template <typename Type>
 constexpr bool kIsIterator = inner::IsIterator<Type>::value;
 
+//! Check if the Type is random access iterator
 template <typename Type>
 constexpr bool kIsRandomAccessIterator = inner::IsRandomAccessIterator<Type>::value;
 

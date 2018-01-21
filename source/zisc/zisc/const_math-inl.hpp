@@ -14,6 +14,7 @@
 // Standard C++ library
 #include <cmath>
 #include <limits>
+#include <numeric>
 #include <tuple>
 #include <type_traits>
 // Zisc
@@ -58,27 +59,41 @@ constexpr Float pi() noexcept
  \details
  No detailed.
  */
-template <typename Signed> inline
-constexpr Signed abs(const Signed x) noexcept
+template <typename Arithmetic> inline
+constexpr Arithmetic abs(const Arithmetic x) noexcept
 {
-  static_assert(std::is_signed<Signed>::value, "Signed isn't signed type");
-  return isNegative(x) ? -x : x;
+  static_assert(std::is_arithmetic_v<Arithmetic>,
+                "Arithmetic isn't arithmetic type.");
+  if constexpr (std::is_signed_v<Arithmetic>)
+    return isNegative(x) ? -x : x;
+  else
+    return x;
 }
 
 /*!
  \details
  No detailed.
  */
-template <typename Integer> inline
-constexpr Integer gcd(Integer m, Integer n) noexcept
+template <typename Integer1, typename Integer2> inline
+constexpr std::common_type_t<Integer1, Integer2> gcd(Integer1 m,
+                                                     Integer2 n) noexcept
 {
-  static_assert(kIsInteger<Integer>, "Integer isn't integer type.");
-  while (n != 0) {
-    const auto tmp = n;
-    n = (m < n) ? m : m % n;
-    m = tmp;
-  }
-  return m;
+  static_assert(kIsInteger<Integer1>, "Integer1 isn't integer type.");
+  static_assert(kIsInteger<Integer2>, "Integer2 isn't integer type.");
+  return std::gcd(m, n);
+}
+
+/*!
+ \details
+ No detailed.
+ */
+template <typename Integer1, typename Integer2> inline
+constexpr std::common_type_t<Integer1, Integer2> lcm(Integer1 m,
+                                                     Integer2 n) noexcept
+{
+  static_assert(kIsInteger<Integer1>, "Integer1 isn't integer type.");
+  static_assert(kIsInteger<Integer2>, "Integer2 isn't integer type.");
+  return std::lcm(m, n);
 }
 
 /*!
@@ -92,13 +107,37 @@ constexpr Float invert(const Float x) noexcept
 }
 
 /*!
-  */
-template <typename Integer> inline
-constexpr Integer sequence(const Integer m, const Integer n) noexcept
+ \details
+ No detailed.
+ */
+template <auto y, typename Integer> inline
+constexpr std::common_type_t<decltype(y), Integer> mod(Integer x) noexcept
 {
+  static_assert(kIsInteger<decltype(y)>, "The y isn't integer type.");
   static_assert(kIsInteger<Integer>, "Integer isn't integer type.");
-  Integer x = 1;
-  for (Integer i = m; i < n; ++i)
+  static_assert(y != 0, "The y is zero.");
+  using ResultType = std::common_type_t<decltype(y), Integer>;
+  constexpr bool is_power_of_2 = isPowerOf2(y);
+  if (is_power_of_2) {
+    const ResultType result = cast<ResultType>(x) & (cast<ResultType>(y) - 1);
+    return result;
+  }
+  else {
+    const ResultType result = cast<ResultType>(x) % cast<ResultType>(y);
+    return result;
+  }
+}
+
+/*!
+  */
+template <typename Integer1, typename Integer2> inline
+constexpr std::common_type_t<Integer1, Integer2> sequence(const Integer1 m,
+                                                          const Integer2 n) noexcept
+{
+  static_assert(kIsInteger<Integer1>, "Integer1 isn't integer type.");
+  static_assert(kIsInteger<Integer2>, "Integer2 isn't integer type.");
+  std::common_type_t<Integer1, Integer2> x = 1;
+  for (auto i = m; i < n; ++i)
     x = x * (i + 1);
   return x;
 }
@@ -115,14 +154,40 @@ constexpr Integer factorial(const Integer x) noexcept
 
 /*!
   */
+template <int kExponent, typename Arithmetic> inline
+constexpr Arithmetic power(Arithmetic base) noexcept
+{
+  static_assert(std::is_arithmetic_v<Arithmetic>,
+                "Arithmetic isn't arithmetic type");
+  Arithmetic x = cast<Arithmetic>(1);
+  // Check if base is zero
+  if (base != cast<Arithmetic>(0)) {
+    // Inverse pow
+    if constexpr (isNegative(kExponent)) {
+      x = power<-kExponent>(cast<Arithmetic>(1) / base);
+    }
+    // pow
+    else {
+      for (int exponent = kExponent; 0 < exponent; exponent = exponent >> 1) {
+        if (isOdd(exponent))
+          x = x * base;
+        base = base * base;
+      }
+    }
+  }
+  return x;
+}
+
+/*!
+  */
 template <typename Arithmetic, typename SignedInteger> inline
 constexpr Arithmetic pow(Arithmetic base, SignedInteger exponent) noexcept
 {
-  static_assert(std::is_arithmetic<Arithmetic>::value,
+  static_assert(std::is_arithmetic_v<Arithmetic>,
                 "Arithmetic isn't arithmetic type");
   static_assert(kIsSignedInteger<SignedInteger>,
                 "SignedInteger isn't signed integer type.");
-  Arithmetic x = base;
+  Arithmetic x = cast<Arithmetic>(1);
   // Check if base is zero
   if (base != cast<Arithmetic>(0)) {
     // Inverse pow
@@ -131,7 +196,6 @@ constexpr Arithmetic pow(Arithmetic base, SignedInteger exponent) noexcept
     }
     // pow
     else {
-      x = cast<Arithmetic>(1);
       constexpr SignedInteger zero = cast<SignedInteger>(0);
       for (; zero < exponent; exponent = exponent >> 1) {
         if (isOdd(exponent))

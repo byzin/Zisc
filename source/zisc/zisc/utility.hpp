@@ -17,13 +17,14 @@ namespace zisc {
 
 //! Convert type from T to Type
 template <typename Type, typename T>
-constexpr Type cast(const T value) noexcept;
+constexpr Type cast(T&& value) noexcept;
 
 //! Clamp the value x to be between min and max
 template <typename Type, typename LowerType, typename UpperType>
-constexpr Type clamp(const Type value, 
-                     const LowerType lower, 
-                     const UpperType upper) noexcept;
+constexpr std::common_type_t<Type, LowerType, UpperType> clamp(
+    const Type value, 
+    const LowerType lower, 
+    const UpperType upper) noexcept;
 
 //! Test whether a value is in a range
 template <bool kIsLeftClosed = true,
@@ -73,13 +74,19 @@ constexpr bool isNegative(const Arithmetic n) noexcept;
 template <typename Integer>
 constexpr bool isOdd(const Integer n) noexcept;
 
+//! Check if the x is power of 2
+template <typename Integer>
+constexpr bool isPowerOf2(const Integer x) noexcept;
+
 //! Return the large of two elements
-template <typename Type>
-constexpr const Type& max(const Type& a, const Type& b) noexcept;
+template <typename Type1, typename Type2>
+constexpr const std::common_type_t<Type1, Type2>& max(const Type1& a,
+                                                      const Type2& b) noexcept;
 
 //! Return the small of two elements
-template <typename Type>
-constexpr const Type& min(const Type& a, const Type& b) noexcept;
+template <typename Type1, typename Type2>
+constexpr const std::common_type_t<Type1, Type2>& min(const Type1& a,
+                                                      const Type2& b) noexcept;
 
 //! Treat T* as Type*
 template <typename Type, typename T>

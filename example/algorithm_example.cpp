@@ -34,16 +34,5 @@ int main()
 
   std::cout << std::endl;
 
-  // Hash example
-  std::cout << "## Hash example" << std::endl;
-  constexpr char hash_key[] = "AlgorithmExample";
-  std::cout << "Hash key: \"" << hash_key << "\"" << std::endl;
-  // Hash32
-  constexpr auto hash32 = zisc::toHash32(hash_key);
-  std::cout << "  Hash32: " << hash32 << std::endl;
-  // Hash64
-  constexpr auto hash64 = zisc::toHash64(hash_key);
-  std::cout << "  Hash64: " << hash64 << std::endl;
-
   return 0;
 }

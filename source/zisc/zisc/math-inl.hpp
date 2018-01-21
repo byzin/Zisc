@@ -19,7 +19,6 @@
 #include "const_math.hpp"
 #include "error.hpp"
 #include "fraction.hpp"
-#include "floating_point.hpp"
 #include "utility.hpp"
 #include "type_traits.hpp"
 #include "zisc/zisc_config.hpp"
@@ -58,10 +57,11 @@ namespace zisc {
  \details
  No detailed.
  */
-template <typename Signed> inline
-constexpr Signed abs(const Signed n) noexcept
+template <typename Arithmetic> inline
+constexpr Arithmetic abs(const Arithmetic n) noexcept
 {
-  static_assert(std::is_signed<Signed>::value, "Signed isn't signed type");
+  static_assert(std::is_arithmetic_v<Arithmetic>,
+                "Arithmetic isn't arithmetic type");
   return constant::abs(n);
 }
 
@@ -69,11 +69,26 @@ constexpr Signed abs(const Signed n) noexcept
  \details
  No detailed.
  */
-template <typename Integer> inline
-constexpr Integer gcd(Integer m, Integer n) noexcept
+template <typename Integer1, typename Integer2> inline
+constexpr std::common_type_t<Integer1, Integer2> gcd(Integer1 m,
+                                                     Integer2 n) noexcept
 {
-  static_assert(kIsInteger<Integer>, "The m and n aren't integer type.");
+  static_assert(kIsInteger<Integer1>, "Integer1 isn't integer type.");
+  static_assert(kIsInteger<Integer2>, "Integer2 isn't integer type.");
   return constant::gcd(m, n);
+}
+
+/*!
+ \details
+ No detailed.
+ */
+template <typename Integer1, typename Integer2> inline
+constexpr std::common_type_t<Integer1, Integer2> lcm(Integer1 m,
+                                                     Integer2 n) noexcept
+{
+  static_assert(kIsInteger<Integer1>, "Integer1 isn't integer type.");
+  static_assert(kIsInteger<Integer2>, "Integer2 isn't integer type.");
+  return constant::lcm(m, n);
 }
 
 /*!
@@ -96,10 +111,12 @@ constexpr Float invert(const Float x) noexcept
 
 /*!
   */
-template <typename Integer> inline
-constexpr Integer sequence(const Integer m, const Integer n) noexcept
+template <typename Integer1, typename Integer2> inline
+constexpr std::common_type_t<Integer1, Integer2> sequence(const Integer1 m,
+                                                          const Integer2 n) noexcept
 {
-  static_assert(kIsInteger<Integer>, "Integer isn't integer type.");
+  static_assert(kIsInteger<Integer1>, "Integer1 isn't integer type.");
+  static_assert(kIsInteger<Integer2>, "Integer2 isn't integer type.");
   return constant::sequence(m, n);
 }
 
@@ -107,18 +124,12 @@ constexpr Integer sequence(const Integer m, const Integer n) noexcept
   \details
   No detailed.
   */
-template <uint kExponent, typename Arithmetic> inline
+template <int kExponent, typename Arithmetic> inline
 constexpr Arithmetic power(Arithmetic base) noexcept
 {
-  static_assert(std::is_arithmetic<Arithmetic>::value, 
+  static_assert(std::is_arithmetic_v<Arithmetic>, 
                 "Arithmetic isn't arithmetic type");
-  Arithmetic x = cast<Arithmetic>(1);
-  for (uint exponent = kExponent; 0u < exponent; exponent = exponent >> 1) {
-    if (isOdd(exponent))
-      x = x * base;
-    base = base * base;
-  }
-  return x;
+  return constant::power<kExponent>(base);
 }
 
 /*!

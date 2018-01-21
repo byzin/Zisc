@@ -11,43 +11,30 @@
 #include <cstdint>
 #include <iostream>
 #include <iomanip>
+#include <limits>
 // Zisc
-#include "zisc/algorithm.hpp"
+#include "zisc/sip_hash_engine.hpp"
 #include "zisc/pcg_engine.hpp"
-#include "zisc/xsadd_engine.hpp"
-#include "zisc/xorshift_engine.hpp"
-
-template <typename EngineType>
-void tryPrneExample(EngineType& engine, const char* engine_name)
-{
-  constexpr int n = 10;
-  std::cout << std::setw(12) << engine_name << ": ";
-  for (int i = 0; i < n; ++i)
-    std::cout << std::fixed << std::setprecision(4) << engine(0.0, 1.0) << " ";
-  std::cout << std::endl;
-}
+#include "zisc/xoroshiro128_plus_engine.hpp"
 
 int main()
 {
-  // PseudoRandomNumber engine example
-  std::cout << "PseudoRandomNumber engine example" << std::endl;
+//  using PrnEngine = zisc::PcgMcgRxsMXs;
+  using PrnEngine = zisc::Xoroshiro128PlusEngine;
+
   constexpr char seed_key[] = "PseudoRandomNumberEngine example";
-  constexpr std::uint32_t seed32 = zisc::toHash32(seed_key);
-  constexpr std::uint64_t seed64 = zisc::toHash64(seed_key);
-  std::cout << "Seed32: " << seed32 << std::endl;
-  std::cout << "Seed64: " << seed64 << std::endl;
-  // Xorshift32 engine
-  zisc::Xorshift32 xorshift_engine{seed32};
-  tryPrneExample(xorshift_engine, "Xorshift32");
-  // XSadd engine
-  zisc::XsaddEngine xsadd_engine{seed32};
-  tryPrneExample(xsadd_engine, "XSadd");
-  // Xorshift128 engine
-  zisc::Xorshift128Plus xorshift128_engine{seed64};
-  tryPrneExample(xorshift128_engine, "Xorshift128");
-  // PCG engine
-  zisc::PcgMcgXshRr pcg_engine{seed64};
-  tryPrneExample(pcg_engine, "PCG");
+  constexpr std::uint64_t seed64 = zisc::SipHash64::hash(seed_key);
+
+  PrnEngine engine{seed64};
+  for (std::uint32_t sample = 0; sample < 1024; ++sample) {
+    const double x = engine.generate01();
+    const double y = engine.generate01();
+    [[maybe_unused]] const double z = engine.generate01();
+    [[maybe_unused]] const double w = engine.generate01();
+    std::cout << std::fixed
+              << std::setprecision(std::numeric_limits<double>::max_digits10)
+              << sample << ", " << x << ", " << y << std::endl;
+  }
 
   return 0;
 }

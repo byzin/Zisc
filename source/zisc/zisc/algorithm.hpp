@@ -41,12 +41,6 @@ void toBinaryTree(
     RandomAccessIterator end,
     EnableIfRandomAccessIterator<RandomAccessIterator> = kEnabler) noexcept;
 
-//! Calculate the 32bit hash of string using FNV-1a
-constexpr uint32 toHash32(const char* string) noexcept;
-
-//! Calculate the 64bit hash of string using FNV-1a
-constexpr uint64 toHash64(const char* string) noexcept;
-
 } // namespace zisc
 
 #include "algorithm-inl.hpp"

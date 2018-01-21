@@ -14,69 +14,30 @@
 // Standard C++ library
 #include <cstdlib>
 #include <iostream>
+#include <ostream>
+#include <utility>
 
 namespace zisc {
-
-namespace inner {
-
-/*!
-  */
-template <typename Type> inline
-void outputMessage(const Type& message) noexcept
-{
-  std::cout << message;
-}
-
-/*!
-  */
-template <typename Type, typename ...Types> inline
-void outputMessage(const Type& message, const Types&... messages) noexcept
-{
-  outputMessage(message);
-  outputMessage(messages...);
-}
-
-/*!
-  \details
-  No detailed.
-  */
-template <typename Type> inline
-void outputErrorMessage(const Type& message) noexcept
-{
-  std::cerr << message;
-}
-
-/*!
-  \details
-  No detailed.
-  */
-template <typename Type, typename ...Types> inline
-void outputErrorMessage(const Type& message, const Types&... messages) noexcept
-{
-  outputErrorMessage(message);
-  outputErrorMessage(messages...);
-}
-
-} // namespace inner
 
 /*!
   \details
   No detailed.
   */
 template <typename ...Types> inline
-void assertError(const bool condition, const Types& ...messages) noexcept
+void assertIfFalse(const bool condition, Types&&... messages) noexcept
 {
   if (!condition) {
-    raiseError(messages...);
+    raiseError(std::forward<Types>(messages)...);
   }
 }
 
 /*!
   */
 template <typename ...Types> inline
-void logMessage(const Types&... messages) noexcept
+std::ostream& outputMessage(std::ostream& output_stream,
+                            Types&&... messages) noexcept
 {
-  inner::outputMessage(messages..., "\n");
+  return (output_stream << ... << messages) << std::endl;
 }
 
 /*!
@@ -84,9 +45,9 @@ void logMessage(const Types&... messages) noexcept
   No detailed.
   */
 template <typename ...Types> inline
-void raiseError(const Types&... messages) noexcept
+void raiseError(Types&&... messages) noexcept
 {
-  inner::outputErrorMessage(messages..., "\n");
+  outputMessage(std::cerr, std::forward<Types>(messages)...);
   std::exit(EXIT_FAILURE);
 }
 

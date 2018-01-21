@@ -172,93 +172,54 @@ namespace inner {
 
 //! Process a task
 template <typename ReturnType, typename Task> inline
-ReturnType processTask(
-    Task& task,
-    const int /* thread_id */,
-    EnableIfConstructible<std::function<ReturnType ()>, Task> = kEnabler)
-        noexcept
+ReturnType processTask(Task& task, const int thread_id) noexcept
 {
-  return task();
-}
-
-//! Process a task
-template <typename ReturnType, typename Task> inline
-ReturnType processTask(
-    Task& task,
-    const int thread_id,
-    EnableIfConstructible<std::function<ReturnType (int)>, Task> = kEnabler)
-        noexcept
-{
-  return task(thread_id);
+  using FuncI = std::function<ReturnType (int)>;
+  if constexpr (std::is_constructible_v<FuncI, Task>)
+    return task(thread_id);
+  else
+    return task();
 }
 
 //! Process a worker task
 template <typename ReturnType, typename Task> inline
-void processWorkerTask(
-    Task& task,
-    std::promise<ReturnType>& task_promise,
-    const int thread_id,
-    EnableIf<std::is_void<ReturnType>::value> = kEnabler)
-        noexcept
+void processWorkerTask(Task& task,
+                       std::promise<ReturnType>& task_promise,
+                       const int thread_id) noexcept
 {
-  processTask<ReturnType>(task, thread_id);
-  task_promise.set_value();
-}
- 
-//! Process a worker task
-template <typename ReturnType, typename Task> inline
-void processWorkerTask(
-    Task& task,
-    std::promise<ReturnType>& task_promise,
-    const int thread_id,
-    EnableIf<!std::is_void<ReturnType>::value> = kEnabler)
-        noexcept
-{
-  task_promise.set_value(processTask<ReturnType>(task, thread_id));
+  if constexpr (!std::is_void_v<ReturnType>) {
+    auto result = processTask<ReturnType>(task, thread_id);
+    task_promise.set_value(std::move(result));
+  }
+  else {
+    processTask<ReturnType>(task, thread_id);
+    task_promise.set_value();
+  }
 }
 
 //! Process a loop task
 template <typename Task, typename Iterator> inline
-void processLoopTask(
-    Task& task,
-    const int /* thread_id */,
-    Iterator iterator,
-    EnableIfConstructible<std::function<void (Iterator)>, Task> = kEnabler)
-        noexcept
+void processLoopTask(Task& task, const int thread_id, Iterator iterator) noexcept
 {
-  task(iterator);
-}
-
-//! Process a loop task
-template <typename Task, typename Iterator> inline
-void processLoopTask(
-    Task& task,
-    const int thread_id,
-    Iterator iterator,
-    EnableIfConstructible<std::function<void (int, Iterator)>, Task> = kEnabler)
-        noexcept
-{
-  task(thread_id, iterator);
+  using TaskII = std::function<void (int, Iterator)>;
+  if constexpr (std::is_constructible_v<TaskII, Task>)
+    task(thread_id, iterator);
+  else
+    task(iterator);
 }
 
 //! Return the distance of two iterators
 template <typename Iterator> inline
-uint distance(Iterator begin,
-              Iterator end,
-              EnableIfIterator<Iterator> = kEnabler) noexcept
+uint distance(Iterator begin, Iterator end) noexcept
 {
-  ZISC_ASSERT(begin != end, "The end is same as the begin.");
-  return cast<uint>(std::distance(begin, end));
-}
-
-//! Return the distance of two iterators
-template <typename Iterator> inline
-uint distance(Iterator begin,
-              Iterator end,
-              EnableIfInteger<Iterator> = kEnabler) noexcept
-{
-  ZISC_ASSERT(begin < end, "The end is ahead of the begin.");
-  return cast<uint>(end - begin);
+  if constexpr (kIsIterator<Iterator>) {
+    ZISC_ASSERT(begin != end, "The end is same as the begin.");
+    return cast<uint>(std::distance(begin, end));
+  }
+  else {
+    ZISC_ASSERT(begin < end, "The end is ahead of the begin.");
+    return cast<uint>(end - begin);
+  }
 }
 
 } // namespace inner
@@ -311,8 +272,9 @@ std::future<void> ThreadPool::enqueueLoopTask(Task& task,
     std::promise<void> task_promise_; //!< Invoked when all tasks are finished
     std::atomic<uint> counter_; //!< Counts uncompleted tasks
     Task shared_task_; //!< Invoked with each iterators
-    static_assert(alignof(std::atomic<uint>) <= alignof(std::promise<void>), "");
+    static_assert(alignof(std::atomic<uint>) <= alignof(std::promise<void>));
   };
+
   // Make a shared resource
   const uint distance = inner::distance(begin, end);
   auto shared_resource = new SharedResource{task, distance};
@@ -380,13 +342,13 @@ void ThreadPool::initialize(const uint num_of_threads) noexcept
 
   // Check the alignment of member variables
   static_assert(alignof(std::condition_variable) <=
-                alignof(std::mutex), "");
+                alignof(std::mutex));
   static_assert(alignof(std::queue<WorkerTask>) <=
-                alignof(std::condition_variable), "");
+                alignof(std::condition_variable));
   static_assert(alignof(std::vector<std::thread>) <=
-                alignof(std::queue<WorkerTask>), "");
+                alignof(std::queue<WorkerTask>));
   static_assert(alignof(uint8) <=
-                alignof(std::vector<std::thread>), "");
+                alignof(std::vector<std::thread>));
 }
 
 /*!

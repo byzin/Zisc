@@ -14,11 +14,11 @@
 // GoogleTest
 #include "gtest/gtest.h"
 // Zisc
-#include "zisc/floating_point.hpp"
+#include "zisc/floating_point_bit.hpp"
 #include "zisc/utility.hpp"
 #include "zisc/zisc_config.hpp"
 
-void printFloatBit(const double value);
+namespace {
 
 void printFloatBit(const double value)
 {
@@ -28,23 +28,25 @@ void printFloatBit(const double value)
   std::cout << float_bit << std::endl;
 }
 
-TEST(FloatingPointTest, getFloatMantissaBitTest)
+} // namespace 
+
+TEST(FloatingPointBitTest, getFloatMantissaBitTest)
 {
   constexpr float value = 1.2345f;
   /* const auto v = */ zisc::FloatBit::getMantissaBits(value);
-//  printFloatBit(value);
-//  printFloatBit(*zisc::treatAs<const float*>(&v));
+//  ::printFloatBit(value);
+//  ::printFloatBit(*zisc::treatAs<const float*>(&v));
 }
 
-TEST(FloatingPointTest, getDoubleMantissaBitTest)
+TEST(FloatingPointBitTest, getDoubleMantissaBitTest)
 {
   constexpr double value = 1.2345;
   /* const auto v = */ zisc::DoubleBit::getMantissaBits(value);
-//  printFloatBit(value);
-//  printFloatBit(*zisc::treatAs<const double*>(&v));
+//  ::printFloatBit(value);
+//  ::printFloatBit(*zisc::treatAs<const double*>(&v));
 }
 
-TEST(FloatingPointTest, getFloatExponentBitTest)
+TEST(FloatingPointBitTest, getFloatExponentBitTest)
 {
   using zisc::cast;
   using zisc::FloatBit;
@@ -55,7 +57,7 @@ TEST(FloatingPointTest, getFloatExponentBitTest)
   }
 }
 
-TEST(FloatingPointTest, getDoubleExponentBitTest)
+TEST(FloatingPointBitTest, getDoubleExponentBitTest)
 {
   using zisc::cast;
   using zisc::DoubleBit;
@@ -66,7 +68,7 @@ TEST(FloatingPointTest, getDoubleExponentBitTest)
   }
 }
 
-TEST(FloatingPointTest, getFloatSignBitTest)
+TEST(FloatingPointBitTest, getFloatSignBitTest)
 {
   using zisc::FloatBit;
   constexpr float value1 = 1.0f;
@@ -75,7 +77,7 @@ TEST(FloatingPointTest, getFloatSignBitTest)
   ASSERT_NE(0, FloatBit::getSignBit(value2));
 }
 
-TEST(FloatingPointTest, getDoubleSignBitTest)
+TEST(FloatingPointBitTest, getDoubleSignBitTest)
 {
   using zisc::DoubleBit;
   constexpr double value1 = 1.0;
@@ -84,7 +86,7 @@ TEST(FloatingPointTest, getDoubleSignBitTest)
   ASSERT_NE(0, DoubleBit::getSignBit(value2));
 }
 
-TEST(FloatingPointTest, getHalfFloatExponentBitTest)
+TEST(FloatingPointBitTest, getHalfFloatExponentBitTest)
 {
   auto half_float_exponent = [](const double value, const zisc::int64 expected)
   {
@@ -108,7 +110,7 @@ TEST(FloatingPointTest, getHalfFloatExponentBitTest)
 //  half_float_exponent(0.0, 0);
 }
 
-TEST(FloatingPointTest, isPositiveExponentFloatTest)
+TEST(FloatingPointBitTest, isPositiveExponentFloatTest)
 {
   using zisc::FloatBit;
   ASSERT_FALSE(FloatBit::isPositiveExponent(0.0625f));
@@ -124,7 +126,7 @@ TEST(FloatingPointTest, isPositiveExponentFloatTest)
   ASSERT_TRUE(FloatBit::isPositiveExponent(64.0f));
 }
 
-TEST(FloatingPointTest, isPositiveExponentDoubleTest)
+TEST(FloatingPointBitTest, isPositiveExponentDoubleTest)
 {
   using zisc::DoubleBit;
   ASSERT_FALSE(DoubleBit::isPositiveExponent(0.0625));
@@ -140,7 +142,7 @@ TEST(FloatingPointTest, isPositiveExponentDoubleTest)
   ASSERT_TRUE(DoubleBit::isPositiveExponent(64.0));
 }
 
-TEST(FloatingPointTest, isOddExponentFloatTest)
+TEST(FloatingPointBitTest, isOddExponentFloatTest)
 {
   using zisc::FloatBit;
   ASSERT_FALSE(FloatBit::isOddExponent(0.0625f));
@@ -156,7 +158,7 @@ TEST(FloatingPointTest, isOddExponentFloatTest)
   ASSERT_FALSE(FloatBit::isOddExponent(64.0f));
 }
 
-TEST(FloatingPointTest, isOddExponentDoubleTest)
+TEST(FloatingPointBitTest, isOddExponentDoubleTest)
 {
   using zisc::DoubleBit;
   ASSERT_FALSE(DoubleBit::isOddExponent(0.0625));
@@ -172,7 +174,7 @@ TEST(FloatingPointTest, isOddExponentDoubleTest)
   ASSERT_FALSE(DoubleBit::isOddExponent(64.0));
 }
 
-TEST(FloatingPointTest, makeFloatTest)
+TEST(FloatingPointBitTest, makeFloatTest)
 {
   using zisc::FloatBit;
   {
@@ -184,7 +186,7 @@ TEST(FloatingPointTest, makeFloatTest)
   }
 }
 
-TEST(FloatingPointTest, makeDoubleTest)
+TEST(FloatingPointBitTest, makeDoubleTest)
 {
   using zisc::DoubleBit;
   {

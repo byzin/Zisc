@@ -1,5 +1,5 @@
 /*!
-  \file floating_point-inl.hpp
+  \file floating_point_bit-inl.hpp
   \author Sho Ikeda
 
   Copyright (c) 2015-2017 Sho Ikeda
@@ -7,10 +7,10 @@
   http://opensource.org/licenses/mit-license.php
   */
 
-#ifndef ZISC_FLOATING_POINT_INL_HPP
-#define ZISC_FLOATING_POINT_INL_HPP
+#ifndef ZISC_FLOATING_POINT_BIT_INL_HPP
+#define ZISC_FLOATING_POINT_BIT_INL_HPP
 
-#include "floating_point.hpp"
+#include "floating_point_bit.hpp"
 // Zisc
 #include "utility.hpp"
 #include "zisc/zisc_config.hpp"
@@ -260,4 +260,4 @@ constexpr auto FloatingPointBit<Float>::signBitSize() noexcept -> BitType
 
 } // namespace zisc
 
-#endif // ZISC_FLOATING_POINT_INL_HPP
+#endif // ZISC_FLOATING_POINT_BIT_INL_HPP

@@ -172,10 +172,13 @@ template <typename ReturnType, typename Task> inline
 ReturnType processTask(Task& task, const uint thread_id) noexcept
 {
   using TaskI = std::function<ReturnType (uint)>;
-  if constexpr (std::is_constructible_v<TaskI, Task>)
+  if constexpr (std::is_constructible_v<TaskI, Task>) {
     return task(thread_id);
-  else
+  }
+  else {
+    static_cast<void>(thread_id);
     return task();
+  }
 }
 
 //! Process a worker task
@@ -201,10 +204,13 @@ void processLoopTask(Task& worker_task,
                      Iterator iterator) noexcept
 {
   using TaskII = std::function<void (uint, Iterator)>;
-  if constexpr (std::is_constructible_v<TaskII, Task>)
+  if constexpr (std::is_constructible_v<TaskII, Task>) {
     worker_task(thread_id, iterator);
-  else
+  }
+  else {
+    static_cast<void>(thread_id);
     worker_task(iterator);
+  }
 }
 
 //! Return the distance of two iterators
@@ -232,8 +238,10 @@ std::future<ReturnType> ThreadPool::enqueueTask(Task&& task) noexcept
 {
   using T = std::remove_reference_t<Task>;
 
+#ifdef Z_CLANG
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wpadded"
+#endif // Z_CLANG
 
   //! Resource for task
   struct TaskResource : public NonCopyable<TaskResource>
@@ -245,7 +253,9 @@ std::future<ReturnType> ThreadPool::enqueueTask(Task&& task) noexcept
     std::promise<ReturnType> worker_promise_;
   };
 
+#ifdef Z_CLANG
 #pragma clang diagnostic pop
+#endif // Z_CLANG
 
   // Make a task resource
   auto task_resource = std::make_unique<TaskResource>(task).release();
@@ -281,8 +291,10 @@ std::future<void> ThreadPool::enqueueLoopTask(Task&& task,
 {
   using T = std::remove_reference_t<Task>;
 
+#ifdef Z_CLANG
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wpadded"
+#endif // Z_CLANG
 
   //! Resource for task
   struct SharedResource : public NonCopyable<SharedResource>
@@ -298,8 +310,6 @@ std::future<void> ThreadPool::enqueueLoopTask(Task&& task,
     static_assert(alignof(std::atomic<uint>) <= alignof(std::promise<void>));
   };
 
-#pragma clang diagnostic pop
-
   // Make a shared resource
   const uint distance = inner::distance(begin, end);
   auto shared_resource = std::make_unique<SharedResource>(task, distance).release();
@@ -308,9 +318,6 @@ std::future<void> ThreadPool::enqueueLoopTask(Task&& task,
   auto result = shared_resource->worker_promise_.get_future();
   // Make worker tasks
   {
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wpadded"
 
     std::unique_lock<std::mutex> locker{lock_};
     for (auto iterator = begin; iterator != end; ++iterator) {
@@ -328,7 +335,9 @@ std::future<void> ThreadPool::enqueueLoopTask(Task&& task,
       task_queue_.emplace(std::move(wrapped_task));
     }
 
+#ifdef Z_CLANG
 #pragma clang diagnostic pop
+#endif // Z_CLANG
 
   }
   condition_.notify_all();

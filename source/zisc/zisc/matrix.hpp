@@ -12,6 +12,7 @@
 
 // Standard C++ library
 #include <initializer_list>
+#include <tuple>
 // Zisc
 #include "arith_array.hpp"
 #include "dimension.hpp"
@@ -86,10 +87,6 @@ class Matrix
   //! Check if the matrix is square matrix
   static constexpr bool isSquareMatrix() noexcept;
 
-  //! Calculate the minor determinant
-  constexpr Arith minorDeterminant(const uint row,
-                                   const uint column) const noexcept;
-
   //! Return row size
   static constexpr uint rowSize() noexcept;
 
@@ -103,6 +100,14 @@ class Matrix
   constexpr Matrix<Arith, kColumn, kRow> transposedMatrix() const noexcept;
 
  private:
+  //! Perform LU decomposition
+  constexpr std::tuple<Matrix, ArithArray<uint, kRow+1>> decomposeLu() const noexcept;
+
+  //! Calculate the minor determinant
+  constexpr Arith minorDeterminant(const uint row,
+                                   const uint column) const noexcept;
+
+
   ArrayType data_;
 };
 

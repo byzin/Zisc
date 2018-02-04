@@ -254,7 +254,7 @@ TEST(MatrixTest, FunctionTest)
     constexpr auto result = matrix.cofactorMatrix();
     for (zisc::uint row = 0; row < 3; ++row) {
       for (zisc::uint column = 0; column < 3; ++column) {
-        ASSERT_DOUBLE_EQ(expected(row, column), result(row, column));
+        EXPECT_DOUBLE_EQ(expected(row, column), result(row, column));
       }
     }
   }
@@ -281,23 +281,23 @@ TEST(MatrixTest, FunctionTest)
     constexpr auto result = matrix.transposedMatrix();
     for (zisc::uint row = 0; row < 4; ++row) {
       for (zisc::uint column = 0; column < 4; ++column) {
-        ASSERT_DOUBLE_EQ(expected(row, column), result(row, column));
+        EXPECT_DOUBLE_EQ(expected(row, column), result(row, column));
       }
     }
   }
   // Inverse matrix test
   {
-    constexpr zisc::Matrix<double, 3, 3> matrix{{1.0, 2.0, 3.0,
-                                                 0.0, 4.0, 5.0,
-                                                 1.0, 0.0, 6.0}};
-    constexpr auto expected = (1.0 / 22.0) * 
-                               zisc::Matrix<double, 3, 3>{{24.0, -12.0, -2.0,
-                                                           5.0, 3.0, -5.0,
-                                                           -4.0, 2.0, 4.0}};
+    constexpr zisc::Matrix<float, 3, 3> matrix{{1.0f, 2.0f, 3.0f,
+                                                0.0f, 4.0f, 5.0f,
+                                                1.0f, 0.0f, 6.0f}};
+    constexpr auto expected = (1.0f / 22.0f) * 
+                               zisc::Matrix<float, 3, 3>{{24.0f, -12.0f, -2.0f,
+                                                           5.0f, 3.0f, -5.0f,
+                                                          -4.0f, 2.0f, 4.0f}};
     constexpr auto result = matrix.inverseMatrix();
     for (int row = 0; row < 3; ++row) {
       for (int column = 0; column < 3; ++column) {
-        ASSERT_DOUBLE_EQ(expected(row, column), result(row, column));
+        EXPECT_FLOAT_EQ(expected(row, column), result(row, column));
       }
     }
   }
@@ -312,7 +312,7 @@ TEST(MatrixTest, FunctionTest)
     constexpr auto result = matrix.inverseMatrix();
     for (zisc::uint row = 0; row < 3; ++row) {
       for (zisc::uint column = 0; column < 3; ++column) {
-        ASSERT_DOUBLE_EQ(expected(row, column), result(row, column));
+        EXPECT_DOUBLE_EQ(expected(row, column), result(row, column));
       }
     }
   }
@@ -325,7 +325,7 @@ TEST(MatrixTest, FunctionTest)
     constexpr auto result = matrix.inverseMatrix();
     for (zisc::uint row = 0; row < 2; ++row) {
       for (zisc::uint column = 0; column < 2; ++column) {
-        ASSERT_DOUBLE_EQ(expected(row, column), result(row, column));
+        EXPECT_DOUBLE_EQ(expected(row, column), result(row, column));
       }
     }
   }

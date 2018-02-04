@@ -270,15 +270,12 @@ constexpr auto ArithArray<Arith, kN>::get(const uint index) const noexcept
 template <typename Arith, uint kN> inline
 bool ArithArray<Arith, kN>::hasInf() const noexcept
 {
+  bool result = false;
   if constexpr (kIsFloat<Arith>) {
-    bool result = false;
     for (uint index = 0; !result && (index < size()); ++index)
       result = std::isinf(get(index));
-    return result;
   }
-  else {
-    return false;
-  }
+  return result;
 }
 
 /*!
@@ -286,15 +283,12 @@ bool ArithArray<Arith, kN>::hasInf() const noexcept
 template <typename Arith, uint kN> inline
 bool ArithArray<Arith, kN>::hasNan() const noexcept
 {
+  bool result = false;
   if constexpr (kIsFloat<Arith>) {
-    bool result = false;
     for (uint index = 0; !result && (index < size()); ++index)
       result = std::isnan(get(index));
-    return result;
   }
-  else {
-    return false;
-  }
+  return result;
 }
 
 /*!

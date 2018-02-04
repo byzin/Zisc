@@ -104,13 +104,12 @@ constexpr bool isNegative(const Arithmetic n) noexcept
 {
   static_assert(std::is_arithmetic_v<Arithmetic>,
                 "Arithmetic isn't arithmetic type.");
+  bool result = false;
   if constexpr (std::is_signed_v<Arithmetic>) {
     constexpr auto zero = cast<Arithmetic>(0);
-    return n < zero;
+    result = n < zero;
   }
-  else {
-    return false;
-  }
+  return result;
 }
 
 /*!

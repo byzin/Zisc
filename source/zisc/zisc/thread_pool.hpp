@@ -12,13 +12,11 @@
 
 // Standard C++ library
 #include <array>
-#include <cstddef>
 #include <functional>
 #include <future>
 #include <mutex>
 #include <queue>
 #include <thread>
-#include <tuple>
 #include <utility>
 #include <vector>
 // Zisc
@@ -44,13 +42,13 @@ class ThreadPool : public NonCopyable<ThreadPool>
 
 
   //! Calculate a range of a thread
-  static std::tuple<uint, uint> calcThreadRange(const uint range,
-                                                const uint num_of_threads,
-                                                const uint thread_id) noexcept;
+  static std::array<uint, 2> calcThreadRange(const uint range,
+                                             const uint num_of_threads,
+                                             const uint thread_id) noexcept;
 
   //! Calculate a range of a thread
-  std::tuple<uint, uint> calcThreadRange(const uint range, 
-                                         const uint thread_id) const noexcept;
+  std::array<uint, 2> calcThreadRange(const uint range, 
+                                      const uint thread_id) const noexcept;
 
   //! A worker thread run a task
   template <typename ReturnType, typename Task>
@@ -69,7 +67,7 @@ class ThreadPool : public NonCopyable<ThreadPool>
   uint numOfThreads() const noexcept;
 
  private:
-  using WorkerTask = std::function<void (int)>;
+  using WorkerTask = std::function<void (uint)>;
 
 
   //! Create worker threads
@@ -77,11 +75,11 @@ class ThreadPool : public NonCopyable<ThreadPool>
 
   //! Append a task to the task queue
   template <typename ReturnType, typename Task>
-  std::future<ReturnType> enqueueTask(Task& task) noexcept;
+  std::future<ReturnType> enqueueTask(Task&& task) noexcept;
 
   //! Execute loop task in parallel
   template <typename Task, typename Iterator>
-  std::future<void> enqueueLoopTask(Task& task,
+  std::future<void> enqueueLoopTask(Task&& task,
                                     Iterator begin,
                                     Iterator end) noexcept;
 

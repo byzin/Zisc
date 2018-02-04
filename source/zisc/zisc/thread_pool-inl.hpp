@@ -14,12 +14,12 @@
 // Standard C++ library
 #include <array>
 #include <atomic>
+#include <cstddef>
 #include <functional>
 #include <future>
 #include <iterator>
 #include <memory>
 #include <thread>
-#include <tuple>
 #include <type_traits>
 #include <queue>
 #include <utility>
@@ -67,26 +67,23 @@ ThreadPool::~ThreadPool()
 /*!
   */
 inline
-std::tuple<uint, uint> ThreadPool::calcThreadRange(
-    const uint range,
-    const uint num_of_threads,
-    const uint thread_id) noexcept
+std::array<uint, 2> ThreadPool::calcThreadRange(const uint range,
+                                                const uint num_of_threads,
+                                                const uint thread_id) noexcept
 {
   const uint n = range / num_of_threads;
   const uint begin = n * thread_id;
-  const uint end = n * (thread_id + 1) +
-      ((cast<uint>(thread_id + 1) == num_of_threads)
-          ? (range % num_of_threads)
-          : 0);
-  return std::make_tuple(begin, end);
+  const uint end = begin + ((thread_id + 1 == num_of_threads)
+      ? n + (range - n * num_of_threads)
+      : n);
+  return std::array<uint, 2>{{begin, end}};
 }
 
 /*!
   */
 inline
-std::tuple<uint, uint> ThreadPool::calcThreadRange(
-    const uint range,
-    const uint thread_id) const noexcept
+std::array<uint, 2> ThreadPool::calcThreadRange(const uint range,
+                                                const uint thread_id) const noexcept
 {
   return calcThreadRange(range, numOfThreads(), thread_id);
 }
@@ -145,11 +142,11 @@ uint ThreadPool::numOfThreads() const noexcept
 inline
 void ThreadPool::createWorkers(const uint num_of_threads) noexcept
 {
-  const uint threads = (num_of_threads == 0)
-      ? std::thread::hardware_concurrency()
-      : num_of_threads;
-  workers_.reserve(threads);
-  for (int thread_id = 0; thread_id < cast<int>(threads); ++thread_id) {
+  const std::size_t id_max = (num_of_threads == 0)
+      ? cast<std::size_t>(std::thread::hardware_concurrency())
+      : cast<std::size_t>(num_of_threads);
+  workers_.reserve(id_max);
+  for (std::size_t thread_id = 0; thread_id < id_max; ++thread_id) {
     auto work = [this, thread_id]() noexcept
     {
       WorkerTask task;
@@ -161,7 +158,7 @@ void ThreadPool::createWorkers(const uint num_of_threads) noexcept
             condition_.wait(locker);
         }
         if (task)
-          task(thread_id);
+          task(cast<uint>(thread_id));
       }
     };
     workers_.emplace_back(work);
@@ -172,10 +169,10 @@ namespace inner {
 
 //! Process a task
 template <typename ReturnType, typename Task> inline
-ReturnType processTask(Task& task, const int thread_id) noexcept
+ReturnType processTask(Task& task, const uint thread_id) noexcept
 {
-  using FuncI = std::function<ReturnType (int)>;
-  if constexpr (std::is_constructible_v<FuncI, Task>)
+  using TaskI = std::function<ReturnType (uint)>;
+  if constexpr (std::is_constructible_v<TaskI, Task>)
     return task(thread_id);
   else
     return task();
@@ -183,29 +180,31 @@ ReturnType processTask(Task& task, const int thread_id) noexcept
 
 //! Process a worker task
 template <typename ReturnType, typename Task> inline
-void processWorkerTask(Task& task,
-                       std::promise<ReturnType>& task_promise,
-                       const int thread_id) noexcept
+void processWorkerTask(Task& worker_task,
+                       std::promise<ReturnType>& worker_promise,
+                       const uint thread_id) noexcept
 {
   if constexpr (!std::is_void_v<ReturnType>) {
-    auto result = processTask<ReturnType>(task, thread_id);
-    task_promise.set_value(std::move(result));
+    auto result = processTask<ReturnType>(worker_task, thread_id);
+    worker_promise.set_value(std::move(result));
   }
   else {
-    processTask<ReturnType>(task, thread_id);
-    task_promise.set_value();
+    processTask<ReturnType>(worker_task, thread_id);
+    worker_promise.set_value();
   }
 }
 
 //! Process a loop task
 template <typename Task, typename Iterator> inline
-void processLoopTask(Task& task, const int thread_id, Iterator iterator) noexcept
+void processLoopTask(Task& worker_task,
+                     const uint thread_id,
+                     Iterator iterator) noexcept
 {
-  using TaskII = std::function<void (int, Iterator)>;
+  using TaskII = std::function<void (uint, Iterator)>;
   if constexpr (std::is_constructible_v<TaskII, Task>)
-    task(thread_id, iterator);
+    worker_task(thread_id, iterator);
   else
-    task(iterator);
+    worker_task(iterator);
 }
 
 //! Return the distance of two iterators
@@ -229,21 +228,39 @@ uint distance(Iterator begin, Iterator end) noexcept
   No detailed.
   */
 template <typename ReturnType, typename Task> inline
-std::future<ReturnType> ThreadPool::enqueueTask(Task& task) noexcept
+std::future<ReturnType> ThreadPool::enqueueTask(Task&& task) noexcept
 {
-  // Make promise-future
-  auto task_promise = new std::promise<ReturnType>{};
-  auto result = task_promise->get_future();
+  using T = std::remove_reference_t<Task>;
 
-  WorkerTask wrapped_task{
-  [worker_task = std::move(task), task_promise](const int thread_id) noexcept
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wpadded"
+
+  //! Resource for task
+  struct TaskResource : public NonCopyable<TaskResource>
   {
-    inner::processWorkerTask<ReturnType>(worker_task, *task_promise, thread_id);
-    {
-      delete task_promise;
-    }
+    TaskResource(T& worker_task) noexcept :
+        worker_task_{std::forward<Task>(worker_task)},
+        worker_promise_{} {}
+    T worker_task_;
+    std::promise<ReturnType> worker_promise_;
+  };
+
+#pragma clang diagnostic pop
+
+  // Make a task resource
+  auto task_resource = std::make_unique<TaskResource>(task).release();
+  auto result = task_resource->worker_promise_.get_future();
+
+  // Make a worker task
+  WorkerTask wrapped_task{[task_resource](const uint thread_id) noexcept
+  {
+    inner::processWorkerTask<ReturnType>(task_resource->worker_task_,
+                                         task_resource->worker_promise_,
+                                         thread_id);
+    std::unique_ptr<TaskResource>{task_resource};
   }};
 
+  // Enqueue the task
   {
     std::unique_lock<std::mutex> lock{lock_};
     task_queue_.emplace(std::move(wrapped_task));
@@ -258,45 +275,61 @@ std::future<ReturnType> ThreadPool::enqueueTask(Task& task) noexcept
   No detailed.
   */
 template <typename Task, typename Iterator> inline
-std::future<void> ThreadPool::enqueueLoopTask(Task& task,
+std::future<void> ThreadPool::enqueueLoopTask(Task&& task,
                                               Iterator begin,
                                               Iterator end) noexcept
 {
-  // Define the shared resource
+  using T = std::remove_reference_t<Task>;
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wpadded"
+
+  //! Resource for task
   struct SharedResource : public NonCopyable<SharedResource>
   {
-    SharedResource(Task& shared_task, const uint initial_count) noexcept :
-        task_promise_{},
-        counter_{initial_count},
-        shared_task_{std::move(shared_task)} {}
-    std::promise<void> task_promise_; //!< Invoked when all tasks are finished
+    SharedResource(T& worker_task, const uint initial_count) noexcept :
+        worker_task_{std::forward<Task>(worker_task)},
+        worker_promise_{},
+        counter_{initial_count} {}
+    T worker_task_; //!< Invoked with each iterators
+    std::promise<void> worker_promise_; //!< Invoked when all tasks are finished
     std::atomic<uint> counter_; //!< Counts uncompleted tasks
-    Task shared_task_; //!< Invoked with each iterators
+    static_assert(sizeof(std::atomic<uint>) <= sizeof(std::promise<void>));
     static_assert(alignof(std::atomic<uint>) <= alignof(std::promise<void>));
   };
 
+#pragma clang diagnostic pop
+
   // Make a shared resource
   const uint distance = inner::distance(begin, end);
-  auto shared_resource = new SharedResource{task, distance};
+  auto shared_resource = std::make_unique<SharedResource>(task, distance).release();
+
   // Make a result
-  auto result = shared_resource->task_promise_.get_future();
-  // Make tasks
+  auto result = shared_resource->worker_promise_.get_future();
+  // Make worker tasks
   {
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wpadded"
+
     std::unique_lock<std::mutex> locker{lock_};
     for (auto iterator = begin; iterator != end; ++iterator) {
       WorkerTask wrapped_task{
-      [shared_resource, iterator](const int thread_id) noexcept
+      [shared_resource, iterator](const uint thread_id) noexcept
       {
-        auto& shared_task = shared_resource->shared_task_;
-        inner::processLoopTask(shared_task, thread_id, iterator);
+        auto& worker_task = shared_resource->worker_task_;
+        inner::processLoopTask(worker_task, thread_id, iterator);
         const uint count = --(shared_resource->counter_);
         if (count == 0) {
-          shared_resource->task_promise_.set_value();
-          delete shared_resource;
+          shared_resource->worker_promise_.set_value();
+          std::unique_ptr<SharedResource>{shared_resource};
         }
       }};
       task_queue_.emplace(std::move(wrapped_task));
     }
+
+#pragma clang diagnostic pop
+
   }
   condition_.notify_all();
 

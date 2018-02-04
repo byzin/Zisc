@@ -11,7 +11,11 @@
 #define ZISC_COMPENSATED_SUMMATION_INL_HPP
 
 #include "compensated_summation.hpp"
+// Standard C++ library
+#include <initializer_list>
 // Zisc
+#include "math.hpp"
+#include "type_traits.hpp"
 #include "utility.hpp"
 
 namespace zisc {
@@ -21,7 +25,7 @@ namespace zisc {
   No detailed.
   */
 template <typename Float> inline
-CompensatedSummation<Float>::CompensatedSummation() noexcept :
+constexpr CompensatedSummation<Float>::CompensatedSummation() noexcept :
     sum_{cast<Float>(0.0)},
     compensation_{cast<Float>(0.0)}
 {
@@ -32,9 +36,10 @@ CompensatedSummation<Float>::CompensatedSummation() noexcept :
   No detailed.
   */
 template <typename Float> inline
-CompensatedSummation<Float>::CompensatedSummation(const Float value) noexcept :
-    sum_{value},
-    compensation_{cast<Float>(0.0)}
+constexpr CompensatedSummation<Float>::CompensatedSummation(const Float value)
+    noexcept :
+        sum_{value},
+        compensation_{cast<Float>(0.0)}
 {
 }
 
@@ -43,9 +48,12 @@ CompensatedSummation<Float>::CompensatedSummation(const Float value) noexcept :
   No detailed.
   */
 template <typename Float> inline
-Float CompensatedSummation<Float>::get() const noexcept
+constexpr CompensatedSummation<Float>::CompensatedSummation(
+    std::initializer_list<Float> init_list) noexcept :
+        sum_{*std::begin(init_list)},
+        compensation_{cast<Float>(0.0)}
 {
-  return sum_;
+  add(init_list.begin() + 1, init_list.end());
 }
 
 /*!
@@ -53,7 +61,17 @@ Float CompensatedSummation<Float>::get() const noexcept
   No detailed.
   */
 template <typename Float> inline
-void CompensatedSummation<Float>::set(const Float value) noexcept
+constexpr Float CompensatedSummation<Float>::get() const noexcept
+{
+  return sum_ + compensation_;
+}
+
+/*!
+  \details
+  No detailed.
+  */
+template <typename Float> inline
+constexpr void CompensatedSummation<Float>::set(const Float value) noexcept
 {
   sum_ = value;
   compensation_ = cast<Float>(0.0);
@@ -64,27 +82,37 @@ void CompensatedSummation<Float>::set(const Float value) noexcept
   No detailed.
   */
 template <typename Float> inline
-void CompensatedSummation<Float>::add(const Float value) noexcept
+constexpr void CompensatedSummation<Float>::add(const Float value) noexcept
 {
-  {
-    const volatile Float c = compensation_;
-    const volatile Float tmp1 = value - c;
-    const volatile Float tmp2 = sum_ + tmp1;
-    compensation_ = (tmp2 - sum_) - tmp1;
-    sum_ = tmp2;
-  }
+  const Float t = sum_ + value;
+  compensation_ += (zisc::abs(value) < zisc::abs(sum_))
+      ? (sum_ - t) + value
+      : (value - t) + sum_;
+  sum_ = t;
 }
 
 /*!
   \details
   No detailed.
   */
-template <typename Float> template <typename ...Types> inline
-void CompensatedSummation<Float>::add(const Float value, 
-                                      const Types... values) noexcept
+template <typename Float> inline
+constexpr void CompensatedSummation<Float>::add(
+    std::initializer_list<Float> init_list) noexcept
 {
-  add(value);
-  add(values...);
+  add(init_list.begin(), init_list.end());
+}
+
+/*!
+  \details
+  No detailed.
+  */
+template <typename Float> inline
+constexpr void CompensatedSummation<Float>::add(
+    typename std::initializer_list<Float>::const_iterator begin,
+    typename std::initializer_list<Float>::const_iterator end) noexcept
+{
+  for (auto i = begin; i != end; ++i)
+    add(*i);
 }
 
 } // namespace zisc

@@ -10,8 +10,10 @@
 #ifndef ZISC_VECTOR_HPP
 #define ZISC_VECTOR_HPP
 
+// Standard C++ library
+#include <initializer_list>
 // Zisc
-#include "arithmetic_array.hpp"
+#include "arith_array.hpp"
 #include "dimension.hpp"
 #include "zisc/zisc_config.hpp"
 
@@ -22,90 +24,105 @@ namespace zisc {
   \details
   No detailed.
   */
-template <typename Arithmetic, uint kN>
-class Vector : public Dimension<Arithmetic, kN>
+template <typename Arith, uint kN>
+class Vector : public Dimension<Arith, kN>
 {
  public:
-  using ArrayType = ArithmeticArray<Arithmetic, kN>;
+  using ArrayType = typename Dimension<Arith, kN>::ArrayType;
 
 
-  //! Initialize with 0
-  Vector() noexcept;
+  //! Initialize elements with 0
+  constexpr Vector() noexcept;
 
-  //! Initialize with values
-  template <typename ...Types>
-  Vector(const Types ...values) noexcept;
+  //! Initialize elements with values
+  constexpr Vector(std::initializer_list<Arith> init_list) noexcept;
 
-  //! Initialize with array
-  Vector(const ArrayType& array) noexcept;
+  //! Initialize
+  constexpr Vector(const ArrayType& other) noexcept;
+
+  //! Initialize
+  constexpr Vector(ArrayType&& other) noexcept;
 
 
   //!
-  Vector& operator+=(const Vector& vector) noexcept;
+  constexpr Vector& operator+=(const Vector& other) noexcept;
 
   //!
-  Vector& operator-=(const Vector& vector) noexcept;
+  constexpr Vector& operator-=(const Vector& other) noexcept;
 
   //!
-  Vector& operator*=(const Arithmetic scalar) noexcept;
+  constexpr Vector& operator*=(const Arith scalar) noexcept;
+
+  //!
+  constexpr Vector& operator/=(const Arith scalar) noexcept;
 
 
   //! Return the inverse norm
-  Arithmetic inverseNorm() const noexcept;
+  Arith inverseNorm() const noexcept;
 
   //! Return the norm
-  Arithmetic norm() const noexcept;
+  Arith norm() const noexcept;
 
   //! Return a normalized vector
   Vector normalized() const noexcept;
 
   //! Return the square norm
-  Arithmetic squareNorm() const noexcept;
+  constexpr Arith squareNorm() const noexcept;
 };
 
-//! Get a vector which direction is reversed.
-template <typename Arithmetic, uint kN>
-Vector<Arithmetic, kN> operator-(const Vector<Arithmetic, kN>& vector) noexcept;
+//! Get a vector in the opposite direction
+template <typename Arith, uint kN>
+constexpr Vector<Arith, kN> operator-(const Vector<Arith, kN>& vector) noexcept;
 
-//! Add two vectors
-template <typename Arithmetic, uint kN>
-Vector<Arithmetic, kN> operator+(const Vector<Arithmetic, kN>& a,
-                                 const Vector<Arithmetic, kN>& b) noexcept;
+//! Perform addition operation on two vectors
+template <typename Arith, uint kN>
+constexpr Vector<Arith, kN> operator+(const Vector<Arith, kN>& lhs,
+                                      const Vector<Arith, kN>& rhs) noexcept;
 
-//! Subtract two vectors
-template <typename Arithmetic, uint kN>
-Vector<Arithmetic, kN> operator-(const Vector<Arithmetic, kN>& a,
-                                 const Vector<Arithmetic, kN>& b) noexcept;
+//! Perform subtraction operation on two vectors
+template <typename Arith, uint kN>
+constexpr Vector<Arith, kN> operator-(const Vector<Arith, kN>& lhs,
+                                      const Vector<Arith, kN>& rhs) noexcept;
 
-//! Multiply elements of vector by a scalar
-template <typename Arithmetic, uint kN>
-Vector<Arithmetic, kN> operator*(const Vector<Arithmetic, kN>& vector,
-                                 const Arithmetic scalar) noexcept;
+//! Perform multiplication operation on a scalar and a vector
+template <typename Arith, uint kN>
+constexpr Vector<Arith, kN> operator*(const Arith lhs,
+                                      const Vector<Arith, kN>& rhs) noexcept;
 
-//! Multiply elements of vector by a scalar
-template <typename Arithmetic, uint kN>
-Vector<Arithmetic, kN> operator*(const Arithmetic scalar,
-                                 const Vector<Arithmetic, kN>& vector) noexcept;
+//! Perform multiplication operation on a scalar and a vector
+template <typename Arith, uint kN>
+constexpr Vector<Arith, kN> operator*(const Vector<Arith, kN>& lhs,
+                                      const Arith rhs) noexcept;
 
-//! Compare two vectors for equality.
-template <typename Arithmetic, uint kN>
-bool operator==(const Vector<Arithmetic, kN>& a,
-                const Vector<Arithmetic, kN>& b) noexcept;
+//! Perform division operation on a scalar and a vector
+template <typename Arith, uint kN>
+constexpr Vector<Arith, kN> operator/(const Arith lhs,
+                                      const Vector<Arith, kN>& rhs) noexcept;
 
-//! Compare two vectors for not equality.
-template <typename Arithmetic, uint kN>
-bool operator!=(const Vector<Arithmetic, kN>& a, 
-                const Vector<Arithmetic, kN>& b) noexcept;
+//! Perform division operation on a scalar and a vector
+template <typename Arith, uint kN>
+constexpr Vector<Arith, kN> operator/(const Vector<Arith, kN>& lhs,
+                                      const Arith rhs) noexcept;
+
+//! Check if the two vectors are same
+template <typename Arith, uint kN>
+constexpr bool operator==(const Vector<Arith, kN>& lhs,
+                          const Vector<Arith, kN>& rhs) noexcept;
+
+//! Check if the two vectors are not same
+template <typename Arith, uint kN>
+constexpr bool operator!=(const Vector<Arith, kN>& lhs, 
+                          const Vector<Arith, kN>& rhs) noexcept;
 
 //! Calculate dot product
-template <typename Arithmetic, uint kN>
-Arithmetic dot(const Vector<Arithmetic, kN>& a, 
-               const Vector<Arithmetic, kN>& b) noexcept;
+template <typename Arith, uint kN>
+constexpr Arith dot(const Vector<Arith, kN>& lhs,
+                    const Vector<Arith, kN>& rhs) noexcept;
 
 //! Calculate cross product
-template <typename Arithmetic>
-Vector<Arithmetic, 3> cross(const Vector<Arithmetic, 3>& a,
-                            const Vector<Arithmetic, 3>& b) noexcept;
+template <typename Arith>
+constexpr Vector<Arith, 3> cross(const Vector<Arith, 3>& lhs,
+                                 const Vector<Arith, 3>& rhs) noexcept;
 
 } // namespace zisc
 

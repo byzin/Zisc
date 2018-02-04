@@ -11,8 +11,11 @@
 #define ZISC_POINT_INL_HPP
 
 #include "point.hpp"
+// Standard C++ library
+#include <initializer_list>
+#include <utility>
 // Zisc
-#include "arithmetic_array.hpp"
+#include "arith_array.hpp"
 #include "dimension.hpp"
 #include "vector.hpp"
 #include "zisc/zisc_config.hpp"
@@ -23,8 +26,8 @@ namespace zisc {
   \details
   No detailed.
   */
-template <typename Arithmetic, uint kN> inline
-Point<Arithmetic, kN>::Point() noexcept
+template <typename Arith, uint kN> inline
+constexpr Point<Arith, kN>::Point() noexcept
 {
 }
 
@@ -32,9 +35,9 @@ Point<Arithmetic, kN>::Point() noexcept
   \details
   No detailed.
   */
-template <typename Arithmetic, uint kN> template <typename ...Types> inline
-Point<Arithmetic, kN>::Point(const Types ...values) noexcept :
-    Dimension<Arithmetic, kN>(values...)
+template <typename Arith, uint kN> inline
+constexpr Point<Arith, kN>::Point(std::initializer_list<Arith> init_list) noexcept :
+    Dimension<Arith, kN>(init_list)
 {
 }
 
@@ -42,9 +45,9 @@ Point<Arithmetic, kN>::Point(const Types ...values) noexcept :
   \details
   No detailed.
   */
-template <typename Arithmetic, uint kN> inline
-Point<Arithmetic, kN>::Point(const ArrayType& array) noexcept :
-    Dimension<Arithmetic, kN>(array)
+template <typename Arith, uint kN> inline
+constexpr Point<Arith, kN>::Point(const ArrayType& other) noexcept :
+    Dimension<Arith, kN>(other)
 {
 }
 
@@ -52,44 +55,54 @@ Point<Arithmetic, kN>::Point(const ArrayType& array) noexcept :
   \details
   No detailed.
   */
-template <typename Arithmetic, uint kN> inline
-Vector<Arithmetic, kN> operator-(const Point<Arithmetic, kN>& a,
-                                 const Point<Arithmetic, kN>& b) noexcept
+template <typename Arith, uint kN> inline
+constexpr Point<Arith, kN>::Point(ArrayType&& other) noexcept :
+    Dimension<Arith, kN>(std::move(other))
 {
-  return Vector<Arithmetic, kN>{a.data() - b.data()};
 }
 
 /*!
   \details
   No detailed.
   */
-template <typename Arithmetic, uint kN> inline
-Point<Arithmetic, kN> operator+(const Point<Arithmetic, kN>& point,
-                                const Vector<Arithmetic, kN>& vector) noexcept
+template <typename Arith, uint kN> inline
+constexpr Vector<Arith, kN> operator-(const Point<Arith, kN>& lhs,
+                                      const Point<Arith, kN>& rhs) noexcept
 {
-  return Point<Arithmetic, kN>{point.data() + vector.data()};
+  return Vector<Arith, kN>{lhs.data() - rhs.data()};
 }
 
 /*!
   \details
   No detailed.
   */
-template <typename Arithmetic, uint kN> inline
-Point<Arithmetic, kN> operator+(const Vector<Arithmetic, kN>& vector,
-                                const Point<Arithmetic, kN>& point) noexcept
+template <typename Arith, uint kN> inline
+constexpr Point<Arith, kN> operator+(const Point<Arith, kN>& lhs,
+                                     const Vector<Arith, kN>& rhs) noexcept
 {
-  return point + vector;
+  return Point<Arith, kN>{lhs.data() + rhs.data()};
 }
 
 /*!
   \details
   No detailed.
   */
-template <typename Arithmetic, uint kN> inline
-Point<Arithmetic, kN> operator-(const Point<Arithmetic, kN>& point,
-                                const Vector<Arithmetic, kN>& vector) noexcept
+template <typename Arith, uint kN> inline
+constexpr Point<Arith, kN> operator+(const Vector<Arith, kN>& lhs,
+                                     const Point<Arith, kN>& rhs) noexcept
 {
-  return Point<Arithmetic, kN>{point.data() - vector.data()};
+  return rhs + lhs;
+}
+
+/*!
+  \details
+  No detailed.
+  */
+template <typename Arith, uint kN> inline
+constexpr Point<Arith, kN> operator-(const Point<Arith, kN>& lhs,
+                                     const Vector<Arith, kN>& rhs) noexcept
+{
+  return Point<Arith, kN>{lhs.data() - rhs.data()};
 }
 
 } // namespace zisc

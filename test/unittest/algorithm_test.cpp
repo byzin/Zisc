@@ -18,7 +18,7 @@
 #include "gtest/gtest.h"
 // Zisc
 #include "zisc/algorithm.hpp"
-#include "zisc/arithmetic_array.hpp"
+#include "zisc/arith_array.hpp"
 #include "zisc/pcg_engine.hpp"
 #include "zisc/stopwatch.hpp"
 #include "zisc/utility.hpp"
@@ -55,7 +55,7 @@ TEST(AlgorithmTest, BinaryTreeTest)
   using zisc::cast;
 
   constexpr zisc::uint n = 10;
-  zisc::ArithmeticArray<double, n> array;
+  zisc::ArithArray<double, n> array;
   for (zisc::uint i = 0; i < n; ++i)
     array[i] = cast<double>(i);
   zisc::toBinaryTree(array.begin(), array.end());

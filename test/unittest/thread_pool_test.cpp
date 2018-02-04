@@ -36,18 +36,18 @@ TEST(ThreadPoolTest, EnqueueTaskTest)
     };
     auto result1 = thread_pool.enqueue<int>(task1);
 
-    auto task2 = [](const int) noexcept
+    auto task2 = [](const zisc::uint) noexcept
     {
       return 1;
     };
     auto result2 = thread_pool.enqueue<int>(task2);
-  
+
     std::function<int ()> task3{task1};
     auto result3 = thread_pool.enqueue<int>(std::move(task3));
 
-    std::function<int (int)> task4{task2};
+    std::function<int (zisc::uint)> task4{task2};
     auto result4 = thread_pool.enqueue<int>(std::move(task4));
-  
+
     ASSERT_EQ(1, result1.get());
     ASSERT_EQ(1, result2.get());
     ASSERT_EQ(1, result3.get());
@@ -58,13 +58,13 @@ TEST(ThreadPoolTest, EnqueueTaskTest)
     auto task1 = [](const int /* index */) {};
     auto result1 = thread_pool.enqueueLoop(task1, 0, 10);
 
-    auto task2 = [](const int /* thread_number */, const int /* index */) {};
+    auto task2 = [](const zisc::uint /* thread_number */, const int /* index */) {};
     auto result2 = thread_pool.enqueueLoop(task2, 0, 10);
 
     std::function<void (int)> task3{task1};
     auto result3 = thread_pool.enqueueLoop(std::move(task3), 0, 10);
 
-    std::function<void (int, int)> task4{task2};
+    std::function<void (zisc::uint, int)> task4{task2};
     auto result4 = thread_pool.enqueueLoop(std::move(task4), 0, 10);
 
     result1.get();
@@ -84,9 +84,9 @@ TEST(ThreadPoolTest, ParallelTest)
 
   // Task parallel
   {
-    using Task = std::function<void (int)>;
-    std::array<int, num_of_threads> id_list{{-1, -1, -1, -1}};
-    Task task{[&id_list](const int id)
+    using Task = std::function<void (zisc::uint)>;
+    std::array<zisc::uint, num_of_threads> id_list{{0, 0, 0, 0}};
+    Task task{[&id_list](const zisc::uint id)
     {
       const std::chrono::seconds wait_time{1};
       std::this_thread::sleep_for(wait_time);
@@ -108,9 +108,9 @@ TEST(ThreadPoolTest, ParallelTest)
   }
   // Loop parallel test1
   {
-    using Task = std::function<void (int, int)>;
-    std::array<int, num_of_threads> id_list{{-1, -1, -1, -1}};
-    Task task{[&id_list](const int id, const int)
+    using Task = std::function<void (zisc::uint, int)>;
+    std::array<zisc::uint, num_of_threads> id_list{{0, 0, 0, 0}};
+    Task task{[&id_list](const zisc::uint id, const int)
     {
       const std::chrono::seconds wait_time{1};
       std::this_thread::sleep_for(wait_time);
@@ -126,10 +126,10 @@ TEST(ThreadPoolTest, ParallelTest)
   }
   // Loop parallel test2
   {
-    using Task = std::function<void (int, std::list<int>::iterator)>;
+    using Task = std::function<void (zisc::uint, std::list<int>::iterator)>;
     std::list<int> list{{0, 1, 2, 3}};
-    std::array<int, num_of_threads> id_list{{-1, -1, -1, -1}};
-    Task task{[&id_list](const int, const std::list<int>::iterator number)
+    std::array<int, num_of_threads> id_list{{0, 0, 0, 0}};
+    Task task{[&id_list](const zisc::uint, const std::list<int>::iterator number)
     {
       const std::chrono::seconds wait_time{1};
       std::this_thread::sleep_for(wait_time);
@@ -150,7 +150,7 @@ TEST(ThreadPoolTest, ExitWorkerRunningTest)
   {
     zisc::ThreadPool thread_pool{24};
     for (zisc::uint number = 0; number < 1024; ++number) {
-      auto task = [/* number */](const int)
+      auto task = [/* number */](const zisc::uint)
       {
         const std::chrono::milliseconds wait_time{100};
         std::this_thread::sleep_for(wait_time);
@@ -171,7 +171,7 @@ TEST(ThreadPoolTest, TaskStressTest)
 
   zisc::ThreadPool thread_pool{num_of_threads};
   for (zisc::uint number = 0; number < num_of_tasks; ++number) {
-    auto task = [number](const int)
+    auto task = [number](const zisc::uint)
     {
       zisc::PcgMcgRxsMXs32 sampler{number};
       const auto loop = static_cast<int>(sampler(0.0, 1.0) * zisc::power<2>(1024.0));
@@ -194,7 +194,7 @@ TEST(ThreadPoolTest, LoopTaskStressTest)
   constexpr zisc::uint num_of_tasks = 4'000'000;
 
   zisc::ThreadPool thread_pool{num_of_threads};
-  auto task = [](const int, const zisc::uint number)
+  auto task = [](const zisc::uint, const zisc::uint number)
   {
     zisc::PcgMcgRxsMXs32 sampler{number};
     const auto loop = static_cast<int>(sampler(0.0, 1.0) * zisc::power<2>(1024.0));

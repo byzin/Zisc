@@ -11,6 +11,7 @@
 #define ZISC_COMPENSATED_SUMMATION_HPP
 
 // Standard C++ library
+#include <initializer_list>
 #include <type_traits>
 // Zisc
 #include "type_traits.hpp"
@@ -29,26 +30,34 @@ class CompensatedSummation
 
  public:
   //! Initialize with 0
-  CompensatedSummation() noexcept;
+  constexpr CompensatedSummation() noexcept;
 
-  //! Initialize with value
-  CompensatedSummation(const Float value) noexcept;
+  //! Initialize with the value
+  constexpr CompensatedSummation(const Float value) noexcept;
+
+  //! Initialize with the values
+  constexpr CompensatedSummation(std::initializer_list<Float> init_list) noexcept;
 
 
   //! Return the value
-  Float get() const noexcept;
+  constexpr Float get() const noexcept;
 
-  //! Set the value and clear compensation
-  void set(const Float value) noexcept;
-
-  //! Sum value
-  void add(const Float value) noexcept;
+  //! Initialize with the value
+  constexpr void set(const Float value) noexcept;
 
   //! Sum value
-  template <typename ...Types>
-  void add(const Float value, const Types... values) noexcept;
+  constexpr void add(const Float value) noexcept;
+
+  //! Sum values
+  constexpr void add(std::initializer_list<Float> init_list) noexcept;
 
  private:
+  //! Sum values
+  constexpr void add(
+      typename std::initializer_list<Float>::const_iterator begin,
+      typename std::initializer_list<Float>::const_iterator end) noexcept;
+
+
   Float sum_,
         compensation_;
 };

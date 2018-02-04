@@ -10,8 +10,10 @@
 #ifndef ZISC_DIMENSION_HPP
 #define ZISC_DIMENSION_HPP
 
+// Standard C++ library
+#include <initializer_list>
 // Zisc
-#include "arithmetic_array.hpp"
+#include "arith_array.hpp"
 #include "zisc/zisc_config.hpp"
 
 namespace zisc {
@@ -20,55 +22,55 @@ namespace zisc {
   \details
   No detailed.
   */
-template <typename Arithmetic, uint kN>
+template <typename Arith, uint kN>
 class Dimension
 {
  public:
-  using ArrayType = ArithmeticArray<Arithmetic, kN>;
-  using ValueType = Arithmetic;
+  using ArrayType = ArithArray<Arith, kN>;
 
 
-  //! Initialize with 0
-  Dimension() noexcept;
+  //! Initialize elements with 0
+  constexpr Dimension() noexcept;
 
-  //! Initialize with values
-  template <typename ...Types>
-  Dimension(const Types ...values) noexcept;
+  //! Initialize elements with values
+  constexpr Dimension(std::initializer_list<Arith> init_list) noexcept;
 
-  //! Initialize with array
-  Dimension(const ArrayType& array) noexcept;
+  //! Initialize elements
+  constexpr Dimension(const ArrayType& other) noexcept;
+
+  //! Initialize elements
+  constexpr Dimension(ArrayType&& other) noexcept;
 
 
   //! Return the reference by index.
-  Arithmetic& operator[](const uint index) noexcept;
+  constexpr Arith& operator[](const uint index) noexcept;
 
   //! Return the reference by index.
-  const Arithmetic& operator[](const uint index) const noexcept;
+  constexpr const Arith& operator[](const uint index) const noexcept;
 
-  //! Return array reference
-  ArrayType& data() noexcept;
+  //! Return the array body
+  constexpr ArrayType& data() noexcept;
 
-  //! Return array reference
-  const ArrayType& data() const noexcept;
-
-  //! Return the reference by index.
-  Arithmetic& get(const uint index) noexcept;
+  //! Return the array body
+  constexpr const ArrayType& data() const noexcept;
 
   //! Return the reference by index.
-  const Arithmetic& get(const uint index) const noexcept;
+  constexpr Arith& get(const uint index) noexcept;
+
+  //! Return the reference by index.
+  constexpr const Arith& get(const uint index) const noexcept;
 
   //! Return the number of elements
   static constexpr uint size() noexcept;
 
   //! Set value
-  void set(const uint index, const Arithmetic value) noexcept;
+  constexpr void set(const uint index, const Arith value) noexcept;
 
   //! Set values
-  template <typename ...Types>
-  void setElements(const Types ...values) noexcept;
+  constexpr void set(std::initializer_list<Arith> init_list) noexcept;
 
  private:
-  ArrayType elements_;
+  ArrayType data_;
 };
 
 } // namespace zisc

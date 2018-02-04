@@ -10,8 +10,10 @@
 #ifndef ZISC_POINT_HPP
 #define ZISC_POINT_HPP
 
+// Standard C++ library
+#include <initializer_list>
 // Zisc
-#include "arithmetic_array.hpp"
+#include "arith_array.hpp"
 #include "dimension.hpp"
 #include "vector.hpp"
 #include "zisc/zisc_config.hpp"
@@ -23,39 +25,45 @@ namespace zisc {
   \details
   No detailed.
   */
-template <typename Arithmetic, uint kN>
-class Point : public Dimension<Arithmetic, kN>
+template <typename Arith, uint kN>
+class Point : public Dimension<Arith, kN>
 {
  public:
-  using ArrayType = ArithmeticArray<Arithmetic, kN>;
+  using ArrayType = typename Dimension<Arith, kN>::ArrayType;
 
 
-  //! Initialize with 0
-  Point() noexcept;
+  //! Initialize elements with 0
+  constexpr Point() noexcept;
 
-  //! Initialize with values
-  template <typename ...Types>
-  Point(const Types ...values) noexcept;
+  //! Initialize elemens with values
+  constexpr Point(std::initializer_list<Arith> init_list) noexcept;
 
-  //! Initialize with array
-  Point(const ArrayType& array) noexcept;
+  //! Initialize
+  constexpr Point(const ArrayType& other) noexcept;
+
+  //! Initialize
+  constexpr Point(ArrayType&& other) noexcept;
 };
 
-template <typename Arithmetic, uint kN>
-Vector<Arithmetic, kN> operator-(const Point<Arithmetic, kN>& a,
-                                 const Point<Arithmetic, kN>& b) noexcept;
+//! Perform subtraction operation on two points
+template <typename Arith, uint kN>
+constexpr Vector<Arith, kN> operator-(const Point<Arith, kN>& lhs,
+                                      const Point<Arith, kN>& rhs) noexcept;
 
-template <typename Arithmetic, uint kN>
-Point<Arithmetic, kN> operator+(const Point<Arithmetic, kN>& point,
-                                const Vector<Arithmetic, kN>& vector) noexcept;
+//! Perform addition operation on a point and a vector
+template <typename Arith, uint kN>
+constexpr Point<Arith, kN> operator+(const Point<Arith, kN>& lhs,
+                                     const Vector<Arith, kN>& rhs) noexcept;
 
-template <typename Arithmetic, uint kN>
-Point<Arithmetic, kN> operator+(const Vector<Arithmetic, kN>& vector,
-                                const Point<Arithmetic, kN>& point) noexcept;
+//! Perform addition operation on a point and a vector
+template <typename Arith, uint kN>
+constexpr Point<Arith, kN> operator+(const Vector<Arith, kN>& lhs,
+                                     const Point<Arith, kN>& rhs) noexcept;
 
-template <typename Arithmetic, uint kN>
-Point<Arithmetic, kN> operator-(const Point<Arithmetic, kN>& point,
-                                const Vector<Arithmetic, kN>& vector) noexcept;
+//! Perform subtraction operation on a point and a vector
+template <typename Arith, uint kN>
+constexpr Point<Arith, kN> operator-(const Point<Arith, kN>& lhs,
+                                     const Vector<Arith, kN>& rhs) noexcept;
 
 } // namespace zisc
 

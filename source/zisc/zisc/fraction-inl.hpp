@@ -70,7 +70,8 @@ template <typename SignedInteger> inline
 constexpr Fraction<SignedInteger>& Fraction<SignedInteger>::operator+=(
     const Fraction& other) noexcept
 {
-  return *this = (*this + other);
+  *this = (*this + other);
+  return *this;
 }
 
 /*!
@@ -79,7 +80,8 @@ template <typename SignedInteger> inline
 constexpr Fraction<SignedInteger>& Fraction<SignedInteger>::operator-=(
     const Fraction& other) noexcept
 {
-  return *this = (*this - other);
+  *this = (*this - other);
+  return *this;
 }
 
 /*!
@@ -88,7 +90,8 @@ template <typename SignedInteger> inline
 constexpr Fraction<SignedInteger>& Fraction<SignedInteger>::operator*=(
     const Fraction& other) noexcept
 {
-  return *this = (*this * other);
+  *this = (*this * other);
+  return *this;
 }
 
 /*!
@@ -97,7 +100,8 @@ template <typename SignedInteger> inline
 constexpr Fraction<SignedInteger>& Fraction<SignedInteger>::operator/=(
     const Fraction& other) noexcept
 {
-  return *this = (*this / other);
+  *this = (*this / other);
+  return *this;
 }
 
 /*!

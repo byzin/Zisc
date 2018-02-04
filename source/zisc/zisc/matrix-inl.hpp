@@ -12,9 +12,10 @@
 
 #include "matrix.hpp"
 // Standard C++ library
+#include <initializer_list>
 #include <utility>
 // Zisc
-#include "arithmetic_array.hpp"
+#include "arith_array.hpp"
 #include "point.hpp"
 #include "utility.hpp"
 #include "vector.hpp"
@@ -28,9 +29,9 @@ namespace zisc {
   \details
   No detailed.
   */
-template <typename Arithmetic, uint kRow, uint kColumn> inline
-constexpr Matrix<Arithmetic, kRow, kColumn>::Matrix() noexcept :
-    elements_{}
+template <typename Arith, uint kRow, uint kColumn> inline
+constexpr Matrix<Arith, kRow, kColumn>::Matrix() noexcept :
+    data_{}
 {
 }
 
@@ -38,54 +39,39 @@ constexpr Matrix<Arithmetic, kRow, kColumn>::Matrix() noexcept :
  \details
  No detailed.
  */
-template <typename Arithmetic, uint kRow, uint kColumn>
-template <typename ...Types> inline
-constexpr Matrix<Arithmetic, kRow, kColumn>::Matrix(const Types ...elements) noexcept :
-    elements_{elements...}
+template <typename Arith, uint kRow, uint kColumn> inline
+constexpr Matrix<Arith, kRow, kColumn>::Matrix(
+    std::initializer_list<Arith> init_list) noexcept :
+        data_{init_list}
 {
 }
 
 /*!
-  \details
-  No detailed.
   */
-template <typename Arithmetic, uint kRow, uint kColumn> inline
-constexpr bool Matrix<Arithmetic, kRow, kColumn>::operator==(const Matrix& matrix) const 
-    noexcept
+template <typename Arith, uint kRow, uint kColumn> inline
+constexpr auto Matrix<Arith, kRow, kColumn>::operator+=(const Matrix& other)
+    noexcept -> Matrix&
 {
-  return (elements_ == matrix.elements_);
+  data_ += other.data_;
+  return *this;
 }
 
 /*!
-  \details
-  No detailed.
   */
-template <typename Arithmetic, uint kRow, uint kColumn> inline
-constexpr bool Matrix<Arithmetic, kRow, kColumn>::operator!=(const Matrix& matrix) const
-    noexcept
+template <typename Arith, uint kRow, uint kColumn> inline
+constexpr auto Matrix<Arith, kRow, kColumn>::operator-=(const Matrix& other)
+    noexcept -> Matrix&
 {
-  return (elements_ != matrix.elements_);
-}
-
-/*!
-  \details
-  No detailed.
-  */
-template <typename Arithmetic, uint kRow, uint kColumn> inline
-constexpr auto Matrix<Arithmetic, kRow, kColumn>::operator*(const Arithmetic scalar) const
-    noexcept -> Matrix
-{
-  Matrix matrix;
-  matrix.elements_ = scalar * elements_;
-  return matrix;
+  data_ -= other.data_;
+  return *this;
 }
 
 /*!
  \details
  No detailed.
  */
-template <typename Arithmetic, uint kRow, uint kColumn> inline
-constexpr Arithmetic& Matrix<Arithmetic, kRow, kColumn>::operator()(
+template <typename Arith, uint kRow, uint kColumn> inline
+constexpr Arith& Matrix<Arith, kRow, kColumn>::operator()(
     const uint row,
     const uint column) noexcept
 {
@@ -96,8 +82,8 @@ constexpr Arithmetic& Matrix<Arithmetic, kRow, kColumn>::operator()(
  \details
  No detailed.
  */
-template <typename Arithmetic, uint kRow, uint kColumn> inline
-constexpr const Arithmetic& Matrix<Arithmetic, kRow, kColumn>::operator()(
+template <typename Arith, uint kRow, uint kColumn> inline
+constexpr const Arith& Matrix<Arith, kRow, kColumn>::operator()(
     const uint row,
     const uint column) const noexcept
 {
@@ -108,8 +94,8 @@ constexpr const Arithmetic& Matrix<Arithmetic, kRow, kColumn>::operator()(
   \details
   No detailed.
   */
-template <typename Arithmetic, uint kRow, uint kColumn> inline
-constexpr Arithmetic Matrix<Arithmetic, kRow, kColumn>::cofactor(
+template <typename Arith, uint kRow, uint kColumn> inline
+constexpr Arith Matrix<Arith, kRow, kColumn>::cofactor(
     const uint row,
     const uint column) const noexcept
 {
@@ -121,8 +107,8 @@ constexpr Arithmetic Matrix<Arithmetic, kRow, kColumn>::cofactor(
   \details
   No detailed.
   */
-template <typename Arithmetic, uint kRow, uint kColumn> inline
-constexpr auto Matrix<Arithmetic, kRow, kColumn>::cofactorMatrix() const noexcept -> Matrix
+template <typename Arith, uint kRow, uint kColumn> inline
+constexpr auto Matrix<Arith, kRow, kColumn>::cofactorMatrix() const noexcept -> Matrix
 {
   Matrix cofactor_matrix;
   for (uint row = 0; row < rowSize(); ++row) {
@@ -137,8 +123,8 @@ constexpr auto Matrix<Arithmetic, kRow, kColumn>::cofactorMatrix() const noexcep
   \details
   No detailed.
   */
-template <typename Arithmetic, uint kRow, uint kColumn> inline
-constexpr uint Matrix<Arithmetic, kRow, kColumn>::columnSize() noexcept
+template <typename Arith, uint kRow, uint kColumn> inline
+constexpr uint Matrix<Arith, kRow, kColumn>::columnSize() noexcept
 {
   return kColumn;
 }
@@ -149,10 +135,10 @@ namespace inner {
   \details
   No detailed.
   */
-template <typename Arithmetic, uint kN> inline
-constexpr Arithmetic calculateDeterminant(const Matrix<Arithmetic, kN, kN>& matrix) noexcept
+template <typename Arith, uint kN> inline
+constexpr Arith calculateDeterminant(const Matrix<Arith, kN, kN>& matrix) noexcept
 {
-  Arithmetic determinant = cast<Arithmetic>(0);
+  Arith determinant = cast<Arith>(0);
   for (uint column = 0; column < matrix.columnSize(); ++column)
     determinant += matrix(0, column) * matrix.cofactor(0, column);
   return determinant;
@@ -162,8 +148,8 @@ constexpr Arithmetic calculateDeterminant(const Matrix<Arithmetic, kN, kN>& matr
   \details
   No detailed.
   */
-template <typename Arithmetic> inline
-constexpr Arithmetic calculateDeterminant(const Matrix<Arithmetic, 2, 2>& matrix) noexcept
+template <typename Arith> inline
+constexpr Arith calculateDeterminant(const Matrix<Arith, 2, 2>& matrix) noexcept
 {
   return matrix(0, 0) * matrix(1, 1) - matrix(0, 1) * matrix(1, 0);
 }
@@ -172,8 +158,8 @@ constexpr Arithmetic calculateDeterminant(const Matrix<Arithmetic, 2, 2>& matrix
   \details
   No detailed.
   */
-template <typename Arithmetic> inline
-constexpr Arithmetic calculateDeterminant(const Matrix<Arithmetic, 1, 1>& matrix) noexcept
+template <typename Arith> inline
+constexpr Arith calculateDeterminant(const Matrix<Arith, 1, 1>& matrix) noexcept
 {
   return matrix(0, 0);
 }
@@ -181,11 +167,28 @@ constexpr Arithmetic calculateDeterminant(const Matrix<Arithmetic, 1, 1>& matrix
 } // namespace inner
 
 /*!
+  */
+template <typename Arith, uint kRow, uint kColumn> inline
+constexpr auto Matrix<Arith, kRow, kColumn>::data() noexcept -> ArrayType&
+{
+  return data_;
+}
+
+/*!
+  */
+template <typename Arith, uint kRow, uint kColumn> inline
+constexpr auto Matrix<Arith, kRow, kColumn>::data() const noexcept
+    -> const ArrayType&
+{
+  return data_;
+}
+
+/*!
   \details
   No detailed.
   */
-template <typename Arithmetic, uint kRow, uint kColumn> inline
-constexpr Arithmetic Matrix<Arithmetic, kRow, kColumn>::determinant() const noexcept
+template <typename Arith, uint kRow, uint kColumn> inline
+constexpr Arith Matrix<Arith, kRow, kColumn>::determinant() const noexcept
 {
   static_assert(isSquareMatrix(), "Matrix isn't square matrix.");
   return inner::calculateDeterminant(*this);
@@ -195,37 +198,37 @@ constexpr Arithmetic Matrix<Arithmetic, kRow, kColumn>::determinant() const noex
  \details
  No detailed.
  */
-template <typename Arithmetic, uint kRow, uint kColumn> inline
-constexpr Arithmetic& Matrix<Arithmetic, kRow, kColumn>::get(
+template <typename Arith, uint kRow, uint kColumn> inline
+constexpr Arith& Matrix<Arith, kRow, kColumn>::get(
     const uint row, 
     const uint column) noexcept
 {
-  return elements_.get(row * kColumn + column);
+  return data_.get(row * kColumn + column);
 }
 
 /*!
  \details
  No detailed.
  */
-template <typename Arithmetic, uint kRow, uint kColumn> inline
-constexpr const Arithmetic& Matrix<Arithmetic, kRow, kColumn>::get(
+template <typename Arith, uint kRow, uint kColumn> inline
+constexpr const Arith& Matrix<Arith, kRow, kColumn>::get(
     const uint row, 
     const uint column) const noexcept
 {
-  return elements_.get(row * kColumn + column);
+  return data_.get(row * kColumn + column);
 }
 
 /*!
   \details
   No detailed.
   */
-template <typename Arithmetic, uint kRow, uint kColumn> inline
-constexpr auto Matrix<Arithmetic, kRow, kColumn>::inverseMatrix() const noexcept -> Matrix
+template <typename Arith, uint kRow, uint kColumn> inline
+constexpr auto Matrix<Arith, kRow, kColumn>::inverseMatrix() const noexcept -> Matrix
 {
   // Check the determinant
   const auto d = determinant();
   // Get a scaler
-  constexpr auto one = cast<Arithmetic>(1);
+  constexpr auto one = cast<Arith>(1);
   const auto k = one / d;
   // Get the inverse matrix
   Matrix inverse_matrix;
@@ -241,8 +244,8 @@ constexpr auto Matrix<Arithmetic, kRow, kColumn>::inverseMatrix() const noexcept
   \details
   No detailed.
   */
-template <typename Arithmetic, uint kRow, uint kColumn> inline
-constexpr bool Matrix<Arithmetic, kRow, kColumn>::isSquareMatrix() noexcept
+template <typename Arith, uint kRow, uint kColumn> inline
+constexpr bool Matrix<Arith, kRow, kColumn>::isSquareMatrix() noexcept
 {
   return (kRow == kColumn);
 }
@@ -251,14 +254,14 @@ constexpr bool Matrix<Arithmetic, kRow, kColumn>::isSquareMatrix() noexcept
   \details
   No detailed.
   */
-template <typename Arithmetic, uint kRow, uint kColumn>
-constexpr Arithmetic Matrix<Arithmetic, kRow, kColumn>::minorDeterminant(
+template <typename Arith, uint kRow, uint kColumn> inline
+constexpr Arith Matrix<Arith, kRow, kColumn>::minorDeterminant(
     const uint row,
     const uint column) const noexcept
 {
   static_assert(isSquareMatrix(), "Matrix isn't square matrix.");
   // Make submatrix
-  Matrix<Arithmetic, rowSize() - 1, columnSize() - 1> submatrix;
+  Matrix<Arith, rowSize() - 1, columnSize() - 1> submatrix;
   for (uint i = 0, r = 0; i < rowSize(); ++i) {
     if (i == row)
       continue;
@@ -278,8 +281,8 @@ constexpr Arithmetic Matrix<Arithmetic, kRow, kColumn>::minorDeterminant(
   \details
   No detailed.
   */
-template <typename Arithmetic, uint kRow, uint kColumn> inline
-constexpr uint Matrix<Arithmetic, kRow, kColumn>::rowSize() noexcept
+template <typename Arith, uint kRow, uint kColumn> inline
+constexpr uint Matrix<Arith, kRow, kColumn>::rowSize() noexcept
 {
   return kRow;
 }
@@ -288,23 +291,34 @@ constexpr uint Matrix<Arithmetic, kRow, kColumn>::rowSize() noexcept
   \details
   No detailed.
   */
-template <typename Arithmetic, uint kRow, uint kColumn> inline
-void Matrix<Arithmetic, kRow, kColumn>::set(const uint row,
-                                            const uint column,
-                                            const Arithmetic value) noexcept
+template <typename Arith, uint kRow, uint kColumn> inline
+constexpr void Matrix<Arith, kRow, kColumn>::set(const uint row,
+                                                 const uint column,
+                                                 const Arith value) noexcept
 {
-  elements_.set(row * columnSize() + column, value);
+  data_.set(row * columnSize() + column, value);
 }
 
 /*!
   \details
   No detailed.
   */
-template <typename Arithmetic, uint kRow, uint kColumn> inline
-constexpr Matrix<Arithmetic, kColumn, kRow> Matrix<Arithmetic, kRow, kColumn>::
+template <typename Arith, uint kRow, uint kColumn> inline
+constexpr void Matrix<Arith, kRow, kColumn>::set(
+    std::initializer_list<Arith> init_list) noexcept
+{
+  data_.set(init_list);
+}
+
+/*!
+  \details
+  No detailed.
+  */
+template <typename Arith, uint kRow, uint kColumn> inline
+constexpr Matrix<Arith, kColumn, kRow> Matrix<Arith, kRow, kColumn>::
     transposedMatrix() const noexcept
 {
-  Matrix<Arithmetic, kColumn, kRow> transposed_matrix;
+  Matrix<Arith, kColumn, kRow> transposed_matrix;
   for (uint row = 0; row < rowSize(); ++row) {
     for (uint column = 0; column < columnSize(); ++column) {
       transposed_matrix(column, row) = get(row, column);
@@ -314,20 +328,44 @@ constexpr Matrix<Arithmetic, kColumn, kRow> Matrix<Arithmetic, kRow, kColumn>::
 }
 
 /*!
+  */
+template <typename Arith, uint kRow, uint kColumn> inline
+constexpr Matrix<Arith, kRow, kColumn> operator+(
+    const Matrix<Arith, kRow, kColumn>& lhs,
+    const Matrix<Arith, kRow, kColumn>& rhs) noexcept
+{
+  Matrix<Arith, kRow, kColumn> result{};
+  result.data() = lhs.data() + rhs.data();
+  return result;
+}
+
+/*!
+  */
+template <typename Arith, uint kRow, uint kColumn> inline
+constexpr Matrix<Arith, kRow, kColumn> operator-(
+    const Matrix<Arith, kRow, kColumn>& lhs,
+    const Matrix<Arith, kRow, kColumn>& rhs) noexcept
+{
+  Matrix<Arith, kRow, kColumn> result{};
+  result.data() = lhs.data() - rhs.data();
+  return result;
+}
+
+/*!
  \details
  No detailed.
  */
-template <typename Arithmetic, uint L, uint M, uint N>
-constexpr Matrix<Arithmetic, L, N> operator*(
-    const Matrix<Arithmetic, L, M>& a,
-    const Matrix<Arithmetic, M, N>& b) noexcept
+template <typename Arith, uint L, uint M, uint N> inline
+constexpr Matrix<Arith, L, N> operator*(
+    const Matrix<Arith, L, M>& lhs,
+    const Matrix<Arith, M, N>& rhs) noexcept
 {
-  Matrix<Arithmetic, L, N> matrix;
+  Matrix<Arith, L, N> matrix{};
   for (uint l = 0; l < L; ++l) {
     for (uint n = 0; n < N; ++n) {
-      Arithmetic value = cast<Arithmetic>(0);
+      Arith value = cast<Arith>(0);
       for (uint m = 0; m < M; ++m)
-        value += a(l, m) * b(m, n);
+        value += lhs(l, m) * rhs(m, n);
       matrix(l, n) = value;
     }
   }
@@ -338,28 +376,57 @@ constexpr Matrix<Arithmetic, L, N> operator*(
   \details
   No detailed.
   */
-template <typename Arithmetic, uint kRow, uint kColumn> inline
-constexpr Matrix<Arithmetic, kRow, kColumn> operator*(
-    const Arithmetic scalar,
-    const Matrix<Arithmetic, kRow, kColumn>& matrix) noexcept
+template <typename Arith, uint kRow, uint kColumn> inline
+constexpr Matrix<Arith, kRow, kColumn> operator*(
+    const Arith lhs,
+    const Matrix<Arith, kRow, kColumn>& rhs) noexcept
 {
-  return matrix * scalar;
+  Matrix<Arith, kRow, kColumn> matrix{};
+  matrix.data() = rhs.data() * lhs;
+  return matrix;
 }
 
 /*!
   \details
   No detailed.
   */
-template <typename Arithmetic, uint kN>
-constexpr ArithmeticArray<Arithmetic, kN> operator*(
-    const Matrix<Arithmetic, kN, kN>& matrix,
-    const ArithmeticArray<Arithmetic, kN>& array) noexcept
+template <typename Arith, uint kRow, uint kColumn> inline
+constexpr Matrix<Arith, kRow, kColumn> operator*(
+    const Matrix<Arith, kRow, kColumn>& lhs,
+    const Arith rhs) noexcept
 {
-  ArithmeticArray<Arithmetic, kN> result;
-  for (uint row = 0; row < kN; ++row) {
-    Arithmetic value = cast<Arithmetic>(0);
-    for (uint column = 0; column < kN; ++column)
-      value += matrix(row, column) * array[column];
+  return rhs * lhs;
+}
+
+/*!
+  */
+template <typename Arith, uint kRow, uint kColumn> inline
+constexpr ArithArray<Arith,  kColumn> operator*(
+    const ArithArray<Arith, kRow>& lhs,
+    const Matrix<Arith, kRow, kColumn>& rhs) noexcept
+{
+  ArithArray<Arith, kColumn> result;
+  for (uint column = 0; column < kColumn; ++column) {
+    Arith value = cast<Arith>(0);
+    for (uint row = 0; row < kRow; ++row)
+      value += lhs[row] * rhs(row, column);
+    result[column] = value;
+  }
+  return result;
+}
+
+/*!
+  */
+template <typename Arith, uint kRow, uint kColumn> inline
+constexpr ArithArray<Arith, kRow> operator*(
+    const Matrix<Arith, kRow, kColumn>& lhs,
+    const ArithArray<Arith, kColumn>& rhs) noexcept
+{
+  ArithArray<Arith, kRow> result;
+  for (uint row = 0; row < kRow; ++row) {
+    Arith value = cast<Arith>(0);
+    for (uint column = 0; column < kColumn; ++column)
+      value += lhs(row, column) * rhs[column];
     result[row] = value;
   }
   return result;
@@ -369,22 +436,49 @@ constexpr ArithmeticArray<Arithmetic, kN> operator*(
   \details
   No detailed.
   */
-template <typename Arithmetic, uint kN> inline
-Point<Arithmetic, kN> operator*(const Matrix<Arithmetic, kN, kN>& matrix,
-                                const Point<Arithmetic, kN>& point) noexcept
+template <typename Arith, uint kRow, uint kColumn> inline
+constexpr Point<Arith, kRow> operator*(
+    const Matrix<Arith, kRow, kColumn>& matrix,
+    const Point<Arith, kColumn>& point) noexcept
 {
-  return Point<Arithmetic, kN>{matrix * point.data()};
+  return Point<Arith, kRow>{matrix * point.data()};
 }
 
 /*!
   \details
   No detailed.
   */
-template <typename Arithmetic, uint kN> inline
-Vector<Arithmetic, kN> operator*(const Matrix<Arithmetic, kN, kN>& matrix,
-                                 const Vector<Arithmetic, kN>& vector) noexcept
+template <typename Arith, uint kRow, uint kColumn> inline
+constexpr Vector<Arith, kRow> operator*(
+    const Matrix<Arith, kRow, kColumn>& matrix,
+    const Vector<Arith, kColumn>& vector) noexcept
 {
-  return Vector<Arithmetic, kN>{matrix * vector.data()};
+  return Vector<Arith, kRow>{matrix * vector.data()};
+}
+
+/*!
+  */
+template <typename Arith, uint kRow1, uint kColumn1, uint kRow2, uint kColumn2>
+inline
+constexpr bool operator==(
+    const Matrix<Arith, kRow1, kColumn1>& lhs,
+    const Matrix<Arith, kRow2, kColumn2>& rhs) noexcept
+{
+  if constexpr ((kRow1 == kRow2) && (kColumn1 == kColumn2))
+    return lhs.data() == rhs.data();
+  else
+    return false;
+}
+
+/*!
+  */
+template <typename Arith, uint kRow1, uint kColumn1, uint kRow2, uint kColumn2>
+inline
+constexpr bool operator!=(
+    const Matrix<Arith, kRow1, kColumn1>& lhs,
+    const Matrix<Arith, kRow2, kColumn2>& rhs) noexcept
+{
+  return !(lhs == rhs);
 }
 
 } // namespace zisc

@@ -1,56 +1,106 @@
 /*!
   \file point_test.cpp
-  \author zin
+  \author Sho Ikeda
+  
+  Copyright (c) 2015-2018 Sho Ikeda
+  This software is released under the MIT License.
+  http://opensource.org/licenses/mit-license.php
   */
 
 // Standard C++ library
-#include <type_traits>
-#include <memory>
+#include <array>
+#include <cstdint>
 // GoogleTest
 #include "gtest/gtest.h"
 // Zisc
+#include "zisc/math.hpp"
 #include "zisc/point.hpp"
-#include "zisc/type_traits.hpp"
 #include "zisc/vector.hpp"
-#include "zisc/utility.hpp"
+#include "zisc/zisc_config.hpp"
 
-template <typename Float>
-void testPoint3()
+TEST(PointTest, ConstructionTest)
 {
-  static_assert(zisc::kIsFloat<Float>, "Float isn't floating point type.");
-  using zisc::cast;
-
-  zisc::Point<Float, 3> point{0.0, 1.0, 2.0};
-  zisc::Vector<Float, 3> vector{1.0, 2.0, 3.0};
-
-  // Addition test
-  auto addition = point + vector;
-  for (int i = 0; i < 3; ++i) {
-    const double value = cast<double>(i) * 2.0 + 1.0;
-    ASSERT_DOUBLE_EQ(value, addition[i]) << "Addition test failed.";
+  {
+    constexpr zisc::Point<int, 3> v{};
+    constexpr zisc::uint size = v.size();
+    ASSERT_EQ(3, size);
+    for (int i = 0; i < 3; ++i)
+      ASSERT_EQ(0, v[i]);
   }
-  // Subtraction test
-  auto subtraction = point - vector;
-  for (int i = 0; i < 3; ++i) {
-    ASSERT_DOUBLE_EQ(-1.0, subtraction[i]) << "Subtraction test failed.";
+  {
+    constexpr zisc::Point<int, 3> v{{0, 1, 2}};
+    for (int i = 0; i < 3; ++i)
+      ASSERT_EQ(i, v[i]);
   }
-  // Subtraction point test
-  zisc::Point<Float, 3> point2{3.0, 0.0, -3.0};
-  auto direction = point2 - point;
-  ASSERT_DOUBLE_EQ(3.0, direction[0])
-      << "Subtraction point test failed.";
-  ASSERT_DOUBLE_EQ(-1.0, direction[1])
-      << "Subtraction point test failed.";
-  ASSERT_DOUBLE_EQ(-5.0, direction[2])
-      << "Subtraction point test failed.";
+  {
+    constexpr std::array<int, 3> a{{0, 1, 2}};
+    constexpr zisc::Point<int, 3> v{a};
+    for (int i = 0; i < 3; ++i)
+      ASSERT_EQ(i, v[i]);
+  }
+  {
+    auto make_vector = []()
+    {
+      zisc::Point<int, 3> v{};
+      v.set(2, 2);
+      return v;
+    };
+    constexpr auto v = make_vector();
+    constexpr auto result = v[2];
+    ASSERT_EQ(2, result);
+  }
+  {
+    auto make_vector = []()
+    {
+      zisc::Point<int, 3> v{};
+      v.set({0, 1, 2});
+      return v;
+    };
+    constexpr auto v = make_vector();
+    for (int i = 0; i < 3; ++i)
+      ASSERT_EQ(i, v[i]);
+  }
+  {
+    auto make_vector = []()
+    {
+      zisc::Point<int, 3> v1{{0, 1, 2}};
+      zisc::Point<int, 3> v2{v1.data()};
+      return v2;
+    };
+    constexpr auto v = make_vector();
+    for (int i = 0; i < 3; ++i)
+      ASSERT_EQ(i, v[i]);
+  }
 }
 
-TEST(PointTest, FloatTest)
+TEST(PointTest, OperatorTest)
 {
-  testPoint3<float>();
-}
+  auto make_point = [](const int x, const int y, const int z)
+  {
+    zisc::Point<int, 3> p{{x, y, z}};
+    return p;
+  };
 
-TEST(PointTest, DoubleTest)
-{
-  testPoint3<double>();
+  auto make_vector = [](const int x, const int y, const int z)
+  {
+    zisc::Vector<int, 3> v{{x, y, z}};
+    return v;
+  };
+
+  {
+    constexpr auto p1 = make_point(0, 1, 2);
+    constexpr auto v1 = make_vector(0, 1, 2);
+    constexpr auto result1 = v1 + p1;
+    for (int i = 0; i < 3; ++i)
+      ASSERT_EQ(2 * i, result1[i]);
+    constexpr auto result2 = p1 - v1;
+    for (int i = 0; i < 3; ++i)
+      ASSERT_EQ(0, result2[i]);
+  }
+  {
+    constexpr auto p1 = make_vector(0, 1, 2);
+    constexpr auto result1 = p1 - p1;
+    for (int i = 0; i < 3; ++i)
+      ASSERT_EQ(0, result1[i]);
+  }
 }

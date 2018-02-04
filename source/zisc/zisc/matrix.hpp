@@ -10,8 +10,10 @@
 #ifndef ZISC_MATRIX_HPP
 #define ZISC_MATRIX_HPP
 
+// Standard C++ library
+#include <initializer_list>
 // Zisc
-#include "arithmetic_array.hpp"
+#include "arith_array.hpp"
 #include "dimension.hpp"
 #include "point.hpp"
 #include "vector.hpp"
@@ -23,43 +25,39 @@ namespace zisc {
   \details
   No detailed.
   */
-template <typename Arithmetic, uint kRow, uint kColumn>
+template <typename Arith, uint kRow, uint kColumn>
 class Matrix
 {
   static_assert(0 < kRow, "kRow size is zero.");
   static_assert(0 < kColumn, "kColumn size is zero.");
 
  public:
-  using ArrayType = ArithmeticArray<Arithmetic, kRow * kColumn>;
-  using ValueType = Arithmetic;
+  using ArrayType = ArithArray<Arith, kRow * kColumn>;
 
 
   //! Initialize with 0
   constexpr Matrix() noexcept;
 
   //! Initialize with values
-  template <typename ...Types>
-  constexpr Matrix(const Types ...elements) noexcept;
+  constexpr Matrix(std::initializer_list<Arith> init_list) noexcept;
 
 
-  //! Check if two matrixes are same
-  constexpr bool operator==(const Matrix& matrix) const noexcept;
+  //! Perform addition operation on two matrixes
+  constexpr Matrix& operator+=(const Matrix& other) noexcept;
 
-  //! Check if two matrixes are not same
-  constexpr bool operator!=(const Matrix& matrix) const noexcept;
-
-  //! Apply multiplication operation
-  constexpr Matrix operator*(const Arithmetic scalar) const noexcept;
+  //! Perform subtraction operation on two matrixes
+  constexpr Matrix& operator-=(const Matrix& other) noexcept;
 
   //! Return the reference by row and column
-  constexpr Arithmetic& operator()(const uint row, const uint column) noexcept;
+  constexpr Arith& operator()(const uint row,
+                              const uint column) noexcept;
 
   //! Return the reference by row and column
-  constexpr const Arithmetic& operator()(const uint row, const uint column) const noexcept;
-
+  constexpr const Arith& operator()(const uint row,
+                                    const uint column) const noexcept;
 
   //! Calculate the cofactor
-  constexpr Arithmetic cofactor(const uint row, const uint column) const noexcept;
+  constexpr Arith cofactor(const uint row, const uint column) const noexcept;
 
   //! Return the cofactor matrix
   constexpr Matrix cofactorMatrix() const noexcept;
@@ -67,14 +65,20 @@ class Matrix
   //! Return column size
   static constexpr uint columnSize() noexcept;
 
+  //! Return the raw array of the matrix
+  constexpr ArrayType& data() noexcept;
+
+  //! Return the raw array of the matrix
+  constexpr const ArrayType& data() const noexcept;
+
   //! Calculate the determinant
-  constexpr Arithmetic determinant() const noexcept;
+  constexpr Arith determinant() const noexcept;
 
   //! Return the reference by row and column
-  constexpr Arithmetic& get(const uint row, const uint column) noexcept;
+  constexpr Arith& get(const uint row, const uint column) noexcept;
 
   //! Return the reference by row and column
-  constexpr const Arithmetic& get(const uint row, const uint column) const noexcept;
+  constexpr const Arith& get(const uint row, const uint column) const noexcept;
 
   //! Return the inverse matrix
   constexpr Matrix inverseMatrix() const noexcept;
@@ -83,48 +87,90 @@ class Matrix
   static constexpr bool isSquareMatrix() noexcept;
 
   //! Calculate the minor determinant
-  constexpr Arithmetic minorDeterminant(const uint row, const uint column) const noexcept;
+  constexpr Arith minorDeterminant(const uint row,
+                                   const uint column) const noexcept;
 
   //! Return row size
   static constexpr uint rowSize() noexcept;
 
   //! Set element
-  void set(const uint row, const uint column, const Arithmetic value) noexcept;
+  constexpr void set(const uint row, const uint column, const Arith value) noexcept;
+
+  //! Set elements
+  constexpr void set(std::initializer_list<Arith> init_list) noexcept;
 
   //! Return the transposed matrix
-  constexpr Matrix<Arithmetic, kColumn, kRow> transposedMatrix() const noexcept;
+  constexpr Matrix<Arith, kColumn, kRow> transposedMatrix() const noexcept;
 
  private:
-  ArrayType elements_;
+  ArrayType data_;
 };
 
-//! Multiply two matrixes
-template <typename Arithmetic, uint L, uint M, uint N>
-constexpr Matrix<Arithmetic, L, N> operator*(
-    const Matrix<Arithmetic, L, M>& a,
-    const Matrix<Arithmetic, M, N>& b) noexcept;
+//! Perform addition operation on two matrixes
+template <typename Arith, uint kRow, uint kColumn>
+constexpr Matrix<Arith, kRow, kColumn> operator+(
+    const Matrix<Arith, kRow, kColumn>& lhs,
+    const Matrix<Arith, kRow, kColumn>& rhs) noexcept;
 
-//! Multiply two matrixes
-template <typename Arithmetic, uint kRow, uint kColumn>
-constexpr Matrix<Arithmetic, kRow, kColumn> operator*(
-    const Arithmetic scalar,
-    const Matrix<Arithmetic, kRow, kColumn>& matrix) noexcept;
+//! Perform addition operation on two matrixes
+template <typename Arith, uint kRow, uint kColumn>
+constexpr Matrix<Arith, kRow, kColumn> operator-(
+    const Matrix<Arith, kRow, kColumn>& lhs,
+    const Matrix<Arith, kRow, kColumn>& rhs) noexcept;
 
-//! Multiply a matrix and a array
-template <typename Arithmetic, uint kN>
-constexpr ArithmeticArray<Arithmetic, kN> operator*(
-    const Matrix<Arithmetic, kN, kN>& matrix,
-    const ArithmeticArray<Arithmetic, kN>& array) noexcept;
+//! Perform multiplication operation on two matrixes
+template <typename Arith, uint L, uint M, uint N>
+constexpr Matrix<Arith, L, N> operator*(
+    const Matrix<Arith, L, M>& lhs,
+    const Matrix<Arith, M, N>& rhs) noexcept;
+
+//! Perform multiplication operation on two values
+template <typename Arith, uint kRow, uint kColumn>
+constexpr Matrix<Arith, kRow, kColumn> operator*(
+    const Arith lhs,
+    const Matrix<Arith, kRow, kColumn>& rhs) noexcept;
+
+//! Perform multiplication operation on two values
+template <typename Arith, uint kRow, uint kColumn>
+constexpr Matrix<Arith, kRow, kColumn> operator*(
+    const Matrix<Arith, kRow, kColumn>& lhs,
+    const Arith rhs) noexcept;
+
+//! Perform multiplication operation on matrix and vector
+template <typename Arith, uint kRow, uint kColumn>
+constexpr ArithArray<Arith, kColumn> operator*(
+    const ArithArray<Arith, kRow>& lhs,
+    const Matrix<Arith, kRow, kColumn>& rhs) noexcept;
+
+//! Perform multiplication operation on matrix and vector
+template <typename Arith, uint kRow, uint kColumn>
+constexpr ArithArray<Arith, kRow> operator*(
+    const Matrix<Arith, kRow, kColumn>& lhs,
+    const ArithArray<Arith, kColumn>& rhs) noexcept;
 
 //! Multiply a matrix and a point
-template <typename Arithmetic, uint kN>
-Point<Arithmetic, kN> operator*(const Matrix<Arithmetic, kN, kN>& matrix,
-                                const Point<Arithmetic, kN>& point) noexcept;
+template <typename Arith, uint kRow, uint kColumn>
+constexpr Point<Arith, kRow> operator*(
+    const Matrix<Arith, kRow, kColumn>& matrix,
+    const Point<Arith, kColumn>& point) noexcept;
 
 //! Multiply a matrix and a point
-template <typename Arithmetic, uint kN>
-Vector<Arithmetic, kN> operator*(const Matrix<Arithmetic, kN, kN>& matrix,
-                                 const Vector<Arithmetic, kN>& vector) noexcept;
+template <typename Arith, uint kRow, uint kColumn>
+constexpr Vector<Arith, kRow> operator*(
+    const Matrix<Arith, kRow, kColumn>& matrix,
+    const Vector<Arith, kColumn>& vector) noexcept;
+
+//! Check if the two matrixes are same
+template <typename Arith, uint kRow1, uint kColumn1, uint kRow2, uint kColumn2>
+constexpr bool operator==(
+    const Matrix<Arith, kRow1, kColumn1>& lhs,
+    const Matrix<Arith, kRow2, kColumn2>& rhs) noexcept;
+
+//! Check if the two matrixes aren't same
+template <typename Arith, uint kRow1, uint kColumn1, uint kRow2, uint kColumn2>
+constexpr bool operator!=(
+    const Matrix<Arith, kRow1, kColumn1>& lhs,
+    const Matrix<Arith, kRow2, kColumn2>& rhs) noexcept;
 
 } // namespace zisc
 

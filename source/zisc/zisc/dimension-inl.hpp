@@ -11,8 +11,11 @@
 #define ZISC_DIMENSION_INL_HPP
 
 #include "dimension.hpp"
+// Standard C++ library
+#include <initializer_list>
+#include <utility>
 // Zisc
-#include "arithmetic_array.hpp"
+#include "arith_array.hpp"
 #include "math.hpp"
 #include "zisc/zisc_config.hpp"
 
@@ -22,8 +25,8 @@ namespace zisc {
   \details
   No detailed.
   */
-template <typename Arithmetic, uint kN> inline
-Dimension<Arithmetic, kN>::Dimension() noexcept
+template <typename Arith, uint kN> inline
+constexpr Dimension<Arith, kN>::Dimension() noexcept
 {
 }
 
@@ -31,9 +34,10 @@ Dimension<Arithmetic, kN>::Dimension() noexcept
   \details
   No detailed.
   */
-template <typename Arithmetic, uint kN> template <typename ...Types> inline
-Dimension<Arithmetic, kN>::Dimension(const Types ...values) noexcept :
-    elements_{values...}
+template <typename Arith, uint kN> inline
+constexpr Dimension<Arith, kN>::Dimension(std::initializer_list<Arith> init_list)
+    noexcept :
+        data_{init_list}
 {
 }
 
@@ -41,9 +45,9 @@ Dimension<Arithmetic, kN>::Dimension(const Types ...values) noexcept :
   \details
   No detailed.
   */
-template <typename Arithmetic, uint kN> inline
-Dimension<Arithmetic, kN>::Dimension(const ArrayType& array) noexcept :
-    elements_{array}
+template <typename Arith, uint kN> inline
+constexpr Dimension<Arith, kN>::Dimension(const ArrayType& other) noexcept :
+    data_{other}
 {
 }
 
@@ -51,8 +55,18 @@ Dimension<Arithmetic, kN>::Dimension(const ArrayType& array) noexcept :
   \details
   No detailed.
   */
-template <typename Arithmetic, uint kN> inline
-Arithmetic& Dimension<Arithmetic, kN>::operator[](const uint index) noexcept
+template <typename Arith, uint kN> inline
+constexpr Dimension<Arith, kN>::Dimension(ArrayType&& other) noexcept :
+    data_{std::move(other)}
+{
+}
+
+/*!
+  \details
+  No detailed.
+  */
+template <typename Arith, uint kN> inline
+constexpr Arith& Dimension<Arith, kN>::operator[](const uint index) noexcept
 {
   return get(index);
 }
@@ -61,8 +75,9 @@ Arithmetic& Dimension<Arithmetic, kN>::operator[](const uint index) noexcept
   \details
   No detailed.
   */
-template <typename Arithmetic, uint kN> inline
-const Arithmetic& Dimension<Arithmetic, kN>::operator[](const uint index) const noexcept
+template <typename Arith, uint kN> inline
+constexpr const Arith& Dimension<Arith, kN>::operator[](const uint index)
+    const noexcept
 {
   return get(index);
 }
@@ -71,50 +86,48 @@ const Arithmetic& Dimension<Arithmetic, kN>::operator[](const uint index) const 
   \details
   No detailed.
   */
-template <typename Arithmetic, uint kN> inline
-auto Dimension<Arithmetic, kN>::data() noexcept -> ArrayType&
+template <typename Arith, uint kN> inline
+constexpr auto Dimension<Arith, kN>::data() noexcept -> ArrayType&
 {
-  return elements_;
+  return data_;
 }
 
 /*!
   \details
   No detailed.
   */
-template <typename Arithmetic, uint kN> inline
-auto Dimension<Arithmetic, kN>::data() const noexcept -> const ArrayType&
+template <typename Arith, uint kN> inline
+constexpr auto Dimension<Arith, kN>::data() const noexcept -> const ArrayType&
 {
-  return elements_;
+  return data_;
 }
 
 /*!
   \details
   No detailed.
   */
-template <typename Arithmetic, uint kN> inline
-Arithmetic& Dimension<Arithmetic, kN>::get(const uint index) noexcept
+template <typename Arith, uint kN> inline
+constexpr Arith& Dimension<Arith, kN>::get(const uint index) noexcept
 {
-  ZISC_ASSERT(index < size(), "The index is out of range.");
-  return elements_[index];
+  return data_[index];
 }
 
 /*!
   \details
   No detailed.
   */
-template <typename Arithmetic, uint kN> inline
-const Arithmetic& Dimension<Arithmetic, kN>::get(const uint index) const noexcept
+template <typename Arith, uint kN> inline
+constexpr const Arith& Dimension<Arith, kN>::get(const uint index) const noexcept
 {
-  ZISC_ASSERT(index < size(), "The index is out of range.");
-  return elements_[index];
+  return data_[index];
 }
 
 /*!
   \details
   No detailed.
   */
-template <typename Arithmetic, uint kN> inline
-constexpr uint Dimension<Arithmetic, kN>::size() noexcept
+template <typename Arith, uint kN> inline
+constexpr uint Dimension<Arith, kN>::size() noexcept
 {
   return kN;
 }
@@ -123,21 +136,22 @@ constexpr uint Dimension<Arithmetic, kN>::size() noexcept
   \details
   No detailed.
   */
-template <typename Arithmetic, uint kN> inline
-void Dimension<Arithmetic, kN>::set(const uint index, const Arithmetic value) noexcept
+template <typename Arith, uint kN> inline
+constexpr void Dimension<Arith, kN>::set(const uint index,
+                                         const Arith value) noexcept
 {
-  ZISC_ASSERT(index < size(), "The index is out of range.");
-  elements_.set(index, value);
+  data_.set(index, value);
 }
 
 /*!
   \details
   No detailed.
   */
-template <typename Arithmetic, uint kN> template <typename ...Types> inline
-void Dimension<Arithmetic, kN>::setElements(const Types ...values) noexcept
+template <typename Arith, uint kN> inline
+constexpr void Dimension<Arith, kN>::set(
+    std::initializer_list<Arith> init_list) noexcept
 {
-  elements_.setElements(values...);
+  data_.set(init_list);
 }
 
 } // namespace zisc

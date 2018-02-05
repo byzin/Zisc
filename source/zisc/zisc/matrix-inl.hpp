@@ -361,17 +361,15 @@ constexpr Arith Matrix<Arith, kRow, kColumn>::minorDeterminant(
 {
   static_assert(isSquareMatrix(), "Matrix isn't square matrix.");
   // Make submatrix
-  Matrix<Arith, rowSize() - 1, columnSize() - 1> submatrix;
-  for (uint i = 0, r = 0; i < rowSize(); ++i) {
-    if (i == row)
-      continue;
-    for (uint j = 0, c = 0; j < columnSize(); ++j) {
-      if (j == column)
-        continue;
+  Matrix<Arith, rowSize() - 1, columnSize() - 1> submatrix{};
+  for (uint r = 0, i = 0; r < rowSize() - 1; ++r, ++i) {
+    if (r == row)
+      ++i;
+    for (uint c = 0, j = 0; c < columnSize() - 1; ++c, ++j) {
+      if (c == column)
+        ++j;
       submatrix(r, c) = get(i, j);
-      ++c;
     }
-    ++r;
   }
   // Calculate minor determinant
   return submatrix.determinant();

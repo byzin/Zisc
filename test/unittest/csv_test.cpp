@@ -18,6 +18,11 @@
 
 TEST(CsvTest, ParseCsvTest)
 {
+  using Csv = zisc::Csv<std::string, int, double, bool>;
+
+  const auto pattern = Csv::csvPattern();
+  std::cout << "CSV<string, int, double, bool> pattern: " << pattern << std::endl;
+
   std::istringstream csv_text;
   {
     std::ostringstream csv_output;
@@ -26,7 +31,7 @@ TEST(CsvTest, ParseCsvTest)
     csv_text = std::istringstream{csv_output.str()};
   }
 
-  zisc::Csv<std::string, int, double, bool> csv;
+  Csv csv;
   std::list<std::string> message_list;
   csv.append(csv_text, &message_list);
 
@@ -36,6 +41,7 @@ TEST(CsvTest, ParseCsvTest)
   EXPECT_EQ(1, csv.get<1>(0)) << "Parsing csv failed.";
   EXPECT_DOUBLE_EQ(1.23, csv.get<2>(0)) << "Parsing csv failed.";
   EXPECT_TRUE(csv.get<3>(0)) << "Parsing csv failed.";
+
   EXPECT_STREQ(" test2 ", csv.get<0>(1).c_str()) << "Parsing csv failed.";
   EXPECT_EQ(2, csv.get<1>(1)) << "Parsing csv failed.";
   EXPECT_DOUBLE_EQ(4.56, csv.get<2>(1)) << "Parsing csv failed.";

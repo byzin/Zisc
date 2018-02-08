@@ -34,7 +34,7 @@ class ArithArray
  public:
   // Type aliases for STL
   using value_type = typename ArrayType::value_type;
-  using size_type = typename ArrayType::size_type;
+  using size_type = uint;
   using difference_type = typename ArrayType::difference_type;
   using reference = typename ArrayType::reference;
   using const_reference = typename ArrayType::const_reference;
@@ -157,9 +157,8 @@ class ArithArray
  private:
   //! Make a array
   template <std::size_t ...indices>
-  static constexpr ArrayType makeArray(
-      std::initializer_list<Arith> init_list,
-      std::index_sequence<indices...>) noexcept;
+  static constexpr ArrayType makeArray(std::initializer_list<Arith> init_list,
+                                       std::index_sequence<indices...>) noexcept;
 
 
   ArrayType data_;

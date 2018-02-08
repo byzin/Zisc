@@ -21,6 +21,7 @@
 #include <utility>
 // Zisc
 #include "error.hpp"
+#include "json_value_parser.hpp"
 #include "string.hpp"
 #include "type_traits.hpp"
 #include "utility.hpp"
@@ -31,39 +32,39 @@ namespace zisc {
 namespace inner {
 
 template <typename Type> inline
-constexpr auto getValuePattern(EnableIfBoolean<Type> = kEnabler) noexcept
+constexpr auto getTypePattern(EnableIfBoolean<Type> = kEnabler) noexcept
 {
-  return getBooleanPattern();
+  return JsonValueParser::booleanPattern();
 }
 
 template <typename Type> inline
-constexpr auto getValuePattern(EnableIfFloat<Type> = kEnabler) noexcept
+constexpr auto getTypePattern(EnableIfFloat<Type> = kEnabler) noexcept
 {
-  return getFloatPattern();
+  return JsonValueParser::floatPattern();
 }
 
 template <typename Type> inline
-constexpr auto getValuePattern(EnableIfInteger<Type> = kEnabler) noexcept
+constexpr auto getTypePattern(EnableIfInteger<Type> = kEnabler) noexcept
 {
-  return getIntegerPattern();
+  return JsonValueParser::integerPattern();
 }
 
 template <typename Type> inline
-constexpr auto getValuePattern(EnableIfSame<std::string, Type> = kEnabler) noexcept
+constexpr auto getTypePattern(EnableIfSame<std::string, Type> = kEnabler) noexcept
 {
-  return getStringPattern();
+  return JsonValueParser::stringPattern();
 }
 
 template <typename Type> inline
 constexpr auto getCsvPattern() noexcept
 {
-  return R"(\s*()" + getValuePattern<Type>() + R"()\s*)";
+  return R"(\s*()" + getTypePattern<Type>() + R"()\s*)";
 }
 
 template <typename Type1, typename Type2, typename ...Types> inline
 constexpr auto getCsvPattern() noexcept
 {
-  return getCsvPattern<Type1>() + "," + getCsvPattern<Type2, Types...>();
+  return getCsvPattern<Type1>() + R"(,)" + getCsvPattern<Type2, Types...>();
 }
 
 } // namespace inner 
@@ -102,7 +103,7 @@ void Csv<Type, Types...>::append(std::istream& csv,
                                  std::list<std::string>* message_list) noexcept
 {
   for (std::string line; std::getline(csv, line);) {
-    auto&& record = parseCsvLine(line, message_list);
+    auto record = parseCsvLine(line, message_list);
     data_.emplace_back(std::move(record));
   }
 }
@@ -115,6 +116,23 @@ template <typename Type, typename ...Types> inline
 void Csv<Type, Types...>::clear() noexcept
 {
   data_.clear();
+}
+
+/*!
+  */
+template <typename Type, typename ...Types> inline
+std::string_view Csv<Type, Types...>::csvPattern() noexcept
+{
+  constexpr auto pattern = inner::getCsvPattern<Type, Types...>();
+  return std::string_view{pattern.toCString(), pattern.size()};
+}
+
+/*!
+  */
+template <typename Type, typename ...Types> inline
+const std::regex& Csv<Type, Types...>::csvRegex() const noexcept
+{
+  return csv_pattern_;
 }
 
 /*!
@@ -156,42 +174,21 @@ uint Csv<Type, Types...>::rowSize() const noexcept
  No detailed.
  */
 template <typename Type, typename ...Types> template <uint column> inline
-auto Csv<Type, Types...>::get(const uint row) const noexcept -> const FieldType<column>&
+auto Csv<Type, Types...>::get(const uint row) const noexcept
+    -> const FieldType<column>&
 {
   const auto& record = this->record(row);
   return std::get<column>(record);
 }
 
-namespace inner {
-
-template <uint index, typename RecordType>
-struct CsvConverter
+/*!
+  */
+template <typename Type, typename ...Types> template <std::size_t index> inline
+auto Csv<Type, Types...>::convertToCxx(const std::smatch& result) noexcept
+    -> FieldType<index>
 {
-  using FieldType = typename std::tuple_element<index - 1, RecordType>::type;
-  template <typename ...Types>
-  static RecordType toCxx(const std::smatch& results, Types&&... record) noexcept
-  {
-    using Converter = CsvConverter<index - 1, RecordType>;
-    FieldType field = toCxxValue<FieldType>(results[index]);
-    return Converter::toCxx(results,
-                            std::move(field),
-                            std::forward<Types>(record)...);
-  }
-};
-
-template <typename RecordType>
-struct CsvConverter<1, RecordType>
-{
-  using FieldType = typename std::tuple_element<0, RecordType>::type;
-  template <typename ...Types>
-  static RecordType toCxx(const std::smatch& results, Types&&... record) noexcept
-  {
-    FieldType field = toCxxValue<FieldType>(results[1]);
-    return std::make_tuple(std::move(field), std::forward<Types>(record)...);
-  }
-};
-
-} // namespace inner 
+  return JsonValueParser::toCxxTypeValue<FieldType<index>>(result.str(index + 1));
+}
 
 /*!
   \details
@@ -202,20 +199,26 @@ auto Csv<Type, Types...>::parseCsvLine(
     const std::string& line,
     std::list<std::string>* message_list) const noexcept -> RecordType
 {
-  std::smatch results;
-  const auto is_success = std::regex_match(line, results, csv_pattern_);
+  std::smatch result;
+  const auto is_success = std::regex_match(line, result, csvRegex());
   if ((message_list != nullptr) && !is_success) {
     std::ostringstream error;
     error << R"(Parsing ")" << line << R"(" failed.)" << std::endl;
     message_list->emplace_back(error.str());
   }
-  if (is_success) {
-    constexpr uint size = columnSize();
-    return inner::CsvConverter<size, RecordType>::toCxx(results);
-  }
-  else {
-    return RecordType{};
-  }
+  return (is_success)
+      ? toCxx(result, std::make_index_sequence<columnSize()>())
+      : RecordType{};
+}
+
+/*!
+  */
+template <typename Type, typename ...Types> template <std::size_t ...indices> inline
+auto Csv<Type, Types...>::toCxx(const std::smatch& result,
+                                std::index_sequence<indices...>) noexcept
+    -> RecordType
+{
+  return std::make_tuple(convertToCxx<indices>(result)...);
 }
 
 } // namespace zisc

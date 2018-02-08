@@ -48,6 +48,10 @@ constexpr bool kIsIterator = inner::IsIterator<Type>::value;
 template <typename Type>
 constexpr bool kIsRandomAccessIterator = inner::IsRandomAccessIterator<Type>::value;
 
+//! Check if the Type is std::string
+template <typename Type>
+constexpr bool kIsStdString = inner::IsStdString<Type>::value;
+
 // SFINAE
 
 constexpr void* kEnabler = nullptr;

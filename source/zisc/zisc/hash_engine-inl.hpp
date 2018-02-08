@@ -15,9 +15,9 @@
 #include <array>
 #include <cstdint>
 #include <cstddef>
+#include <string_view>
 #include <type_traits>
 // Zisc
-#include "string.hpp"
 #include "type_traits.hpp"
 #include "utility.hpp"
 #include "zisc/zisc_config.hpp"
@@ -30,8 +30,17 @@ template <typename HashClass, typename ResultType> inline
 constexpr ResultType HashEngine<HashClass, ResultType>::hash(
     const char* seed) noexcept
 {
-  const std::size_t n = getStringLength(seed);
-  return hashValue(seed, n);
+  const std::string_view s{seed};
+  return hash(s);
+}
+
+/*!
+  */
+template <typename HashClass, typename ResultType> inline
+constexpr ResultType HashEngine<HashClass, ResultType>::hash(
+    const std::string_view seed) noexcept
+{
+  return hashValue(seed.data(), seed.size());
 }
 
 /*!

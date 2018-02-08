@@ -11,6 +11,7 @@
 #define ZISC_CSV_HPP
 
 // Standard C++ library
+#include <cstddef>
 #include <istream>
 #include <list>
 #include <regex>
@@ -51,6 +52,12 @@ class Csv : public NonCopyable<Csv<Type, Types...>>
   //! Clear all csv data
   void clear() noexcept;
 
+  //! Return the pattern string for regex
+  static std::string_view csvPattern() noexcept;
+
+  //! Return the CSV regex
+  const std::regex& csvRegex() const noexcept;
+
   //! Return the column size
   static constexpr uint columnSize() noexcept;
 
@@ -65,9 +72,18 @@ class Csv : public NonCopyable<Csv<Type, Types...>>
   const FieldType<column>& get(const uint row) const noexcept;
 
  private:
+  //! Convert a CSV value to a C++ value
+  template <std::size_t index>
+  static FieldType<index> convertToCxx(const std::smatch& result) noexcept;
+
   //! Parse csv line
   RecordType parseCsvLine(const std::string& line,
                           std::list<std::string>* message_list) const noexcept;
+
+  //! Convert a CSV line to C++ values
+  template <std::size_t ...indices>
+  static RecordType toCxx(const std::smatch& result,
+                          std::index_sequence<indices...>) noexcept;
 
 
   std::list<RecordType> data_;

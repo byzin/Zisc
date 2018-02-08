@@ -11,8 +11,10 @@
 #define ZISC_STRING_HPP
 
 // Standard C++ library
+#include <array>
 #include <cstddef>
 #include <string>
+#include <string_view>
 #include <regex>
 // Zisc
 #include "zisc/zisc_config.hpp"
@@ -24,264 +26,201 @@ namespace zisc {
   \details
   No detailed.
   */
-template <typename CharType, uint N>
+template <typename CharType, uint kN>
 class BasicString
 {
+  static_assert(0 < kN, "The N is zero.");
+  using ArrayType = std::array<CharType, kN>;
+
  public:
+  //! Type aliases for STL
+  using value_type = typename ArrayType::value_type;
+  using size_type = uint;
+  using difference_type = typename ArrayType::difference_type;
+  using reference = typename ArrayType::reference;
+  using const_reference = typename ArrayType::const_reference;
+  using pointer = typename ArrayType::pointer;
+  using const_pointer = typename ArrayType::const_pointer;
+  using iterator = typename ArrayType::iterator;
+  using const_iterator = typename ArrayType::const_iterator;
+  using reverse_iterator = typename ArrayType::reverse_iterator;
+  using const_reverse_iterator = typename ArrayType::const_reverse_iterator;
+
+
   //! Create a empty string
   constexpr BasicString() noexcept;
 
   //! Create a string
-  constexpr BasicString(const CharType (&string)[N]) noexcept;
+  constexpr BasicString(const CharType (&other)[kN]) noexcept;
 
 
-  //! Lexicographically compares two strings
-  constexpr bool operator==(const CharType* other) const noexcept;
+  //! For STL
+  //! Return an iterator to the first element of the containter
+  constexpr iterator begin() noexcept;
 
-  //! Lexicographically compares two strings
-  template <uint M>
-  constexpr bool operator==(const BasicString<CharType, M>& other) const noexcept;
+  //! Return an iterator to the first element of the containter
+  constexpr const_iterator begin() const noexcept;
 
-  //! Lexicographically compares two strings
-  constexpr bool operator!=(const CharType* other) const noexcept;
+  //! Return an iterator to the first element of the containter
+  constexpr const_iterator cbegin() const noexcept;
 
-  //! Lexicographically compares two strings
-  template <uint M>
-  constexpr bool operator!=(const BasicString<CharType, M>& other) const noexcept;
+  //! Return an iterator following the last element of the container
+  constexpr iterator end() noexcept;
 
-  //! Access specified character
-  constexpr CharType& operator[](const uint index) noexcept;
+  //! Return an iterator following the last element of the container
+  constexpr const_iterator end() const noexcept;
 
-  //! Access specified character
-  constexpr const CharType& operator[](const uint index) const noexcept;
-
+  //! Return an iterator following the last element of the container
+  constexpr const_iterator cend() const noexcept;
 
 
   //! Access specified character
-  constexpr CharType& get(const uint index) noexcept;
+  constexpr reference operator[](const uint index) noexcept;
 
   //! Access specified character
-  constexpr const CharType& get(const uint index) const noexcept;
+  constexpr const_reference operator[](const uint index) const noexcept;
+
+
+  //! Return the reference of the array
+  constexpr ArrayType& data() noexcept;
+
+  //! Return the reference of the array
+  constexpr const ArrayType& data() const noexcept;
+
+  //! Access specified character
+  constexpr reference get(const uint index) noexcept;
+
+  //! Access specified character
+  constexpr const_reference get(const uint index) const noexcept;
 
   //! Returns the number of CharType elements in the string
-  constexpr uint size() const noexcept;
+  constexpr size_type size() const noexcept;
 
   //! Return a standard c character array
-  const CharType* toCString() const noexcept;
+  constexpr const_pointer toCString() const noexcept;
 
   //! Convert to std::string
   std::string toStdString() const noexcept;
 
  private:
-  //! Initialize a string
-  constexpr void initialize(const CharType (&string)[N]) noexcept;
+  //! Make a array
+  template <std::size_t ...indices>
+  static constexpr ArrayType makeArray(const CharType (&other)[kN],
+                                       std::index_sequence<indices...>) noexcept;
 
-  //! Copy a string
-  constexpr void initialize(const BasicString& other) noexcept;
+  //! Make a empty array
+  static constexpr ArrayType makeEmptyArray() noexcept;
 
 
-  CharType string_[N];
+  ArrayType data_;
 };
 
 // Constexpr string aliases
-template <uint N>
-using String = BasicString<char, N>;
-
-
-//! Concatenates two strings
-template <typename CharType, uint N1, uint N2>
-constexpr BasicString<CharType, N1 + N2 - 1> operator+(
-    const BasicString<CharType, N1>& string1,
-    const BasicString<CharType, N2>& string2) noexcept;
+template <uint kN>
+using String = BasicString<char, kN>;
 
 //! Concatenates two strings
-template <uint N1, uint N2>
-constexpr String<N1 + N2 - 1> operator+(
-    const char (&string1)[N1],
-    const String<N2>& string2) noexcept;
+template <typename CharType, uint kN1, uint kN2>
+constexpr BasicString<CharType, kN1 + kN2 - 1> operator+(
+    const BasicString<CharType, kN1>& lhs,
+    const BasicString<CharType, kN2>& rhs) noexcept;
 
 //! Concatenates two strings
-template <uint N1, uint N2>
-constexpr String<N1 + N2 - 1> operator+(
-    const String<N1>& string1,
-    const char (&string2)[N2]) noexcept;
+template <typename CharType, uint kN1, uint kN2>
+constexpr BasicString<CharType, kN1 + kN2 - 1> operator+(
+    const CharType (&lhs)[kN1],
+    const BasicString<CharType, kN2>& rhs) noexcept;
 
 //! Concatenates two strings
-template <typename CharType, uint N1, uint N2>
-constexpr BasicString<CharType, N1 + N2 - 1> concatenate(
-    const BasicString<CharType, N1>& string1, 
-    const BasicString<CharType, N2>& string2) noexcept;
+template <typename CharType, uint kN1, uint kN2>
+constexpr BasicString<CharType, kN1 + kN2 - 1> operator+(
+    const BasicString<CharType, kN1>& lhs,
+    const CharType (&rhs)[kN2]) noexcept;
+
+//! Lexicographically compares two strings
+template <typename CharType, uint kN1, uint kN2>
+constexpr bool operator==(
+    const BasicString<CharType, kN1>& lhs,
+    const BasicString<CharType, kN2>& rhs) noexcept;
+
+//! Lexicographically compares two strings
+template <typename CharType, uint kN>
+constexpr bool operator==(
+    const CharType* lhs,
+    const BasicString<CharType, kN>& rhs) noexcept;
+
+//! Lexicographically compares two strings
+template <typename CharType, uint kN>
+constexpr bool operator==(
+    const BasicString<CharType, kN>& lhs,
+    const CharType* rhs) noexcept;
+
+//! Lexicographically compares two strings
+template <typename CharType, uint kN>
+constexpr bool operator==(
+    const std::basic_string_view<CharType>& lhs,
+    const BasicString<CharType, kN>& rhs) noexcept;
+
+//! Lexicographically compares two strings
+template <typename CharType, uint kN>
+constexpr bool operator==(
+    const BasicString<CharType, kN>& lhs,
+    const std::basic_string_view<CharType>& rhs) noexcept;
+
+//! Lexicographically compares two strings
+template <typename CharType, uint kN1, uint kN2>
+constexpr bool operator!=(
+    const BasicString<CharType, kN1>& lhs,
+    const BasicString<CharType, kN2>& rhs) noexcept;
+
+//! Lexicographically compares two strings
+template <typename CharType, uint kN>
+constexpr bool operator!=(
+    const CharType* lhs,
+    const BasicString<CharType, kN>& rhs) noexcept;
+
+//! Lexicographically compares two strings
+template <typename CharType, uint kN>
+constexpr bool operator!=(
+    const BasicString<CharType, kN>& lhs,
+    const CharType* rhs) noexcept;
+
+//! Lexicographically compares two strings
+template <typename CharType, uint kN>
+constexpr bool operator!=(
+    const std::basic_string_view<CharType>& lhs,
+    const BasicString<CharType, kN>& rhs) noexcept;
+
+//! Lexicographically compares two strings
+template <typename CharType, uint kN>
+constexpr bool operator!=(
+    const BasicString<CharType, kN>& lhs,
+    const std::basic_string_view<CharType>& rhs) noexcept;
 
 //! Concatenates two strings
-template <uint N1, uint N2>
-constexpr String<N1 + N2 - 1> concatenate(
-    const char (&string1)[N1],
-    const String<N2>& string2) noexcept;
+template <typename CharType, uint kN1, uint kN2>
+constexpr BasicString<CharType, kN1 + kN2 - 1> concatenate(
+    const BasicString<CharType, kN1>& lhs, 
+    const BasicString<CharType, kN2>& rhs) noexcept;
 
 //! Concatenates two strings
-template <uint N1, uint N2>
-constexpr String<N1 + N2 - 1> concatenate(
-    const String<N1>& string1, 
-    const char (&string2)[N2]) noexcept;
+template <typename CharType, uint kN1, uint kN2>
+constexpr BasicString<CharType, kN1 + kN2 - 1> concatenate(
+    const CharType (&lhs)[kN1],
+    const BasicString<CharType, kN2>& rhs) noexcept;
 
+//! Concatenates two strings
+template <typename CharType, uint kN1, uint kN2>
+constexpr BasicString<CharType, kN1 + kN2 - 1> concatenate(
+    const BasicString<CharType, kN1>& lhs, 
+    const CharType (&rhs)[kN2]) noexcept;
 
 //! Convert the string to String class
-template <uint N>
-constexpr String<N> toString(const char (&string)[N]) noexcept;
-
-//! Return the length of the string
-constexpr std::size_t getStringLength(const char* string) noexcept;
-
-/*!
-  \details
-  No detailed.
-  */
-class ValueString
-{
- public:
-  //! Create a ValueString instance
-  ValueString() noexcept;
-
-
-  //! Check quickly if a string represents an boolean 
-  bool isBoolean(const char* string) const noexcept;
-
-  //! Check quickly if a string represents an boolean
-  bool isBoolean(const std::string& string) const noexcept;
-
-  //! Check quickly if a string represents a float
-  bool isFloat(const char* string) const noexcept;
-
-  //! Check quickly if a string represents a float
-  bool isFloat(const std::string& string) const noexcept;
-
-  //! Check quickly if a string represents an integer
-  bool isInteger(const char* string) const noexcept;
-
-  //! Check quickly if a string represents an integer
-  bool isInteger(const std::string& string) const noexcept;
-
-  //! Check quickly if a string represents a standard C++ string
-  bool isCxxString(const char* string) const noexcept;
-
-  //! Check quickly if a string represents a standard C++ string
-  bool isCxxString(const std::string& string) const noexcept;
-
- private:
-  using RegexOptionType = std::regex_constants::syntax_option_type;
-
-
-  //! Return the regex option
-  static constexpr RegexOptionType regexOption() noexcept;
-
-
-  std::regex float_pattern_;
-  std::regex int_pattern_;
-  std::regex string_pattern_;
-};
-
-//! Convert a string to an boolean
-bool toBoolean(const char* string) noexcept;
-
-//! Convert a string to an boolean
-bool toBoolean(const std::string& string) noexcept;
-
-//! Convert a string to a floating point
-template <typename Float>
-Float toFloat(const char* string) noexcept;
-
-//! Convert a string to a floating point
-template <typename Float>
-Float toFloat(const std::string& string) noexcept;
-
-//! Convert a string to an integer
-template <typename Integer> 
-Integer toInteger(const char* string) noexcept;
-
-//! Convert a string to an integer
-template <typename Integer> 
-Integer toInteger(const std::string& string) noexcept;
-
-//! Convert a string to a c++ value
-template <typename Type>
-Type toCxxValue(const char* string) noexcept;
-
-//! Convert a string to a c++ value
-template <typename Type>
-Type toCxxValue(const std::string& string) noexcept;
-
-//! Convert a string to a standard C++ string
-std::string toCxxString(const char* string) noexcept;
-
-//! Convert a string to a standard C++ string
-std::string toCxxString(const std::string& string) noexcept;
-
-//! Check if a string represents an boolean
-bool isBooleanString(const char* string) noexcept;
-
-//! Check if a string represents an boolean
-bool isBooleanString(const std::string& string) noexcept;
-
-//! Check if a string represents a floating point
-bool isFloatString(const char* string) noexcept;
-
-//! Check if a string represents a floating point
-bool isFloatString(const std::string& string) noexcept;
-
-//! Check if a string represents an integer
-bool isIntegerString(const char* string) noexcept;
-
-//! Check if a string represents an integer
-bool isIntegerString(const std::string& string) noexcept;
-
-//! Check if a string represents a standard C++ string
-bool isCxxStringString(const char* string) noexcept;
-
-//! Check if a string represents a standard C++ string
-bool isCxxStringString(const std::string& string) noexcept;
-
-//! Removes all spaces from the beginning and end of the supplied string.
-std::string& trim(std::string* string) noexcept;
-
-//! Removes all spaces from the beginning and end of the supplied string.
-std::string trimmed(const std::string& string) noexcept;
-
-//! Replace CR or CR + LF to LF
-void replaceLineFeedCodeToUnixStyle(std::string* text) noexcept;
-
-//! Replace line feed code (CR or LF) to spaces
-void replaceLineFeedCodeToSpaces(std::string* text) noexcept;
+template <typename CharType, uint kN>
+constexpr BasicString<CharType, kN> toString(const CharType (&other)[kN]) noexcept;
 
 } // namespace zisc
 
 #include "string-inl.hpp"
-
-namespace zisc {
-
-//! Return the regex pattern of boolean
-constexpr auto getBooleanPattern() noexcept
-{
-  return inner::ValueStringPattern::boolean();
-}
-
-//! Return the regex pattern of floating-point
-constexpr auto getFloatPattern() noexcept
-{
-  return inner::ValueStringPattern::floatingPoint();
-}
-
-//! Return the regex pattern of integer
-constexpr auto getIntegerPattern() noexcept
-{
-  return inner::ValueStringPattern::integer();
-}
-
-//! Return the regex pattern of string
-constexpr auto getStringPattern() noexcept
-{
-  return inner::ValueStringPattern::string();
-}
-
-} // namespace zisc
 
 #endif // ZISC_STRING_HPP

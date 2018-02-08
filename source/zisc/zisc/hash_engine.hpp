@@ -13,6 +13,7 @@
 // Standard C++ library
 #include <cstdint>
 #include <cstddef>
+#include <string_view>
 #include <type_traits>
 // Zisc
 #include "zisc/zisc_config.hpp"
@@ -30,6 +31,9 @@ class HashEngine
  public:
   //! Compute a hash value
   static constexpr ResultType hash(const char* seed) noexcept;
+
+  //! Compute a hash value
+  static constexpr ResultType hash(const std::string_view seed) noexcept;
 
   //! Compute a hash value
   static constexpr ResultType hash(const uint8* seed,

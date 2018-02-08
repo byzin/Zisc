@@ -14,6 +14,7 @@
 // Standard C++ library
 #include <type_traits>
 #include <iterator>
+#include <string>
 // Zisc
 #include "utility.hpp"
 
@@ -23,17 +24,17 @@ namespace inner {
 
 //! Check if Type is boolean type
 template <typename Type>
-using IsBoolean = std::is_same<bool, typename std::remove_cv<Type>::type>;
+using IsBoolean = std::is_same<bool, std::remove_cv_t<Type>>;
 
 //! Check if Type is bloating point type
 template <typename Type>
-using IsFloat = std::is_floating_point<Type>;
+using IsFloat = std::is_floating_point<std::remove_cv_t<Type>>;
 
 //! Check if Type is integer type
 template <typename Type>
 struct IsInteger
 {
-  static constexpr bool value = std::is_integral<Type>::value && 
+  static constexpr bool value = std::is_integral_v<std::remove_cv_t<Type>> && 
                                 !IsBoolean<Type>::value;
 };
 
@@ -42,7 +43,7 @@ template <typename Type>
 struct IsUnsignedInteger
 {
   static constexpr bool value = IsInteger<Type>::value && 
-                                std::is_unsigned<Type>::value;
+                                std::is_unsigned_v<std::remove_cv_t<Type>>;
 };
 
 //! Check if Type is signed integer type
@@ -112,6 +113,10 @@ struct IsRandomAccessIterator<void> : std::false_type {};
 //! Check if Type is iterator type
 template <>
 struct IsRandomAccessIterator<void*> : std::false_type {};
+
+//! Check if Type is boolean type
+template <typename Type>
+using IsStdString = std::is_same<std::string, std::remove_cv_t<Type>>;
 
 } // namespace inner
 

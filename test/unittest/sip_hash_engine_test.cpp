@@ -15,6 +15,7 @@
 #include <iostream>
 #include <iomanip>
 #include <string>
+#include <string_view>
 // GoogleTest
 #include "gtest/gtest.h"
 // Zisc
@@ -58,7 +59,7 @@ void testSipHash(const std::string& reference_file_path)
 
     const Type result = zisc::SipHashEngine<Type>::hash(input_list.data(), i);
     const Type expected = to_uint(output_list);
-    ASSERT_EQ(expected, result) << "Hash test[" << i << "] failed.";
+    EXPECT_EQ(expected, result) << "Hash test[" << i << "] failed.";
   }
 }
 
@@ -78,11 +79,14 @@ TEST(SipHashEngineTest, 32BitHashTest)
 
     constexpr char seed1[] = {1, 2, 3, 4, '\0'};
     constexpr auto result1 = SipHash::hash(seed1);
-    ASSERT_EQ(expected, result1) << "Char array hash function test failed.";
+    EXPECT_EQ(*reinterpret_cast<const zisc::uint32*>(seed0.data()),
+              *reinterpret_cast<const zisc::uint32*>(seed1));
+    EXPECT_EQ(expected, result1) << "Char array hash function test failed.";
 
     constexpr zisc::uint32 seed2 = 0x04030201;
     constexpr auto result2 = SipHash::hash(seed2);
-    ASSERT_EQ(expected, result2) << "Uint array hash function test failed.";
+    EXPECT_EQ(*reinterpret_cast<const zisc::uint32*>(seed0.data()), seed2);
+    EXPECT_EQ(expected, result2) << "Uint array hash function test failed.";
   }
 }
 
@@ -102,11 +106,14 @@ TEST(SipHashEngineTest, 64BitHashTest)
 
     constexpr char seed1[] = {1, 2, 3, 4, 5, 6, 7, 8, '\0'};
     constexpr auto result1 = SipHash::hash(seed1);
-    ASSERT_EQ(expected, result1) << "Char array hash function test failed.";
+    EXPECT_EQ(*reinterpret_cast<const zisc::uint64*>(seed0.data()),
+              *reinterpret_cast<const zisc::uint64*>(seed1));
+    EXPECT_EQ(expected, result1) << "Char array hash function test failed.";
 
     constexpr zisc::uint64 seed2 = 0x0807060504030201;
     constexpr auto result2 = SipHash::hash(seed2);
-    ASSERT_EQ(expected, result2) << "Uint array hash function test failed.";
+    EXPECT_EQ(*reinterpret_cast<const zisc::uint64*>(seed0.data()), seed2);
+    EXPECT_EQ(expected, result2) << "Uint array hash function test failed.";
   }
 }
 

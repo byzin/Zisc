@@ -11,6 +11,8 @@
 #define ZISC_FLOATING_POINT_BIT_INL_HPP
 
 #include "floating_point_bit.hpp"
+// Standard C++ library
+#include <limits>
 // Zisc
 #include "utility.hpp"
 #include "zisc/zisc_config.hpp"
@@ -18,15 +20,17 @@
 namespace zisc {
 
 template <>
-struct FloatingPointUtility<float>
+struct FloatingPointUtility<4>
 {
   using BitType = uint32;
+  using FloatType = float;
 };
 
 template <>
-struct FloatingPointUtility<double>
+struct FloatingPointUtility<8>
 {
   using BitType = uint64;
+  using FloatType = double;
 };
 
 /*!
@@ -116,8 +120,8 @@ constexpr auto DoubleBit::exponentBitSize() noexcept -> BitType
 /*!
   */
 template <typename Float> inline
-constexpr auto FloatingPointBit<Float>::getExponentBits(
-    const Float value) noexcept -> BitType
+auto FloatingPointBit<Float>::getExponentBits(const FloatType value) noexcept
+    -> BitType
 {
   const BitF v{value};
   return (exponentBitMask() & v.bit_);
@@ -126,8 +130,8 @@ constexpr auto FloatingPointBit<Float>::getExponentBits(
 /*!
   */
 template <typename Float> inline
-constexpr auto FloatingPointBit<Float>::getMantissaBits(
-    const Float value) noexcept -> BitType
+auto FloatingPointBit<Float>::getMantissaBits(const FloatType value) noexcept
+    -> BitType
 {
   const BitF v{value};
   return (mantissaBitMask() & v.bit_);
@@ -136,8 +140,8 @@ constexpr auto FloatingPointBit<Float>::getMantissaBits(
 /*!
   */
 template <typename Float> inline
-constexpr auto FloatingPointBit<Float>::getSignBit(
-    const Float value) noexcept -> BitType
+auto FloatingPointBit<Float>::getSignBit(const FloatType value) noexcept
+    -> BitType
 {
   const BitF v{value};
   return (signBitMask() & v.bit_);
@@ -161,7 +165,7 @@ constexpr auto FloatingPointBit<Float>::halfExponentBits(
 /*!
   */
 template <typename Float> inline
-constexpr bool FloatingPointBit<Float>::isOddExponent(const Float value) noexcept
+bool FloatingPointBit<Float>::isOddExponent(const FloatType value) noexcept
 {
   const BitF v{value};
   return isOddExponent(v.bit_);
@@ -181,8 +185,7 @@ constexpr bool FloatingPointBit<Float>::isOddExponent(
 /*!
   */
 template <typename Float> inline
-constexpr bool FloatingPointBit<Float>::isPositiveExponent(
-    const Float value) noexcept
+bool FloatingPointBit<Float>::isPositiveExponent(const FloatType value) noexcept
 {
   const BitF v{value};
   return isPositiveExponent(v.bit_);
@@ -201,9 +204,9 @@ constexpr bool FloatingPointBit<Float>::isPositiveExponent(
 /*!
   */
 template <typename Float> inline
-constexpr auto FloatingPointBit<Float>::makeFloat(
-    const BitType mantissa_bits, 
-    const BitType exponent_bits) noexcept -> Float
+auto FloatingPointBit<Float>::makeFloat(const BitType mantissa_bits, 
+                                        const BitType exponent_bits) noexcept
+    -> FloatType
 {
   const BitF v{mantissa_bits | exponent_bits};
   return v.float_;
@@ -212,10 +215,10 @@ constexpr auto FloatingPointBit<Float>::makeFloat(
 /*!
   */
 template <typename Float> inline
-constexpr auto FloatingPointBit<Float>::makeFloat(
-    const BitType sign_bit,
-    const BitType mantissa_bits, 
-    const BitType exponent_bits) noexcept -> Float
+auto FloatingPointBit<Float>::makeFloat(const BitType sign_bit,
+                                        const BitType mantissa_bits, 
+                                        const BitType exponent_bits) noexcept
+    -> FloatType
 {
   const BitF v{sign_bit | mantissa_bits | exponent_bits};
   return v.float_;
@@ -237,6 +240,19 @@ constexpr auto DoubleBit::mantissaBitMask() noexcept -> BitType
 {
   constexpr BitType bit_mask = 0xfffffffffffffull;
   return bit_mask;
+}
+
+/*!
+  */
+template <typename Float> inline
+constexpr auto FloatingPointBit<Float>::mapTo01Float(BitType x) noexcept
+    -> FloatType
+{
+  constexpr FloatType k =
+      cast<FloatType>(1.0) /
+      cast<FloatType>(cast<BitType>(1) << (mantissaBitSize() + 1));
+  x = x >> exponentBitSize();
+  return k * x;
 }
 
 /*!

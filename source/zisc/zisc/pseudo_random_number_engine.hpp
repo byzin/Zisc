@@ -13,14 +13,11 @@
 // Standard C++ library
 #include <cstdint>
 // Zisc
+#include "floating_point_bit.hpp"
 #include "type_traits.hpp"
 #include "zisc/zisc_config.hpp"
 
 namespace zisc {
-
-/*!
-  */
-template <uint Byte> struct PrnEngineFloatInfo;
 
 /*!
   \brief Base class of pseudo random number algorithm
@@ -37,7 +34,7 @@ class PseudoRandomNumberEngine
   using GeneratorType = GeneratorClass;
   using SeedType = Seed;
   using ResultType = Result;
-  using FloatType = typename PrnEngineFloatInfo<sizeof(Result)>::FloatType;
+  using FloatType = typename FloatingPointUtility<sizeof(ResultType)>::FloatType;
 
 
   //! Generate a random number
@@ -58,9 +55,6 @@ class PseudoRandomNumberEngine
   //! Generate a [0, 1) float random number
   FloatType generate01() noexcept;
 
-  //! Map an integer value to a [0, 1) floating point value
-  static FloatType mapTo01Float(const ResultType x) noexcept;
-
   //! Set a random seed
   void setSeed(const SeedType seed) noexcept;
 
@@ -73,15 +67,6 @@ class PseudoRandomNumberEngine
 
   // Delete function
   PseudoRandomNumberEngine& operator=(const PseudoRandomNumberEngine&) = delete;
-
- private:
-  //! Used for conversion from integer to float
-  union FloatValue
-  {
-    ResultType integer_;
-    FloatType float_;
-    FloatValue(const ResultType integer) : integer_{integer} {}
-  };
 };
 
 template <typename GeneratorClass>

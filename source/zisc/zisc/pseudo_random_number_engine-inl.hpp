@@ -16,35 +16,12 @@
 #include <type_traits>
 // Zisc
 #include "error.hpp"
+#include "floating_point_bit.hpp"
 #include "type_traits.hpp"
 #include "utility.hpp"
 #include "zisc/zisc_config.hpp"
 
 namespace zisc {
-
-template <>
-struct PrnEngineFloatInfo<sizeof(float)>
-{
-  using BitType = uint32;
-  using FloatType = float;
-  static constexpr int kFloatBitSize = sizeof(float) * 8;
-  static constexpr int kMantissaBitSize = 23;
-  static constexpr int kNonMantissaBitSize = kFloatBitSize - kMantissaBitSize;
-  static constexpr uint32 kExponentBit = cast<uint32>(127u) << kMantissaBitSize;
-  static constexpr int kOffsetFrom32Bit = 0;
-};
-
-template <>
-struct PrnEngineFloatInfo<sizeof(double)>
-{
-  using BitType = uint64;
-  using FloatType = double;
-  static constexpr int kFloatBitSize = sizeof(double) * 8;
-  static constexpr int kMantissaBitSize = 52;
-  static constexpr int kNonMantissaBitSize = kFloatBitSize - kMantissaBitSize;
-  static constexpr uint64 kExponentBit = cast<uint64>(1023ull) << kMantissaBitSize;
-  static constexpr int kOffsetFrom32Bit = 32;
-};
 
 /*!
   \details
@@ -108,22 +85,7 @@ auto PseudoRandomNumberEngine<GeneratorClass, Seed, Result>::generate01() noexce
   // Generate a integer random number
   const Result x = generate();
   // Map to a [0, 1) float
-  return mapTo01Float(x);
-}
-
-/*!
-  */
-template <typename GeneratorClass, typename Seed, typename Result> inline
-auto PseudoRandomNumberEngine<GeneratorClass, Seed, Result>::mapTo01Float(
-    const ResultType x) noexcept -> FloatType
-{
-  using FloatInfo = PrnEngineFloatInfo<sizeof(Result)>;
-  constexpr auto exponent = FloatInfo::kExponentBit;
-  const FloatValue u{exponent | (x >> FloatInfo::kNonMantissaBitSize)};
-  const FloatType value = u.float_ - cast<FloatType>(1.0);
-  ZISC_ASSERT(isInBounds(value, cast<FloatType>(0.0), cast<FloatType>(1.0)),
-              "The value is out of range [0, 1).");
-  return value;
+  return FloatingPointBit<FloatType>::mapTo01Float(x);
 }
 
 /*!
@@ -145,10 +107,6 @@ template <typename GeneratorClass, typename Seed, typename Result> inline
 PseudoRandomNumberEngine<GeneratorClass, Seed, Result>::PseudoRandomNumberEngine()
     noexcept
 {
-  static_assert(sizeof(FloatValue) == sizeof(ResultType), "The union is invalid.");
-  static_assert(sizeof(FloatValue) == sizeof(FloatType), "The union is invalid.");
-  static_assert(alignof(FloatValue) == alignof(ResultType), "The union is invalid.");
-  static_assert(alignof(FloatValue) == alignof(FloatType), "The union is invalid.");
 }
 
 /*!

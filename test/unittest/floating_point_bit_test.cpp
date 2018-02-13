@@ -53,7 +53,7 @@ TEST(FloatingPointBitTest, getFloatExponentBitTest)
   {
     constexpr float value = 1.2345f;
     constexpr FloatBit::BitType reference = 0b0111'1111u << 23;
-    ASSERT_EQ(reference, FloatBit::getExponentBits(value));
+    EXPECT_EQ(reference, FloatBit::getExponentBits(value));
   }
 }
 
@@ -64,7 +64,7 @@ TEST(FloatingPointBitTest, getDoubleExponentBitTest)
   {
     constexpr double value = 1.2345;
     constexpr DoubleBit::BitType reference = 0b0011'1111'1111ull << 52;
-    ASSERT_EQ(reference, DoubleBit::getExponentBits(value));
+    EXPECT_EQ(reference, DoubleBit::getExponentBits(value));
   }
 }
 
@@ -73,8 +73,8 @@ TEST(FloatingPointBitTest, getFloatSignBitTest)
   using zisc::FloatBit;
   constexpr float value1 = 1.0f;
   constexpr float value2 = -1.0f;
-  ASSERT_EQ(0, FloatBit::getSignBit(value1));
-  ASSERT_NE(0, FloatBit::getSignBit(value2));
+  EXPECT_EQ(0, FloatBit::getSignBit(value1));
+  EXPECT_NE(0, FloatBit::getSignBit(value2));
 }
 
 TEST(FloatingPointBitTest, getDoubleSignBitTest)
@@ -82,8 +82,8 @@ TEST(FloatingPointBitTest, getDoubleSignBitTest)
   using zisc::DoubleBit;
   constexpr double value1 = 1.0;
   constexpr double value2 = -1.0;
-  ASSERT_EQ(0, DoubleBit::getSignBit(value1));
-  ASSERT_NE(0, DoubleBit::getSignBit(value2));
+  EXPECT_EQ(0, DoubleBit::getSignBit(value1));
+  EXPECT_NE(0, DoubleBit::getSignBit(value2));
 }
 
 TEST(FloatingPointBitTest, getHalfFloatExponentBitTest)
@@ -94,7 +94,7 @@ TEST(FloatingPointBitTest, getHalfFloatExponentBitTest)
     auto exponent = DoubleBit::getExponentBits(value);
     exponent = DoubleBit::halfExponentBits(exponent);
     const zisc::int64 actual = zisc::cast<zisc::int64>(exponent >> 52) - 1023;
-    ASSERT_EQ(expected, actual) << "Float: " << value << " half exponent test failed.";
+    EXPECT_EQ(expected, actual) << "Float: " << value << " half exponent test failed.";
   };
   half_float_exponent(0.0625, -2);
   half_float_exponent(0.125, -1);
@@ -113,65 +113,65 @@ TEST(FloatingPointBitTest, getHalfFloatExponentBitTest)
 TEST(FloatingPointBitTest, isPositiveExponentFloatTest)
 {
   using zisc::FloatBit;
-  ASSERT_FALSE(FloatBit::isPositiveExponent(0.0625f));
-  ASSERT_FALSE(FloatBit::isPositiveExponent(0.125f));
-  ASSERT_FALSE(FloatBit::isPositiveExponent(0.25f));
-  ASSERT_FALSE(FloatBit::isPositiveExponent(0.5f));
-  ASSERT_FALSE(FloatBit::isPositiveExponent(1.0f));
-  ASSERT_TRUE(FloatBit::isPositiveExponent(2.0f));
-  ASSERT_TRUE(FloatBit::isPositiveExponent(4.0f));
-  ASSERT_TRUE(FloatBit::isPositiveExponent(8.0f));
-  ASSERT_TRUE(FloatBit::isPositiveExponent(16.0f));
-  ASSERT_TRUE(FloatBit::isPositiveExponent(32.0f));
-  ASSERT_TRUE(FloatBit::isPositiveExponent(64.0f));
+  EXPECT_FALSE(FloatBit::isPositiveExponent(0.0625f));
+  EXPECT_FALSE(FloatBit::isPositiveExponent(0.125f));
+  EXPECT_FALSE(FloatBit::isPositiveExponent(0.25f));
+  EXPECT_FALSE(FloatBit::isPositiveExponent(0.5f));
+  EXPECT_FALSE(FloatBit::isPositiveExponent(1.0f));
+  EXPECT_TRUE(FloatBit::isPositiveExponent(2.0f));
+  EXPECT_TRUE(FloatBit::isPositiveExponent(4.0f));
+  EXPECT_TRUE(FloatBit::isPositiveExponent(8.0f));
+  EXPECT_TRUE(FloatBit::isPositiveExponent(16.0f));
+  EXPECT_TRUE(FloatBit::isPositiveExponent(32.0f));
+  EXPECT_TRUE(FloatBit::isPositiveExponent(64.0f));
 }
 
 TEST(FloatingPointBitTest, isPositiveExponentDoubleTest)
 {
   using zisc::DoubleBit;
-  ASSERT_FALSE(DoubleBit::isPositiveExponent(0.0625));
-  ASSERT_FALSE(DoubleBit::isPositiveExponent(0.125));
-  ASSERT_FALSE(DoubleBit::isPositiveExponent(0.25));
-  ASSERT_FALSE(DoubleBit::isPositiveExponent(0.5));
-  ASSERT_FALSE(DoubleBit::isPositiveExponent(1.0));
-  ASSERT_TRUE(DoubleBit::isPositiveExponent(2.0));
-  ASSERT_TRUE(DoubleBit::isPositiveExponent(4.0));
-  ASSERT_TRUE(DoubleBit::isPositiveExponent(8.0));
-  ASSERT_TRUE(DoubleBit::isPositiveExponent(16.0));
-  ASSERT_TRUE(DoubleBit::isPositiveExponent(32.0));
-  ASSERT_TRUE(DoubleBit::isPositiveExponent(64.0));
+  EXPECT_FALSE(DoubleBit::isPositiveExponent(0.0625));
+  EXPECT_FALSE(DoubleBit::isPositiveExponent(0.125));
+  EXPECT_FALSE(DoubleBit::isPositiveExponent(0.25));
+  EXPECT_FALSE(DoubleBit::isPositiveExponent(0.5));
+  EXPECT_FALSE(DoubleBit::isPositiveExponent(1.0));
+  EXPECT_TRUE(DoubleBit::isPositiveExponent(2.0));
+  EXPECT_TRUE(DoubleBit::isPositiveExponent(4.0));
+  EXPECT_TRUE(DoubleBit::isPositiveExponent(8.0));
+  EXPECT_TRUE(DoubleBit::isPositiveExponent(16.0));
+  EXPECT_TRUE(DoubleBit::isPositiveExponent(32.0));
+  EXPECT_TRUE(DoubleBit::isPositiveExponent(64.0));
 }
 
 TEST(FloatingPointBitTest, isOddExponentFloatTest)
 {
   using zisc::FloatBit;
-  ASSERT_FALSE(FloatBit::isOddExponent(0.0625f));
-  ASSERT_TRUE(FloatBit::isOddExponent(0.125f));
-  ASSERT_FALSE(FloatBit::isOddExponent(0.25f));
-  ASSERT_TRUE(FloatBit::isOddExponent(0.5f));
-  ASSERT_FALSE(FloatBit::isOddExponent(1.0f));
-  ASSERT_TRUE(FloatBit::isOddExponent(2.0f));
-  ASSERT_FALSE(FloatBit::isOddExponent(4.0f));
-  ASSERT_TRUE(FloatBit::isOddExponent(8.0f));
-  ASSERT_FALSE(FloatBit::isOddExponent(16.0f));
-  ASSERT_TRUE(FloatBit::isOddExponent(32.0f));
-  ASSERT_FALSE(FloatBit::isOddExponent(64.0f));
+  EXPECT_FALSE(FloatBit::isOddExponent(0.0625f));
+  EXPECT_TRUE(FloatBit::isOddExponent(0.125f));
+  EXPECT_FALSE(FloatBit::isOddExponent(0.25f));
+  EXPECT_TRUE(FloatBit::isOddExponent(0.5f));
+  EXPECT_FALSE(FloatBit::isOddExponent(1.0f));
+  EXPECT_TRUE(FloatBit::isOddExponent(2.0f));
+  EXPECT_FALSE(FloatBit::isOddExponent(4.0f));
+  EXPECT_TRUE(FloatBit::isOddExponent(8.0f));
+  EXPECT_FALSE(FloatBit::isOddExponent(16.0f));
+  EXPECT_TRUE(FloatBit::isOddExponent(32.0f));
+  EXPECT_FALSE(FloatBit::isOddExponent(64.0f));
 }
 
 TEST(FloatingPointBitTest, isOddExponentDoubleTest)
 {
   using zisc::DoubleBit;
-  ASSERT_FALSE(DoubleBit::isOddExponent(0.0625));
-  ASSERT_TRUE(DoubleBit::isOddExponent(0.125));
-  ASSERT_FALSE(DoubleBit::isOddExponent(0.25));
-  ASSERT_TRUE(DoubleBit::isOddExponent(0.5));
-  ASSERT_FALSE(DoubleBit::isOddExponent(1.0));
-  ASSERT_TRUE(DoubleBit::isOddExponent(2.0));
-  ASSERT_FALSE(DoubleBit::isOddExponent(4.0));
-  ASSERT_TRUE(DoubleBit::isOddExponent(8.0));
-  ASSERT_FALSE(DoubleBit::isOddExponent(16.0));
-  ASSERT_TRUE(DoubleBit::isOddExponent(32.0));
-  ASSERT_FALSE(DoubleBit::isOddExponent(64.0));
+  EXPECT_FALSE(DoubleBit::isOddExponent(0.0625));
+  EXPECT_TRUE(DoubleBit::isOddExponent(0.125));
+  EXPECT_FALSE(DoubleBit::isOddExponent(0.25));
+  EXPECT_TRUE(DoubleBit::isOddExponent(0.5));
+  EXPECT_FALSE(DoubleBit::isOddExponent(1.0));
+  EXPECT_TRUE(DoubleBit::isOddExponent(2.0));
+  EXPECT_FALSE(DoubleBit::isOddExponent(4.0));
+  EXPECT_TRUE(DoubleBit::isOddExponent(8.0));
+  EXPECT_FALSE(DoubleBit::isOddExponent(16.0));
+  EXPECT_TRUE(DoubleBit::isOddExponent(32.0));
+  EXPECT_FALSE(DoubleBit::isOddExponent(64.0));
 }
 
 TEST(FloatingPointBitTest, makeFloatTest)
@@ -182,7 +182,7 @@ TEST(FloatingPointBitTest, makeFloatTest)
     const auto e = FloatBit::getExponentBits(value);
     const auto m = FloatBit::getMantissaBits(value);
     const auto v = FloatBit::makeFloat(m, e);
-    ASSERT_FLOAT_EQ(value, v);
+    EXPECT_FLOAT_EQ(value, v);
   }
 }
 
@@ -194,6 +194,48 @@ TEST(FloatingPointBitTest, makeDoubleTest)
     const auto e = DoubleBit::getExponentBits(value);
     const auto m = DoubleBit::getMantissaBits(value);
     const auto v = DoubleBit::makeFloat(m, e);
-    ASSERT_DOUBLE_EQ(value, v);
+    EXPECT_DOUBLE_EQ(value, v);
+  }
+}
+
+TEST(FloatingPointBitTest, FloatMapTest)
+{
+  using zisc::FloatBit;
+  {
+    constexpr zisc::uint32 x = 0;
+    constexpr float result = FloatBit::mapTo01Float(x);
+    EXPECT_EQ(0.0f, result);
+  }
+  {
+    constexpr zisc::uint32 x = std::numeric_limits<zisc::uint32>::max() / 2;
+    constexpr float result = FloatBit::mapTo01Float(x);
+    EXPECT_FLOAT_EQ(0.5f, result);
+  }
+  {
+    constexpr zisc::uint32 x = std::numeric_limits<zisc::uint32>::max();
+    constexpr float result = FloatBit::mapTo01Float(x);
+    EXPECT_FLOAT_EQ(1.0f, result);
+    EXPECT_GT(1.0f, result);
+  }
+}
+
+TEST(FloatingPointBitTest, DoubleMapTest)
+{
+  using zisc::DoubleBit;
+  {
+    constexpr zisc::uint64 x = 0;
+    constexpr double result = DoubleBit::mapTo01Float(x);
+    EXPECT_EQ(0.0, result);
+  }
+  {
+    constexpr zisc::uint64 x = std::numeric_limits<zisc::uint64>::max() / 2;
+    constexpr double result = DoubleBit::mapTo01Float(x);
+    EXPECT_DOUBLE_EQ(0.5, result);
+  }
+  {
+    constexpr zisc::uint64 x = std::numeric_limits<zisc::uint64>::max();
+    constexpr double result = DoubleBit::mapTo01Float(x);
+    EXPECT_DOUBLE_EQ(1.0, result);
+    EXPECT_GT(1.0, result);
   }
 }

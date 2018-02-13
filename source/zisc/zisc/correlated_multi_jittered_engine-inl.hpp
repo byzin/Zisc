@@ -13,13 +13,13 @@
 #include "correlated_multi_jittered_engine.hpp"
 // Standard C++ library
 #include <array>
+#include <cstddef>
 #include <cstdint>
 // Zisc
+#include "floating_point_bit.hpp"
 #include "math.hpp"
-#include "pseudo_random_number_engine.hpp"
 #include "type_traits.hpp"
 #include "utility.hpp"
-#include "xorshift_engine.hpp"
 #include "zisc/zisc_config.hpp"
 
 namespace zisc {
@@ -112,11 +112,11 @@ template <uint32 kRootN> template <typename Float> inline
 Float CorrelatedMultiJitteredEngine<kRootN>::mapTo01Float(const uint32 x) noexcept
 {
   static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-  using FloatInfo = PrnEngineFloatInfo<sizeof(Float)>;
-  using BitType = typename FloatInfo::BitType;
-  using FloatMap = XorshiftEngine<BitType>;
-  const BitType value = cast<BitType>(x) << FloatInfo::kOffsetFrom32Bit;
-  return FloatMap::mapTo01Float(value);
+  using BitType = typename FloatingPointBit<Float>::BitType;
+  static_assert(sizeof(uint32) <= sizeof(BitType), "The size of BitType is small.");
+  constexpr std::size_t offset = sizeof(BitType) - sizeof(uint32);
+  const BitType value = cast<BitType>(x) << (offset * 8);
+  return FloatingPointBit<Float>::mapTo01Float(value);
 }
 
 /*!

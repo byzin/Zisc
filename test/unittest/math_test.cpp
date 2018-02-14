@@ -133,7 +133,7 @@ TEST(MathTest, PowerTest)
   ASSERT_DOUBLE_EQ(0.125, zisc::power<-3>(2.0)) << "Power test failed.";
 }
 
-TEST(MathTest, PowTest)
+TEST(MathTest, PowPerformanceTest)
 {
   const std::string func_name{"pow"};
   constexpr int start = -63;

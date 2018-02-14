@@ -30,14 +30,14 @@ namespace constant {
 
 namespace inner {
 
-template <typename Float, int64 n>
-constexpr Float calcPi() noexcept
+template <typename Float>
+constexpr Float calcPi(const int64 n) noexcept
 {
   static_assert(kIsFloat<Float>, "Float isn't floating point type.");
   constexpr Float t = cast<Float>(2.0);
   Float pi = t;
-  for (int64 k = n; 0ll < k; --k) {
-    const Float a = Fraction64{k, 2ll * k + 1ll}.toFloat<Float>();
+  for (int64 k = n; 0 < k; --k) {
+    const Float a = cast<Float>(k) / cast<Float>(2 * k + 1);
     pi = t + a * pi;
   }
   return pi;
@@ -51,8 +51,13 @@ template <typename Float>
 constexpr Float pi() noexcept
 {
   static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-  constexpr int64 n = cast<int64>(sizeof(Float)) * 8ll;
-  return inner::calcPi<Float, n>();
+  Float p = cast<Float>(1.0);
+  Float prev_p = cast<Float>(0.0);
+  for (auto n = cast<int64>(2 * sizeof(Float)); p != prev_p; n = n << 1) {
+    prev_p = p;
+    p = inner::calcPi<Float>(n);
+  }
+  return p;
 }
 
 /*!

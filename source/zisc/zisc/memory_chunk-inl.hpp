@@ -159,16 +159,15 @@ void MemoryChunk::setChunkInfo(const uint n,
   if (result != nullptr) {
     {
       const std::size_t o1 = memory_space - space;
-      ZISC_ASSERT(o1 < cast<std::size_t>(std::numeric_limits<uint8>::max()),
-                  "The size the offset1 exceeded the limit.");
+      ZISC_ASSERT(o1 < a, "The size the offset1 exceeded the limit.");
       offset_[0] = cast<uint8>(o1);
     }
     {
       constexpr std::size_t chunk_align = headerAlignment();
-      std::size_t o2 = (chunk_align - (s % chunk_align));
+      static_assert(isPowerOf2(chunk_align), "The chunk align isn't power of 2.");
+      std::size_t o2 = (chunk_align - (s & (chunk_align - 1)));
       o2 = (o2 == chunk_align) ? 0 : o2;
-      ZISC_ASSERT(o2 < cast<std::size_t>(std::numeric_limits<uint8>::max()),
-                  "The size the offset2 exceeded the limit.");
+      ZISC_ASSERT(o2 < chunk_align, "The size the offset2 exceeded the limit.");
       offset_[1] = cast<uint8>(o2);
     }
     {

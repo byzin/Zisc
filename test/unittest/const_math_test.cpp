@@ -9,6 +9,9 @@
 
 // Standard C++ library
 #include <cmath>
+#include <iostream>
+#include <iomanip>
+#include <limits>
 // GoogleTest
 #include "gtest/gtest.h"
 // Zisc
@@ -16,25 +19,40 @@
 #include "zisc/utility.hpp"
 #include "zisc/zisc_config.hpp"
 
+namespace {
+
+template <typename Float>
+void printFloat(const Float x)
+{
+  std::cout << std::fixed
+            << std::setprecision(std::numeric_limits<Float>::max_digits10)
+            << x << std::endl;
+}
+
+} // namespace 
+
 TEST(ConstMathTest, PiTest)
 {
   // Float
   {
-    constexpr float pi1 = zisc::constant::pi<float>();
-    constexpr float pi2 = zisc::constant::inner::calcPi<float, 256>();
-    EXPECT_EQ(pi2, pi1) << "pi<float>() isn't accurate.";
+    constexpr float pi = zisc::constant::pi<float>();
+    EXPECT_LT(3.14f, pi);
+    std::cout << "  float pi: ";
+    ::printFloat(pi);
   }
   // Double
   {
-    constexpr double pi1 = zisc::constant::pi<double>();
-    constexpr double pi2 = zisc::constant::inner::calcPi<double, 256>();
-    EXPECT_EQ(pi2, pi1) << "pi<double>() isn't accurate.";
+    constexpr double pi = zisc::constant::pi<double>();
+    EXPECT_LT(3.14, pi);
+    std::cout << " double pi: ";
+    ::printFloat(pi);
   }
   // Long double
   {
-    constexpr long double pi1 = zisc::constant::pi<long double>();
-    constexpr long double pi2 = zisc::constant::inner::calcPi<long double, 256>();
-    EXPECT_EQ(pi2, pi1) << "pi<long double>() isn't accurate.";
+    constexpr long double pi = zisc::constant::pi<long double>();
+    EXPECT_LT(3.14l, pi);
+    std::cout << "ldouble pi: ";
+    ::printFloat(pi);
   }
 }
 

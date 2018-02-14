@@ -37,12 +37,12 @@ TEST(CompensatedSummationTest, ConstexprSumTest)
   // Normal sum
   {
     constexpr double sum = calc_normal_sum();
-    ASSERT_NE(1.0, sum);
+    EXPECT_NE(1.0, sum);
   }
   // Compensated sum
   {
     constexpr double sum = calc_compensated_sum();
-    ASSERT_EQ(1.0, sum);
+    EXPECT_EQ(1.0, sum);
   }
 
   // 
@@ -54,7 +54,7 @@ TEST(CompensatedSummationTest, ConstexprSumTest)
     // Naive summation
     {
       constexpr double sum = (init + v1) + v2;
-      ASSERT_NE(expected, sum);
+      EXPECT_NE(expected, sum);
     }
     // Compensated summation
     {
@@ -66,7 +66,7 @@ TEST(CompensatedSummationTest, ConstexprSumTest)
         return sum.get();
       };
       constexpr double sum = get_sum(init, v1, v2);
-      ASSERT_EQ(expected, sum);
+      EXPECT_EQ(expected, sum);
     }
   }
 
@@ -74,9 +74,9 @@ TEST(CompensatedSummationTest, ConstexprSumTest)
   {
     constexpr double large_v = zisc::power<100>(10.0);
     constexpr double sum1 = ((1.0 + large_v) + 1.0) - large_v;
-    ASSERT_NE(2.0, sum1);
+    EXPECT_NE(2.0, sum1);
     constexpr zisc::CompensatedSummation<double> sum2{{1.0, large_v, 1.0, -large_v}};
-    ASSERT_EQ(2.0, sum2.get());
+    EXPECT_EQ(2.0, sum2.get());
   }
 }
 
@@ -144,12 +144,12 @@ TEST(CompensatedSummationTest, SumTest)
     // Normal sum
     {
       const double sum = calc_normal_sum(loop, value);
-      ASSERT_NE(1.0, sum);
+      EXPECT_NE(1.0, sum);
     }
     // Compensated sum
     {
       const double sum = calc_compensated_sum(loop, value);
-      ASSERT_EQ(1.0, sum);
+      EXPECT_EQ(1.0, sum);
     }
   }
 }

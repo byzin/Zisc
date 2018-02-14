@@ -14,6 +14,7 @@
 // Standard C++ library
 #include <limits>
 // Zisc
+#include "math.hpp"
 #include "utility.hpp"
 #include "zisc/zisc_config.hpp"
 
@@ -249,8 +250,7 @@ constexpr auto FloatingPointBit<Float>::mapTo01Float(BitType x) noexcept
     -> FloatType
 {
   constexpr FloatType k =
-      cast<FloatType>(1.0) /
-      cast<FloatType>(cast<BitType>(1) << (mantissaBitSize() + 1));
+      zisc::invert(cast<FloatType>(cast<BitType>(1) << (mantissaBitSize() + 1)));
   x = x >> exponentBitSize();
   return k * x;
 }

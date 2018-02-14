@@ -18,14 +18,6 @@
 
 namespace zisc {
 
-//! Sort a array
-template <typename Type, typename Function>
-void binaryRadixSort(std::vector<Type>* container, Function bits_function) noexcept;
-
-//! Sort a array of uninteger values
-template <typename UnsignedInteger>
-void binaryRadixSort(std::vector<UnsignedInteger>* container) noexcept;
-
 //! Return the iterator pointing that the element is greatest <= value
 template <typename RandomAccessIterator, typename Type>
 RandomAccessIterator searchBinaryTree(

@@ -71,6 +71,30 @@ const Type* MemoryChunk::data() const noexcept
 /*!
   */
 inline
+MemoryChunk* MemoryChunk::getChunk(void* p) noexcept
+{
+  uint8* chunk = cast<uint8*>(p) - 1;
+  for (; *chunk != paddingValue(); --chunk) {}
+  return (*chunk == boundaryValue())
+      ? reinterpret_cast<MemoryChunk*>(chunk - (headerSize() - 1))
+      : nullptr;
+}
+
+/*!
+  */
+inline
+const MemoryChunk* MemoryChunk::getChunk(const void* p) noexcept
+{
+  const uint8* chunk = cast<const uint8*>(p) - 1;
+  for (; *chunk == paddingValue(); --chunk) {}
+  return (*chunk == boundaryValue())
+      ? reinterpret_cast<const MemoryChunk*>(chunk - (headerSize() - 1))
+      : nullptr;
+}
+
+/*!
+  */
+inline
 constexpr std::size_t MemoryChunk::headerAlignment() noexcept
 {
   constexpr std::size_t header_alignment = alignof(MemoryChunk);
@@ -143,6 +167,42 @@ void MemoryChunk::setFree(const bool is_freed) noexcept
 
 /*!
   */
+inline
+void MemoryChunk::setChunkInfo(const std::size_t size,
+                               const std::size_t alignment,
+                               const std::size_t memory_space) noexcept
+{
+  ZISC_ASSERT(0 < size, "The size is zero.");
+  ZISC_ASSERT(0 < alignment, "The alignment is zero.");
+  ZISC_ASSERT(0 < memory_space, "The memory space is zero.");
+
+  void* p = cast<void*>(dataHead());
+  std::size_t space = memory_space;
+
+  void* result = std::align(alignment, size, p, space);
+  if (result != nullptr) {
+    {
+      const std::size_t o1 = memory_space - space;
+      ZISC_ASSERT(o1 < alignment, "The size the offset1 exceeded the limit.");
+      offset_[0] = cast<uint8>(o1);
+    }
+    {
+      constexpr std::size_t chunk_align = headerAlignment();
+      static_assert(isPowerOf2(chunk_align), "The chunk align isn't power of 2.");
+      std::size_t o2 = (chunk_align - (size & (chunk_align - 1)));
+      o2 = (o2 == chunk_align) ? 0 : o2;
+      ZISC_ASSERT(o2 < chunk_align, "The size the offset2 exceeded the limit.");
+      offset_[1] = cast<uint8>(o2);
+    }
+    {
+      size_ = cast<uint64>(size);
+    }
+    fillPadding();
+  }
+}
+
+/*!
+  */
 template <typename Type> inline
 void MemoryChunk::setChunkInfo(const uint n,
                                const std::size_t memory_space) noexcept
@@ -150,31 +210,9 @@ void MemoryChunk::setChunkInfo(const uint n,
   ZISC_ASSERT(0 < n, "The n is zero.");
   ZISC_ASSERT(0 < memory_space, "The memory space is zero.");
 
-  constexpr std::size_t a = alignof(Type);
-  const std::size_t s = cast<std::size_t>(n) * sizeof(Type);
-  void* p = cast<void*>(dataHead());
-  std::size_t space = memory_space;
-
-  void* result = std::align(a, s, p, space);
-  if (result != nullptr) {
-    {
-      const std::size_t o1 = memory_space - space;
-      ZISC_ASSERT(o1 < a, "The size the offset1 exceeded the limit.");
-      offset_[0] = cast<uint8>(o1);
-    }
-    {
-      constexpr std::size_t chunk_align = headerAlignment();
-      static_assert(isPowerOf2(chunk_align), "The chunk align isn't power of 2.");
-      std::size_t o2 = (chunk_align - (s & (chunk_align - 1)));
-      o2 = (o2 == chunk_align) ? 0 : o2;
-      ZISC_ASSERT(o2 < chunk_align, "The size the offset2 exceeded the limit.");
-      offset_[1] = cast<uint8>(o2);
-    }
-    {
-      size_ = cast<uint64>(s);
-    }
-    fillPadding();
-  }
+  constexpr std::size_t alignment = alignof(Type);
+  const std::size_t size = cast<std::size_t>(n) * sizeof(Type);
+  setChunkInfo(size, alignment, memory_space);
 }
 
 /*!

@@ -42,6 +42,12 @@ class MemoryChunk : public NonCopyable<MemoryChunk>
   template <typename Type>
   const Type* data() const noexcept;
 
+  //! Get the chunk header of the memory
+  static MemoryChunk* getChunk(void* p) noexcept;
+
+  //! Get the chunk header of the memory
+  static const MemoryChunk* getChunk(const void* p) noexcept;
+
   //! Return the chunk header alignment
   static constexpr std::size_t headerAlignment() noexcept;
 
@@ -65,6 +71,11 @@ class MemoryChunk : public NonCopyable<MemoryChunk>
 
   //! Set if the memory chunk is freed
   void setFree(const bool is_freed) noexcept;
+
+  //! Set the chunk info
+  void setChunkInfo(const std::size_t size,
+                    const std::size_t alignment,
+                    const std::size_t memory_space) noexcept;
 
   //! Set the chunk info
   template <typename Type>

@@ -54,8 +54,8 @@ TEST(MemoryChunkTest, InitTest)
 
     // Initialize the chunk
     chunk->reset();
-    chunk->setId(0);
-    ASSERT_EQ(0, chunk->id());
+    chunk->setId(1);
+    ASSERT_EQ(1, chunk->id());
     ASSERT_FALSE(chunk->isValid()) << "The chunk is valid.";
     ASSERT_TRUE(chunk->isFreed()) << "The chunk isn't free.";
 
@@ -70,6 +70,11 @@ TEST(MemoryChunkTest, InitTest)
     const auto p1 = zisc::treatAs<const zisc::uint8*>(chunk);
     const auto p2 = chunk->data<const zisc::uint8>();
     ASSERT_EQ(a, p2 - p1) << "The data address is wrong.";
+    {
+      const auto c = zisc::MemoryChunk::getChunk(p2);
+      ASSERT_NE(nullptr, c);
+      ASSERT_EQ(1, c->id());
+    }
   }
   // Test2
   {
@@ -83,8 +88,8 @@ TEST(MemoryChunkTest, InitTest)
 
     // Initialize the chunk
     chunk->reset();
-    chunk->setId(1);
-    ASSERT_EQ(1, chunk->id());
+    chunk->setId(2);
+    ASSERT_EQ(2, chunk->id());
     ASSERT_FALSE(chunk->isValid()) << "The chunk is valid.";
     ASSERT_TRUE(chunk->isFreed()) << "The chunk isn't free.";
 
@@ -99,5 +104,10 @@ TEST(MemoryChunkTest, InitTest)
     const auto p1 = zisc::treatAs<const zisc::uint8*>(chunk);
     const auto p2 = chunk->data<const zisc::uint8>();
     ASSERT_EQ(16, p2 - p1) << "The data address is wrong.";
+    {
+      auto c = zisc::MemoryChunk::getChunk(p2);
+      ASSERT_NE(nullptr, c);
+      ASSERT_EQ(2, c->id());
+    }
   }
 }

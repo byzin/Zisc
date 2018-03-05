@@ -13,8 +13,15 @@ function(buildGoogleTest gtest_project_root gtest_include_dir gtest_libraries)
   set(googletest_build_dir ${PROJECT_BINARY_DIR}/googletest)
   set(googletest_build_command ${CMAKE_COMMAND} --build .)
 
+  getCompilerOption(googletest_flags googletest_linker_flgas googletest_definitions)
+  string(REPLACE ";" " " googletest_flags "${googletest_flags}")
+  string(REPLACE ";" " " googletest_linker_flgas "${googletest_linker_flgas}")
+  string(REPLACE ";" " " googletest_definitions "${googletest_definitions}")
+
   if(Z_VISUAL_STUDIO)
-    if(Z_DEBUG_MODE)
+    if(Z_DEBUG_MODE AND Z_RELEASE_MODE)
+      list(APPEND googletest_build_command --config RelWithDebInfo)
+    elseif(Z_DEBUG_MODE)
       list(APPEND googletest_build_command --config Debug)
     else()
       list(APPEND googletest_build_command --config Release)
@@ -36,11 +43,6 @@ function(buildGoogleTest gtest_project_root gtest_include_dir gtest_libraries)
     set(libgmock_lib_name "libgmock.a")
     set(libgmockmain_lib_name "libgmock_main.a")
   endif()
-
-  getCompilerOption(googletest_flags googletest_linker_flgas googletest_definitions)
-  string(REPLACE ";" " " googletest_flags "${googletest_flags}")
-  string(REPLACE ";" " " googletest_linker_flgas "${googletest_linker_flgas}")
-  string(REPLACE ";" " " googletest_definitions "${googletest_definitions}")
 
   externalproject_add(GoogleTest
                       PREFIX ${googletest_build_dir}

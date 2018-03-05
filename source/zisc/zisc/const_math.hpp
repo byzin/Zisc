@@ -45,8 +45,8 @@ template <typename Float>
 constexpr Float invert(const Float x) noexcept;
 
 //! Compute the remainder of the division operation x/y
-template <auto y, typename Integer>
-constexpr std::common_type_t<decltype(y), Integer> mod(Integer x) noexcept;
+template <typename Integer, Integer y>
+constexpr Integer mod(Integer x) noexcept;
 
 //!
 template <typename Integer1, typename Integer2>

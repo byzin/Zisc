@@ -12,22 +12,41 @@
 
 // Standard C++ library
 #include <cstddef>
+#include <memory_resource>
 #include <type_traits>
-#include <vector>
 // Zisc
 #include "memory_chunk.hpp"
+#include "memory_pool_iterator.hpp"
 #include "non_copyable.hpp"
 #include "zisc/zisc_config.hpp"
 
 namespace zisc {
 
 /*!
+  \brief The memory type of a pool
   */
-class MemoryPool : public NonCopyable<MemoryPool>
+enum class MemoryPoolType
+{
+  kStatic,
+  kDynamic
+};
+
+//! The body of a memory pool
+template <MemoryPoolType, std::size_t> class MemoryArena;
+
+/*!
+  */
+template <typename PoolType, std::size_t kArenaSize>
+class MemoryPool : public std::pmr::memory_resource,
+                   public NonCopyable<MemoryPool<PoolType, kArenaSize>>
 {
  public:
+  using iterator = MemoryPoolIterator<MemoryChunk>;
+  using const_iterator = MemoryPoolIterator<const MemoryChunk>;
+
+
   //! Create a memory pool
-  MemoryPool(const std::size_t memory_size) noexcept;
+  MemoryPool() noexcept;
 
   //! Move a memory pool
   MemoryPool(MemoryPool&& other) noexcept;
@@ -37,65 +56,45 @@ class MemoryPool : public NonCopyable<MemoryPool>
   MemoryPool& operator=(MemoryPool&& other) noexcept;
 
 
-  //! Allocate the memory space for Type instances
-  template <typename Type>
-  MemoryChunk* allocate(const uint n = 1) noexcept;
+  //! Return an iterator to the first chunk of the pool
+  iterator begin() noexcept;
 
-  //! Return the data pointer of the memory pool
-  uint8* data() noexcept;
+  //! Return an iterator to the first chunk of the pool
+  const_iterator begin() const noexcept;
 
-  //! Return the data pointer of the memory pool
-  const uint8* data() const noexcept;
+  //! Return an iterator to the first chunk of the pool
+  const_iterator cbegin() const noexcept;
 
-  //! Return the memory chunk by the index
-  MemoryChunk* getChunk(const uint index) noexcept;
+  //! Return an iterator to the element following the last chunk of the pool
+  iterator end() noexcept;
 
-  //! Return the memory chunk by the index
-  const MemoryChunk* getChunk(const uint index) const noexcept;
+  //! Return an iterator to the element following the last chunk of the pool
+  const_iterator end() const noexcept;
 
-  //! Return the memory chunk by the data pointer
-  MemoryChunk* getChunk(void* ptr) noexcept;
+  //! Return an iterator to the element following the last chunk of the pool
+  const_iterator cend() const noexcept;
 
-  //! Return the memory chunk by the data pointer 
-  const MemoryChunk* getChunk(const void* ptr) const noexcept;
+  //! Allocate storage
+  void* do_allocate(std::size_t bytes, std::size_t alignment) override;
 
-  //! Check if the memory pool contains the data
-  bool hasContained(const void* ptr) const noexcept;
+  //! Deallocate the storage
+  void do_deallocate(std::size_t bytes, std::size_t alignment) override;
 
-  //! Return the num of memory chunks
-  uint numOfChunks() const noexcept;
-
-  //! Reset the memory pool state
-  void reset() noexcept;
-
-  //! Reset and resize the memory pool.
-  std::size_t setSize(const std::size_t memory_size) noexcept;
-
-  //! Return the size of the memory pool in bytes
-  std::size_t size() const noexcept;
-
-  //! Return the used memory size in bytes
-  std::size_t usedMemory() const noexcept;
+  //! Compare for equality
+  bool do_is_equal(const std::pmr::memory_resource& other) const override;
 
  private:
-  //! Return the chunk position of the memory pool
-  std::size_t getChunkPosition(const uint index) const noexcept;
-
-  //! Return the chunk position of the memory pool
-  std::size_t getChunkPosition(const void* ptr) const noexcept;
-
-  //! Initialize
-  void initialize(const std::size_t memory_size) noexcept;
-
-
-  using AlignedBlock = std::aligned_storage_t<MemoryChunk::headerAlignment(),
-                                              MemoryChunk::headerAlignment()>;
+  static_assert(0 < kArenaSize, "The arena size isn't positive.");
+  static constexpr std::size_t kSize = MemoryChunk::headerSize() *
+      (kArenaSize / MemoryChunk::headerSize() + 
+       (0 < kArenaSize % MemoryChunk::headerSize()) ? 1 : 0);
+  static_assert(kSize % MemoryChunk::headerAlignment() == 0,
+                "The size isn't multiple of the chunk alignment");
+  static_assert(kSize % MemoryChunk::headerSize() == 0,
+                "The size isn't multiple of the chunk size");
 
 
-  std::vector<AlignedBlock> memory_pool_;
-  std::size_t used_bytes_;
-  uint32 num_of_chunks_;
-  uint32 padding_;
+  MemoryArena<PoolType, kSize> arena_;
 };
 
 } // namespace zisc

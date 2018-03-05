@@ -50,18 +50,21 @@ TEST(MemoryChunkTest, InitTest)
 
     // Create an uninitialized memory chunk
     auto chunk = ::getChunkHeade(&memory_pool, memory_space);
+    ASSERT_TRUE(zisc::MemoryChunk::isAligned(chunk));
     ASSERT_TRUE(chunk != nullptr) << "The alignment of the chunk is failed.";
 
     // Initialize the chunk
     chunk->reset();
+    ASSERT_TRUE(chunk->isNull());
+
     chunk->setId(1);
+    ASSERT_FALSE(chunk->isNull());
     ASSERT_EQ(1, chunk->id());
-    ASSERT_FALSE(chunk->isValid()) << "The chunk is valid.";
     ASSERT_TRUE(chunk->isFreed()) << "The chunk isn't free.";
 
-    chunk->setChunkInfo<::TestData1>(1, memory_space);
+    chunk->setChunkInfo<::TestData1>(1);
     chunk->setFree(false);
-    ASSERT_TRUE(chunk->isValid()) << "The chunk is invalid.";
+    ASSERT_FALSE(chunk->isNull());
     ASSERT_FALSE(chunk->isFreed()) << "The chunk is free.";
     ASSERT_EQ(s, chunk->size()) << "The size of the chunk is wrong.";
     ASSERT_EQ(s + 16, chunk->stride()) << "The stride of the chunk is wrong.";
@@ -84,18 +87,21 @@ TEST(MemoryChunkTest, InitTest)
 
     // Create an uninitialized memory chunk
     auto chunk = ::getChunkHeade(&memory_pool, memory_space);
+    ASSERT_TRUE(zisc::MemoryChunk::isAligned(chunk));
     ASSERT_TRUE(chunk != nullptr) << "The alignment of the chunk is failed.";
 
     // Initialize the chunk
     chunk->reset();
+    ASSERT_TRUE(chunk->isNull());
+
     chunk->setId(2);
+    ASSERT_FALSE(chunk->isNull());
     ASSERT_EQ(2, chunk->id());
-    ASSERT_FALSE(chunk->isValid()) << "The chunk is valid.";
     ASSERT_TRUE(chunk->isFreed()) << "The chunk isn't free.";
 
-    chunk->setChunkInfo<::TestData2>(n, memory_space);
+    chunk->setChunkInfo<::TestData2>(n);
     chunk->setFree(false);
-    ASSERT_TRUE(chunk->isValid()) << "The chunk is invalid.";
+    ASSERT_FALSE(chunk->isNull());
     ASSERT_FALSE(chunk->isFreed()) << "The chunk is free.";
     ASSERT_EQ(s, chunk->size()) << "The size of the chunk is wrong.";
     ASSERT_EQ(s + 4, chunk->stride()) << "The stride of the chunk is wrong.";
@@ -108,6 +114,22 @@ TEST(MemoryChunkTest, InitTest)
       auto c = zisc::MemoryChunk::getChunk(p2);
       ASSERT_NE(nullptr, c);
       ASSERT_EQ(2, c->id());
+    }
+
+    // Link chunk
+    zisc::MemoryChunk link_chunk;
+    link_chunk.setLink(chunk);
+    ASSERT_TRUE(link_chunk.isLinkChunk());
+    {
+      const auto& l = link_chunk;
+      const auto linked_chunk = l.linkedChunk();
+      ASSERT_EQ(2, linked_chunk->id());
+    }
+    {
+      auto& l = link_chunk;
+      auto linked_chunk = l.linkedChunk();
+      linked_chunk->setId(3);
+      ASSERT_EQ(3, linked_chunk->id());
     }
   }
 }

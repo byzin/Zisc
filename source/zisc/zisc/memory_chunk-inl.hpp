@@ -15,7 +15,9 @@
 #include <cstddef>
 #include <limits>
 #include <memory>
+#include <type_traits>
 // Zisc
+#include "const_math.hpp"
 #include "error.hpp"
 #include "utility.hpp"
 #include "zisc/zisc_config.hpp"
@@ -32,12 +34,8 @@ MemoryChunk::MemoryChunk() noexcept
 /*!
   */
 inline
-MemoryChunk::MemoryChunk(const uint id) noexcept :
-    size_{0},
-    id_{cast<uint32>(id)},
-    is_freed_{kTrue},
-    offset_{{0, 0}},
-    boundary_{boundaryValue()}
+MemoryChunk::MemoryChunk(const uint32 id) noexcept :
+    id_{id}
 {
   initialize();
 }
@@ -113,9 +111,20 @@ constexpr std::size_t MemoryChunk::headerSize() noexcept
 /*!
   */
 inline
-uint MemoryChunk::id() const noexcept
+uint32 MemoryChunk::id() const noexcept
 {
-  return cast<uint>(id_);
+  return id_;
+}
+
+/*!
+  */
+inline
+bool MemoryChunk::isAligned(const void* data) noexcept
+{
+  const std::ptrdiff_t address = treatAs<std::ptrdiff_t>(data);
+  const std::ptrdiff_t alignment = cast<std::ptrdiff_t>(headerAlignment());
+  const bool result = (address % alignment) == 0;
+  return result;
 }
 
 /*!
@@ -130,10 +139,53 @@ bool MemoryChunk::isFreed() const noexcept
 /*!
   */
 inline
-bool MemoryChunk::isValid() const noexcept
+bool MemoryChunk::isLinkChunk() const noexcept
 {
-  const bool is_valid = (0 < size());
-  return is_valid;
+  const bool is_link_chunk = (id() == linkId());
+  return is_link_chunk;
+}
+
+/*!
+  */
+inline
+bool MemoryChunk::isNull() const noexcept
+{
+  const bool is_null = (id() == nullId());
+  return is_null;
+}
+
+/*!
+  */
+inline
+MemoryChunk* MemoryChunk::linkedChunk() noexcept
+{
+  MemoryChunk** linked_chunk = treatAs<MemoryChunk**>(&size_);
+  return *linked_chunk;
+}
+
+/*!
+  */
+inline
+const MemoryChunk* MemoryChunk::linkedChunk() const noexcept
+{
+  const MemoryChunk* const* linked_chunk = treatAs<const MemoryChunk* const*>(&size_);
+  return *linked_chunk;
+}
+
+/*!
+  */
+inline
+constexpr uint32 MemoryChunk::linkId() noexcept
+{
+  return kLinkId;
+}
+
+/*!
+  */
+inline
+constexpr uint32 MemoryChunk::nullId() noexcept
+{
+  return kNullId;
 }
 
 /*!
@@ -150,7 +202,7 @@ inline
 void MemoryChunk::reset() noexcept
 {
   size_ = 0;
-  id_ = 0;
+  id_ = nullId();
   is_freed_ = kTrue;
   offset_[0] = 0;
   offset_[1] = 0;
@@ -169,29 +221,28 @@ void MemoryChunk::setFree(const bool is_freed) noexcept
   */
 inline
 void MemoryChunk::setChunkInfo(const std::size_t size,
-                               const std::size_t alignment,
-                               const std::size_t memory_space) noexcept
+                               const std::size_t alignment) noexcept
 {
   ZISC_ASSERT(0 < size, "The size is zero.");
   ZISC_ASSERT(0 < alignment, "The alignment is zero.");
-  ZISC_ASSERT(0 < memory_space, "The memory space is zero.");
 
   void* p = cast<void*>(dataHead());
+  constexpr std::size_t memory_space = std::numeric_limits<std::size_t>::max();
   std::size_t space = memory_space;
 
   void* result = std::align(alignment, size, p, space);
   if (result != nullptr) {
     {
       const std::size_t o1 = memory_space - space;
-      ZISC_ASSERT(o1 < alignment, "The size the offset1 exceeded the limit.");
+      ZISC_ASSERT(o1 < alignment, "The size of the offset1 exceeded the limit.");
       offset_[0] = cast<uint8>(o1);
     }
     {
       constexpr std::size_t chunk_align = headerAlignment();
       static_assert(isPowerOf2(chunk_align), "The chunk align isn't power of 2.");
-      std::size_t o2 = (chunk_align - (size & (chunk_align - 1)));
+      std::size_t o2 = (chunk_align - constant::mod<chunk_align>(size));
       o2 = (o2 == chunk_align) ? 0 : o2;
-      ZISC_ASSERT(o2 < chunk_align, "The size the offset2 exceeded the limit.");
+      ZISC_ASSERT(o2 < chunk_align, "The size of the offset2 exceeded the limit.");
       offset_[1] = cast<uint8>(o2);
     }
     {
@@ -204,23 +255,31 @@ void MemoryChunk::setChunkInfo(const std::size_t size,
 /*!
   */
 template <typename Type> inline
-void MemoryChunk::setChunkInfo(const uint n,
-                               const std::size_t memory_space) noexcept
+void MemoryChunk::setChunkInfo(const uint n) noexcept
 {
   ZISC_ASSERT(0 < n, "The n is zero.");
-  ZISC_ASSERT(0 < memory_space, "The memory space is zero.");
 
   constexpr std::size_t alignment = alignof(Type);
   const std::size_t size = cast<std::size_t>(n) * sizeof(Type);
-  setChunkInfo(size, alignment, memory_space);
+  setChunkInfo(size, alignment);
 }
 
 /*!
   */
 inline
-void MemoryChunk::setId(const uint id) noexcept
+void MemoryChunk::setId(const uint32 id) noexcept
 {
-  id_ = cast<uint32>(id);
+  id_ = id;
+}
+
+/*!
+  */
+inline
+void MemoryChunk::setLink(const MemoryChunk* chunk) noexcept
+{
+  setId(linkId());
+  const MemoryChunk** linked_chunk = treatAs<const MemoryChunk**>(&size_);
+  *linked_chunk = chunk;
 }
 
 /*!

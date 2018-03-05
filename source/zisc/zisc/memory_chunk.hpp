@@ -13,6 +13,7 @@
 // Standard C++ library
 #include <array>
 #include <cstddef>
+#include <limits>
 // Zisc
 #include "non_copyable.hpp"
 #include "zisc/zisc_config.hpp"
@@ -24,11 +25,11 @@ namespace zisc {
 class MemoryChunk : public NonCopyable<MemoryChunk>
 {
  public:
-  //! Create an uninitialized chunk
+  //! Create a null chunk
   MemoryChunk() noexcept;
 
   //! Create an uninitialized chunk
-  MemoryChunk(const uint id) noexcept;
+  MemoryChunk(const uint32 id) noexcept;
 
 
   //! Return the boundary value
@@ -55,13 +56,31 @@ class MemoryChunk : public NonCopyable<MemoryChunk>
   static constexpr std::size_t headerSize() noexcept;
 
   //! Return the chunk ID (chunk index)
-  uint id() const noexcept;
+  uint32 id() const noexcept;
+
+  //! Check if "data" is aligned for chunk
+  static bool isAligned(const void* data) noexcept;
 
   //! Check if the allocated memory is freed
   bool isFreed() const noexcept;
 
-  //! Check if the chunk is valid
-  bool isValid() const noexcept;
+  //! Check if the chunk is link chunk
+  bool isLinkChunk() const noexcept;
+
+  //! Check if the chunk is null 
+  bool isNull() const noexcept;
+
+  //! Return the linnked chunk
+  MemoryChunk* linkedChunk() noexcept;
+
+  //! Return the linnked chunk
+  const MemoryChunk* linkedChunk() const noexcept;
+
+  //! Return the link chunk ID
+  static constexpr uint32 linkId() noexcept;
+
+  //! Return the null chunk ID
+  static constexpr uint32 nullId() noexcept;
 
   //! Return the padding value
   static constexpr uint8 paddingValue() noexcept;
@@ -73,16 +92,17 @@ class MemoryChunk : public NonCopyable<MemoryChunk>
   void setFree(const bool is_freed) noexcept;
 
   //! Set the chunk info
-  void setChunkInfo(const std::size_t size,
-                    const std::size_t alignment,
-                    const std::size_t memory_space) noexcept;
+  void setChunkInfo(const std::size_t size, const std::size_t alignment) noexcept;
 
   //! Set the chunk info
   template <typename Type>
-  void setChunkInfo(const uint n, const std::size_t memory_space) noexcept;
+  void setChunkInfo(const uint n) noexcept;
 
   //! Set the chunk ID
-  void setId(const uint id) noexcept;
+  void setId(const uint32 id) noexcept;
+
+  //! Set a chunk to be linked
+  void setLink(const MemoryChunk* chunk) noexcept;
 
   //! Return the memory size of the chunk except the chunk header
   std::size_t size() const noexcept;
@@ -118,13 +138,15 @@ class MemoryChunk : public NonCopyable<MemoryChunk>
 
   static constexpr uint8 kBoundary = 0xffu;
   static constexpr uint8 kPadding = 0x00u;
+  static constexpr uint32 kNullId = std::numeric_limits<uint32>::max();
+  static constexpr uint32 kLinkId = kNullId - 1;
 
 
-  uint64 size_;
-  uint32 id_;
-  uint8 is_freed_;
-  std::array<uint8, 2> offset_;
-  uint8 boundary_;
+  int64 size_ = 0;
+  uint32 id_ = kNullId;
+  uint8 is_freed_ = kTrue;
+  std::array<uint8, 2> offset_ = {{0, 0}};
+  uint8 boundary_ = kBoundary;
 };
 
 } // namespace zisc

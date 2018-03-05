@@ -13,15 +13,111 @@
 #include "memory_pool.hpp"
 // Standard C++ library
 #include <cstddef>
-#include <memory>
+#include <cstdlib>
+#include <memory_resource>
 #include <type_traits>
 #include <utility>
+#include <vector>
 // Zisc
+#include "error.hpp"
 #include "memory_chunk.hpp"
+#include "memory_pool_iterator.hpp"
 #include "utility.hpp"
 #include "zisc/zisc_config.hpp"
 
 namespace zisc {
+
+/*!
+  \brief Static memory arena
+  */
+template <std::size_t kArenaSize>
+class MemoryArena<MemoryPoolType::kStatic, kArenaSize>
+{
+ public:
+  //! Initialize the arena
+  MemoryArena()
+  {
+  }
+
+  //! Return the allocated space
+  std::size_t capacity() const noexcept
+  {
+    return kArenaSize;
+  }
+
+  //! Return the used memory
+  std::size_t usedMemory() const noexcept
+  {
+    return used_memory_;
+  }
+
+ private:
+  std::aligned_storage_t<kArenaSize, MemoryChunk::headerAlignment()> data_;
+  std::size_t used_memory_ = 0;
+};
+
+/*!
+  \brief Static memory arena
+  */
+template <std::size_t kArenaSize>
+class MemoryArena<MemoryPoolType::kDynamic, kArenaSize>
+{
+  struct Memory
+  {
+    uint8* data_;
+    std::size_t used_memory_;
+  };
+
+ public:
+  //! Initialize the arena
+  MemoryArena() noexcept
+  {
+    arena_.reserve(8);
+    auto data = allocateMemory(1);
+    treatAs<MemoryChunk*>(data)->reset();
+    arena_.emplace_back(Memory{data, 0});
+  }
+
+  //! Move arena data
+  MemoryArena(MemoryArena&& other) noexcept : arena_{std::move(other.arena_)} {}
+
+  //! Deallocate the allocated arena memory
+  ~MemoryArena() noexcept
+  {
+    for (auto& memory : arena_)
+      std::free(memory.data_);
+  }
+
+  //! Return the allocated space
+  std::size_t capacity() const noexcept
+  {
+    const std::size_t c = (arena_.size() + (arena_.size() + 1)) >> 1;
+    return c;
+  }
+
+  //! Return the used memory
+  std::size_t usedMemory() const noexcept
+  {
+    std::size_t used_memory = 0;
+    for (const auto& memory : arena_)
+      used_memory += memory.used_memory_;
+    return used_memory;
+  }
+
+ private:
+  //! Allocate memory
+  uint8* allocateMemory(const std::size_t scale) noexcept
+  {
+    ZISC_ASSERT(0 < scale, "The scale isn't positive.");
+    auto data = std::aligned_alloc(MemoryChunk::headerAlignment(),
+                                   kArenaSize * scale);
+    ZISC_ASSERT(data != nullptr, "Memory allocation failed.");
+    return cast<uint8*>(data);
+  }
+
+
+  std::vector<Memory> arena_;
+};
 
 /*!
   */

@@ -44,9 +44,16 @@ constexpr std::common_type_t<Integer1, Integer2> lcm(Integer1 m,
 template <typename Float>
 constexpr Float invert(const Float x) noexcept;
 
+//! \todo Solve the code branch
+#ifdef Z_MSVC
 //! Compute the remainder of the division operation x/y
 template <typename Integer, Integer y>
 constexpr Integer mod(Integer x) noexcept;
+#else // Z_MSVC
+//! Compute the remainder of the division operation x/y
+template <auto y, typename Integer>
+constexpr std::common_type_t<decltype(y), Integer> mod(Integer x) noexcept;
+#endif // Z_MSVC
 
 //!
 template <typename Integer1, typename Integer2>

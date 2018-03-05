@@ -280,7 +280,13 @@ bool DynamicMemoryArena<kArenaSize>::expandArena() noexcept
   constexpr std::size_t chunk_size = MemoryChunk::headerSize();
 
   const std::size_t level = arena_.size();
+//! \todo Solve code branch
+#if defined(Z_GCC) || defined(Z_MAC)
+  static_cast<void>(chunk_alignment);
+  auto data = std::malloc(getMemoryCapacity(level));
+#else // Z_GCC
   auto data = std::aligned_alloc(chunk_alignment, getMemoryCapacity(level));
+#endif // Z_GCC
 
   const bool result = data != nullptr;
   if (result) {

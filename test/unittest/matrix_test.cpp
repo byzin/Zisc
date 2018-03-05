@@ -62,12 +62,13 @@ TEST(MatrixTest, ConstructionTest)
   {
     constexpr zisc::uint row = 3;
     constexpr zisc::uint column = 5;
+    using Matrix = zisc::Matrix<double, row, column>;
     auto make_matrix = []()
     {
-      zisc::Matrix<double, row, column> matrix;
-      for (zisc::uint r = 0; r < row; ++r) {
-        for (zisc::uint c = 0; c < column; ++c) {
-          const double i = static_cast<double>(c + r * column);
+      Matrix matrix;
+      for (zisc::uint r = 0; r < Matrix::rowSize(); ++r) {
+        for (zisc::uint c = 0; c < Matrix::columnSize(); ++c) {
+          const double i = static_cast<double>(c + r * Matrix::columnSize());
           matrix(r, c) = i;
           matrix.set(r, c, i);
         }

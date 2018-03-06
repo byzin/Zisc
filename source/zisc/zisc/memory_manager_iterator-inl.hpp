@@ -1,5 +1,5 @@
 /*!
-  \file memory_pool_iterator-inl.hpp
+  \file memory_manager_iterator-inl.hpp
   \author Sho Ikeda
 
   Copyright (c) 2015-2018 Sho Ikeda
@@ -7,10 +7,10 @@
   http://opensource.org/licenses/mit-license.php
   */
 
-#ifndef ZISC_MEMORY_POOL_ITERATOR_INL_HPP
-#define ZISC_MEMORY_POOL_ITERATOR_INL_HPP
+#ifndef ZISC_MEMORY_MANAGER_ITERATOR_INL_HPP
+#define ZISC_MEMORY_MANAGER_ITERATOR_INL_HPP
 
-#include "memory_pool_iterator.hpp"
+#include "memory_manager_iterator.hpp"
 // Standard C++ library
 #include <cstddef>
 #include <type_traits>
@@ -24,7 +24,7 @@ namespace zisc {
 /*!
   */
 template <typename ChunkT> inline
-MemoryPoolIterator<ChunkT>::MemoryPoolIterator() noexcept
+MemoryManagerIterator<ChunkT>::MemoryManagerIterator() noexcept
 {
 }
 
@@ -32,7 +32,7 @@ MemoryPoolIterator<ChunkT>::MemoryPoolIterator() noexcept
 /*!
   */
 template <typename ChunkT> inline
-MemoryPoolIterator<ChunkT>::MemoryPoolIterator(pointer chunk) noexcept
+MemoryManagerIterator<ChunkT>::MemoryManagerIterator(pointer chunk) noexcept
 {
   setChunk(chunk);
 }
@@ -40,7 +40,7 @@ MemoryPoolIterator<ChunkT>::MemoryPoolIterator(pointer chunk) noexcept
 /*!
   */
 template <typename ChunkT> inline
-auto MemoryPoolIterator<ChunkT>::operator*() noexcept -> reference
+auto MemoryManagerIterator<ChunkT>::operator*() noexcept -> reference
 {
   ZISC_ASSERT(chunk_ != nullptr, "The chunk is null.");
   ZISC_ASSERT(!chunk_->isLinkChunk(), "The chunk is link chunk.");
@@ -50,7 +50,7 @@ auto MemoryPoolIterator<ChunkT>::operator*() noexcept -> reference
 /*!
   */
 template <typename ChunkT> inline
-auto MemoryPoolIterator<ChunkT>::operator*() const noexcept -> const_reference
+auto MemoryManagerIterator<ChunkT>::operator*() const noexcept -> const_reference
 {
   ZISC_ASSERT(chunk_ != nullptr, "The chunk is null.");
   ZISC_ASSERT(!chunk_->isLinkChunk(), "The chunk is link chunk.");
@@ -60,7 +60,7 @@ auto MemoryPoolIterator<ChunkT>::operator*() const noexcept -> const_reference
 /*!
   */
 template <typename ChunkT> inline
-auto MemoryPoolIterator<ChunkT>::operator->() noexcept -> pointer
+auto MemoryManagerIterator<ChunkT>::operator->() noexcept -> pointer
 {
   ZISC_ASSERT(chunk_ != nullptr, "The chunk is null.");
   ZISC_ASSERT(!chunk_->isLinkChunk(), "The chunk is link chunk.");
@@ -70,7 +70,7 @@ auto MemoryPoolIterator<ChunkT>::operator->() noexcept -> pointer
 /*!
   */
 template <typename ChunkT> inline
-auto MemoryPoolIterator<ChunkT>::operator->() const noexcept -> const_pointer
+auto MemoryManagerIterator<ChunkT>::operator->() const noexcept -> const_pointer
 {
   ZISC_ASSERT(chunk_ != nullptr, "The chunk is null.");
   ZISC_ASSERT(!chunk_->isLinkChunk(), "The chunk is link chunk.");
@@ -80,7 +80,7 @@ auto MemoryPoolIterator<ChunkT>::operator->() const noexcept -> const_pointer
 /*!
   */
 template <typename ChunkT> inline
-auto MemoryPoolIterator<ChunkT>::operator++() noexcept -> MemoryPoolIterator&
+auto MemoryManagerIterator<ChunkT>::operator++() noexcept -> MemoryManagerIterator&
 {
   auto c = getNextChunk(chunk_);
   setChunk(c);
@@ -90,7 +90,7 @@ auto MemoryPoolIterator<ChunkT>::operator++() noexcept -> MemoryPoolIterator&
 /*!
   */
 template <typename ChunkT> inline
-auto MemoryPoolIterator<ChunkT>::operator++(int) noexcept -> MemoryPoolIterator
+auto MemoryManagerIterator<ChunkT>::operator++(int) noexcept -> MemoryManagerIterator
 {
   auto prev_chunk = *this;
   auto c = getNextChunk(chunk_);
@@ -101,23 +101,15 @@ auto MemoryPoolIterator<ChunkT>::operator++(int) noexcept -> MemoryPoolIterator
 /*!
   */
 template <typename ChunkT> inline
-auto MemoryPoolIterator<ChunkT>::end() noexcept -> MemoryPoolIterator
+auto MemoryManagerIterator<ChunkT>::end() noexcept -> MemoryManagerIterator
 {
-  return MemoryPoolIterator{};
+  return MemoryManagerIterator{};
 }
 
 /*!
   */
 template <typename ChunkT> inline
-auto MemoryPoolIterator<ChunkT>::get() noexcept -> pointer
-{
-  return chunk_;
-}
-
-/*!
-  */
-template <typename ChunkT> inline
-auto MemoryPoolIterator<ChunkT>::get() const noexcept -> const_pointer
+auto MemoryManagerIterator<ChunkT>::get() noexcept -> pointer
 {
   return chunk_;
 }
@@ -125,7 +117,15 @@ auto MemoryPoolIterator<ChunkT>::get() const noexcept -> const_pointer
 /*!
   */
 template <typename ChunkT> inline
-auto MemoryPoolIterator<ChunkT>::getNextChunk(pointer chunk) noexcept -> pointer
+auto MemoryManagerIterator<ChunkT>::get() const noexcept -> const_pointer
+{
+  return chunk_;
+}
+
+/*!
+  */
+template <typename ChunkT> inline
+auto MemoryManagerIterator<ChunkT>::getNextChunk(pointer chunk) noexcept -> pointer
 {
   ZISC_ASSERT(chunk != nullptr, "The chunk is null.");
   using ByteType = std::conditional_t<std::is_const_v<value_type>, const uint8, uint8>;
@@ -137,7 +137,7 @@ auto MemoryPoolIterator<ChunkT>::getNextChunk(pointer chunk) noexcept -> pointer
 /*!
   */
 template <typename ChunkT> inline
-auto MemoryPoolIterator<ChunkT>::getLinkedChunk(pointer chunk) noexcept -> pointer
+auto MemoryManagerIterator<ChunkT>::getLinkedChunk(pointer chunk) noexcept -> pointer
 {
   ZISC_ASSERT(chunk != nullptr, "The chunk is null.");
   ZISC_ASSERT(chunk->isLinkChunk(), "The chunk isn't link chunk.");
@@ -149,7 +149,7 @@ auto MemoryPoolIterator<ChunkT>::getLinkedChunk(pointer chunk) noexcept -> point
 /*!
   */
 template <typename ChunkT> inline
-void MemoryPoolIterator<ChunkT>::setChunk(pointer chunk) noexcept
+void MemoryManagerIterator<ChunkT>::setChunk(pointer chunk) noexcept
 {
   if (chunk != nullptr) {
     chunk = (chunk->isLinkChunk()) ? getLinkedChunk(chunk) : chunk;
@@ -161,8 +161,8 @@ void MemoryPoolIterator<ChunkT>::setChunk(pointer chunk) noexcept
 /*!
   */
 template <typename ChunkT> inline
-bool operator==(const MemoryPoolIterator<ChunkT>& lhs,
-                const MemoryPoolIterator<ChunkT>& rhs) noexcept
+bool operator==(const MemoryManagerIterator<ChunkT>& lhs,
+                const MemoryManagerIterator<ChunkT>& rhs) noexcept
 {
   return (lhs.get() == rhs.get());
 }
@@ -170,12 +170,12 @@ bool operator==(const MemoryPoolIterator<ChunkT>& lhs,
 /*!
   */
 template <typename ChunkT> inline
-bool operator!=(const MemoryPoolIterator<ChunkT>& lhs,
-                const MemoryPoolIterator<ChunkT>& rhs) noexcept
+bool operator!=(const MemoryManagerIterator<ChunkT>& lhs,
+                const MemoryManagerIterator<ChunkT>& rhs) noexcept
 {
   return !(lhs == rhs);
 }
 
 } // namespace zisc
 
-#endif // ZISC_MEMORY_POOL_ITERATOR_INL_HPP
+#endif // ZISC_MEMORY_MANAGER_ITERATOR_INL_HPP

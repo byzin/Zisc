@@ -14,7 +14,7 @@
 #include "gtest/gtest.h"
 // Zisc
 #include "zisc/memory_arena.hpp"
-#include "zisc/memory_pool_iterator.hpp"
+#include "zisc/memory_manager_iterator.hpp"
 #include "zisc/zisc_config.hpp"
 
 using Storage1 = std::aligned_storage_t<32, 8>;
@@ -23,7 +23,7 @@ using Storage3 = std::aligned_storage_t<256, 8>;
 using Storage4 = Storage2;
 using Storage5 = std::aligned_storage_t<1024, 8>;
 
-using ChunkIterator = zisc::MemoryPoolIterator<zisc::MemoryChunk>;
+using ChunkIterator = zisc::MemoryManagerIterator<zisc::MemoryChunk>;
 
 TEST(MemoryArenaTest, StaticMemoryArenaTest)
 {

@@ -1,5 +1,5 @@
 /*!
-  \file memory_pool_iterator_test.cpp
+  \file memory_manager_iterator_test.cpp
   \author Sho Ikeda
 
   Copyright (c) 2015-2018 Sho Ikeda
@@ -14,7 +14,7 @@
 #include "gtest/gtest.h"
 // Zisc
 #include "zisc/memory_chunk.hpp"
-#include "zisc/memory_pool_iterator.hpp"
+#include "zisc/memory_manager_iterator.hpp"
 #include "zisc/utility.hpp"
 #include "zisc/zisc_config.hpp"
 
@@ -25,7 +25,7 @@ using ChunkStorage = std::aligned_storage_t<kStorageSize,
                                             zisc::MemoryChunk::headerAlignment()>;
 
 template <typename ChunkT>
-zisc::MemoryPoolIterator<ChunkT> makeIterator(
+zisc::MemoryManagerIterator<ChunkT> makeIterator(
   zisc::uint8* pool,
   zisc::uint32 id,
   std::size_t& storage_size)
@@ -84,12 +84,12 @@ zisc::MemoryPoolIterator<ChunkT> makeIterator(
     chunk6->reset();
     chunk5->setLink(chunk6);
   }
-  return zisc::MemoryPoolIterator<ChunkT>{chunk1};
+  return zisc::MemoryManagerIterator<ChunkT>{chunk1};
 }
 
 } // namespace 
 
-TEST(MemoryPoolIteratorTest, IterationTest)
+TEST(MemoryManagerIteratorTest, IterationTest)
 {
   ::ChunkStorage storage;
   std::size_t storage_size = ::kStorageSize;
@@ -97,7 +97,7 @@ TEST(MemoryPoolIteratorTest, IterationTest)
   zisc::uint32 id = 1;
 
   auto i = ::makeIterator<zisc::MemoryChunk>(pool, id, storage_size);
-  const auto end = zisc::MemoryPoolIterator<zisc::MemoryChunk>::end();
+  const auto end = zisc::MemoryManagerIterator<zisc::MemoryChunk>::end();
   ASSERT_LT(0, storage_size);
   // Chunk1
   {
@@ -127,7 +127,7 @@ TEST(MemoryPoolIteratorTest, IterationTest)
   }
 }
 
-TEST(MemoryPoolIteratorTest, ConstIterationTest)
+TEST(MemoryManagerIteratorTest, ConstIterationTest)
 {
   ::ChunkStorage storage;
   std::size_t storage_size = ::kStorageSize;
@@ -135,7 +135,7 @@ TEST(MemoryPoolIteratorTest, ConstIterationTest)
   zisc::uint32 id = 1;
 
   auto i = ::makeIterator<const zisc::MemoryChunk>(pool, id, storage_size);
-  const auto end = zisc::MemoryPoolIterator<const zisc::MemoryChunk>::end();
+  const auto end = zisc::MemoryManagerIterator<const zisc::MemoryChunk>::end();
   ASSERT_LT(0, storage_size);
   // Chunk1
   {

@@ -1,5 +1,5 @@
 /*!
-  \file thread_pool-inl.hpp
+  \file thread_manager-inl.hpp
   \author Sho Ikeda
 
   Copyright (c) 2015-2018 Sho Ikeda
@@ -7,10 +7,10 @@
   http://opensource.org/licenses/mit-license.php
   */
 
-#ifndef ZISC_THREAD_POOL_INL_HPP
-#define ZISC_THREAD_POOL_INL_HPP
+#ifndef ZISC_THREAD_MANAGER_INL_HPP
+#define ZISC_THREAD_MANAGER_INL_HPP
 
-#include "thread_pool.hpp"
+#include "thread_manager.hpp"
 // Standard C++ library
 #include <array>
 #include <atomic>
@@ -38,8 +38,8 @@ namespace zisc {
   No detailed.
   */
 inline
-ThreadPool::ThreadPool() noexcept :
-    ThreadPool(std::thread::hardware_concurrency())
+ThreadManager::ThreadManager() noexcept :
+    ThreadManager(std::thread::hardware_concurrency())
 {
 }
 
@@ -48,7 +48,7 @@ ThreadPool::ThreadPool() noexcept :
   No detailed.
   */
 inline
-ThreadPool::ThreadPool(const uint num_of_threads) noexcept :
+ThreadManager::ThreadManager(const uint num_of_threads) noexcept :
     workers_are_enabled_{kTrue}
 {
   initialize(num_of_threads);
@@ -59,7 +59,7 @@ ThreadPool::ThreadPool(const uint num_of_threads) noexcept :
   No detailed.
   */
 inline
-ThreadPool::~ThreadPool()
+ThreadManager::~ThreadManager()
 {
   exitWorkersRunning();
 }
@@ -67,7 +67,7 @@ ThreadPool::~ThreadPool()
 /*!
   */
 inline
-std::array<uint, 2> ThreadPool::calcThreadRange(const uint range,
+std::array<uint, 2> ThreadManager::calcThreadRange(const uint range,
                                                 const uint num_of_threads,
                                                 const uint thread_id) noexcept
 {
@@ -82,7 +82,7 @@ std::array<uint, 2> ThreadPool::calcThreadRange(const uint range,
 /*!
   */
 inline
-std::array<uint, 2> ThreadPool::calcThreadRange(const uint range,
+std::array<uint, 2> ThreadManager::calcThreadRange(const uint range,
                                                 const uint thread_id) const noexcept
 {
   return calcThreadRange(range, numOfThreads(), thread_id);
@@ -95,7 +95,7 @@ std::array<uint, 2> ThreadPool::calcThreadRange(const uint range,
   "ReturnType task()" or "ReturnType task(int thread_id)".
   */
 template <typename ReturnType, typename Task> inline
-std::future<ReturnType> ThreadPool::enqueue(Task&& task) noexcept
+std::future<ReturnType> ThreadManager::enqueue(Task&& task) noexcept
 {
   return enqueueTask<ReturnType>(task);
 }
@@ -106,7 +106,7 @@ std::future<ReturnType> ThreadPool::enqueue(Task&& task) noexcept
   "void task(iterator i)" or "void task(int thread_id, iterator i)".
   */
 template <typename Task, typename Iterator> inline
-std::future<void> ThreadPool::enqueueLoop(Task&& task,
+std::future<void> ThreadManager::enqueueLoop(Task&& task,
                                           Iterator begin,
                                           Iterator end) noexcept
 {
@@ -118,7 +118,7 @@ std::future<void> ThreadPool::enqueueLoop(Task&& task,
   No detailed.
   */
 inline
-uint ThreadPool::logicalCores() noexcept
+uint ThreadManager::logicalCores() noexcept
 {
   return cast<uint>(std::thread::hardware_concurrency());
 }
@@ -130,7 +130,7 @@ uint ThreadPool::logicalCores() noexcept
   \return The number of worker threads
   */
 inline
-uint ThreadPool::numOfThreads() const noexcept
+uint ThreadManager::numOfThreads() const noexcept
 {
   return cast<uint>(workers_.size());
 }
@@ -140,7 +140,7 @@ uint ThreadPool::numOfThreads() const noexcept
   No detailed.
   */
 inline
-void ThreadPool::createWorkers(const uint num_of_threads) noexcept
+void ThreadManager::createWorkers(const uint num_of_threads) noexcept
 {
   const std::size_t id_max = (num_of_threads == 0)
       ? cast<std::size_t>(std::thread::hardware_concurrency())
@@ -234,7 +234,7 @@ uint distance(Iterator begin, Iterator end) noexcept
   No detailed.
   */
 template <typename ReturnType, typename Task> inline
-std::future<ReturnType> ThreadPool::enqueueTask(Task&& task) noexcept
+std::future<ReturnType> ThreadManager::enqueueTask(Task&& task) noexcept
 {
   using T = std::remove_reference_t<Task>;
 
@@ -285,7 +285,7 @@ std::future<ReturnType> ThreadPool::enqueueTask(Task&& task) noexcept
   No detailed.
   */
 template <typename Task, typename Iterator> inline
-std::future<void> ThreadPool::enqueueLoopTask(Task&& task,
+std::future<void> ThreadManager::enqueueLoopTask(Task&& task,
                                               Iterator begin,
                                               Iterator end) noexcept
 {
@@ -348,7 +348,7 @@ std::future<void> ThreadPool::enqueueLoopTask(Task&& task,
 /*!
   */
 inline
-void ThreadPool::exitWorkersRunning() noexcept
+void ThreadManager::exitWorkersRunning() noexcept
 {
   {
     std::unique_lock<std::mutex> locker{lock_};
@@ -362,7 +362,7 @@ void ThreadPool::exitWorkersRunning() noexcept
 /*!
   */
 inline
-auto ThreadPool::takeTask() noexcept -> WorkerTask
+auto ThreadManager::takeTask() noexcept -> WorkerTask
 {
   WorkerTask task;
   if (!task_queue_.empty()) {
@@ -375,7 +375,7 @@ auto ThreadPool::takeTask() noexcept -> WorkerTask
 /*!
   */
 inline
-void ThreadPool::initialize(const uint num_of_threads) noexcept
+void ThreadManager::initialize(const uint num_of_threads) noexcept
 {
   createWorkers(num_of_threads);
 
@@ -396,11 +396,11 @@ void ThreadPool::initialize(const uint num_of_threads) noexcept
 /*!
   */
 inline
-bool ThreadPool::workersAreEnabled() const noexcept
+bool ThreadManager::workersAreEnabled() const noexcept
 {
   return workers_are_enabled_ == kTrue;
 }
 
 } // namespace zisc
 
-#endif // ZISC_THREAD_POOL_INL_HPP
+#endif // ZISC_THREAD_MANAGER_INL_HPP

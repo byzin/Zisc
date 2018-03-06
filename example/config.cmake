@@ -66,8 +66,8 @@ function(buildExample)
              ${__example_root__}/linear_algebra_example.cpp) 
   setExample(UnitExample
              ${__example_root__}/unit_example.cpp)
-  setExample(ThreadPoolExample
-             ${__example_root__}/thread_pool_example.cpp)
+  setExample(ThreadManagerExample
+             ${__example_root__}/thread_manager_example.cpp)
   setExample(StringExample
              ${__example_root__}/string_example.cpp)
   setExample(CmjEngineExample

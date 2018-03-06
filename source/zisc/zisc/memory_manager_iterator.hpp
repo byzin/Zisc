@@ -1,5 +1,5 @@
 /*!
-  \file memory_pool_iterator.hpp
+  \file memory_manager_iterator.hpp
   \author Sho Ikeda
 
   Copyright (c) 2015-2018 Sho Ikeda
@@ -7,8 +7,8 @@
   http://opensource.org/licenses/mit-license.php
   */
 
-#ifndef ZISC_MEMORY_POOL_ITERATOR_HPP
-#define ZISC_MEMORY_POOL_ITERATOR_HPP
+#ifndef ZISC_MEMORY_MANAGER_ITERATOR_HPP
+#define ZISC_MEMORY_MANAGER_ITERATOR_HPP
 
 // Standard C++ library
 #include <cstddef>
@@ -22,7 +22,7 @@ namespace zisc {
   \brief Iterator class for memory pool
   */
 template <typename ChunkT>
-class MemoryPoolIterator
+class MemoryManagerIterator
 {
  public:
   using value_type = ChunkT;
@@ -34,10 +34,10 @@ class MemoryPoolIterator
 
 
   //! Create an end iterator
-  MemoryPoolIterator() noexcept;
+  MemoryManagerIterator() noexcept;
 
   //! Initialize the iterator
-  MemoryPoolIterator(pointer chunk) noexcept;
+  MemoryManagerIterator(pointer chunk) noexcept;
 
 
   //! Return the reference of the value
@@ -53,14 +53,14 @@ class MemoryPoolIterator
   const_pointer operator->() const noexcept;
 
   //! Pre-increment the iterator
-  MemoryPoolIterator& operator++() noexcept;
+  MemoryManagerIterator& operator++() noexcept;
 
   //! Post-increment the iterator
-  MemoryPoolIterator operator++(int) noexcept;
+  MemoryManagerIterator operator++(int) noexcept;
 
 
   //! Return an end iterator
-  static MemoryPoolIterator end() noexcept;
+  static MemoryManagerIterator end() noexcept;
 
   //! Return the pointer to the value
   pointer get() noexcept;
@@ -84,16 +84,16 @@ class MemoryPoolIterator
 
 //! Check if two iterator refer same chunk
 template <typename ChunkT>
-bool operator==(const MemoryPoolIterator<ChunkT>& lhs,
-                const MemoryPoolIterator<ChunkT>& rhs) noexcept;
+bool operator==(const MemoryManagerIterator<ChunkT>& lhs,
+                const MemoryManagerIterator<ChunkT>& rhs) noexcept;
 
 //! Check if two iterator refer same chunk
 template <typename ChunkT>
-bool operator!=(const MemoryPoolIterator<ChunkT>& lhs,
-                const MemoryPoolIterator<ChunkT>& rhs) noexcept;
+bool operator!=(const MemoryManagerIterator<ChunkT>& lhs,
+                const MemoryManagerIterator<ChunkT>& rhs) noexcept;
 
 } // namespace zisc
 
-#include "memory_pool_iterator-inl.hpp"
+#include "memory_manager_iterator-inl.hpp"
 
-#endif // ZISC_MEMORY_POOL_ITERATOR_HPP
+#endif // ZISC_MEMORY_MANAGER_ITERATOR_HPP

@@ -1,5 +1,5 @@
 /*!
-  \file thread_pool.hpp
+  \file thread_manager.hpp
   \author Sho Ikeda
 
   Copyright (c) 2015-2018 Sho Ikeda
@@ -7,8 +7,8 @@
   http://opensource.org/licenses/mit-license.php
   */
 
-#ifndef ZISC_THREAD_POOL_HPP
-#define ZISC_THREAD_POOL_HPP
+#ifndef ZISC_THREAD_MANAGER_HPP
+#define ZISC_THREAD_MANAGER_HPP
 
 // Standard C++ library
 #include <array>
@@ -26,19 +26,19 @@
 namespace zisc {
 
 /*!
-  \brief ThreadPool class provides task parallel and data parallel thread pool
+  \brief ThreadManager class provides task parallel and data parallel thread pool
   */
-class ThreadPool : public NonCopyable<ThreadPool>
+class ThreadManager : public NonCopyable<ThreadManager>
 {
  public:
   //! Create threads as many CPU threads as
-  ThreadPool() noexcept;
+  ThreadManager() noexcept;
 
   //! Create threads
-  ThreadPool(const uint num_of_threads) noexcept;
+  ThreadManager(const uint num_of_threads) noexcept;
 
   //! Terminate threads
-  ~ThreadPool();
+  ~ThreadManager();
 
 
   //! Calculate a range of a thread
@@ -86,7 +86,7 @@ class ThreadPool : public NonCopyable<ThreadPool>
   //! Exit workers running
   void exitWorkersRunning() noexcept;
 
-  //! Initialize thread pool
+  //! Initialize this thread manager
   void initialize(const uint num_of_threads) noexcept;
 
   //! Take a task from the top of the queue
@@ -106,6 +106,6 @@ class ThreadPool : public NonCopyable<ThreadPool>
 
 } // namespace zisc
 
-#include "thread_pool-inl.hpp"
+#include "thread_manager-inl.hpp"
 
-#endif // ZISC_THREAD_POOL_HPP
+#endif // ZISC_THREAD_MANAGER_HPP

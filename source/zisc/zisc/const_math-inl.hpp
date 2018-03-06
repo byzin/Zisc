@@ -115,29 +115,18 @@ constexpr Float invert(const Float x) noexcept
  \details
  No detailed.
  */
-#ifdef Z_MSVC
-template <typename Integer, Integer y> inline
-constexpr Integer mod(Integer x) noexcept
-{
-  using ResultType = Integer;
-#else // Z_MSVC
 template <auto y, typename Integer> inline
 constexpr std::common_type_t<decltype(y), Integer> mod(Integer x) noexcept
 {
-  using ResultType = std::common_type_t<decltype(y), Integer>;
-#endif // Z_MSVC
-  static_assert(kIsInteger<ResultType>, "ResultType isn't integer type.");
+  static_assert(kIsInteger<Integer>, "Integer isn't integer type.");
+  static_assert(kIsInteger<decltype(y)>, "The decltype(y) isn't integer type.");
   static_assert(y != 0, "The y is zero.");
+  using ResultType = std::common_type_t<decltype(y), Integer>;
   constexpr bool is_power_of_2 = isPowerOf2(y);
-  if (is_power_of_2) {
-    constexpr ResultType w = cast<ResultType>(y) - 1;
-    const ResultType result = cast<ResultType>(x) & w;
-    return result;
-  }
-  else {
-    const ResultType result = cast<ResultType>(x) % cast<ResultType>(y);
-    return result;
-  }
+  const ResultType result = (is_power_of_2)
+      ? cast<ResultType>(x) & (cast<ResultType>(y) - 1)
+      : cast<ResultType>(x) % cast<ResultType>(y);
+  return result;
 }
 
 /*!

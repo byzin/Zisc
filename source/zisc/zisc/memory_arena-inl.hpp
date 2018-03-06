@@ -274,19 +274,28 @@ std::size_t DynamicMemoryArena<kArenaSize>::usedMemory() const noexcept
 /*!
   */
 template <std::size_t kArenaSize> inline
+void* DynamicMemoryArena<kArenaSize>::allocateMemory(const std::size_t size) noexcept
+{
+  //! \todo Solve code branch
+#if defined(Z_GCC) || defined(Z_MAC)
+  auto data = std::malloc(size);
+#else // Z_GCC
+  constexpr std::size_t chunk_alignment = MemoryChunk::headerAlignment();
+  auto data = std::aligned_alloc(chunk_alignment, size);
+#endif // Z_GCC
+  ZISC_ASSERT(MemoryChunk::isAligned(data), "The data isn't aligned.");
+  return data;
+}
+
+/*!
+  */
+template <std::size_t kArenaSize> inline
 bool DynamicMemoryArena<kArenaSize>::expandArena() noexcept
 {
-  constexpr std::size_t chunk_alignment = MemoryChunk::headerAlignment();
   constexpr std::size_t chunk_size = MemoryChunk::headerSize();
 
   const std::size_t level = arena_.size();
-//! \todo Solve code branch
-#if defined(Z_GCC) || defined(Z_MAC)
-  static_cast<void>(chunk_alignment);
-  auto data = std::malloc(getMemoryCapacity(level));
-#else // Z_GCC
-  auto data = std::aligned_alloc(chunk_alignment, getMemoryCapacity(level));
-#endif // Z_GCC
+  auto data = allocateMemory(getMemoryCapacity(level));
 
   const bool result = data != nullptr;
   if (result) {

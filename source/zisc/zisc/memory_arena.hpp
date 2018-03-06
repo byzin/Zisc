@@ -124,6 +124,9 @@ class MemoryArena<MemoryArenaType::kDynamic, kArenaSize>
   };
 
 
+  //! Allocate memory
+  static void* allocateMemory(const std::size_t size) noexcept;
+
   //! Expand this memory arena
   bool expandArena() noexcept;
 

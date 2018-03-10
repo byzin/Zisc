@@ -115,17 +115,15 @@ constexpr Float invert(const Float x) noexcept
  \details
  No detailed.
  */
-template <auto y, typename Integer> inline
-constexpr std::common_type_t<decltype(y), Integer> mod(Integer x) noexcept
+template <long y, typename Integer> inline
+constexpr Integer mod(Integer x) noexcept
 {
   static_assert(kIsInteger<Integer>, "Integer isn't integer type.");
-  static_assert(kIsInteger<decltype(y)>, "The decltype(y) isn't integer type.");
   static_assert(y != 0, "The y is zero.");
-  using ResultType = std::common_type_t<decltype(y), Integer>;
   constexpr bool is_power_of_2 = isPowerOf2(y);
-  const ResultType result = (is_power_of_2)
-      ? cast<ResultType>(x) & (cast<ResultType>(y) - 1)
-      : cast<ResultType>(x) % cast<ResultType>(y);
+  const Integer result = (is_power_of_2)
+      ? x & (cast<Integer>(y) - 1)
+      : x % cast<Integer>(y);
   return result;
 }
 

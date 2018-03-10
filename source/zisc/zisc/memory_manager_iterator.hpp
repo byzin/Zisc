@@ -27,10 +27,10 @@ class MemoryManagerIterator
  public:
   using value_type = ChunkT;
   using difference_type = std::size_t;
-  using reference = value_type&;
-  using const_reference = const std::remove_const_t<value_type>&;
-  using pointer = value_type*;
-  using const_pointer = const std::remove_const_t<value_type>*;
+  using reference = std::add_lvalue_reference_t<value_type>;
+  using const_reference = std::add_const_t<reference>;
+  using pointer = std::add_pointer_t<value_type>;
+  using const_pointer = std::add_const_t<pointer>;
 
 
   //! Create an end iterator

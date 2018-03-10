@@ -13,13 +13,13 @@
 #include "memory_arena.hpp"
 // Standard C++ library
 #include <cstddef>
-#include <cstdlib>
 #include <type_traits>
 #include <utility>
 #include <vector>
 // Zisc
 #include "error.hpp"
 #include "memory_chunk.hpp"
+#include "simple_memory_resource.hpp"
 #include "utility.hpp"
 #include "zisc/zisc_config.hpp"
 
@@ -159,7 +159,7 @@ template <std::size_t kArenaSize> inline
 DynamicMemoryArena<kArenaSize>::~MemoryArena() noexcept
 {
   for (auto& memory : arena_)
-    std::free(memory.data_);
+    SimpleMemoryResource::deallocateMemory(memory.data_);
 }
 
 /*!
@@ -274,28 +274,13 @@ std::size_t DynamicMemoryArena<kArenaSize>::usedMemory() const noexcept
 /*!
   */
 template <std::size_t kArenaSize> inline
-void* DynamicMemoryArena<kArenaSize>::allocateMemory(const std::size_t size) noexcept
-{
-  //! \todo Solve code branch
-#if defined(Z_GCC) || defined(Z_MAC)
-  auto data = std::malloc(size);
-#else // Z_GCC
-  constexpr std::size_t chunk_alignment = MemoryChunk::headerAlignment();
-  auto data = std::aligned_alloc(chunk_alignment, size);
-#endif // Z_GCC
-  ZISC_ASSERT(MemoryChunk::isAligned(data), "The data isn't aligned.");
-  return data;
-}
-
-/*!
-  */
-template <std::size_t kArenaSize> inline
 bool DynamicMemoryArena<kArenaSize>::expandArena() noexcept
 {
   constexpr std::size_t chunk_size = MemoryChunk::headerSize();
 
   const std::size_t level = arena_.size();
-  auto data = allocateMemory(getMemoryCapacity(level));
+  auto data = SimpleMemoryResource::allocateMemory(getMemoryCapacity(level),
+                                                   MemoryChunk::headerAlignment());
 
   const bool result = data != nullptr;
   if (result) {

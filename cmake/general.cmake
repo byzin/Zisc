@@ -56,10 +56,12 @@ function(detectEnvironment environment_definitions)
   if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     set(Z_GCC ON PARENT_SCOPE)
     set(compiler_definition Z_GCC)
-  elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR 
-         CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
+  elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     set(Z_CLANG ON PARENT_SCOPE)
     set(compiler_definition Z_CLANG)
+  elseif(CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
+    set(Z_CLANG ON PARENT_SCOPE)
+    set(compiler_definition Z_CLANG Z_APPLE_CLANG)
   elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     set(Z_MSVC ON PARENT_SCOPE)
     set(compiler_definition Z_MSVC)
@@ -116,15 +118,3 @@ function(detectEnvironment environment_definitions)
   # Output variable
   set(${environment_definitions} ${definitions} PARENT_SCOPE)
 endfunction(detectEnvironment)
-
-
-#
-function(setIncludeWhatYouUse target)
-  find_program(iwyu include_what_you_use)
-  if(iwyu)
-    set_target_properties(${target}
-                          PROPERTIES CXX_INCLUDE_WHAT_YOU_USE include_what_you_use)
-  else()
-    message(WARNING "${target}: Could not find include-what-you-use.")
-  endif()
-endfunction(setIncludeWhatYouUse)

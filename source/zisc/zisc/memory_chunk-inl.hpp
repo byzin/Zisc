@@ -19,6 +19,7 @@
 // Zisc
 #include "const_math.hpp"
 #include "error.hpp"
+#include "simple_memory_resource.hpp"
 #include "utility.hpp"
 #include "zisc/zisc_config.hpp"
 
@@ -121,10 +122,7 @@ uint32 MemoryChunk::id() const noexcept
 inline
 bool MemoryChunk::isAligned(const void* data) noexcept
 {
-  const std::ptrdiff_t address = treatAs<std::ptrdiff_t>(data);
-  const std::ptrdiff_t alignment = cast<std::ptrdiff_t>(headerAlignment());
-  const bool result = (address % alignment) == 0;
-  return result;
+  return SimpleMemoryResource::isAligned(data, headerAlignment());
 }
 
 /*!

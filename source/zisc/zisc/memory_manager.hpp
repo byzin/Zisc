@@ -1,104 +1,110 @@
-///*!
-//  \file memory_pool.hpp
-//  \author Sho Ikeda
-//
-//  Copyright (c) 2015-2018 Sho Ikeda
-//  This software is released under the MIT License.
-//  http://opensource.org/licenses/mit-license.php
-//  */
-//
-//#ifndef ZISC_MEMORY_POOL_HPP
-//#define ZISC_MEMORY_POOL_HPP
-//
-//// Standard C++ library
-//#include <cstddef>
-//#include <memory_resource>
-//#include <type_traits>
-//// Zisc
-//#include "memory_chunk.hpp"
-//#include "memory_pool_iterator.hpp"
-//#include "non_copyable.hpp"
-//#include "zisc/zisc_config.hpp"
-//
-//namespace zisc {
-//
-///*!
-//  \brief The memory type of a pool
-//  */
-//enum class MemoryPoolType
-//{
-//  kStatic,
-//  kDynamic
-//};
-//
-////! The body of a memory pool
-//template <MemoryPoolType, std::size_t> class MemoryArena;
-//
-///*!
-//  */
-//template <typename PoolType, std::size_t kArenaSize>
-//class MemoryPool : public std::pmr::memory_resource,
-//                   public NonCopyable<MemoryPool<PoolType, kArenaSize>>
-//{
-// public:
-//  using iterator = MemoryPoolIterator<MemoryChunk>;
-//  using const_iterator = MemoryPoolIterator<const MemoryChunk>;
-//
-//
-//  //! Create a memory pool
-//  MemoryPool() noexcept;
-//
-//  //! Move a memory pool
-//  MemoryPool(MemoryPool&& other) noexcept;
-//
-//
-//  //! Move a memory pool
-//  MemoryPool& operator=(MemoryPool&& other) noexcept;
-//
-//
-//  //! Return an iterator to the first chunk of the pool
-//  iterator begin() noexcept;
-//
-//  //! Return an iterator to the first chunk of the pool
-//  const_iterator begin() const noexcept;
-//
-//  //! Return an iterator to the first chunk of the pool
-//  const_iterator cbegin() const noexcept;
-//
-//  //! Return an iterator to the element following the last chunk of the pool
-//  iterator end() noexcept;
-//
-//  //! Return an iterator to the element following the last chunk of the pool
-//  const_iterator end() const noexcept;
-//
-//  //! Return an iterator to the element following the last chunk of the pool
-//  const_iterator cend() const noexcept;
-//
-//  //! Allocate storage
-//  void* do_allocate(std::size_t bytes, std::size_t alignment) override;
-//
-//  //! Deallocate the storage
-//  void do_deallocate(std::size_t bytes, std::size_t alignment) override;
-//
-//  //! Compare for equality
-//  bool do_is_equal(const std::pmr::memory_resource& other) const override;
-//
-// private:
-//  static_assert(0 < kArenaSize, "The arena size isn't positive.");
-//  static constexpr std::size_t kSize = MemoryChunk::headerSize() *
-//      (kArenaSize / MemoryChunk::headerSize() + 
-//       (0 < kArenaSize % MemoryChunk::headerSize()) ? 1 : 0);
-//  static_assert(kSize % MemoryChunk::headerAlignment() == 0,
-//                "The size isn't multiple of the chunk alignment");
-//  static_assert(kSize % MemoryChunk::headerSize() == 0,
-//                "The size isn't multiple of the chunk size");
-//
-//
-//  MemoryArena<PoolType, kSize> arena_;
-//};
-//
-//} // namespace zisc
-//
-//#include "memory_pool-inl.hpp"
-//
-//#endif // ZISC_MEMORY_POOL_HPP
+/*!
+  \file memory_manager.hpp
+  \author Sho Ikeda
+
+  Copyright (c) 2015-2018 Sho Ikeda
+  This software is released under the MIT License.
+  http://opensource.org/licenses/mit-license.php
+  */
+
+#ifndef ZISC_MEMORY_MANAGER_HPP
+#define ZISC_MEMORY_MANAGER_HPP
+
+// Standard C++ library
+#include <cstddef>
+#include <experimental/memory_resource>
+#include <type_traits>
+// Zisc
+#include "memory_arena.hpp"
+#include "memory_chunk.hpp"
+#include "memory_manager_iterator.hpp"
+#include "non_copyable.hpp"
+#include "zisc/zisc_config.hpp"
+
+namespace zisc {
+
+//! \todo replace 'experimental/memory_resource' with 'memory_resource'
+
+/*!
+  */
+template <MemoryArenaType kArenaType, std::size_t kArenaSize>
+class MemoryManager : public std::experimental::pmr::memory_resource,
+                      public NonCopyable<MemoryManager<kArenaType, kArenaSize>>
+{
+ public:
+  using iterator = MemoryManagerIterator<MemoryChunk>;
+  using const_iterator = MemoryManagerIterator<const MemoryChunk>;
+
+
+  //! Create a memory pool
+  MemoryManager() noexcept;
+
+  //! Move a memory pool
+  MemoryManager(MemoryManager&& other) noexcept;
+
+
+  //! Move a memory pool
+  MemoryManager& operator=(MemoryManager&& other) noexcept;
+
+
+  //! Return an iterator to the first chunk of the pool
+  iterator begin() noexcept;
+
+  //! Return an iterator to the first chunk of the pool
+  const_iterator begin() const noexcept;
+
+  //! Return an iterator to the first chunk of the pool
+  const_iterator cbegin() const noexcept;
+
+  //! Return an iterator to the element following the last chunk of the pool
+  iterator end() noexcept;
+
+  //! Return an iterator to the element following the last chunk of the pool
+  const_iterator end() const noexcept;
+
+  //! Return an iterator to the element following the last chunk of the pool
+  const_iterator cend() const noexcept;
+
+  //! Return the allocated memory space
+  std::size_t capacity() const noexcept;
+
+  //! Allocate storage
+  void* do_allocate(std::size_t bytes, std::size_t alignment) override;
+
+  //! Deallocate the storage
+  void do_deallocate(std::size_t bytes, std::size_t alignment) override;
+
+  //! Compare for equality
+  bool do_is_equal(const std::experimental::pmr::memory_resource& other) const noexcept override;
+
+  //! Reset the used memory
+  void reset() noexcept;
+
+  //! Return the used memory
+  std::size_t usedMemory() const noexcept;
+
+ private:
+  static_assert(0 < kArenaSize, "The arena size isn't positive.");
+  static constexpr std::size_t kSize = MemoryChunk::headerSize() *
+      (kArenaSize / MemoryChunk::headerSize() + 
+       ((kArenaSize % MemoryChunk::headerSize() != 0) ? 1 : 0));
+  static_assert(kSize % MemoryChunk::headerAlignment() == 0,
+                "The size isn't multiple of the chunk alignment");
+  static_assert(kSize % MemoryChunk::headerSize() == 0,
+                "The size isn't multiple of the chunk size");
+
+
+  MemoryArena<kArenaType, kSize> arena_;
+};
+
+// Type alias
+template <std::size_t kArenaSize>
+using StaticMemoryManager = MemoryManager<MemoryArenaType::kStatic, kArenaSize>;
+template <std::size_t kArenaSize>
+using DynamicMemoryManager = MemoryManager<MemoryArenaType::kDynamic, kArenaSize>;
+
+} // namespace zisc
+
+#include "memory_manager-inl.hpp"
+
+#endif // ZISC_MEMORY_MANAGER_HPP

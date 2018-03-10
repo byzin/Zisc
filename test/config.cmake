@@ -45,6 +45,7 @@ function(buildUnitTest)
   file(COPY ${__test_root__}/resources DESTINATION ${PROJECT_BINARY_DIR})
   file(GLOB unittest_source_files  ${__test_root__}/unittest/*.cpp)
   add_executable(UnitTest ${unittest_source_files} ${zisc_header_files})
+  source_group(UnitTest FILES ${unittest_source_files})
   set_target_properties(UnitTest PROPERTIES CXX_STANDARD 17
                                             CXX_STANDARD_REQUIRED ON)
   getCxxWarningOption(cxx_warning_flags)
@@ -63,4 +64,5 @@ function(buildUnitTest)
   target_compile_definitions(UnitTest PRIVATE ${environment_definitions}
                                               ${cxx_definitions}
                                               ${zisc_definitions})
+  setStaticAnalyzer(UnitTest)
 endfunction(buildUnitTest)

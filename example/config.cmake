@@ -26,11 +26,14 @@ endfunction(getExampleWarningOption)
 
 function(setExample example_name)
   # Build a example
-  add_executable(${example_name} ${ARGN})
+  set(example_source_files ${ARGN})
+  add_executable(${example_name} ${example_source_files})
+  source_group(Examples FILES ${example_source_files})
   #
-  set_target_properties(${example_name} PROPERTIES CXX_STANDARD 17
-                                                   CXX_STANDARD_REQUIRED ON
-                                                   RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/Examples)
+  set_target_properties(${example_name} PROPERTIES
+      CXX_STANDARD 17
+      CXX_STANDARD_REQUIRED ON
+      RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/Examples)
   getCxxWarningOption(cxx_warning_flags)
   getExampleWarningOption(example_warning_flags)
   target_compile_options(${example_name} PRIVATE ${cxx_compile_flags} 

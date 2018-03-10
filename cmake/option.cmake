@@ -8,8 +8,6 @@
 
 
 function(setCommandOption)
-
   set(option_description "Build unit tests.")
   setBooleanOption(ZISC_BUILD_TESTS OFF ${option_description})
-
 endfunction(setCommandOption)

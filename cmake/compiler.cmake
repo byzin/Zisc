@@ -35,6 +35,9 @@ function(initCompilerOption)
 
   set(option_description "Enable C++ memory sanitizer (if compiler supports).")
   setBooleanOption(Z_ENABLE_MEMORY_SANITIZER OFF ${option_description})
+
+  set(option_description "Enable static analyzer (clang-tidy, include-what-you-use, link-what-you-use).")
+  setBooleanOption(Z_ENABLE_STATIC_ANALYZER ON ${option_description})
 endfunction(initCompilerOption)
 
 
@@ -231,3 +234,43 @@ function(getCxxWarningOption compiler_warning_flags)
   # Output variables
   set(${compiler_warning_flags} ${warning_flags} PARENT_SCOPE)
 endfunction(getCxxWarningOption)
+
+
+#
+function(setStaticAnalyzer target)
+  if(Z_ENABLE_STATIC_ANALYZER)
+    set(static_analyzer_list "")
+
+    # clang-tidy
+    if(Z_CLANG)
+      find_program(Z_CLANG_TIDY_PROGRAM clang-tidy)
+      if(Z_CLANG_TIDY_PROGRAM)
+        set(tidy_program "${Z_CLANG_TIDY_PROGRAM};-checks=-*,clang-analyzer-*")
+        set_target_properties(${target} PROPERTIES
+            C_CLANG_TIDY "${tidy_program}"
+            CXX_CLANG_TIDY "${tidy_program}")
+        list(APPEND static_analyzer_list "clang-tidy (${Z_CLANG_TIDY_PROGRAM})")
+      else()
+        message(WARNING "[${target}] Could not find 'clang-tidy'.")
+      endif()
+
+      # include-what-you-use
+      find_program(Z_IWYU_PROGRAM include-what-you-use)
+      if(Z_IWYU_PROGRAM)
+        set_target_properties(${target} PROPERTIES
+            C_INCLUDE_WHAT_YOU_USE ${Z_IWYU_PROGRAM}
+            CXX_INCLUDE_WHAT_YOU_USE ${Z_IWYU_PROGRAM})
+        list(APPEND static_analyzer_list "include-what-you-use (${Z_IWYU_PROGRAM})")
+      else()
+        message(WARNING "[${target}] Could not find 'include-what-you-use'.")
+      endif()
+    endif()
+
+    # link-what-you-use
+    set_target_properties(${target} PROPERTIES
+        LINK_WHAT_YOU_USE TRUE)
+    list(APPEND static_analyzer_list "link-what-you-use")
+
+    message(STATUS "[${target}] Static analyzer: ${static_analyzer_list}")
+  endif()
+endfunction(setStaticAnalyzer)

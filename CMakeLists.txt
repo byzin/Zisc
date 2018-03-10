@@ -15,11 +15,12 @@ include(${PROJECT_SOURCE_DIR}/cmake/project.cmake)
 setZiscProperties()
 message(STATUS "Zisc version: ${PROJECT_VERSION}")
 
-# Configure build types
+# Build configuration
 set(CMAKE_CONFIGURATION_TYPES "Debug" "RelWithDebInfo" "Release")
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE "Debug")
 endif()
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Build configuration
 include(${PROJECT_SOURCE_DIR}/cmake/general.cmake)

@@ -288,9 +288,11 @@ function(setStaticAnalyzer target)
     endif()
 
     # link-what-you-use
-    set_target_properties(${target} PROPERTIES
-        LINK_WHAT_YOU_USE TRUE)
-    list(APPEND static_analyzer_list "link-what-you-use")
+    if(NOT Z_MAC)
+      set_target_properties(${target} PROPERTIES
+          LINK_WHAT_YOU_USE TRUE)
+      list(APPEND static_analyzer_list "link-what-you-use")
+    endif()
 
     message(STATUS "[${target}] Static analyzer: ${static_analyzer_list}")
   endif()

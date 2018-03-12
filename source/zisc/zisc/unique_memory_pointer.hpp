@@ -11,9 +11,9 @@
 #define ZISC_UNIQUE_MEMORY_POINTER_HPP
 
 // Standard C++ library
-#include <experimental/memory_resource>
 #include <type_traits>
 // Zisc
+#include "memory_resource.hpp"
 #include "non_copyable.hpp"
 #include "zisc/zisc_config.hpp"
 
@@ -30,7 +30,7 @@ class UniqueMemoryPointer : public NonCopyable<UniqueMemoryPointer<Type>>
   using const_reference = std::add_const_t<reference>;
   using pointer = std::add_pointer_t<value_type>;
   using const_pointer = std::add_const_t<pointer>;
-  using Allocator = std::experimental::pmr::polymorphic_allocator<value_type>;
+  using Allocator = pmr::polymorphic_allocator<value_type>;
 
 
   //! Create an empty unique pointer

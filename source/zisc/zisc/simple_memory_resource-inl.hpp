@@ -14,9 +14,9 @@
 // Standard C++ library
 #include <cstddef>
 #include <cstdlib>
-#include <experimental/memory_resource>
 // Zisc
 #include "error.hpp"
+#include "memory_resource.hpp"
 #include "utility.hpp"
 
 namespace zisc {
@@ -28,7 +28,7 @@ void* SimpleMemoryResource::allocateMemory(const std::size_t size,
                                            const std::size_t alignment) noexcept
 {
   //! \todo Solve code branch
-#if defined(Z_GCC) || defined(Z_APPLE_CLANG)
+#if defined(Z_GCC) || defined(Z_APPLE_CLANG) || defined(Z_MSVC)
   static_cast<void>(alignment);
   auto data = std::malloc(size);
 #else
@@ -65,7 +65,8 @@ void SimpleMemoryResource::do_deallocate(void* data, std::size_t, std::size_t)
 /*!
   */
 inline
-bool SimpleMemoryResource::do_is_equal(const MemoryResource& other) const noexcept
+bool SimpleMemoryResource::do_is_equal(const pmr::memory_resource& other)
+    const noexcept
 {
   const bool result = dynamic_cast<const SimpleMemoryResource*>(&other) != nullptr;
   return result;

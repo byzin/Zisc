@@ -171,8 +171,8 @@ constexpr Arith Matrix<Arith, kRow, kColumn>::determinant() const noexcept
 
     determinant = lu(0, 0);
     for (uint i = 1; i < n; ++i)
-      determinant *= lu(i, i);
-    determinant = isOdd(p[n] - n) ? -determinant : determinant;
+      determinant = determinant * lu(i, i);
+    determinant = isOdd(p[n]) ? -determinant : determinant;
   }
   return determinant;
 }
@@ -219,15 +219,19 @@ constexpr auto Matrix<Arith, kRow, kColumn>::inverseMatrix() const noexcept
   for (uint c = 0; c < kColumn; ++c) {
     for (uint r = 0; r < kRow; ++r) {
       inverse_matrix(r, c) = (p[r] == c) ? cast<Arith>(1) : cast<Arith>(0);
-      for (uint k = 0; k < r; ++k)
-        inverse_matrix(r, c) -= lu(r, k) * inverse_matrix(k, c);
+      for (uint k = 0; k < r; ++k) {
+        inverse_matrix(r, c) = inverse_matrix(r, c) -
+                               (lu(r, k) * inverse_matrix(k, c));
+      }
     }
     for (uint i = 0; i < kRow; ++i) {
       const uint r = kRow - 1 - i;
       const Arith inv_r = invert(lu.get(r, r));
-      for (uint k = r + 1; k < kRow; ++k)
-        inverse_matrix(r, c) -= lu(r, k) * inverse_matrix(k, c);
-      inverse_matrix(r, c) *= inv_r;
+      for (uint k = r + 1; k < kRow; ++k) {
+        inverse_matrix(r, c) = inverse_matrix(r, c) -
+                               (lu(r, k) * inverse_matrix(k, c));
+      }
+      inverse_matrix(r, c) = inverse_matrix(r, c) * inv_r;
     }
   }
   return inverse_matrix;
@@ -306,11 +310,13 @@ constexpr auto Matrix<Arith, kRow, kColumn>::decomposeLu() const noexcept
 {
   constexpr uint n = kRow;
 
-  auto lu = *this;
+  Matrix lu{};
+  lu.data_ = data_;
   ArithArray<uint, n+1> p{};
 
-  for (uint i = 0; i <= n; ++i)
+  for (uint i = 0; i < n; ++i)
     p[i] = i; // Unit permutation matrix
+  p[n] = 0;
 
   for (uint i = 0; i < n; ++i) {
     Arith max_a = cast<Arith>(0);
@@ -336,14 +342,14 @@ constexpr auto Matrix<Arith, kRow, kColumn>::decomposeLu() const noexcept
         lu(max_i, c) = temp;
       }
       // Counting pivots starting from N (for determinant)
-      ++p[n];
+      p[n] = p[n] + 1;
     }
 
     const Arith inv_i = invert(lu(i, i));
     for (uint j = i + 1; j < n; ++j) {
-      lu(j, i) *= inv_i;
+      lu(j, i) = lu(j, i) * inv_i;
       for (uint k = i + 1; k < n; ++k)
-        lu(j, k) -= lu(j, i) * lu(i, k);
+        lu(j, k) = lu(j, k) - (lu(j, i) * lu(i, k));
     }
   }
 

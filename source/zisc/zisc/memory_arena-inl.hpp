@@ -30,15 +30,15 @@ namespace zisc {
 /*!
   */
 template <std::size_t kArenaSize> inline
-StaticMemoryArena<kArenaSize>::MemoryArena() noexcept
+MemoryArena<MemoryArenaType::kStatic, kArenaSize>::MemoryArena() noexcept
 {
   initialize();
 }
 
 /*!
   */
-template <std::size_t kArenaSize> inline
-MemoryChunk* StaticMemoryArena<kArenaSize>::allocate(
+template <std::size_t kArenaSize> inline 
+MemoryChunk* MemoryArena<MemoryArenaType::kStatic, kArenaSize>::allocate(
     const std::size_t size,
     const std::size_t alignment) noexcept
 {
@@ -71,7 +71,8 @@ MemoryChunk* StaticMemoryArena<kArenaSize>::allocate(
 /*!
   */
 template <std::size_t kArenaSize> inline
-std::size_t StaticMemoryArena<kArenaSize>::capacity() const noexcept
+std::size_t MemoryArena<MemoryArenaType::kStatic, kArenaSize>::capacity()
+    const noexcept
 {
   return kArenaSize;
 }
@@ -79,7 +80,8 @@ std::size_t StaticMemoryArena<kArenaSize>::capacity() const noexcept
 /*!
   */
 template <std::size_t kArenaSize> inline
-MemoryChunk* StaticMemoryArena<kArenaSize>::getFirstChunk() noexcept
+MemoryChunk* MemoryArena<MemoryArenaType::kStatic, kArenaSize>::getFirstChunk()
+    noexcept
 {
   auto chunk = treatAs<MemoryChunk*>(&data_);
   ZISC_ASSERT(MemoryChunk::isAligned(chunk), "The chunk address isn't aligned.");
@@ -89,7 +91,8 @@ MemoryChunk* StaticMemoryArena<kArenaSize>::getFirstChunk() noexcept
 /*!
   */
 template <std::size_t kArenaSize> inline
-const MemoryChunk* StaticMemoryArena<kArenaSize>::getFirstChunk() const noexcept
+const MemoryChunk* MemoryArena<MemoryArenaType::kStatic, kArenaSize>::
+    getFirstChunk() const noexcept
 {
   const auto chunk = treatAs<const MemoryChunk*>(&data_);
   ZISC_ASSERT(MemoryChunk::isAligned(chunk), "The chunk address isn't aligned.");
@@ -99,7 +102,7 @@ const MemoryChunk* StaticMemoryArena<kArenaSize>::getFirstChunk() const noexcept
 /*!
   */
 template <std::size_t kArenaSize> inline
-void StaticMemoryArena<kArenaSize>::reset() noexcept
+void MemoryArena<MemoryArenaType::kStatic, kArenaSize>::reset() noexcept
 {
   auto chunk = getFirstChunk();
   chunk->reset();
@@ -110,7 +113,8 @@ void StaticMemoryArena<kArenaSize>::reset() noexcept
 /*!
   */
 template <std::size_t kArenaSize> inline
-std::size_t StaticMemoryArena<kArenaSize>::usedMemory() const noexcept
+std::size_t MemoryArena<MemoryArenaType::kStatic, kArenaSize>::usedMemory()
+    const noexcept
 {
   return used_memory_;
 }
@@ -118,8 +122,8 @@ std::size_t StaticMemoryArena<kArenaSize>::usedMemory() const noexcept
 /*!
   */
 template <std::size_t kArenaSize> inline
-MemoryChunk* StaticMemoryArena<kArenaSize>::getChunk(const std::size_t offset)
-    noexcept
+MemoryChunk* MemoryArena<MemoryArenaType::kStatic, kArenaSize>::getChunk(
+    const std::size_t offset) noexcept
 {
   auto chunk = treatAs<MemoryChunk*>(treatAs<uint8*>(&data_) + offset);
   ZISC_ASSERT(MemoryChunk::isAligned(chunk), "The chunk address isn't aligned.");
@@ -129,7 +133,7 @@ MemoryChunk* StaticMemoryArena<kArenaSize>::getChunk(const std::size_t offset)
 /*!
   */
 template <std::size_t kArenaSize> inline
-void StaticMemoryArena<kArenaSize>::initialize() noexcept
+void MemoryArena<MemoryArenaType::kStatic, kArenaSize>::initialize() noexcept
 {
   // Reset memory usage
   reset();
@@ -140,7 +144,7 @@ void StaticMemoryArena<kArenaSize>::initialize() noexcept
 /*!
   */
 template <std::size_t kArenaSize> inline
-DynamicMemoryArena<kArenaSize>::MemoryArena() noexcept
+MemoryArena<MemoryArenaType::kDynamic, kArenaSize>::MemoryArena() noexcept
 {
   initialize();
 }
@@ -148,15 +152,16 @@ DynamicMemoryArena<kArenaSize>::MemoryArena() noexcept
 /*!
   */
 template <std::size_t kArenaSize> inline
-DynamicMemoryArena<kArenaSize>::MemoryArena(MemoryArena&& other) noexcept :
-    arena_{std::move(other.arena_)}
+MemoryArena<MemoryArenaType::kDynamic, kArenaSize>::MemoryArena(
+    MemoryArena&& other) noexcept :
+        arena_{std::move(other.arena_)}
 {
 }
 
 /*!
   */
 template <std::size_t kArenaSize> inline
-DynamicMemoryArena<kArenaSize>::~MemoryArena() noexcept
+MemoryArena<MemoryArenaType::kDynamic, kArenaSize>::~MemoryArena() noexcept
 {
   for (auto& memory : arena_)
     SimpleMemoryResource::deallocateMemory(memory.data_);
@@ -165,7 +170,7 @@ DynamicMemoryArena<kArenaSize>::~MemoryArena() noexcept
 /*!
   */
 template <std::size_t kArenaSize> inline
-MemoryChunk* DynamicMemoryArena<kArenaSize>::allocate(
+MemoryChunk* MemoryArena<MemoryArenaType::kDynamic, kArenaSize>::allocate(
     const std::size_t size,
     const std::size_t alignment) noexcept
 {
@@ -218,7 +223,8 @@ MemoryChunk* DynamicMemoryArena<kArenaSize>::allocate(
 /*!
   */
 template <std::size_t kArenaSize> inline
-std::size_t DynamicMemoryArena<kArenaSize>::capacity() const noexcept
+std::size_t MemoryArena<MemoryArenaType::kDynamic, kArenaSize>::capacity()
+    const noexcept
 {
   const std::size_t c = getMemoryCapacity(arena_.size()) - kArenaSize;
   return c;
@@ -227,7 +233,8 @@ std::size_t DynamicMemoryArena<kArenaSize>::capacity() const noexcept
 /*!
   */
 template <std::size_t kArenaSize> inline
-MemoryChunk* DynamicMemoryArena<kArenaSize>::getFirstChunk() noexcept
+MemoryChunk* MemoryArena<MemoryArenaType::kDynamic, kArenaSize>::getFirstChunk()
+    noexcept
 {
   auto chunk = treatAs<MemoryChunk*>(arena_[0].data_);
   ZISC_ASSERT(MemoryChunk::isAligned(chunk), "The chunk address isn't aligned.");
@@ -237,7 +244,8 @@ MemoryChunk* DynamicMemoryArena<kArenaSize>::getFirstChunk() noexcept
 /*!
   */
 template <std::size_t kArenaSize> inline
-const MemoryChunk* DynamicMemoryArena<kArenaSize>::getFirstChunk() const noexcept
+const MemoryChunk* MemoryArena<MemoryArenaType::kDynamic, kArenaSize>::
+    getFirstChunk() const noexcept
 {
   const auto chunk = treatAs<const MemoryChunk*>(arena_[0].data_);
   ZISC_ASSERT(MemoryChunk::isAligned(chunk), "The chunk address isn't aligned.");
@@ -247,7 +255,7 @@ const MemoryChunk* DynamicMemoryArena<kArenaSize>::getFirstChunk() const noexcep
 /*!
   */
 template <std::size_t kArenaSize> inline
-void DynamicMemoryArena<kArenaSize>::reset() noexcept
+void MemoryArena<MemoryArenaType::kDynamic, kArenaSize>::reset() noexcept
 {
   for (std::size_t i = 0; i < arena_.size(); ++i) {
     auto& memory = arena_[i];
@@ -263,7 +271,8 @@ void DynamicMemoryArena<kArenaSize>::reset() noexcept
 /*!
   */
 template <std::size_t kArenaSize> inline
-std::size_t DynamicMemoryArena<kArenaSize>::usedMemory() const noexcept
+std::size_t MemoryArena<MemoryArenaType::kDynamic, kArenaSize>::usedMemory()
+    const noexcept
 {
   std::size_t used_memory = 0;
   for (const auto& memory : arena_)
@@ -274,7 +283,7 @@ std::size_t DynamicMemoryArena<kArenaSize>::usedMemory() const noexcept
 /*!
   */
 template <std::size_t kArenaSize> inline
-bool DynamicMemoryArena<kArenaSize>::expandArena() noexcept
+bool MemoryArena<MemoryArenaType::kDynamic, kArenaSize>::expandArena() noexcept
 {
   constexpr std::size_t chunk_size = MemoryChunk::headerSize();
 
@@ -302,7 +311,7 @@ bool DynamicMemoryArena<kArenaSize>::expandArena() noexcept
 /*!
   */
 template <std::size_t kArenaSize> inline
-MemoryChunk* DynamicMemoryArena<kArenaSize>::getChunk(
+MemoryChunk* MemoryArena<MemoryArenaType::kDynamic, kArenaSize>::getChunk(
     const std::size_t memory_num,
     const std::size_t offset) noexcept
 {
@@ -314,7 +323,7 @@ MemoryChunk* DynamicMemoryArena<kArenaSize>::getChunk(
 /*!
   */
 template <std::size_t kArenaSize> inline
-std::size_t DynamicMemoryArena<kArenaSize>::getMemoryCapacity(
+std::size_t MemoryArena<MemoryArenaType::kDynamic, kArenaSize>::getMemoryCapacity(
     const std::size_t memory_num) noexcept
 {
   const std::size_t c = kArenaSize << memory_num;
@@ -324,7 +333,7 @@ std::size_t DynamicMemoryArena<kArenaSize>::getMemoryCapacity(
 /*!
   */
 template <std::size_t kArenaSize> inline
-void DynamicMemoryArena<kArenaSize>::initialize() noexcept
+void MemoryArena<MemoryArenaType::kDynamic, kArenaSize>::initialize() noexcept
 {
   // Reserve memory pointers
   arena_.reserve(8);

@@ -41,6 +41,22 @@ function(initCompilerOption)
 endfunction(initCompilerOption)
 
 
+function(getMsvcCompilerOption cxx_compile_flags cxx_linker_flags cxx_definitions)
+  set(compile_flags "")
+  set(linker_flags "")
+  set(definitions "")
+
+  list(APPEND compile_flags /constexpr:depth${constexpr_depth}
+                            /constexpr:backtrace${constexpr_backtrace}
+                            /constexpr:steps${constexpr_steps})
+
+  # Output variables
+  set(${cxx_compile_flags} ${compile_flags} PARENT_SCOPE)
+  set(${cxx_linker_flags} ${linker_flags} PARENT_SCOPE)
+  set(${cxx_definitions} ${definitions} PARENT_SCOPE)
+endfunction(getMsvcCompilerOption)
+
+
 function(getClangCompilerOption cxx_compile_flags cxx_linker_flags cxx_definitions)
   set(compile_flags "")
   set(linker_flags "")
@@ -200,12 +216,17 @@ endfunction(getMsvcWarningOption)
 # Output functions
 # Get compile options
 function(getCompilerOption cxx_compile_flags cxx_linker_flags cxx_definitions)
+
+  set(constexpr_depth 512)
+  set(constexpr_backtrace 10)
+  set(constexpr_steps 10000000)
+
   if(Z_GCC)
     getGccCompilerOption(compile_flags linker_flags definitions)
   elseif(Z_CLANG)
     getClangCompilerOption(compile_flags linker_flags definitions)
   elseif(Z_MSVC)
-    # Nothing
+    getMsvcCompilerOption(compile_flags linker_flags definitions)
   endif()
   # Output variables
   set(${cxx_compile_flags} ${compile_flags} PARENT_SCOPE)

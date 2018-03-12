@@ -22,36 +22,36 @@
 #include "zisc/sip_hash_engine.hpp"
 #include "zisc/zisc_config.hpp"
 
+#define kN 64
+#define kHashSize sizeof(Type)
+
 template <typename Type>
 void testSipHash(const std::string& reference_file_path)
 {
   std::ifstream reference_file;
   reference_file.open(reference_file_path);
 
-  constexpr std::size_t n = 64;
-  constexpr std::size_t hash_size = sizeof(Type);
-
   auto get_input_list = []()
   {
-    std::array<zisc::uint8, n> inputs{};
-    for (std::size_t i = 0; i < n; ++i)
+    std::array<zisc::uint8, kN> inputs{};
+    for (std::size_t i = 0; i < kN; ++i)
       inputs[i] = static_cast<zisc::uint8>(i);
     return inputs;
   };
 
-  auto to_uint = [](const std::array<zisc::uint8, hash_size> outputs)
+  auto to_uint = [](const std::array<zisc::uint8, kHashSize> outputs)
   {
     Type result = 0;
-    for (std::size_t i = 0; i < hash_size; ++i)
+    for (std::size_t i = 0; i < kHashSize; ++i)
       result = result | (static_cast<Type>(outputs[i]) << (8 * i));
     return result;
   };
 
   constexpr auto input_list = get_input_list();
 
-  for (std::size_t i = 0; i < n; ++i) {
-    std::array<zisc::uint8, hash_size> output_list;
-    for (std::size_t b = 0; b < hash_size; ++b) {
+  for (std::size_t i = 0; i < kN; ++i) {
+    std::array<zisc::uint8, kHashSize> output_list;
+    for (std::size_t b = 0; b < kHashSize; ++b) {
       zisc::uint expected = 0;
       reference_file >> std::hex >> expected;
       output_list[b] = static_cast<zisc::uint8>(expected);

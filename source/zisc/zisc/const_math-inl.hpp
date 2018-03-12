@@ -107,8 +107,9 @@ template <typename Float> inline
 constexpr Float invert(const Float x) noexcept
 {
   static_assert(kIsFloat<Float>, "Float isn't floating point type.");
+  constexpr Float zero = cast<Float>(0.0);
   constexpr Float one = cast<Float>(1.0);
-  return one / x;
+  return (x != zero) ? one / x : zero;
 }
 
 /*!

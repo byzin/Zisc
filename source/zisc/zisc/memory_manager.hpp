@@ -12,23 +12,21 @@
 
 // Standard C++ library
 #include <cstddef>
-#include <experimental/memory_resource>
 #include <type_traits>
 // Zisc
 #include "memory_arena.hpp"
 #include "memory_chunk.hpp"
 #include "memory_manager_iterator.hpp"
+#include "memory_resource.hpp"
 #include "non_copyable.hpp"
 #include "zisc/zisc_config.hpp"
 
 namespace zisc {
 
-//! \todo replace 'experimental/memory_resource' with 'memory_resource'
-
 /*!
   */
 template <MemoryArenaType kArenaType, std::size_t kArenaSize>
-class MemoryManager : public std::experimental::pmr::memory_resource,
+class MemoryManager : public pmr::memory_resource,
                       public NonCopyable<MemoryManager<kArenaType, kArenaSize>>
 {
  public:
@@ -75,7 +73,7 @@ class MemoryManager : public std::experimental::pmr::memory_resource,
   void do_deallocate(std::size_t bytes, std::size_t alignment) override;
 
   //! Compare for equality
-  bool do_is_equal(const std::experimental::pmr::memory_resource& other) const noexcept override;
+  bool do_is_equal(const pmr::memory_resource& other) const noexcept override;
 
   //! Reset the used memory
   void reset() noexcept;

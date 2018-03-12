@@ -12,11 +12,12 @@
 
 #include "unique_memory_pointer.hpp"
 // Standard C++ library
-#include <experimental/memory_resource>
+#include <memory>
 #include <type_traits>
 #include <utility>
 // Zisc
 #include "error.hpp"
+#include "memory_resource.hpp"
 #include "non_copyable.hpp"
 #include "zisc/zisc_config.hpp"
 
@@ -149,7 +150,7 @@ void UniqueMemoryPointer<Type>::reset(pointer data, Allocator* alloc) noexcept
   auto prev_data = get();
   if (prev_data != nullptr) {
     auto& prev_allocator = getAllocator();
-    prev_allocator.destroy(prev_data);
+    std::destroy_at<value_type>(prev_data);
     prev_allocator.deallocate(prev_data, 1);
   }
   data_ = data;

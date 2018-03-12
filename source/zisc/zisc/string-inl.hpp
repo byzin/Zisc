@@ -209,6 +209,16 @@ constexpr auto BasicString<CharType, kN>::makeEmptyArray() noexcept -> ArrayType
 }
 
 /*!
+  */
+inline
+constexpr std::size_t getSize(const char* s) noexcept
+{
+  std::size_t size = 0;
+  for (; s[size] != '\0'; ++size) {}
+  return size;
+}
+
+/*!
   \details
   No detailed.
   */

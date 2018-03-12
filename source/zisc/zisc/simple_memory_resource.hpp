@@ -12,19 +12,17 @@
 
 // Standard C++ library
 #include <cstddef>
-#include <experimental/memory_resource>
+// Zisc
+#include "memory_resource.hpp"
 
 namespace zisc {
 
 /*!
   \brief a saimple memory allocator that uses 'malloc' and 'free'
   */
-class SimpleMemoryResource : public std::experimental::pmr::memory_resource
+class SimpleMemoryResource : public pmr::memory_resource
 {
  public:
-  using MemoryResource = std::experimental::pmr::memory_resource;
-
-
   //! Allocate memory
   static void* allocateMemory(const std::size_t size,
                               const std::size_t alignment) noexcept;
@@ -39,7 +37,7 @@ class SimpleMemoryResource : public std::experimental::pmr::memory_resource
   void do_deallocate(void* data, std::size_t size, std::size_t alignment) override;
 
   //! Compare for equality with another memory resource
-  bool do_is_equal(const MemoryResource& other) const noexcept override;
+  bool do_is_equal(const pmr::memory_resource& other) const noexcept override;
 
   //! Check if an address of 'data' is aligned at 'alignment' bytes
   static bool isAligned(const void* data, const std::size_t alignment) noexcept;

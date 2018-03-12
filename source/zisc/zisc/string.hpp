@@ -119,6 +119,9 @@ class BasicString
 template <uint kN>
 using String = BasicString<char, kN>;
 
+//! Get the length of string
+constexpr std::size_t getSize(const char* s) noexcept;
+
 //! Concatenates two strings
 template <typename CharType, uint kN1, uint kN2>
 constexpr BasicString<CharType, kN1 + kN2 - 1> operator+(

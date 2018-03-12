@@ -13,7 +13,6 @@
 #include "memory_manager.hpp"
 // Standard C++ library
 #include <cstddef>
-#include <experimental/memory_resource>
 #include <type_traits>
 #include <utility>
 // Zisc
@@ -21,6 +20,7 @@
 #include "memory_arena.hpp"
 #include "memory_chunk.hpp"
 #include "memory_manager_iterator.hpp"
+#include "memory_resource.hpp"
 #include "non_copyable.hpp"
 #include "utility.hpp"
 #include "zisc/zisc_config.hpp"

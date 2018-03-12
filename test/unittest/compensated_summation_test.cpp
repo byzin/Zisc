@@ -18,30 +18,30 @@ TEST(CompensatedSummationTest, ConstexprSumTest)
   constexpr int loop = 1'000'0;
   constexpr double value = 1.0e-4;
 
-  auto calc_normal_sum = []()
+  auto calc_normal_sum = [](const int l, const double v)
   {
     double sum = 0.0;
-    for (int i = 0; i < loop; ++i)
-      sum += value;
+    for (int i = 0; i < l; ++i)
+      sum += v;
     return sum;
   };
 
-  auto calc_compensated_sum = []()
+  auto calc_compensated_sum = [](const int l, const double v)
   {
     zisc::CompensatedSummation<double> sum{0.0};
-    for (int i = 0; i < loop; ++i)
-      sum.add(value);
+    for (int i = 0; i < l; ++i)
+      sum.add(v);
     return sum.get();
   };
 
   // Normal sum
   {
-    constexpr double sum = calc_normal_sum();
+    constexpr double sum = calc_normal_sum(loop, value);
     EXPECT_NE(1.0, sum);
   }
   // Compensated sum
   {
-    constexpr double sum = calc_compensated_sum();
+    constexpr double sum = calc_compensated_sum(loop, value);
     EXPECT_EQ(1.0, sum);
   }
 

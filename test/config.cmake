@@ -36,6 +36,9 @@ endfunction(getTestWarningOption)
 
 
 function(buildUnitTest)
+  set(option_description "Enable constexpr math test.")
+  setBooleanOption(ZISC_ENABLE_CONSTEXPR_MATH_TEST ON ${option_description})
+
   # Load google test
   include(${PROJECT_SOURCE_DIR}/cmake/googletest.cmake)
   set(googletest_project_root ${__test_root__}/googletest)
@@ -64,5 +67,8 @@ function(buildUnitTest)
   target_compile_definitions(UnitTest PRIVATE ${environment_definitions}
                                               ${cxx_definitions}
                                               ${zisc_definitions})
+  if(ZISC_ENABLE_CONSTEXPR_MATH_TEST)
+    target_compile_definitions(UnitTest PRIVATE ZISC_CONSTEXPR_MATH_TEST)
+  endif()
   setStaticAnalyzer(UnitTest)
 endfunction(buildUnitTest)

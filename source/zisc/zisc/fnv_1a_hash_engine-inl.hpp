@@ -30,15 +30,29 @@ template <typename ResultType> struct Fnv1aHashEngineImpl;
 template <>
 struct Fnv1aHashEngineImpl<uint32>
 {
-  static constexpr uint32 prime = 16777619u;
-  static constexpr uint32 offset = 2166136261u;
+  static constexpr uint32 prime() noexcept
+  {
+    return 16777619u;
+  }
+
+  static constexpr uint32 offset() noexcept
+  {
+    return 2166136261u;
+  }
 };
 
 template <>
 struct Fnv1aHashEngineImpl<uint64>
 {
-  static constexpr uint64 prime = 1099511628211ull;
-  static constexpr uint64 offset = 14695981039346656037ull;
+  static constexpr uint64 prime() noexcept
+  {
+    return 1099511628211ull;
+  }
+
+  static constexpr uint64 offset() noexcept
+  {
+    return 14695981039346656037ull;
+  }
 };
 
 } // namespace inner
@@ -50,10 +64,10 @@ constexpr ResultType Fnv1aHashEngine<ResultType>::hashValue(
     const Int8* inputs,
     const std::size_t n) noexcept
 {
-  ResultType x = inner::Fnv1aHashEngineImpl<ResultType>::offset;
+  ResultType x = inner::Fnv1aHashEngineImpl<ResultType>::offset();
   for (std::size_t i = 0; i < n; ++i) {
     x = (x ^ cast<ResultType>(inputs[i])) *
-        inner::Fnv1aHashEngineImpl<ResultType>::prime;
+        inner::Fnv1aHashEngineImpl<ResultType>::prime();
   }
   return x;
 }

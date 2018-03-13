@@ -62,6 +62,10 @@ function(getClangCompilerOption cxx_compile_flags cxx_linker_flags cxx_definitio
   set(linker_flags "")
   set(definitions "")
 
+  list(APPEND compile_flags -fconstexpr-depth=${constexpr_depth}
+                            -fconstexpr-backtrace-limit=${constexpr_backtrace}
+                            -fconstexpr-steps=${constexpr_steps})
+
   if(Z_CLANG_USES_LIBCXX)
     list(APPEND compile_flags -stdlib=libc++)
     list(APPEND linker_flags -stdlib=libc++)
@@ -111,6 +115,9 @@ function(getGccCompilerOption cxx_compile_flags cxx_linker_flags cxx_definitions
   set(compile_flags "")
   set(linker_flags "")
   set(definitions "")
+
+  list(APPEND compile_flags -fconstexpr-depth=${constexpr_depth}
+                            -fconstexpr-loop-limit=${constexpr_steps})
 
   if(Z_STATIC_LINK_LIBCXX)
     list(APPEND linker_flags -static-libstdc++)
@@ -218,8 +225,8 @@ endfunction(getMsvcWarningOption)
 function(getCompilerOption cxx_compile_flags cxx_linker_flags cxx_definitions)
 
   set(constexpr_depth 512)
-  set(constexpr_backtrace 10)
-  set(constexpr_steps 10000000)
+  set(constexpr_backtrace 16)
+  set(constexpr_steps 2147483647)
 
   if(Z_GCC)
     getGccCompilerOption(compile_flags linker_flags definitions)

@@ -7,6 +7,8 @@
   http://opensource.org/licenses/mit-license.php
   */
 
+#ifdef ZISC_CONSTEXPR_MATH_TEST
+
 // Standard C++ library
 #include <cmath>
 #include <iostream>
@@ -265,19 +267,19 @@ struct CbrtTest
 {
   static void test()
   {
-//    constexpr int start = -10000;
-//    constexpr int end = 10000;
-//    constexpr int step = 100;
-//    // Loop test
-//    {
-//      constexpr int scale = 10000;
-//      CbrtLoopTest<scale, end, step, start>::test();
-//    }
-//    // Long range loop test
-//    {
-//      constexpr int scale = 1;
-//      CbrtLoopTest<scale, end, step, start>::test();
-//    }
+    constexpr int start = -10000;
+    constexpr int end = 10000;
+    constexpr int step = 100;
+    // Loop test
+    {
+      constexpr int scale = 10000;
+      CbrtLoopTest<scale, end, step, start>::test();
+    }
+    // Long range loop test
+    {
+      constexpr int scale = 1;
+      CbrtLoopTest<scale, end, step, start>::test();
+    }
   }
 };
 
@@ -330,10 +332,10 @@ struct ExpTest
       ExpLoopTest<scale, end, step, start>::test();
     }
     // Long range loop test
-//    {
-//      constexpr int scale = 1;
-//      ExpLoopTest<scale, end, step, start>::test();
-//    }
+    {
+      constexpr int scale = 1;
+      ExpLoopTest<scale, end, step, start>::test();
+    }
   }
 };
 
@@ -810,10 +812,10 @@ struct SinhTest
       SinhLoopTest<scale, end, step, start>::test();
     }
     // Long range loop test
-//    {
-//      constexpr int scale = 1;
-//      SinhLoopTest<scale, end, step, start>::test();
-//    }
+    {
+      constexpr int scale = 1;
+      SinhLoopTest<scale, end, step, start>::test();
+    }
   }
 };
 
@@ -861,10 +863,10 @@ struct CoshTest
       CoshLoopTest<scale, end, step, start>::test();
     }
     // Long range loop test
-//    {
-//      constexpr int scale = 1;
-//      CoshLoopTest<scale, end, step, start>::test();
-//    }
+    {
+      constexpr int scale = 1;
+      CoshLoopTest<scale, end, step, start>::test();
+    }
   }
 };
 
@@ -912,10 +914,10 @@ struct TanhTest
       TanhLoopTest<scale, end, step, start>::test();
     }
     // Long range loop test
-//    {
-//      constexpr int scale = 1;
-//      TanhLoopTest<scale, end, step, start>::test();
-//    }
+    {
+      constexpr int scale = 1;
+      TanhLoopTest<scale, end, step, start>::test();
+    }
   }
 };
 
@@ -1068,3 +1070,5 @@ TEST(ConstMathTest, ArcTanhTest)
 {
   ::ArcTanhTest::test();
 }
+
+#endif // ZISC_CONSTEXPR_MATH_TEST

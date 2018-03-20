@@ -10,193 +10,340 @@
 // Standard C++ library
 #include <bitset>
 #include <iomanip>
-#include <iostream>
+#include <limits>
 // GoogleTest
 #include "gtest/gtest.h"
 // Zisc
 #include "zisc/floating_point_bit.hpp"
+#include "zisc/math.hpp"
+#include "zisc/sip_hash_engine.hpp"
 #include "zisc/utility.hpp"
 #include "zisc/zisc_config.hpp"
+// Test
+#include "test.hpp"
 
 namespace {
 
-void printFloatBit(const double value)
+} // namespace 
+
+namespace {
+
+constexpr int start = -512;
+constexpr int end = 512;
+//constexpr int start = -20;
+//constexpr int end = 20;
+
+template <typename Float, int end, int i>
+struct BitTest
 {
-  const auto v = zisc::treatAs<const zisc::uint64*>(&value);
-  std::bitset<64> float_bit{*v};
-  std::cout << std::scientific << value << ": ";
-  std::cout << float_bit << std::endl;
-}
+  using FloatBit = zisc::FloatingPointBit<Float>;
+  using BitType = typename FloatBit::BitType;
+
+  union F
+  {
+    Float f_;
+    BitType bit_;
+    F(const Float f) : f_{f} {}
+  };
+  static_assert(sizeof(F) == sizeof(BitType), "The size of F is invalid.");
+
+  static constexpr Float zero = zisc::cast<Float>(0.0);
+  static constexpr Float x = zisc::cast<Float>(i) / zisc::cast<Float>(end);
+
+  static constexpr Float normal = ::makeNormal(x);
+  static_assert((normal == zero) || zisc::isNormal(normal),
+                "The normal isn't normal.");
+
+  static constexpr Float subnormal = ::makeSubnormal(x);
+  static_assert((subnormal == zero) || zisc::isSubnormal(subnormal),
+                "The subnormal isn't subnormal.");
+
+  static void testExponentBit()
+  {
+    {
+      constexpr BitType result = FloatBit::getExponentBits(normal);
+      const F f{normal};
+      const BitType expected = f.bit_ & FloatBit::exponentBitMask();
+      EXPECT_EQ(expected, result)
+          << "normal: "
+          << std::setprecision(std::numeric_limits<Float>::digits10)
+          << normal;
+    }
+    {
+      constexpr BitType result = FloatBit::getExponentBits(subnormal);
+      const F f{subnormal};
+      const BitType expected = f.bit_ & FloatBit::exponentBitMask();
+      EXPECT_EQ(expected, result)
+          << "subnormal: "
+          << std::setprecision(std::numeric_limits<Float>::digits10)
+          << subnormal;
+    }
+    BitTest<Float, end, i + 1>::testExponentBit();
+  }
+
+  static void testSignBit()
+  {
+    {
+      constexpr BitType result = FloatBit::getSignBit(normal);
+      const F f{normal};
+      const BitType expected = f.bit_ & FloatBit::signBitMask();
+      EXPECT_EQ(expected, result)
+          << "normal: "
+          << std::setprecision(std::numeric_limits<Float>::digits10)
+          << normal;
+    }
+    {
+      constexpr BitType result = FloatBit::getSignBit(subnormal);
+      const F f{subnormal};
+      const BitType expected = f.bit_ & FloatBit::signBitMask();
+      EXPECT_EQ(expected, result)
+          << "subnormal: "
+          << std::setprecision(std::numeric_limits<Float>::digits10)
+          << subnormal;
+    }
+    BitTest<Float, end, i + 1>::testSignBit();
+  }
+
+  static void testSignificandBit()
+  {
+    {
+      constexpr BitType result = FloatBit::getSignificandBits(normal);
+      const F f{normal};
+      const BitType expected = f.bit_ & FloatBit::significandBitMask();
+      EXPECT_EQ(expected, result)
+          << "normal: "
+          << std::setprecision(std::numeric_limits<Float>::digits10)
+          << normal
+          << std::endl
+          << "E: " << std::bitset<64>(zisc::cast<zisc::uint64>(expected)) << std::endl
+          << "R: " << std::bitset<64>(zisc::cast<zisc::uint64>(result)) << std::endl;
+    }
+    {
+      constexpr BitType result = FloatBit::getSignificandBits(subnormal);
+      const F f{subnormal};
+      const BitType expected = f.bit_ & FloatBit::significandBitMask();
+      EXPECT_EQ(expected, result)
+          << "subnormal: "
+          << std::setprecision(std::numeric_limits<Float>::digits10)
+          << subnormal
+          << std::endl
+          << "E: " << std::bitset<64>(zisc::cast<zisc::uint64>(expected)) << std::endl
+          << "R: " << std::bitset<64>(zisc::cast<zisc::uint64>(result)) << std::endl;
+    }
+    BitTest<Float, end, i + 1>::testSignificandBit();
+  }
+
+  static void testBit()
+  {
+    {
+      constexpr BitType result = FloatBit::getBits(normal);
+      const F f{normal};
+      const BitType expected = f.bit_;
+      EXPECT_EQ(expected, result)
+          << "normal: "
+          << std::setprecision(std::numeric_limits<Float>::digits10)
+          << normal;
+    }
+    {
+      constexpr BitType result = FloatBit::getBits(subnormal);
+      const F f{subnormal};
+      const BitType expected = f.bit_;
+      EXPECT_EQ(expected, result)
+          << "subnormal: "
+          << std::setprecision(std::numeric_limits<Float>::digits10)
+          << subnormal;
+    }
+    BitTest<Float, end, i + 1>::testBit();
+  }
+
+  static void testFloatMaking()
+  {
+    {
+      constexpr BitType s = FloatBit::getSignBit(normal);
+      constexpr BitType e = FloatBit::getExponentBits(normal);
+      constexpr BitType m = FloatBit::getSignificandBits(normal);
+      constexpr Float f = FloatBit::makeFloat(s, e, m);
+      EXPECT_EQ(normal, f)
+          << "normal: "
+          << std::setprecision(std::numeric_limits<Float>::digits10)
+          << normal;
+    }
+    {
+      constexpr BitType s = FloatBit::getSignBit(subnormal);
+      constexpr BitType e = FloatBit::getExponentBits(subnormal);
+      constexpr BitType m = FloatBit::getSignificandBits(subnormal);
+      constexpr Float f = FloatBit::makeFloat(s, e, m);
+      EXPECT_EQ(subnormal, f)
+          << "subnormal: "
+          << std::setprecision(std::numeric_limits<Float>::digits10)
+          << subnormal;
+    }
+    BitTest<Float, end, i + 1>::testFloatMaking();
+  }
+};
+
+template <typename Float, int end>
+struct BitTest<Float, end, end>
+{
+  using FloatBit = zisc::FloatingPointBit<Float>;
+  using BitType = typename FloatBit::BitType;
+
+  union F
+  {
+    Float f_;
+    BitType bit_;
+    F(const Float f) : f_{f} {}
+  };
+  static_assert(sizeof(F) == sizeof(BitType), "The size of F is invalid.");
+
+  static void testExponentBit()
+  {
+    auto test = [](const Float x)
+    {
+      const BitType result = FloatBit::getExponentBits(x);
+      const F f{x};
+      const BitType expected = f.bit_ & FloatBit::exponentBitMask();
+      EXPECT_EQ(expected, result)
+          << "F: "
+          << std::setprecision(std::numeric_limits<Float>::digits10)
+          << x;
+    };
+    test(zisc::cast<Float>(0.0));
+    test(std::numeric_limits<Float>::max());
+    test(std::numeric_limits<Float>::lowest());
+    test(std::numeric_limits<Float>::min());
+    test(-std::numeric_limits<Float>::min());
+    test(std::numeric_limits<Float>::infinity());
+    test(-std::numeric_limits<Float>::infinity());
+    test(std::numeric_limits<Float>::quiet_NaN());
+    test(std::numeric_limits<Float>::denorm_min());
+  }
+
+  static void testSignBit()
+  {
+    auto test = [](const Float x)
+    {
+      const BitType result = FloatBit::getSignBit(x);
+      const F f{x};
+      const BitType expected = f.bit_ & FloatBit::signBitMask();
+      EXPECT_EQ(expected, result)
+          << "F: "
+          << std::setprecision(std::numeric_limits<Float>::digits10)
+          << x;
+    };
+    test(zisc::cast<Float>(0.0));
+    test(std::numeric_limits<Float>::max());
+    test(std::numeric_limits<Float>::lowest());
+    test(std::numeric_limits<Float>::min());
+    test(-std::numeric_limits<Float>::min());
+    test(std::numeric_limits<Float>::infinity());
+    test(-std::numeric_limits<Float>::infinity());
+    test(std::numeric_limits<Float>::quiet_NaN());
+    test(std::numeric_limits<Float>::denorm_min());
+  }
+
+  static void testSignificandBit()
+  {
+    auto test = [](const Float x)
+    {
+      const BitType result = FloatBit::getSignificandBits(x);
+      const F f{x};
+      const BitType expected = f.bit_ & FloatBit::significandBitMask();
+      EXPECT_EQ(expected, result)
+          << "F: "
+          << std::setprecision(std::numeric_limits<Float>::digits10)
+          << x;
+    };
+    test(zisc::cast<Float>(0.0));
+    test(std::numeric_limits<Float>::max());
+    test(std::numeric_limits<Float>::lowest());
+    test(std::numeric_limits<Float>::min());
+    test(-std::numeric_limits<Float>::min());
+    test(std::numeric_limits<Float>::infinity());
+    test(-std::numeric_limits<Float>::infinity());
+    test(std::numeric_limits<Float>::quiet_NaN());
+    test(std::numeric_limits<Float>::denorm_min());
+  }
+
+  static void testBit()
+  {
+    auto test = [](const Float x)
+    {
+      const BitType result = FloatBit::getBits(x);
+      const F f{x};
+      const BitType expected = f.bit_;
+      EXPECT_EQ(expected, result)
+          << "F: "
+          << std::setprecision(std::numeric_limits<Float>::digits10)
+          << x;
+    };
+    test(zisc::cast<Float>(0.0));
+    test(std::numeric_limits<Float>::max());
+    test(std::numeric_limits<Float>::lowest());
+    test(std::numeric_limits<Float>::min());
+    test(-std::numeric_limits<Float>::min());
+    test(std::numeric_limits<Float>::infinity());
+    test(-std::numeric_limits<Float>::infinity());
+    test(std::numeric_limits<Float>::quiet_NaN());
+    test(std::numeric_limits<Float>::denorm_min());
+  }
+
+  static void testFloatMaking()
+  {
+  }
+};
 
 } // namespace 
 
-TEST(FloatingPointBitTest, getFloatMantissaBitTest)
+TEST(FloatingPointBitTest, getExponentBitsFloatTest)
 {
-  constexpr float value = 1.2345f;
-  /* const auto v = */ zisc::FloatBit::getMantissaBits(value);
-//  ::printFloatBit(value);
-//  ::printFloatBit(*zisc::treatAs<const float*>(&v));
+  ::BitTest<float, ::end, ::start>::testExponentBit();
 }
 
-TEST(FloatingPointBitTest, getDoubleMantissaBitTest)
+TEST(FloatingPointBitTest, getExponentBitsDoubleTest)
 {
-  constexpr double value = 1.2345;
-  /* const auto v = */ zisc::DoubleBit::getMantissaBits(value);
-//  ::printFloatBit(value);
-//  ::printFloatBit(*zisc::treatAs<const double*>(&v));
+  ::BitTest<double, ::end, ::start>::testExponentBit();
 }
 
-TEST(FloatingPointBitTest, getFloatExponentBitTest)
+TEST(FloatingPointBitTest, getSignificandBitsFloatTest)
 {
-  using zisc::cast;
-  using zisc::FloatBit;
-  {
-    constexpr float value = 1.2345f;
-    constexpr FloatBit::BitType reference = 0b0111'1111u << 23;
-    EXPECT_EQ(reference, FloatBit::getExponentBits(value));
-  }
+  ::BitTest<float, ::end, ::start>::testSignificandBit();
 }
 
-TEST(FloatingPointBitTest, getDoubleExponentBitTest)
+TEST(FloatingPointBitTest, getSignificandBitsDoubleTest)
 {
-  using zisc::cast;
-  using zisc::DoubleBit;
-  {
-    constexpr double value = 1.2345;
-    constexpr DoubleBit::BitType reference = 0b0011'1111'1111ull << 52;
-    EXPECT_EQ(reference, DoubleBit::getExponentBits(value));
-  }
+  ::BitTest<double, ::end, ::start>::testSignificandBit();
 }
 
-TEST(FloatingPointBitTest, getFloatSignBitTest)
+TEST(FloatingPointBitTest, getSignBitsFloatTest)
 {
-  using zisc::FloatBit;
-  constexpr float value1 = 1.0f;
-  constexpr float value2 = -1.0f;
-  EXPECT_EQ(0, FloatBit::getSignBit(value1));
-  EXPECT_NE(0, FloatBit::getSignBit(value2));
+  ::BitTest<float, ::end, ::start>::testSignBit();
 }
 
-TEST(FloatingPointBitTest, getDoubleSignBitTest)
+TEST(FloatingPointBitTest, getSignBitsDoubleTest)
 {
-  using zisc::DoubleBit;
-  constexpr double value1 = 1.0;
-  constexpr double value2 = -1.0;
-  EXPECT_EQ(0, DoubleBit::getSignBit(value1));
-  EXPECT_NE(0, DoubleBit::getSignBit(value2));
+  ::BitTest<double, ::end, ::start>::testSignBit();
 }
 
-TEST(FloatingPointBitTest, getHalfFloatExponentBitTest)
+TEST(FloatingPointBitTest, getBitsFloatTest)
 {
-  auto half_float_exponent = [](const double value, const zisc::int64 expected)
-  {
-    using zisc::DoubleBit;
-    auto exponent = DoubleBit::getExponentBits(value);
-    exponent = DoubleBit::halfExponentBits(exponent);
-    const zisc::int64 actual = zisc::cast<zisc::int64>(exponent >> 52) - 1023;
-    EXPECT_EQ(expected, actual) << "Float: " << value << " half exponent test failed.";
-  };
-  half_float_exponent(0.0625, -2);
-  half_float_exponent(0.125, -1);
-  half_float_exponent(0.25, -1);
-  half_float_exponent(0.5, 0);
-  half_float_exponent(1.0, 0);
-  half_float_exponent(2.0, 0);
-  half_float_exponent(4.0, 1);
-  half_float_exponent(8.0, 1);
-  half_float_exponent(16.0, 2);
-  half_float_exponent(32.0, 2);
-  half_float_exponent(64.0, 3);
-//  half_float_exponent(0.0, 0);
+  ::BitTest<float, ::end, ::start>::testBit();
 }
 
-TEST(FloatingPointBitTest, isPositiveExponentFloatTest)
+TEST(FloatingPointBitTest, getBitsDoubleTest)
 {
-  using zisc::FloatBit;
-  EXPECT_FALSE(FloatBit::isPositiveExponent(0.0625f));
-  EXPECT_FALSE(FloatBit::isPositiveExponent(0.125f));
-  EXPECT_FALSE(FloatBit::isPositiveExponent(0.25f));
-  EXPECT_FALSE(FloatBit::isPositiveExponent(0.5f));
-  EXPECT_FALSE(FloatBit::isPositiveExponent(1.0f));
-  EXPECT_TRUE(FloatBit::isPositiveExponent(2.0f));
-  EXPECT_TRUE(FloatBit::isPositiveExponent(4.0f));
-  EXPECT_TRUE(FloatBit::isPositiveExponent(8.0f));
-  EXPECT_TRUE(FloatBit::isPositiveExponent(16.0f));
-  EXPECT_TRUE(FloatBit::isPositiveExponent(32.0f));
-  EXPECT_TRUE(FloatBit::isPositiveExponent(64.0f));
+  ::BitTest<double, ::end, ::start>::testBit();
 }
 
-TEST(FloatingPointBitTest, isPositiveExponentDoubleTest)
-{
-  using zisc::DoubleBit;
-  EXPECT_FALSE(DoubleBit::isPositiveExponent(0.0625));
-  EXPECT_FALSE(DoubleBit::isPositiveExponent(0.125));
-  EXPECT_FALSE(DoubleBit::isPositiveExponent(0.25));
-  EXPECT_FALSE(DoubleBit::isPositiveExponent(0.5));
-  EXPECT_FALSE(DoubleBit::isPositiveExponent(1.0));
-  EXPECT_TRUE(DoubleBit::isPositiveExponent(2.0));
-  EXPECT_TRUE(DoubleBit::isPositiveExponent(4.0));
-  EXPECT_TRUE(DoubleBit::isPositiveExponent(8.0));
-  EXPECT_TRUE(DoubleBit::isPositiveExponent(16.0));
-  EXPECT_TRUE(DoubleBit::isPositiveExponent(32.0));
-  EXPECT_TRUE(DoubleBit::isPositiveExponent(64.0));
-}
-
-TEST(FloatingPointBitTest, isOddExponentFloatTest)
-{
-  using zisc::FloatBit;
-  EXPECT_FALSE(FloatBit::isOddExponent(0.0625f));
-  EXPECT_TRUE(FloatBit::isOddExponent(0.125f));
-  EXPECT_FALSE(FloatBit::isOddExponent(0.25f));
-  EXPECT_TRUE(FloatBit::isOddExponent(0.5f));
-  EXPECT_FALSE(FloatBit::isOddExponent(1.0f));
-  EXPECT_TRUE(FloatBit::isOddExponent(2.0f));
-  EXPECT_FALSE(FloatBit::isOddExponent(4.0f));
-  EXPECT_TRUE(FloatBit::isOddExponent(8.0f));
-  EXPECT_FALSE(FloatBit::isOddExponent(16.0f));
-  EXPECT_TRUE(FloatBit::isOddExponent(32.0f));
-  EXPECT_FALSE(FloatBit::isOddExponent(64.0f));
-}
-
-TEST(FloatingPointBitTest, isOddExponentDoubleTest)
-{
-  using zisc::DoubleBit;
-  EXPECT_FALSE(DoubleBit::isOddExponent(0.0625));
-  EXPECT_TRUE(DoubleBit::isOddExponent(0.125));
-  EXPECT_FALSE(DoubleBit::isOddExponent(0.25));
-  EXPECT_TRUE(DoubleBit::isOddExponent(0.5));
-  EXPECT_FALSE(DoubleBit::isOddExponent(1.0));
-  EXPECT_TRUE(DoubleBit::isOddExponent(2.0));
-  EXPECT_FALSE(DoubleBit::isOddExponent(4.0));
-  EXPECT_TRUE(DoubleBit::isOddExponent(8.0));
-  EXPECT_FALSE(DoubleBit::isOddExponent(16.0));
-  EXPECT_TRUE(DoubleBit::isOddExponent(32.0));
-  EXPECT_FALSE(DoubleBit::isOddExponent(64.0));
-}
-
-TEST(FloatingPointBitTest, makeFloatTest)
-{
-  using zisc::FloatBit;
-  {
-    constexpr float value = 1.0f;
-    const auto e = FloatBit::getExponentBits(value);
-    const auto m = FloatBit::getMantissaBits(value);
-    const auto v = FloatBit::makeFloat(m, e);
-    EXPECT_FLOAT_EQ(value, v);
-  }
-}
-
-TEST(FloatingPointBitTest, makeDoubleTest)
-{
-  using zisc::DoubleBit;
-  {
-    constexpr double value = 1.0;
-    const auto e = DoubleBit::getExponentBits(value);
-    const auto m = DoubleBit::getMantissaBits(value);
-    const auto v = DoubleBit::makeFloat(m, e);
-    EXPECT_DOUBLE_EQ(value, v);
-  }
-}
+//TEST(FloatingPointBitTest, FloatMakingTest)
+//{
+//  ::BitTest<float, ::end, ::start>::testFloatMaking();
+//}
+//
+//TEST(FloatingPointBitTest, DoubleMakingTest)
+//{
+//  ::BitTest<double, ::end, ::start>::testFloatMaking();
+//}
 
 TEST(FloatingPointBitTest, FloatMapTest)
 {

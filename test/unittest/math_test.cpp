@@ -230,3 +230,176 @@ TEST(MathTest, SolveQuarticTest)
   ASSERT_DOUBLE_EQ( 1.0, a6[2]);
   ASSERT_DOUBLE_EQ(-2.0, a6[3]);
 }
+
+TEST(MathTest, ClassificationTest)
+{
+  constexpr double v1 = 0.0;
+  constexpr double v2 = -0.0;
+  constexpr double v3 = std::numeric_limits<double>::max();
+  constexpr double v4 = std::numeric_limits<double>::lowest();
+  constexpr double v5 = std::numeric_limits<double>::min();
+  constexpr double v6 = -std::numeric_limits<double>::min();
+  constexpr double v7 = std::numeric_limits<double>::epsilon();
+  constexpr double v8 = -std::numeric_limits<double>::epsilon();
+  constexpr double v9 = std::numeric_limits<double>::infinity();
+  constexpr double v10 = -std::numeric_limits<double>::infinity();
+  constexpr double v11 = std::numeric_limits<double>::quiet_NaN();
+  constexpr double v12 = std::numeric_limits<double>::signaling_NaN();
+  constexpr double v13 = std::numeric_limits<double>::denorm_min();
+  constexpr double v14 = -std::numeric_limits<double>::denorm_min();
+
+  {
+    constexpr bool r1 = zisc::isFinite(v1);
+    ASSERT_TRUE(r1);
+    constexpr bool r2 = zisc::isFinite(v2);
+    ASSERT_TRUE(r2);
+    constexpr bool r3 = zisc::isFinite(v3);
+    ASSERT_TRUE(r3);
+    constexpr bool r4 = zisc::isFinite(v4);
+    ASSERT_TRUE(r4);
+    constexpr bool r5 = zisc::isFinite(v5);
+    ASSERT_TRUE(r5);
+    constexpr bool r6 = zisc::isFinite(v6);
+    ASSERT_TRUE(r6);
+    constexpr bool r7 = zisc::isFinite(v7);
+    ASSERT_TRUE(r7);
+    constexpr bool r8 = zisc::isFinite(v8);
+    ASSERT_TRUE(r8);
+    constexpr bool r9 = zisc::isFinite(v9);
+    ASSERT_FALSE(r9);
+    constexpr bool r10 = zisc::isFinite(v10);
+    ASSERT_FALSE(r10);
+    const bool r11 = zisc::isFinite(v11);
+    ASSERT_FALSE(r11);
+    const bool r12 = zisc::isFinite(v12);
+    ASSERT_FALSE(r12);
+    constexpr bool r13 = zisc::isFinite(v13);
+    ASSERT_TRUE(r13);
+    constexpr bool r14 = zisc::isFinite(v14);
+    ASSERT_TRUE(r14);
+  }
+
+  {
+    constexpr bool r1 = zisc::isInf(v1);
+    ASSERT_FALSE(r1);
+    constexpr bool r2 = zisc::isInf(v2);
+    ASSERT_FALSE(r2);
+    constexpr bool r3 = zisc::isInf(v3);
+    ASSERT_FALSE(r3);
+    constexpr bool r4 = zisc::isInf(v4);
+    ASSERT_FALSE(r4);
+    constexpr bool r5 = zisc::isInf(v5);
+    ASSERT_FALSE(r5);
+    constexpr bool r6 = zisc::isInf(v6);
+    ASSERT_FALSE(r6);
+    constexpr bool r7 = zisc::isInf(v7);
+    ASSERT_FALSE(r7);
+    constexpr bool r8 = zisc::isInf(v8);
+    ASSERT_FALSE(r8);
+    constexpr bool r9 = zisc::isInf(v9);
+    ASSERT_TRUE(r9);
+    constexpr bool r10 = zisc::isInf(v10);
+    ASSERT_TRUE(r10);
+    const bool r11 = zisc::isInf(v11);
+    ASSERT_FALSE(r11);
+    const bool r12 = zisc::isInf(v12);
+    ASSERT_FALSE(r12);
+    constexpr bool r13 = zisc::isInf(v13);
+    ASSERT_FALSE(r13);
+    constexpr bool r14 = zisc::isInf(v14);
+    ASSERT_FALSE(r14);
+  }
+
+  {
+    constexpr bool r1 = zisc::isNan(v1);
+    ASSERT_FALSE(r1);
+    constexpr bool r2 = zisc::isNan(v2);
+    ASSERT_FALSE(r2);
+    constexpr bool r3 = zisc::isNan(v3);
+    ASSERT_FALSE(r3);
+    constexpr bool r4 = zisc::isNan(v4);
+    ASSERT_FALSE(r4);
+    constexpr bool r5 = zisc::isNan(v5);
+    ASSERT_FALSE(r5);
+    constexpr bool r6 = zisc::isNan(v6);
+    ASSERT_FALSE(r6);
+    constexpr bool r7 = zisc::isNan(v7);
+    ASSERT_FALSE(r7);
+    constexpr bool r8 = zisc::isNan(v8);
+    ASSERT_FALSE(r8);
+    constexpr bool r9 = zisc::isNan(v9);
+    ASSERT_FALSE(r9);
+    constexpr bool r10 = zisc::isNan(v10);
+    ASSERT_FALSE(r10);
+    const bool r11 = zisc::isNan(v11);
+    ASSERT_TRUE(r11);
+    const bool r12 = zisc::isNan(v12);
+    ASSERT_TRUE(r12);
+    constexpr bool r13 = zisc::isNan(v13);
+    ASSERT_FALSE(r13);
+    constexpr bool r14 = zisc::isNan(v14);
+    ASSERT_FALSE(r14);
+  }
+
+  {
+    constexpr bool r1 = zisc::isNormal(v1);
+    ASSERT_FALSE(r1);
+    constexpr bool r2 = zisc::isNormal(v2);
+    ASSERT_FALSE(r2);
+    constexpr bool r3 = zisc::isNormal(v3);
+    ASSERT_TRUE(r3);
+    constexpr bool r4 = zisc::isNormal(v4);
+    ASSERT_TRUE(r4);
+    constexpr bool r5 = zisc::isNormal(v5);
+    ASSERT_TRUE(r5);
+    constexpr bool r6 = zisc::isNormal(v6);
+    ASSERT_TRUE(r6);
+    constexpr bool r7 = zisc::isNormal(v7);
+    ASSERT_TRUE(r7);
+    constexpr bool r8 = zisc::isNormal(v8);
+    ASSERT_TRUE(r8);
+    constexpr bool r9 = zisc::isNormal(v9);
+    ASSERT_FALSE(r9);
+    constexpr bool r10 = zisc::isNormal(v10);
+    ASSERT_FALSE(r10);
+    const bool r11 = zisc::isNormal(v11);
+    ASSERT_FALSE(r11);
+    const bool r12 = zisc::isNormal(v12);
+    ASSERT_FALSE(r12);
+    constexpr bool r13 = zisc::isNormal(v13);
+    ASSERT_FALSE(r13);
+    constexpr bool r14 = zisc::isNormal(v14);
+    ASSERT_FALSE(r14);
+  }
+
+  {
+    constexpr bool r1 = zisc::isSubnormal(v1);
+    ASSERT_FALSE(r1);
+    constexpr bool r2 = zisc::isSubnormal(v2);
+    ASSERT_FALSE(r2);
+    constexpr bool r3 = zisc::isSubnormal(v3);
+    ASSERT_FALSE(r3);
+    constexpr bool r4 = zisc::isSubnormal(v4);
+    ASSERT_FALSE(r4);
+    constexpr bool r5 = zisc::isSubnormal(v5);
+    ASSERT_FALSE(r5);
+    constexpr bool r6 = zisc::isSubnormal(v6);
+    ASSERT_FALSE(r6);
+    constexpr bool r7 = zisc::isSubnormal(v7);
+    ASSERT_FALSE(r7);
+    constexpr bool r8 = zisc::isSubnormal(v8);
+    ASSERT_FALSE(r8);
+    constexpr bool r9 = zisc::isSubnormal(v9);
+    ASSERT_FALSE(r9);
+    constexpr bool r10 = zisc::isSubnormal(v10);
+    ASSERT_FALSE(r10);
+    const bool r11 = zisc::isSubnormal(v11);
+    ASSERT_FALSE(r11);
+    const bool r12 = zisc::isSubnormal(v12);
+    ASSERT_FALSE(r12);
+    constexpr bool r13 = zisc::isSubnormal(v13);
+    ASSERT_TRUE(r13);
+    constexpr bool r14 = zisc::isSubnormal(v14);
+    ASSERT_TRUE(r14);
+  }
+}

@@ -208,17 +208,78 @@ TEST(ArithArrayTest, FunctionTest)
     EXPECT_FALSE(result2);
   }
   {
-    zisc::ArithArray<double, 3> v{};
+    auto make_array = [](const double d)
+    {
+      zisc::ArithArray<double, 3> v{{0.0, d, -0.0}};
+      return v;
+    };
 
-    EXPECT_TRUE(v.hasValue(0.0));
-    EXPECT_FALSE(v.hasValue(1.0));
+    constexpr auto v1 = make_array(0.0);
+    constexpr auto v2 = make_array(2.0);
+    constexpr auto v3 = make_array(std::numeric_limits<double>::infinity());
+    constexpr auto v4 = make_array(-std::numeric_limits<double>::infinity());
+    constexpr auto v5 = make_array(std::numeric_limits<double>::quiet_NaN());
+    constexpr auto v6 = make_array(std::numeric_limits<double>::signaling_NaN());
+    constexpr auto v7 = make_array(std::numeric_limits<double>::denorm_min());
 
-    EXPECT_FALSE(v.hasInf());
-    EXPECT_FALSE(v.hasNan());
-    v[1] = std::numeric_limits<double>::infinity();
-    EXPECT_TRUE(v.hasInf());
-    v[1] = std::numeric_limits<double>::quiet_NaN();
-    EXPECT_TRUE(v.hasNan());
+    // Value
+    {
+      constexpr bool r1 = v1.hasValue(0.0);
+      EXPECT_TRUE(r1);
+      constexpr bool r2 = v1.hasValue(1.0);
+      EXPECT_FALSE(r2);
+    }
+    // Inf
+    {
+      constexpr bool r1 = v1.hasInf();
+      EXPECT_FALSE(r1);
+      constexpr bool r2 = v2.hasInf();
+      EXPECT_FALSE(r2);
+      constexpr bool r3 = v3.hasInf();
+      EXPECT_TRUE(r3);
+      constexpr bool r4 = v4.hasInf();
+      EXPECT_TRUE(r4);
+      const bool r5 = v5.hasInf();
+      EXPECT_FALSE(r5);
+      const bool r6 = v6.hasInf();
+      EXPECT_FALSE(r6);
+      constexpr bool r7 = v7.hasInf();
+      EXPECT_FALSE(r7);
+    }
+    // Inf
+    {
+      constexpr bool r1 = v1.hasNan();
+      EXPECT_FALSE(r1);
+      constexpr bool r2 = v2.hasNan();
+      EXPECT_FALSE(r2);
+      constexpr bool r3 = v3.hasNan();
+      EXPECT_FALSE(r3);
+      constexpr bool r4 = v4.hasNan();
+      EXPECT_FALSE(r4);
+      const bool r5 = v5.hasNan();
+      EXPECT_TRUE(r5);
+      const bool r6 = v6.hasNan();
+      EXPECT_TRUE(r6);
+      constexpr bool r7 = v7.hasNan();
+      EXPECT_FALSE(r7);
+    }
+    // Subnormal
+    {
+      constexpr bool r1 = v1.hasSubnormal();
+      EXPECT_FALSE(r1);
+      constexpr bool r2 = v2.hasSubnormal();
+      EXPECT_FALSE(r2);
+      constexpr bool r3 = v3.hasSubnormal();
+      EXPECT_FALSE(r3);
+      constexpr bool r4 = v4.hasSubnormal();
+      EXPECT_FALSE(r4);
+      const bool r5 = v5.hasSubnormal();
+      EXPECT_FALSE(r5);
+      const bool r6 = v6.hasSubnormal();
+      EXPECT_FALSE(r6);
+      constexpr bool r7 = v7.hasSubnormal();
+      EXPECT_TRUE(r7);
+    }
   }
   {
     constexpr zisc::ArithArray<int, 6> v{{-1, 0, 1, 2, 3, 4}};

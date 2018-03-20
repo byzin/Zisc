@@ -13,7 +13,6 @@
 #include "arith_array.hpp"
 // Standard C++ library
 #include <array>
-#include <cmath>
 #include <cstddef>
 #include <initializer_list>
 #include <type_traits>
@@ -268,12 +267,12 @@ constexpr auto ArithArray<Arith, kN>::get(const uint index) const noexcept
 /*!
   */
 template <typename Arith, uint kN> inline
-bool ArithArray<Arith, kN>::hasInf() const noexcept
+constexpr bool ArithArray<Arith, kN>::hasInf() const noexcept
 {
   bool result = false;
   if constexpr (kIsFloat<Arith>) {
     for (uint index = 0; !result && (index < size()); ++index)
-      result = std::isinf(get(index));
+      result = isInf(get(index));
   }
   return result;
 }
@@ -281,12 +280,25 @@ bool ArithArray<Arith, kN>::hasInf() const noexcept
 /*!
   */
 template <typename Arith, uint kN> inline
-bool ArithArray<Arith, kN>::hasNan() const noexcept
+constexpr bool ArithArray<Arith, kN>::hasNan() const noexcept
 {
   bool result = false;
   if constexpr (kIsFloat<Arith>) {
     for (uint index = 0; !result && (index < size()); ++index)
-      result = std::isnan(get(index));
+      result = isNan(get(index));
+  }
+  return result;
+}
+
+/*!
+  */
+template <typename Arith, uint kN> inline
+constexpr bool ArithArray<Arith, kN>::hasSubnormal() const noexcept
+{
+  bool result = false;
+  if constexpr (kIsFloat<Arith>) {
+    for (uint index = 0; !result && (index < size()); ++index)
+      result = isSubnormal(get(index));
   }
   return result;
 }

@@ -12,102 +12,73 @@
 
 // Standard C++ library
 #include <cstddef>
+#include <cstdint>
 // Zisc
+#include "floating_point.hpp"
 #include "type_traits.hpp"
 #include "zisc/zisc_config.hpp"
 
 namespace zisc {
-
-template <std::size_t FloatBitSize> struct FloatingPointUtility;
 
 /*!
   */
 template <typename Float>
 class FloatingPointBit
 {
-  static_assert(kIsFloat<Float>, "Float isn't floating point.");
-
  public:
-  using BitType = typename FloatingPointUtility<sizeof(Float)>::BitType;
   using FloatType = Float;
+  using BitType = typename FloatingPoint<sizeof(Float)>::BitType;
 
 
-  //! Return a exponent sign bit mask
-  static constexpr BitType exponentSignBitMask() noexcept;
+  //! Return the exponent bias
+  static constexpr std::size_t exponentBias() noexcept;
 
-  //! Return a exponent value bit mask
-  static constexpr BitType exponentValueBitMask() noexcept;
-
-  //! Return a exponent bit mask
+  //! Return the exponent bit mask
   static constexpr BitType exponentBitMask() noexcept;
 
-  //! Return a exponent bit size
-  static constexpr BitType exponentBitSize() noexcept;
+  //! Return the exponent bit size
+  static constexpr std::size_t exponentBitSize() noexcept;
 
-  //! Get exponent bits of value
-  static BitType getExponentBits(const FloatType value) noexcept;
+  //! Get bits of a float value
+  static constexpr BitType getBits(const FloatType value) noexcept;
 
-  //! Get mantissa bits of value
-  static BitType getMantissaBits(const FloatType value) noexcept;
+  //! Get exponent bits of a float value
+  static constexpr BitType getExponentBits(const FloatType value) noexcept;
 
-  //! Get a sign bit of value
-  static BitType getSignBit(const FloatType value) noexcept;
+  //! Get significand bits of a float value
+  static constexpr BitType getSignificandBits(const FloatType value) noexcept;
 
-  //! Return a half value bits of exponent bits
-  static constexpr BitType halfExponentBits(const BitType exponent_bits) noexcept;
-
-  //! Check if a exponent is odd
-  static bool isOddExponent(const FloatType value) noexcept;
-
-  //! Check if a exponent is odd
-  static constexpr bool isOddExponent(const BitType exponent_bits) noexcept;
-
-  //! Check if a exponent is positive
-  static bool isPositiveExponent(const FloatType value) noexcept;
-
-  //! Check if a exponent is positive
-  static constexpr bool isPositiveExponent(const BitType exponent_bits) noexcept;
+  //! Get a sign bit of a float value
+  static constexpr BitType getSignBit(const FloatType value) noexcept;
 
   //! Make a floating point
-  static FloatType makeFloat(const BitType mantissa_bits, 
-                             const BitType exponent_bits) noexcept;
+  static constexpr FloatType makeFloat(const BitType exponent_bits, 
+                                       const BitType significand_bits) noexcept;
 
   //! Make a floating point
-  static FloatType makeFloat(const BitType sign_bit,
-                             const BitType mantissa_bits, 
-                             const BitType exponent_bits) noexcept;
+  static constexpr FloatType makeFloat(const BitType sign_bit,
+                                       const BitType exponent_bits, 
+                                       const BitType significand_bits) noexcept;
 
-  //! Return a mantissa bit mask
-  static constexpr BitType mantissaBitMask() noexcept;
-
-  //! Return a mantissa bit size
-  static constexpr BitType mantissaBitSize() noexcept;
-
-  //! Map a integer value into [0, 1) float
+  //! Map an integer value into a [0, 1) float
   static constexpr FloatType mapTo01Float(BitType x) noexcept;
 
-  //! Return a sign bit mask
+  //! Return the sign bit mask
   static constexpr BitType signBitMask() noexcept;
 
-  //! Return a sign bit size
-  static constexpr BitType signBitSize() noexcept;
+  //! Return the significand bit mask
+  static constexpr BitType significandBitMask() noexcept;
+
+  //! Return the significand bit size
+  static constexpr std::size_t significandBitSize() noexcept;
 
  private:
-  union BitF
-  {
-    BitType bit_;
-    FloatType float_;
-
-    constexpr BitF(const BitType bit) : bit_{bit} {}
-    constexpr BitF(const FloatType f) : float_{f} {}
-  };
-  static_assert(sizeof(BitF) == sizeof(FloatType), "BitF is invalidate.");
+  static_assert(kIsFloat<FloatType>, "Float isn't floating point.");
 };
 
-//! A float bit class
-using FloatBit = FloatingPointBit<float>;
-//! A double bit class
-using DoubleBit = FloatingPointBit<double>;
+// Type alias
+using FloatBit = FloatingPointBit<float>; //!< A float bit class
+using DoubleBit = FloatingPointBit<double>; //!< A double bit class
 
 } // namespace zisc
 

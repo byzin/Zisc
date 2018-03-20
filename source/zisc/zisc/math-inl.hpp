@@ -593,6 +593,46 @@ std::tuple<std::array<Float, 4>, uint> solveQuartic(const Float a,
   return std::make_tuple(x, n);
 }
 
+/*!
+  */
+template <typename Float> inline
+constexpr bool isFinite(const Float x) noexcept
+{
+  return constant::isFinite(x);
+}
+
+/*!
+  */
+template <typename Float> inline
+constexpr bool isInf(const Float x) noexcept
+{
+  return constant::isInf(x);
+}
+
+/*!
+  */
+template <typename Float> inline
+constexpr bool isNan(const Float x) noexcept
+{
+  return constant::isNan(x);
+}
+
+/*!
+  */
+template <typename Float> inline
+constexpr bool isNormal(const Float x) noexcept
+{
+  return constant::isNormal(x);
+}
+
+/*!
+  */
+template <typename Float> inline
+constexpr bool isSubnormal(const Float x) noexcept
+{
+  return constant::isSubnormal(x);
+}
+
 } // namespace zisc
 
 #endif // ZISC_MATH_INL_HPP

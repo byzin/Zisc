@@ -36,9 +36,6 @@ endfunction(getTestWarningOption)
 
 
 function(buildUnitTest)
-  set(option_description "Enable constexpr math test.")
-  setBooleanOption(ZISC_ENABLE_CONSTEXPR_MATH_TEST ON ${option_description})
-
   # Load google test
   include(${PROJECT_SOURCE_DIR}/cmake/googletest.cmake)
   set(googletest_project_root ${__test_root__}/googletest)
@@ -46,7 +43,8 @@ function(buildUnitTest)
 
   ## Build a unit test
   file(COPY ${__test_root__}/resources DESTINATION ${PROJECT_BINARY_DIR})
-  file(GLOB unittest_source_files  ${__test_root__}/unittest/*.cpp)
+  file(GLOB unittest_source_files  ${__test_root__}/unittest/*.cpp
+                                   ${__test_root__}/unittest/*.hpp)
   add_executable(UnitTest ${unittest_source_files} ${zisc_header_files})
   source_group(UnitTest FILES ${unittest_source_files})
   set_target_properties(UnitTest PROPERTIES CXX_STANDARD 17
@@ -67,8 +65,5 @@ function(buildUnitTest)
   target_compile_definitions(UnitTest PRIVATE ${environment_definitions}
                                               ${cxx_definitions}
                                               ${zisc_definitions})
-  if(ZISC_ENABLE_CONSTEXPR_MATH_TEST)
-    target_compile_definitions(UnitTest PRIVATE ZISC_CONSTEXPR_MATH_TEST)
-  endif()
   setStaticAnalyzer(UnitTest)
 endfunction(buildUnitTest)

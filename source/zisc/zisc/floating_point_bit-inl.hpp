@@ -12,84 +12,24 @@
 
 #include "floating_point_bit.hpp"
 // Standard C++ library
+#include <cstddef>
+#include <cstdint>
 #include <limits>
 // Zisc
+#include "floating_point.hpp"
 #include "math.hpp"
+#include "type_traits.hpp"
 #include "utility.hpp"
 #include "zisc/zisc_config.hpp"
 
 namespace zisc {
 
-template <>
-struct FloatingPointUtility<4>
-{
-  using BitType = uint32;
-  using FloatType = float;
-};
-
-template <>
-struct FloatingPointUtility<8>
-{
-  using BitType = uint64;
-  using FloatType = double;
-};
-
 /*!
   */
-template <> inline
-constexpr auto FloatBit::mantissaBitSize() noexcept -> BitType
+template <typename Float> inline
+constexpr std::size_t FloatingPointBit<Float>::exponentBias() noexcept
 {
-  constexpr BitType size = 23;
-  return size;
-}
-
-/*!
-  */
-template <> inline
-constexpr auto DoubleBit::mantissaBitSize() noexcept -> BitType
-{
-  constexpr BitType size = 52;
-  return size;
-}
-
-/*!
-  */
-template <> inline
-constexpr auto FloatBit::exponentSignBitMask() noexcept -> BitType
-{
-  constexpr BitType shift_length = mantissaBitSize();
-  constexpr BitType bit_mask = 0b1000'0000u << shift_length;
-  return bit_mask;
-}
-
-/*!
-  */
-template <> inline
-constexpr auto DoubleBit::exponentSignBitMask() noexcept -> BitType
-{
-  constexpr BitType shift_length = mantissaBitSize();
-  constexpr BitType bit_mask = 0b0100'0000'0000ull << shift_length;
-  return bit_mask;
-}
-
-/*!
-  */
-template <> inline
-constexpr auto FloatBit::exponentValueBitMask() noexcept -> BitType
-{
-  constexpr BitType shift_length = mantissaBitSize();
-  constexpr BitType bit_mask = 0b0111'1111u << shift_length;
-  return bit_mask;
-}
-
-/*!
-  */
-template <> inline
-constexpr auto DoubleBit::exponentValueBitMask() noexcept -> BitType
-{
-  constexpr BitType shift_length = mantissaBitSize();
-  constexpr BitType bit_mask = 0b0011'1111'1111ull << shift_length;
-  return bit_mask;
+  return FloatingPoint<sizeof(FloatType)>::exponentBias();
 }
 
 /*!
@@ -97,162 +37,134 @@ constexpr auto DoubleBit::exponentValueBitMask() noexcept -> BitType
 template <typename Float> inline
 constexpr auto FloatingPointBit<Float>::exponentBitMask() noexcept -> BitType
 {
-  return exponentSignBitMask() | exponentValueBitMask();
-}
-
-/*!
-  */
-template <> inline
-constexpr auto FloatBit::exponentBitSize() noexcept -> BitType
-{
-  constexpr BitType size = 8;
-  return size;
-}
-
-/*!
-  */
-template <> inline
-constexpr auto DoubleBit::exponentBitSize() noexcept -> BitType
-{
-  constexpr BitType size = 11;
-  return size;
+  return FloatingPoint<sizeof(FloatType)>::exponentBitMask();
 }
 
 /*!
   */
 template <typename Float> inline
-auto FloatingPointBit<Float>::getExponentBits(const FloatType value) noexcept
-    -> BitType
+constexpr std::size_t FloatingPointBit<Float>::exponentBitSize() noexcept
 {
-  const BitF v{value};
-  return (exponentBitMask() & v.bit_);
+  return FloatingPoint<sizeof(FloatType)>::exponentBitSize();
 }
 
 /*!
   */
 template <typename Float> inline
-auto FloatingPointBit<Float>::getMantissaBits(const FloatType value) noexcept
-    -> BitType
+constexpr auto FloatingPointBit<Float>::getBits(const FloatType value)
+    noexcept -> BitType
 {
-  const BitF v{value};
-  return (mantissaBitMask() & v.bit_);
+  return getSignBit(value) | getExponentBits(value) | getSignificandBits(value);
 }
 
 /*!
   */
 template <typename Float> inline
-auto FloatingPointBit<Float>::getSignBit(const FloatType value) noexcept
-    -> BitType
+constexpr auto FloatingPointBit<Float>::getExponentBits(const FloatType value)
+    noexcept -> BitType
 {
-  const BitF v{value};
-  return (signBitMask() & v.bit_);
+  BitType bit = (isInf(value) || isNan(value))
+      ? exponentBitMask()
+      : BitType{0b0u};
+  if (isNormal(value)) {
+    FloatType v = abs(value);
+    std::size_t exponent = exponentBias();
+
+    constexpr std::size_t size = 8 * sizeof(BitType);
+    constexpr FloatType p = constant::power<size>(cast<FloatType>(2.0));
+    constexpr FloatType n = constant::power<size>(cast<FloatType>(0.5));
+    for (; p <= v; v = n * v)
+      exponent = exponent + size;
+    for (; v < cast<FloatType>(1.0); v = p * v)
+      exponent = exponent - size;
+
+    bit = cast<BitType>(v);
+    for (; cast<BitType>(0x1u) < bit; bit = bit >> 1)
+      ++exponent;
+
+    bit = cast<BitType>(exponent) << significandBitSize();
+  }
+  return bit;
 }
 
 /*!
   */
 template <typename Float> inline
-constexpr auto FloatingPointBit<Float>::halfExponentBits(
-    const BitType exponent_bits) noexcept -> BitType
+constexpr auto FloatingPointBit<Float>::getSignificandBits(const FloatType value)
+    noexcept -> BitType
 {
-  constexpr BitType sign_bit_mask = exponentSignBitMask();
-  constexpr BitType value_bit_mask = exponentValueBitMask();
-  const auto e = (isPositiveExponent(exponent_bits)) ? exponent_bits - 1
-                                                     : exponent_bits;
-  const auto sign_bit = e & sign_bit_mask;
-  const auto value_bits = ((sign_bit ^ sign_bit_mask) | (e & value_bit_mask)) >> 1;
-  return (sign_bit | value_bits) & exponentBitMask();
+  BitType bit = isNan(value)
+      ? BitType{0b01} << (significandBitSize() - 1)
+      : BitType{0b0u};
+
+  int exponent = 0;
+
+  constexpr FloatType s = constant::power<significandBitSize()>(cast<FloatType>(2.0));
+  const FloatType v = isSubnormal(value)
+      ? s * abs(value)
+      : abs(value);
+
+  if (isNormal(v)) {
+    exponent = cast<int>(getExponentBits(v) >> significandBitSize()) -
+               cast<int>(exponentBias());
+    const FloatType t = constant::pow(cast<FloatType>(2.0), -exponent);
+    bit = cast<BitType>(s * (t * v));
+  }
+  if (isSubnormal(value)) {
+    exponent = exponent + cast<int>(exponentBias()) - 1;
+    bit = (BitType{0b1u} << exponent) |
+          (bit >> (cast<int>(significandBitSize()) - exponent));
+  }
+  bit = bit & significandBitMask();
+  return bit;
 }
 
 /*!
   */
 template <typename Float> inline
-bool FloatingPointBit<Float>::isOddExponent(const FloatType value) noexcept
+constexpr auto FloatingPointBit<Float>::getSignBit(const FloatType value)
+    noexcept -> BitType
 {
-  const BitF v{value};
-  return isOddExponent(v.bit_);
+  const BitType bit = isNegative(value)
+      ? BitType{0b1u} << (exponentBitSize() + significandBitSize())
+      : BitType{0b0u};
+  return bit;
 }
 
 /*!
   */
 template <typename Float> inline
-constexpr bool FloatingPointBit<Float>::isOddExponent(
-    const BitType exponent_bits) noexcept
+constexpr auto FloatingPointBit<Float>::makeFloat(
+    const BitType exponent_bits,
+    const BitType significand_bits) noexcept -> FloatType
 {
-  constexpr BitType shift_length = mantissaBitSize();
-  constexpr BitType bit_mask = cast<BitType>(0b1u) << shift_length;
-  return (exponent_bits & bit_mask) != bit_mask;
+  return makeFloat(0, exponent_bits, significand_bits);
 }
 
 /*!
   */
 template <typename Float> inline
-bool FloatingPointBit<Float>::isPositiveExponent(const FloatType value) noexcept
+constexpr auto FloatingPointBit<Float>::makeFloat(
+    const BitType /* sign_bit */,
+    const BitType /* exponent_bits */,
+    const BitType /* significand_bits */) noexcept -> FloatType
 {
-  const BitF v{value};
-  return isPositiveExponent(v.bit_);
+  return static_cast<FloatType>(0.0);
 }
 
 /*!
-  */
-template <typename Float> inline
-constexpr bool FloatingPointBit<Float>::isPositiveExponent(
-    const BitType exponent_bits) noexcept
-{
-  constexpr BitType sign_bit_mask = exponentSignBitMask();
-  return (exponent_bits & sign_bit_mask) == sign_bit_mask;
-}
-
-/*!
-  */
-template <typename Float> inline
-auto FloatingPointBit<Float>::makeFloat(const BitType mantissa_bits, 
-                                        const BitType exponent_bits) noexcept
-    -> FloatType
-{
-  const BitF v{mantissa_bits | exponent_bits};
-  return v.float_;
-}
-
-/*!
-  */
-template <typename Float> inline
-auto FloatingPointBit<Float>::makeFloat(const BitType sign_bit,
-                                        const BitType mantissa_bits, 
-                                        const BitType exponent_bits) noexcept
-    -> FloatType
-{
-  const BitF v{sign_bit | mantissa_bits | exponent_bits};
-  return v.float_;
-}
-
-/*!
-  */
-template <> inline
-constexpr auto FloatBit::mantissaBitMask() noexcept -> BitType
-{
-  constexpr BitType bit_mask = 0x7fffffu;
-  return bit_mask;
-}
-
-/*!
-  */
-template <> inline
-constexpr auto DoubleBit::mantissaBitMask() noexcept -> BitType
-{
-  constexpr BitType bit_mask = 0xfffffffffffffull;
-  return bit_mask;
-}
-
-/*!
+  \details
+  Please see "Generating uniform doubles in the unit interval"
+  on 'http://xoroshiro.di.unimi.it/' for the details
   */
 template <typename Float> inline
 constexpr auto FloatingPointBit<Float>::mapTo01Float(BitType x) noexcept
     -> FloatType
 {
   constexpr FloatType k =
-      zisc::invert(cast<FloatType>(cast<BitType>(1) << (mantissaBitSize() + 1)));
+      constant::invert(cast<FloatType>(cast<BitType>(1) << (significandBitSize() + 1)));
   x = x >> exponentBitSize();
-  return k * x;
+  return k * cast<FloatType>(x);
 }
 
 /*!
@@ -260,18 +172,23 @@ constexpr auto FloatingPointBit<Float>::mapTo01Float(BitType x) noexcept
 template <typename Float> inline
 constexpr auto FloatingPointBit<Float>::signBitMask() noexcept -> BitType
 {
-  constexpr BitType shift_length = mantissaBitSize() + exponentBitSize();
-  constexpr BitType bit_mask = cast<BitType>(0b1u) << shift_length;
-  return bit_mask;
+  return FloatingPoint<sizeof(FloatType)>::signBitMask();
 }
 
 /*!
   */
 template <typename Float> inline
-constexpr auto FloatingPointBit<Float>::signBitSize() noexcept -> BitType
+constexpr auto FloatingPointBit<Float>::significandBitMask() noexcept -> BitType
 {
-  constexpr BitType size = 1;
-  return size;
+  return FloatingPoint<sizeof(FloatType)>::significandBitMask();
+}
+
+/*!
+  */
+template <typename Float> inline
+constexpr std::size_t FloatingPointBit<Float>::significandBitSize() noexcept
+{
+  return FloatingPoint<sizeof(FloatType)>::significandBitSize();
 }
 
 } // namespace zisc

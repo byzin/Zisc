@@ -180,6 +180,28 @@ std::tuple<std::array<Float, 4>, uint> solveQuartic(const Float a,
                                                     const Float d, 
                                                     const Float e) noexcept;
 
+// Classification and comparison
+
+//! Check if the given number has finite value
+template <typename Float>
+constexpr bool isFinite(const Float x) noexcept;
+
+//! Check if the given number is infinite
+template <typename Float>
+constexpr bool isInf(const Float x) noexcept;
+
+//! Check if the given number is NaN
+template <typename Float>
+constexpr bool isNan(const Float x) noexcept;
+
+//! Check if the given number is normal
+template <typename Float>
+constexpr bool isNormal(const Float x) noexcept;
+
+//! Check if the given number is subnormal
+template <typename Float>
+constexpr bool isSubnormal(const Float x) noexcept;
+
 } // namespace zisc
 
 #include "math-inl.hpp"

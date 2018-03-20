@@ -116,11 +116,14 @@ class ArithArray
   //! Return the reference by index
   constexpr const_reference get(const uint index) const noexcept;
 
-  //! Check whether the array has inf elements
-  bool hasInf() const noexcept;
+  //! Check whether the array has inf value
+  constexpr bool hasInf() const noexcept;
 
-  //! Check whether the array has nan elements
-  bool hasNan() const noexcept;
+  //! Check whether the array has nan value
+  constexpr bool hasNan() const noexcept;
+
+  //! Check whether the array has subnormal value
+  constexpr bool hasSubnormal() const noexcept;
 
   //! Check whether the array has the specified value
   constexpr bool hasValue(const Arith value) const noexcept;

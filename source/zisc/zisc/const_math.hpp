@@ -30,6 +30,14 @@ constexpr Float pi() noexcept;
 template <typename Arithmetic>
 constexpr Arithmetic abs(const Arithmetic x) noexcept;
 
+//! Check whether given two values are almost same
+template <std::size_t kUlps = 4, typename Float>
+constexpr bool isAlmostEqual(const Float lhs, const Float rhs) noexcept;
+
+//! Check whether given value is almost equal to zero
+template <std::size_t kUlps = 4, typename Float>
+constexpr bool isAlmostEqualToZero(const Float value) noexcept;
+
 //! Compute the greatest common divisor of the integers m and n
 template <typename Integer1, typename Integer2>
 constexpr std::common_type_t<Integer1, Integer2> gcd(Integer1 m,
@@ -144,6 +152,28 @@ constexpr Float acosh(const Float x) noexcept;
 //! Calculate inverse hyperbolic tangent
 template <typename Float>
 constexpr Float atanh(const Float x) noexcept;
+
+// Classification and comparison
+
+//! Check if the given number has finite value
+template <typename Float>
+constexpr bool isFinite(const Float x) noexcept;
+
+//! Check if the given number is infinite
+template <typename Float>
+constexpr bool isInf(const Float x) noexcept;
+
+//! Check if the given number is NaN
+template <typename Float>
+constexpr bool isNan(const Float x) noexcept;
+
+//! Check if the given number is normal
+template <typename Float>
+constexpr bool isNormal(const Float x) noexcept;
+
+//! Check if the given number is subnormal
+template <typename Float>
+constexpr bool isSubnormal(const Float x) noexcept;
 
 } // namespace consttant
 

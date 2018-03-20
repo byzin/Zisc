@@ -19,6 +19,7 @@
 #include <type_traits>
 // Zisc
 #include "error.hpp"
+#include "floating_point_bit.hpp"
 #include "fraction.hpp"
 #include "utility.hpp"
 #include "type_traits.hpp"
@@ -30,7 +31,7 @@ namespace constant {
 
 namespace inner {
 
-template <typename Float>
+template <typename Float> inline
 constexpr Float calcPi(const int64 n) noexcept
 {
   static_assert(kIsFloat<Float>, "Float isn't floating point type.");
@@ -47,16 +48,12 @@ constexpr Float calcPi(const int64 n) noexcept
 
 /*!
   */
-template <typename Float>
+template <typename Float> inline
 constexpr Float pi() noexcept
 {
   static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-  Float p = cast<Float>(1.0);
-  Float prev_p = cast<Float>(0.0);
-  for (auto n = cast<int64>(2 * sizeof(Float)); p != prev_p; n = n << 1) {
-    prev_p = p;
-    p = inner::calcPi<Float>(n);
-  }
+  constexpr int64 n = 4 * std::numeric_limits<Float>::digits10;
+  const Float p = inner::calcPi<Float>(n);
   return p;
 }
 
@@ -73,6 +70,44 @@ constexpr Arithmetic abs(const Arithmetic x) noexcept
     return isNegative(x) ? -x : x;
   else
     return x;
+}
+
+/*!
+  */
+template <std::size_t kUlps, typename Float> inline
+constexpr bool isAlmostEqual(const Float lhs, const Float rhs) noexcept
+{
+  static_assert(std::is_arithmetic_v<Float>, "Float isn't arithmetic type");
+  bool result = false;
+  if constexpr (kIsFloat<Float>) {
+    const Float e = abs(lhs + rhs) *
+                    (cast<Float>(kUlps) * std::numeric_limits<Float>::epsilon());
+    const Float v = abs(lhs - rhs);
+    result = (v <= e) || isSubnormal(v);
+  }
+  else {
+    result = lhs == rhs;
+  }
+  return result;
+}
+
+/*!
+  */
+template <std::size_t kUlps, typename Float> inline
+constexpr bool isAlmostEqualToZero(const Float value) noexcept
+{
+  static_assert(std::is_arithmetic_v<Float>, "Float isn't arithmetic type");
+  constexpr Float zero = cast<Float>(0);
+  bool result = false;
+  if constexpr (kIsFloat<Float>) {
+    constexpr Float e = cast<Float>(kUlps) * std::numeric_limits<Float>::epsilon();
+    const Float v = abs(value);
+    result = v <= e;
+  }
+  else {
+    result = value == zero;
+  }
+  return result;
 }
 
 /*!
@@ -171,7 +206,8 @@ constexpr Arithmetic power(Arithmetic base) noexcept
       for (int exponent = kExponent; 0 < exponent; exponent = exponent >> 1) {
         if (isOdd(exponent))
           x = x * base;
-        base = base * base;
+        if (1 < exponent)
+          base = base * base;
       }
     }
   }
@@ -196,16 +232,38 @@ constexpr Arithmetic pow(Arithmetic base, SignedInteger exponent) noexcept
     }
     // pow
     else {
-      constexpr SignedInteger zero = cast<SignedInteger>(0);
-      for (; zero < exponent; exponent = exponent >> 1) {
+      for (; cast<SignedInteger>(0) < exponent; exponent = exponent >> 1) {
         if (isOdd(exponent))
           x = x * base;
-        base = base * base;
+        if (cast<SignedInteger>(1) < exponent)
+          base = base * base;
       }
     }
   }
   return x;
 }
+
+namespace inner {
+
+/*!
+  */
+template <int kN, typename Float> inline
+constexpr Float estimateNRoot(const Float x) noexcept
+{
+  static_assert(0 < kN, "The kN isn't positive.");
+
+  using FloatBit = FloatingPointBit<Float>;
+
+  int exponent = 
+      cast<int>(FloatBit::getExponentBits(x) >> FloatBit::significandBitSize()) -
+      cast<int>(FloatBit::exponentBias());
+  exponent = exponent / kN;
+
+  const Float y = pow(cast<Float>(2.0), exponent);
+  return isNegative(x) ? -y : y;
+}
+
+} // namespace inner
 
 /*!
   */
@@ -213,11 +271,10 @@ template <typename Float> inline
 constexpr Float sqrt(const Float x) noexcept
 {
   static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-  Float y = x,
-        pre_y = cast<Float>(0.0);
-  while (y != pre_y) {
+  Float y = inner::estimateNRoot<2>(x);
+  for (Float pre_y = x; !isAlmostEqual(y, pre_y);) {
+    constexpr Float k = cast<Float>(1.0) / cast<Float>(2.0);
     pre_y = y;
-    constexpr Float k = cast<Float>(1.0 / 2.0);
     y = k * (y + x / y);
   }
   return y;
@@ -229,13 +286,12 @@ template <typename Float> inline
 constexpr Float cbrt(const Float x) noexcept
 {
   static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-  Float y = x,
-        pre_y = cast<Float>(0.0);
-  while (y != pre_y) {
+  Float y = inner::estimateNRoot<3>(x);
+  for (Float pre_y = x; !isAlmostEqual(y, pre_y);) {
+    constexpr Float k = cast<Float>(2.0);
+    const Float y3 = power<3>(y);
     pre_y = y;
-    constexpr Float t = cast<Float>(2.0);
-    constexpr Float k = cast<Float>(1.0 / 3.0);
-    y = k * (t * y + x / (y * y));
+    y = y * ((y3 + k * x) / (k * y3 + x));
   }
   return y;
 }
@@ -592,6 +648,61 @@ constexpr Float atanh(const Float x) noexcept
   constexpr Float t = cast<Float>(2.0);
   const Float y = log((x + o) / (x - o)) / t;
   return y;
+}
+
+/*!
+  */
+template <typename Float> inline
+constexpr bool isFinite(const Float x) noexcept
+{
+  static_assert(kIsFloat<Float>, "Float isn't floating point type.");
+  const bool result = !(isInf(x) || isNan(x));
+  return result;
+}
+
+/*!
+  */
+template <typename Float> inline
+constexpr bool isInf(const Float x) noexcept
+{
+  static_assert(kIsFloat<Float>, "Float isn't floating point type.");
+  const bool result = (x == std::numeric_limits<Float>::infinity()) ||
+                      (x == -std::numeric_limits<Float>::infinity());
+  return result;
+}
+
+/*!
+  */
+template <typename Float> inline
+constexpr bool isNan(const Float x) noexcept
+{
+  static_assert(kIsFloat<Float>, "Float isn't floating point type.");
+  const bool result = x != x;
+  return result;
+}
+
+/*!
+  */
+template <typename Float> inline
+constexpr bool isNormal(const Float x) noexcept
+{
+  static_assert(kIsFloat<Float>, "Float isn't floating point type.");
+  const Float d = abs(x);
+  const bool result = (std::numeric_limits<Float>::min() <= d) &&
+                      (d <= std::numeric_limits<Float>::max());
+  return result;
+}
+
+/*!
+  */
+template <typename Float> inline
+constexpr bool isSubnormal(const Float x) noexcept
+{
+  static_assert(kIsFloat<Float>, "Float isn't floating point type.");
+  constexpr Float zero = cast<Float>(0.0);
+  const Float d = abs(x);
+  const bool result = (zero < d) && (d < std::numeric_limits<Float>::min());
+  return result;
 }
 
 } // namespace constant

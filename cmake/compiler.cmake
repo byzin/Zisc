@@ -284,17 +284,6 @@ function(setStaticAnalyzer target)
       else()
         message(WARNING "[${target}] Could not find 'clang-tidy'.")
       endif()
-
-      # include-what-you-use
-      find_program(Z_IWYU_PROGRAM include-what-you-use)
-      if(Z_IWYU_PROGRAM)
-        set_target_properties(${target} PROPERTIES
-            C_INCLUDE_WHAT_YOU_USE ${Z_IWYU_PROGRAM}
-            CXX_INCLUDE_WHAT_YOU_USE ${Z_IWYU_PROGRAM})
-        list(APPEND static_analyzer_list "include-what-you-use (${Z_IWYU_PROGRAM})")
-      else()
-        message(WARNING "[${target}] Could not find 'include-what-you-use'.")
-      endif()
     endif()
 
     # link-what-you-use

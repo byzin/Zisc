@@ -8,6 +8,17 @@
 
 set(__test_root__ ${CMAKE_CURRENT_LIST_DIR})
 
+function(getTestCompileOption test_compile_flags)
+  set(compile_flags "")
+  if(Z_VISUAL_STUDIO)
+    list(APPEND compile_flags /bigobj
+                              )
+  endif()
+
+
+  # Output variable
+  set(${test_compile_flags} ${compile_flags} PARENT_SCOPE)
+endfunction(getTestCompileOption)
 
 function(getTestWarningOption test_warning_flags)
   set(warning_flags "")
@@ -50,10 +61,12 @@ function(buildUnitTest)
   set_target_properties(UnitTest PROPERTIES CXX_STANDARD 17
                                             CXX_STANDARD_REQUIRED ON)
   getCxxWarningOption(cxx_warning_flags)
+  getTestCompileOption(test_compile_flags)
   getTestWarningOption(test_warning_flags)
   target_compile_options(UnitTest PRIVATE ${cxx_compile_flags}
                                           ${zisc_compile_flags}
                                           ${cxx_warning_flags}
+                                          ${test_compile_flags}
                                           ${test_warning_flags})
   target_include_directories(UnitTest PRIVATE ${zisc_include_dirs})
   target_include_directories(UnitTest SYSTEM PRIVATE ${gtest_include_dir})

@@ -13,6 +13,7 @@
 #include "memory_manager.hpp"
 // Standard C++ library
 #include <cstddef>
+#include <mutex>
 #include <type_traits>
 #include <utility>
 // Zisc
@@ -111,9 +112,55 @@ std::size_t MemoryManager<kArenaType, kArenaSize>::capacity() const noexcept
 /*!
   */
 template <MemoryArenaType kArenaType, std::size_t kArenaSize> inline
+void* MemoryManager<kArenaType, kArenaSize>::do_allocate(std::size_t size,
+                                                         std::size_t alignment)
+{
+  void* data = nullptr;
+  {
+    auto locker = (mutex_ == nullptr)
+        ? std::unique_lock<std::mutex>{*mutex_}
+        : std::unique_lock<std::mutex>{};
+    auto chunk = arena_.allocate(size, alignment);
+    data = chunk->template data<void>();
+  }
+  return data;
+}
+
+/*!
+  */
+template <MemoryArenaType kArenaType, std::size_t kArenaSize> inline
+void MemoryManager<kArenaType, kArenaSize>::do_deallocate(void* data,
+                                                          std::size_t,
+                                                          std::size_t)
+{
+  auto chunk = MemoryChunk::getChunk(data);
+  chunk->setFree(true);
+}
+
+/*!
+  */
+template <MemoryArenaType kArenaType, std::size_t kArenaSize> inline
+bool MemoryManager<kArenaType, kArenaSize>::do_is_equal(
+    const pmr::memory_resource& other) const noexcept
+{
+  const bool result = this == &other;
+  return result;
+}
+
+/*!
+  */
+template <MemoryArenaType kArenaType, std::size_t kArenaSize> inline
 void MemoryManager<kArenaType, kArenaSize>::reset() noexcept
 {
   arena_.reset();
+}
+
+/*!
+  */
+template <MemoryArenaType kArenaType, std::size_t kArenaSize> inline
+void MemoryManager<kArenaType, kArenaSize>::setMutex(std::mutex* mutex) noexcept
+{
+  mutex_ = mutex;
 }
 
 /*!

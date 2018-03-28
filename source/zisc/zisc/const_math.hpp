@@ -30,12 +30,16 @@ constexpr Float pi() noexcept;
 template <typename Arithmetic>
 constexpr Arithmetic abs(const Arithmetic x) noexcept;
 
+//! Return the ULPs of the given value
+template <std::size_t kUlpScale = 4, typename Float>
+constexpr Float getUlps(const Float value) noexcept;
+
 //! Check whether given two values are almost same
-template <std::size_t kUlps = 4, typename Float>
+template <std::size_t kUlpScale = 4, typename Float>
 constexpr bool isAlmostEqual(const Float lhs, const Float rhs) noexcept;
 
 //! Check whether given value is almost equal to zero
-template <std::size_t kUlps = 4, typename Float>
+template <std::size_t kUlpScale = 4, typename Float>
 constexpr bool isAlmostEqualToZero(const Float value) noexcept;
 
 //! Compute the greatest common divisor of the integers m and n
@@ -126,32 +130,6 @@ constexpr Float acos(const Float x) noexcept;
 //! Calculate atan(x)
 template <typename Float>
 constexpr Float atan(const Float x) noexcept;
-
-// Hyperbolic functions
-
-//! Calculate hyperbolic sine
-template <typename Float>
-constexpr Float sinh(const Float x) noexcept;
-
-//! Calculate hyperbolic cosine
-template <typename Float>
-constexpr Float cosh(const Float x) noexcept;
-
-//! Calculate hyperbolic tangent
-template <typename Float>
-constexpr Float tanh(const Float x) noexcept;
-
-//! Calculate inverse hyperbolic sine
-template <typename Float>
-constexpr Float asinh(const Float x) noexcept;
-
-//! Calculate inverse hyperbolic cosine
-template <typename Float>
-constexpr Float acosh(const Float x) noexcept;
-
-//! Calculate inverse hyperbolic tangent
-template <typename Float>
-constexpr Float atanh(const Float x) noexcept;
 
 // Classification and comparison
 

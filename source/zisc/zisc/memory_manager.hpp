@@ -12,6 +12,7 @@
 
 // Standard C++ library
 #include <cstddef>
+#include <mutex>
 #include <type_traits>
 // Zisc
 #include "memory_arena.hpp"
@@ -67,16 +68,19 @@ class MemoryManager : public pmr::memory_resource,
   std::size_t capacity() const noexcept;
 
   //! Allocate storage
-  void* do_allocate(std::size_t bytes, std::size_t alignment) override;
+  void* do_allocate(std::size_t size, std::size_t alignment) override;
 
   //! Deallocate the storage
-  void do_deallocate(std::size_t bytes, std::size_t alignment) override;
+  void do_deallocate(void* data, std::size_t size, std::size_t alignment) override;
 
   //! Compare for equality
   bool do_is_equal(const pmr::memory_resource& other) const noexcept override;
 
   //! Reset the used memory
   void reset() noexcept;
+
+  //! Set a mutex for synchronized memory allocation
+  void setMutex(std::mutex* mutex) noexcept;
 
   //! Return the used memory
   std::size_t usedMemory() const noexcept;
@@ -93,6 +97,7 @@ class MemoryManager : public pmr::memory_resource,
 
 
   MemoryArena<kArenaType, kSize> arena_;
+  std::mutex* mutex_;
 };
 
 // Type alias

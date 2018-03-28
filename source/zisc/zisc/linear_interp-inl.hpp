@@ -18,9 +18,9 @@
 #include <tuple>
 #include <type_traits>
 #include <utility>
-#include <vector>
 // Zisc
 #include "error.hpp"
+#include "memory_resource.hpp"
 #include "utility.hpp"
 
 namespace zisc {
@@ -30,7 +30,8 @@ namespace zisc {
  No detailed.
  */
 template <typename Float> inline
-LinearInterp<Float>::LinearInterp() noexcept
+LinearInterp<Float>::LinearInterp(pmr::memory_resource* mem_resource) noexcept :
+    data_{pmr::polymorphic_allocator<Float>{mem_resource}}
 {
 }
 
@@ -61,8 +62,8 @@ Float LinearInterp<Float>::operator()(const Float x) const noexcept
 template <typename Float> template <typename XType, typename YType> inline
 void LinearInterp<Float>::add(const XType x, const YType y) noexcept
 {
-  static_assert(std::is_arithmetic<XType>::value,"XType isn't arithmetic type.");
-  static_assert(std::is_arithmetic<YType>::value,"YType isn't arithmetic type.");
+  static_assert(std::is_arithmetic<XType>::value, "XType isn't arithmetic type.");
+  static_assert(std::is_arithmetic<YType>::value, "YType isn't arithmetic type.");
 
   const auto x_value = cast<Float>(x);
   const auto y_value = cast<Float>(y);

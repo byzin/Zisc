@@ -18,7 +18,6 @@
 // Zisc
 #include "const_math.hpp"
 #include "error.hpp"
-#include "fraction.hpp"
 #include "utility.hpp"
 #include "type_traits.hpp"
 #include "zisc/zisc_config.hpp"
@@ -434,7 +433,7 @@ std::tuple<std::array<Float, 2>, uint> solveQuadratic(const Float a,
   uint n = 0;
 
   const Float discriminant = b * b - 4.0 * a * c;
-  if (discriminant == 0.0) {
+  if (constant::isAlmostEqualToZero(discriminant)) {
     x[0] = -b / (2.0 * a);
     n = 1;
   }
@@ -456,25 +455,26 @@ namespace inner {
 template <typename Float> inline
 Float solveCubicOneY(const Float p, const Float q) noexcept
 {
-//  ZISC_ASSERT(p != 0.0, "The p is zero.");
-//  ZISC_ASSERT(q != 0.0, "The q is zero.");
-  if (p == 0.0)
-    return cbrt(-q);
-  else if (q == 0.0)
-    return sqrt(-p);
-
   Float y;
-  const Float discriminant = power<2>(q) + (4.0 / 27.0) * power<3>(p);
-  if (0.0 <= discriminant) {
-    const Float z = cbrt(0.5 * (sqrt(discriminant) - q));
-    y = z - (p / (3.0 * z));
+  if (constant::isAlmostEqualToZero(p)) {
+    y = cbrt(-q);
+  }
+  else if (constant::isAlmostEqualToZero(q)) {
+    y = sqrt(-p);
   }
   else {
-    ZISC_ASSERT(p < 0.0, "The p is positive: ", p);
-    const Float r = sqrt((-1.0 / 3.0) * p);
-    const Float cos_theta = clamp(q / (-2.0 * power<3>(r)), -1.0, 1.0);
-    const Float phi = (1.0 / 3.0) * acos(cos_theta);
-    y = 2.0 * r * cos(phi);
+    const Float discriminant = power<2>(q) + (4.0 / 27.0) * power<3>(p);
+    if (0.0 <= discriminant) {
+      const Float z = cbrt(0.5 * (sqrt(discriminant) - q));
+      y = z - (p / (3.0 * z));
+    }
+    else {
+      ZISC_ASSERT(p < 0.0, "The p is positive: ", p);
+      const Float r = sqrt(invert(-3.0) * p);
+      const Float cos_theta = clamp(q / (-2.0 * power<3>(r)), -1.0, 1.0);
+      const Float phi = (invert(3.0)) * acos(cos_theta);
+      y = 2.0 * r * cos(phi);
+    }
   }
   return y;
 }
@@ -490,7 +490,7 @@ Float solveCubicOne(const Float b, const Float c, const Float d) noexcept
 {
   static_assert(kIsFloat<Float>, "Float isn't floating point type.");
 
-  const Float k = (-1.0 / 3.0) * b;
+  const Float k = invert(-3.0) * b;
 
   const Float p = (b * k + c);
   const Float q = (((2.0 / 3.0) * b * k + c) * k + d);
@@ -512,8 +512,8 @@ Float solveCubicOne(const Float a,
   static_assert(kIsFloat<Float>, "Float isn't floating point type.");
 
   ZISC_ASSERT(a != 0.0, "The a is zero.");
-  const Float inv_a = 1.0 / a;
-  const Float k = (-1.0 / 3.0) * b * inv_a;
+  const Float inv_a = invert(a);
+  const Float k = invert(-3.0) * b * inv_a;
 
   const Float p = (b * k + c) * inv_a;
   const Float q = (((2.0 / 3.0) * b * k + c) * k + d) * inv_a;
@@ -558,12 +558,12 @@ std::tuple<std::array<Float, 4>, uint> solveQuartic(const Float a,
 
   ZISC_ASSERT(a != 0.0, "The a is zero.");
   const Float inv_a = 1.0 / a;
-  const Float k = (-1.0 / 4.0) * b * inv_a;
+  const Float k = invert(-4.0) * b * inv_a;
 
   const Float p = ((3.0 / 2.0) * b * k + c) * inv_a;
   const Float q = ((b * k + c) * 2.0 * k + d) * inv_a;
   const Float r = ((((3.0 / 4.0) * b * k + c) * k + d) * k + e) * inv_a;
-  const Float z = solveCubicOne(-0.5 * p, -r, (1.0 / 8.0) * (4 * p * r - q * q));
+  const Float z = solveCubicOne(-0.5 * p, -r, invert(8.0) * (4 * p * r - q * q));
 
   uint n = 0;
   std::array<Float, 4> x;

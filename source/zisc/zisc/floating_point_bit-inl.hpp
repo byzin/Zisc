@@ -17,7 +17,7 @@
 #include <limits>
 // Zisc
 #include "floating_point.hpp"
-#include "math.hpp"
+#include "const_math.hpp"
 #include "type_traits.hpp"
 #include "utility.hpp"
 #include "zisc/zisc_config.hpp"
@@ -63,11 +63,11 @@ template <typename Float> inline
 constexpr auto FloatingPointBit<Float>::getExponentBits(const FloatType value)
     noexcept -> BitType
 {
-  BitType bit = (isInf(value) || isNan(value))
+  BitType bit = (constant::isInf(value) || constant::isNan(value))
       ? exponentBitMask()
       : BitType{0b0u};
-  if (isNormal(value)) {
-    FloatType v = abs(value);
+  if (constant::isNormal(value)) {
+    FloatType v = constant::abs(value);
     std::size_t exponent = exponentBias();
 
     constexpr std::size_t size = 8 * sizeof(BitType);
@@ -93,24 +93,24 @@ template <typename Float> inline
 constexpr auto FloatingPointBit<Float>::getSignificandBits(const FloatType value)
     noexcept -> BitType
 {
-  BitType bit = isNan(value)
+  BitType bit = constant::isNan(value)
       ? BitType{0b01} << (significandBitSize() - 1)
       : BitType{0b0u};
 
   int exponent = 0;
 
   constexpr FloatType s = constant::power<significandBitSize()>(cast<FloatType>(2.0));
-  const FloatType v = isSubnormal(value)
-      ? s * abs(value)
-      : abs(value);
+  const FloatType v = constant::isSubnormal(value)
+      ? s * constant::abs(value)
+      : constant::abs(value);
 
-  if (isNormal(v)) {
+  if (constant::isNormal(v)) {
     exponent = cast<int>(getExponentBits(v) >> significandBitSize()) -
                cast<int>(exponentBias());
     const FloatType t = constant::pow(cast<FloatType>(2.0), -exponent);
     bit = cast<BitType>(s * (t * v));
   }
-  if (isSubnormal(value)) {
+  if (constant::isSubnormal(value)) {
     exponent = exponent + cast<int>(exponentBias()) - 1;
     bit = (BitType{0b1u} << exponent) |
           (bit >> (cast<int>(significandBitSize()) - exponent));
@@ -145,11 +145,36 @@ constexpr auto FloatingPointBit<Float>::makeFloat(
   */
 template <typename Float> inline
 constexpr auto FloatingPointBit<Float>::makeFloat(
-    const BitType /* sign_bit */,
-    const BitType /* exponent_bits */,
-    const BitType /* significand_bits */) noexcept -> FloatType
+    BitType sign_bit,
+    BitType exponent_bits,
+    BitType significand_bits) noexcept -> FloatType
 {
-  return static_cast<FloatType>(0.0);
+  sign_bit = sign_bit & signBitMask();
+  exponent_bits = exponent_bits & exponentBitMask();
+  significand_bits = significand_bits & significandBitMask();
+
+  Float value = cast<Float>(0);
+  if (exponent_bits == 0) {
+    value = (significand_bits == 0)
+        ? cast<Float>(0)
+        : cast<Float>(significand_bits) * std::numeric_limits<Float>::denorm_min();
+  }
+  else if (exponent_bits == exponentBitMask()) {
+    value = (significand_bits == 0)
+        ? std::numeric_limits<Float>::infinity()
+        : std::numeric_limits<Float>::quiet_NaN();
+  }
+  else {
+    constexpr BitType implicit_bit = BitType{0x1u} << significandBitSize();
+    constexpr Float s = constant::power<significandBitSize()>(cast<Float>(0.5));
+
+    const int exponent = cast<int>(exponent_bits >> significandBitSize()) -
+                         cast<int>(exponentBias());
+    const Float t = constant::pow(cast<Float>(2.0), exponent);
+    const Float v = cast<Float>(implicit_bit | significand_bits);
+    value = t * (s * v);
+  }
+  return (sign_bit == signBitMask()) ? -value : value;
 }
 
 /*!

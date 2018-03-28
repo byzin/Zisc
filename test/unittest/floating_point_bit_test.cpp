@@ -30,8 +30,6 @@ namespace {
 
 constexpr int start = -512;
 constexpr int end = 512;
-//constexpr int start = -20;
-//constexpr int end = 20;
 
 template <typename Float, int end, int i>
 struct BitTest
@@ -290,6 +288,28 @@ struct BitTest<Float, end, end>
 
   static void testFloatMaking()
   {
+    auto test = [](const Float x)
+    {
+      const BitType s = FloatBit::getSignBit(x);
+      const BitType e = FloatBit::getExponentBits(x);
+      const BitType m = FloatBit::getSignificandBits(x);
+      const Float f = FloatBit::makeFloat(s, e, m);
+      EXPECT_EQ(x, f)
+          << "normal: "
+          << std::setprecision(std::numeric_limits<Float>::digits10)
+          << x;
+
+    };
+    test(zisc::cast<Float>(0.0));
+    test(zisc::cast<Float>(-0.0));
+    test(std::numeric_limits<Float>::max());
+    test(std::numeric_limits<Float>::lowest());
+    test(std::numeric_limits<Float>::min());
+    test(-std::numeric_limits<Float>::min());
+    test(std::numeric_limits<Float>::infinity());
+    test(-std::numeric_limits<Float>::infinity());
+//    test(std::numeric_limits<Float>::quiet_NaN());
+    test(std::numeric_limits<Float>::denorm_min());
   }
 };
 
@@ -335,15 +355,15 @@ TEST(FloatingPointBitTest, getBitsDoubleTest)
   ::BitTest<double, ::end, ::start>::testBit();
 }
 
-//TEST(FloatingPointBitTest, FloatMakingTest)
-//{
-//  ::BitTest<float, ::end, ::start>::testFloatMaking();
-//}
-//
-//TEST(FloatingPointBitTest, DoubleMakingTest)
-//{
-//  ::BitTest<double, ::end, ::start>::testFloatMaking();
-//}
+TEST(FloatingPointBitTest, FloatMakingTest)
+{
+  ::BitTest<float, ::end, ::start>::testFloatMaking();
+}
+
+TEST(FloatingPointBitTest, DoubleMakingTest)
+{
+  ::BitTest<double, ::end, ::start>::testFloatMaking();
+}
 
 TEST(FloatingPointBitTest, FloatMapTest)
 {

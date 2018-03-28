@@ -56,9 +56,9 @@ class FloatingPointBit
                                        const BitType significand_bits) noexcept;
 
   //! Make a floating point
-  static constexpr FloatType makeFloat(const BitType sign_bit,
-                                       const BitType exponent_bits, 
-                                       const BitType significand_bits) noexcept;
+  static constexpr FloatType makeFloat(BitType sign_bit,
+                                       BitType exponent_bits, 
+                                       BitType significand_bits) noexcept;
 
   //! Map an integer value into a [0, 1) float
   static constexpr FloatType mapTo01Float(BitType x) noexcept;

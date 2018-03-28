@@ -16,7 +16,9 @@
 #include <type_traits>
 #include <utility>
 // Zisc
+#include "memory_resource.hpp"
 #include "non_copyable.hpp"
+#include "simple_memory_resource.hpp"
 
 namespace zisc {
 
@@ -30,19 +32,21 @@ namespace zisc {
 template <typename Float>
 class LinearInterp : public NonCopyable<LinearInterp<Float>>
 {
-  static_assert(std::is_floating_point<Float>::value, 
-                "Float isn't floating point type.");
-
-  using Pair = std::tuple<Float, Float>;
-  using Iterator = typename std::list<Pair>::iterator;
-  using ConstIterator = typename std::list<Pair>::const_iterator;
-
  public:
-  //! Create empty instance
-  LinearInterp() noexcept;
+  using FloatType = Float;
 
-  //! Move instance
+
+  //! Create an empty instance
+  LinearInterp(
+      pmr::memory_resource* mem_resource = SimpleMemoryResource::sharedResource())
+          noexcept;
+
+  //! Move instance data
   LinearInterp(LinearInterp&& other) noexcept;
+
+
+  //! Move instance data
+  LinearInterp& operator=(LinearInterp&& other) noexcept;
 
 
   //! Interpolate 
@@ -60,6 +64,14 @@ class LinearInterp : public NonCopyable<LinearInterp<Float>>
   Float interpolate(const Float x) const noexcept;
 
  private:
+  static_assert(std::is_floating_point<Float>::value, 
+                "Float isn't floating point type.");
+
+  using Pair = std::tuple<Float, Float>;
+  using Iterator = typename pmr::list<Pair>::iterator;
+  using ConstIterator = typename pmr::list<Pair>::const_iterator;
+
+
   //! Check whether the data at x exists
   bool exists(const Float x, const ConstIterator& position) const noexcept;
 
@@ -70,7 +82,7 @@ class LinearInterp : public NonCopyable<LinearInterp<Float>>
   ConstIterator lowerBound(const Float x) const noexcept;
 
 
-  std::list<Pair> data_;
+  pmr::list<Pair> data_;
 };
 
 } // namespace zisc

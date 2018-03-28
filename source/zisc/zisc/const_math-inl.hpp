@@ -20,7 +20,6 @@
 // Zisc
 #include "error.hpp"
 #include "floating_point_bit.hpp"
-#include "fraction.hpp"
 #include "utility.hpp"
 #include "type_traits.hpp"
 #include "zisc/zisc_config.hpp"
@@ -74,16 +73,24 @@ constexpr Arithmetic abs(const Arithmetic x) noexcept
 
 /*!
   */
-template <std::size_t kUlps, typename Float> inline
+template <std::size_t kUlpScale, typename Float> inline
+constexpr Float getUlps(const Float value) noexcept
+{
+  constexpr Float e = cast<Float>(kUlpScale) * std::numeric_limits<Float>::epsilon();
+  const Float ulps = e * abs(value);
+  return ulps;
+}
+
+/*!
+  */
+template <std::size_t kUlpScale, typename Float> inline
 constexpr bool isAlmostEqual(const Float lhs, const Float rhs) noexcept
 {
   static_assert(std::is_arithmetic_v<Float>, "Float isn't arithmetic type");
   bool result = false;
   if constexpr (kIsFloat<Float>) {
-    const Float e = abs(lhs + rhs) *
-                    (cast<Float>(kUlps) * std::numeric_limits<Float>::epsilon());
     const Float v = abs(lhs - rhs);
-    result = (v <= e) || isSubnormal(v);
+    result = (v <= getUlps<kUlpScale>(lhs + rhs)) || isSubnormal(v);
   }
   else {
     result = lhs == rhs;
@@ -93,16 +100,15 @@ constexpr bool isAlmostEqual(const Float lhs, const Float rhs) noexcept
 
 /*!
   */
-template <std::size_t kUlps, typename Float> inline
+template <std::size_t kUlpScale, typename Float> inline
 constexpr bool isAlmostEqualToZero(const Float value) noexcept
 {
   static_assert(std::is_arithmetic_v<Float>, "Float isn't arithmetic type");
   constexpr Float zero = cast<Float>(0);
   bool result = false;
   if constexpr (kIsFloat<Float>) {
-    constexpr Float e = cast<Float>(kUlps) * std::numeric_limits<Float>::epsilon();
     const Float v = abs(value);
-    result = v <= e;
+    result = v <= getUlps<kUlpScale>(v);
   }
   else {
     result = value == zero;
@@ -194,21 +200,19 @@ constexpr Arithmetic power(Arithmetic base) noexcept
 {
   static_assert(std::is_arithmetic_v<Arithmetic>,
                 "Arithmetic isn't arithmetic type");
-  Arithmetic x = cast<Arithmetic>(1);
+  Arithmetic x = cast<Arithmetic>(0);
   // Check if base is zero
-  if (base != cast<Arithmetic>(0)) {
+  if (x != base) {
+    x = cast<Arithmetic>(1);
     // Inverse pow
-    if constexpr (isNegative(kExponent)) {
-      x = power<-kExponent>(cast<Arithmetic>(1) / base);
-    }
-    // pow
-    else {
-      for (int exponent = kExponent; 0 < exponent; exponent = exponent >> 1) {
-        if (isOdd(exponent))
-          x = x * base;
-        if (1 < exponent)
-          base = base * base;
-      }
+    if constexpr (kIsFloat<Arithmetic> && isNegative(kExponent))
+      base = invert(base);
+    // Compute pow
+    for (int exponent = abs(kExponent); 0 < exponent; exponent = exponent >> 1) {
+      if (isOdd(exponent))
+        x = x * base;
+      if (1 < exponent)
+        base = base * base;
     }
   }
   return x;
@@ -223,21 +227,21 @@ constexpr Arithmetic pow(Arithmetic base, SignedInteger exponent) noexcept
                 "Arithmetic isn't arithmetic type");
   static_assert(kIsSignedInteger<SignedInteger>,
                 "SignedInteger isn't signed integer type.");
-  Arithmetic x = cast<Arithmetic>(1);
+  Arithmetic x = cast<Arithmetic>(0);
   // Check if base is zero
-  if (base != cast<Arithmetic>(0)) {
+  if (x != base) {
+    x = cast<Arithmetic>(1);
     // Inverse pow
-    if (isNegative(exponent)) {
-      x = pow(cast<Arithmetic>(1) / base, -exponent);
+    if constexpr (kIsFloat<Arithmetic>) {
+      if (isNegative(exponent))
+        base = invert(base);
     }
-    // pow
-    else {
-      for (; cast<SignedInteger>(0) < exponent; exponent = exponent >> 1) {
-        if (isOdd(exponent))
-          x = x * base;
-        if (cast<SignedInteger>(1) < exponent)
-          base = base * base;
-      }
+    // Compute pow
+    for (exponent = abs(exponent); 0 < exponent; exponent = exponent >> 1) {
+      if (isOdd(exponent))
+        x = x * base;
+      if (cast<SignedInteger>(1) < exponent)
+        base = base * base;
     }
   }
   return x;
@@ -273,7 +277,7 @@ constexpr Float sqrt(const Float x) noexcept
   static_assert(kIsFloat<Float>, "Float isn't floating point type.");
   Float y = inner::estimateNRoot<2>(x);
   for (Float pre_y = x; !isAlmostEqual(y, pre_y);) {
-    constexpr Float k = cast<Float>(1.0) / cast<Float>(2.0);
+    constexpr Float k = cast<Float>(0.5);
     pre_y = y;
     y = k * (y + x / y);
   }
@@ -304,10 +308,10 @@ template <typename Float> inline
 constexpr Float exp(const Float x) noexcept
 {
   static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-  Float y = cast<Float>(1.0) + x,
-        pre_y = std::numeric_limits<Float>::infinity();
+  Float y = cast<Float>(1.0) + x;
+  Float pre_y = cast<Float>(1.0);
   Float t = x;
-  for (int iteration = 2; y != pre_y; ++iteration) {
+  for (int iteration = 2; !isAlmostEqual(y, pre_y); ++iteration) {
     pre_y = y;
     t = t * (x / cast<Float>(iteration));
     y = y + t;
@@ -325,7 +329,7 @@ constexpr Float exp(Float x) noexcept
   static_assert(kIsFloat<Float>, "Float isn't floating point type.");
   int exponent = 1;
   while (cast<Float>(1.0) < abs(x)) {
-    x = x / cast<Float>(2.0);
+    x = cast<Float>(0.5) * x;
     exponent = exponent << 1;
   }
   Float y = inner::exp(x);
@@ -334,34 +338,6 @@ constexpr Float exp(Float x) noexcept
 }
 
 namespace inner {
-
-/*!
-  */
-template <typename Float> inline
-constexpr std::tuple<Float, int> extractFloat(Float x) noexcept
-{
-  static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-  bool is_minus = x < cast<Float>(0.0);
-  x = abs(x);
-  int exponent = 0;
-  if (x != cast<Float>(0.0)) {
-    if (cast<Float>(2.0) < x) {
-      constexpr Float base = cast<Float>(2.0);
-      while (base < x) {
-        x = x / base;
-        ++exponent;
-      }
-    }
-    else {
-      constexpr Float base = cast<Float>(0.5);
-      while (x < cast<Float>(1.0)) {
-        x = x / base;
-        --exponent;
-      }
-    }
-  }
-  return std::make_tuple((is_minus) ? -x : x, exponent);
-}
 
 /*!
   \details
@@ -374,13 +350,15 @@ constexpr Float log2(Float x) noexcept
   Float y = cast<Float>(0.0);
   if (x != cast<Float>(1.0)) {
     constexpr Float base = cast<Float>(2.0);
-    Float pre_y = std::numeric_limits<Float>::infinity();
-    for (Float element = invert(base); pre_y != y; element = element / base) {
-      x = x * x;
+    constexpr Float inv_base = invert(base);
+    for (Float pre_y = base, element = inv_base;
+         !isAlmostEqual(y, pre_y);
+         element = inv_base * element) {
+      x = power<2>(x);
       if (base < x) {
         pre_y = y;
         y = y + element;
-        x = x / base;
+        x = inv_base * x;
       }
     }
   }
@@ -395,12 +373,15 @@ template <typename Float> inline
 constexpr Float log2(const Float x) noexcept
 {
   static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-  // Extract the float x
-  const auto f = inner::extractFloat(x);
-  const Float mantissa = std::get<0>(f);
-  const int exponent = std::get<1>(f);
-  // Calculate the log2(x)
-  return inner::log2(mantissa) + cast<Float>(exponent);
+
+  using FloatBit = FloatingPointBit<Float>;
+  const int exponent = 
+      cast<int>(FloatBit::getExponentBits(x) >> FloatBit::significandBitSize()) -
+      cast<int>(FloatBit::exponentBias());
+  const Float f = pow(cast<Float>(0.5), exponent);
+
+  const Float l = cast<Float>(exponent) + inner::log2(f * x);
+  return l;
 }
 
 /*!
@@ -410,7 +391,8 @@ constexpr Float log(Float x) noexcept
 {
   static_assert(kIsFloat<Float>, "Float isn't floating point type.");
   constexpr Float base = exp(cast<Float>(1.0));
-  return log2(x) / log2(base);
+  constexpr Float k = invert(log2(base));
+  return k * log2(x);
 }
 
 /*!
@@ -420,7 +402,8 @@ constexpr Float log10(const Float x) noexcept
 {
   static_assert(kIsFloat<Float>, "Float isn't floating point type.");
   constexpr Float base = cast<Float>(10.0);
-  return log2(x) / log2(base);
+  constexpr Float k = invert(log2(base));
+  return k * log2(x);
 }
 
 namespace inner {
@@ -431,14 +414,15 @@ template <typename Float> inline
 constexpr Float sin(const Float x) noexcept
 {
   static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-  Float y = x,
-        pre_y = std::numeric_limits<Float>::infinity();
+  Float y = cast<Float>(1.0),
+        pre_y = cast<Float>(1.0) - x;
   Float t = y;
-  for (int iteration = 1; y != pre_y; ++iteration) {
+  for (int iteration = 1; !isAlmostEqual(y, pre_y); ++iteration) {
     pre_y = y;
-    t = t * ((x * x) / cast<Float>((2 * iteration + 1) * (2 * iteration)));
-    y = y + (isOdd(iteration) ? -t : t);
+    t = t * power<2>(x) / cast<Float>((2 * iteration) * (2 * iteration + 1));
+    y = isOdd(iteration) ? y - t : y + t;
   }
+  y = x * y;
   return y;
 }
 
@@ -449,12 +433,12 @@ constexpr Float cos(const Float x) noexcept
 {
   static_assert(kIsFloat<Float>, "Float isn't floating point type.");
   Float y = cast<Float>(1.0),
-        pre_y = std::numeric_limits<Float>::infinity();
+        pre_y = cast<Float>(1.0) - x;
   Float t = y;
-  for (int iteration = 1; y != pre_y; ++iteration) {
+  for (int iteration = 1; !isAlmostEqual(y, pre_y); ++iteration) {
     pre_y = y;
-    t = t * ((x * x) / cast<Float>((2 * iteration) * (2 * iteration - 1)));
-    y = y + (isOdd(iteration) ? -t : t);
+    t = t * power<2>(x) / cast<Float>((2 * iteration - 1) * (2 * iteration));
+    y = isOdd(iteration) ? y - t : y + t;
   }
   return y;
 }
@@ -467,31 +451,27 @@ template <typename Float> inline
 constexpr Float sin(const Float x) noexcept
 {
   static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-  Float y = cast<Float>(0.0);
+  Float theta = abs(x);
+  // Rotate theta
+  constexpr Float double_pi = cast<Float>(2.0) * pi<Float>();
   constexpr Float half_pi = cast<Float>(0.5) * pi<Float>();
-  constexpr Float quarter_pi = cast<Float>(0.25) * pi<Float>();
-  // x < 0
-  if (isNegative(x)) {
-    y = -sin(-x);
+  if (double_pi <= theta) {
+    constexpr Float k = invert(double_pi);
+    const uint64 e = cast<uint64>(k * theta) - 1;
+    theta = theta - cast<Float>(e) * double_pi;
   }
-  // pi < x
-  else if (pi<Float>() < x) {
-    const int n = cast<int>(x / pi<Float>());
-    y = sin(x - cast<Float>(n) * pi<Float>());
-    y = (isOdd(n)) ? -y : y;
+  if (pi<Float>() <= theta) {
+    theta = theta - double_pi;
+    theta = (theta <= -half_pi) ? -pi<Float>() - theta : theta;
   }
-  // pi/2 < x <= pi
-  else if (half_pi < x) {
-    y = sin(pi<Float>() - x);
+  else if (half_pi <= theta) {
+    theta = pi<Float>() - theta;
   }
-  // pi/4 < x <= pi/2
-  else if (quarter_pi < x) {
-    y = inner::cos(half_pi - x);
-  }
-  // 0 <= x <= pi/4
-  else {
-    y = inner::sin(x);
-  }
+
+  // Compute sin
+  Float y = inner::sin(theta);
+  y = isNegative(x) ? -y : y;
+
   return y;
 }
 
@@ -501,8 +481,21 @@ template <typename Float> inline
 constexpr Float cos(const Float x) noexcept
 {
   static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-  constexpr Float half_pi = cast<Float>(0.5) * pi<Float>();
-  return sin(half_pi - x);
+  Float theta = abs(x);
+  // Rotate theta
+  constexpr Float double_pi = cast<Float>(2.0) * pi<Float>();
+  if (double_pi <= theta) {
+    constexpr Float k = invert(double_pi);
+    const uint64 e = cast<uint64>(k * theta) - 1;
+    theta = theta - cast<Float>(e) * double_pi;
+  }
+  if (pi<Float>() <= theta)
+    theta = double_pi - theta;
+
+  // Compute cos
+  const Float y = inner::cos(theta);
+
+  return y;
 }
 
 /*!
@@ -522,17 +515,20 @@ template <typename Float> inline
 constexpr Float atan(const Float x) noexcept
 {
   static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-  Float y = x / (cast<Float>(1.0) + (x * x)),
-        pre_y = std::numeric_limits<Float>::infinity();
-  Float t1 = cast<Float>(1.0),
-        t2 = y;
-  for (int iteration = 1; y != pre_y; ++iteration) {
+  const Float k = x / (cast<Float>(1.0) + power<2>(x));
+
+  Float y = cast<Float>(1.0),
+        pre_y = k;
+
+  Float t = cast<Float>(1.0);
+  for (int iteration = 1; !isAlmostEqual(y, pre_y); ++iteration) {
     pre_y = y;
-    t1 = t1 * (pow(cast<Float>(2.0) * cast<Float>(iteration), 2) /
-               cast<Float>((2 * iteration + 1) * (2 * iteration)));
-    t2 = t2 * ((x * x) / (cast<Float>(1.0) + (x * x)));
-    y = y + (t1 * t2);
+    const Float s = x * (cast<Float>(2 * iteration) /
+                         cast<Float>(2 * iteration + 1));
+    t = t * k * s;
+    y = y + t;
   }
+  y = k * y;
   return y;
 }
 
@@ -544,32 +540,14 @@ template <typename Float> inline
 constexpr Float atan(const Float x) noexcept
 {
   static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-  Float y = cast<Float>(0.0);
-  if (isNegative(x)) {
-    y = -atan(-x);
-  }
-  else if (cast<Float>(1.0) < x) {
-    constexpr Float half_pi = cast<Float>(0.5) * pi<Float>();
-    y = half_pi - atan(cast<Float>(1.0) / x);
-  }
-  else {
-    y = inner::atan(x);
-  }
-  return y;
-}
+  Float y = abs(x);
 
-/*!
-  */
-template <typename Float> inline
-constexpr Float acos(const Float x) noexcept
-{
-  static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-  constexpr Float one = cast<Float>(1.0);
-  const Float y =
-      (x == -one) ? pi<Float>() :
-      (x == one)  ? cast<Float>(0.0) :
-                    cast<Float>(2.0) * atan(sqrt(one - x * x) / (one + x));
-  return y;
+  constexpr Float half_pi = cast<Float>(0.5) * pi<Float>();
+  const Float theta = (cast<Float>(1.0) < y)
+      ? half_pi - inner::atan(invert(y))
+      : inner::atan(y);
+
+  return isNegative(x) ? -theta : theta;
 }
 
 /*!
@@ -579,75 +557,28 @@ constexpr Float asin(const Float x) noexcept
 {
   static_assert(kIsFloat<Float>, "Float isn't floating point type.");
   constexpr Float one = cast<Float>(1.0);
-  const Float y =
-      (x == -one) ? -cast<Float>(0.5) * pi<Float>() :
-      (x == one)  ? cast<Float>(0.5) * pi<Float>() :
-                    cast<Float>(2.0) * atan(x / (one + sqrt(one - x * x)));
-  return y;
+
+  const Float y = x / (one + sqrt(one - power<2>(x)));
+  const Float theta = cast<Float>(2.0) * atan(y);
+
+  return theta;
 }
 
 /*!
   */
 template <typename Float> inline
-constexpr Float sinh(const Float x) noexcept
+constexpr Float acos(const Float x) noexcept
 {
   static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-  const Float y = (exp(x) - exp(-x)) / cast<Float>(2.0);
-  return y;
-}
+  constexpr Float one = cast<Float>(1.0);
 
-/*!
-  */
-template <typename Float> inline
-constexpr Float cosh(const Float x) noexcept
-{
-  static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-  const Float y = (exp(x) + exp(-x)) / cast<Float>(2.0);
-  return y;
-}
+  Float theta = pi<Float>();
+  if (-one < x) {
+    const Float y = sqrt(one - power<2>(x)) / (one + x);
+    theta = cast<Float>(2.0) * atan(y);
+  }
 
-/*!
-  */
-template <typename Float> inline
-constexpr Float tanh(const Float x) noexcept
-{
-  static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-  constexpr Float o = cast<Float>(1.0);
-  constexpr Float t = cast<Float>(2.0);
-  const Float y = (o - exp(-t * x)) / (o + exp(-t * x));
-  return y;
-}
-
-/*!
-  */
-template <typename Float> inline
-constexpr Float asinh(const Float x) noexcept
-{
-  static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-  const Float y = log(x + sqrt(x * x + cast<Float>(1.0)));
-  return y;
-}
-
-/*!
-  */
-template <typename Float> inline
-constexpr Float acosh(const Float x) noexcept
-{
-  static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-  const Float y = log(x + sqrt(x * x - cast<Float>(1.0)));
-  return y;
-}
-
-/*!
-  */
-template <typename Float> inline
-constexpr Float atanh(const Float x) noexcept
-{
-  static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-  constexpr Float o = cast<Float>(1.0);
-  constexpr Float t = cast<Float>(2.0);
-  const Float y = log((x + o) / (x - o)) / t;
-  return y;
+  return theta;
 }
 
 /*!

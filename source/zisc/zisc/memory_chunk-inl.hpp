@@ -73,7 +73,7 @@ inline
 MemoryChunk* MemoryChunk::getChunk(void* p) noexcept
 {
   uint8* chunk = cast<uint8*>(p) - 1;
-  for (; *chunk != paddingValue(); --chunk) {}
+  for (; *chunk == paddingValue(); --chunk) {}
   return (*chunk == boundaryValue())
       ? reinterpret_cast<MemoryChunk*>(chunk - (headerSize() - 1))
       : nullptr;

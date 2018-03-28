@@ -15,6 +15,8 @@
 #include <memory>
 #include <vector>
 // Zisc
+#include "memory_resource.hpp"
+#include "simple_memory_resource.hpp"
 #include "type_traits.hpp"
 #include "zisc/zisc_config.hpp"
 
@@ -24,19 +26,33 @@ namespace zisc {
   \details
   No detailed.
   */
-template <typename XType, typename PdfType>
+template <typename X, typename Pdf>
 class CumulativeDistributionFunction
 {
-  static_assert(kIsFloat<PdfType>, "PdfType isn't floating point type.");
-
  public:
-  //! Create a CDF
-  CumulativeDistributionFunction(const std::vector<XType>& x_list,
-                                 const std::vector<PdfType>& y_list) noexcept;
+  using XType = X;
+  using PdfType = Pdf;
+
 
   //! Create a CDF
-  CumulativeDistributionFunction(std::vector<XType>&& x_list,
-                                 std::vector<PdfType>&& y_list) noexcept;
+  CumulativeDistributionFunction(
+      pmr::memory_resource* mem_resource = SimpleMemoryResource::sharedResource())
+          noexcept;
+
+  //! Create a CDF
+  CumulativeDistributionFunction(
+      const std::vector<XType>& x_list,
+      const std::vector<PdfType>& y_list,
+      pmr::memory_resource* mem_resource = SimpleMemoryResource::sharedResource())
+          noexcept;
+
+  //! Create a CDF
+  CumulativeDistributionFunction(const pmr::vector<XType>& x_list,
+                                 const pmr::vector<PdfType>& y_list) noexcept;
+
+  //! Create a CDF
+  CumulativeDistributionFunction(pmr::vector<XType>&& x_list,
+                                 pmr::vector<PdfType>&& y_list) noexcept;
 
   //! Move data
   CumulativeDistributionFunction(CumulativeDistributionFunction&& other) noexcept;
@@ -47,71 +63,46 @@ class CumulativeDistributionFunction
       CumulativeDistributionFunction&& other) noexcept;
 
 
-  //! Return the size of the capacity
-  uint capacity() const noexcept;
-
   //! Return the x value associated with the y value
-  const XType& inverseFunction(const PdfType y) const noexcept;
+  const XType& invert(const PdfType y) const noexcept;
 
   //! Return the size of the lists
-  uint size() const noexcept;
+  std::size_t size() const noexcept;
 
   //! Set a CDF data
   void set(const std::vector<XType>& x_list,
            const std::vector<PdfType>& y_list) noexcept;
 
   //! Set a CDF data
-  void set(std::vector<XType>&& x_list,
-           std::vector<PdfType>&& y_list) noexcept;
+  void set(const pmr::vector<XType>& x_list,
+           const pmr::vector<PdfType>& y_list) noexcept;
+
+  //! Set a CDF data
+  void set(pmr::vector<XType>&& x_list,
+           pmr::vector<PdfType>&& y_list) noexcept;
 
   //! Return the x list
-  XType* xList() noexcept;
+  pmr::vector<XType>& xList() noexcept;
 
   //! Return the x list
-  const XType* xList() const noexcept;
+  const pmr::vector<XType>& xList() const noexcept;
 
   //! Return the y list
-  PdfType* yList() noexcept;
+  pmr::vector<PdfType>& yList() noexcept;
 
   //! Return the y list
-  const PdfType* yList() const noexcept;
+  const pmr::vector<PdfType>& yList() const noexcept;
 
  private:
+  static_assert(kIsFloat<PdfType>, "PdfType isn't floating point type.");
+
+
   //! Initialize the CDF
   void initCdf() noexcept;
 
-  //! Set the size of the list
-  void setSize(const uint list_size) noexcept;
 
-  //! Return the begin of the x list
-  XType* xBegin() noexcept;
-
-  //! Return the begin of the x list
-  const XType* xBegin() const noexcept;
-
-  //! Return the end of the x list
-  XType* xEnd() noexcept;
-
-  //! Return the end of the x list
-  const XType* xEnd() const noexcept;
-
-  //! Return the begin of the y list
-  PdfType* yBegin() noexcept;
-
-  //! Return the begin of the y list
-  const PdfType* yBegin() const noexcept;
-
-  //! Return the end of the y list
-  PdfType* yEnd() noexcept;
-
-  //! Return the end of the y list
-  const PdfType* yEnd() const noexcept;
-
-
-  std::unique_ptr<XType[]> x_list_;
-  std::unique_ptr<PdfType[]> y_list_;
-  uint32 size_;
-  uint32 capacity_;
+  pmr::vector<XType> x_list_;
+  pmr::vector<PdfType> y_list_;
 };
 
 } // namespace zisc

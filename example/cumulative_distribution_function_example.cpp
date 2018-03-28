@@ -31,9 +31,9 @@ int main()
   }
 
   using Cdf = zisc::CumulativeDistributionFunction<int, double>;
-  const Cdf cdf{std::move(value_list), std::move(pdf_list)};
+  const Cdf cdf{value_list, pdf_list};
 
-  std::cout << "P^{-1}(0.5) == " << cdf.inverseFunction(0.5) << std::endl;
+  std::cout << "P^{-1}(0.5) == " << cdf.invert(0.5) << std::endl;
 
   return 0;
 }

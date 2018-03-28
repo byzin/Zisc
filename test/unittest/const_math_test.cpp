@@ -518,14 +518,14 @@ TEST(ConstMathTest, Log2Test)
 TEST(ConstMathTest, LogTest)
 {
   constexpr int start = 0;
-  constexpr int end = 1024;
+  constexpr int end = 512;
   ::ConstexprTest<end, start>::testLog();
 }
 
 TEST(ConstMathTest, Log10Test)
 {
   constexpr int start = 0;
-  constexpr int end = 1024;
+  constexpr int end = 512;
   ::ConstexprTest<end, start>::testLog10();
 }
 

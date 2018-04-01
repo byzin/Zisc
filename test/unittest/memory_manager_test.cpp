@@ -40,17 +40,9 @@ TEST(MemoryManagerTest, AllocationTest)
   constexpr double expected2 = 3.14;
   constexpr bool expected3 = true;
 
-  zisc::UniqueMemoryPointer<int> p1;
-  zisc::UniqueMemoryPointer<double> p2;
-  zisc::UniqueMemoryPointer<bool> p3;
-
-  zisc::pmr::polymorphic_allocator<int> alloc1{&memory_manager};
-  zisc::pmr::polymorphic_allocator<double> alloc2{&memory_manager};
-  zisc::pmr::polymorphic_allocator<bool> alloc3{&memory_manager};
-
-  p1 = zisc::UniqueMemoryPointer<int>::make(&alloc1, expected1);
-  p2 = zisc::UniqueMemoryPointer<double>::make(&alloc2, expected2);
-  p3 = zisc::UniqueMemoryPointer<bool>::make(&alloc3, expected3);
+  auto p1 = zisc::UniqueMemoryPointer<int>::make(&memory_manager, expected1);
+  auto p2 = zisc::UniqueMemoryPointer<double>::make(&memory_manager, expected2);
+  auto p3 = zisc::UniqueMemoryPointer<bool>::make(&memory_manager, expected3);
 
   ASSERT_EQ(expected1, *p1);
   ASSERT_EQ(expected2, *p2);

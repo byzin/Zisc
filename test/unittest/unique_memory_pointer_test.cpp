@@ -56,14 +56,12 @@ TEST(UniqueMemoryPointerTest, FunctionTest)
   auto shared_resource = zisc::SimpleMemoryResource::sharedResource();
   ASSERT_TRUE(shared_resource->is_equal(*shared_resource));
 
-  UniquePointer::Allocator alloc{shared_resource};
-
   {
-    auto p2 = UniquePointer::make(&alloc, 100);
+    auto p2 = UniquePointer::make(shared_resource, 100);
     ASSERT_EQ(100, (*p2).number_);
     ASSERT_EQ(1, ::Test::counter_);
 
-    auto p3 = UniquePointer::make(&alloc);
+    auto p3 = UniquePointer::make(shared_resource);
     ASSERT_EQ(1, p3->number_);
     ASSERT_EQ(2, ::Test::counter_);
 
@@ -78,10 +76,12 @@ TEST(UniqueMemoryPointerTest, FunctionTest)
 
   // Reset
   {
+    zisc::pmr::polymorphic_allocator<::Test> alloc{shared_resource};
     auto test = alloc.allocate(1);
     alloc.construct(test);
+
     ASSERT_EQ(2, ::Test::counter_);
-    p1.reset(test, &alloc);
+    p1.reset(test, shared_resource);
     ASSERT_EQ(1, ::Test::counter_);
   }
 

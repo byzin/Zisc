@@ -35,9 +35,9 @@ UniqueMemoryPointer<Type>::UniqueMemoryPointer() noexcept
 template <typename Type> inline
 UniqueMemoryPointer<Type>::UniqueMemoryPointer(
     pointer data,
-    Allocator* alloc) noexcept :
+    pmr::memory_resource* mem_resource) noexcept :
         data_{data},
-        allocator_{alloc}
+        mem_resource_{mem_resource}
 {
 }
 
@@ -122,15 +122,18 @@ auto UniqueMemoryPointer<Type>::get() const noexcept -> const_pointer
 /*!
   */
 template <typename Type> template <typename ...Types> inline
-auto UniqueMemoryPointer<Type>::make(Allocator* alloc, Types&&... arguments) noexcept
+auto UniqueMemoryPointer<Type>::make(pmr::memory_resource* mem_resource,
+                                     Types&&... arguments) noexcept
     -> UniqueMemoryPointer
 {
-  ZISC_ASSERT(alloc != nullptr, "The allocator is null.");
-  auto data = alloc->allocate(1);
+  ZISC_ASSERT(mem_resource != nullptr, "The memory resource is null.");
+
+  Allocator alloc{mem_resource};
+  auto data = alloc.allocate(1);
   if (data != nullptr)
-    alloc->construct(data, std::forward<Types>(arguments)...);
+    alloc.construct(data, std::forward<Types>(arguments)...);
   return (data != nullptr)
-      ? UniqueMemoryPointer{data, alloc}
+      ? UniqueMemoryPointer{data, mem_resource}
       : UniqueMemoryPointer{};
 }
 
@@ -145,16 +148,18 @@ void UniqueMemoryPointer<Type>::reset() noexcept
 /*!
   */
 template <typename Type> inline
-void UniqueMemoryPointer<Type>::reset(pointer data, Allocator* alloc) noexcept
+void UniqueMemoryPointer<Type>::reset(pointer data,
+                                      pmr::memory_resource* mem_resource) noexcept
 {
   auto prev_data = get();
   if (prev_data != nullptr) {
-    auto& prev_allocator = getAllocator();
+    ZISC_ASSERT(mem_resource_ != nullptr, "The memory resource is null.");
+    Allocator alloc{mem_resource_};
     std::destroy_at<value_type>(prev_data);
-    prev_allocator.deallocate(prev_data, 1);
+    alloc.deallocate(prev_data, 1);
   }
   data_ = data;
-  allocator_ = alloc;
+  mem_resource_ = mem_resource;
 }
 
 /*!
@@ -163,22 +168,13 @@ template <typename Type> inline
 void UniqueMemoryPointer<Type>::swap(UniqueMemoryPointer& other) noexcept
 {
   auto tmp_data = get();
-  auto tmp_alloc = allocator_;
+  auto tmp_resource = mem_resource_;
 
   data_ = other.get();
-  allocator_ = other.allocator_;
+  mem_resource_ = other.mem_resource_;
 
   other.data_ = tmp_data;
-  other.allocator_ = tmp_alloc;
-}
-
-/*!
-  */
-template <typename Type> inline
-auto UniqueMemoryPointer<Type>::getAllocator() noexcept -> Allocator&
-{
-  ZISC_ASSERT(allocator_ != nullptr, "The allocator is null.");
-  return *allocator_;
+  other.mem_resource_ = tmp_resource;
 }
 
 /*!

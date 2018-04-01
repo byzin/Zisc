@@ -38,10 +38,8 @@ using polymorphic_allocator = std::experimental::pmr::polymorphic_allocator<Type
 
 template <typename Type>
 using forward_list = std::forward_list<Type, polymorphic_allocator<Type>>;
-
 template <typename Type>
 using list = std::list<Type, polymorphic_allocator<Type>>;
-
 template <typename Type>
 using vector = std::vector<Type, polymorphic_allocator<Type>>;
 

@@ -30,14 +30,13 @@ class UniqueMemoryPointer : public NonCopyable<UniqueMemoryPointer<Type>>
   using const_reference = std::add_const_t<reference>;
   using pointer = std::add_pointer_t<value_type>;
   using const_pointer = std::add_const_t<pointer>;
-  using Allocator = pmr::polymorphic_allocator<value_type>;
 
 
   //! Create an empty unique pointer
   UniqueMemoryPointer() noexcept;
 
   //! Create a unique pointer
-  UniqueMemoryPointer(pointer data, Allocator* alloc) noexcept;
+  UniqueMemoryPointer(pointer data, pmr::memory_resource* mem_resource) noexcept;
 
   //! Move a data
   UniqueMemoryPointer(UniqueMemoryPointer&& other) noexcept;
@@ -76,24 +75,24 @@ class UniqueMemoryPointer : public NonCopyable<UniqueMemoryPointer<Type>>
 
   //! Create a unique pointer
   template <typename ...Types>
-  static UniqueMemoryPointer make(Allocator* alloc, Types&&... arguments) noexcept;
+  static UniqueMemoryPointer make(pmr::memory_resource* mem_resource,
+                                  Types&&... arguments) noexcept;
 
   //! Reset the managed object
   void reset() noexcept;
 
   //! Replace the managed object
-  void reset(pointer data, Allocator* alloc) noexcept;
+  void reset(pointer data, pmr::memory_resource* mem_resource) noexcept;
 
   //! Swap the managed objects
   void swap(UniqueMemoryPointer& other) noexcept;
 
  private:
-  //! Return the allocator reference
-  Allocator& getAllocator() noexcept;
+  using Allocator = pmr::polymorphic_allocator<value_type>;
 
 
   pointer data_ = nullptr;
-  Allocator* allocator_ = nullptr;
+  pmr::memory_resource* mem_resource_ = nullptr;
 };
 
 //! Swap the managed objects

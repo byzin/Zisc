@@ -15,6 +15,7 @@
 // Zisc
 #include "memory_resource.hpp"
 #include "non_copyable.hpp"
+#include "type_traits.hpp"
 #include "zisc/zisc_config.hpp"
 
 namespace zisc {
@@ -40,6 +41,11 @@ class UniqueMemoryPointer : public NonCopyable<UniqueMemoryPointer<Type>>
 
   //! Move a data
   UniqueMemoryPointer(UniqueMemoryPointer&& other) noexcept;
+
+  //! Move a data
+  template <typename Super>
+  UniqueMemoryPointer(UniqueMemoryPointer<Super>&& other,
+                      EnableIfBaseOf<Type, Super> = kEnabler) noexcept;
 
   //! Destruct the managed object
   ~UniqueMemoryPointer() noexcept;
@@ -78,6 +84,15 @@ class UniqueMemoryPointer : public NonCopyable<UniqueMemoryPointer<Type>>
   static UniqueMemoryPointer make(pmr::memory_resource* mem_resource,
                                   Types&&... arguments) noexcept;
 
+  //! Return the memory resource
+  pmr::memory_resource* memoryResource() noexcept;
+
+  //! Return the memory resource
+  const pmr::memory_resource* memoryResource() const noexcept;
+
+  //! Return the data and release the ownership
+  pointer release() noexcept;
+
   //! Reset the managed object
   void reset() noexcept;
 
@@ -86,6 +101,11 @@ class UniqueMemoryPointer : public NonCopyable<UniqueMemoryPointer<Type>>
 
   //! Swap the managed objects
   void swap(UniqueMemoryPointer& other) noexcept;
+
+  //! Swap the managed objects
+  template <typename Super>
+  void swap(UniqueMemoryPointer<Super>& other,
+            EnableIfBaseOf<Type, Super> = kEnabler) noexcept;
 
  private:
   using Allocator = pmr::polymorphic_allocator<value_type>;

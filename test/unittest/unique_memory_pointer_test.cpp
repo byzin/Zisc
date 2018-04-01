@@ -40,6 +40,12 @@ class Test
   }
 };
 
+class Super : public Test
+{
+ public:
+  Super(const int n) : Test(n) {}
+};
+
 int Test::counter_ = 0;
 
 } // namespace
@@ -88,4 +94,10 @@ TEST(UniqueMemoryPointerTest, FunctionTest)
   p1.reset();
   ASSERT_FALSE(p1) << "The empty unique pointer should be false.";
   ASSERT_EQ(0, ::Test::counter_);
+
+  {
+    UniquePointer p = zisc::UniqueMemoryPointer<::Super>::make(shared_resource, 20);
+    ASSERT_EQ(20, p->number_);
+    ASSERT_EQ(1, ::Test::counter_);
+  }
 }

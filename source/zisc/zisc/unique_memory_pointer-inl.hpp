@@ -51,6 +51,15 @@ UniqueMemoryPointer<Type>::UniqueMemoryPointer(UniqueMemoryPointer&& other) noex
 
 /*!
   */
+template <typename Type> template <typename Super> inline
+UniqueMemoryPointer<Type>::UniqueMemoryPointer(UniqueMemoryPointer<Super>&& other,
+                                               EnableIfBaseOf<Type, Super>) noexcept
+{
+  swap(other);
+}
+
+/*!
+  */
 template <typename Type> inline
 UniqueMemoryPointer<Type>::~UniqueMemoryPointer() noexcept
 {
@@ -165,6 +174,34 @@ void UniqueMemoryPointer<Type>::reset(pointer data,
 /*!
   */
 template <typename Type> inline
+pmr::memory_resource* UniqueMemoryPointer<Type>::memoryResource() noexcept
+{
+  return mem_resource_;
+}
+
+/*!
+  */
+template <typename Type> inline
+const pmr::memory_resource* UniqueMemoryPointer<Type>::memoryResource()
+    const noexcept
+{
+  return mem_resource_;
+}
+
+/*!
+  */
+template <typename Type> inline
+auto UniqueMemoryPointer<Type>::release() noexcept -> pointer
+{
+  auto data = get();
+  data_ = nullptr;
+  mem_resource_ = nullptr;
+  return data;
+}
+
+/*!
+  */
+template <typename Type> inline
 void UniqueMemoryPointer<Type>::swap(UniqueMemoryPointer& other) noexcept
 {
   auto tmp_data = get();
@@ -175,6 +212,22 @@ void UniqueMemoryPointer<Type>::swap(UniqueMemoryPointer& other) noexcept
 
   other.data_ = tmp_data;
   other.mem_resource_ = tmp_resource;
+}
+
+/*!
+  */
+template <typename Type> template <typename Super> inline
+void UniqueMemoryPointer<Type>::swap(UniqueMemoryPointer<Super>& other,
+                                     EnableIfBaseOf<Type, Super>) noexcept
+{
+  auto tmp_data = get();
+  auto tmp_resource = mem_resource_;
+
+  mem_resource_ = other.memoryResource();
+  data_ = cast<pointer>(other.release());
+
+  using OtherPointer = UniqueMemoryPointer<Super>;
+  other = OtherPointer{cast<typename OtherPointer::pointer>(tmp_data), tmp_resource};
 }
 
 /*!

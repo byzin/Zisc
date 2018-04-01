@@ -150,7 +150,8 @@ constexpr Float invert(const Float x) noexcept
   static_assert(kIsFloat<Float>, "Float isn't floating point type.");
   constexpr Float zero = cast<Float>(0.0);
   constexpr Float one = cast<Float>(1.0);
-  return (x != zero) ? one / x : zero;
+  constexpr Float m = std::numeric_limits<Float>::max();
+  return (x != zero) ? one / x : m;
 }
 
 /*!

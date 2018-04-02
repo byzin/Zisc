@@ -115,14 +115,15 @@ template <MemoryArenaType kArenaType, std::size_t kArenaSize> inline
 void* MemoryManager<kArenaType, kArenaSize>::do_allocate(std::size_t size,
                                                          std::size_t alignment)
 {
-  void* data = nullptr;
-  {
-    auto locker = (mutex_ == nullptr)
-        ? std::unique_lock<std::mutex>{*mutex_}
-        : std::unique_lock<std::mutex>{};
-    auto chunk = arena_.allocate(size, alignment);
-    data = chunk->template data<void>();
+  MemoryChunk* chunk = nullptr;
+  if (mutex_ != nullptr) {
+    std::unique_lock<std::mutex> locker{*mutex_};
+    chunk = arena_.allocate(size, alignment);
   }
+  else {
+    chunk = arena_.allocate(size, alignment);
+  }
+  auto data = chunk->template data<void>();
   return data;
 }
 

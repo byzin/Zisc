@@ -159,7 +159,7 @@ constexpr std::array<ResultType, 4> SipHashEngine<ResultType>::initVList() noexc
 {
   const auto k_list = kList();
   auto v_list = inner::SipHashEngineImpl<ResultType>::vList();
-  for (int i = 0; i < 4; ++i)
+  for (std::size_t i = 0; i < 4; ++i)
     v_list[i] = v_list[i] ^ k_list[isOdd(i) ? 1 : 0];
   return v_list;
 }

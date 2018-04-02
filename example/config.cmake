@@ -11,15 +11,22 @@ set(__example_root__ ${CMAKE_CURRENT_LIST_DIR})
 
 function(getExampleWarningOption example_warning_flags)
   set(warning_flags "")
-  if(Z_CLANG)
-    list(APPEND warning_flags -Wno-sign-conversion 
-                              -Wno-float-equal
-                              )
-  elseif(Z_GCC)
-    list(APPEND warning_flags -Wno-sign-conversion 
-                              -Wno-strict-overflow
-                              )
+
+  # Suppress warnings
+  if(ZISC_SUPPRESS_EXCESSIVE_WARNING)
+    if(Z_CLANG)
+      list(APPEND warning_flags -Wno-exit-time-destructors
+                                -Wno-float-equal
+                                -Wno-sign-conversion 
+                                -Wno-weak-vtables
+                                )
+    elseif(Z_GCC)
+      list(APPEND warning_flags -Wno-sign-conversion 
+                                -Wno-strict-overflow
+                                )
+    endif()
   endif()
+
   set(${example_warning_flags} ${warning_flags} PARENT_SCOPE)
 endfunction(getExampleWarningOption)
 

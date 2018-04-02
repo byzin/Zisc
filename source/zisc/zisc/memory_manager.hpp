@@ -97,7 +97,7 @@ class MemoryManager : public pmr::memory_resource,
 
 
   MemoryArena<kArenaType, kSize> arena_;
-  std::mutex* mutex_;
+  std::mutex* mutex_ = nullptr;
 };
 
 // Type alias

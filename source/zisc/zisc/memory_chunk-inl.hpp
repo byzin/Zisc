@@ -157,7 +157,9 @@ bool MemoryChunk::isNull() const noexcept
 inline
 MemoryChunk* MemoryChunk::linkedChunk() noexcept
 {
-  MemoryChunk** linked_chunk = treatAs<MemoryChunk**>(&size_);
+  using ChunkPointer = MemoryChunk* const*;
+  std::size_t address = size();
+  ChunkPointer linked_chunk = treatAs<ChunkPointer>(&address);
   return *linked_chunk;
 }
 
@@ -166,7 +168,9 @@ MemoryChunk* MemoryChunk::linkedChunk() noexcept
 inline
 const MemoryChunk* MemoryChunk::linkedChunk() const noexcept
 {
-  const MemoryChunk* const* linked_chunk = treatAs<const MemoryChunk* const*>(&size_);
+  using ChunkPointer = const MemoryChunk* const*;
+  const std::size_t address = size();
+  ChunkPointer linked_chunk = treatAs<ChunkPointer>(&address);
   return *linked_chunk;
 }
 
@@ -276,8 +280,8 @@ inline
 void MemoryChunk::setLink(const MemoryChunk* chunk) noexcept
 {
   setId(linkId());
-  const MemoryChunk** linked_chunk = treatAs<const MemoryChunk**>(&size_);
-  *linked_chunk = chunk;
+  const auto address = treatAs<std::size_t>(chunk);
+  size_ = cast<uint64>(address);
 }
 
 /*!
@@ -285,7 +289,7 @@ void MemoryChunk::setLink(const MemoryChunk* chunk) noexcept
 inline
 std::size_t MemoryChunk::size() const noexcept
 {
-  return size_;
+  return cast<std::size_t>(size_);
 }
 
 /*!

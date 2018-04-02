@@ -142,7 +142,7 @@ class MemoryChunk : public NonCopyable<MemoryChunk>
   static constexpr uint32 kLinkId = kNullId - 1;
 
 
-  int64 size_ = 0;
+  uint64 size_ = 0;
   uint32 id_ = kNullId;
   uint8 is_freed_ = kTrue;
   std::array<uint8, 2> offset_ = {{0, 0}};

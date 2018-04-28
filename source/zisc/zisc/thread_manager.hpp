@@ -12,7 +12,7 @@
 
 // Standard C++ library
 #include <array>
-#include <functional>
+#include <deque>
 #include <future>
 #include <mutex>
 #include <queue>
@@ -20,7 +20,10 @@
 #include <utility>
 #include <vector>
 // Zisc
-#include "zisc/non_copyable.hpp"
+#include "memory_resource.hpp"
+#include "non_copyable.hpp"
+#include "simple_memory_resource.hpp"
+#include "unique_memory_pointer.hpp"
 #include "zisc/zisc_config.hpp"
 
 namespace zisc {
@@ -32,10 +35,13 @@ class ThreadManager : public NonCopyable<ThreadManager>
 {
  public:
   //! Create threads as many CPU threads as
-  ThreadManager() noexcept;
+  ThreadManager(
+      pmr::memory_resource* mem_resource = SimpleMemoryResource::sharedResource()) noexcept;
 
   //! Create threads
-  ThreadManager(const uint num_of_threads) noexcept;
+  ThreadManager(
+      const uint num_of_threads,
+      pmr::memory_resource* mem_resource = SimpleMemoryResource::sharedResource()) noexcept;
 
   //! Terminate threads
   ~ThreadManager();
@@ -52,13 +58,17 @@ class ThreadManager : public NonCopyable<ThreadManager>
 
   //! A worker thread run a task
   template <typename ReturnType, typename Task>
-  std::future<ReturnType> enqueue(Task&& task) noexcept;
+  std::future<ReturnType> enqueue(
+      Task&& task,
+      pmr::memory_resource* mem_resource = SimpleMemoryResource::sharedResource()) noexcept;
 
   //! Worker threads run a loop task in parallel
   template <typename Task, typename Iterator>
-  std::future<void> enqueueLoop(Task&& task,
-                                Iterator begin,
-                                Iterator end) noexcept;
+  std::future<void> enqueueLoop(
+      Task&& task,
+      Iterator&& begin,
+      Iterator&& end,
+      pmr::memory_resource* mem_resource = SimpleMemoryResource::sharedResource()) noexcept;
 
   //! Get the number of logical cores
   static uint logicalCores() noexcept;
@@ -67,21 +77,19 @@ class ThreadManager : public NonCopyable<ThreadManager>
   uint numOfThreads() const noexcept;
 
  private:
-  using WorkerTask = std::function<void (uint)>;
+  //! Base class of worker task
+  class WorkerTask
+  {
+   public:
+    virtual ~WorkerTask() noexcept {}
+    //! Do a task
+    virtual void doTask(const uint thread_id) noexcept = 0;
+  };
+  using TaskPointer = UniqueMemoryPointer<WorkerTask>;
 
 
   //! Create worker threads
   void createWorkers(const uint num_of_threads) noexcept;
-
-  //! Append a task to the task queue
-  template <typename ReturnType, typename Task>
-  std::future<ReturnType> enqueueTask(Task&& task) noexcept;
-
-  //! Execute loop task in parallel
-  template <typename Task, typename Iterator>
-  std::future<void> enqueueLoopTask(Task&& task,
-                                    Iterator begin,
-                                    Iterator end) noexcept;
 
   //! Exit workers running
   void exitWorkersRunning() noexcept;
@@ -90,7 +98,7 @@ class ThreadManager : public NonCopyable<ThreadManager>
   void initialize(const uint num_of_threads) noexcept;
 
   //! Take a task from the top of the queue
-  WorkerTask takeTask() noexcept;
+  TaskPointer takeTask() noexcept;
 
   //! Check if the workers (threads) are enable running
   bool workersAreEnabled() const noexcept;
@@ -98,8 +106,8 @@ class ThreadManager : public NonCopyable<ThreadManager>
 
   std::mutex lock_;
   std::condition_variable condition_;
-  std::queue<WorkerTask> task_queue_;
-  std::vector<std::thread> workers_;
+  std::queue<TaskPointer, pmr::deque<TaskPointer>> task_queue_;
+  pmr::vector<std::thread> workers_;
   uint8 workers_are_enabled_;
   std::array<uint8, 7> padding_;
 };

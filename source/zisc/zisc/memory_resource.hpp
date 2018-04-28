@@ -18,6 +18,7 @@
 #elif
 static_assert(false, "Compiler doesn't have 'memory_resource'.");
 #endif
+#include <deque>
 #include <forward_list>
 #include <list>
 #include <vector>
@@ -36,6 +37,8 @@ template <typename Type>
 using polymorphic_allocator = std::experimental::pmr::polymorphic_allocator<Type>;
 #endif
 
+template <typename Type>
+using deque = std::deque<Type, polymorphic_allocator<Type>>;
 template <typename Type>
 using forward_list = std::forward_list<Type, polymorphic_allocator<Type>>;
 template <typename Type>

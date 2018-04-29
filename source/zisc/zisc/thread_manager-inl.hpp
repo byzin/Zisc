@@ -225,6 +225,8 @@ std::future<ReturnType> ThreadManager::enqueue(
 #ifdef Z_CLANG
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wpadded"
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-local-typedef"
 #endif // Z_CLANG
   //! Task class for single task
   class SingleTask : public WorkerTask
@@ -242,10 +244,13 @@ std::future<ReturnType> ThreadManager::enqueue(
       inner::processWorkerTask<ReturnType>(worker_task_, worker_promise_, thread_id);
     }
 
-    Task worker_task_;
+    using TaskType = std::remove_reference_t<Task>;
+
+    TaskType worker_task_;
     std::promise<ReturnType> worker_promise_;
   };
 #ifdef Z_CLANG
+#pragma clang diagnostic pop
 #pragma clang diagnostic pop
 #endif // Z_CLANG
 
@@ -280,6 +285,8 @@ std::future<void> ThreadManager::enqueueLoop(
 #ifdef Z_CLANG
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wpadded"
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-local-typedef"
 #endif // Z_CLANG
   //! Resources for shared task
   struct SharedResource : public NonCopyable<SharedResource>
@@ -293,7 +300,9 @@ std::future<void> ThreadManager::enqueueLoop(
         mem_{mem},
         counter_{task_count} {}
 
-    Task worker_task_;
+    using TaskType = std::remove_reference_t<Task>;
+
+    TaskType worker_task_;
     std::promise<void> worker_promise_;
     pmr::memory_resource* mem_;
     std::atomic<uint> counter_;
@@ -328,10 +337,13 @@ std::future<void> ThreadManager::enqueueLoop(
       inner::processLoopTask(shared_resource_->worker_task_, thread_id, iterator_);
     }
 
+    using IteratorType = std::remove_reference_t<Iterator>;
+
     SharedResource* shared_resource_;
-    Iterator iterator_;
+    IteratorType iterator_;
   };
 #ifdef Z_CLANG
+#pragma clang diagnostic pop
 #pragma clang diagnostic pop
 #endif // Z_CLANG
 
@@ -351,7 +363,7 @@ std::future<void> ThreadManager::enqueueLoop(
       auto worker_task = UniqueMemoryPointer<SharedTask>::make(
           mem_resource,
           shared_resource,
-          std::forward<Iterator>(ite));
+          std::move(ite));
       task_queue_.emplace(std::move(worker_task));
     }
   }

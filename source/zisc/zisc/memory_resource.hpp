@@ -21,6 +21,7 @@ static_assert(false, "Compiler doesn't have 'memory_resource'.");
 #include <deque>
 #include <forward_list>
 #include <list>
+#include <string>
 #include <vector>
 
 namespace zisc {
@@ -37,6 +38,8 @@ template <typename Type>
 using polymorphic_allocator = std::experimental::pmr::polymorphic_allocator<Type>;
 #endif
 
+// Containers 
+
 template <typename Type>
 using deque = std::deque<Type, polymorphic_allocator<Type>>;
 template <typename Type>
@@ -45,6 +48,14 @@ template <typename Type>
 using list = std::list<Type, polymorphic_allocator<Type>>;
 template <typename Type>
 using vector = std::vector<Type, polymorphic_allocator<Type>>;
+
+// Strings
+
+template <typename CharType, class Traits = std::char_traits<CharType>>
+using basic_string = std::basic_string<CharType,
+                                       Traits,
+                                       polymorphic_allocator<CharType>>;
+using string = basic_string<char>;
 
 } // namespace resource
 

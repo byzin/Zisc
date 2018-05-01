@@ -55,8 +55,8 @@ ThreadManager::ThreadManager(pmr::memory_resource* mem_resource) noexcept :
 inline
 ThreadManager::ThreadManager(const uint num_of_threads,
                              pmr::memory_resource* mem_resource) noexcept :
-    task_queue_{pmr::polymorphic_allocator<TaskPointer>{mem_resource}},
-    workers_{pmr::polymorphic_allocator<std::thread>{mem_resource}},
+    task_queue_{pmr::deque<TaskPointer>::allocator_type{mem_resource}},
+    workers_{pmr::vector<std::thread>::allocator_type{mem_resource}},
     workers_are_enabled_{kTrue}
 {
   initialize(num_of_threads);

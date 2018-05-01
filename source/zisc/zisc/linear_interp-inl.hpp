@@ -31,7 +31,7 @@ namespace zisc {
  */
 template <typename Float> inline
 LinearInterp<Float>::LinearInterp(pmr::memory_resource* mem_resource) noexcept :
-    data_{pmr::polymorphic_allocator<Float>{mem_resource}}
+    data_{typename pmr::list<Pair>::allocator_type{mem_resource}}
 {
 }
 
@@ -41,7 +41,7 @@ LinearInterp<Float>::LinearInterp(pmr::memory_resource* mem_resource) noexcept :
  */
 template <typename Float> inline
 LinearInterp<Float>::LinearInterp(LinearInterp&& other) noexcept :
-    data_(std::move(other.data_))
+    data_{std::move(other.data_)}
 {
 }
 

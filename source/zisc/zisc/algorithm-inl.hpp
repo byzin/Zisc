@@ -21,6 +21,7 @@
 #include <utility>
 // Zisc
 #include "error.hpp"
+#include "memory_resource.hpp"
 #include "type_traits.hpp"
 #include "utility.hpp"
 #include "zisc/zisc_config.hpp"
@@ -137,6 +138,7 @@ template <typename RandomAccessIterator> inline
 void toBinaryTree(
     RandomAccessIterator begin, 
     RandomAccessIterator end,
+    pmr::memory_resource* mem_resource,
     EnableIfRandomAccessIterator<RandomAccessIterator>) noexcept
 {
   ZISC_ASSERT(std::is_sorted(begin, end), "The array isn't sorted.");
@@ -147,7 +149,8 @@ void toBinaryTree(
 #ifdef ZISC_ALGORITHM_BINARY_TREE
     // Create a temp array
     using Type = typename std::iterator_traits<RandomAccessIterator>::value_type;
-    std::vector<Type> array;
+    zisc::pmr::vector<Type> array{
+        typename decltype(array)::allocator_type{mem_resource}};
     array.reserve(cast<std::size_t>(size));
     for (auto iterator = begin; iterator != end; ++iterator)
       array.emplace_back(std::move(*iterator));

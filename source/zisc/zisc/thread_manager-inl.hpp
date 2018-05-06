@@ -140,8 +140,10 @@ void ThreadManager::createWorkers(const uint num_of_threads) noexcept
           if (workersAreEnabled() && !task)
             condition_.wait(locker);
         }
-        if (task)
+        if (task) {
           task->doTask(cast<uint>(thread_id));
+          task.reset();
+        }
       }
     };
     workers_.emplace_back(work);

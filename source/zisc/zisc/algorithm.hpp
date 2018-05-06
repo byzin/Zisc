@@ -13,6 +13,8 @@
 // Standard C++ library
 #include <vector>
 // Zisc
+#include "memory_resource.hpp"
+#include "simple_memory_resource.hpp"
 #include "type_traits.hpp"
 #include "zisc/zisc_config.hpp"
 
@@ -31,6 +33,7 @@ template <typename RandomAccessIterator>
 void toBinaryTree(
     RandomAccessIterator begin,
     RandomAccessIterator end,
+    pmr::memory_resource* mem_resource = SimpleMemoryResource::sharedResource(),
     EnableIfRandomAccessIterator<RandomAccessIterator> = kEnabler) noexcept;
 
 } // namespace zisc

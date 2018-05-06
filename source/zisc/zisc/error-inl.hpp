@@ -48,7 +48,7 @@ template <typename ...Types> inline
 void raiseError(Types&&... messages) noexcept
 {
   outputMessage(std::cerr, std::forward<Types>(messages)...);
-  std::exit(EXIT_FAILURE);
+  std::abort();
 }
 
 } // namespace zisc

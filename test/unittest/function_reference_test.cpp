@@ -28,19 +28,49 @@ int addValueL(const long a, const long b)
   return static_cast<int>(a + b);
 }
 
+int zero(const int, const int)
+{
+  return 0;
+}
+
 }
 
 TEST(FunctionReferenceTest, OperatorTest)
 {
   using FuncRef = zisc::FunctionReference<int (int, int)>;
+  static_assert(FuncRef::kNumOfArgs == 2);
 
   constexpr int v1 = 1;
   constexpr int v2 = 2;
   const int expected = ::addValue(v1, v2);
 
+  {
+    FuncRef func_ref;
+    ASSERT_FALSE(static_cast<bool>(func_ref))
+        << "The operator bool of FunctionReference is wrong.";
+  }
+
   // A function pointer
   {
     FuncRef func_ref{&::addValue};
+    ASSERT_EQ(expected, func_ref(v1, v2))
+        << "Refering to a function pointer failed.";
+    ASSERT_TRUE(static_cast<bool>(func_ref))
+        << "The operator bool of FunctionReference is wrong.";
+
+    FuncRef other{&::zero};
+    ASSERT_EQ(0, other(v1, v2));
+
+    zisc::swap(func_ref, other);
+    ASSERT_EQ(0, func_ref(v1, v2));
+    ASSERT_EQ(expected, other(v1, v2))
+        << "Swapping of function pointers failed.";
+
+    other.clear();
+    ASSERT_FALSE(static_cast<bool>(other))
+        << "Clearing the function reference failed";
+
+    func_ref.assign(&::addValue);
     ASSERT_EQ(expected, func_ref(v1, v2))
         << "Refering to a function pointer failed.";
   }
@@ -55,6 +85,11 @@ TEST(FunctionReferenceTest, OperatorTest)
 
   {
     FuncRef func_ref{&::addValueL};
+    ASSERT_EQ(expected, func_ref(v1, v2))
+        << "Refering to a function pointer failed.";
+
+    func_ref.clear();
+    func_ref.assign(&::addValueL);
     ASSERT_EQ(expected, func_ref(v1, v2))
         << "Refering to a function pointer failed.";
   }
@@ -92,6 +127,11 @@ TEST(FunctionReferenceTest, OperatorTest)
       return a + b + c - 1;
     };
     FuncRef func_ref{add_value};
+    ASSERT_EQ(expected, func_ref(v1, v2))
+        << "Refering to a lambda2 variable failed.";
+
+    func_ref.clear();
+    func_ref.assign(add_value);
     ASSERT_EQ(expected, func_ref(v1, v2))
         << "Refering to a lambda2 variable failed.";
   }

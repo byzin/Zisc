@@ -22,8 +22,15 @@ namespace zisc {
 
 /*!
   */
-template <typename ReturnType, typename ...ArgumentTypes> inline
-FunctionReference<ReturnType (ArgumentTypes...)>::FunctionReference(
+template <typename ReturnT, typename ...ArgumentTypes> inline
+FunctionReference<ReturnT (ArgumentTypes...)>::FunctionReference() noexcept
+{
+}
+
+/*!
+  */
+template <typename ReturnT, typename ...ArgumentTypes> inline
+FunctionReference<ReturnT (ArgumentTypes...)>::FunctionReference(
     FunctionPointer function_ptr) noexcept
 {
   initFunctionPointer(function_ptr);
@@ -31,11 +38,11 @@ FunctionReference<ReturnType (ArgumentTypes...)>::FunctionReference(
 
 /*!
   */
-template <typename ReturnType, typename ...ArgumentTypes>
+template <typename ReturnT, typename ...ArgumentTypes>
 template <typename RType, typename ...ArgTypes> inline
-FunctionReference<ReturnType (ArgumentTypes...)>::FunctionReference(
+FunctionReference<ReturnT (ArgumentTypes...)>::FunctionReference(
     RType (*function_ptr)(ArgTypes...),
-    EnableIf<std::is_invocable_v<RType (*)(ArgTypes...),
+    EnableIf<is_invocable_v<RType (*)(ArgTypes...),
                                  ArgumentTypes...>>) noexcept
 {
   initFunctionPointer(function_ptr);
@@ -43,51 +50,117 @@ FunctionReference<ReturnType (ArgumentTypes...)>::FunctionReference(
 
 /*!
   */
-template <typename ReturnType, typename ...ArgumentTypes>
+template <typename ReturnT, typename ...ArgumentTypes>
 template <typename Functor> inline
-FunctionReference<ReturnType (ArgumentTypes...)>::FunctionReference(
+FunctionReference<ReturnT (ArgumentTypes...)>::FunctionReference(
     const Functor& functor,
-    EnableIf<std::is_invocable_v<Functor, ArgumentTypes...>>) noexcept
+    EnableIf<is_invocable_v<Functor, ArgumentTypes...>>) noexcept
 {
   initFunctor(functor);
 }
 
 /*!
   */
-template <typename ReturnType, typename ...ArgumentTypes>
+template <typename ReturnT, typename ...ArgumentTypes>
 template <typename ...ArgTypes> inline
-ReturnType FunctionReference<ReturnType (ArgumentTypes...)>::operator()(
-    ArgTypes&&... arguments) const noexcept
+auto FunctionReference<ReturnT (ArgumentTypes...)>::operator()(
+    ArgTypes&&... arguments) const noexcept -> ReturnType
 {
   return invoke(std::forward<ArgTypes>(arguments)...);
 }
 
 /*!
   */
-template <typename ReturnType, typename ...ArgumentTypes>
-template <typename ...ArgTypes> inline
-ReturnType FunctionReference<ReturnType (ArgumentTypes...)>::invoke(
-    ArgTypes&&... arguments) const noexcept
+template <typename ReturnT, typename ...ArgumentTypes> inline
+auto FunctionReference<ReturnT (ArgumentTypes...)>::assign(
+    FunctionPointer function_ptr) noexcept -> FunctionReference&
 {
+  initFunctionPointer(function_ptr);
+  return *this;
+}
+
+/*!
+  */
+template <typename ReturnT, typename ...ArgumentTypes>
+template <typename RType, typename ...ArgTypes> inline
+auto FunctionReference<ReturnT (ArgumentTypes...)>::assign(
+    RType (*function_ptr)(ArgTypes...),
+    EnableIf<is_invocable_v<RType (*)(ArgTypes...),
+                                 ArgumentTypes...>>) noexcept -> FunctionReference&
+{
+  initFunctionPointer(function_ptr);
+  return *this;
+}
+
+/*!
+  */
+template <typename ReturnT, typename ...ArgumentTypes>
+template <typename Functor> inline
+auto FunctionReference<ReturnT (ArgumentTypes...)>::assign(
+    const Functor& functor,
+    EnableIf<is_invocable_v<Functor, ArgumentTypes...>>) noexcept
+        -> FunctionReference&
+{
+  initFunctor(functor);
+  return *this;
+}
+
+/*!
+  */
+template <typename ReturnT, typename ...ArgumentTypes> inline
+void FunctionReference<ReturnT (ArgumentTypes...)>::clear() noexcept
+{
+  callback_ = nullptr;
+}
+
+/*!
+  */
+template <typename ReturnT, typename ...ArgumentTypes>
+template <typename ...ArgTypes> inline
+auto FunctionReference<ReturnT (ArgumentTypes...)>::invoke(
+    ArgTypes&&... arguments) const noexcept -> ReturnType
+{
+  ZISC_ASSERT(cast<bool>(*this), "This function reference is invalid.");
   return callback_(memory(), std::forward<ArgTypes>(arguments)...);
 }
 
 /*!
   */
-template <typename ReturnType, typename ...ArgumentTypes>
+template <typename ReturnT, typename ...ArgumentTypes> inline
+void FunctionReference<ReturnT (ArgumentTypes...)>::swap(
+    FunctionReference& other) noexcept
+{
+  {
+    auto tmp = other.memory_;
+    other.memory_ = memory_;
+    memory_ = tmp;
+  }
+  {
+    auto tmp = other.callback_;
+    other.callback_ = callback_;
+    callback_ = tmp;
+  }
+}
+
+/*!
+  */
+template <typename ReturnT, typename ...ArgumentTypes>
 template <typename FuncPointer> inline
-void FunctionReference<ReturnType (ArgumentTypes...)>::initFunctionPointer(
+void FunctionReference<ReturnT (ArgumentTypes...)>::initFunctionPointer(
     FuncPointer function_ptr) noexcept
 {
+  static_assert(sizeof(FuncPointer) <= kStorageSize,
+                "the size of FuncPointer is larger than the size of a memory.");
+  ZISC_ASSERT(function_ptr != nullptr, "The function pointer is null.");
   ::new (memory()) FuncPointer{function_ptr};
   callback_ = &invokeFunctionPointer<FuncPointer>;
 }
 
 /*!
   */
-template <typename ReturnType, typename ...ArgumentTypes>
+template <typename ReturnT, typename ...ArgumentTypes>
 template <typename Functor> inline
-void FunctionReference<ReturnType (ArgumentTypes...)>::initFunctor(
+void FunctionReference<ReturnT (ArgumentTypes...)>::initFunctor(
     const Functor& functor) noexcept
 {
   ::new (memory()) const void*{&functor};
@@ -96,11 +169,11 @@ void FunctionReference<ReturnType (ArgumentTypes...)>::initFunctor(
 
 /*!
   */
-template <typename ReturnType, typename ...ArgumentTypes>
+template <typename ReturnT, typename ...ArgumentTypes>
 template <typename FuncPointer> inline
-ReturnType FunctionReference<ReturnType (ArgumentTypes...)>::invokeFunctionPointer(
+auto FunctionReference<ReturnT (ArgumentTypes...)>::invokeFunctionPointer(
     const void* function_ptr,
-    ArgumentTypes... arguments) noexcept
+    ArgumentTypes... arguments) noexcept -> ReturnType
 {
   const auto ptr = cast<const FuncPointer*>(function_ptr);
   return (*ptr)(static_cast<ArgumentTypes>(arguments)...);
@@ -108,11 +181,11 @@ ReturnType FunctionReference<ReturnType (ArgumentTypes...)>::invokeFunctionPoint
 
 /*!
   */
-template <typename ReturnType, typename ...ArgumentTypes>
+template <typename ReturnT, typename ...ArgumentTypes>
 template <typename Functor> inline
-ReturnType FunctionReference<ReturnType (ArgumentTypes...)>::invokeFunctor(
+auto FunctionReference<ReturnT (ArgumentTypes...)>::invokeFunctor(
     const void* functor,
-    ArgumentTypes... arguments) noexcept
+    ArgumentTypes... arguments) noexcept -> ReturnType
 {
   const auto ptr = cast<const Functor* const*>(functor);
   return (*(*ptr))(static_cast<ArgumentTypes>(arguments)...);
@@ -120,18 +193,27 @@ ReturnType FunctionReference<ReturnType (ArgumentTypes...)>::invokeFunctor(
 
 /*!
   */
-template <typename ReturnType, typename ...ArgumentTypes> inline
-void* FunctionReference<ReturnType (ArgumentTypes...)>::memory() noexcept
+template <typename ReturnT, typename ...ArgumentTypes> inline
+void* FunctionReference<ReturnT (ArgumentTypes...)>::memory() noexcept
 {
   return &memory_;
 }
 
 /*!
   */
-template <typename ReturnType, typename ...ArgumentTypes> inline
-const void* FunctionReference<ReturnType (ArgumentTypes...)>::memory() const noexcept
+template <typename ReturnT, typename ...ArgumentTypes> inline
+const void* FunctionReference<ReturnT (ArgumentTypes...)>::memory() const noexcept
 {
   return &memory_;
+}
+
+/*!
+  */
+template <typename ReturnT, typename ...ArgumentTypes> inline
+void swap(FunctionReference<ReturnT (ArgumentTypes...)>& lhs,
+          FunctionReference<ReturnT (ArgumentTypes...)>& rhs) noexcept
+{
+  lhs.swap(rhs);
 }
 
 } // namespace zisc

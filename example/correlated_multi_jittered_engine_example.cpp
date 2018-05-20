@@ -49,6 +49,7 @@ int main(int argc, char** argv)
   const std::string_view cmj_n81_name{"cmj-n81"};
   const std::string_view cmj_n256_name{"cmj-n256"};
   const std::string_view cmj_n1024_name{"cmj-n1024"};
+  const std::string_view cmj_n4096_name{"cmj-n4096"};
 
   if (engine_name == cmj_n16_name) {
     generateRandomNumbers<4>(seed_key);
@@ -65,13 +66,17 @@ int main(int argc, char** argv)
   else if (engine_name == cmj_n1024_name) {
     generateRandomNumbers<32>(seed_key);
   }
+  else if (engine_name == cmj_n4096_name) {
+    generateRandomNumbers<64>(seed_key);
+  }
   else {
     std::cerr << "Please select a CMJ engine ["
         << cmj_n16_name << ", "
         << cmj_n64_name << ", "
         << cmj_n81_name << ", "
         << cmj_n256_name << ", "
-        << cmj_n1024_name << "]." << std::endl;
+        << cmj_n1024_name << ", "
+        << cmj_n4096_name << "]." << std::endl;
   }
 
   return 0;

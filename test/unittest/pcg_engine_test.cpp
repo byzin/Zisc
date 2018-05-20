@@ -16,6 +16,7 @@
 #include "gtest/gtest.h"
 // Zisc
 #include "zisc/pcg_engine.hpp"
+#include "zisc/zisc_config.hpp"
 
 template <typename PcgEngine>
 void testPcgEngine(const std::string& reference_file_path)
@@ -23,48 +24,51 @@ void testPcgEngine(const std::string& reference_file_path)
   std::ifstream reference_file;
   reference_file.open(reference_file_path);
 
-  PcgEngine pcg;
+  constexpr typename PcgEngine::SeedType seed = 42;
+  PcgEngine pcg{seed};
 
-  constexpr int n = 1000;
-  typename PcgEngine::ResultType reference;
+  constexpr int n = 1024;
+  zisc::uint64 reference;
   for (int i = 0; i < n; ++i) {
     reference_file >> reference;
-    ASSERT_EQ(reference, pcg());
+    const auto r = static_cast<typename PcgEngine::ResultType>(reference);
+    ASSERT_EQ(r, pcg());
   }
-}
 
-template <typename PcgEngine>
-void testFloatDistribution()
-{
-  PcgEngine pcg;
-
-  constexpr int n = 1'000'000'00;
-  constexpr int section = 20;
-  constexpr int expected = n / section;
-  constexpr int error = 5000;
-
-  std::array<int, section> result;
-  result.fill(0);
+  pcg.setSeed(seed);
   for (int i = 0; i < n; ++i) {
-    const double u = static_cast<double>(pcg.generate01());
-    ASSERT_LE(0.0, u) << "The u is less than 0";
-    ASSERT_GT(1.0, u) << "The u is greater than 1";
-    const int index = static_cast<int>(static_cast<double>(section) * u);
-    ++result[index];
+    const float f = pcg.generateFloat(0.0f, 1.0f);
+    ASSERT_LE(0.0f, f);
+    ASSERT_LT(f, 1.0f);
   }
-  for (int i = 0; i < section; ++i) {
-    const int diff = std::abs(expected - result[i]);
-    ASSERT_GT(error, diff)
-        << "Float isn't distributed uniformly: section[" << i << "]";
+
+  pcg.setSeed(seed);
+  for (int i = 0; i < n; ++i) {
+    const double d = pcg.generateFloat(0.0, 1.0);
+    ASSERT_LE(0.0, d);
+    ASSERT_LT(d, 1.0);
   }
 }
 
-TEST(PcgEngineTest, GenerateTest)
-{
-  testPcgEngine<zisc::PcgLcgXshRr>("resources/pcg_lcg_xsh_rr_reference");
-  testPcgEngine<zisc::PcgMcgXshRr>("resources/pcg_mcg_xsh_rr_reference");
-  testPcgEngine<zisc::PcgLcgRxsMXs>("resources/pcg_lcg_rxs_m_xs_reference");
-  testPcgEngine<zisc::PcgMcgRxsMXs>("resources/pcg_mcg_rxs_m_xs_reference");
-  testFloatDistribution<zisc::PcgMcgRxsMXs32>();
-  testFloatDistribution<zisc::PcgMcgRxsMXs>();
-}
+#define PCG_TEST(engine_type, reference_path) \
+    TEST(PcgEngineTest, engine_type ## Test) \
+    { \
+        testPcgEngine<zisc:: engine_type >(reference_path); \
+    }
+
+PCG_TEST(PcgLcgXshRs8, "resources/pcg_lcg_xsh_rs_8_reference")
+PCG_TEST(PcgLcgXshRs16, "resources/pcg_lcg_xsh_rs_16_reference")
+PCG_TEST(PcgLcgXshRs32, "resources/pcg_lcg_xsh_rs_32_reference")
+PCG_TEST(PcgMcgXshRs8, "resources/pcg_mcg_xsh_rs_8_reference")
+PCG_TEST(PcgMcgXshRs16, "resources/pcg_mcg_xsh_rs_16_reference")
+PCG_TEST(PcgMcgXshRs32, "resources/pcg_mcg_xsh_rs_32_reference")
+PCG_TEST(PcgLcgXshRr8, "resources/pcg_lcg_xsh_rr_8_reference")
+PCG_TEST(PcgLcgXshRr16, "resources/pcg_lcg_xsh_rr_16_reference")
+PCG_TEST(PcgLcgXshRr32, "resources/pcg_lcg_xsh_rr_32_reference")
+PCG_TEST(PcgMcgXshRr8, "resources/pcg_mcg_xsh_rr_8_reference")
+PCG_TEST(PcgMcgXshRr16, "resources/pcg_mcg_xsh_rr_16_reference")
+PCG_TEST(PcgMcgXshRr32, "resources/pcg_mcg_xsh_rr_32_reference")
+PCG_TEST(PcgLcgRxsMXs8, "resources/pcg_lcg_rxs_m_xs_8_reference")
+PCG_TEST(PcgLcgRxsMXs16, "resources/pcg_lcg_rxs_m_xs_16_reference")
+PCG_TEST(PcgLcgRxsMXs32, "resources/pcg_lcg_rxs_m_xs_32_reference")
+PCG_TEST(PcgLcgRxsMXs64, "resources/pcg_lcg_rxs_m_xs_64_reference")

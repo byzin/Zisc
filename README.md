@@ -19,6 +19,8 @@ Version: 0.0.34
 
 I would like to thank the following projects.
 
+* PCG: [PCG, A Family of Better Random Number Generators](http://www.pcg-random.org/)
+* Xoshiro\*: [xoshiro / xoroshiro generators and the PRNG shootout](http://xoshiro.di.unimi.it/)
 * Correlated Multi-Jittered: [Cycles](https://www.cycles-renderer.org/)
 
 ## License ##

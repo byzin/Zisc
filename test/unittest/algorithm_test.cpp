@@ -27,7 +27,7 @@
 namespace {
 
 std::vector<zisc::uint64> makeSortedArray(const zisc::uint64 n,
-                                          zisc::PcgMcgRxsMXs& rng_engine) noexcept
+                                          zisc::PcgLcgRxsMXs64& rng_engine) noexcept
 {
   // Make a sorted array
   std::vector<zisc::uint64> tmp;
@@ -96,7 +96,7 @@ TEST(AlgorithmTest, BinaryTreeTest)
 
 TEST(AlgorithmTest, BinaryTreeSearchTest)
 {
-  zisc::PcgMcgRxsMXs rng_engine{123456789};
+  zisc::PcgLcgRxsMXs64 rng_engine{123456789};
 
   constexpr zisc::uint max_number = 200;
   for (zisc::uint number = 0; number < max_number; ++number) {
@@ -139,7 +139,7 @@ TEST(AlgorithmTest, BinaryTreeSearchTest)
 
 TEST(AlgorithmTest, BinaryTreeSearchPerformanceTest)
 {
-  zisc::PcgMcgRxsMXs rng_engine{123456789};
+  zisc::PcgLcgRxsMXs64 rng_engine{123456789};
 
   constexpr zisc::uint max_number = 200;
   auto stl_time = zisc::Stopwatch::Clock::duration::zero();

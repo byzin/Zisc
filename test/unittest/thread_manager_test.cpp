@@ -173,7 +173,7 @@ TEST(ThreadManagerTest, TaskStressTest)
   for (zisc::uint number = 0; number < num_of_tasks; ++number) {
     auto task = [number](const zisc::uint)
     {
-      zisc::PcgMcgRxsMXs32 sampler{number};
+      zisc::PcgLcgRxsMXs32 sampler{number};
       const auto loop = static_cast<int>(sampler(0.0, 1.0) * zisc::power<2>(1024.0));
       volatile int value = 0;
       for (int i = 0; i < loop; ++i) {
@@ -196,7 +196,7 @@ TEST(ThreadManagerTest, LoopTaskStressTest)
   zisc::ThreadManager thread_manager{num_of_threads};
   auto task = [](const zisc::uint, const zisc::uint number)
   {
-    zisc::PcgMcgRxsMXs32 sampler{number};
+    zisc::PcgLcgRxsMXs32 sampler{number};
     const auto loop = static_cast<int>(sampler(0.0, 1.0) * zisc::power<2>(1024.0));
     volatile int value = 0;
     for (int i = 0; i < loop; ++i) {

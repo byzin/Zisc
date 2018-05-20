@@ -61,7 +61,8 @@ class FloatingPointBit
                                        BitType significand_bits) noexcept;
 
   //! Map an integer value into a [0, 1) float
-  static constexpr FloatType mapTo01Float(BitType x) noexcept;
+  template <typename UInt>
+  static constexpr FloatType mapTo01Float(const UInt x) noexcept;
 
   //! Return the sign bit mask
   static constexpr BitType signBitMask() noexcept;
@@ -74,6 +75,11 @@ class FloatingPointBit
 
  private:
   static_assert(kIsFloat<FloatType>, "Float isn't floating point.");
+
+
+  //! Expand an input value to the bittype size
+  template <typename UInt>
+  static constexpr BitType expandToBitSize(const UInt x) noexcept;
 };
 
 // Type alias

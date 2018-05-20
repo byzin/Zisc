@@ -11,6 +11,7 @@
 #define ZISC_PCG_ENGINE_HPP
 
 // Standard C++ library
+#include <cstddef>
 #include <type_traits>
 // Zisc
 #include "pseudo_random_number_engine.hpp"
@@ -26,7 +27,7 @@ enum class PcgBase : int
   Mcg
 };
 
-enum class PcgAlgorithm : int
+enum class PcgMethod : int
 {
   XshRs,
   XshRr,
@@ -37,9 +38,9 @@ enum class PcgAlgorithm : int
   \details
   No detailed.
   */
-template <PcgBase Base, PcgAlgorithm Algorithm, typename Seed, typename Result>
+template <PcgBase Base, PcgMethod Method, typename Seed, typename Result>
 class PcgEngine : public PseudoRandomNumberEngine<
-    PcgEngine<Base, Algorithm, Seed, Result>, Seed, Result>
+    PcgEngine<Base, Method, Seed, Result>, Seed, Result>
 {
   static_assert(kIsUnsignedInteger<Seed>, "Seed isn't unsigned integer type.");
   static_assert(kIsUnsignedInteger<Result>, "Result isn't unsigned integer type.");
@@ -59,16 +60,21 @@ class PcgEngine : public PseudoRandomNumberEngine<
   //! Generate a random number
   ResultType generate() noexcept;
 
+  //! Return the n which of the period 2^n
+  static constexpr std::size_t getPeriodPow2() noexcept;
+
   //! Set seed
   void setSeed(const SeedType seed) noexcept;
 
  private:
-  //! Bound
-  template <typename Type>
-  Type bound(const ResultType random, const Type lower, const Type upper) const noexcept;
+  using BitCountType = uint8;
+
 
   //! Bump
   SeedType bump(const SeedType state) const noexcept;
+
+  //! Generate a base of a random number
+  SeedType generateBase() noexcept;
 
   //! Return the default increment
   static constexpr SeedType increment() noexcept;
@@ -76,29 +82,39 @@ class PcgEngine : public PseudoRandomNumberEngine<
   //! Return the default multiplier
   static constexpr SeedType multiplier() noexcept;
 
-  //! Next state
-  void next() noexcept;
 
-  //! Output random
-  ResultType output(SeedType internal) const noexcept;
+  static constexpr bool kOutputPrevious = sizeof(SeedType) <= 8;
 
 
   SeedType state_;
 };
 
-template <PcgAlgorithm Algorithm, typename Seed, typename Result>
-using PcgLcgEngine = PcgEngine<PcgBase::Lcg, Algorithm, Seed, Result>;
+template <PcgMethod Method, typename Seed, typename Result>
+using PcgLcgEngine = PcgEngine<PcgBase::Lcg, Method, Seed, Result>;
 
-template <PcgAlgorithm Algorithm, typename Seed, typename Result>
-using PcgMcgEngine = PcgEngine<PcgBase::Mcg, Algorithm, Seed, Result>;
+template <PcgMethod Method, typename Seed, typename Result>
+using PcgMcgEngine = PcgEngine<PcgBase::Mcg, Method, Seed, Result>;
 
 // Predefined PCG engine type
-using PcgLcgXshRr = PcgLcgEngine<PcgAlgorithm::XshRr, uint64, uint32>;
-using PcgMcgXshRr = PcgMcgEngine<PcgAlgorithm::XshRr, uint64, uint32>;
-using PcgLcgRxsMXs = PcgLcgEngine<PcgAlgorithm::RxsMXs, uint64, uint64>;
-using PcgMcgRxsMXs = PcgMcgEngine<PcgAlgorithm::RxsMXs, uint64, uint64>;
-using PcgLcgRxsMXs32 = PcgLcgEngine<PcgAlgorithm::RxsMXs, uint32, uint32>;
-using PcgMcgRxsMXs32 = PcgMcgEngine<PcgAlgorithm::RxsMXs, uint32, uint32>;
+// XshRs
+using PcgLcgXshRs8 = PcgLcgEngine<PcgMethod::XshRs, uint16, uint8>;
+using PcgLcgXshRs16 = PcgLcgEngine<PcgMethod::XshRs, uint32, uint16>;
+using PcgLcgXshRs32 = PcgLcgEngine<PcgMethod::XshRs, uint64, uint32>;
+using PcgMcgXshRs8 = PcgMcgEngine<PcgMethod::XshRs, uint16, uint8>;
+using PcgMcgXshRs16 = PcgMcgEngine<PcgMethod::XshRs, uint32, uint16>;
+using PcgMcgXshRs32 = PcgMcgEngine<PcgMethod::XshRs, uint64, uint32>;
+// XshRr
+using PcgLcgXshRr8 = PcgLcgEngine<PcgMethod::XshRr, uint16, uint8>;
+using PcgLcgXshRr16 = PcgLcgEngine<PcgMethod::XshRr, uint32, uint16>;
+using PcgLcgXshRr32 = PcgLcgEngine<PcgMethod::XshRr, uint64, uint32>;
+using PcgMcgXshRr8 = PcgMcgEngine<PcgMethod::XshRr, uint16, uint8>;
+using PcgMcgXshRr16 = PcgMcgEngine<PcgMethod::XshRr, uint32, uint16>;
+using PcgMcgXshRr32 = PcgMcgEngine<PcgMethod::XshRr, uint64, uint32>;
+// RxsMXs
+using PcgLcgRxsMXs8 = PcgLcgEngine<PcgMethod::RxsMXs, uint8, uint8>;
+using PcgLcgRxsMXs16 = PcgLcgEngine<PcgMethod::RxsMXs, uint16, uint16>;
+using PcgLcgRxsMXs32 = PcgLcgEngine<PcgMethod::RxsMXs, uint32, uint32>;
+using PcgLcgRxsMXs64 = PcgLcgEngine<PcgMethod::RxsMXs, uint64, uint64>;
 
 } // namespace zisc
 

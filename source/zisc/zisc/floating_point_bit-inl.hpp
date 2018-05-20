@@ -182,14 +182,15 @@ constexpr auto FloatingPointBit<Float>::makeFloat(
   Please see "Generating uniform doubles in the unit interval"
   on 'http://xoroshiro.di.unimi.it/' for the details
   */
-template <typename Float> inline
-constexpr auto FloatingPointBit<Float>::mapTo01Float(BitType x) noexcept
+template <typename Float> template <typename UInt> inline
+constexpr auto FloatingPointBit<Float>::mapTo01Float(const UInt x) noexcept
     -> FloatType
 {
-  constexpr FloatType k =
-      constant::invert(cast<FloatType>(cast<BitType>(1) << (significandBitSize() + 1)));
-  x = x >> exponentBitSize();
-  return k * cast<FloatType>(x);
+  static_assert(kIsUnsignedInteger<UInt>, "UInt isn't unsigned integer.");
+  constexpr FloatType k = constant::invert(
+      cast<FloatType>(cast<BitType>(1) << (significandBitSize() + 1)));
+  const BitType r = expandToBitSize(x) >> exponentBitSize();
+  return k * cast<FloatType>(r);
 }
 
 /*!
@@ -214,6 +215,28 @@ template <typename Float> inline
 constexpr std::size_t FloatingPointBit<Float>::significandBitSize() noexcept
 {
   return FloatingPoint<sizeof(FloatType)>::significandBitSize();
+}
+
+/*!
+  */
+template <typename Float> template <typename UInt> inline
+constexpr auto FloatingPointBit<Float>::expandToBitSize(const UInt x) noexcept
+    -> BitType
+{
+  static_assert(kIsUnsignedInteger<UInt>, "UInt isn't unsigned integer.");
+  constexpr std::size_t bit_size = sizeof(BitType);
+  constexpr std::size_t int_size = sizeof(UInt);
+  if constexpr (int_size == bit_size) {
+    return x;
+  }
+  else if constexpr (int_size < bit_size) {
+    constexpr std::size_t diff = bit_size - int_size;
+    return cast<BitType>(x) << (diff * 8);
+  }
+  else {
+    constexpr std::size_t diff = int_size - bit_size;
+    return cast<BitType>(x >> (diff * 8));
+  }
 }
 
 } // namespace zisc

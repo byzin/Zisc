@@ -23,22 +23,18 @@
 namespace zisc {
 
 /*!
-  \details
-  No detailed.
   */
-template <PcgBase Base, PcgAlgorithm Algorithm, typename Seed, typename Result> inline
-PcgEngine<Base, Algorithm, Seed, Result>::PcgEngine() noexcept
+template <PcgBase Base, PcgMethod Method, typename Seed, typename Result> inline
+PcgEngine<Base, Method, Seed, Result>::PcgEngine() noexcept
 {
-  constexpr SeedType seed = cast<SeedType>(0xcafef00dd15ea5e5ULL);
+  constexpr SeedType seed = cast<SeedType>(0xcafef00dd15ea5e5ull);
   setSeed(seed);
 }
 
 /*!
-  \details
-  No detailed.
   */
-template <PcgBase Base, PcgAlgorithm Algorithm, typename Seed, typename Result> inline
-PcgEngine<Base, Algorithm, Seed, Result>::PcgEngine(const SeedType seed) noexcept
+template <PcgBase Base, PcgMethod Method, typename Seed, typename Result> inline
+PcgEngine<Base, Method, Seed, Result>::PcgEngine(const SeedType seed) noexcept
 {
   setSeed(seed);
 }
@@ -46,88 +42,118 @@ PcgEngine<Base, Algorithm, Seed, Result>::PcgEngine(const SeedType seed) noexcep
 namespace inner {
 
 /*!
-  \details
-  No detailed.
   */
-template <typename SeedType, typename ResultType> inline
-ResultType rotateRight(ResultType value, const SeedType rot) noexcept
+template <typename ResultType, typename BitCountType> inline
+ResultType rotateRightPcg(const ResultType value, const BitCountType rot) noexcept
 {
-  constexpr SeedType bits = cast<SeedType>(sizeof(ResultType) * 8);
-  constexpr SeedType mask = bits - 1;
-  return (value >> rot) | (value << ((-rot) & mask));
+  constexpr BitCountType bits = cast<BitCountType>(sizeof(ResultType) * 8);
+  constexpr BitCountType mask = bits - 1;
+  return cast<ResultType>(value >> rot) | cast<ResultType>(value << ((-rot) & mask));
 }
 
-template <PcgAlgorithm Algorithm, typename SeedType, typename ResultType>
+template <PcgMethod, typename SeedType, typename ResultType, typename BitCountType>
 struct PcgMixin;
 
 /*!
-  \details
-  No detailed.
   */
-template <typename SeedType, typename ResultType>
-struct PcgMixin<PcgAlgorithm::XshRr, SeedType, ResultType>
+template <typename SeedType, typename ResultType, typename BitCountType>
+struct PcgMixin<PcgMethod::XshRs, SeedType, ResultType, BitCountType>
 {
   static ResultType output(SeedType internal) noexcept
   {
     // Constant values
-    constexpr SeedType bits = cast<SeedType>(sizeof(SeedType) * 8);
-    constexpr SeedType xtypebits = cast<SeedType>(sizeof(ResultType) * 8);
-    constexpr SeedType sparebits = bits - xtypebits;
-    constexpr SeedType wantedopbits = xtypebits >= 128 ? 7 :
-                                      xtypebits >=  64 ? 6 :
-                                      xtypebits >=  32 ? 5 :
-                                      xtypebits >=  16 ? 4 :
-                                                         3;
-    constexpr SeedType opbits = (sparebits >= wantedopbits) ? wantedopbits
-                                                            : sparebits;
-    constexpr SeedType amplifier = wantedopbits - opbits;
-    constexpr SeedType mask = (1 << opbits) - 1;
-    constexpr SeedType topspare = opbits;
-    constexpr SeedType bottomspare = sparebits - topspare;
-    constexpr SeedType xshift = (topspare + xtypebits) / 2;
+    constexpr BitCountType bits = cast<BitCountType>(sizeof(SeedType) * 8);
+    constexpr BitCountType xtypebits = cast<BitCountType>(sizeof(ResultType) * 8);
+    constexpr BitCountType sparebits = bits - xtypebits;
+    constexpr BitCountType opbits = (64 <= sparebits - 5) ? 5 :
+                                    (32 <= sparebits - 4) ? 4 :
+                                    (16 <= sparebits - 3) ? 3 :
+                                    ( 4 <= sparebits - 2) ? 2 :
+                                    ( 1 <= sparebits - 1) ? 1
+                                                          : 0;
+    constexpr BitCountType mask = (1 << opbits) - 1;
+    constexpr BitCountType maxrandshift = mask;
+    constexpr BitCountType topspare = opbits;
+    constexpr BitCountType bottomspare = sparebits - topspare;
+    constexpr BitCountType xshift = topspare + (xtypebits + maxrandshift) / 2;
 
-    // Calc a random number
-    SeedType rot = opbits ? SeedType(internal >> (bits - opbits)) & mask : 0;
-    SeedType amprot = (rot << amplifier) & mask;
+    const BitCountType rshift = opbits
+        ? cast<BitCountType>(internal >> (bits - opbits)) & mask
+        : 0;
     internal ^= internal >> xshift;
-    ResultType result = cast<ResultType>(internal >> bottomspare);
-    result = rotateRight(result, amprot);
+    const ResultType result =
+        cast<ResultType>(internal >> (bottomspare - maxrandshift + rshift));
     return result;
   }
 };
 
-template <typename Type> constexpr Type mcgMultiplier() noexcept;
-template <> inline constexpr uint8 mcgMultiplier() noexcept {return 217U;}
-template <> inline constexpr uint16 mcgMultiplier() noexcept {return 62169U;}
-template <> inline constexpr uint32 mcgMultiplier() noexcept {return 277803737U;}
-template <> inline constexpr uint64 mcgMultiplier() noexcept {return 12605985483714917081ULL;}
-
 /*!
-  \details
-  No detailed.
   */
-template <typename SeedType, typename ResultType>
-struct PcgMixin<PcgAlgorithm::RxsMXs, SeedType, ResultType>
+template <typename SeedType, typename ResultType, typename BitCountType>
+struct PcgMixin<PcgMethod::XshRr, SeedType, ResultType, BitCountType>
 {
   static ResultType output(SeedType internal) noexcept
   {
     // Constant values
-    constexpr SeedType xtypebits = cast<SeedType>(sizeof(ResultType) * 8);
-    constexpr SeedType bits = cast<SeedType>(sizeof(SeedType) * 8);
-    constexpr SeedType opbits = xtypebits >= 128 ? 6 :
-                                xtypebits >=  64 ? 5 :
-                                xtypebits >=  32 ? 4 :
-                                xtypebits >=  16 ? 3 :
-                                                   2;
-    constexpr SeedType shift = bits - xtypebits;
-    constexpr SeedType mask = (1 << opbits) - 1;
+    constexpr BitCountType bits = cast<BitCountType>(sizeof(SeedType) * 8);
+    constexpr BitCountType xtypebits = cast<BitCountType>(sizeof(ResultType) * 8);
+    constexpr BitCountType sparebits = bits - xtypebits;
+    constexpr BitCountType wantedopbits = (128 <= xtypebits) ? 7 :
+                                          ( 64 <= xtypebits) ? 6 :
+                                          ( 32 <= xtypebits) ? 5 :
+                                          ( 16 <= xtypebits) ? 4 :
+                                                               3;
+    constexpr BitCountType opbits = (wantedopbits <= sparebits) ? wantedopbits
+                                                                : sparebits;
+    constexpr BitCountType amplifier = wantedopbits - opbits;
+    constexpr BitCountType mask = (1 << opbits) - 1;
+    constexpr BitCountType topspare = opbits;
+    constexpr BitCountType bottomspare = sparebits - topspare;
+    constexpr BitCountType xshift = (topspare + xtypebits) / 2;
 
-    // Calc a random number
-    SeedType rshift = opbits ? cast<SeedType>(internal >> (bits - opbits)) & mask : 0;
+    const BitCountType rot = opbits
+        ? cast<BitCountType>(internal >> (bits - opbits)) & mask
+        : 0;
+    const BitCountType amprot = (rot << amplifier) & mask;
+    internal ^= internal >> xshift;
+    ResultType result = cast<ResultType>(internal >> bottomspare);
+    result = rotateRightPcg(result, amprot);
+    return result;
+  }
+};
+
+template <typename Type> inline constexpr Type mcgMultiplierPcg();
+template <> inline constexpr uint8 mcgMultiplierPcg<uint8>() {return 217u;}
+template <> inline constexpr uint16 mcgMultiplierPcg<uint16>() {return 62169u;}
+template <> inline constexpr uint32 mcgMultiplierPcg<uint32>() {return 277803737u;}
+template <> inline constexpr uint64 mcgMultiplierPcg<uint64>() {return 12605985483714917081ull;}
+
+/*!
+  */
+template <typename SeedType, typename ResultType, typename BitCountType>
+struct PcgMixin<PcgMethod::RxsMXs, SeedType, ResultType, BitCountType>
+{
+  static ResultType output(SeedType internal) noexcept
+  {
+    // Constant values
+    constexpr BitCountType xtypebits = cast<BitCountType>(sizeof(ResultType) * 8);
+    constexpr BitCountType bits = cast<BitCountType>(sizeof(SeedType) * 8);
+    constexpr BitCountType opbits = (128 <= xtypebits) ? 6 :
+                                    ( 64 <= xtypebits) ? 5 :
+                                    ( 32 <= xtypebits) ? 4 :
+                                    ( 16 <= xtypebits) ? 3 :
+                                                         2;
+    constexpr BitCountType shift = bits - xtypebits;
+    constexpr BitCountType mask = (1 << opbits) - 1;
+    constexpr BitCountType xshift = (2u * xtypebits + 2u) / 3u;
+
+    const BitCountType rshift = opbits
+        ? cast<BitCountType>(internal >> (bits - opbits)) & mask
+        : 0;
     internal ^= internal >> (opbits + rshift);
-    internal *= mcgMultiplier<ResultType>();
+    internal *= mcgMultiplierPcg<SeedType>();
     ResultType result = internal >> shift;
-    result ^= result >> ((2U * xtypebits + 2U) / 3U);
+    result ^= result >> xshift;
     return result;
   }
 };
@@ -135,76 +161,89 @@ struct PcgMixin<PcgAlgorithm::RxsMXs, SeedType, ResultType>
 } // namespace inner 
 
 /*!
-  \details
-  No detailed.
   */
-template <PcgBase Base, PcgAlgorithm Algorithm, typename Seed, typename Result> inline
-auto PcgEngine<Base, Algorithm, Seed, Result>::generate() noexcept -> ResultType
+template <PcgBase Base, PcgMethod Method, typename Seed, typename Result> inline
+auto PcgEngine<Base, Method, Seed, Result>::generate() noexcept -> ResultType
 {
-  const auto random = inner::PcgMixin<Algorithm, Seed, Result>::output(state_);
-  next();
+  const auto base = generateBase();
+  const auto random =
+      inner::PcgMixin<Method, SeedType, ResultType, BitCountType>::output(base);
   return random;
 }
 
 /*!
-  \details
-  No detailed.
   */
-template <PcgBase Base, PcgAlgorithm Algorithm, typename Seed, typename Result> inline
-void PcgEngine<Base, Algorithm, Seed, Result>::setSeed(const SeedType seed) noexcept
+template <PcgBase Base, PcgMethod Method, typename Seed, typename Result> inline
+constexpr std::size_t PcgEngine<Base, Method, Seed, Result>::getPeriodPow2() noexcept
 {
-  constexpr bool is_lcg = (Base == PcgBase::Lcg);
-  state_ = is_lcg ? bump(seed + increment()) : (seed | cast<SeedType>(3U));
+  constexpr bool is_mcg = (Base == PcgBase::Mcg);
+  constexpr std::size_t period_pow2 = sizeof(SeedType) * 8 - (is_mcg ? 2 : 0);
+  return period_pow2;
 }
 
 /*!
-  \details
-  No detailed.
   */
-template <PcgBase Base, PcgAlgorithm Algorithm, typename Seed, typename Result> inline
-auto PcgEngine<Base, Algorithm, Seed, Result>::bump(const SeedType state) const noexcept
+template <PcgBase Base, PcgMethod Method, typename Seed, typename Result> inline
+void PcgEngine<Base, Method, Seed, Result>::setSeed(const SeedType seed) noexcept
+{
+  constexpr bool is_mcg = (Base == PcgBase::Mcg);
+  state_ = is_mcg ? (seed | cast<SeedType>(3u)) : bump(seed + increment());
+}
+
+/*!
+  */
+template <PcgBase Base, PcgMethod Method, typename Seed, typename Result> inline
+auto PcgEngine<Base, Method, Seed, Result>::bump(const SeedType state) const noexcept
     -> SeedType
 {
   return state * multiplier() + increment();
 }
 
+/*!
+  */
+template <PcgBase Base, PcgMethod Method, typename Seed, typename Result> inline
+auto PcgEngine<Base, Method, Seed, Result>::generateBase() noexcept -> SeedType
+{
+  if constexpr (kOutputPrevious) {
+    const SeedType old_state = state_;
+    state_ = bump(state_);
+    return old_state;
+  }
+  else {
+    state_ = bump(state_);
+    return state_;
+  }
+}
+
 namespace inner {
 
-template <typename Type> constexpr Type increment() noexcept;
-template <> constexpr uint8 increment() noexcept {return 77U;}
-template <> constexpr uint16 increment() noexcept {return 47989U;}
-template <> constexpr uint32 increment() noexcept {return 2891336453U;}
-template <> constexpr uint64 increment() noexcept {return 1442695040888963407ULL;}
+template <typename Type> inline constexpr Type incrementPcg();
+template <> inline constexpr uint8 incrementPcg<uint8>() {return 77u;}
+template <> inline constexpr uint16 incrementPcg<uint16>() {return 47989u;}
+template <> inline constexpr uint32 incrementPcg<uint32>() {return 2891336453u;}
+template <> inline constexpr uint64 incrementPcg<uint64>() {return 1442695040888963407ull;}
 
-template <typename Type> constexpr Type multiplier() noexcept;
-template <> constexpr uint8 multiplier() noexcept {return 141U;}
-template <> constexpr uint16 multiplier() noexcept {return 12829U;}
-template <> constexpr uint32 multiplier() noexcept {return 747796405U;}
-template <> constexpr uint64 multiplier() noexcept {return 6364136223846793005ULL;}
+template <typename Type> inline constexpr Type multiplierPcg();
+template <> inline constexpr uint8 multiplierPcg<uint8>() {return 141u;}
+template <> inline constexpr uint16 multiplierPcg<uint16>() {return 12829u;}
+template <> inline constexpr uint32 multiplierPcg<uint32>() {return 747796405u;}
+template <> inline constexpr uint64 multiplierPcg<uint64>() {return 6364136223846793005ull;}
 
 } // namespace inner
 
-template <PcgBase Base, PcgAlgorithm Algorithm, typename Seed, typename Result> inline
-constexpr auto PcgEngine<Base, Algorithm, Seed, Result>::increment() noexcept -> SeedType
+template <PcgBase Base, PcgMethod Method, typename Seed, typename Result> inline
+constexpr auto PcgEngine<Base, Method, Seed, Result>::increment() noexcept
+    -> SeedType
 {
   constexpr bool is_mcg = (Base == PcgBase::Mcg);
-  return is_mcg ? 0 : inner::increment<SeedType>();
+  return is_mcg ? 0 : inner::incrementPcg<SeedType>();
 }
 
-template <PcgBase Base, PcgAlgorithm Algorithm, typename Seed, typename Result> inline
-constexpr auto PcgEngine<Base, Algorithm, Seed, Result>::multiplier() noexcept -> SeedType
+template <PcgBase Base, PcgMethod Method, typename Seed, typename Result> inline
+constexpr auto PcgEngine<Base, Method, Seed, Result>::multiplier() noexcept
+    -> SeedType
 {
-  return inner::multiplier<SeedType>();
-}
-
-/*!
-  \details
-  No detailed.
-  */
-template <PcgBase Base, PcgAlgorithm Algorithm, typename Seed, typename Result> inline
-void PcgEngine<Base, Algorithm, Seed, Result>::next() noexcept
-{
-  state_ = bump(state_);
+  return inner::multiplierPcg<SeedType>();
 }
 
 } // namespace zisc

@@ -44,7 +44,7 @@ Float PseudoRandomNumberEngine<GeneratorClass, Seed, Result>::operator()(
     const Float lower,
     const Float upper) noexcept
 {
-  return generate(lower, upper);
+  return generateFloat(lower, upper);
 }
 
 /*!
@@ -64,12 +64,12 @@ auto PseudoRandomNumberEngine<GeneratorClass, Seed, Result>::generate() noexcept
   */
 template <typename GeneratorClass, typename Seed, typename Result>
 template <typename Float> inline
-Float PseudoRandomNumberEngine<GeneratorClass, Seed, Result>::generate(
+Float PseudoRandomNumberEngine<GeneratorClass, Seed, Result>::generateFloat(
     const Float lower,
     const Float upper) noexcept
 {
   static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-  const Float u = cast<Float>(generate01());
+  const Float u = generate01Float<Float>();
   const Float value = lower + (upper - lower) * u;
   ZISC_ASSERT(isInBounds(value, lower, upper),
               "The value is out of range [lower, upper).");
@@ -78,14 +78,16 @@ Float PseudoRandomNumberEngine<GeneratorClass, Seed, Result>::generate(
 
 /*!
   */
-template <typename GeneratorClass, typename Seed, typename Result> inline
-auto PseudoRandomNumberEngine<GeneratorClass, Seed, Result>::generate01() noexcept
-    -> FloatType
+template <typename GeneratorClass, typename Seed, typename Result>
+template <typename Float> inline
+Float PseudoRandomNumberEngine<GeneratorClass, Seed, Result>::generate01Float()
+    noexcept
 {
+  static_assert(kIsFloat<Float>, "Float isn't floating point type.");
   // Generate a integer random number
-  const Result x = generate();
+  const ResultType x = generate();
   // Map to a [0, 1) float
-  return FloatingPointBit<FloatType>::mapTo01Float(x);
+  return FloatingPointBit<Float>::mapTo01Float(x);
 }
 
 /*!

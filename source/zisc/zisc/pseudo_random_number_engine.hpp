@@ -13,7 +13,6 @@
 // Standard C++ library
 #include <cstdint>
 // Zisc
-#include "floating_point.hpp"
 #include "type_traits.hpp"
 #include "zisc/zisc_config.hpp"
 
@@ -34,7 +33,6 @@ class PseudoRandomNumberEngine
   using GeneratorType = GeneratorClass;
   using SeedType = Seed;
   using ResultType = Result;
-  using FloatType = typename FloatingPoint<sizeof(ResultType)>::FloatType;
 
 
   //! Generate a random number
@@ -50,10 +48,11 @@ class PseudoRandomNumberEngine
 
   //! Generate a float random number x satisfying [lower, upper)
   template <typename Float>
-  Float generate(const Float lower, const Float upper) noexcept;
+  Float generateFloat(const Float lower, const Float upper) noexcept;
 
   //! Generate a [0, 1) float random number
-  FloatType generate01() noexcept;
+  template <typename Float>
+  Float generate01Float() noexcept;
 
   //! Set a random seed
   void setSeed(const SeedType seed) noexcept;

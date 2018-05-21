@@ -43,8 +43,7 @@
 !/test/unittest/*.hpp
 !/test/unittest/*.cpp
 !/test/resources/
-!/test/resources/dsfmt*
-!/test/resources/xsadd*
+!/test/resources/cmj*
 !/test/resources/pcg*
 !/test/resources/sip_hash*
 

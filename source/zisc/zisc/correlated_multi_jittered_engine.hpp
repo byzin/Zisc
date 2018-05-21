@@ -66,6 +66,7 @@ class CorrelatedMultiJitteredEngine
 
 using CmjN16 = CorrelatedMultiJitteredEngine<4>;
 using CmjN64 = CorrelatedMultiJitteredEngine<8>;
+using CmjN81 = CorrelatedMultiJitteredEngine<9>;
 using CmjN256 = CorrelatedMultiJitteredEngine<16>;
 
 } // namespace zisc

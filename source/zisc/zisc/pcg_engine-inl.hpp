@@ -183,6 +183,30 @@ constexpr std::size_t PcgEngine<Base, Method, Seed, Result>::getPeriodPow2() noe
 
 /*!
   */
+template <PcgBase Base, PcgMethod Method, typename Seed, typename Result>
+template <typename UnsignedInteger> inline
+constexpr bool PcgEngine<Base, Method, Seed, Result>::isEndOfPeriod(
+    const UnsignedInteger sample) noexcept
+{
+  static_assert(kIsUnsignedInteger<UnsignedInteger>,
+                "UnsignedInteger isn't unsigned integer type.");
+  constexpr std::size_t sample_bit_size = sizeof(UnsignedInteger) * 8;
+  constexpr std::size_t period_pow2 = getPeriodPow2();
+  if constexpr (sample_bit_size <= period_pow2) {
+    // Workaround
+    constexpr UnsignedInteger end_of_period =
+        std::numeric_limits<UnsignedInteger>::max();
+    return sample == end_of_period;
+  }
+  else {
+    constexpr UnsignedInteger end_of_period =
+        (cast<UnsignedInteger>(1u) << period_pow2) - 1;
+    return sample == end_of_period;
+  }
+}
+
+/*!
+  */
 template <PcgBase Base, PcgMethod Method, typename Seed, typename Result> inline
 void PcgEngine<Base, Method, Seed, Result>::setSeed(const SeedType seed) noexcept
 {

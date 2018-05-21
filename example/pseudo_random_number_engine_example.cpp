@@ -17,6 +17,8 @@
 #include "zisc/sip_hash_engine.hpp"
 #include "zisc/pcg_engine.hpp"
 #include "zisc/pseudo_random_number_engine.hpp"
+#include "zisc/utility.hpp"
+#include "zisc/xorshift_star_engine.hpp"
 #include "zisc/zisc_config.hpp"
 
 namespace {
@@ -24,23 +26,38 @@ namespace {
 template <typename GeneratorClass, typename Seed, typename Result>
 using PrnEngine = zisc::PseudoRandomNumberEngine<GeneratorClass, Seed, Result>;
 
+template <typename Type> constexpr Type getSeed() {return 123456789;}
+template <> constexpr zisc::uint8 getSeed<zisc::uint8>() {return 12u;}
+template <> constexpr zisc::uint16 getSeed<zisc::uint16>() {return 12345u;}
+
 template <typename GeneratorClass, typename Seed, typename Result>
 void generateRandomNumbers(PrnEngine<GeneratorClass, Seed, Result>* engine)
 {
-  for (std::uint32_t sample = 0; sample < 1024; ++sample) {
+  using SeedType = typename GeneratorClass::SeedType;
+  auto seed = getSeed<SeedType>();
+  auto update_engine = [engine, &seed](std::uint32_t& s)
+  {
+    if (engine->isEndOfPeriod(s++)) {
+      ++seed;
+      engine->setSeed(seed);
+      s = 0;
+    }
+  };
+
+  for (std::uint32_t sample = 0, s = 0; sample < 1024; ++sample) {
     const float x = engine->template generateFloat<float>(0.0f, 1.0f);
+    update_engine(s);
     const float y = engine->template generateFloat<float>(0.0f, 1.0f);
-    [[maybe_unused]] const float z = engine->template generate01Float<float>();
-    [[maybe_unused]] const float w = engine->template generate01Float<float>();
+    update_engine(s);
+    if (!zisc::isInBounds(x, 0.0f, 1.0f))
+      std::cerr << "sample[" << sample << "] x(" << x << ") is out of range [0, 1)";
+    if (!zisc::isInBounds(y, 0.0f, 1.0f))
+      std::cerr << "sample[" << sample << "] y(" << y << ") is out of range [0, 1)";
     std::cout << std::fixed
               << std::setprecision(std::numeric_limits<float>::max_digits10)
               << sample << ", " << x << ", " << y << std::endl;
   }
 }
-
-template <typename Type> constexpr Type getSeed() {return 123456789;}
-template <> constexpr zisc::uint8 getSeed<zisc::uint8>() {return 12u;}
-template <> constexpr zisc::uint16 getSeed<zisc::uint16>() {return 12345u;}
 
 template <typename GeneratorClass>
 void runRngTest(const std::string_view&)
@@ -61,21 +78,33 @@ int main(int argc, char** argv)
   const std::string_view pcg16_name{"pcg16"};
   const std::string_view pcg32_name{"pcg32"};
   const std::string_view pcg64_name{"pcg64"};
+  const std::string_view xorshift_star8_name{"xorshift*8"};
+  const std::string_view xorshift_star16_name{"xorshift*16"};
+  const std::string_view xorshift_star32_name{"xorshift*32"};
 
   if (engine_name == pcg8_name)
     runRngTest<zisc::PcgLcgRxsMXs8>(pcg8_name);
-  if (engine_name == pcg16_name)
+  else if (engine_name == pcg16_name)
     runRngTest<zisc::PcgLcgRxsMXs16>(pcg16_name);
-  if (engine_name == pcg32_name)
+  else if (engine_name == pcg32_name)
     runRngTest<zisc::PcgLcgRxsMXs32>(pcg32_name);
   else if (engine_name == pcg64_name)
     runRngTest<zisc::PcgLcgRxsMXs64>(pcg64_name);
+  else if (engine_name == xorshift_star8_name)
+    runRngTest<zisc::XorshiftStar8>(xorshift_star8_name);
+  else if (engine_name == xorshift_star16_name)
+    runRngTest<zisc::XorshiftStar16>(xorshift_star16_name);
+  else if (engine_name == xorshift_star32_name)
+    runRngTest<zisc::XorshiftStar32>(xorshift_star32_name);
   else {
     std::cerr << "Please select a PRN engine ["
         << pcg8_name << ", "
         << pcg16_name << ", "
         << pcg32_name << ", "
-        << pcg64_name << "]." << std::endl;
+        << pcg64_name << ", "
+        << xorshift_star8_name << ", "
+        << xorshift_star16_name << ", "
+        << xorshift_star32_name << "]." << std::endl;
   }
 
   return 0;

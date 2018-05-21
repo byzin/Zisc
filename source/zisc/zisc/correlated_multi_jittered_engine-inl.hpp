@@ -32,7 +32,7 @@ Float CorrelatedMultiJitteredEngine<kRootN>::generate1D(
     const uint32 p) noexcept
 {
   static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-  constexpr uint32 n = zisc::power<2>(kRootN);
+  constexpr uint32 n = getPeriod();
 
   const uint32 sx = permute<n>(s, p * 0x68bc21eb);
   Float x = mapTo01Float<Float>(hashInteger(s, p * 0x967a889b));
@@ -52,7 +52,7 @@ std::array<Float, 2> CorrelatedMultiJitteredEngine<kRootN>::generate2D(
     const uint32 p) noexcept
 {
   static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-  constexpr uint32 n = zisc::power<2>(kRootN);
+  constexpr uint32 n = getPeriod();
 
   s = permute<n>(s, p * 0x51633e2d);
 
@@ -72,6 +72,37 @@ std::array<Float, 2> CorrelatedMultiJitteredEngine<kRootN>::generate2D(
 
   return std::array<Float, 2>{{x, y}};
 }
+
+/*!
+  */
+template <uint32 kRootN> inline
+constexpr std::size_t CorrelatedMultiJitteredEngine<kRootN>::getPeriod() noexcept
+{
+  constexpr std::size_t period = power<2>(kRootN);
+  return period;
+}
+
+/*!
+  */
+template <uint32 kRootN> template <typename UnsignedInteger> inline
+constexpr bool CorrelatedMultiJitteredEngine<kRootN>::isEndOfPeriod(
+    const UnsignedInteger sample) noexcept
+{
+  static_assert(kIsUnsignedInteger<UnsignedInteger>,
+                "UnsignedInteger isn't unsigned integer.");
+  if (std::numeric_limits<UnsignedInteger>::max() < getPeriod()) {
+    constexpr UnsignedInteger end_of_period =
+        std::numeric_limits<UnsignedInteger>::max();
+    return sample == end_of_period;
+  }
+  else {
+    constexpr UnsignedInteger end_of_period = getPeriod() - 1;
+    return sample == end_of_period;
+  }
+}
+
+/*!
+  */
 
 /*!
   */

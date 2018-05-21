@@ -91,6 +91,19 @@ Float PseudoRandomNumberEngine<GeneratorClass, Seed, Result>::generate01Float()
 }
 
 /*!
+  */
+template <typename GeneratorClass, typename Seed, typename Result>
+template <typename UnsignedInteger> inline
+constexpr bool PseudoRandomNumberEngine<GeneratorClass, Seed, Result>::
+    isEndOfPeriod(const UnsignedInteger sample) noexcept
+{
+  static_assert(kIsUnsignedInteger<UnsignedInteger>,
+                "UnsignedInteger isn't unsigned integer type.");
+  const bool result = GeneratorClass::isEndOfPeriod(sample);
+  return result;
+}
+
+/*!
   \details
   No detailed.
   */

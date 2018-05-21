@@ -12,6 +12,7 @@
 
 // Standard C++ library
 #include <array>
+#include <cstddef>
 #include <cstdint>
 // Zisc
 #include "zisc/zisc_config.hpp"
@@ -36,6 +37,13 @@ class CorrelatedMultiJitteredEngine
   template <typename Float>
   static std::array<Float, 2> generate2D(uint32 s, const uint32 p) noexcept;
 
+  //! Return the period
+  static constexpr std::size_t getPeriod() noexcept;
+
+  //! Check if a specified sample (0 base count) is the end of period
+  template <typename UnsignedInteger>
+  static constexpr bool isEndOfPeriod(const UnsignedInteger sample) noexcept;
+
  private:
   //! Hash the i value
   static uint32 hashInteger(uint32 i, const uint32 p) noexcept;
@@ -56,9 +64,9 @@ class CorrelatedMultiJitteredEngine
   static uint32 permuteImpl(uint32 i, const uint32 p) noexcept;
 };
 
-using CmjEngineN16 = CorrelatedMultiJitteredEngine<4>;
-using CmjEngineN64 = CorrelatedMultiJitteredEngine<8>;
-using CmjEngineN256 = CorrelatedMultiJitteredEngine<16>;
+using CmjN16 = CorrelatedMultiJitteredEngine<4>;
+using CmjN64 = CorrelatedMultiJitteredEngine<8>;
+using CmjN256 = CorrelatedMultiJitteredEngine<16>;
 
 } // namespace zisc
 

@@ -17,6 +17,7 @@
 #include "zisc/sip_hash_engine.hpp"
 #include "zisc/math.hpp"
 #include "zisc/correlated_multi_jittered_engine.hpp"
+#include "zisc/utility.hpp"
 
 namespace {
 
@@ -24,13 +25,24 @@ template <std::uint32_t kRootN>
 void generateRandomNumbers(const std::string_view& seed_key)
 {
   using CmjEngine = zisc::CorrelatedMultiJitteredEngine<kRootN>;
-  constexpr std::uint32_t n = zisc::power<2>(kRootN);
 
-  const std::uint32_t seed = zisc::SipHash32::hash(seed_key);
-  for (std::uint32_t sample = 0; sample < 1024; ++sample) {
-    const std::uint32_t s = sample % n;
-    const std::uint32_t p = seed + n * (sample / (n));
+  std::uint32_t seed = zisc::SipHash32::hash(seed_key);
+  auto update_engine = [&seed](std::uint32_t& s)
+  {
+    if (CmjEngine::isEndOfPeriod(s++)) {
+      ++seed;
+      s = 0;
+    }
+  };
+
+  for (std::uint32_t sample = 0, s = 0; sample < 1024; ++sample) {
+    const std::uint32_t p = zisc::SipHash32::hash(seed);
     const auto xy = CmjEngine::template generate2D<double>(s, p);
+    update_engine(s);
+    if (!zisc::isInBounds(xy[0], 0.0, 1.0))
+      std::cerr << "sample[" << sample << "] x(" << xy[0] << ") is out of range [0, 1)";
+    if (!zisc::isInBounds(xy[1], 0.0, 1.0))
+      std::cerr << "sample[" << sample << "] y(" << xy[1] << ") is out of range [0, 1)";
     std::cout << std::fixed
               << std::setprecision(std::numeric_limits<double>::max_digits10)
               << sample << ", " << xy[0] << ", " << xy[1] << std::endl;

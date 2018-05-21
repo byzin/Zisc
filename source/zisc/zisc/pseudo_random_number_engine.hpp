@@ -54,6 +54,10 @@ class PseudoRandomNumberEngine
   template <typename Float>
   Float generate01Float() noexcept;
 
+  //! Check if a specified sample (0 base count) is the end of period
+  template <typename UnsignedInteger>
+  static constexpr bool isEndOfPeriod(const UnsignedInteger sample) noexcept;
+
   //! Set a random seed
   void setSeed(const SeedType seed) noexcept;
 

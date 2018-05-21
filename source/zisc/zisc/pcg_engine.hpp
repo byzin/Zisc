@@ -63,6 +63,10 @@ class PcgEngine : public PseudoRandomNumberEngine<
   //! Return the n which of the period 2^n
   static constexpr std::size_t getPeriodPow2() noexcept;
 
+  //! Check if a specified sample (0 base count) is the end of period
+  template <typename UnsignedInteger>
+  static constexpr bool isEndOfPeriod(const UnsignedInteger sample) noexcept;
+
   //! Set seed
   void setSeed(const SeedType seed) noexcept;
 

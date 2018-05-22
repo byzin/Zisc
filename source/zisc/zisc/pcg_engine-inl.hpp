@@ -12,6 +12,7 @@
 
 #include "pcg_engine.hpp"
 // Standard C++ library
+#include <cstddef>
 #include <limits>
 #include <type_traits>
 // Zisc

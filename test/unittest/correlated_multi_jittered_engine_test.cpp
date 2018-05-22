@@ -72,5 +72,5 @@ void testCmjEngine(const std::string& reference_file_path)
         testCmjEngine<zisc:: engine_type >(reference_path); \
     }
 
-CMJ_TEST(CmjN64, "resources/cmj_n64_reference");
-CMJ_TEST(CmjN81, "resources/cmj_n81_reference");
+CMJ_TEST(CmjN64, "resources/cmj_n64_reference")
+CMJ_TEST(CmjN81, "resources/cmj_n81_reference")

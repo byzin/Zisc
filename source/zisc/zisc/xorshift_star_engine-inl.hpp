@@ -13,6 +13,8 @@
 #include "xorshift_star_engine-inl.hpp"
 // Standard C++ library
 #include <cstddef>
+#include <limits>
+#include <type_traits>
 // Zisc
 #include "pseudo_random_number_engine.hpp"
 #include "type_traits.hpp"

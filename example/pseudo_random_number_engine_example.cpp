@@ -19,6 +19,7 @@
 #include "zisc/pseudo_random_number_engine.hpp"
 #include "zisc/utility.hpp"
 #include "zisc/xorshift_star_engine.hpp"
+#include "zisc/xoshiro_2star_engine.hpp"
 #include "zisc/zisc_config.hpp"
 
 namespace {
@@ -81,6 +82,8 @@ int main(int argc, char** argv)
   const std::string_view xorshift_star8_name{"xorshift*8"};
   const std::string_view xorshift_star16_name{"xorshift*16"};
   const std::string_view xorshift_star32_name{"xorshift*32"};
+  const std::string_view xoshiro_2star32_name{"xoshiro**32"};
+  const std::string_view xoshiro_2star64_name{"xoshiro**64"};
 
   if (engine_name == pcg8_name)
     runRngTest<zisc::PcgLcgRxsMXs8>(pcg8_name);
@@ -96,6 +99,10 @@ int main(int argc, char** argv)
     runRngTest<zisc::XorshiftStar16>(xorshift_star16_name);
   else if (engine_name == xorshift_star32_name)
     runRngTest<zisc::XorshiftStar32>(xorshift_star32_name);
+  else if (engine_name == xoshiro_2star32_name)
+    runRngTest<zisc::Xoshiro2Star32>(xoshiro_2star32_name);
+  else if (engine_name == xoshiro_2star64_name)
+    runRngTest<zisc::Xoshiro2Star64>(xoshiro_2star64_name);
   else {
     std::cerr << "Please select a PRN engine ["
         << pcg8_name << ", "
@@ -104,7 +111,9 @@ int main(int argc, char** argv)
         << pcg64_name << ", "
         << xorshift_star8_name << ", "
         << xorshift_star16_name << ", "
-        << xorshift_star32_name << "]." << std::endl;
+        << xorshift_star32_name << ", "
+        << xoshiro_2star32_name << ", "
+        << xoshiro_2star64_name << "]." << std::endl;
   }
 
   return 0;

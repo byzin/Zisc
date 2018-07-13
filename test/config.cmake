@@ -10,12 +10,6 @@ set(__test_root__ ${CMAKE_CURRENT_LIST_DIR})
 
 function(getTestCompileOption test_compile_flags)
   set(compile_flags "")
-  if(Z_VISUAL_STUDIO)
-    list(APPEND compile_flags /bigobj
-                              )
-  endif()
-
-
   # Output variable
   set(${test_compile_flags} ${compile_flags} PARENT_SCOPE)
 endfunction(getTestCompileOption)
@@ -25,11 +19,7 @@ function(getTestWarningOption test_warning_flags)
 
   # Suppress warnings
   if(ZISC_SUPPRESS_EXCESSIVE_WARNING)
-    if(Z_CLANG AND Z_VISUAL_STUDIO)
-      list(APPEND warning_flags -Wno-deprecated-declarations
-                                -Wno-sign-compare
-                                )
-    elseif(Z_CLANG)
+    if(Z_CLANG)
       list(APPEND warning_flags -Wno-covered-switch-default
                                 -Wno-exit-time-destructors
                                 -Wno-float-equal

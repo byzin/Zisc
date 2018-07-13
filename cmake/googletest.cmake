@@ -13,7 +13,7 @@ function(buildGoogleTest gtest_project_root gtest_include_dir gtest_libraries)
   set(googletest_build_dir ${PROJECT_BINARY_DIR}/googletest)
   set(googletest_build_command ${CMAKE_COMMAND} --build . --config ${CMAKE_BUILD_TYPE})
 
-  getCompilerOption(googletest_flags googletest_linker_flgas googletest_definitions)
+  getCxxCompilerOption(googletest_flags googletest_linker_flgas googletest_definitions)
   string(REPLACE ";" " " googletest_flags "${googletest_flags}")
   string(REPLACE ";" " " googletest_linker_flgas "${googletest_linker_flgas}")
   string(REPLACE ";" " " googletest_definitions "${googletest_definitions}")
@@ -37,6 +37,7 @@ function(buildGoogleTest gtest_project_root gtest_include_dir gtest_libraries)
       # For Windows mingw
       list(APPEND googletest_cmake_options -Dgtest_disable_pthreads=ON)
     endif()
+    set(googletest_toolset ${CMAKE_GENERATOR_TOOLSET})
     set(googletest_c_compiler ${CMAKE_C_COMPILER})
     set(googletest_cxx_compiler ${CMAKE_CXX_COMPILER})
     set(libgtest_lib_name "libgtest.a")
@@ -49,6 +50,7 @@ function(buildGoogleTest gtest_project_root gtest_include_dir gtest_libraries)
                       PREFIX ${googletest_build_dir}
                       SOURCE_DIR ${gtest_project_root}
                       CMAKE_GENERATOR ${CMAKE_GENERATOR}
+                      CMAKE_GENERATOR_TOOLSET ${googletest_toolset}
                       CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
                                  -DCMAKE_INSTALL_PREFIX=${googletest_build_dir}
                                  -DCMAKE_C_COMPILER=${googletest_c_compiler}

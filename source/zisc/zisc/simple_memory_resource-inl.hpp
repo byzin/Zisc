@@ -28,7 +28,7 @@ void* SimpleMemoryResource::allocateMemory(const std::size_t size,
                                            const std::size_t alignment) noexcept
 {
   //! \todo Solve code branch
-#if defined(Z_GCC) || defined(Z_APPLE_CLANG) || defined(Z_MSVC)
+#if defined(Z_GCC) || defined(Z_APPLE_CLANG) || defined(Z_VISUAL_STUDIO)
   static_cast<void>(alignment);
   auto data = std::malloc(size);
 #else

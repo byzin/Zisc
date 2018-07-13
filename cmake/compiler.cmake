@@ -67,6 +67,9 @@ function(getClangCompilerOption cxx_compile_flags cxx_linker_flags cxx_definitio
                             -fconstexpr-steps=${constexpr_steps}
                             -ftemplate-depth=${recursive_template_depth})
 
+  if(Z_VISUAL_STUDIO)
+    list(APPEND compile_flags -std=c++17)
+  endif()
   if(Z_CLANG_USES_LIBCXX)
     list(APPEND compile_flags -stdlib=libc++)
     list(APPEND linker_flags -stdlib=libc++)
@@ -76,9 +79,6 @@ function(getClangCompilerOption cxx_compile_flags cxx_linker_flags cxx_definitio
     if(Z_CLANG_USES_LIBCXX)
       list(APPEND linker_flags c++abi)
     endif()
-  endif()
-  if(Z_VISUAL_STUDIO)
-    list(APPEND cxx_compile_flags /EHsc)
   endif()
 
   # Sanitizer
@@ -158,20 +158,12 @@ endfunction(getGccCompilerOption)
 
 function(getClangWarningOption compiler_warning_flags)
   set(warning_flags "")
-  if(Z_VISUAL_STUDIO)
-    list(APPEND warning_flags /W4
-                              )
-    if(Z_TREAT_COMPILER_WARNING_AS_ERROR)
-      list(APPEND warning_flags /WX)
-    endif()
-  else()
-    list(APPEND warning_flags -Weverything
-                              -Wno-c++98-compat
-                              -Wno-c++98-compat-pedantic
-                              )
-    if(Z_TREAT_COMPILER_WARNING_AS_ERROR)
-      list(APPEND warning_flags -Werror)
-    endif()
+  list(APPEND warning_flags -Weverything
+                            -Wno-c++98-compat
+                            -Wno-c++98-compat-pedantic
+                            )
+  if(Z_TREAT_COMPILER_WARNING_AS_ERROR)
+    list(APPEND warning_flags -Werror)
   endif()
   # Output variables
   set(${compiler_warning_flags} ${warning_flags} PARENT_SCOPE)
@@ -224,7 +216,7 @@ endfunction(getMsvcWarningOption)
 
 # Output functions
 # Get compile options
-function(getCompilerOption cxx_compile_flags cxx_linker_flags cxx_definitions)
+function(getCxxCompilerOption cxx_compile_flags cxx_linker_flags cxx_definitions)
 
   set(constexpr_depth 512)
   set(constexpr_backtrace 16)
@@ -242,7 +234,7 @@ function(getCompilerOption cxx_compile_flags cxx_linker_flags cxx_definitions)
   set(${cxx_compile_flags} ${compile_flags} PARENT_SCOPE)
   set(${cxx_linker_flags} ${linker_flags} PARENT_SCOPE)
   set(${cxx_definitions} ${definitions} PARENT_SCOPE)
-endfunction(getCompilerOption)
+endfunction(getCxxCompilerOption)
 
 
 #

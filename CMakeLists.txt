@@ -28,11 +28,11 @@ restrictBuildDirectory(${PROJECT_SOURCE_DIR}/build)
 detectEnvironment(environment_definitions)
 # Command options
 include(${PROJECT_SOURCE_DIR}/cmake/option.cmake)
-setCommandOption()
+initCommandOption()
 #
 include(${PROJECT_SOURCE_DIR}/cmake/compiler.cmake)
 initCompilerOption()
-getCompilerOption(cxx_compile_flags cxx_linker_flags cxx_definitions)
+getCxxCompilerOption(cxx_compile_flags cxx_linker_flags cxx_definitions)
 
 # Load zisc
 include(${PROJECT_SOURCE_DIR}/source/zisc/config.cmake)

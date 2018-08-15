@@ -143,6 +143,27 @@ TEST(ThreadManagerTest, ParallelTest)
     ASSERT_EQ(2, id_list[2]) << "Loop parallel failed.";
     ASSERT_EQ(3, id_list[3]) << "Loop parallel failed.";
   }
+  // Thread range computation
+  {
+    {
+      const uint range = num_of_threads;
+      auto thread_range = thread_manager.calcThreadRange(range, 0);
+      ASSERT_EQ(thread_range[0], 0) << "calcThreadRange() is wrong.";
+      ASSERT_EQ(thread_range[1], 1) << "calcThreadRange() is wrong.";
+      thread_range = thread_manager.calcThreadRange(range, num_of_threads - 1);
+      ASSERT_EQ(thread_range[0], 3) << "calcThreadRange() is wrong.";
+      ASSERT_EQ(thread_range[1], 4) << "calcThreadRange() is wrong.";
+    }
+    {
+      const uint range = num_of_threads + 1;
+      auto thread_range = thread_manager.calcThreadRange(range, 0);
+      ASSERT_EQ(thread_range[0], 0) << "calcThreadRange() is wrong.";
+      ASSERT_EQ(thread_range[1], 1) << "calcThreadRange() is wrong.";
+      thread_range = thread_manager.calcThreadRange(range, num_of_threads - 1);
+      ASSERT_EQ(thread_range[0], 3) << "calcThreadRange() is wrong.";
+      ASSERT_EQ(thread_range[1], 5) << "calcThreadRange() is wrong.";
+    }
+  }
 }
 
 TEST(ThreadManagerTest, ExitWorkerRunningTest)

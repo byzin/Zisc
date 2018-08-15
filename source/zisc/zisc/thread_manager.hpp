@@ -48,13 +48,15 @@ class ThreadManager : public NonCopyable<ThreadManager>
 
 
   //! Calculate a range of a thread
-  static std::array<uint, 2> calcThreadRange(const uint range,
-                                             const uint num_of_threads,
-                                             const uint thread_id) noexcept;
+  template <typename Integer>
+  static std::array<Integer, 2> calcThreadRange(const Integer range,
+                                                const uint num_of_threads,
+                                                const uint thread_id) noexcept;
 
   //! Calculate a range of a thread
-  std::array<uint, 2> calcThreadRange(const uint range, 
-                                      const uint thread_id) const noexcept;
+  template <typename Integer>
+  std::array<Integer, 2> calcThreadRange(const Integer range, 
+                                         const uint thread_id) const noexcept;
 
   //! A worker thread run a task
   template <typename ReturnType, typename Task>

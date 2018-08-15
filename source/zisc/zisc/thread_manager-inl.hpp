@@ -74,24 +74,29 @@ ThreadManager::~ThreadManager()
 
 /*!
   */
-inline
-std::array<uint, 2> ThreadManager::calcThreadRange(const uint range,
-                                                   const uint num_of_threads,
-                                                   const uint thread_id) noexcept
+template <typename Integer> inline
+std::array<Integer, 2> ThreadManager::calcThreadRange(const Integer range,
+                                                      const uint num_of_threads,
+                                                      const uint thread_id) noexcept
 {
-  const uint n = range / num_of_threads;
-  const uint begin = n * thread_id;
-  const uint end = begin + ((thread_id + 1 == num_of_threads)
-      ? n + (range - n * num_of_threads)
-      : n);
-  return std::array<uint, 2>{{begin, end}};
+  static_assert(kIsInteger<Integer>, "The Integer isn't integer type.");
+  ZISC_ASSERT(0 < num_of_threads, "The num of threads is zero.");
+
+  const Integer threads = cast<Integer>(num_of_threads);
+  const Integer id = cast<Integer>(thread_id);
+  ZISC_ASSERT(threads <= range, "The range is less than the num of threads.");
+
+  const Integer n = range / threads;
+  const Integer begin = n * id;
+  const Integer end = begin + n + ((id + 1 == threads) ? range - n * threads : 0);
+  return {{begin, end}};
 }
 
 /*!
   */
-inline
-std::array<uint, 2> ThreadManager::calcThreadRange(const uint range,
-                                                   const uint thread_id) const noexcept
+template <typename Integer> inline
+std::array<Integer, 2> ThreadManager::calcThreadRange(const Integer range,
+                                                      const uint thread_id) const noexcept
 {
   return calcThreadRange(range, numOfThreads(), thread_id);
 }

@@ -61,6 +61,10 @@ TEST(UniqueMemoryPointerTest, FunctionTest)
 
   auto shared_resource = zisc::SimpleMemoryResource::sharedResource();
   ASSERT_TRUE(shared_resource->is_equal(*shared_resource));
+  shared_resource->reset();
+  shared_resource->setMutex(nullptr);
+  ASSERT_TRUE(0 <= shared_resource->capacity());
+  ASSERT_TRUE(shared_resource->usedMemory() == 0);
 
   {
     auto p2 = UniquePointer::make(shared_resource, 100);

@@ -14,6 +14,7 @@
 // Standard C++ library
 #include <cstddef>
 #include <cstdlib>
+#include <mutex>
 // Zisc
 #include "error.hpp"
 #include "memory_resource.hpp"
@@ -36,6 +37,15 @@ void* SimpleMemoryResource::allocateMemory(const std::size_t size,
 #endif
   ZISC_ASSERT(isAligned(data, alignment), "The data isn't aligned.");
   return data;
+}
+
+/*!
+  */
+inline
+std::size_t SimpleMemoryResource::capacity() const noexcept
+{
+  constexpr std::size_t c = 4 * 1024u * 1024u * 1024;
+  return c;
 }
 
 /*!
@@ -88,10 +98,32 @@ bool SimpleMemoryResource::isAligned(const void* data,
 /*!
   */
 inline
+void SimpleMemoryResource::reset() noexcept
+{
+}
+
+/*!
+  */
+inline
+void SimpleMemoryResource::setMutex(std::mutex* /* mutex */) noexcept
+{
+}
+
+/*!
+  */
+inline
 SimpleMemoryResource* SimpleMemoryResource::sharedResource() noexcept
 {
   static SimpleMemoryResource shared_resource;
   return &shared_resource;
+}
+
+/*!
+  */
+inline
+std::size_t SimpleMemoryResource::usedMemory() const noexcept
+{
+  return 0;
 }
 
 } // namespace zisc

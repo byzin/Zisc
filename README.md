@@ -15,7 +15,7 @@ Version: 0.0.36
 
 * [CMake](https://cmake.org/) (version 3.10 or later)
 
-## Acknowledgement
+## Acknowledgement ##
 
 I would like to thank the following projects.
 
@@ -26,4 +26,4 @@ I would like to thank the following projects.
 ## License ##
 
 This software is released under the MIT License,
-see [MIT-LICENSE.txt](./MIT-LICENSE.txt) .
+see [LICENSE](LICENSE).

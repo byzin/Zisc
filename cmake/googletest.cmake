@@ -51,7 +51,7 @@ function(buildGoogleTest gtest_project_root gtest_include_dir gtest_libraries)
                       SOURCE_DIR ${gtest_project_root}
                       CMAKE_GENERATOR ${CMAKE_GENERATOR}
                       CMAKE_GENERATOR_TOOLSET ${googletest_toolset}
-                      CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+                      CMAKE_ARGS -DCMAKE_BUILD_TYPE=Release
                                  -DCMAKE_INSTALL_PREFIX=${googletest_build_dir}
                                  -DCMAKE_C_COMPILER=${googletest_c_compiler}
                                  -DCMAKE_CXX_COMPILER=${googletest_cxx_compiler}

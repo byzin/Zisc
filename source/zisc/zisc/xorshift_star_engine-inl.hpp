@@ -26,7 +26,7 @@ namespace zisc {
 /*!
   */
 template <typename Seed, typename Result,
-          Seed kMultiplier, uint8 kA, uint8 kB, uint8 kC> inline
+          Seed kMultiplier, uint8b kA, uint8b kB, uint8b kC> inline
 XorshiftStarEngine<Seed, Result, kMultiplier, kA, kB, kC>::XorshiftStarEngine() noexcept
 {
   constexpr SeedType seed = cast<SeedType>(0xc1f651c67c62c6e0ull);
@@ -36,7 +36,7 @@ XorshiftStarEngine<Seed, Result, kMultiplier, kA, kB, kC>::XorshiftStarEngine() 
 /*!
   */
 template <typename Seed, typename Result,
-          Seed kMultiplier, uint8 kA, uint8 kB, uint8 kC> inline
+          Seed kMultiplier, uint8b kA, uint8b kB, uint8b kC> inline
 XorshiftStarEngine<Seed, Result, kMultiplier, kA, kB, kC>::XorshiftStarEngine(
     const SeedType seed) noexcept
 {
@@ -46,7 +46,7 @@ XorshiftStarEngine<Seed, Result, kMultiplier, kA, kB, kC>::XorshiftStarEngine(
 /*!
   */
 template <typename Seed, typename Result,
-          Seed kMultiplier, uint8 kA, uint8 kB, uint8 kC> inline
+          Seed kMultiplier, uint8b kA, uint8b kB, uint8b kC> inline
 auto XorshiftStarEngine<Seed, Result, kMultiplier, kA, kB, kC>::generate() noexcept
     -> ResultType
 {
@@ -62,7 +62,7 @@ auto XorshiftStarEngine<Seed, Result, kMultiplier, kA, kB, kC>::generate() noexc
 /*!
   */
 template <typename Seed, typename Result,
-          Seed kMultiplier, uint8 kA, uint8 kB, uint8 kC> inline
+          Seed kMultiplier, uint8b kA, uint8b kB, uint8b kC> inline
 constexpr std::size_t XorshiftStarEngine<Seed, Result, kMultiplier, kA, kB, kC>::
     getPeriodPow2() noexcept
 {
@@ -74,7 +74,7 @@ constexpr std::size_t XorshiftStarEngine<Seed, Result, kMultiplier, kA, kB, kC>:
 /*!
   */
 template <typename Seed, typename Result,
-          Seed kMultiplier, uint8 kA, uint8 kB, uint8 kC>
+          Seed kMultiplier, uint8b kA, uint8b kB, uint8b kC>
 template <typename UnsignedInteger> inline
 constexpr bool XorshiftStarEngine<Seed, Result, kMultiplier, kA, kB, kC>::
     isEndOfPeriod(const UnsignedInteger sample) noexcept
@@ -100,7 +100,7 @@ constexpr bool XorshiftStarEngine<Seed, Result, kMultiplier, kA, kB, kC>::
 /*!
   */
 template <typename Seed, typename Result,
-          Seed kMultiplier, uint8 kA, uint8 kB, uint8 kC> inline
+          Seed kMultiplier, uint8b kA, uint8b kB, uint8b kC> inline
 void XorshiftStarEngine<Seed, Result, kMultiplier, kA, kB, kC>::setSeed(
     const SeedType seed) noexcept
 {
@@ -110,7 +110,7 @@ void XorshiftStarEngine<Seed, Result, kMultiplier, kA, kB, kC>::setSeed(
 /*!
   */
 template <typename Seed, typename Result,
-          Seed kMultiplier, uint8 kA, uint8 kB, uint8 kC> inline
+          Seed kMultiplier, uint8b kA, uint8b kB, uint8b kC> inline
 void XorshiftStarEngine<Seed, Result, kMultiplier, kA, kB, kC>::advance() noexcept
 {
   state_ ^= state_ >> kA;
@@ -121,7 +121,7 @@ void XorshiftStarEngine<Seed, Result, kMultiplier, kA, kB, kC>::advance() noexce
 /*!
   */
 template <typename Seed, typename Result,
-          Seed kMultiplier, uint8 kA, uint8 kB, uint8 kC> inline
+          Seed kMultiplier, uint8b kA, uint8b kB, uint8b kC> inline
 constexpr auto XorshiftStarEngine<Seed, Result, kMultiplier, kA, kB, kC>::multiplier()
     noexcept -> SeedType
 {

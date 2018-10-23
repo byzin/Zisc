@@ -35,7 +35,7 @@ MemoryChunk::MemoryChunk() noexcept
 /*!
   */
 inline
-MemoryChunk::MemoryChunk(const uint32 id) noexcept :
+MemoryChunk::MemoryChunk(const uint32b id) noexcept :
     id_{id}
 {
   initialize();
@@ -44,7 +44,7 @@ MemoryChunk::MemoryChunk(const uint32 id) noexcept :
 /*!
   */
 inline
-constexpr uint8 MemoryChunk::boundaryValue() noexcept
+constexpr uint8b MemoryChunk::boundaryValue() noexcept
 {
   return kBoundary;
 }
@@ -72,7 +72,7 @@ const Type* MemoryChunk::data() const noexcept
 inline
 MemoryChunk* MemoryChunk::getChunk(void* p) noexcept
 {
-  uint8* chunk = cast<uint8*>(p) - 1;
+  uint8b* chunk = cast<uint8b*>(p) - 1;
   for (; *chunk == paddingValue(); --chunk) {}
   return (*chunk == boundaryValue())
       ? reinterpret_cast<MemoryChunk*>(chunk - (headerSize() - 1))
@@ -84,7 +84,7 @@ MemoryChunk* MemoryChunk::getChunk(void* p) noexcept
 inline
 const MemoryChunk* MemoryChunk::getChunk(const void* p) noexcept
 {
-  const uint8* chunk = cast<const uint8*>(p) - 1;
+  const uint8b* chunk = cast<const uint8b*>(p) - 1;
   for (; *chunk == paddingValue(); --chunk) {}
   return (*chunk == boundaryValue())
       ? reinterpret_cast<const MemoryChunk*>(chunk - (headerSize() - 1))
@@ -112,7 +112,7 @@ constexpr std::size_t MemoryChunk::headerSize() noexcept
 /*!
   */
 inline
-uint32 MemoryChunk::id() const noexcept
+uint32b MemoryChunk::id() const noexcept
 {
   return id_;
 }
@@ -177,7 +177,7 @@ const MemoryChunk* MemoryChunk::linkedChunk() const noexcept
 /*!
   */
 inline
-constexpr uint32 MemoryChunk::linkId() noexcept
+constexpr uint32b MemoryChunk::linkId() noexcept
 {
   return kLinkId;
 }
@@ -185,7 +185,7 @@ constexpr uint32 MemoryChunk::linkId() noexcept
 /*!
   */
 inline
-constexpr uint32 MemoryChunk::nullId() noexcept
+constexpr uint32b MemoryChunk::nullId() noexcept
 {
   return kNullId;
 }
@@ -193,7 +193,7 @@ constexpr uint32 MemoryChunk::nullId() noexcept
 /*!
   */
 inline
-constexpr uint8 MemoryChunk::paddingValue() noexcept
+constexpr uint8b MemoryChunk::paddingValue() noexcept
 {
   return kPadding;
 }
@@ -237,7 +237,7 @@ void MemoryChunk::setChunkInfo(const std::size_t size,
     {
       const std::size_t o1 = memory_space - space;
       ZISC_ASSERT(o1 < alignment, "The size of the offset1 exceeded the limit.");
-      offset_[0] = cast<uint8>(o1);
+      offset_[0] = cast<uint8b>(o1);
     }
     {
       constexpr std::size_t chunk_align = headerAlignment();
@@ -245,10 +245,10 @@ void MemoryChunk::setChunkInfo(const std::size_t size,
       std::size_t o2 = (chunk_align - constant::mod<chunk_align>(size));
       o2 = (o2 == chunk_align) ? 0 : o2;
       ZISC_ASSERT(o2 < chunk_align, "The size of the offset2 exceeded the limit.");
-      offset_[1] = cast<uint8>(o2);
+      offset_[1] = cast<uint8b>(o2);
     }
     {
-      size_ = cast<uint64>(size);
+      size_ = cast<uint64b>(size);
     }
     fillPadding();
   }
@@ -269,7 +269,7 @@ void MemoryChunk::setChunkInfo(const uint n) noexcept
 /*!
   */
 inline
-void MemoryChunk::setId(const uint32 id) noexcept
+void MemoryChunk::setId(const uint32b id) noexcept
 {
   id_ = id;
 }
@@ -281,7 +281,7 @@ void MemoryChunk::setLink(const MemoryChunk* chunk) noexcept
 {
   setId(linkId());
   const auto address = treatAs<std::size_t>(chunk);
-  size_ = cast<uint64>(address);
+  size_ = cast<uint64b>(address);
 }
 
 /*!
@@ -304,7 +304,7 @@ std::size_t MemoryChunk::stride() const noexcept
 /*!
   */
 inline
-uint8* MemoryChunk::dataHead() noexcept
+uint8b* MemoryChunk::dataHead() noexcept
 {
   auto p = headerPointer() + headerSize();
   return p;
@@ -313,7 +313,7 @@ uint8* MemoryChunk::dataHead() noexcept
 /*!
   */
 inline
-const uint8* MemoryChunk::dataHead() const noexcept
+const uint8b* MemoryChunk::dataHead() const noexcept
 {
   auto p = headerPointer() + headerSize();
   return p;
@@ -332,18 +332,18 @@ void MemoryChunk::fillPadding() noexcept
 /*!
   */
 inline
-uint8* MemoryChunk::headerPointer() noexcept
+uint8b* MemoryChunk::headerPointer() noexcept
 {
-  auto p = treatAs<uint8*>(this);
+  auto p = treatAs<uint8b*>(this);
   return p;
 }
 
 /*!
   */
 inline
-const uint8* MemoryChunk::headerPointer() const noexcept
+const uint8b* MemoryChunk::headerPointer() const noexcept
 {
-  auto p = treatAs<const uint8*>(this);
+  auto p = treatAs<const uint8b*>(this);
   return p;
 }
 
@@ -355,7 +355,7 @@ void MemoryChunk::initialize() noexcept
   // Check size
   static_assert(headerAlignment() == 8, "The align of the chunk isn't 8.");
   static_assert(headerSize() == 16, "The size of the chunk isn't 16.");
-  static_assert(alignof(uint8) == 1, "The align of uint8 isn't 1.");
+  static_assert(alignof(uint8b) == 1, "The align of uint8b isn't 1.");
 }
 
 /*!

@@ -35,7 +35,7 @@ constexpr Float makeNormal(const Float x) noexcept
   const Float sign = zisc::isNegative(x) ? cast<Float>(-1.0) : cast<Float>(1.0);
   const int exponent = zisc::clamp(cast<int>(k * cast<Float>(bias)), -bias+1, bias);
 
-  const auto h = zisc::SipHash32::hash(cast<zisc::uint32>(zisc::abs(exponent)));
+  const auto h = zisc::SipHash32::hash(cast<zisc::uint32b>(zisc::abs(exponent)));
   const Float s = cast<Float>(zisc::FloatingPointBit<float>::mapTo01Float(h));
 
   Float normal = s * zisc::power(cast<Float>(2.0), exponent);

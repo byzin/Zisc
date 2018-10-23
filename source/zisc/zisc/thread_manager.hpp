@@ -110,8 +110,8 @@ class ThreadManager : public NonCopyable<ThreadManager>
   std::condition_variable condition_;
   std::queue<TaskPointer, pmr::deque<TaskPointer>> task_queue_;
   pmr::vector<std::thread> workers_;
-  uint8 workers_are_enabled_;
-  std::array<uint8, 7> padding_;
+  uint8b workers_are_enabled_;
+  std::array<uint8b, 7> padding_;
 };
 
 } // namespace zisc

@@ -28,7 +28,7 @@ void testPcgEngine(const std::string& reference_file_path)
   PcgEngine pcg{seed};
 
   constexpr int n = 1024;
-  zisc::uint64 reference;
+  zisc::uint64b reference;
   for (int i = 0; i < n; ++i) {
     reference_file >> reference;
     const auto r = static_cast<typename PcgEngine::ResultType>(reference);

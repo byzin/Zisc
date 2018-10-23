@@ -29,11 +29,11 @@ class MemoryChunk : public NonCopyable<MemoryChunk>
   MemoryChunk() noexcept;
 
   //! Create an uninitialized chunk
-  MemoryChunk(const uint32 id) noexcept;
+  MemoryChunk(const uint32b id) noexcept;
 
 
   //! Return the boundary value
-  static constexpr uint8 boundaryValue() noexcept;
+  static constexpr uint8b boundaryValue() noexcept;
 
   //! Return the pointer of the aligned data
   template <typename Type>
@@ -56,7 +56,7 @@ class MemoryChunk : public NonCopyable<MemoryChunk>
   static constexpr std::size_t headerSize() noexcept;
 
   //! Return the chunk ID (chunk index)
-  uint32 id() const noexcept;
+  uint32b id() const noexcept;
 
   //! Check if "data" is aligned for chunk
   static bool isAligned(const void* data) noexcept;
@@ -77,13 +77,13 @@ class MemoryChunk : public NonCopyable<MemoryChunk>
   const MemoryChunk* linkedChunk() const noexcept;
 
   //! Return the link chunk ID
-  static constexpr uint32 linkId() noexcept;
+  static constexpr uint32b linkId() noexcept;
 
   //! Return the null chunk ID
-  static constexpr uint32 nullId() noexcept;
+  static constexpr uint32b nullId() noexcept;
 
   //! Return the padding value
-  static constexpr uint8 paddingValue() noexcept;
+  static constexpr uint8b paddingValue() noexcept;
 
   //! Reset the chunk info
   void reset() noexcept;
@@ -99,7 +99,7 @@ class MemoryChunk : public NonCopyable<MemoryChunk>
   void setChunkInfo(const uint n) noexcept;
 
   //! Set the chunk ID
-  void setId(const uint32 id) noexcept;
+  void setId(const uint32b id) noexcept;
 
   //! Set a chunk to be linked
   void setLink(const MemoryChunk* chunk) noexcept;
@@ -112,19 +112,19 @@ class MemoryChunk : public NonCopyable<MemoryChunk>
 
  private:
   //! Return the pointer of the data head
-  uint8* dataHead() noexcept;
+  uint8b* dataHead() noexcept;
 
   //! Return the pointer of the data head
-  const uint8* dataHead() const noexcept;
+  const uint8b* dataHead() const noexcept;
 
   //! Fill the padding data by the padding value
   void fillPadding() noexcept;
 
   //! Return the chunk header pointer
-  uint8* headerPointer() noexcept;
+  uint8b* headerPointer() noexcept;
 
   //! Return the chunk header pointer
-  const uint8* headerPointer() const noexcept;
+  const uint8b* headerPointer() const noexcept;
 
   //! Initialize the memory chunk
   void initialize() noexcept;
@@ -136,17 +136,17 @@ class MemoryChunk : public NonCopyable<MemoryChunk>
   std::size_t offset2() const noexcept;
 
 
-  static constexpr uint8 kBoundary = 0xffu;
-  static constexpr uint8 kPadding = 0x00u;
-  static constexpr uint32 kNullId = std::numeric_limits<uint32>::max();
-  static constexpr uint32 kLinkId = kNullId - 1;
+  static constexpr uint8b kBoundary = 0xffu;
+  static constexpr uint8b kPadding = 0x00u;
+  static constexpr uint32b kNullId = std::numeric_limits<uint32b>::max();
+  static constexpr uint32b kLinkId = kNullId - 1;
 
 
-  uint64 size_ = 0;
-  uint32 id_ = kNullId;
-  uint8 is_freed_ = kTrue;
-  std::array<uint8, 2> offset_ = {{0, 0}};
-  uint8 boundary_ = kBoundary;
+  uint64b size_ = 0;
+  uint32b id_ = kNullId;
+  uint8b is_freed_ = kTrue;
+  std::array<uint8b, 2> offset_ = {{0, 0}};
+  uint8b boundary_ = kBoundary;
 };
 
 } // namespace zisc

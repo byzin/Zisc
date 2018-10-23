@@ -31,12 +31,12 @@ namespace constant {
 namespace inner {
 
 template <typename Float> inline
-constexpr Float calcPi(const int64 n) noexcept
+constexpr Float calcPi(const int64b n) noexcept
 {
   static_assert(kIsFloat<Float>, "Float isn't floating point type.");
   constexpr Float t = cast<Float>(2.0);
   Float pi = t;
-  for (int64 k = n; 0 < k; --k) {
+  for (int64b k = n; 0 < k; --k) {
     const Float a = cast<Float>(k) / cast<Float>(2 * k + 1);
     pi = t + a * pi;
   }
@@ -51,7 +51,7 @@ template <typename Float> inline
 constexpr Float pi() noexcept
 {
   static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-  constexpr int64 n = 4 * std::numeric_limits<Float>::digits10;
+  constexpr int64b n = 4 * std::numeric_limits<Float>::digits10;
   const Float p = inner::calcPi<Float>(n);
   return p;
 }
@@ -458,7 +458,7 @@ constexpr Float sin(const Float x) noexcept
   constexpr Float half_pi = cast<Float>(0.5) * pi<Float>();
   if (double_pi <= theta) {
     constexpr Float k = invert(double_pi);
-    const uint64 e = cast<uint64>(k * theta) - 1;
+    const uint64b e = cast<uint64b>(k * theta) - 1;
     theta = theta - cast<Float>(e) * double_pi;
   }
   if (pi<Float>() <= theta) {
@@ -487,7 +487,7 @@ constexpr Float cos(const Float x) noexcept
   constexpr Float double_pi = cast<Float>(2.0) * pi<Float>();
   if (double_pi <= theta) {
     constexpr Float k = invert(double_pi);
-    const uint64 e = cast<uint64>(k * theta) - 1;
+    const uint64b e = cast<uint64b>(k * theta) - 1;
     theta = theta - cast<Float>(e) * double_pi;
   }
   if (pi<Float>() <= theta)

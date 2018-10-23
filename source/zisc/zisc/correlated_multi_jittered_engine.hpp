@@ -25,17 +25,17 @@ namespace zisc {
   "Correlated Multi-Jittered Sampling"
   Andrew Kensler, Pixar Technical Memo 13-01, 2013
   */
-template <uint32 kRootN>
+template <uint32b kRootN>
 class CorrelatedMultiJitteredEngine
 {
  public:
   //! Generate a [0, 1) float random number
   template <typename Float>
-  static Float generate1D(const uint32 s, const uint32 p) noexcept;
+  static Float generate1D(const uint32b s, const uint32b p) noexcept;
 
   //! Generate two [0, 1) float random numbers
   template <typename Float>
-  static std::array<Float, 2> generate2D(uint32 s, const uint32 p) noexcept;
+  static std::array<Float, 2> generate2D(uint32b s, const uint32b p) noexcept;
 
   //! Return the period
   static constexpr std::size_t getPeriod() noexcept;
@@ -46,22 +46,22 @@ class CorrelatedMultiJitteredEngine
 
  private:
   //! Hash the i value
-  static uint32 hashInteger(uint32 i, const uint32 p) noexcept;
+  static uint32b hashInteger(uint32b i, const uint32b p) noexcept;
 
   //! Make a w mask
-  static constexpr uint32 makeWMask(const uint32 w) noexcept;
+  static constexpr uint32b makeWMask(const uint32b w) noexcept;
 
   //! Map an integer value to a [0, 1) floating point value 
   template <typename Float>
-  static Float mapTo01Float(const uint32 x) noexcept;
+  static Float mapTo01Float(const uint32b x) noexcept;
 
   //!
-  template <uint32 l>
-  static uint32 permute(uint32 i, const uint32 p) noexcept;
+  template <uint32b l>
+  static uint32b permute(uint32b i, const uint32b p) noexcept;
 
   //! The implementation of permutation
-  template <uint32 w>
-  static uint32 permuteImpl(uint32 i, const uint32 p) noexcept;
+  template <uint32b w>
+  static uint32b permuteImpl(uint32b i, const uint32b p) noexcept;
 };
 
 using CmjN16 = CorrelatedMultiJitteredEngine<4>;

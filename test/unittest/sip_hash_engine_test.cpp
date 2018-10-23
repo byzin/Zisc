@@ -33,13 +33,13 @@ void testSipHash(const std::string& reference_file_path)
 
   auto get_input_list = []()
   {
-    std::array<zisc::uint8, kN> inputs{};
+    std::array<zisc::uint8b, kN> inputs{};
     for (std::size_t i = 0; i < kN; ++i)
-      inputs[i] = static_cast<zisc::uint8>(i);
+      inputs[i] = static_cast<zisc::uint8b>(i);
     return inputs;
   };
 
-  auto to_uint = [](const std::array<zisc::uint8, kHashSize> outputs)
+  auto to_uint = [](const std::array<zisc::uint8b, kHashSize> outputs)
   {
     Type result = 0;
     for (std::size_t i = 0; i < kHashSize; ++i)
@@ -50,11 +50,11 @@ void testSipHash(const std::string& reference_file_path)
   constexpr auto input_list = get_input_list();
 
   for (std::size_t i = 0; i < kN; ++i) {
-    std::array<zisc::uint8, kHashSize> output_list;
+    std::array<zisc::uint8b, kHashSize> output_list;
     for (std::size_t b = 0; b < kHashSize; ++b) {
       zisc::uint expected = 0;
       reference_file >> std::hex >> expected;
-      output_list[b] = static_cast<zisc::uint8>(expected);
+      output_list[b] = static_cast<zisc::uint8b>(expected);
     }
 
     const Type result = zisc::SipHashEngine<Type>::hash(input_list.data(), i);
@@ -66,7 +66,7 @@ void testSipHash(const std::string& reference_file_path)
 TEST(SipHashEngineTest, 32BitHashTest)
 {
   // Hash function test
-  testSipHash<zisc::uint32>("resources/sip_hash_32_reference");
+  testSipHash<zisc::uint32b>("resources/sip_hash_32_reference");
   // constexpr test
   using SipHash = zisc::SipHash32;
   {
@@ -74,18 +74,18 @@ TEST(SipHashEngineTest, 32BitHashTest)
     [[maybe_unused]] constexpr auto result = SipHash::hash(seed);
   }
   {
-    constexpr std::array<zisc::uint8, 4> seed0{{1, 2, 3, 4}};
+    constexpr std::array<zisc::uint8b, 4> seed0{{1, 2, 3, 4}};
     constexpr auto expected = SipHash::hash(seed0.data(), 4);
 
     constexpr char seed1[] = {1, 2, 3, 4, '\0'};
     constexpr auto result1 = SipHash::hash(seed1);
-    EXPECT_EQ(*reinterpret_cast<const zisc::uint32*>(seed0.data()),
-              *reinterpret_cast<const zisc::uint32*>(seed1));
+    EXPECT_EQ(*reinterpret_cast<const zisc::uint32b*>(seed0.data()),
+              *reinterpret_cast<const zisc::uint32b*>(seed1));
     EXPECT_EQ(expected, result1) << "Char array hash function test failed.";
 
-    constexpr zisc::uint32 seed2 = 0x04030201;
+    constexpr zisc::uint32b seed2 = 0x04030201;
     constexpr auto result2 = SipHash::hash(seed2);
-    EXPECT_EQ(*reinterpret_cast<const zisc::uint32*>(seed0.data()), seed2);
+    EXPECT_EQ(*reinterpret_cast<const zisc::uint32b*>(seed0.data()), seed2);
     EXPECT_EQ(expected, result2) << "Uint array hash function test failed.";
   }
 }
@@ -93,7 +93,7 @@ TEST(SipHashEngineTest, 32BitHashTest)
 TEST(SipHashEngineTest, 64BitHashTest)
 {
   // Hash function test
-  testSipHash<zisc::uint64>("resources/sip_hash_64_reference");
+  testSipHash<zisc::uint64b>("resources/sip_hash_64_reference");
   // constexpr test
   using SipHash = zisc::SipHash64;
   {
@@ -101,18 +101,18 @@ TEST(SipHashEngineTest, 64BitHashTest)
     [[maybe_unused]] constexpr auto result = SipHash::hash(seed);
   }
   {
-    constexpr std::array<zisc::uint8, 8> seed0{{1, 2, 3, 4, 5, 6, 7, 8}};
+    constexpr std::array<zisc::uint8b, 8> seed0{{1, 2, 3, 4, 5, 6, 7, 8}};
     constexpr auto expected = SipHash::hash(seed0.data(), 8);
 
     constexpr char seed1[] = {1, 2, 3, 4, 5, 6, 7, 8, '\0'};
     constexpr auto result1 = SipHash::hash(seed1);
-    EXPECT_EQ(*reinterpret_cast<const zisc::uint64*>(seed0.data()),
-              *reinterpret_cast<const zisc::uint64*>(seed1));
+    EXPECT_EQ(*reinterpret_cast<const zisc::uint64b*>(seed0.data()),
+              *reinterpret_cast<const zisc::uint64b*>(seed1));
     EXPECT_EQ(expected, result1) << "Char array hash function test failed.";
 
-    constexpr zisc::uint64 seed2 = 0x0807060504030201;
+    constexpr zisc::uint64b seed2 = 0x0807060504030201;
     constexpr auto result2 = SipHash::hash(seed2);
-    EXPECT_EQ(*reinterpret_cast<const zisc::uint64*>(seed0.data()), seed2);
+    EXPECT_EQ(*reinterpret_cast<const zisc::uint64b*>(seed0.data()), seed2);
     EXPECT_EQ(expected, result2) << "Uint array hash function test failed.";
   }
 }

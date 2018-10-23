@@ -28,28 +28,28 @@ namespace inner {
 template <typename ResultType> struct Fnv1aHashEngineImpl;
 
 template <>
-struct Fnv1aHashEngineImpl<uint32>
+struct Fnv1aHashEngineImpl<uint32b>
 {
-  static constexpr uint32 prime() noexcept
+  static constexpr uint32b prime() noexcept
   {
     return 16777619u;
   }
 
-  static constexpr uint32 offset() noexcept
+  static constexpr uint32b offset() noexcept
   {
     return 2166136261u;
   }
 };
 
 template <>
-struct Fnv1aHashEngineImpl<uint64>
+struct Fnv1aHashEngineImpl<uint64b>
 {
-  static constexpr uint64 prime() noexcept
+  static constexpr uint64b prime() noexcept
   {
     return 1099511628211ull;
   }
 
-  static constexpr uint64 offset() noexcept
+  static constexpr uint64b offset() noexcept
   {
     return 14695981039346656037ull;
   }

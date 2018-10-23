@@ -23,7 +23,7 @@ namespace zisc {
 /*! 
   \brief Xoshir** generator
   */
-template <typename Seed, typename Result, uint8 kA, uint8 kB, uint8 kC>
+template <typename Seed, typename Result, uint8b kA, uint8b kB, uint8b kC>
 class Xoshiro2StarEngine : public PseudoRandomNumberEngine<
     Xoshiro2StarEngine<Seed, Result, kA, kB, kC>, Seed, Result>
 {
@@ -65,8 +65,8 @@ class Xoshiro2StarEngine : public PseudoRandomNumberEngine<
 };
 
 // Predefined Xoshiro** type
-using Xoshiro2Star32 = Xoshiro2StarEngine<uint32, uint32, 0, 9, 11>;
-using Xoshiro2Star64 = Xoshiro2StarEngine<uint64, uint64, 1, 17, 45>;
+using Xoshiro2Star32 = Xoshiro2StarEngine<uint32b, uint32b, 0, 9, 11>;
+using Xoshiro2Star64 = Xoshiro2StarEngine<uint64b, uint64b, 1, 17, 45>;
 
 } // namespace zisc
 

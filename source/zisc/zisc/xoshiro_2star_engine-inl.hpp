@@ -26,7 +26,7 @@ namespace zisc {
 
 /*!
   */
-template <typename Seed, typename Result, uint8 kA, uint8 kB, uint8 kC> inline
+template <typename Seed, typename Result, uint8b kA, uint8b kB, uint8b kC> inline
 Xoshiro2StarEngine<Seed, Result, kA, kB, kC>::Xoshiro2StarEngine() noexcept
 {
   constexpr SeedType seed = cast<SeedType>(0xc1f651c67c62c6e0ull);
@@ -35,7 +35,7 @@ Xoshiro2StarEngine<Seed, Result, kA, kB, kC>::Xoshiro2StarEngine() noexcept
 
 /*!
   */
-template <typename Seed, typename Result, uint8 kA, uint8 kB, uint8 kC> inline
+template <typename Seed, typename Result, uint8b kA, uint8b kB, uint8b kC> inline
 Xoshiro2StarEngine<Seed, Result, kA, kB, kC>::Xoshiro2StarEngine(
     const SeedType seed) noexcept
 {
@@ -44,7 +44,7 @@ Xoshiro2StarEngine<Seed, Result, kA, kB, kC>::Xoshiro2StarEngine(
 
 /*!
   */
-template <typename Seed, typename Result, uint8 kA, uint8 kB, uint8 kC> inline
+template <typename Seed, typename Result, uint8b kA, uint8b kB, uint8b kC> inline
 auto Xoshiro2StarEngine<Seed, Result, kA, kB, kC>::generate() noexcept -> ResultType
 {
   const ResultType result = rotateLeft<7>(state_[kA] * 5u) * 9u;
@@ -64,7 +64,7 @@ auto Xoshiro2StarEngine<Seed, Result, kA, kB, kC>::generate() noexcept -> Result
 
 /*!
   */
-template <typename Seed, typename Result, uint8 kA, uint8 kB, uint8 kC> inline
+template <typename Seed, typename Result, uint8b kA, uint8b kB, uint8b kC> inline
 constexpr std::size_t Xoshiro2StarEngine<Seed, Result, kA, kB, kC>::getPeriodPow2()
     noexcept
 {
@@ -74,7 +74,7 @@ constexpr std::size_t Xoshiro2StarEngine<Seed, Result, kA, kB, kC>::getPeriodPow
 
 /*!
   */
-template <typename Seed, typename Result, uint8 kA, uint8 kB, uint8 kC>
+template <typename Seed, typename Result, uint8b kA, uint8b kB, uint8b kC>
 template <typename UnsignedInteger> inline
 constexpr bool Xoshiro2StarEngine<Seed, Result, kA, kB, kC>::isEndOfPeriod(
     const UnsignedInteger sample) noexcept
@@ -99,7 +99,7 @@ constexpr bool Xoshiro2StarEngine<Seed, Result, kA, kB, kC>::isEndOfPeriod(
 
 /*!
   */
-template <typename Seed, typename Result, uint8 kA, uint8 kB, uint8 kC> inline
+template <typename Seed, typename Result, uint8b kA, uint8b kB, uint8b kC> inline
 void Xoshiro2StarEngine<Seed, Result, kA, kB, kC>::setSeed(const SeedType seed)
     noexcept
 {
@@ -108,7 +108,7 @@ void Xoshiro2StarEngine<Seed, Result, kA, kB, kC>::setSeed(const SeedType seed)
 
 /*!
   */
-template <typename Seed, typename Result, uint8 kA, uint8 kB, uint8 kC>
+template <typename Seed, typename Result, uint8b kA, uint8b kB, uint8b kC>
 template <Seed k> inline
 auto Xoshiro2StarEngine<Seed, Result, kA, kB, kC>::rotateLeft(const SeedType x)
     noexcept -> ResultType

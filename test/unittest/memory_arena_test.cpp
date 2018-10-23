@@ -64,7 +64,7 @@ TEST(MemoryArenaTest, StaticMemoryArenaTest)
       ASSERT_EQ(nullptr, chunk);
     }
 
-    zisc::uint32 id = 0;
+    zisc::uint32b id = 0;
     for (auto ite = ChunkIterator{arena.getFirstChunk()};
          ite != ChunkIterator{};
          ++ite) {

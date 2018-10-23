@@ -26,15 +26,15 @@ namespace zisc {
 
 /*!
   */
-template <uint32 kRootN> template <typename Float> inline
+template <uint32b kRootN> template <typename Float> inline
 Float CorrelatedMultiJitteredEngine<kRootN>::generate1D(
-    const uint32 s,
-    const uint32 p) noexcept
+    const uint32b s,
+    const uint32b p) noexcept
 {
   static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-  constexpr uint32 n = getPeriod();
+  constexpr uint32b n = getPeriod();
 
-  const uint32 sx = permute<n>(s, p * 0x68bc21eb);
+  const uint32b sx = permute<n>(s, p * 0x68bc21eb);
   Float x = mapTo01Float<Float>(hashInteger(s, p * 0x967a889b));
 
   // Random jitter
@@ -46,21 +46,21 @@ Float CorrelatedMultiJitteredEngine<kRootN>::generate1D(
 
 /*!
   */
-template <uint32 kRootN> template <typename Float> inline
+template <uint32b kRootN> template <typename Float> inline
 std::array<Float, 2> CorrelatedMultiJitteredEngine<kRootN>::generate2D(
-    uint32 s,
-    const uint32 p) noexcept
+    uint32b s,
+    const uint32b p) noexcept
 {
   static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-  constexpr uint32 n = getPeriod();
+  constexpr uint32b n = getPeriod();
 
   s = permute<n>(s, p * 0x51633e2d);
 
-  const uint32 s_div = s / kRootN;
-  const uint32 s_mod = s  - s_div * kRootN;
+  const uint32b s_div = s / kRootN;
+  const uint32b s_mod = s  - s_div * kRootN;
 
-  const uint32 sx = permute<kRootN>(s_mod, p * 0x68bc21eb);
-  const uint32 sy = permute<kRootN>(s_div, p * 0x02e5be93);
+  const uint32b sx = permute<kRootN>(s_mod, p * 0x68bc21eb);
+  const uint32b sy = permute<kRootN>(s_div, p * 0x02e5be93);
   Float x = mapTo01Float<Float>(hashInteger(s, p * 0x967a889b));
   Float y = mapTo01Float<Float>(hashInteger(s, p * 0x368cc8b7));
 
@@ -75,7 +75,7 @@ std::array<Float, 2> CorrelatedMultiJitteredEngine<kRootN>::generate2D(
 
 /*!
   */
-template <uint32 kRootN> inline
+template <uint32b kRootN> inline
 constexpr std::size_t CorrelatedMultiJitteredEngine<kRootN>::getPeriod() noexcept
 {
   constexpr std::size_t period = power<2>(kRootN);
@@ -84,7 +84,7 @@ constexpr std::size_t CorrelatedMultiJitteredEngine<kRootN>::getPeriod() noexcep
 
 /*!
   */
-template <uint32 kRootN> template <typename UnsignedInteger> inline
+template <uint32b kRootN> template <typename UnsignedInteger> inline
 constexpr bool CorrelatedMultiJitteredEngine<kRootN>::isEndOfPeriod(
     const UnsignedInteger sample) noexcept
 {
@@ -106,9 +106,9 @@ constexpr bool CorrelatedMultiJitteredEngine<kRootN>::isEndOfPeriod(
 
 /*!
   */
-template <uint32 kRootN> inline
-uint32 CorrelatedMultiJitteredEngine<kRootN>::hashInteger(uint32 i,
-                                                          const uint32 p) noexcept
+template <uint32b kRootN> inline
+uint32b CorrelatedMultiJitteredEngine<kRootN>::hashInteger(uint32b i,
+                                                          const uint32b p) noexcept
 {
   i ^= p;
   i ^= i >> 17;
@@ -125,9 +125,9 @@ uint32 CorrelatedMultiJitteredEngine<kRootN>::hashInteger(uint32 i,
 
 /*!
   */
-template <uint32 kRootN> inline
-constexpr uint32 CorrelatedMultiJitteredEngine<kRootN>::makeWMask(
-    uint32 w) noexcept
+template <uint32b kRootN> inline
+constexpr uint32b CorrelatedMultiJitteredEngine<kRootN>::makeWMask(
+    uint32b w) noexcept
 {
   w |= w >> 1;
   w |= w >> 2;
@@ -139,8 +139,8 @@ constexpr uint32 CorrelatedMultiJitteredEngine<kRootN>::makeWMask(
 
 /*!
   */
-template <uint32 kRootN> template <typename Float> inline
-Float CorrelatedMultiJitteredEngine<kRootN>::mapTo01Float(const uint32 x) noexcept
+template <uint32b kRootN> template <typename Float> inline
+Float CorrelatedMultiJitteredEngine<kRootN>::mapTo01Float(const uint32b x) noexcept
 {
   static_assert(kIsFloat<Float>, "Float isn't floating point type.");
   return FloatingPointBit<Float>::mapTo01Float(x);
@@ -148,12 +148,12 @@ Float CorrelatedMultiJitteredEngine<kRootN>::mapTo01Float(const uint32 x) noexce
 
 /*!
   */
-template <uint32 kRootN> template <uint32 l> inline
-uint32 CorrelatedMultiJitteredEngine<kRootN>::permute(uint32 i,
-                                                      const uint32 p) noexcept
+template <uint32b kRootN> template <uint32b l> inline
+uint32b CorrelatedMultiJitteredEngine<kRootN>::permute(uint32b i,
+                                                      const uint32b p) noexcept
 {
   constexpr bool is_power_of_2 = (1 < l) && isPowerOf2(l);
-  constexpr uint32 w = makeWMask(l - 1);
+  constexpr uint32b w = makeWMask(l - 1);
   if (is_power_of_2) {
     // fast case
     i = permuteImpl<w>(i, p);
@@ -171,9 +171,9 @@ uint32 CorrelatedMultiJitteredEngine<kRootN>::permute(uint32 i,
 
 /*!
   */
-template <uint32 kRootN> template <uint32 w> inline
-uint32 CorrelatedMultiJitteredEngine<kRootN>::permuteImpl(uint32 i,
-                                                          const uint32 p) noexcept
+template <uint32b kRootN> template <uint32b w> inline
+uint32b CorrelatedMultiJitteredEngine<kRootN>::permuteImpl(uint32b i,
+                                                          const uint32b p) noexcept
 {
   i ^= p;
   i *= 0xe170893d;

@@ -423,7 +423,7 @@ void ThreadManager::initialize(const uint num_of_threads) noexcept
                 alignof(std::condition_variable));
   static_assert(alignof(pmr::vector<std::thread>) <=
                 alignof(std::queue<TaskPointer, pmr::deque<TaskPointer>>));
-  static_assert(alignof(uint8) <=
+  static_assert(alignof(uint8b) <=
                 alignof(pmr::vector<std::thread>));
 }
 

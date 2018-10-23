@@ -86,9 +86,9 @@ class Fraction
 };
 
 // Aliases
-using Fraction16 = Fraction<int16>;
-using Fraction32 = Fraction<int32>;
-using Fraction64 = Fraction<int64>;
+using Fraction16 = Fraction<int16b>;
+using Fraction32 = Fraction<int32b>;
+using Fraction64 = Fraction<int64b>;
 
 //! Perform addition operation on two values
 template <typename SignedInteger>

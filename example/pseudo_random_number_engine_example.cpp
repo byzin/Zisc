@@ -28,8 +28,8 @@ template <typename GeneratorClass, typename Seed, typename Result>
 using PrnEngine = zisc::PseudoRandomNumberEngine<GeneratorClass, Seed, Result>;
 
 template <typename Type> constexpr Type getSeed() {return 123456789;}
-template <> constexpr zisc::uint8 getSeed<zisc::uint8>() {return 12u;}
-template <> constexpr zisc::uint16 getSeed<zisc::uint16>() {return 12345u;}
+template <> constexpr zisc::uint8b getSeed<zisc::uint8b>() {return 12u;}
+template <> constexpr zisc::uint16b getSeed<zisc::uint16b>() {return 12345u;}
 
 template <typename GeneratorClass, typename Seed, typename Result>
 void generateRandomNumbers(PrnEngine<GeneratorClass, Seed, Result>* engine)

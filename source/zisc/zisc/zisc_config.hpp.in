@@ -21,20 +21,22 @@ constexpr char kZiscVersion[] = "@zisc_version@";
 namespace zisc {
 
 // General
-using int8 = std::int8_t;
-using int16 = std::int16_t;
-using int32 = std::int32_t;
-using int64 = std::int64_t;
+using int8b = std::int8_t;
+using int16b = std::int16_t;
+using int32b = std::int32_t;
+using int64b = std::int64_t;
 using uint = unsigned int;
-using uint8 = std::uint8_t;
-using uint16 = std::uint16_t;
-using uint32 = std::uint32_t;
-using uint64 = std::uint64_t;
+using uint8b = std::uint8_t;
+using uint16b = std::uint16_t;
+using uint32b = std::uint32_t;
+using uint64b = std::uint64_t;
 
 // Boolean values
-constexpr uint8 kFalse = 0;
-constexpr uint8 kTrue = 1;
+constexpr uint8b kFalse = 0;
+constexpr uint8b kTrue = 1;
 
 } // namespace zisc
+
+#include "zisc/zisc_config-inl.hpp"
 
 #endif // ZISC_CONFIG_HPP

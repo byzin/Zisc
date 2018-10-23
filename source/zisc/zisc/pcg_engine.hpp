@@ -71,7 +71,7 @@ class PcgEngine : public PseudoRandomNumberEngine<
   void setSeed(const SeedType seed) noexcept;
 
  private:
-  using BitCountType = uint8;
+  using BitCountType = uint8b;
 
 
   //! Bump
@@ -101,24 +101,24 @@ using PcgMcgEngine = PcgEngine<PcgBase::Mcg, Method, Seed, Result>;
 
 // Predefined PCG engine type
 // XshRs
-using PcgLcgXshRs8 = PcgLcgEngine<PcgMethod::XshRs, uint16, uint8>;
-using PcgLcgXshRs16 = PcgLcgEngine<PcgMethod::XshRs, uint32, uint16>;
-using PcgLcgXshRs32 = PcgLcgEngine<PcgMethod::XshRs, uint64, uint32>;
-using PcgMcgXshRs8 = PcgMcgEngine<PcgMethod::XshRs, uint16, uint8>;
-using PcgMcgXshRs16 = PcgMcgEngine<PcgMethod::XshRs, uint32, uint16>;
-using PcgMcgXshRs32 = PcgMcgEngine<PcgMethod::XshRs, uint64, uint32>;
+using PcgLcgXshRs8 = PcgLcgEngine<PcgMethod::XshRs, uint16b, uint8b>;
+using PcgLcgXshRs16 = PcgLcgEngine<PcgMethod::XshRs, uint32b, uint16b>;
+using PcgLcgXshRs32 = PcgLcgEngine<PcgMethod::XshRs, uint64b, uint32b>;
+using PcgMcgXshRs8 = PcgMcgEngine<PcgMethod::XshRs, uint16b, uint8b>;
+using PcgMcgXshRs16 = PcgMcgEngine<PcgMethod::XshRs, uint32b, uint16b>;
+using PcgMcgXshRs32 = PcgMcgEngine<PcgMethod::XshRs, uint64b, uint32b>;
 // XshRr
-using PcgLcgXshRr8 = PcgLcgEngine<PcgMethod::XshRr, uint16, uint8>;
-using PcgLcgXshRr16 = PcgLcgEngine<PcgMethod::XshRr, uint32, uint16>;
-using PcgLcgXshRr32 = PcgLcgEngine<PcgMethod::XshRr, uint64, uint32>;
-using PcgMcgXshRr8 = PcgMcgEngine<PcgMethod::XshRr, uint16, uint8>;
-using PcgMcgXshRr16 = PcgMcgEngine<PcgMethod::XshRr, uint32, uint16>;
-using PcgMcgXshRr32 = PcgMcgEngine<PcgMethod::XshRr, uint64, uint32>;
+using PcgLcgXshRr8 = PcgLcgEngine<PcgMethod::XshRr, uint16b, uint8b>;
+using PcgLcgXshRr16 = PcgLcgEngine<PcgMethod::XshRr, uint32b, uint16b>;
+using PcgLcgXshRr32 = PcgLcgEngine<PcgMethod::XshRr, uint64b, uint32b>;
+using PcgMcgXshRr8 = PcgMcgEngine<PcgMethod::XshRr, uint16b, uint8b>;
+using PcgMcgXshRr16 = PcgMcgEngine<PcgMethod::XshRr, uint32b, uint16b>;
+using PcgMcgXshRr32 = PcgMcgEngine<PcgMethod::XshRr, uint64b, uint32b>;
 // RxsMXs
-using PcgLcgRxsMXs8 = PcgLcgEngine<PcgMethod::RxsMXs, uint8, uint8>;
-using PcgLcgRxsMXs16 = PcgLcgEngine<PcgMethod::RxsMXs, uint16, uint16>;
-using PcgLcgRxsMXs32 = PcgLcgEngine<PcgMethod::RxsMXs, uint32, uint32>;
-using PcgLcgRxsMXs64 = PcgLcgEngine<PcgMethod::RxsMXs, uint64, uint64>;
+using PcgLcgRxsMXs8 = PcgLcgEngine<PcgMethod::RxsMXs, uint8b, uint8b>;
+using PcgLcgRxsMXs16 = PcgLcgEngine<PcgMethod::RxsMXs, uint16b, uint16b>;
+using PcgLcgRxsMXs32 = PcgLcgEngine<PcgMethod::RxsMXs, uint32b, uint32b>;
+using PcgLcgRxsMXs64 = PcgLcgEngine<PcgMethod::RxsMXs, uint64b, uint64b>;
 
 } // namespace zisc
 

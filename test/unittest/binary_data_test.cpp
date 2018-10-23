@@ -19,7 +19,7 @@
 struct TestData
 {
   char c_[4];
-  zisc::uint32 u_;
+  zisc::uint32b u_;
   double d_;
 };
 
@@ -29,7 +29,7 @@ TEST(BinaryDataTest, ReadWriteTest)
                                   std::ios_base::out |
                                   std::ios_base::binary};
   // Test "write"
-  const zisc::int32 data1 = 10;
+  const zisc::int32b data1 = 10;
   zisc::write(&data1, &binary_stream);
   const std::string data2{"test"};
   zisc::write(data2.data(), &binary_stream, data2.size());

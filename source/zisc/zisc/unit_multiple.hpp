@@ -22,12 +22,12 @@ namespace zisc {
 /*!
   \brief Represent a multiple of a unit
   */
-template <int64 kBase, int64 kExponent>
+template <int64b kBase, int64b kExponent>
 class UnitMultiple
 {
  public:
   //! The type that is used for value representation
-  using FractionType = Fraction<int64>;
+  using FractionType = Fraction<int64b>;
 
   //! The type that is used in UnitMultiple for arithmetic
   using ArithmeticType = FractionType::ArithmeticType;
@@ -95,67 +95,67 @@ using MebiUnit = UnitMultiple<1024, 2>;
 using GibiUnit = UnitMultiple<1024, 3>;
 
 //! Perform addition operation on two values in the smaller exponent of the unit
-template <int64 kBase, int64 kExponent1, int64 kExponent2>
+template <int64b kBase, int64b kExponent1, int64b kExponent2>
 constexpr UnitMultiple<kBase, std::min(kExponent1, kExponent2)> operator+(
     const UnitMultiple<kBase, kExponent1>& lhs,
     const UnitMultiple<kBase, kExponent2>& rhs) noexcept;
 
 //! Perform subtraction operation on two values in the smaller exponent of the unit
-template <int64 kBase, int64 kExponent1, int64 kExponent2>
+template <int64b kBase, int64b kExponent1, int64b kExponent2>
 constexpr UnitMultiple<kBase, std::min(kExponent1, kExponent2)> operator-(
     const UnitMultiple<kBase, kExponent1>& lhs,
     const UnitMultiple<kBase, kExponent2>& rhs) noexcept;
 
 //! Perform multiplication operation on two values in the smaller exponent of the unit
-template <int64 kBase, int64 kExponent, typename Integer>
+template <int64b kBase, int64b kExponent, typename Integer>
 constexpr UnitMultiple<kBase, kExponent> operator*(
     const UnitMultiple<kBase, kExponent>& lhs,
     const Integer rhs) noexcept;
 
 //! Perform multiplication operation on two values in the smaller exponent of the unit
-template <typename Integer, int64 kBase, int64 kExponent>
+template <typename Integer, int64b kBase, int64b kExponent>
 constexpr UnitMultiple<kBase, kExponent> operator*(
     const Integer lhs,
     const UnitMultiple<kBase, kExponent>& rhs) noexcept;
 
 //! Perform division operation on two values in the smaller exponent of the unit
-template <int64 kBase, int64 kExponent, typename Integer>
+template <int64b kBase, int64b kExponent, typename Integer>
 constexpr UnitMultiple<kBase, kExponent> operator/(
     const UnitMultiple<kBase, kExponent>& lhs,
     const Integer rhs) noexcept;
 
 //! Check if the two values are equal
-template <int64 kBase, int64 kExponent1, int64 kExponent2>
+template <int64b kBase, int64b kExponent1, int64b kExponent2>
 constexpr bool operator==(
     const UnitMultiple<kBase, kExponent1>& lhs,
     const UnitMultiple<kBase, kExponent2>& rhs) noexcept;
 
 //! Check if the two values are equal
-template <int64 kBase, int64 kExponent1, int64 kExponent2>
+template <int64b kBase, int64b kExponent1, int64b kExponent2>
 constexpr bool operator!=(
     const UnitMultiple<kBase, kExponent1>& lhs,
     const UnitMultiple<kBase, kExponent2>& rhs) noexcept;
 
 //!
-template <int64 kBase, int64 kExponent1, int64 kExponent2>
+template <int64b kBase, int64b kExponent1, int64b kExponent2>
 constexpr bool operator<(
     const UnitMultiple<kBase, kExponent1>& lhs,
     const UnitMultiple<kBase, kExponent2>& rhs) noexcept;
 
 //!
-template <int64 kBase, int64 kExponent1, int64 kExponent2>
+template <int64b kBase, int64b kExponent1, int64b kExponent2>
 constexpr bool operator<=(
     const UnitMultiple<kBase, kExponent1>& lhs,
     const UnitMultiple<kBase, kExponent2>& rhs) noexcept;
 
 //!
-template <int64 kBase, int64 kExponent1, int64 kExponent2>
+template <int64b kBase, int64b kExponent1, int64b kExponent2>
 constexpr bool operator>(
     const UnitMultiple<kBase, kExponent1>& lhs,
     const UnitMultiple<kBase, kExponent2>& rhs) noexcept;
 
 //!
-template <int64 kBase, int64 kExponent1, int64 kExponent2>
+template <int64b kBase, int64b kExponent1, int64b kExponent2>
 constexpr bool operator>=(
     const UnitMultiple<kBase, kExponent1>& lhs,
     const UnitMultiple<kBase, kExponent2>& rhs) noexcept;

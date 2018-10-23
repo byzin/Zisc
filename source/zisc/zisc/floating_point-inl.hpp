@@ -24,21 +24,21 @@ template <>
 struct FloatRepresentation<2>
 {
   using FloatType = void*;
-  using RepresentationType = uint16;
+  using RepresentationType = uint16b;
 };
 
 template <>
 struct FloatRepresentation<4>
 {
   using FloatType = float;
-  using RepresentationType = uint32;
+  using RepresentationType = uint32b;
 };
 
 template <>
 struct FloatRepresentation<8>
 {
   using FloatType = double;
-  using RepresentationType = uint64;
+  using RepresentationType = uint64b;
 };
 
 /*!

@@ -124,10 +124,10 @@ struct PcgMixin<PcgMethod::XshRr, SeedType, ResultType, BitCountType>
 };
 
 template <typename Type> inline constexpr Type mcgMultiplierPcg();
-template <> inline constexpr uint8 mcgMultiplierPcg<uint8>() {return 217u;}
-template <> inline constexpr uint16 mcgMultiplierPcg<uint16>() {return 62169u;}
-template <> inline constexpr uint32 mcgMultiplierPcg<uint32>() {return 277803737u;}
-template <> inline constexpr uint64 mcgMultiplierPcg<uint64>() {return 12605985483714917081ull;}
+template <> inline constexpr uint8b mcgMultiplierPcg<uint8b>() {return 217u;}
+template <> inline constexpr uint16b mcgMultiplierPcg<uint16b>() {return 62169u;}
+template <> inline constexpr uint32b mcgMultiplierPcg<uint32b>() {return 277803737u;}
+template <> inline constexpr uint64b mcgMultiplierPcg<uint64b>() {return 12605985483714917081ull;}
 
 /*!
   */
@@ -243,16 +243,16 @@ auto PcgEngine<Base, Method, Seed, Result>::generateBase() noexcept -> SeedType
 namespace inner {
 
 template <typename Type> inline constexpr Type incrementPcg();
-template <> inline constexpr uint8 incrementPcg<uint8>() {return 77u;}
-template <> inline constexpr uint16 incrementPcg<uint16>() {return 47989u;}
-template <> inline constexpr uint32 incrementPcg<uint32>() {return 2891336453u;}
-template <> inline constexpr uint64 incrementPcg<uint64>() {return 1442695040888963407ull;}
+template <> inline constexpr uint8b incrementPcg<uint8b>() {return 77u;}
+template <> inline constexpr uint16b incrementPcg<uint16b>() {return 47989u;}
+template <> inline constexpr uint32b incrementPcg<uint32b>() {return 2891336453u;}
+template <> inline constexpr uint64b incrementPcg<uint64b>() {return 1442695040888963407ull;}
 
 template <typename Type> inline constexpr Type multiplierPcg();
-template <> inline constexpr uint8 multiplierPcg<uint8>() {return 141u;}
-template <> inline constexpr uint16 multiplierPcg<uint16>() {return 12829u;}
-template <> inline constexpr uint32 multiplierPcg<uint32>() {return 747796405u;}
-template <> inline constexpr uint64 multiplierPcg<uint64>() {return 6364136223846793005ull;}
+template <> inline constexpr uint8b multiplierPcg<uint8b>() {return 141u;}
+template <> inline constexpr uint16b multiplierPcg<uint16b>() {return 12829u;}
+template <> inline constexpr uint32b multiplierPcg<uint32b>() {return 747796405u;}
+template <> inline constexpr uint64b multiplierPcg<uint64b>() {return 6364136223846793005ull;}
 
 } // namespace inner
 

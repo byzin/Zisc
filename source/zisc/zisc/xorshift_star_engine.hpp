@@ -22,7 +22,7 @@ namespace zisc {
 /*!
   */
 template <typename Seed, typename Result,
-          Seed kMultiplier, uint8 kA, uint8 kB, uint8 kC>
+          Seed kMultiplier, uint8b kA, uint8b kB, uint8b kC>
 class XorshiftStarEngine : public PseudoRandomNumberEngine<
     XorshiftStarEngine<Seed, Result, kMultiplier, kA, kB, kC>, Seed, Result>
 {
@@ -66,9 +66,9 @@ class XorshiftStarEngine : public PseudoRandomNumberEngine<
 };
 
 // Predefined Xorshift* type
-using XorshiftStar8 = XorshiftStarEngine<uint16, uint8, 0x58f5u, 5, 9, 8>;
-using XorshiftStar16 = XorshiftStarEngine<uint32, uint16, 0xb2e1cb1du, 6, 17, 9>;
-using XorshiftStar32 = XorshiftStarEngine<uint64, uint32, 0xd989bcacc137dcd5ull, 11, 31, 18>;
+using XorshiftStar8 = XorshiftStarEngine<uint16b, uint8b, 0x58f5u, 5, 9, 8>;
+using XorshiftStar16 = XorshiftStarEngine<uint32b, uint16b, 0xb2e1cb1du, 6, 17, 9>;
+using XorshiftStar32 = XorshiftStarEngine<uint64b, uint32b, 0xd989bcacc137dcd5ull, 11, 31, 18>;
 
 } // namespace zisc
 

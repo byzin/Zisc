@@ -128,7 +128,7 @@ template <typename ChunkT> inline
 auto MemoryManagerIterator<ChunkT>::getNextChunk(pointer chunk) noexcept -> pointer
 {
   ZISC_ASSERT(chunk != nullptr, "The chunk is null.");
-  using ByteType = std::conditional_t<std::is_const_v<value_type>, const uint8, uint8>;
+  using ByteType = std::conditional_t<std::is_const_v<value_type>, const uint8b, uint8b>;
   auto p = treatAs<ByteType*>(chunk);
   p = p + (chunk->headerSize() + chunk->stride());
   return treatAs<pointer>(p);

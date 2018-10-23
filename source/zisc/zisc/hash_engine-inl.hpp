@@ -48,7 +48,7 @@ constexpr ResultType HashEngine<HashClass, ResultType>::hash(
   */
 template <typename HashClass, typename ResultType> inline
 constexpr ResultType HashEngine<HashClass, ResultType>::hash(
-    const uint8* seed,
+    const uint8b* seed,
     const std::size_t n) noexcept
 {
   return hashValue(seed, n);
@@ -64,9 +64,9 @@ constexpr ResultType HashEngine<HashClass, ResultType>::hash(
   static_assert(kIsUnsignedInteger<UnsignedInteger>,
                 "UnsignedInteger isn't unsigned integer type.");
   // Make a seed array
-  std::array<uint8, sizeof(UnsignedInteger)> seed_array{};
+  std::array<uint8b, sizeof(UnsignedInteger)> seed_array{};
   for (std::size_t i = 0; i < seed_array.size(); ++i)
-    seed_array[i] = cast<uint8>(seed >> (8 * i));
+    seed_array[i] = cast<uint8b>(seed >> (8 * i));
   // Hash the seed
   return hash(seed_array.data(), seed_array.size());
 }

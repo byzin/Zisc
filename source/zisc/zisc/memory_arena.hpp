@@ -75,8 +75,8 @@ class MemoryArena<MemoryArenaType::kStatic, kArenaSize>
 
   std::aligned_storage_t<kArenaSize, MemoryChunk::headerAlignment()> data_;
   std::size_t used_memory_ = 0;
-  uint32 num_of_chunk_ = 0;
-  uint32 padding_ = 0;
+  uint32b num_of_chunk_ = 0;
+  uint32b padding_ = 0;
 };
 
 /*!
@@ -119,7 +119,7 @@ class MemoryArena<MemoryArenaType::kDynamic, kArenaSize>
  private:
   struct Memory
   {
-    uint8* data_;
+    uint8b* data_;
     std::size_t used_memory_ = 0;
   };
 
@@ -139,8 +139,8 @@ class MemoryArena<MemoryArenaType::kDynamic, kArenaSize>
 
 
   std::vector<Memory> arena_;
-  uint32 num_of_chunk_ = 0;
-  uint32 padding_ = 0;
+  uint32b num_of_chunk_ = 0;
+  uint32b padding_ = 0;
 };
 
 // Type alias

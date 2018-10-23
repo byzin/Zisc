@@ -52,8 +52,8 @@ class SipHashEngine : public HashEngine<SipHashEngine<ResultType>, ResultType>
   static constexpr ResultType toUIntLe(const Int8* inputs) noexcept;
 };
 
-using SipHash32 = SipHashEngine<uint32>;
-using SipHash64 = SipHashEngine<uint64>;
+using SipHash32 = SipHashEngine<uint32b>;
+using SipHash64 = SipHashEngine<uint64b>;
 
 } // namespace zisc
 

@@ -125,7 +125,7 @@ template <std::size_t kArenaSize> inline
 MemoryChunk* MemoryArena<MemoryArenaType::kStatic, kArenaSize>::getChunk(
     const std::size_t offset) noexcept
 {
-  auto chunk = treatAs<MemoryChunk*>(treatAs<uint8*>(&data_) + offset);
+  auto chunk = treatAs<MemoryChunk*>(treatAs<uint8b*>(&data_) + offset);
   ZISC_ASSERT(MemoryChunk::isAligned(chunk), "The chunk address isn't aligned.");
   return chunk;
 }
@@ -302,7 +302,7 @@ bool MemoryArena<MemoryArenaType::kDynamic, kArenaSize>::expandArena() noexcept
       ZISC_ASSERT(tail->isNull(), "The tail chunk isn't null.");
       tail->setLink(chunk);
     }
-    arena_.emplace_back(Memory{cast<uint8*>(data), chunk_size});
+    arena_.emplace_back(Memory{cast<uint8b*>(data), chunk_size});
   }
 
   return result;

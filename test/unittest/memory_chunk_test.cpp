@@ -70,8 +70,8 @@ TEST(MemoryChunkTest, InitTest)
     ASSERT_EQ(s + 16, chunk->stride()) << "The stride of the chunk is wrong.";
 
     // Get data pointer
-    const auto p1 = zisc::treatAs<const zisc::uint8*>(chunk);
-    const auto p2 = chunk->data<const zisc::uint8>();
+    const auto p1 = zisc::treatAs<const zisc::uint8b*>(chunk);
+    const auto p2 = chunk->data<const zisc::uint8b>();
     ASSERT_EQ(a, p2 - p1) << "The data address is wrong.";
     {
       const auto c = zisc::MemoryChunk::getChunk(p2);
@@ -107,8 +107,8 @@ TEST(MemoryChunkTest, InitTest)
     ASSERT_EQ(s + 4, chunk->stride()) << "The stride of the chunk is wrong.";
 
     // Get data pointer
-    const auto p1 = zisc::treatAs<const zisc::uint8*>(chunk);
-    const auto p2 = chunk->data<const zisc::uint8>();
+    const auto p1 = zisc::treatAs<const zisc::uint8b*>(chunk);
+    const auto p2 = chunk->data<const zisc::uint8b>();
     ASSERT_EQ(16, p2 - p1) << "The data address is wrong.";
     {
       auto c = zisc::MemoryChunk::getChunk(p2);

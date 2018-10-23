@@ -26,8 +26,8 @@ using ChunkStorage = std::aligned_storage_t<kStorageSize,
 
 template <typename ChunkT>
 zisc::MemoryManagerIterator<ChunkT> makeIterator(
-  zisc::uint8* pool,
-  zisc::uint32 id,
+  zisc::uint8b* pool,
+  zisc::uint32b id,
   std::size_t& storage_size)
 {
   // Chunk1
@@ -93,8 +93,8 @@ TEST(MemoryManagerIteratorTest, IterationTest)
 {
   ::ChunkStorage storage;
   std::size_t storage_size = ::kStorageSize;
-  auto pool = zisc::treatAs<zisc::uint8*>(&storage);
-  zisc::uint32 id = 1;
+  auto pool = zisc::treatAs<zisc::uint8b*>(&storage);
+  zisc::uint32b id = 1;
 
   auto i = ::makeIterator<zisc::MemoryChunk>(pool, id, storage_size);
   const auto end = zisc::MemoryManagerIterator<zisc::MemoryChunk>::end();
@@ -131,8 +131,8 @@ TEST(MemoryManagerIteratorTest, ConstIterationTest)
 {
   ::ChunkStorage storage;
   std::size_t storage_size = ::kStorageSize;
-  auto pool = zisc::treatAs<zisc::uint8*>(&storage);
-  zisc::uint32 id = 1;
+  auto pool = zisc::treatAs<zisc::uint8b*>(&storage);
+  zisc::uint32b id = 1;
 
   auto i = ::makeIterator<const zisc::MemoryChunk>(pool, id, storage_size);
   const auto end = zisc::MemoryManagerIterator<const zisc::MemoryChunk>::end();

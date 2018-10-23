@@ -34,8 +34,8 @@ class Fnv1aHashEngine : public HashEngine<Fnv1aHashEngine<ResultType>, ResultTyp
                                         const std::size_t n) noexcept;
 };
 
-using Fnv1aHash32 = Fnv1aHashEngine<uint32>;
-using Fnv1aHash64 = Fnv1aHashEngine<uint64>;
+using Fnv1aHash32 = Fnv1aHashEngine<uint32b>;
+using Fnv1aHash64 = Fnv1aHashEngine<uint64b>;
 
 } // namespace zisc
 

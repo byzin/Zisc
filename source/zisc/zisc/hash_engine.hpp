@@ -25,8 +25,8 @@ namespace zisc {
 template <typename HashClass, typename ResultType>
 class HashEngine
 {
-  static_assert(std::is_same_v<uint32, ResultType> ||
-                std::is_same_v<uint64, ResultType>,
+  static_assert(std::is_same_v<uint32b, ResultType> ||
+                std::is_same_v<uint64b, ResultType>,
                 "ResultType isn't supported.");
  public:
   //! Compute a hash value
@@ -36,7 +36,7 @@ class HashEngine
   static constexpr ResultType hash(const std::string_view seed) noexcept;
 
   //! Compute a hash value
-  static constexpr ResultType hash(const uint8* seed,
+  static constexpr ResultType hash(const uint8b* seed,
                                    const std::size_t n) noexcept;
 
   //! Compute a hash value

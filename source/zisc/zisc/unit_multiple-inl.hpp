@@ -24,14 +24,14 @@ namespace zisc {
 
 /*!
   */
-template <int64 kBase, int64 kExponent> inline
+template <int64b kBase, int64b kExponent> inline
 constexpr UnitMultiple<kBase, kExponent>::UnitMultiple() noexcept : value_{}
 {
 }
 
 /*!
   */
-template <int64 kBase, int64 kExponent> inline
+template <int64b kBase, int64b kExponent> inline
 constexpr UnitMultiple<kBase, kExponent>::UnitMultiple(
     const ArithmeticType value) noexcept :
         value_{value}
@@ -40,7 +40,7 @@ constexpr UnitMultiple<kBase, kExponent>::UnitMultiple(
 
 /*!
   */
-template <int64 kBase, int64 kExponent> inline
+template <int64b kBase, int64b kExponent> inline
 constexpr UnitMultiple<kBase, kExponent>::UnitMultiple(
     const FractionType& value) noexcept :
         value_{value}
@@ -49,7 +49,7 @@ constexpr UnitMultiple<kBase, kExponent>::UnitMultiple(
 
 /*!
   */
-template <int64 kBase, int64 kExponent> template <int64 kOtherExponent> inline
+template <int64b kBase, int64b kExponent> template <int64b kOtherExponent> inline
 constexpr UnitMultiple<kBase, kExponent>::UnitMultiple(
     const UnitMultiple<kBase, kOtherExponent>& other) noexcept :
         value_{(other.template representedAs<exponent()>()).value()}
@@ -58,7 +58,7 @@ constexpr UnitMultiple<kBase, kExponent>::UnitMultiple(
 
 /*!
   */
-template <int64 kBase, int64 kExponent> inline
+template <int64b kBase, int64b kExponent> inline
 constexpr auto UnitMultiple<kBase, kExponent>::operator=(
     const ArithmeticType value) noexcept -> UnitMultiple&
 {
@@ -68,7 +68,7 @@ constexpr auto UnitMultiple<kBase, kExponent>::operator=(
 
 /*!
   */
-template <int64 kBase, int64 kExponent> inline
+template <int64b kBase, int64b kExponent> inline
 constexpr auto UnitMultiple<kBase, kExponent>::operator=(
     const FractionType& value) noexcept -> UnitMultiple&
 {
@@ -78,7 +78,7 @@ constexpr auto UnitMultiple<kBase, kExponent>::operator=(
 
 /*!
   */
-template <int64 kBase, int64 kExponent> template <int64 kOtherExponent> inline
+template <int64b kBase, int64b kExponent> template <int64b kOtherExponent> inline
 constexpr auto UnitMultiple<kBase, kExponent>::operator=(
     const UnitMultiple<kBase, kOtherExponent>& other) noexcept -> UnitMultiple&
 {
@@ -88,7 +88,7 @@ constexpr auto UnitMultiple<kBase, kExponent>::operator=(
 
 /*!
   */
-template <int64 kBase, int64 kExponent> inline
+template <int64b kBase, int64b kExponent> inline
 constexpr auto UnitMultiple<kBase, kExponent>::base() noexcept -> ArithmeticType
 {
   return kBase;
@@ -96,7 +96,7 @@ constexpr auto UnitMultiple<kBase, kExponent>::base() noexcept -> ArithmeticType
 
 /*!
   */
-template <int64 kBase, int64 kExponent> inline
+template <int64b kBase, int64b kExponent> inline
 constexpr auto UnitMultiple<kBase, kExponent>::exponent() noexcept -> ArithmeticType
 {
   return kExponent;
@@ -104,7 +104,7 @@ constexpr auto UnitMultiple<kBase, kExponent>::exponent() noexcept -> Arithmetic
 
 /*!
   */
-template <int64 kBase, int64 kExponent> template <int64 kToExponent> inline
+template <int64b kBase, int64b kExponent> template <int64b kToExponent> inline
 constexpr UnitMultiple<kBase, kToExponent> UnitMultiple<kBase, kExponent>::
     representedAs() const noexcept
 {
@@ -121,7 +121,7 @@ constexpr UnitMultiple<kBase, kToExponent> UnitMultiple<kBase, kExponent>::
 
 /*!
   */
-template <int64 kBase, int64 kExponent> inline
+template <int64b kBase, int64b kExponent> inline
 constexpr void UnitMultiple<kBase, kExponent>::setValue(
     const ArithmeticType value) noexcept
 {
@@ -130,7 +130,7 @@ constexpr void UnitMultiple<kBase, kExponent>::setValue(
 
 /*!
   */
-template <int64 kBase, int64 kExponent> inline
+template <int64b kBase, int64b kExponent> inline
 constexpr void UnitMultiple<kBase, kExponent>::setValue(
     const FractionType& value) noexcept
 {
@@ -139,7 +139,7 @@ constexpr void UnitMultiple<kBase, kExponent>::setValue(
 
 /*!
   */
-template <int64 kBase, int64 kExponent> template <int64 kOtherExponent> inline
+template <int64b kBase, int64b kExponent> template <int64b kOtherExponent> inline
 constexpr void UnitMultiple<kBase, kExponent>::setValue(
     const UnitMultiple<kBase, kOtherExponent>& other) noexcept
 {
@@ -148,7 +148,7 @@ constexpr void UnitMultiple<kBase, kExponent>::setValue(
 
 /*!
   */
-template <int64 kBase, int64 kExponent> inline
+template <int64b kBase, int64b kExponent> inline
 constexpr auto UnitMultiple<kBase, kExponent>::value() noexcept
     -> FractionType&
 {
@@ -157,7 +157,7 @@ constexpr auto UnitMultiple<kBase, kExponent>::value() noexcept
 
 /*!
   */
-template <int64 kBase, int64 kExponent> inline
+template <int64b kBase, int64b kExponent> inline
 constexpr auto UnitMultiple<kBase, kExponent>::value() const noexcept
     -> const FractionType&
 {
@@ -166,7 +166,7 @@ constexpr auto UnitMultiple<kBase, kExponent>::value() const noexcept
 
 /*!
   */
-template <int64 kBase, int64 kExponent1, int64 kExponent2> inline
+template <int64b kBase, int64b kExponent1, int64b kExponent2> inline
 constexpr UnitMultiple<kBase, std::min(kExponent1, kExponent2)> operator+(
     const UnitMultiple<kBase, kExponent1>& lhs,
     const UnitMultiple<kBase, kExponent2>& rhs) noexcept
@@ -178,7 +178,7 @@ constexpr UnitMultiple<kBase, std::min(kExponent1, kExponent2)> operator+(
 
 /*!
   */
-template <int64 kBase, int64 kExponent1, int64 kExponent2> inline
+template <int64b kBase, int64b kExponent1, int64b kExponent2> inline
 constexpr UnitMultiple<kBase, std::min(kExponent1, kExponent2)> operator-(
     const UnitMultiple<kBase, kExponent1>& lhs,
     const UnitMultiple<kBase, kExponent2>& rhs) noexcept
@@ -190,7 +190,7 @@ constexpr UnitMultiple<kBase, std::min(kExponent1, kExponent2)> operator-(
 
 /*!
   */
-template <int64 kBase, int64 kExponent, typename Integer> inline
+template <int64b kBase, int64b kExponent, typename Integer> inline
 constexpr UnitMultiple<kBase, kExponent> operator*(
     const UnitMultiple<kBase, kExponent>& lhs,
     const Integer rhs) noexcept
@@ -204,7 +204,7 @@ constexpr UnitMultiple<kBase, kExponent> operator*(
 
 /*!
   */
-template <typename Integer, int64 kBase, int64 kExponent> inline
+template <typename Integer, int64b kBase, int64b kExponent> inline
 constexpr UnitMultiple<kBase, kExponent> operator*(
     const Integer lhs,
     const UnitMultiple<kBase, kExponent>& rhs) noexcept
@@ -215,7 +215,7 @@ constexpr UnitMultiple<kBase, kExponent> operator*(
 
 /*!
   */
-template <int64 kBase, int64 kExponent, typename Integer> inline
+template <int64b kBase, int64b kExponent, typename Integer> inline
 constexpr UnitMultiple<kBase, kExponent> operator/(
     const UnitMultiple<kBase, kExponent>& lhs,
     const Integer rhs) noexcept
@@ -229,7 +229,7 @@ constexpr UnitMultiple<kBase, kExponent> operator/(
 
 /*!
   */
-template <int64 kBase, int64 kExponent1, int64 kExponent2> inline
+template <int64b kBase, int64b kExponent1, int64b kExponent2> inline
 constexpr bool operator==(
     const UnitMultiple<kBase, kExponent1>& lhs,
     const UnitMultiple<kBase, kExponent2>& rhs) noexcept
@@ -241,7 +241,7 @@ constexpr bool operator==(
 
 /*!
   */
-template <int64 kBase, int64 kExponent1, int64 kExponent2> inline
+template <int64b kBase, int64b kExponent1, int64b kExponent2> inline
 constexpr bool operator!=(
     const UnitMultiple<kBase, kExponent1>& lhs,
     const UnitMultiple<kBase, kExponent2>& rhs) noexcept
@@ -251,7 +251,7 @@ constexpr bool operator!=(
 
 /*!
   */
-template <int64 kBase, int64 kExponent1, int64 kExponent2> inline
+template <int64b kBase, int64b kExponent1, int64b kExponent2> inline
 constexpr bool operator<(
     const UnitMultiple<kBase, kExponent1>& lhs,
     const UnitMultiple<kBase, kExponent2>& rhs) noexcept
@@ -263,7 +263,7 @@ constexpr bool operator<(
 
 /*!
   */
-template <int64 kBase, int64 kExponent1, int64 kExponent2> inline
+template <int64b kBase, int64b kExponent1, int64b kExponent2> inline
 constexpr bool operator<=(
     const UnitMultiple<kBase, kExponent1>& lhs,
     const UnitMultiple<kBase, kExponent2>& rhs) noexcept
@@ -275,7 +275,7 @@ constexpr bool operator<=(
 
 /*!
   */
-template <int64 kBase, int64 kExponent1, int64 kExponent2> inline
+template <int64b kBase, int64b kExponent1, int64b kExponent2> inline
 constexpr bool operator>(
     const UnitMultiple<kBase, kExponent1>& lhs,
     const UnitMultiple<kBase, kExponent2>& rhs) noexcept
@@ -285,7 +285,7 @@ constexpr bool operator>(
 
 /*!
   */
-template <int64 kBase, int64 kExponent1, int64 kExponent2> inline
+template <int64b kBase, int64b kExponent1, int64b kExponent2> inline
 constexpr bool operator>=(
     const UnitMultiple<kBase, kExponent1>& lhs,
     const UnitMultiple<kBase, kExponent2>& rhs) noexcept

@@ -113,8 +113,8 @@ struct BitTest
           << std::setprecision(std::numeric_limits<Float>::digits10)
           << normal
           << std::endl
-          << "E: " << std::bitset<64>(zisc::cast<zisc::uint64>(expected)) << std::endl
-          << "R: " << std::bitset<64>(zisc::cast<zisc::uint64>(result)) << std::endl;
+          << "E: " << std::bitset<64>(zisc::cast<zisc::uint64b>(expected)) << std::endl
+          << "R: " << std::bitset<64>(zisc::cast<zisc::uint64b>(result)) << std::endl;
     }
     {
       constexpr BitType result = FloatBit::getSignificandBits(subnormal);
@@ -125,8 +125,8 @@ struct BitTest
           << std::setprecision(std::numeric_limits<Float>::digits10)
           << subnormal
           << std::endl
-          << "E: " << std::bitset<64>(zisc::cast<zisc::uint64>(expected)) << std::endl
-          << "R: " << std::bitset<64>(zisc::cast<zisc::uint64>(result)) << std::endl;
+          << "E: " << std::bitset<64>(zisc::cast<zisc::uint64b>(expected)) << std::endl
+          << "R: " << std::bitset<64>(zisc::cast<zisc::uint64b>(result)) << std::endl;
     }
     BitTest<Float, end, i + 1>::testSignificandBit();
   }
@@ -369,17 +369,17 @@ TEST(FloatingPointBitTest, FloatMapTest)
 {
   using zisc::FloatBit;
   {
-    constexpr zisc::uint32 x = 0;
+    constexpr zisc::uint32b x = 0;
     constexpr float result = FloatBit::mapTo01Float(x);
     EXPECT_EQ(0.0f, result);
   }
   {
-    constexpr zisc::uint32 x = std::numeric_limits<zisc::uint32>::max() / 2;
+    constexpr zisc::uint32b x = std::numeric_limits<zisc::uint32b>::max() / 2;
     constexpr float result = FloatBit::mapTo01Float(x);
     EXPECT_FLOAT_EQ(0.5f, result);
   }
   {
-    constexpr zisc::uint32 x = std::numeric_limits<zisc::uint32>::max();
+    constexpr zisc::uint32b x = std::numeric_limits<zisc::uint32b>::max();
     constexpr float result = FloatBit::mapTo01Float(x);
     EXPECT_FLOAT_EQ(1.0f, result);
     EXPECT_GT(1.0f, result);
@@ -390,17 +390,17 @@ TEST(FloatingPointBitTest, DoubleMapTest)
 {
   using zisc::DoubleBit;
   {
-    constexpr zisc::uint64 x = 0;
+    constexpr zisc::uint64b x = 0;
     constexpr double result = DoubleBit::mapTo01Float(x);
     EXPECT_EQ(0.0, result);
   }
   {
-    constexpr zisc::uint64 x = std::numeric_limits<zisc::uint64>::max() / 2;
+    constexpr zisc::uint64b x = std::numeric_limits<zisc::uint64b>::max() / 2;
     constexpr double result = DoubleBit::mapTo01Float(x);
     EXPECT_DOUBLE_EQ(0.5, result);
   }
   {
-    constexpr zisc::uint64 x = std::numeric_limits<zisc::uint64>::max();
+    constexpr zisc::uint64b x = std::numeric_limits<zisc::uint64b>::max();
     constexpr double result = DoubleBit::mapTo01Float(x);
     EXPECT_DOUBLE_EQ(1.0, result);
     EXPECT_GT(1.0, result);

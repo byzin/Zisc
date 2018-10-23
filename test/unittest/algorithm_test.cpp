@@ -26,23 +26,23 @@
 
 namespace {
 
-std::vector<zisc::uint64> makeSortedArray(const zisc::uint64 n,
-                                          zisc::PcgLcgRxsMXs64& rng_engine) noexcept
+std::vector<zisc::uint64b> makeSortedArray(const zisc::uint64b n,
+                                           zisc::PcgLcgRxsMXs64& rng_engine) noexcept
 {
   // Make a sorted array
-  std::vector<zisc::uint64> tmp;
+  std::vector<zisc::uint64b> tmp;
   tmp.resize(n);
-  for (zisc::uint64 i = 0; i < n; ++i) {
-    zisc::uint64 v = rng_engine.generate();
+  for (zisc::uint64b i = 0; i < n; ++i) {
+    zisc::uint64b v = rng_engine.generate();
     v = zisc::clamp(v,
-                    std::numeric_limits<zisc::uint64>::min() + 1,
-                    std::numeric_limits<zisc::uint64>::max() - 1);
+                    std::numeric_limits<zisc::uint64b>::min() + 1,
+                    std::numeric_limits<zisc::uint64b>::max() - 1);
     tmp[i] = v;
   }
   std::sort(tmp.begin(), tmp.end());
 
   // Make a unique array
-  std::vector<zisc::uint64> array;
+  std::vector<zisc::uint64b> array;
   std::unique_copy(tmp.begin(), tmp.end(), std::back_inserter(array));
 
   return array;
@@ -100,11 +100,11 @@ TEST(AlgorithmTest, BinaryTreeSearchTest)
 
   constexpr zisc::uint max_number = 200;
   for (zisc::uint number = 0; number < max_number; ++number) {
-    zisc::uint64 n = zisc::cast<zisc::uint64>(rng_engine(1.0, 1.0e6));
+    zisc::uint64b n = zisc::cast<zisc::uint64b>(rng_engine(1.0, 1.0e6));
 
     // Make a sorted array
     auto array = ::makeSortedArray(n, rng_engine);
-    n = zisc::cast<zisc::uint64>(array.size());
+    n = zisc::cast<zisc::uint64b>(array.size());
 
     std::cout << "Test" << std::setw(4) << number << ": n = " << n << std::endl;
 
@@ -115,10 +115,10 @@ TEST(AlgorithmTest, BinaryTreeSearchTest)
       zisc::zisc_implementation::toBinaryTree(tmp.begin(), tmp.end(), 0, tree.begin());
     }
 
-    for (zisc::uint64 i = 0; i < n; ++i) {
+    for (zisc::uint64b i = 0; i < n; ++i) {
       for (int c = 0; c < 3; ++c) {
         if (!(((i == 0) && (c == 2)) || ((i == n - 1) && (c == 0)))) {
-          const auto v = (array[i] + 1) - zisc::cast<zisc::uint64>(c);
+          const auto v = (array[i] + 1) - zisc::cast<zisc::uint64b>(c);
           // STL
           const auto expected = 
               zisc::stl_implementation::searchBinaryTree(array.begin(),
@@ -145,11 +145,11 @@ TEST(AlgorithmTest, BinaryTreeSearchPerformanceTest)
   auto stl_time = zisc::Stopwatch::Clock::duration::zero();
   auto zisc_time = stl_time;
   for (zisc::uint number = 0; number < max_number; ++number) {
-    zisc::uint64 n = zisc::cast<zisc::uint64>(rng_engine(1.0, 1.0e6));
+    zisc::uint64b n = zisc::cast<zisc::uint64b>(rng_engine(1.0, 1.0e6));
 
     // Make a sorted array
     auto array = ::makeSortedArray(n, rng_engine);
-    n = zisc::cast<zisc::uint64>(array.size());
+    n = zisc::cast<zisc::uint64b>(array.size());
 
     std::cout << "Test" << std::setw(4) << number << ": n = " << n << std::endl;
 
@@ -162,10 +162,10 @@ TEST(AlgorithmTest, BinaryTreeSearchPerformanceTest)
 
     zisc::Stopwatch stopwatch;
     stopwatch.start();
-    for (zisc::uint64 i = 0; i < n; ++i) {
+    for (zisc::uint64b i = 0; i < n; ++i) {
       for (int c = 0; c < 3; ++c) {
         if (!(((i == 0) && (c == 2)) || ((i == n - 1) && (c == 0)))) {
-          const auto v = (array[i] + 1) - zisc::cast<zisc::uint64>(c);
+          const auto v = (array[i] + 1) - zisc::cast<zisc::uint64b>(c);
           // STL
           [[maybe_unused]] volatile auto result = 
               zisc::stl_implementation::searchBinaryTree(array.begin(),
@@ -177,10 +177,10 @@ TEST(AlgorithmTest, BinaryTreeSearchPerformanceTest)
     stl_time += stopwatch.elapsedTime();
     stopwatch.stop();
     stopwatch.start();
-    for (zisc::uint64 i = 0; i < n; ++i) {
+    for (zisc::uint64b i = 0; i < n; ++i) {
       for (int c = 0; c < 3; ++c) {
         if (!(((i == 0) && (c == 2)) || ((i == n - 1) && (c == 0)))) {
-          const auto v = (array[i] + 1) - zisc::cast<zisc::uint64>(c);
+          const auto v = (array[i] + 1) - zisc::cast<zisc::uint64b>(c);
           // Zisc
           [[maybe_unused]] volatile auto result = 
               zisc::zisc_implementation::searchBinaryTree(tree.begin(),

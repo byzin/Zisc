@@ -29,7 +29,7 @@ namespace inner {
 template <typename ResultType> struct SipHashEngineImpl;
 
 template <>
-struct SipHashEngineImpl<uint32>
+struct SipHashEngineImpl<uint32b>
 {
   static constexpr std::size_t cRounds() noexcept
   {
@@ -41,7 +41,7 @@ struct SipHashEngineImpl<uint32>
     return 4;
   }
 
-  static constexpr std::array<uint32, 6> rotationBitList() noexcept
+  static constexpr std::array<uint32b, 6> rotationBitList() noexcept
   {
     return {{5, 16, 8, 7, 13, 16}};
   }
@@ -51,7 +51,7 @@ struct SipHashEngineImpl<uint32>
     return 24;
   }
 
-  static constexpr std::array<uint32, 4> vList() noexcept
+  static constexpr std::array<uint32b, 4> vList() noexcept
   {
     return {{0,
              0,
@@ -61,7 +61,7 @@ struct SipHashEngineImpl<uint32>
 };
 
 template <>
-struct SipHashEngineImpl<uint64>
+struct SipHashEngineImpl<uint64b>
 {
   static constexpr std::size_t cRounds() noexcept
   {
@@ -73,7 +73,7 @@ struct SipHashEngineImpl<uint64>
     return 4;
   }
 
-  static constexpr std::array<uint64, 6> rotationBitList() noexcept
+  static constexpr std::array<uint64b, 6> rotationBitList() noexcept
   {
     return {{13, 32, 16, 21, 17, 32}};
   }
@@ -83,7 +83,7 @@ struct SipHashEngineImpl<uint64>
     return 56;
   }
 
-  static constexpr std::array<uint64, 4> vList() noexcept
+  static constexpr std::array<uint64b, 4> vList() noexcept
   {
     return {{0x736f6d6570736575ull,
              0x646f72616e646f6dull,
@@ -102,9 +102,9 @@ constexpr std::array<ResultType, 2> SipHashEngine<ResultType>::kList() noexcept
   std::array<ResultType, 2> k_list{{0, 0}};
   for (std::size_t i = 0; i < 2; ++i) {
     constexpr std::size_t n = sizeof(ResultType);
-    std::array<uint8, n> k{};
+    std::array<uint8b, n> k{};
     for (std::size_t byte = 0; byte < n; ++byte)
-      k[byte] = cast<uint8>(byte + (i * n));
+      k[byte] = cast<uint8b>(byte + (i * n));
     k_list[i] = toUIntLe(k.data());
   }
   return k_list;

@@ -31,7 +31,7 @@ namespace zisc {
 /*!
   \brief ThreadManager class provides task parallel and data parallel thread pool
   */
-class ThreadManager : public NonCopyable<ThreadManager>
+class ThreadManager : private NonCopyable<ThreadManager>
 {
  public:
   //! Create threads as many CPU threads as

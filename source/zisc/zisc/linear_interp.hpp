@@ -30,7 +30,7 @@ namespace zisc {
  \todo ensure to be sorted.
  */
 template <typename Float>
-class LinearInterp : public NonCopyable<LinearInterp<Float>>
+class LinearInterp : private NonCopyable<LinearInterp<Float>>
 {
  public:
   using FloatType = Float;

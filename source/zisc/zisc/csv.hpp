@@ -31,7 +31,7 @@ namespace zisc {
  No detailed.
  */
 template <typename Type, typename ...Types>
-class Csv : public NonCopyable<Csv<Type, Types...>>
+class Csv : private NonCopyable<Csv<Type, Types...>>
 {
  public:
   using RecordType = std::tuple<Type, Types...>;

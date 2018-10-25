@@ -28,7 +28,7 @@ namespace zisc {
   */
 template <MemoryArenaType kArenaType, std::size_t kArenaSize>
 class MemoryManager : public pmr::memory_resource,
-                      public NonCopyable<MemoryManager<kArenaType, kArenaSize>>
+                      private NonCopyable<MemoryManager<kArenaType, kArenaSize>>
 {
  public:
   using iterator = MemoryManagerIterator<MemoryChunk>;

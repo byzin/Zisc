@@ -23,7 +23,7 @@ namespace zisc {
 /*!
   */
 template <typename Type>
-class UniqueMemoryPointer : public NonCopyable<UniqueMemoryPointer<Type>>
+class UniqueMemoryPointer : private NonCopyable<UniqueMemoryPointer<Type>>
 {
  public:
   using value_type = Type;

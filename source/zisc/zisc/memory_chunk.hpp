@@ -22,7 +22,7 @@ namespace zisc {
 
 /*!
   */
-class MemoryChunk : public NonCopyable<MemoryChunk>
+class MemoryChunk : private NonCopyable<MemoryChunk>
 {
  public:
   //! Create a null chunk

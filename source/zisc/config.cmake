@@ -74,7 +74,7 @@ function(loadZisc zisc_header_files zisc_include_dirs zisc_compile_flags zisc_li
   # Set version information
   set(zisc_version_major 0)
   set(zisc_version_minor 0)
-  set(zisc_version_patch 38)
+  set(zisc_version_patch 39)
   set(zisc_version ${zisc_version_major}.${zisc_version_minor}.${zisc_version_patch})
   message(STATUS "Zisc version: ${zisc_version}")
   

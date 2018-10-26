@@ -7,6 +7,20 @@
 #
 
 
+function(parseGoogleTestFlags googletest_compile_flags)
+  set(compile_flags "")
+  foreach(flag IN LISTS ARGN)
+    if(NOT flag MATCHES "^SHELL:")
+      list(APPEND compile_flags ${flag})
+    endif()
+  endforeach(flag)
+
+
+  # Output variables
+  set(${googletest_compile_flags} ${compile_flags} PARENT_SCOPE)
+endfunction(parseGoogleTestFlags)
+
+
 # Require GoogleTest project files:
 function(buildGoogleTest gtest_project_root gtest_include_dir gtest_libraries)
   include(ExternalProject)
@@ -14,6 +28,7 @@ function(buildGoogleTest gtest_project_root gtest_include_dir gtest_libraries)
   set(googletest_build_command ${CMAKE_COMMAND} --build . --config ${CMAKE_BUILD_TYPE})
 
   getCxxCompilerOption(googletest_flags googletest_linker_flgas googletest_definitions)
+  parseGoogleTestFlags(googletest_flags ${googletest_flags})
   string(REPLACE ";" " " googletest_flags "${googletest_flags}")
   string(REPLACE ";" " " googletest_linker_flgas "${googletest_linker_flgas}")
   string(REPLACE ";" " " googletest_definitions "${googletest_definitions}")

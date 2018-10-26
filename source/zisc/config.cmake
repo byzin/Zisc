@@ -80,6 +80,10 @@ function(loadZisc zisc_header_files zisc_include_dirs zisc_compile_flags zisc_li
   
   initZiscOption()
   getZiscOption(compile_flags linker_flags definitions)
+
+  if(Z_WINDOWS)
+    list(APPEND definitions _ENABLE_EXTENDED_ALIGNED_STORAGE)
+  endif()
   
   # Make configuration header file
   file(MAKE_DIRECTORY ${PROJECT_BINARY_DIR}/include)

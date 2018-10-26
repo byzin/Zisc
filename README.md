@@ -13,7 +13,7 @@ Version: 0.0.39
 
 ### Build tools ###
 
-* [CMake](https://cmake.org/) (version 3.10 or later)
+* [CMake](https://cmake.org/) (version 3.12 or later)
 
 ## Acknowledgement ##
 

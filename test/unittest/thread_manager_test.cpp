@@ -146,7 +146,7 @@ TEST(ThreadManagerTest, ParallelTest)
   // Thread range computation
   {
     {
-      const uint range = num_of_threads;
+      const zisc::uint range = num_of_threads;
       auto thread_range = thread_manager.calcThreadRange(range, 0);
       ASSERT_EQ(thread_range[0], 0) << "calcThreadRange() is wrong.";
       ASSERT_EQ(thread_range[1], 1) << "calcThreadRange() is wrong.";
@@ -155,7 +155,7 @@ TEST(ThreadManagerTest, ParallelTest)
       ASSERT_EQ(thread_range[1], 4) << "calcThreadRange() is wrong.";
     }
     {
-      const uint range = num_of_threads + 1;
+      const zisc::uint range = num_of_threads + 1;
       auto thread_range = thread_manager.calcThreadRange(range, 0);
       ASSERT_EQ(thread_range[0], 0) << "calcThreadRange() is wrong.";
       ASSERT_EQ(thread_range[1], 1) << "calcThreadRange() is wrong.";

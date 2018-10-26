@@ -57,19 +57,33 @@ function(getMsvcCompilerOption cxx_compile_flags cxx_linker_flags cxx_definition
 endfunction(getMsvcCompilerOption)
 
 
+function(appendClangOption cxx_compile_flags)
+  set(compile_flags ${${cxx_compile_flags}})
+  foreach(compile_flag IN LISTS ARGN)
+    if(Z_VISUAL_STUDIO)
+      string(REPLACE "=" ";" compile_flag ${compile_flag})
+      foreach(flag IN LISTS compile_flag)
+        list(APPEND compile_flags "SHELL:-Xclang ${flag}")
+      endforeach(flag)
+    else()
+      list(APPEND compile_flags ${compile_flag})
+    endif()
+  endforeach(compile_flag)
+  set(${cxx_compile_flags} ${compile_flags} PARENT_SCOPE)
+endfunction(appendClangOption)
+
+
 function(getClangCompilerOption cxx_compile_flags cxx_linker_flags cxx_definitions)
   set(compile_flags "")
   set(linker_flags "")
   set(definitions "")
 
-  list(APPEND compile_flags -fconstexpr-depth=${constexpr_depth}
-                            -fconstexpr-backtrace-limit=${constexpr_backtrace}
-                            -fconstexpr-steps=${constexpr_steps}
-                            -ftemplate-depth=${recursive_template_depth})
+  appendClangOption(compile_flags
+    -fconstexpr-depth=${constexpr_depth}
+    -fconstexpr-backtrace-limit=${constexpr_backtrace}
+    -fconstexpr-steps=${constexpr_steps}
+    -ftemplate-depth=${recursive_template_depth})
 
-  if(Z_VISUAL_STUDIO)
-    list(APPEND compile_flags -std=c++17)
-  endif()
   if(Z_CLANG_USES_LIBCXX)
     list(APPEND compile_flags -stdlib=libc++)
     list(APPEND linker_flags -stdlib=libc++)

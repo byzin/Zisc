@@ -37,7 +37,7 @@ function(initCompilerOption)
   setBooleanOption(Z_ENABLE_MEMORY_SANITIZER OFF ${option_description})
 
   set(option_description "Enable static analyzer (clang-tidy, include-what-you-use, link-what-you-use).")
-  setBooleanOption(Z_ENABLE_STATIC_ANALYZER ON ${option_description})
+  setBooleanOption(Z_ENABLE_STATIC_ANALYZER OFF ${option_description})
 endfunction(initCompilerOption)
 
 

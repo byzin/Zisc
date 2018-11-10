@@ -9,6 +9,13 @@
 cmake_minimum_required(VERSION 3.10)
 
 
+function(checkSubmodule submodule_path)
+  if(NOT EXISTS ${submodule_path})
+    get_filename_component(submodule_name "${submodule_path}" NAME)
+    message(FATAL_ERROR "Submodule '${submodule_name}' not found, please init submodules.")
+  endif()
+endfunction()
+
 ## The project information
 project(Zisc LANGUAGES C CXX)
 include(${PROJECT_SOURCE_DIR}/cmake/project.cmake)
@@ -41,6 +48,8 @@ loadZisc(zisc_header_files
          zisc_compile_flags
          zisc_linker_flags
          zisc_definitions)
+# Thread
+find_package(Threads REQUIRED)
 
 # Build example
 include(${PROJECT_SOURCE_DIR}/example/config.cmake)

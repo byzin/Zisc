@@ -45,8 +45,9 @@ endfunction(getTestWarningOption)
 function(buildUnitTest)
   # Load google test
   include(${PROJECT_SOURCE_DIR}/cmake/googletest.cmake)
-  set(googletest_project_root ${__test_root__}/googletest)
-  buildGoogleTest(${googletest_project_root} gtest_include_dir gtest_libraries)
+  set(gtest_project_root ${__test_root__}/googletest)
+  checkSubmodule(${gtest_project_root})
+  buildGoogleTest(${gtest_project_root} gtest_include_dir gtest_libraries)
 
   ## Build a unit test
   file(COPY ${__test_root__}/resources DESTINATION ${PROJECT_BINARY_DIR})
@@ -67,7 +68,7 @@ function(buildUnitTest)
   target_include_directories(UnitTest PRIVATE ${zisc_include_dirs})
   target_include_directories(UnitTest SYSTEM PRIVATE ${gtest_include_dir})
   find_package(Threads REQUIRED)
-  target_link_libraries(UnitTest PRIVATE ${CMAKE_THREAD_LIBS_INIT}
+  target_link_libraries(UnitTest PRIVATE Threads::Threads
                                          ${cxx_linker_flags}
                                          ${zisc_linker_flags}
                                          ${gtest_libraries})

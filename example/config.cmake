@@ -49,7 +49,7 @@ function(setExample example_name)
                                                  ${example_warning_flags})
   target_include_directories(${example_name} PRIVATE ${zisc_include_dirs})
   find_package(Threads REQUIRED)
-  target_link_libraries(${example_name} PRIVATE ${CMAKE_THREAD_LIBS_INIT}
+  target_link_libraries(${example_name} PRIVATE Threads::Threads
                                                 ${cxx_linker_flags}
                                                 ${zisc_linker_flags})
   target_compile_definitions(${example_name} PRIVATE ${environment_definitions}

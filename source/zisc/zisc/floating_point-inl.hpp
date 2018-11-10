@@ -14,61 +14,28 @@
 // Standard C++ library
 #include <cstdint>
 #include <cstddef>
+#include <limits>
+#include <type_traits>
 // Zisc
 #include "type_traits.hpp"
+#include "utility.hpp"
 #include "zisc/zisc_config.hpp"
 
 namespace zisc {
 
-template <>
-struct FloatRepresentation<2>
-{
-  using FloatType = void*;
-  using RepresentationType = uint16b;
-};
-
-template <>
-struct FloatRepresentation<4>
-{
-  using FloatType = float;
-  using RepresentationType = uint32b;
-};
-
-template <>
-struct FloatRepresentation<8>
-{
-  using FloatType = double;
-  using RepresentationType = uint64b;
-};
-
 /*!
   */
-template <> inline
-constexpr std::size_t FloatingPoint<2>::exponentBias() noexcept
+template <FloatingPointFormat kFormat> inline
+constexpr std::size_t FloatingPoint<kFormat>::exponentBias() noexcept
 {
-  return 15;
+  const std::size_t bias = (0b1u << (exponentBitSize() - 1)) - 1u;
+  return bias;
 }
 
 /*!
   */
-template <> inline
-constexpr std::size_t FloatingPoint<4>::exponentBias() noexcept
-{
-  return 127;
-}
-
-/*!
-  */
-template <> inline
-constexpr std::size_t FloatingPoint<8>::exponentBias() noexcept
-{
-  return 1023;
-}
-
-/*!
-  */
-template <std::size_t kN> inline
-constexpr auto FloatingPoint<kN>::exponentBitMask() noexcept -> BitType
+template <FloatingPointFormat kFormat> inline
+constexpr auto FloatingPoint<kFormat>::exponentBitMask() noexcept -> BitType
 {
   BitType mask = 0b0u;
   for (std::size_t bit = 0; bit < exponentBitSize(); ++bit) {
@@ -80,32 +47,117 @@ constexpr auto FloatingPoint<kN>::exponentBitMask() noexcept -> BitType
 
 /*!
   */
-template <> inline
-constexpr std::size_t FloatingPoint<2>::exponentBitSize() noexcept
+template <FloatingPointFormat kFormat> inline
+constexpr std::size_t FloatingPoint<kFormat>::exponentBitSize() noexcept
 {
-  return 5;
+  const std::size_t bit_size = (kFormat == FloatingPointFormat::kHalf) ? 5 :
+                               (kFormat == FloatingPointFormat::kSingle) ? 8 : 11;
+  return bit_size;
 }
 
 /*!
   */
-template <> inline
-constexpr std::size_t FloatingPoint<4>::exponentBitSize() noexcept
+template <FloatingPointFormat kFormat> inline
+constexpr auto FloatingPoint<kFormat>::getBits(const FloatType value) noexcept
+    -> BitType
 {
-  return 8;
+  return getSignBit(value) | getExponentBits(value) | getSignificandBits(value);
 }
 
 /*!
   */
-template <> inline
-constexpr std::size_t FloatingPoint<8>::exponentBitSize() noexcept
+template <FloatingPointFormat kFormat> inline
+constexpr auto FloatingPoint<kFormat>::getExponentBits(const FloatType value)
+    noexcept  -> BitType
 {
-  return 11;
+  BitType bit = (isInf(value) || isNan(value))
+      ? exponentBitMask()
+      : BitType{0b0u};
+  if (isNormal(value)) {
+    FloatType v = abs(value);
+    std::size_t exponent = exponentBias();
+
+    constexpr std::size_t size = 8 * sizeof(BitType);
+    constexpr FloatType p = getPowered(size);
+    constexpr FloatType n = cast<FloatType>(1.0) / p;
+    for (; p <= v; v = n * v)
+      exponent = exponent + size;
+    for (; v < cast<FloatType>(1.0); v = p * v)
+      exponent = exponent - size;
+
+    bit = cast<BitType>(v);
+    for (; cast<BitType>(0x1u) < bit; bit = bit >> 1)
+      ++exponent;
+
+    bit = cast<BitType>(exponent) << significandBitSize();
+  }
+  return bit;
 }
 
 /*!
   */
-template <std::size_t kN> inline
-constexpr auto FloatingPoint<kN>::signBitMask() noexcept -> BitType
+template <FloatingPointFormat kFormat> inline
+constexpr auto FloatingPoint<kFormat>::getSignificandBits(const FloatType value)
+    noexcept  -> BitType
+{
+  BitType bit = isNan(value)
+      ? BitType{0b01u} << (significandBitSize() - 1)
+      : BitType{0b0u};
+
+  int exponent = 0;
+
+  constexpr FloatType s = getPowered(significandBitSize());
+  const FloatType v = isSubnormal(value) ? s * abs(value) : abs(value);
+  if (isNormal(v)) {
+    exponent = cast<int>(getExponentBits(v) >> significandBitSize()) -
+               cast<int>(exponentBias());
+    const FloatType t = (0 < exponent)
+      ? cast<FloatType>(1.0) / getPowered(exponent)
+      : getPowered(-exponent);
+    bit = cast<BitType>(s * (t * v));
+  }
+  if (isSubnormal(value)) {
+    exponent = exponent + cast<int>(exponentBias()) - 1;
+    bit = (BitType{0b1u} << exponent) |
+          (bit >> (cast<int>(significandBitSize()) - exponent));
+  }
+  bit = bit & significandBitMask();
+  return bit;
+}
+
+/*!
+  */
+template <FloatingPointFormat kFormat> inline
+constexpr auto FloatingPoint<kFormat>::getSignBit(const FloatType value)
+    noexcept  -> BitType
+{
+  const BitType bit = isNegative(value)
+      ? BitType{0b1u} << (exponentBitSize() + significandBitSize())
+      : BitType{0b0u};
+  return bit;
+}
+
+/*!
+  \details
+  Please see "Generating uniform doubles in the unit interval"
+  on 'http://xoroshiro.di.unimi.it/' for the details
+  */
+template <FloatingPointFormat kFormat> template <typename UInt> inline
+constexpr auto FloatingPoint<kFormat>::mapTo01(const UInt x) noexcept
+    -> FloatType
+{
+  static_assert(kIsUnsignedInteger<UInt>, "UInt isn't unsigned integer.");
+  constexpr FloatType k =
+      cast<FloatType>(1.0) /
+      cast<FloatType>(cast<BitType>(1) << (significandBitSize() + 1));
+  const BitType r = expandToBitSize(x) >> exponentBitSize();
+  return k * cast<FloatType>(r);
+}
+
+/*!
+  */
+template <FloatingPointFormat kFormat> inline
+constexpr auto FloatingPoint<kFormat>::signBitMask() noexcept -> BitType
 {
   const auto mask = BitType{0b1u} << (exponentBitSize() + significandBitSize());
   return mask;
@@ -113,8 +165,8 @@ constexpr auto FloatingPoint<kN>::signBitMask() noexcept -> BitType
 
 /*!
   */
-template <std::size_t kN> inline
-constexpr auto FloatingPoint<kN>::significandBitMask() noexcept -> BitType
+template <FloatingPointFormat kFormat> inline
+constexpr auto FloatingPoint<kFormat>::significandBitMask() noexcept -> BitType
 {
   BitType mask = 0b0u;
   for (std::size_t bit = 0; bit < significandBitSize(); ++bit) {
@@ -126,26 +178,106 @@ constexpr auto FloatingPoint<kN>::significandBitMask() noexcept -> BitType
 
 /*!
   */
-template <> inline
-constexpr std::size_t FloatingPoint<2>::significandBitSize() noexcept
+template <FloatingPointFormat kFormat> inline
+constexpr std::size_t FloatingPoint<kFormat>::significandBitSize() noexcept
 {
-  return 10;
+  const std::size_t bit_size = (kFormat == FloatingPointFormat::kHalf) ? 10 :
+                               (kFormat == FloatingPointFormat::kSingle) ? 23 : 52;
+  return bit_size;
 }
 
 /*!
   */
-template <> inline
-constexpr std::size_t FloatingPoint<4>::significandBitSize() noexcept
+template <FloatingPointFormat kFormat> template <typename UInt> inline
+constexpr auto FloatingPoint<kFormat>::expandToBitSize(const UInt x) noexcept
+    -> BitType
 {
-  return 23;
+  static_assert(kIsUnsignedInteger<UInt>, "UInt isn't unsigned integer.");
+  constexpr std::size_t bit_size = sizeof(BitType);
+  constexpr std::size_t int_size = sizeof(UInt);
+  if constexpr (int_size == bit_size) {
+    return x;
+  }
+  else if constexpr (int_size < bit_size) {
+    constexpr std::size_t diff = bit_size - int_size;
+    return cast<BitType>(x) << (diff * 8);
+  }
+  else {
+    constexpr std::size_t diff = int_size - bit_size;
+    return cast<BitType>(x >> (diff * 8));
+  }
 }
 
 /*!
   */
-template <> inline
-constexpr std::size_t FloatingPoint<8>::significandBitSize() noexcept
+template <FloatingPointFormat kFormat> inline
+constexpr auto FloatingPoint<kFormat>::getPowered(std::size_t exponent)
+    noexcept -> FloatType 
 {
-  return 52;
+  FloatType base = cast<FloatType>(2.0);
+  FloatType x = cast<FloatType>(1.0);
+  for (; 0 < exponent; exponent = exponent >> 1) {
+    if (isOdd(exponent))
+      x = x * base;
+    if (1 < exponent)
+      base = base * base;
+  }
+  return x;
+}
+
+/*!
+  */
+template <typename Float> inline
+constexpr bool isFinite(const Float x) noexcept
+{
+  static_assert(kIsFloat<Float>, "Float isn't floating point type.");
+  const bool result = !(isInf(x) || isNan(x));
+  return result;
+}
+
+/*!
+  */
+template <typename Float> inline
+constexpr bool isInf(const Float x) noexcept
+{
+  static_assert(kIsFloat<Float>, "Float isn't floating point type.");
+  const bool result = (x == std::numeric_limits<Float>::infinity()) ||
+                      (x == -std::numeric_limits<Float>::infinity());
+  return result;
+}
+
+/*!
+  */
+template <typename Float> inline
+constexpr bool isNan(const Float x) noexcept
+{
+  static_assert(kIsFloat<Float>, "Float isn't floating point type.");
+  const bool result = x != x;
+  return result;
+}
+
+/*!
+  */
+template <typename Float> inline
+constexpr bool isNormal(const Float x) noexcept
+{
+  static_assert(kIsFloat<Float>, "Float isn't floating point type.");
+  const Float d = abs(x);
+  const bool result = (std::numeric_limits<Float>::min() <= d) &&
+                      (d <= std::numeric_limits<Float>::max());
+  return result;
+}
+
+/*!
+  */
+template <typename Float> inline
+constexpr bool isSubnormal(const Float x) noexcept
+{
+  static_assert(kIsFloat<Float>, "Float isn't floating point type.");
+  constexpr Float zero = cast<Float>(0.0);
+  const Float d = abs(x);
+  const bool result = (zero < d) && (d < std::numeric_limits<Float>::min());
+  return result;
 }
 
 } // namespace zisc

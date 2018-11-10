@@ -33,10 +33,6 @@ constexpr Float kPi = constant::pi<Float>();
 
 // Basic operations
 
-//! Return the absolute value
-template <typename Arithmetic>
-constexpr Arithmetic abs(const Arithmetic n) noexcept;
-
 //! Compute the greatest common divisor of the integers m and n
 template <typename Integer1, typename Integer2>
 constexpr std::common_type_t<Integer1, Integer2> gcd(Integer1 m,
@@ -179,28 +175,6 @@ std::tuple<std::array<Float, 4>, uint> solveQuartic(const Float a,
                                                     const Float c, 
                                                     const Float d, 
                                                     const Float e) noexcept;
-
-// Classification and comparison
-
-//! Check if the given number has finite value
-template <typename Float>
-constexpr bool isFinite(const Float x) noexcept;
-
-//! Check if the given number is infinite
-template <typename Float>
-constexpr bool isInf(const Float x) noexcept;
-
-//! Check if the given number is NaN
-template <typename Float>
-constexpr bool isNan(const Float x) noexcept;
-
-//! Check if the given number is normal
-template <typename Float>
-constexpr bool isNormal(const Float x) noexcept;
-
-//! Check if the given number is subnormal
-template <typename Float>
-constexpr bool isSubnormal(const Float x) noexcept;
 
 } // namespace zisc
 

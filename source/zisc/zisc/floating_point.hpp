@@ -13,23 +13,35 @@
 // Standard C++ library
 #include <cstdint>
 #include <cstddef>
+#include <type_traits>
 // Zisc
 #include "type_traits.hpp"
 #include "zisc/zisc_config.hpp"
 
 namespace zisc {
 
-template <std::size_t kN> struct FloatRepresentation;
+/*!
+  */
+enum class FloatingPointFormat
+{
+  kHalf,
+  kSingle,
+  kDouble
+};
 
 /*!
-  \brief Replesent a n-byte floating point
+  \brief Replesent a floating point based on IEEE 754
   */
-template <std::size_t kN>
+template <FloatingPointFormat kFormat>
 class FloatingPoint
 {
  public:
-  using FloatType = typename FloatRepresentation<kN>::FloatType;
-  using BitType = typename FloatRepresentation<kN>::RepresentationType;
+  using FloatType =
+    std::conditional_t<kFormat == FloatingPointFormat::kHalf, uint16b,
+    std::conditional_t<kFormat == FloatingPointFormat::kSingle, float, double>>;
+  using BitType =
+    std::conditional_t<kFormat == FloatingPointFormat::kHalf, uint16b,
+    std::conditional_t<kFormat == FloatingPointFormat::kSingle, uint32b, uint64b>>;
 
 
   //! Return the exponent bias
@@ -41,6 +53,22 @@ class FloatingPoint
   //! Return the exponent bit size
   static constexpr std::size_t exponentBitSize() noexcept;
 
+  //! Get bits of a float value
+  static constexpr BitType getBits(const FloatType value) noexcept;
+
+  //! Get exponent bits of a float value
+  static constexpr BitType getExponentBits(const FloatType value) noexcept;
+
+  //! Get significand bits of a float value
+  static constexpr BitType getSignificandBits(const FloatType value) noexcept;
+
+  //! Get a sign bit of a float value
+  static constexpr BitType getSignBit(const FloatType value) noexcept;
+
+  //! Map an integer value into a [0, 1) float
+  template <typename UInt>
+  static constexpr FloatType mapTo01(const UInt x) noexcept;
+
   //! Return the sign bit mask
   static constexpr BitType signBitMask() noexcept;
 
@@ -51,16 +79,48 @@ class FloatingPoint
   static constexpr std::size_t significandBitSize() noexcept;
 
  private:
-  static_assert(kIsUnsignedInteger<BitType>, "BitType isn't unsigned integer.");
-  static_assert(sizeof(BitType) == kN, "BitType isn't n-byte.");
+  //! Expand an input value to the bittype size
+  template <typename UInt>
+  static constexpr BitType expandToBitSize(const UInt x) noexcept;
+
+  //!
+  static constexpr FloatType getPowered(std::size_t exponent) noexcept;
 
   BitType data_;
 };
 
+// Classification and comparison
+
+//! Check if the given number has finite value
+template <typename Float>
+constexpr bool isFinite(const Float x) noexcept;
+
+//! Check if the given number is infinite
+template <typename Float>
+constexpr bool isInf(const Float x) noexcept;
+
+//! Check if the given number is NaN
+template <typename Float>
+constexpr bool isNan(const Float x) noexcept;
+
+//! Check if the given number is normal
+template <typename Float>
+constexpr bool isNormal(const Float x) noexcept;
+
+//! Check if the given number is subnormal
+template <typename Float>
+constexpr bool isSubnormal(const Float x) noexcept;
+
+
 // Type alias
-using HalfFloat = FloatingPoint<2>;
-using SingleFloat = FloatingPoint<4>;
-using DoubleFloat = FloatingPoint<8>;
+using HalfFloat = FloatingPoint<FloatingPointFormat::kHalf>;
+using SingleFloat = FloatingPoint<FloatingPointFormat::kSingle>;
+using DoubleFloat = FloatingPoint<FloatingPointFormat::kDouble>;
+template <std::size_t kBytes>
+using FloatingPointFromBytes =
+  std::conditional_t<kBytes == sizeof(HalfFloat), HalfFloat,
+  std::conditional_t<kBytes == sizeof(SingleFloat), SingleFloat,
+  std::conditional_t<kBytes == sizeof(DoubleFloat), DoubleFloat, void>>>;
 
 } // namespace zisc
 

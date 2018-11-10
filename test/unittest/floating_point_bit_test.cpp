@@ -14,7 +14,7 @@
 // GoogleTest
 #include "gtest/gtest.h"
 // Zisc
-#include "zisc/floating_point_bit.hpp"
+#include "zisc/floating_point.hpp"
 #include "zisc/math.hpp"
 #include "zisc/sip_hash_engine.hpp"
 #include "zisc/utility.hpp"
@@ -34,7 +34,7 @@ constexpr int end = 512;
 template <typename Float, int end, int i>
 struct BitTest
 {
-  using FloatBit = zisc::FloatingPointBit<Float>;
+  using FloatBit = zisc::FloatingPointFromBytes<sizeof(Float)>;
   using BitType = typename FloatBit::BitType;
 
   union F
@@ -153,37 +153,12 @@ struct BitTest
     }
     BitTest<Float, end, i + 1>::testBit();
   }
-
-  static void testFloatMaking()
-  {
-    {
-      constexpr BitType s = FloatBit::getSignBit(normal);
-      constexpr BitType e = FloatBit::getExponentBits(normal);
-      constexpr BitType m = FloatBit::getSignificandBits(normal);
-      constexpr Float f = FloatBit::makeFloat(s, e, m);
-      EXPECT_EQ(normal, f)
-          << "normal: "
-          << std::setprecision(std::numeric_limits<Float>::digits10)
-          << normal;
-    }
-    {
-      constexpr BitType s = FloatBit::getSignBit(subnormal);
-      constexpr BitType e = FloatBit::getExponentBits(subnormal);
-      constexpr BitType m = FloatBit::getSignificandBits(subnormal);
-      constexpr Float f = FloatBit::makeFloat(s, e, m);
-      EXPECT_EQ(subnormal, f)
-          << "subnormal: "
-          << std::setprecision(std::numeric_limits<Float>::digits10)
-          << subnormal;
-    }
-    BitTest<Float, end, i + 1>::testFloatMaking();
-  }
 };
 
 template <typename Float, int end>
 struct BitTest<Float, end, end>
 {
-  using FloatBit = zisc::FloatingPointBit<Float>;
+  using FloatBit = zisc::FloatingPointFromBytes<sizeof(Float)>;
   using BitType = typename FloatBit::BitType;
 
   union F
@@ -285,32 +260,6 @@ struct BitTest<Float, end, end>
     test(std::numeric_limits<Float>::quiet_NaN());
     test(std::numeric_limits<Float>::denorm_min());
   }
-
-  static void testFloatMaking()
-  {
-    auto test = [](const Float x)
-    {
-      const BitType s = FloatBit::getSignBit(x);
-      const BitType e = FloatBit::getExponentBits(x);
-      const BitType m = FloatBit::getSignificandBits(x);
-      const Float f = FloatBit::makeFloat(s, e, m);
-      EXPECT_EQ(x, f)
-          << "normal: "
-          << std::setprecision(std::numeric_limits<Float>::digits10)
-          << x;
-
-    };
-    test(zisc::cast<Float>(0.0));
-    test(zisc::cast<Float>(-0.0));
-    test(std::numeric_limits<Float>::max());
-    test(std::numeric_limits<Float>::lowest());
-    test(std::numeric_limits<Float>::min());
-    test(-std::numeric_limits<Float>::min());
-    test(std::numeric_limits<Float>::infinity());
-    test(-std::numeric_limits<Float>::infinity());
-//    test(std::numeric_limits<Float>::quiet_NaN());
-    test(std::numeric_limits<Float>::denorm_min());
-  }
 };
 
 } // namespace 
@@ -355,32 +304,22 @@ TEST(FloatingPointBitTest, getBitsDoubleTest)
   ::BitTest<double, ::end, ::start>::testBit();
 }
 
-TEST(FloatingPointBitTest, FloatMakingTest)
-{
-  ::BitTest<float, ::end, ::start>::testFloatMaking();
-}
-
-TEST(FloatingPointBitTest, DoubleMakingTest)
-{
-  ::BitTest<double, ::end, ::start>::testFloatMaking();
-}
-
 TEST(FloatingPointBitTest, FloatMapTest)
 {
-  using zisc::FloatBit;
+  using zisc::SingleFloat;
   {
     constexpr zisc::uint32b x = 0;
-    constexpr float result = FloatBit::mapTo01Float(x);
+    constexpr float result = SingleFloat::mapTo01(x);
     EXPECT_EQ(0.0f, result);
   }
   {
     constexpr zisc::uint32b x = std::numeric_limits<zisc::uint32b>::max() / 2;
-    constexpr float result = FloatBit::mapTo01Float(x);
+    constexpr float result = SingleFloat::mapTo01(x);
     EXPECT_FLOAT_EQ(0.5f, result);
   }
   {
     constexpr zisc::uint32b x = std::numeric_limits<zisc::uint32b>::max();
-    constexpr float result = FloatBit::mapTo01Float(x);
+    constexpr float result = SingleFloat::mapTo01(x);
     EXPECT_FLOAT_EQ(1.0f, result);
     EXPECT_GT(1.0f, result);
   }
@@ -388,20 +327,20 @@ TEST(FloatingPointBitTest, FloatMapTest)
 
 TEST(FloatingPointBitTest, DoubleMapTest)
 {
-  using zisc::DoubleBit;
+  using zisc::DoubleFloat;
   {
     constexpr zisc::uint64b x = 0;
-    constexpr double result = DoubleBit::mapTo01Float(x);
+    constexpr double result = DoubleFloat::mapTo01(x);
     EXPECT_EQ(0.0, result);
   }
   {
     constexpr zisc::uint64b x = std::numeric_limits<zisc::uint64b>::max() / 2;
-    constexpr double result = DoubleBit::mapTo01Float(x);
+    constexpr double result = DoubleFloat::mapTo01(x);
     EXPECT_DOUBLE_EQ(0.5, result);
   }
   {
     constexpr zisc::uint64b x = std::numeric_limits<zisc::uint64b>::max();
-    constexpr double result = DoubleBit::mapTo01Float(x);
+    constexpr double result = DoubleFloat::mapTo01(x);
     EXPECT_DOUBLE_EQ(1.0, result);
     EXPECT_GT(1.0, result);
   }

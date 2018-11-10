@@ -18,6 +18,21 @@
 namespace zisc {
 
 /*!
+ \details
+ No detailed.
+ */
+template <typename Arithmetic> inline
+constexpr Arithmetic abs(const Arithmetic x) noexcept
+{
+  static_assert(std::is_arithmetic_v<Arithmetic>,
+                "Arithmetic isn't arithmetic type.");
+  if constexpr (std::is_signed_v<Arithmetic>)
+    return isNegative(x) ? -x : x;
+  else
+    return x;
+}
+
+/*!
   \details
   No detailed.
   */

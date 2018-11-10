@@ -16,7 +16,7 @@
 #include <cstddef>
 #include <cstdint>
 // Zisc
-#include "floating_point_bit.hpp"
+#include "floating_point.hpp"
 #include "math.hpp"
 #include "type_traits.hpp"
 #include "utility.hpp"
@@ -143,7 +143,8 @@ template <uint32b kRootN> template <typename Float> inline
 Float CorrelatedMultiJitteredEngine<kRootN>::mapTo01Float(const uint32b x) noexcept
 {
   static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-  return FloatingPointBit<Float>::mapTo01Float(x);
+  using FloatType = FloatingPointFromBytes<sizeof(Float)>;
+  return FloatType::mapTo01(x);
 }
 
 /*!

@@ -19,7 +19,7 @@
 #include <type_traits>
 // Zisc
 #include "error.hpp"
-#include "floating_point_bit.hpp"
+#include "floating_point.hpp"
 #include "utility.hpp"
 #include "type_traits.hpp"
 #include "zisc/zisc_config.hpp"
@@ -54,21 +54,6 @@ constexpr Float pi() noexcept
   constexpr int64b n = 4 * std::numeric_limits<Float>::digits10;
   const Float p = inner::calcPi<Float>(n);
   return p;
-}
-
-/*!
- \details
- No detailed.
- */
-template <typename Arithmetic> inline
-constexpr Arithmetic abs(const Arithmetic x) noexcept
-{
-  static_assert(std::is_arithmetic_v<Arithmetic>,
-                "Arithmetic isn't arithmetic type.");
-  if constexpr (std::is_signed_v<Arithmetic>)
-    return isNegative(x) ? -x : x;
-  else
-    return x;
 }
 
 /*!
@@ -257,11 +242,10 @@ constexpr Float estimateNRoot(const Float x) noexcept
 {
   static_assert(0 < kN, "The kN isn't positive.");
 
-  using FloatBit = FloatingPointBit<Float>;
-
+  using FloatType = FloatingPointFromBytes<sizeof(Float)>;
   int exponent = 
-      cast<int>(FloatBit::getExponentBits(x) >> FloatBit::significandBitSize()) -
-      cast<int>(FloatBit::exponentBias());
+      cast<int>(FloatType::getExponentBits(x) >> FloatType::significandBitSize()) -
+      cast<int>(FloatType::exponentBias());
   exponent = exponent / kN;
 
   const Float y = pow(cast<Float>(2.0), exponent);
@@ -375,10 +359,10 @@ constexpr Float log2(const Float x) noexcept
 {
   static_assert(kIsFloat<Float>, "Float isn't floating point type.");
 
-  using FloatBit = FloatingPointBit<Float>;
+  using FloatType = FloatingPointFromBytes<sizeof(Float)>;
   const int exponent = 
-      cast<int>(FloatBit::getExponentBits(x) >> FloatBit::significandBitSize()) -
-      cast<int>(FloatBit::exponentBias());
+      cast<int>(FloatType::getExponentBits(x) >> FloatType::significandBitSize()) -
+      cast<int>(FloatType::exponentBias());
   const Float f = pow(cast<Float>(0.5), exponent);
 
   const Float l = cast<Float>(exponent) + inner::log2(f * x);
@@ -580,61 +564,6 @@ constexpr Float acos(const Float x) noexcept
   }
 
   return theta;
-}
-
-/*!
-  */
-template <typename Float> inline
-constexpr bool isFinite(const Float x) noexcept
-{
-  static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-  const bool result = !(isInf(x) || isNan(x));
-  return result;
-}
-
-/*!
-  */
-template <typename Float> inline
-constexpr bool isInf(const Float x) noexcept
-{
-  static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-  const bool result = (x == std::numeric_limits<Float>::infinity()) ||
-                      (x == -std::numeric_limits<Float>::infinity());
-  return result;
-}
-
-/*!
-  */
-template <typename Float> inline
-constexpr bool isNan(const Float x) noexcept
-{
-  static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-  const bool result = x != x;
-  return result;
-}
-
-/*!
-  */
-template <typename Float> inline
-constexpr bool isNormal(const Float x) noexcept
-{
-  static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-  const Float d = abs(x);
-  const bool result = (std::numeric_limits<Float>::min() <= d) &&
-                      (d <= std::numeric_limits<Float>::max());
-  return result;
-}
-
-/*!
-  */
-template <typename Float> inline
-constexpr bool isSubnormal(const Float x) noexcept
-{
-  static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-  constexpr Float zero = cast<Float>(0.0);
-  const Float d = abs(x);
-  const bool result = (zero < d) && (d < std::numeric_limits<Float>::min());
-  return result;
 }
 
 } // namespace constant

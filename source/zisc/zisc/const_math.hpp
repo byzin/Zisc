@@ -26,10 +26,6 @@ constexpr Float pi() noexcept;
 
 // Basic operations
 
-//! Return the absolute value
-template <typename Arithmetic>
-constexpr Arithmetic abs(const Arithmetic x) noexcept;
-
 //! Return the ULPs of the given value
 template <std::size_t kUlpScale = 4, typename Float>
 constexpr Float getUlps(const Float value) noexcept;
@@ -130,28 +126,6 @@ constexpr Float acos(const Float x) noexcept;
 //! Calculate atan(x)
 template <typename Float>
 constexpr Float atan(const Float x) noexcept;
-
-// Classification and comparison
-
-//! Check if the given number has finite value
-template <typename Float>
-constexpr bool isFinite(const Float x) noexcept;
-
-//! Check if the given number is infinite
-template <typename Float>
-constexpr bool isInf(const Float x) noexcept;
-
-//! Check if the given number is NaN
-template <typename Float>
-constexpr bool isNan(const Float x) noexcept;
-
-//! Check if the given number is normal
-template <typename Float>
-constexpr bool isNormal(const Float x) noexcept;
-
-//! Check if the given number is subnormal
-template <typename Float>
-constexpr bool isSubnormal(const Float x) noexcept;
 
 } // namespace consttant
 

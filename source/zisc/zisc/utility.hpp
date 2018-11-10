@@ -15,6 +15,10 @@
 
 namespace zisc {
 
+//! Return the absolute value
+template <typename Arithmetic>
+constexpr Arithmetic abs(const Arithmetic x) noexcept;
+
 //! Convert type from T to Type
 template <typename Type, typename T>
 constexpr Type cast(T&& value) noexcept;

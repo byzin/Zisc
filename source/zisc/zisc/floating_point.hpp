@@ -65,6 +65,15 @@ class FloatingPoint
   //! Get a sign bit of a float value
   static constexpr BitType getSignBit(const FloatType value) noexcept;
 
+  //! Make a float
+  static constexpr FloatType makeFloat(const BitType exponent_bits,
+                                       const BitType significand_bits) noexcept;
+
+  //! Make a float
+  static constexpr FloatType makeFloat(BitType sign_bit,
+                                       BitType exponent_bits,
+                                       BitType significand_bits) noexcept;
+
   //! Map an integer value into a [0, 1) float
   template <typename UInt>
   static constexpr FloatType mapTo01(const UInt x) noexcept;
@@ -84,7 +93,7 @@ class FloatingPoint
   static constexpr BitType expandToBitSize(const UInt x) noexcept;
 
   //!
-  static constexpr FloatType getPowered(std::size_t exponent) noexcept;
+  static constexpr FloatType getPowered(const int exponent) noexcept;
 
   BitType data_;
 };

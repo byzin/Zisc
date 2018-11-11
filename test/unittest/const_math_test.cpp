@@ -61,15 +61,15 @@ TEST(ConstMathTest, PiTest)
 TEST(ConstMathTest, AbsTest)
 {
   {
-    constexpr int value = zisc::constant::abs(3);
+    constexpr int value = zisc::abs(3);
     EXPECT_EQ(3, value) << "The result of abs(3) is wrong.";
   }
   {
-    constexpr int value = zisc::constant::abs(-1);
+    constexpr int value = zisc::abs(-1);
     EXPECT_EQ(1, value) << "The result of abs(-1) is wrong.";
   }
   {
-    constexpr double value = zisc::constant::abs(-2.5);
+    constexpr double value = zisc::abs(-2.5);
     EXPECT_DOUBLE_EQ(2.5, value) << "The result of abs(-2.5) is wrong.";
   }
 }

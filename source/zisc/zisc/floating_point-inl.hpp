@@ -78,11 +78,11 @@ constexpr auto FloatingPoint<kFormat>::getExponentBits(const FloatType value)
     std::size_t exponent = exponentBias();
 
     constexpr std::size_t size = 8 * sizeof(BitType);
-    constexpr FloatType p = getPowered(size);
-    constexpr FloatType n = cast<FloatType>(1.0) / p;
+    constexpr FloatType p = getPowered(cast<int>(size));
+    constexpr FloatType n = cast<FloatType>(1) / p;
     for (; p <= v; v = n * v)
       exponent = exponent + size;
-    for (; v < cast<FloatType>(1.0); v = p * v)
+    for (; v < cast<FloatType>(1); v = p * v)
       exponent = exponent - size;
 
     bit = cast<BitType>(v);
@@ -111,9 +111,7 @@ constexpr auto FloatingPoint<kFormat>::getSignificandBits(const FloatType value)
   if (isNormal(v)) {
     exponent = cast<int>(getExponentBits(v) >> significandBitSize()) -
                cast<int>(exponentBias());
-    const FloatType t = (0 < exponent)
-      ? cast<FloatType>(1.0) / getPowered(exponent)
-      : getPowered(-exponent);
+    const FloatType t = getPowered(-exponent);
     bit = cast<BitType>(s * (t * v));
   }
   if (isSubnormal(value)) {
@@ -138,6 +136,51 @@ constexpr auto FloatingPoint<kFormat>::getSignBit(const FloatType value)
 }
 
 /*!
+  */
+template <FloatingPointFormat kFormat> inline
+constexpr auto FloatingPoint<kFormat>::makeFloat(
+    const BitType exponent_bits,
+    const BitType significand_bits) noexcept -> FloatType
+{
+  return makeFloat(0, exponent_bits, significand_bits);
+}
+
+/*!
+  */
+template <FloatingPointFormat kFormat> inline
+constexpr auto FloatingPoint<kFormat>::makeFloat(
+    BitType sign_bit,
+    BitType exponent_bits,
+    BitType significand_bits) noexcept -> FloatType
+{
+  sign_bit = sign_bit & signBitMask();
+  exponent_bits = exponent_bits & exponentBitMask();
+  significand_bits = significand_bits & significandBitMask();
+
+  FloatType value = cast<FloatType>(0);
+  if (exponent_bits == 0) {
+    value = cast<FloatType>(significand_bits) *
+            std::numeric_limits<FloatType>::denorm_min();
+  }
+  else if (exponent_bits == exponentBitMask()) {
+    value = (significand_bits == 0)
+        ? std::numeric_limits<FloatType>::infinity()
+        : std::numeric_limits<FloatType>::quiet_NaN();
+  }
+  else {
+    constexpr BitType implicit_bit = BitType{0x1u} << significandBitSize();
+    constexpr FloatType s = getPowered(-cast<int>(significandBitSize()));
+
+    const int exponent = cast<int>(exponent_bits >> significandBitSize()) -
+                         cast<int>(exponentBias());
+    const FloatType t = getPowered(exponent);
+    const FloatType v = cast<FloatType>(implicit_bit | significand_bits);
+    value = t * (s * v);
+  }
+  return (sign_bit == signBitMask()) ? -value : value;
+}
+
+/*!
   \details
   Please see "Generating uniform doubles in the unit interval"
   on 'http://xoroshiro.di.unimi.it/' for the details
@@ -148,7 +191,7 @@ constexpr auto FloatingPoint<kFormat>::mapTo01(const UInt x) noexcept
 {
   static_assert(kIsUnsignedInteger<UInt>, "UInt isn't unsigned integer.");
   constexpr FloatType k =
-      cast<FloatType>(1.0) /
+      cast<FloatType>(1) /
       cast<FloatType>(cast<BitType>(1) << (significandBitSize() + 1));
   const BitType r = expandToBitSize(x) >> exponentBitSize();
   return k * cast<FloatType>(r);
@@ -211,18 +254,18 @@ constexpr auto FloatingPoint<kFormat>::expandToBitSize(const UInt x) noexcept
 /*!
   */
 template <FloatingPointFormat kFormat> inline
-constexpr auto FloatingPoint<kFormat>::getPowered(std::size_t exponent)
+constexpr auto FloatingPoint<kFormat>::getPowered(const int exponent)
     noexcept -> FloatType 
 {
-  FloatType base = cast<FloatType>(2.0);
-  FloatType x = cast<FloatType>(1.0);
-  for (; 0 < exponent; exponent = exponent >> 1) {
-    if (isOdd(exponent))
+  FloatType base = cast<FloatType>(2);
+  FloatType x = cast<FloatType>(1);
+  for (int e = abs(exponent); 0 < e; e = e >> 1) {
+    if (isOdd(e))
       x = x * base;
-    if (1 < exponent)
+    if (1 < e)
       base = base * base;
   }
-  return x;
+  return isNegative(exponent) ? cast<FloatType>(1) / x : x;
 }
 
 /*!
@@ -274,7 +317,7 @@ template <typename Float> inline
 constexpr bool isSubnormal(const Float x) noexcept
 {
   static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-  constexpr Float zero = cast<Float>(0.0);
+  constexpr Float zero = cast<Float>(0);
   const Float d = abs(x);
   const bool result = (zero < d) && (d < std::numeric_limits<Float>::min());
   return result;

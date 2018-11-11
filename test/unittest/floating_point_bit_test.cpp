@@ -153,6 +153,31 @@ struct BitTest
     }
     BitTest<Float, end, i + 1>::testBit();
   }
+
+  static void testFloatMaking()
+  {
+    {
+      constexpr BitType s = FloatBit::getSignBit(normal);
+      constexpr BitType e = FloatBit::getExponentBits(normal);
+      constexpr BitType m = FloatBit::getSignificandBits(normal);
+      constexpr Float f = FloatBit::makeFloat(s, e, m);
+      EXPECT_EQ(normal, f)
+          << "normal: "
+          << std::setprecision(std::numeric_limits<Float>::digits10)
+          << normal;
+    }
+    {
+      constexpr BitType s = FloatBit::getSignBit(subnormal);
+      constexpr BitType e = FloatBit::getExponentBits(subnormal);
+      constexpr BitType m = FloatBit::getSignificandBits(subnormal);
+      constexpr Float f = FloatBit::makeFloat(s, e, m);
+      EXPECT_EQ(subnormal, f)
+          << "subnormal: "
+          << std::setprecision(std::numeric_limits<Float>::digits10)
+          << subnormal;
+    }
+    BitTest<Float, end, i + 1>::testFloatMaking();
+  }
 };
 
 template <typename Float, int end>
@@ -260,6 +285,32 @@ struct BitTest<Float, end, end>
     test(std::numeric_limits<Float>::quiet_NaN());
     test(std::numeric_limits<Float>::denorm_min());
   }
+
+  static void testFloatMaking()
+  {
+    auto test = [](const Float x)
+    {
+      const BitType s = FloatBit::getSignBit(x);
+      const BitType e = FloatBit::getExponentBits(x);
+      const BitType m = FloatBit::getSignificandBits(x);
+      const Float f = FloatBit::makeFloat(s, e, m);
+      EXPECT_EQ(x, f)
+          << "normal: "
+          << std::setprecision(std::numeric_limits<Float>::digits10)
+          << x;
+
+    };
+    test(zisc::cast<Float>(0.0));
+    test(zisc::cast<Float>(-0.0));
+    test(std::numeric_limits<Float>::max());
+    test(std::numeric_limits<Float>::lowest());
+    test(std::numeric_limits<Float>::min());
+    test(-std::numeric_limits<Float>::min());
+    test(std::numeric_limits<Float>::infinity());
+    test(-std::numeric_limits<Float>::infinity());
+//    test(std::numeric_limits<Float>::quiet_NaN());
+    test(std::numeric_limits<Float>::denorm_min());
+  }
 };
 
 } // namespace 
@@ -302,6 +353,16 @@ TEST(FloatingPointBitTest, getBitsFloatTest)
 TEST(FloatingPointBitTest, getBitsDoubleTest)
 {
   ::BitTest<double, ::end, ::start>::testBit();
+}
+
+TEST(FloatingPointBitTest, FloatMakingTest)
+{
+  ::BitTest<float, ::end, ::start>::testFloatMaking();
+}
+
+TEST(FloatingPointBitTest, DoubleMakingTest)
+{
+  ::BitTest<double, ::end, ::start>::testFloatMaking();
 }
 
 TEST(FloatingPointBitTest, FloatMapTest)

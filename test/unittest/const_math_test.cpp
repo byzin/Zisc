@@ -27,7 +27,7 @@ template <typename Float>
 void printFloat(const Float x)
 {
   std::cout << std::scientific
-            << std::setprecision(std::numeric_limits<Float>::digits10)
+            << std::setprecision(std::numeric_limits<Float>::max_digits10)
             << x << std::endl;
 }
 

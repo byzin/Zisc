@@ -51,7 +51,7 @@ template <typename Float> inline
 constexpr Float pi() noexcept
 {
   static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-  constexpr int64b n = 4 * std::numeric_limits<Float>::digits10;
+  constexpr int64b n = std::numeric_limits<Float>::digits;
   const Float p = inner::calcPi<Float>(n);
   return p;
 }

@@ -8,9 +8,12 @@
   */
 
 // Standard C++ library
+#include <bitset>
 #include <cmath>
 #include <cstdint>
 #include <cstddef>
+#include <iomanip>
+#include <iostream>
 #include <limits>
 // GoogleTest
 #include "gtest/gtest.h"
@@ -74,11 +77,13 @@ struct ValueTest
   using FloatType = zisc::FloatingPointFromBytes<sizeof(Float)>;
   static void test()
   {
+    using zisc::cast;
+
     constexpr Float e[] = {
-      zisc::cast<Float>(0),
-      -zisc::cast<Float>(0),
-      zisc::cast<Float>(1),
-      zisc::cast<Float>(-1),
+      cast<Float>(0),
+      -cast<Float>(0),
+      cast<Float>(1),
+      cast<Float>(-1),
       std::numeric_limits<Float>::max(),
       std::numeric_limits<Float>::min(),
       std::numeric_limits<Float>::lowest(),
@@ -120,6 +125,21 @@ struct ValueTest
       EXPECT_EQ(ei, v[i].bits()) << "FloatingPoint \"" << e[i] << "\" is wrong.";
     }
 
+    {
+      constexpr bool r1 = zisc::isZero(v[0]);
+      (void)r1;
+      constexpr bool r2 = zisc::isFinite(v[1]);
+      (void)r2;
+      constexpr bool r3 = zisc::isInf(v[2]);
+      (void)r3;
+      constexpr bool r4 = zisc::isNan(v[3]);
+      (void)r4;
+      constexpr bool r5 = zisc::isNormal(v[4]);
+      (void)r5;
+      constexpr bool r6 = zisc::isSubnormal(v[5]);
+      (void)r6;
+    }
+
     // Zero
     for (std::size_t i = 0; i < 2; ++i) {
       ASSERT_TRUE(zisc::isZero(v[i])) << "The isZero func is wrong.";
@@ -155,6 +175,21 @@ struct ValueTest
         ASSERT_FALSE(zisc::isSubnormal(v[i])) << "The isSubnormal func is wrong.";
     }
 
+    {
+      constexpr bool r1 = v[0] == v[1];
+      (void)r1;
+      constexpr bool r2 = v[0] != v[1];
+      (void)r2;
+      constexpr bool r3 = v[0] < v[1];
+      (void)r3;
+      constexpr bool r4 = v[0] <= v[1];
+      (void)r4;
+      constexpr bool r5 = v[0] > v[1];
+      (void)r5;
+      constexpr bool r6 = v[0] >= v[1];
+      (void)r6;
+    }
+
     auto comp = [&e, &v](const std::size_t lhsi, const std::size_t rhsi)
     {
       ASSERT_EQ(e[lhsi] == e[rhsi], v[lhsi] == v[rhsi])
@@ -176,27 +211,167 @@ struct ValueTest
     }
 
     // Conversion test
-    auto print_conversion_result = [](const auto& original, const auto& converted)
+    auto print_conversion_result = []
+    (const char* name, const auto& original, const auto& converted)
     {
-      const auto o = original.toFloat();
-      const auto c = converted.toFloat();
-      std::cout << "  Original : " << o << std::endl;
-      std::cout << "  Converted: " << c << std::endl;
-      std::cout << "  Diff     : " << (o - c) << std::endl;
+      using F = typename std::remove_reference_t<decltype(converted)>::FloatType;
+      const F o[2] = {original.toFloat(), cast<F>(0.0)};
+      const F c[2] = {converted.toFloat(), cast<F>(0.0)};
+      std::cout << "## " << name << std::endl;
+      std::cout << std::scientific
+                << std::setprecision(std::numeric_limits<F>::max_digits10);
+      std::cout << "  Original : " << o[0] << std::endl;
+      std::cout << "           : "
+                << std::bitset<64>{*zisc::treatAs<const zisc::uint64b*>(o)}
+                << std::endl;
+      std::cout << "  Converted: " << c[0] << std::endl;
+      std::cout << "           : "
+                << std::bitset<64>{*zisc::treatAs<const zisc::uint64b*>(c)}
+                << std::endl;
+//      std::cout << "  Diff     : " << (o[0] - c[0]) << std::endl;
     };
 
     std::cout << "Float <-> half conversion test" << std::endl;
     {
+      constexpr auto o = FloatType::zero();
+      constexpr zisc::HalfFloat h = o;
+      constexpr FloatType c = h;
+      print_conversion_result("0", o, c);
+    }
+    {
       constexpr auto o = FloatType::one();
       constexpr zisc::HalfFloat h = o;
       constexpr FloatType c = h;
-      print_conversion_result(o, c);
+      print_conversion_result("1", o, c);
+    }
+    {
+      constexpr auto o = -FloatType::one();
+      constexpr zisc::HalfFloat h = o;
+      constexpr FloatType c = h;
+      print_conversion_result("-1", o, c);
+    }
+    {
+      constexpr auto o = std::numeric_limits<FloatType>::max();
+      constexpr zisc::HalfFloat h = o;
+      constexpr FloatType c = h;
+      print_conversion_result("max", o, c);
+    }
+    {
+      constexpr auto o = std::numeric_limits<FloatType>::min();
+      constexpr zisc::HalfFloat h = o;
+      constexpr FloatType c = h;
+      print_conversion_result("min", o, c);
+    }
+    {
+      constexpr auto o = std::numeric_limits<FloatType>::lowest();
+      constexpr zisc::HalfFloat h = o;
+      constexpr FloatType c = h;
+      print_conversion_result("lowest", o, c);
+    }
+    {
+      constexpr auto o = std::numeric_limits<FloatType>::epsilon();
+      constexpr zisc::HalfFloat h = o;
+      constexpr FloatType c = h;
+      print_conversion_result("epsilon", o, c);
+    }
+    {
+      constexpr auto o = std::numeric_limits<FloatType>::denorm_min();
+      constexpr zisc::HalfFloat h = o;
+      constexpr FloatType c = h;
+      print_conversion_result("denorm_min", o, c);
+    }
+    {
+      constexpr auto o = std::numeric_limits<FloatType>::infinity();
+      constexpr zisc::HalfFloat h = o;
+      constexpr FloatType c = h;
+      print_conversion_result("infinity", o, c);
+    }
+    {
+      constexpr auto o = std::numeric_limits<FloatType>::quiet_NaN();
+      constexpr zisc::HalfFloat h = o;
+      constexpr FloatType c = h;
+      print_conversion_result("nan", o, c);
+    }
+    {
+      constexpr Float f = (cast<Float>(2.0) - zisc::power<-10>(cast<Float>(2.0))) *
+                          zisc::power<15>(cast<Float>(2.0));
+      const auto o = FloatType::fromFloat(f);
+      const zisc::HalfFloat h = o;
+      const FloatType c = h;
+      print_conversion_result("half max", o, c);
+    }
+    {
+      constexpr Float f = -(cast<Float>(2.0) - zisc::power<-10>(cast<Float>(2.0))) *
+                          zisc::power<15>(cast<Float>(2.0));
+      const auto o = FloatType::fromFloat(f);
+      const zisc::HalfFloat h = o;
+      const FloatType c = h;
+      print_conversion_result("-half max", o, c);
+    }
+    {
+      constexpr Float f = (cast<Float>(2.0) - zisc::power<-10>(cast<Float>(2.0))) *
+                          zisc::power<15>(cast<Float>(2.0)) *
+                          (cast<Float>(1.0005));
+      const auto o = FloatType::fromFloat(f);
+      const zisc::HalfFloat h = o;
+      const FloatType c = h;
+      print_conversion_result("half max x (1.0005)", o, c);
+    }
+    {
+      constexpr Float f = zisc::power<-14>(cast<Float>(2.0));
+      const auto o = FloatType::fromFloat(f);
+      const zisc::HalfFloat h = o;
+      const FloatType c = h;
+      print_conversion_result("half min", o, c);
+    }
+    {
+      constexpr Float f = -zisc::power<-14>(cast<Float>(2.0));
+      const auto o = FloatType::fromFloat(f);
+      const zisc::HalfFloat h = o;
+      const FloatType c = h;
+      print_conversion_result("-half min", o, c);
+    }
+    {
+      constexpr Float f = zisc::power<-14>(cast<Float>(2.0)) *
+                          (cast<Float>(0.9995));
+      const auto o = FloatType::fromFloat(f);
+      const zisc::HalfFloat h = o;
+      const FloatType c = h;
+      print_conversion_result("half min x (0.9995)", o, c);
+    }
+    {
+      constexpr Float f = zisc::power<-24>(cast<Float>(2.0));
+      const auto o = FloatType::fromFloat(f);
+      const zisc::HalfFloat h = o;
+      const FloatType c = h;
+      print_conversion_result("half denorm_min", o, c);
+    }
+    {
+      constexpr Float f = -zisc::power<-24>(cast<Float>(2.0));
+      const auto o = FloatType::fromFloat(f);
+      const zisc::HalfFloat h = o;
+      const FloatType c = h;
+      print_conversion_result("-half denorm_min", o, c);
+    }
+    {
+      constexpr Float f = zisc::power<-24>(cast<Float>(2.0)) *
+                          (cast<Float>(0.9995));
+      const auto o = FloatType::fromFloat(f);
+      const zisc::HalfFloat h = o;
+      const FloatType c = h;
+      print_conversion_result("half denorm_min x (0.9995)", o, c);
     }
     {
       const auto o = FloatType::fromFloat(zisc::kPi<Float>);
       const zisc::HalfFloat h = o;
       const FloatType c = h;
-      print_conversion_result(o, c);
+      print_conversion_result("pi", o, c);
+    }
+    {
+      const auto o = FloatType::fromFloat(zisc::kE<Float>);
+      const zisc::HalfFloat h = o;
+      const FloatType c = h;
+      print_conversion_result("euler", o, c);
     }
   }
 };

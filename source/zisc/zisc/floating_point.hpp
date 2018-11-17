@@ -148,6 +148,10 @@ class FloatingPoint
   //! Return a quiet NaN
   static constexpr FloatingPoint quietNan() noexcept;
 
+  //! Round to nearest, where ties round to the nearest
+  static constexpr BitType round(const BitType bit,
+                                 const BitType truncated_bit) noexcept;
+
   //! Return the round error
   static constexpr FloatingPoint roundError() noexcept;
 

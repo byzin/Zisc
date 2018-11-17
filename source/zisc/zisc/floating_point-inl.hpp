@@ -118,26 +118,49 @@ constexpr FloatingPoint<kDstFormat> FloatingPoint<kFormat>::downscaled()
   else if (isInf()) {
     dst = DstFloat::infinity();
   }
+  else if (isZero()) {
+    dst = DstFloat::zero();
+  }
   // Finite values
   else {
-    constexpr auto lower = (one().bits() >> significandBitSize()) -
-                           DstFloat::exponentBias();
-    constexpr auto upper = (one().bits() >> significandBitSize()) +
-                           DstFloat::exponentBias();
-    BitType src_exponent_bit = (bits() & exponentBitMask()) >> significandBitSize();
-    // Normal values
-    if ((lower < src_exponent_bit ) && (src_exponent_bit <= upper)) {
-      const DstBitType dst_exponent_bit =
-          cast<DstBitType>(
-              ((src_exponent_bit + DstFloat::exponentBias()) - exponentBias()) << 
-              DstFloat::significandBitSize());
-      //! \todo Rounding
-      const DstBitType dst_significand_bit =
-          cast<DstBitType>((bits() & significandBitMask()) >>
-                           (significandBitSize() - DstFloat::significandBitSize()));
-      dst.set(dst_exponent_bit | dst_significand_bit);
+    constexpr std::size_t exp_bias = exponentBias();
+    constexpr std::size_t dst_exp_bias = DstFloat::exponentBias();
+    constexpr std::size_t sig_size = significandBitSize();
+    constexpr auto sig_mask = significandBitMask();
+    constexpr std::size_t dst_sig_size = DstFloat::significandBitSize();
+
+    constexpr BitType lower_bound = (one().bits() >> sig_size) - dst_exp_bias + 1;
+    constexpr BitType upper_bound = (one().bits() >> sig_size) + dst_exp_bias + 1;
+    BitType src_exp_bit = (bits() & exponentBitMask()) >> sig_size;
+
+    if (src_exp_bit < upper_bound) {
+      // Finite values
+      const std::size_t shift_size = (src_exp_bit < lower_bound)
+          ? lower_bound - src_exp_bit // Subnormal case
+          : 0;                        // Normal case
+      if (shift_size <= dst_sig_size) {
+        // Exponent bits
+        const DstBitType dst_exp_bit = cast<DstBitType>((src_exp_bit < lower_bound)
+           ? 0                                                          // Subnormal
+           : ((src_exp_bit + dst_exp_bias) - exp_bias) << dst_sig_size);// Normal 
+        // Significand bits
+        constexpr BitType hidden_bit = BitType{0b1} << sig_size;
+        DstBitType dst_sig_bit = cast<DstBitType>(
+            (((hidden_bit | (bits() & sig_mask)) >> shift_size) & sig_mask) >>
+            (sig_size - dst_sig_size));
+        DstBitType dst_bit = dst_exp_bit | dst_sig_bit;
+        // Rounding
+        const DstBitType truncated_bit = cast<DstBitType>(
+            (((bits() & sig_mask) << dst_sig_size) >> shift_size) & sig_mask);
+        dst_bit = DstFloat::round(dst_bit, truncated_bit);
+
+        dst.set(dst_bit);
+      }
+      // Underflow
+      else {
+        dst = DstFloat::zero();
+      }
     }
-    //! \todo Subnormal values
     // Overflow
     else {
       dst = DstFloat::infinity();
@@ -154,10 +177,10 @@ template <FloatingPointFormat kFormat> inline
 constexpr auto FloatingPoint<kFormat>::epsilon() noexcept -> FloatingPoint
 {
   // Compute the exponent of the epsilon
-  BitType exponent_bit = exponentBitMask() >> significandBitSize();
-  exponent_bit = exponent_bit - (exponentBias() + 1 + significandBitSize());
-  exponent_bit = exponent_bit << significandBitSize();
-  return FloatingPoint{exponent_bit};
+  BitType exp_bit = exponentBitMask() >> significandBitSize();
+  exp_bit = exp_bit - (exponentBias() + 1 + significandBitSize());
+  exp_bit = exp_bit << significandBitSize();
+  return FloatingPoint{exp_bit};
 }
 
 /*!
@@ -299,9 +322,9 @@ constexpr bool FloatingPoint<kFormat>::isFinite() const noexcept
 template <FloatingPointFormat kFormat> inline
 constexpr bool FloatingPoint<kFormat>::isInf() const noexcept
 {
-  const BitType exponent_bit = bits() & exponentBitMask();
+  const BitType exp_bit = bits() & exponentBitMask();
   const BitType significand_bit = bits() & significandBitMask();
-  const bool result = (exponent_bit == exponentBitMask()) && (significand_bit == 0);
+  const bool result = (exp_bit == exponentBitMask()) && (significand_bit == 0);
   return result;
 }
 
@@ -310,9 +333,9 @@ constexpr bool FloatingPoint<kFormat>::isInf() const noexcept
 template <FloatingPointFormat kFormat> inline
 constexpr bool FloatingPoint<kFormat>::isNan() const noexcept
 {
-  const BitType exponent_bit = bits() & exponentBitMask();
+  const BitType exp_bit = bits() & exponentBitMask();
   const BitType significand_bit = bits() & significandBitMask();
-  const bool result = (exponent_bit == exponentBitMask()) && (0 < significand_bit);
+  const bool result = (exp_bit == exponentBitMask()) && (0 < significand_bit);
   return result;
 }
 
@@ -321,8 +344,8 @@ constexpr bool FloatingPoint<kFormat>::isNan() const noexcept
 template <FloatingPointFormat kFormat> inline
 constexpr bool FloatingPoint<kFormat>::isNormal() const noexcept
 {
-  const BitType exponent_bit = bits() & exponentBitMask();
-  const bool result = (0 < exponent_bit) && (exponent_bit < exponentBitMask());
+  const BitType exp_bit = bits() & exponentBitMask();
+  const bool result = (0 < exp_bit) && (exp_bit < exponentBitMask());
   return result;
 }
 
@@ -331,9 +354,9 @@ constexpr bool FloatingPoint<kFormat>::isNormal() const noexcept
 template <FloatingPointFormat kFormat> inline
 constexpr bool FloatingPoint<kFormat>::isSubnormal() const noexcept
 {
-  const BitType exponent_bit = bits() & exponentBitMask();
+  const BitType exp_bit = bits() & exponentBitMask();
   const BitType significand_bit = bits() & significandBitMask();
-  const bool result = (exponent_bit == 0) && (0 < significand_bit);
+  const bool result = (exp_bit == 0) && (0 < significand_bit);
   return result;
 }
 
@@ -433,10 +456,10 @@ constexpr auto FloatingPoint<kFormat>::min() noexcept -> FloatingPoint
 template <FloatingPointFormat kFormat> inline
 constexpr auto FloatingPoint<kFormat>::one() noexcept -> FloatingPoint
 {
-  BitType exponent_bit = exponentBitMask() >> significandBitSize();
-  exponent_bit = exponent_bit - (exponentBias() + 1);
-  exponent_bit = exponent_bit << significandBitSize();
-  return FloatingPoint{exponent_bit};
+  BitType exp_bit = exponentBitMask() >> significandBitSize();
+  exp_bit = exp_bit - (exponentBias() + 1);
+  exp_bit = exp_bit << significandBitSize();
+  return FloatingPoint{exp_bit};
 }
 
 /*!
@@ -444,9 +467,22 @@ constexpr auto FloatingPoint<kFormat>::one() noexcept -> FloatingPoint
 template <FloatingPointFormat kFormat> inline
 constexpr auto FloatingPoint<kFormat>::quietNan() noexcept -> FloatingPoint
 {
-  const BitType exponent_bit = exponentBitMask();
+  const BitType exp_bit = exponentBitMask();
   const BitType significand_bit = BitType{0b1u} << (significandBitSize() - 1);
-  return FloatingPoint{exponent_bit | significand_bit};
+  return FloatingPoint{exp_bit | significand_bit};
+}
+
+/*!
+  */
+template <FloatingPointFormat kFormat> inline
+constexpr auto FloatingPoint<kFormat>::round(
+    const BitType bit,
+    const BitType truncated_bit) noexcept -> BitType
+{
+  constexpr auto middle = signBitMask();
+  return (((truncated_bit == middle) && isOdd(bit)) || (middle < truncated_bit))
+      ? bit + 1
+      : bit;
 }
 
 /*!
@@ -454,10 +490,10 @@ constexpr auto FloatingPoint<kFormat>::quietNan() noexcept -> FloatingPoint
 template <FloatingPointFormat kFormat> inline
 constexpr auto FloatingPoint<kFormat>::roundError() noexcept -> FloatingPoint
 {
-  auto exponent_bit = one().bits() >> significandBitSize();
-  exponent_bit = exponent_bit - 1;
-  exponent_bit = exponent_bit << significandBitSize();
-  return FloatingPoint{exponent_bit};
+  auto exp_bit = one().bits() >> significandBitSize();
+  exp_bit = exp_bit - 1;
+  exp_bit = exp_bit << significandBitSize();
+  return FloatingPoint{exp_bit};
 }
 
 /*!
@@ -465,9 +501,9 @@ constexpr auto FloatingPoint<kFormat>::roundError() noexcept -> FloatingPoint
 template <FloatingPointFormat kFormat> inline
 constexpr auto FloatingPoint<kFormat>::signalingNan() noexcept -> FloatingPoint
 {
-  const BitType exponent_bit = exponentBitMask();
+  const BitType exp_bit = exponentBitMask();
   const BitType significand_bit = BitType{0b1u} << (significandBitSize() - 2);
-  return FloatingPoint{exponent_bit | significand_bit};
+  return FloatingPoint{exp_bit | significand_bit};
 }
 
 /*!
@@ -549,20 +585,36 @@ constexpr FloatingPoint<kDstFormat> FloatingPoint<kFormat>::upscaled()
   else if (isInf()) {
     dst = DstFloat::infinity();
   }
+  else if (isZero()) {
+    dst = DstFloat::zero();
+  }
   // Finite values
   else {
-    BitType src_exponent_bit = (bits() & exponentBitMask()) >> significandBitSize();
-    // Normal values
-    if (0 < src_exponent_bit) {
-      const DstBitType dst_exponent_bit =
-          cast<DstBitType>((src_exponent_bit + DstFloat::exponentBias()) - exponentBias()) << 
-          DstFloat::significandBitSize();
-      const DstBitType dst_significand_bit =
-          cast<DstBitType>(bits() & significandBitMask()) <<
-          (DstFloat::significandBitSize() - significandBitSize());
-      dst.set(dst_exponent_bit | dst_significand_bit);
+    constexpr std::size_t exp_bias = exponentBias();
+    constexpr std::size_t dst_exp_bias = DstFloat::exponentBias();
+    constexpr std::size_t sig_size = significandBitSize();
+    constexpr auto sig_mask = significandBitMask();
+    constexpr std::size_t dst_sig_size = DstFloat::significandBitSize();
+
+    const BitType src_exp_bit = (bits() & exponentBitMask()) >> sig_size;
+    // Exponent bits
+    DstBitType dst_ext_bit = src_exp_bit + (dst_exp_bias - exp_bias);
+    // Significand bits
+    DstBitType dst_sig_bit = cast<DstBitType>(bits() & sig_mask) << 
+                             (dst_sig_size - sig_size);
+    if (src_exp_bit == 0) {
+      // Subnormal values
+      constexpr DstBitType hidden_bit = DstBitType{0b1} << dst_sig_size;
+      ++dst_ext_bit; // for the hidden bit
+      while ((dst_sig_bit & hidden_bit) != hidden_bit) {
+        --dst_ext_bit;
+        dst_sig_bit = dst_sig_bit << 1;
+      }
+      dst_sig_bit = dst_sig_bit & DstFloat::significandBitMask();
     }
-    //! \todo Subnormal values
+    dst_ext_bit = dst_ext_bit << dst_sig_size;
+
+    dst.set(dst_ext_bit | dst_sig_bit);
   }
 
   const auto sign_bit = bits() & signBitMask();

@@ -15,6 +15,7 @@
 #include <iomanip>
 #include <iostream>
 #include <limits>
+#include <tuple>
 // GoogleTest
 #include "gtest/gtest.h"
 // Zisc
@@ -78,6 +79,10 @@ struct ValueTest
   static void test()
   {
     using zisc::cast;
+
+    EXPECT_EQ(std::numeric_limits<Float>::round_style,
+              std::numeric_limits<FloatType>::round_style)
+        << "Rounding styles aren't same.";
 
     constexpr Float e[] = {
       cast<Float>(0),
@@ -228,7 +233,6 @@ struct ValueTest
       std::cout << "           : "
                 << std::bitset<64>{*zisc::treatAs<const zisc::uint64b*>(c)}
                 << std::endl;
-//      std::cout << "  Diff     : " << (o[0] - c[0]) << std::endl;
     };
 
     std::cout << "Float <-> half conversion test" << std::endl;
@@ -295,83 +299,210 @@ struct ValueTest
     {
       constexpr Float f = (cast<Float>(2.0) - zisc::power<-10>(cast<Float>(2.0))) *
                           zisc::power<15>(cast<Float>(2.0));
-      const auto o = FloatType::fromFloat(f);
-      const zisc::HalfFloat h = o;
-      const FloatType c = h;
+      constexpr auto o = FloatType::fromFloat(f);
+      constexpr zisc::HalfFloat h = o;
+      constexpr FloatType c = h;
       print_conversion_result("half max", o, c);
     }
     {
       constexpr Float f = -(cast<Float>(2.0) - zisc::power<-10>(cast<Float>(2.0))) *
                           zisc::power<15>(cast<Float>(2.0));
-      const auto o = FloatType::fromFloat(f);
-      const zisc::HalfFloat h = o;
-      const FloatType c = h;
+      constexpr auto o = FloatType::fromFloat(f);
+      constexpr zisc::HalfFloat h = o;
+      constexpr FloatType c = h;
       print_conversion_result("-half max", o, c);
     }
     {
       constexpr Float f = (cast<Float>(2.0) - zisc::power<-10>(cast<Float>(2.0))) *
                           zisc::power<15>(cast<Float>(2.0)) *
                           (cast<Float>(1.0005));
-      const auto o = FloatType::fromFloat(f);
-      const zisc::HalfFloat h = o;
-      const FloatType c = h;
+      constexpr auto o = FloatType::fromFloat(f);
+      constexpr zisc::HalfFloat h = o;
+      constexpr FloatType c = h;
       print_conversion_result("half max x (1.0005)", o, c);
     }
     {
       constexpr Float f = zisc::power<-14>(cast<Float>(2.0));
-      const auto o = FloatType::fromFloat(f);
-      const zisc::HalfFloat h = o;
-      const FloatType c = h;
+      constexpr auto o = FloatType::fromFloat(f);
+      constexpr zisc::HalfFloat h = o;
+      constexpr FloatType c = h;
       print_conversion_result("half min", o, c);
     }
     {
       constexpr Float f = -zisc::power<-14>(cast<Float>(2.0));
-      const auto o = FloatType::fromFloat(f);
-      const zisc::HalfFloat h = o;
-      const FloatType c = h;
+      constexpr auto o = FloatType::fromFloat(f);
+      constexpr zisc::HalfFloat h = o;
+      constexpr FloatType c = h;
       print_conversion_result("-half min", o, c);
     }
     {
       constexpr Float f = zisc::power<-14>(cast<Float>(2.0)) *
                           (cast<Float>(0.9995));
-      const auto o = FloatType::fromFloat(f);
-      const zisc::HalfFloat h = o;
-      const FloatType c = h;
+      constexpr auto o = FloatType::fromFloat(f);
+      constexpr zisc::HalfFloat h = o;
+      constexpr FloatType c = h;
       print_conversion_result("half min x (0.9995)", o, c);
     }
     {
       constexpr Float f = zisc::power<-24>(cast<Float>(2.0));
-      const auto o = FloatType::fromFloat(f);
-      const zisc::HalfFloat h = o;
-      const FloatType c = h;
+      constexpr auto o = FloatType::fromFloat(f);
+      constexpr zisc::HalfFloat h = o;
+      constexpr FloatType c = h;
       print_conversion_result("half denorm_min", o, c);
     }
     {
       constexpr Float f = -zisc::power<-24>(cast<Float>(2.0));
-      const auto o = FloatType::fromFloat(f);
-      const zisc::HalfFloat h = o;
-      const FloatType c = h;
+      constexpr auto o = FloatType::fromFloat(f);
+      constexpr zisc::HalfFloat h = o;
+      constexpr FloatType c = h;
       print_conversion_result("-half denorm_min", o, c);
     }
     {
       constexpr Float f = zisc::power<-24>(cast<Float>(2.0)) *
                           (cast<Float>(0.9995));
-      const auto o = FloatType::fromFloat(f);
-      const zisc::HalfFloat h = o;
-      const FloatType c = h;
+      constexpr auto o = FloatType::fromFloat(f);
+      constexpr zisc::HalfFloat h = o;
+      constexpr FloatType c = h;
       print_conversion_result("half denorm_min x (0.9995)", o, c);
     }
     {
-      const auto o = FloatType::fromFloat(zisc::kPi<Float>);
-      const zisc::HalfFloat h = o;
-      const FloatType c = h;
+      constexpr auto o = FloatType::fromFloat(zisc::kPi<Float>);
+      constexpr zisc::HalfFloat h = o;
+      constexpr FloatType c = h;
       print_conversion_result("pi", o, c);
     }
     {
-      const auto o = FloatType::fromFloat(zisc::kE<Float>);
-      const zisc::HalfFloat h = o;
-      const FloatType c = h;
+      constexpr auto o = FloatType::fromFloat(zisc::kE<Float>);
+      constexpr zisc::HalfFloat h = o;
+      constexpr FloatType c = h;
       print_conversion_result("euler", o, c);
+    }
+
+    // Arithmetic operation
+    {
+      constexpr zisc::HalfFloat v1{FloatType::fromFloat(cast<Float>(5.0))};
+      constexpr zisc::HalfFloat v2{FloatType::fromFloat(cast<Float>(3.0))};
+      constexpr FloatType result{v1 + v2};
+      constexpr Float r = cast<Float>(result);
+      std::cout << "5 + 3 = " << r << std::endl;
+    }
+    {
+      constexpr zisc::HalfFloat v1{FloatType::fromFloat(cast<Float>(5.0))};
+      constexpr zisc::HalfFloat v2{FloatType::fromFloat(cast<Float>(3.0))};
+      constexpr FloatType result{v1 - v2};
+      constexpr Float r = cast<Float>(result);
+      std::cout << "5 - 3 = " << r << std::endl;
+    }
+    {
+      constexpr zisc::HalfFloat v1{FloatType::fromFloat(cast<Float>(5.0))};
+      constexpr zisc::HalfFloat v2{FloatType::fromFloat(cast<Float>(3.0))};
+      constexpr FloatType result{v1 * v2};
+      constexpr Float r = cast<Float>(result);
+      std::cout << "5 * 3 = " << r << std::endl;
+    }
+    {
+      constexpr zisc::HalfFloat v1{FloatType::fromFloat(cast<Float>(5.0))};
+      constexpr zisc::HalfFloat v2{FloatType::fromFloat(cast<Float>(3.0))};
+      constexpr FloatType result{v1 / v2};
+      constexpr Float r = cast<Float>(result);
+      std::cout << "5 / 3 = " << r << std::endl;
+    }
+    auto pre_increment = [](const auto& value)
+    {
+      zisc::HalfFloat a{FloatType::fromFloat(cast<Float>(value))};
+      const FloatType result{++a};
+      return result;
+    };
+    {
+      constexpr Float expected = cast<Float>(2.0);
+      constexpr auto result = pre_increment(1.0);
+      ASSERT_EQ(expected, result.toFloat()) << "Pre-increment failed.";
+    }
+    auto pre_decrement = [](const auto& value)
+    {
+      zisc::HalfFloat a{FloatType::fromFloat(cast<Float>(value))};
+      const FloatType result{--a};
+      return result;
+    };
+    {
+      constexpr Float expected = cast<Float>(0.0);
+      constexpr auto result = pre_decrement(1.0);
+      ASSERT_EQ(expected, result.toFloat()) << "Pre-decrement failed.";
+    }
+    auto post_increment = [](const auto& value)
+    {
+      zisc::HalfFloat a{FloatType::fromFloat(cast<Float>(value))};
+      const FloatType result{a++};
+      return std::make_tuple(FloatType{a}, result);
+    };
+    {
+      constexpr Float value = cast<Float>(1.0);
+      constexpr Float expected = cast<Float>(2.0);
+      const auto [a, result] = post_increment(1.0);
+      ASSERT_EQ(expected, a.toFloat()) << "Post-increment failed.";
+      ASSERT_EQ(value, result.toFloat()) << "Post-increment failed.";
+    }
+    auto post_decrement = [](const auto& value)
+    {
+      zisc::HalfFloat a{FloatType::fromFloat(cast<Float>(value))};
+      const FloatType result{a--};
+      return std::make_tuple(FloatType{a}, result);
+    };
+    {
+      constexpr Float value = cast<Float>(1.0);
+      constexpr Float expected = cast<Float>(0.0);
+      const auto [a, result] = post_decrement(1.0);
+      ASSERT_EQ(expected, a.toFloat()) << "Post-decrement failed.";
+      ASSERT_EQ(value, result.toFloat()) << "Post-decrement failed.";
+    }
+
+    auto add = [](const auto& lhs, const auto& rhs)
+    {
+      const auto expected = cast<Float>(lhs) + cast<Float>(rhs);
+      auto v1 = FloatType::fromFloat(cast<Float>(lhs));
+      auto v2 = FloatType::fromFloat(cast<Float>(rhs));
+      v1 += v2;
+      return std::make_tuple(expected, v1);
+    };
+    auto subtract = [](const auto& lhs, const auto& rhs)
+    {
+      const auto expected = cast<Float>(lhs) - cast<Float>(rhs);
+      auto v1 = FloatType::fromFloat(cast<Float>(lhs));
+      auto v2 = FloatType::fromFloat(cast<Float>(rhs));
+      v1 -= v2;
+      return std::make_tuple(expected, v1);
+    };
+    auto multiply = [](const auto& lhs, const auto& rhs)
+    {
+      const auto expected = cast<Float>(lhs) * cast<Float>(rhs);
+      auto v1 = FloatType::fromFloat(cast<Float>(lhs));
+      auto v2 = FloatType::fromFloat(cast<Float>(rhs));
+      v1 *= v2;
+      return std::make_tuple(expected, v1);
+    };
+    auto divide = [](const auto& lhs, const auto& rhs)
+    {
+      const auto expected = cast<Float>(lhs) / cast<Float>(rhs);
+      auto v1 = FloatType::fromFloat(cast<Float>(lhs));
+      auto v2 = FloatType::fromFloat(cast<Float>(rhs));
+      v1 /= v2;
+      return std::make_tuple(expected, v1);
+    };
+    {
+      const auto [expected, result] = add(5.0, 3.0);
+      EXPECT_EQ(expected, result.toFloat()) << "Addition \"5 + 3\" failed.";
+    }
+    {
+      const auto [expected, result] = subtract(5.0, 3.0);
+      EXPECT_EQ(expected, result.toFloat()) << "Subtraction \"5 + 3\" failed.";
+    }
+    {
+      const auto [expected, result] = multiply(5.0, 3.0);
+      EXPECT_EQ(expected, result.toFloat()) << "Multiply \"5 + 3\" failed.";
+    }
+    {
+      const auto [expected, result] = divide(5.0, 3.0);
+      EXPECT_EQ(expected, result.toFloat()) << "Divide \"5 + 3\" failed.";
     }
   }
 };

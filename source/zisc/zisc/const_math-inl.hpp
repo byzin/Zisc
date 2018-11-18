@@ -244,7 +244,7 @@ constexpr Float estimateNRoot(const Float x) noexcept
 
   using FloatType = FloatingPointFromBytes<sizeof(Float)>;
   int exponent = 
-      cast<int>(FloatType::getExponentBits(x) >> FloatType::significandBitSize()) -
+      cast<int>(FloatType::makeExponentBits(x) >> FloatType::significandBitSize()) -
       cast<int>(FloatType::exponentBias());
   exponent = exponent / kN;
 
@@ -361,7 +361,7 @@ constexpr Float log2(const Float x) noexcept
 
   using FloatType = FloatingPointFromBytes<sizeof(Float)>;
   const int exponent = 
-      cast<int>(FloatType::getExponentBits(x) >> FloatType::significandBitSize()) -
+      cast<int>(FloatType::makeExponentBits(x) >> FloatType::significandBitSize()) -
       cast<int>(FloatType::exponentBias());
   const Float f = pow(cast<Float>(0.5), exponent);
 

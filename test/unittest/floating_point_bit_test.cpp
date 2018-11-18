@@ -59,7 +59,7 @@ struct BitTest
   static void testExponentBit()
   {
     {
-      constexpr BitType result = FloatBit::getExponentBits(normal);
+      constexpr BitType result = FloatBit::makeExponentBits(normal);
       const F f{normal};
       const BitType expected = f.bit_ & FloatBit::exponentBitMask();
       EXPECT_EQ(expected, result)
@@ -68,7 +68,7 @@ struct BitTest
           << normal;
     }
     {
-      constexpr BitType result = FloatBit::getExponentBits(subnormal);
+      constexpr BitType result = FloatBit::makeExponentBits(subnormal);
       const F f{subnormal};
       const BitType expected = f.bit_ & FloatBit::exponentBitMask();
       EXPECT_EQ(expected, result)
@@ -82,7 +82,7 @@ struct BitTest
   static void testSignBit()
   {
     {
-      constexpr BitType result = FloatBit::getSignBit(normal);
+      constexpr BitType result = FloatBit::makeSignBit(normal);
       const F f{normal};
       const BitType expected = f.bit_ & FloatBit::signBitMask();
       EXPECT_EQ(expected, result)
@@ -91,7 +91,7 @@ struct BitTest
           << normal;
     }
     {
-      constexpr BitType result = FloatBit::getSignBit(subnormal);
+      constexpr BitType result = FloatBit::makeSignBit(subnormal);
       const F f{subnormal};
       const BitType expected = f.bit_ & FloatBit::signBitMask();
       EXPECT_EQ(expected, result)
@@ -105,7 +105,7 @@ struct BitTest
   static void testSignificandBit()
   {
     {
-      constexpr BitType result = FloatBit::getSignificandBits(normal);
+      constexpr BitType result = FloatBit::makeSignificandBits(normal);
       const F f{normal};
       const BitType expected = f.bit_ & FloatBit::significandBitMask();
       EXPECT_EQ(expected, result)
@@ -117,7 +117,7 @@ struct BitTest
           << "R: " << std::bitset<64>(zisc::cast<zisc::uint64b>(result)) << std::endl;
     }
     {
-      constexpr BitType result = FloatBit::getSignificandBits(subnormal);
+      constexpr BitType result = FloatBit::makeSignificandBits(subnormal);
       const F f{subnormal};
       const BitType expected = f.bit_ & FloatBit::significandBitMask();
       EXPECT_EQ(expected, result)
@@ -134,7 +134,7 @@ struct BitTest
   static void testBit()
   {
     {
-      constexpr BitType result = FloatBit::getBits(normal);
+      constexpr BitType result = FloatBit::makeBits(normal);
       const F f{normal};
       const BitType expected = f.bit_;
       EXPECT_EQ(expected, result)
@@ -143,7 +143,7 @@ struct BitTest
           << normal;
     }
     {
-      constexpr BitType result = FloatBit::getBits(subnormal);
+      constexpr BitType result = FloatBit::makeBits(subnormal);
       const F f{subnormal};
       const BitType expected = f.bit_;
       EXPECT_EQ(expected, result)
@@ -157,20 +157,14 @@ struct BitTest
   static void testFloatMaking()
   {
     {
-      constexpr BitType s = FloatBit::getSignBit(normal);
-      constexpr BitType e = FloatBit::getExponentBits(normal);
-      constexpr BitType m = FloatBit::getSignificandBits(normal);
-      constexpr Float f = FloatBit::makeFloat(s, e, m);
+      constexpr Float f = FloatBit::makeFloat(FloatBit::makeBits(normal));
       EXPECT_EQ(normal, f)
           << "normal: "
           << std::setprecision(std::numeric_limits<Float>::digits10)
           << normal;
     }
     {
-      constexpr BitType s = FloatBit::getSignBit(subnormal);
-      constexpr BitType e = FloatBit::getExponentBits(subnormal);
-      constexpr BitType m = FloatBit::getSignificandBits(subnormal);
-      constexpr Float f = FloatBit::makeFloat(s, e, m);
+      constexpr Float f = FloatBit::makeFloat(FloatBit::makeBits(subnormal));
       EXPECT_EQ(subnormal, f)
           << "subnormal: "
           << std::setprecision(std::numeric_limits<Float>::digits10)
@@ -198,7 +192,7 @@ struct BitTest<Float, end, end>
   {
     auto test = [](const Float x)
     {
-      const BitType result = FloatBit::getExponentBits(x);
+      const BitType result = FloatBit::makeExponentBits(x);
       const F f{x};
       const BitType expected = f.bit_ & FloatBit::exponentBitMask();
       EXPECT_EQ(expected, result)
@@ -221,7 +215,7 @@ struct BitTest<Float, end, end>
   {
     auto test = [](const Float x)
     {
-      const BitType result = FloatBit::getSignBit(x);
+      const BitType result = FloatBit::makeSignBit(x);
       const F f{x};
       const BitType expected = f.bit_ & FloatBit::signBitMask();
       EXPECT_EQ(expected, result)
@@ -244,7 +238,7 @@ struct BitTest<Float, end, end>
   {
     auto test = [](const Float x)
     {
-      const BitType result = FloatBit::getSignificandBits(x);
+      const BitType result = FloatBit::makeSignificandBits(x);
       const F f{x};
       const BitType expected = f.bit_ & FloatBit::significandBitMask();
       EXPECT_EQ(expected, result)
@@ -267,7 +261,7 @@ struct BitTest<Float, end, end>
   {
     auto test = [](const Float x)
     {
-      const BitType result = FloatBit::getBits(x);
+      const BitType result = FloatBit::makeBits(x);
       const F f{x};
       const BitType expected = f.bit_;
       EXPECT_EQ(expected, result)
@@ -290,10 +284,7 @@ struct BitTest<Float, end, end>
   {
     auto test = [](const Float x)
     {
-      const BitType s = FloatBit::getSignBit(x);
-      const BitType e = FloatBit::getExponentBits(x);
-      const BitType m = FloatBit::getSignificandBits(x);
-      const Float f = FloatBit::makeFloat(s, e, m);
+      const Float f = FloatBit::makeFloat(FloatBit::makeBits(x));
       EXPECT_EQ(x, f)
           << "normal: "
           << std::setprecision(std::numeric_limits<Float>::digits10)
@@ -315,42 +306,42 @@ struct BitTest<Float, end, end>
 
 } // namespace 
 
-TEST(FloatingPointBitTest, getExponentBitsFloatTest)
+TEST(FloatingPointBitTest, makeExponentBitsFloatTest)
 {
   ::BitTest<float, ::end, ::start>::testExponentBit();
 }
 
-TEST(FloatingPointBitTest, getExponentBitsDoubleTest)
+TEST(FloatingPointBitTest, makeExponentBitsDoubleTest)
 {
   ::BitTest<double, ::end, ::start>::testExponentBit();
 }
 
-TEST(FloatingPointBitTest, getSignificandBitsFloatTest)
+TEST(FloatingPointBitTest, makeSignificandBitsFloatTest)
 {
   ::BitTest<float, ::end, ::start>::testSignificandBit();
 }
 
-TEST(FloatingPointBitTest, getSignificandBitsDoubleTest)
+TEST(FloatingPointBitTest, makeSignificandBitsDoubleTest)
 {
   ::BitTest<double, ::end, ::start>::testSignificandBit();
 }
 
-TEST(FloatingPointBitTest, getSignBitsFloatTest)
+TEST(FloatingPointBitTest, makeSignBitsFloatTest)
 {
   ::BitTest<float, ::end, ::start>::testSignBit();
 }
 
-TEST(FloatingPointBitTest, getSignBitsDoubleTest)
+TEST(FloatingPointBitTest, makeSignBitsDoubleTest)
 {
   ::BitTest<double, ::end, ::start>::testSignBit();
 }
 
-TEST(FloatingPointBitTest, getBitsFloatTest)
+TEST(FloatingPointBitTest, makeBitsFloatTest)
 {
   ::BitTest<float, ::end, ::start>::testBit();
 }
 
-TEST(FloatingPointBitTest, getBitsDoubleTest)
+TEST(FloatingPointBitTest, makeBitsDoubleTest)
 {
   ::BitTest<double, ::end, ::start>::testBit();
 }

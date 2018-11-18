@@ -56,12 +56,42 @@ class FloatingPoint
   constexpr FloatingPoint(const FloatingPoint<kSrcFormat>& other) noexcept;
 
 
+  //! Return the (+/-) negated value
+  constexpr FloatingPoint operator-() const noexcept;
+
   //! Copy the given value
   template <FloatingPointFormat kSrcFormat>
   constexpr FloatingPoint& operator=(const FloatingPoint<kSrcFormat>& other) noexcept;
 
-  //! Return the (+/-) negated value
-  constexpr FloatingPoint operator-() const noexcept;
+  //! Compute an addition of two floats
+  constexpr FloatingPoint& operator+=(const FloatingPoint& other) noexcept;
+
+  //! Compute a subtraction of two floats
+  constexpr FloatingPoint& operator-=(const FloatingPoint& other) noexcept;
+
+  //! Compute a multiplication of two floats
+  constexpr FloatingPoint& operator*=(const FloatingPoint& other) noexcept;
+
+  //! Compute a division of two floats
+  constexpr FloatingPoint& operator/=(const FloatingPoint& other) noexcept;
+
+  //! Pre-increment a value
+  constexpr FloatingPoint& operator++() noexcept;
+
+  //! Pre-decrement a value
+  constexpr FloatingPoint& operator--() noexcept;
+
+  //! Post-increment a value
+  constexpr FloatingPoint operator++(int) noexcept;
+
+  //! Post-decrement a value
+  constexpr FloatingPoint operator--(int) noexcept;
+
+  //! Convert to a float type
+  explicit constexpr operator float() const noexcept;
+
+  //! Convert to a float type
+  explicit constexpr operator double() const noexcept;
 
 
   //! Copy the given data
@@ -88,19 +118,10 @@ class FloatingPoint
   static constexpr std::size_t exponentBitSize() noexcept;
 
   //! Get a value from a float
-  static FloatingPoint fromFloat(const FloatType f) noexcept;
+  static constexpr FloatingPoint fromFloat(const FloatType value) noexcept;
 
-  //! Get bits of a float value
-  static constexpr BitType getBits(const FloatType value) noexcept;
-
-  //! Get exponent bits of a float value
-  static constexpr BitType getExponentBits(const FloatType value) noexcept;
-
-  //! Get significand bits of a float value
-  static constexpr BitType getSignificandBits(const FloatType value) noexcept;
-
-  //! Get a sign bit of a float value
-  static constexpr BitType getSignBit(const FloatType value) noexcept;
+  //! Return the implicit bit
+  static constexpr BitType implicitBit() noexcept;
 
   //! Return the positive infinity value
   static constexpr FloatingPoint infinity() noexcept;
@@ -123,14 +144,21 @@ class FloatingPoint
   //! Check if the value is zero
   constexpr bool isZero() const noexcept;
 
-  //! Make a float
-  static constexpr FloatType makeFloat(const BitType exponent_bits,
-                                       const BitType significand_bits) noexcept;
+  //! Make bits from a float value
+  static constexpr BitType makeBits(const FloatType value) noexcept;
 
-  //! Make a float
-  static constexpr FloatType makeFloat(BitType sign_bit,
-                                       BitType exponent_bits,
-                                       BitType significand_bits) noexcept;
+  //! Make exponent bits from a float value
+  static constexpr BitType makeExponentBits(const FloatType value) noexcept;
+
+  //! Make a float from data bits
+  static constexpr FloatType makeFloat(const BitType data) noexcept;
+
+  //! Make significand bits from a float value
+  static constexpr BitType makeSignificandBits(const FloatType value) noexcept;
+
+  //! make a sign bit from a float value
+  static constexpr BitType makeSignBit(const FloatType value) noexcept;
+
 
   //! Map an integer value into a [0, 1) float
   template <typename UInt>
@@ -168,13 +196,13 @@ class FloatingPoint
   static constexpr std::size_t significandBitSize() noexcept;
 
   //! Set a float value
-  void setFloat(const FloatType data) noexcept;
+  constexpr void setFloat(const FloatType value) noexcept;
 
   //! Set bits
   constexpr void set(const BitType data) noexcept;
 
   //! Convert to a floating-point value
-  FloatType toFloat() const noexcept;
+  constexpr FloatType toFloat() const noexcept;
 
   //! Return the upscaled data
   template <FloatingPointFormat kDstFormat>
@@ -184,15 +212,6 @@ class FloatingPoint
   static constexpr FloatingPoint zero() noexcept;
 
  private:
-  union FloatData
-  {
-    FloatType f_;
-    BitType b_;
-    FloatData(const FloatType f) : f_{f} {}
-    FloatData(const BitType b) : b_{b} {}
-  };
-
-
   //! Expand an input value to the bittype size
   template <typename UInt>
   static constexpr BitType expandToBitSize(const UInt x) noexcept;
@@ -200,9 +219,37 @@ class FloatingPoint
   //!
   static constexpr FloatType getPowered(const int exponent) noexcept;
 
+  //! Make significand bits from a float value
+  static constexpr BitType makeSignificandBits(const FloatType value,
+                                               const BitType exp_bit) noexcept;
+
 
   BitType data_;
 };
+
+//! Compute an addition of two floats
+template <FloatingPointFormat kFormat>
+constexpr FloatingPoint<kFormat> operator+(
+    const FloatingPoint<kFormat>& lhs,
+    const FloatingPoint<kFormat>& rhs) noexcept;
+
+//! Compute a subtraction of two floats
+template <FloatingPointFormat kFormat>
+constexpr FloatingPoint<kFormat> operator-(
+    const FloatingPoint<kFormat>& lhs,
+    const FloatingPoint<kFormat>& rhs) noexcept;
+
+//! Compute a multiplication of two floats
+template <FloatingPointFormat kFormat>
+constexpr FloatingPoint<kFormat> operator*(
+    const FloatingPoint<kFormat>& lhs,
+    const FloatingPoint<kFormat>& rhs) noexcept;
+
+//! Compute a division of two floats
+template <FloatingPointFormat kFormat>
+constexpr FloatingPoint<kFormat> operator/(
+    const FloatingPoint<kFormat>& lhs,
+    const FloatingPoint<kFormat>& rhs) noexcept;
 
 //! Check if two floating-value are equal in value
 template <FloatingPointFormat kFormat>

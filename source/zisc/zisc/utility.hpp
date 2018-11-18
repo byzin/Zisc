@@ -92,6 +92,10 @@ template <typename Type1, typename Type2>
 constexpr const std::common_type_t<Type1, Type2>& min(const Type1& a,
                                                       const Type2& b) noexcept;
 
+//! Swap the values
+template <typename Type>
+constexpr void swap(Type& a, Type& b) noexcept;
+
 //! Treat T* as Type*
 template <typename Type, typename T>
 Type treatAs(T* object) noexcept;

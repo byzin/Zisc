@@ -21,6 +21,7 @@
 #include "gtest/gtest.h"
 // Zisc
 #include "zisc/math.hpp"
+#include "zisc/non_copyable.hpp"
 #include "zisc/thread_manager.hpp"
 #include "zisc/pcg_engine.hpp"
 
@@ -32,13 +33,13 @@ TEST(ThreadManagerTest, EnqueueTaskTest)
   {
     auto task1 = []() noexcept
     {
-      return 1;
+      return 2;
     };
     auto result1 = thread_manager.enqueue<int>(task1);
 
     auto task2 = [](const zisc::uint) noexcept
     {
-      return 1;
+      return 3;
     };
     auto result2 = thread_manager.enqueue<int>(task2);
 
@@ -48,10 +49,10 @@ TEST(ThreadManagerTest, EnqueueTaskTest)
     std::function<int (zisc::uint)> task4{task2};
     auto result4 = thread_manager.enqueue<int>(std::move(task4));
 
-    ASSERT_EQ(1, result1.get());
-    ASSERT_EQ(1, result2.get());
-    ASSERT_EQ(1, result3.get());
-    ASSERT_EQ(1, result4.get());
+    ASSERT_EQ(2, result1.get());
+    ASSERT_EQ(3, result2.get());
+    ASSERT_EQ(2, result3.get());
+    ASSERT_EQ(3, result4.get());
   }
   // enqueueLoop()
   {
@@ -76,7 +77,7 @@ TEST(ThreadManagerTest, EnqueueTaskTest)
 
 TEST(ThreadManagerTest, ParallelTest)
 {
-  constexpr zisc::uint num_of_threads = 4;
+  constexpr zisc::uint num_of_threads = 16;
   zisc::ThreadManager thread_manager{num_of_threads};
 
   ASSERT_EQ(num_of_threads, thread_manager.numOfThreads())
@@ -85,7 +86,9 @@ TEST(ThreadManagerTest, ParallelTest)
   // Task parallel
   {
     using Task = std::function<void (zisc::uint)>;
-    std::array<zisc::uint, num_of_threads> id_list{{0, 0, 0, 0}};
+    std::array<zisc::uint, num_of_threads> id_list;
+    for (std::size_t i = 0; i < num_of_threads; ++i)
+      id_list[i] = std::numeric_limits<zisc::uint>::max();
     Task task{[&id_list](const zisc::uint id)
     {
       const std::chrono::seconds wait_time{1};
@@ -97,39 +100,67 @@ TEST(ThreadManagerTest, ParallelTest)
     auto result2 = thread_manager.enqueue<void>(Task{task});
     auto result3 = thread_manager.enqueue<void>(Task{task});
     auto result4 = thread_manager.enqueue<void>(Task{task});
-    result1.get();
-    result2.get();
-    result3.get();
-    result4.get();
-    ASSERT_EQ(0, id_list[0]) << "Task parallel failed.";
-    ASSERT_EQ(1, id_list[1]) << "Task parallel failed.";
-    ASSERT_EQ(2, id_list[2]) << "Task parallel failed.";
-    ASSERT_EQ(3, id_list[3]) << "Task parallel failed.";
+    auto result5 = thread_manager.enqueue<void>(Task{task});
+    auto result6 = thread_manager.enqueue<void>(Task{task});
+    auto result7 = thread_manager.enqueue<void>(Task{task});
+    auto result8 = thread_manager.enqueue<void>(Task{task});
+    auto result9 = thread_manager.enqueue<void>(Task{task});
+    auto result10 = thread_manager.enqueue<void>(Task{task});
+    auto result11 = thread_manager.enqueue<void>(Task{task});
+    auto result12 = thread_manager.enqueue<void>(Task{task});
+    auto result13 = thread_manager.enqueue<void>(Task{task});
+    auto result14 = thread_manager.enqueue<void>(Task{task});
+    auto result15 = thread_manager.enqueue<void>(Task{task});
+    auto result16 = thread_manager.enqueue<void>(Task{task});
+    result1.wait();
+    result2.wait();
+    result3.wait();
+    result4.wait();
+    result5.wait();
+    result6.wait();
+    result7.wait();
+    result8.wait();
+    result9.wait();
+    result10.wait();
+    result11.wait();
+    result12.wait();
+    result13.wait();
+    result14.wait();
+    result15.wait();
+    result16.wait();
+    for (zisc::uint i = 0; i < num_of_threads; ++i)
+      ASSERT_EQ(i, id_list[i]) << "Task parallel failed.";
   }
   // Loop parallel test1
   {
-    using Task = std::function<void (zisc::uint, int)>;
-    std::array<zisc::uint, num_of_threads> id_list{{0, 0, 0, 0}};
-    Task task{[&id_list](const zisc::uint id, const int)
+    using Task = std::function<void (zisc::uint, zisc::uint)>;
+    std::array<zisc::uint, num_of_threads> id_list;
+    for (std::size_t i = 0; i < num_of_threads; ++i)
+      id_list[i] = std::numeric_limits<zisc::uint>::max();
+    Task task{[&id_list](const zisc::uint id, const zisc::uint)
     {
       const std::chrono::seconds wait_time{1};
       std::this_thread::sleep_for(wait_time);
       id_list[id] = id;
     }};
 
-    auto result = thread_manager.enqueueLoop(Task{task}, 0, 4);
-    result.get();
-    ASSERT_EQ(0, id_list[0]) << "Loop parallel failed.";
-    ASSERT_EQ(1, id_list[1]) << "Loop parallel failed.";
-    ASSERT_EQ(2, id_list[2]) << "Loop parallel failed.";
-    ASSERT_EQ(3, id_list[3]) << "Loop parallel failed.";
+    constexpr zisc::uint start = 0;
+    const zisc::uint end = num_of_threads;
+    auto result = thread_manager.enqueueLoop(Task{task}, start, end);
+    result.wait();
+    for (zisc::uint i = 0; i < num_of_threads; ++i)
+      ASSERT_EQ(i, id_list[i]) << "Loop parallel failed.";
   }
   // Loop parallel test2
   {
-    using Task = std::function<void (zisc::uint, std::list<int>::iterator)>;
-    std::list<int> list{{0, 1, 2, 3}};
-    std::array<int, num_of_threads> id_list{{0, 0, 0, 0}};
-    Task task{[&id_list](const zisc::uint, const std::list<int>::iterator number)
+    using Task = std::function<void (zisc::uint, std::list<zisc::uint>::iterator)>;
+    std::list<zisc::uint> list;
+    std::array<zisc::uint, num_of_threads> id_list;
+    for (std::size_t i = 0; i < num_of_threads; ++i) {
+      id_list[i] = std::numeric_limits<zisc::uint>::max();
+      list.emplace_back(i);
+    }
+    Task task{[&id_list](const zisc::uint, const std::list<zisc::uint>::iterator number)
     {
       const std::chrono::seconds wait_time{1};
       std::this_thread::sleep_for(wait_time);
@@ -137,11 +168,9 @@ TEST(ThreadManagerTest, ParallelTest)
     }};
 
     auto result = thread_manager.enqueueLoop(Task{task}, list.begin(), list.end());
-    result.get();
-    ASSERT_EQ(0, id_list[0]) << "Loop parallel failed.";
-    ASSERT_EQ(1, id_list[1]) << "Loop parallel failed.";
-    ASSERT_EQ(2, id_list[2]) << "Loop parallel failed.";
-    ASSERT_EQ(3, id_list[3]) << "Loop parallel failed.";
+    result.wait();
+    for (zisc::uint i = 0; i < num_of_threads; ++i)
+      ASSERT_EQ(i, id_list[i]) << "Loop parallel failed.";
   }
   // Thread range computation
   {
@@ -151,8 +180,8 @@ TEST(ThreadManagerTest, ParallelTest)
       ASSERT_EQ(thread_range[0], 0) << "calcThreadRange() is wrong.";
       ASSERT_EQ(thread_range[1], 1) << "calcThreadRange() is wrong.";
       thread_range = thread_manager.calcThreadRange(range, num_of_threads - 1);
-      ASSERT_EQ(thread_range[0], 3) << "calcThreadRange() is wrong.";
-      ASSERT_EQ(thread_range[1], 4) << "calcThreadRange() is wrong.";
+      ASSERT_EQ(thread_range[0], num_of_threads - 1) << "calcThreadRange() is wrong.";
+      ASSERT_EQ(thread_range[1], num_of_threads) << "calcThreadRange() is wrong.";
     }
     {
       const zisc::uint range = num_of_threads + 1;
@@ -160,8 +189,8 @@ TEST(ThreadManagerTest, ParallelTest)
       ASSERT_EQ(thread_range[0], 0) << "calcThreadRange() is wrong.";
       ASSERT_EQ(thread_range[1], 1) << "calcThreadRange() is wrong.";
       thread_range = thread_manager.calcThreadRange(range, num_of_threads - 1);
-      ASSERT_EQ(thread_range[0], 3) << "calcThreadRange() is wrong.";
-      ASSERT_EQ(thread_range[1], 5) << "calcThreadRange() is wrong.";
+      ASSERT_EQ(thread_range[0], num_of_threads - 1) << "calcThreadRange() is wrong.";
+      ASSERT_EQ(thread_range[1], num_of_threads + 1) << "calcThreadRange() is wrong.";
     }
   }
 }
@@ -230,4 +259,74 @@ TEST(ThreadManagerTest, LoopTaskStressTest)
   result.get();
 
   SUCCEED();
+}
+
+namespace {
+
+void testThreadPoolNest(zisc::ThreadManager& thread_manager, const int level)
+{
+  const int max_level = zisc::cast<int>(thread_manager.numOfThreads());
+  if (level < max_level) {
+    auto task1 = [&thread_manager, level]()
+    {
+      const int next_level = level + 1;
+      testThreadPoolNest(thread_manager, next_level);
+    };
+
+    auto task2 = [&thread_manager, level](const zisc::uint)
+    {
+      const int next_level = level + 1;
+      testThreadPoolNest(thread_manager, next_level);
+    };
+
+    auto result1 = thread_manager.enqueue<void>(task1);
+    constexpr uint start = 0;
+    const uint end = thread_manager.numOfThreads();
+    auto result2 = thread_manager.enqueueLoop(task2, start, end);
+    if (zisc::isOdd(level)) {
+      result1.wait();
+      result2.wait();
+    }
+    else {
+      result2.wait();
+      result1.wait();
+    }
+  }
+
+  const std::chrono::milliseconds wait_time{250};
+  std::this_thread::sleep_for(wait_time);
+}
+
+struct TestValue : private zisc::NonCopyable<TestValue>
+{
+  TestValue(const int value) : value_{value} {}
+  TestValue(TestValue&& other) : value_{other.value_} {}
+  TestValue& operator=(TestValue&& other) {value_ = other.value_; return *this;}
+  int value_;
+};
+
+} // namespace 
+
+TEST(ThreadManagerTest, NestedThreadPoolTest)
+{
+  zisc::ThreadManager thread_manager{16};
+  ::testThreadPoolNest(thread_manager, -1);
+}
+
+TEST(ThreadManagerTest, GetValueTest)
+{
+  zisc::ThreadManager thread_manager{1};
+  auto task = [&thread_manager]()
+  {
+    auto nested_task = []()
+    {
+      ::TestValue value{100};
+      return value;
+    };
+    auto result = thread_manager.enqueue<::TestValue>(nested_task);
+    return result.get();
+  };
+  auto result = thread_manager.enqueue<::TestValue>(task);
+  auto value = result.get();
+  ASSERT_EQ(100, value.value_) << "The get value test failed.";
 }

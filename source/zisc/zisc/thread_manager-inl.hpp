@@ -134,7 +134,7 @@ void ThreadManager::createWorkers(const uint num_of_threads) noexcept
       ? cast<std::size_t>(std::thread::hardware_concurrency())
       : cast<std::size_t>(num_of_threads);
   workers_.reserve(id_max);
-  for (std::size_t thread_id = 0; thread_id < id_max; ++thread_id) {
+  for (uint thread_id = 0; thread_id < id_max; ++thread_id) {
     auto work = [this, thread_id]() noexcept
     {
       TaskPointer task;
@@ -146,7 +146,7 @@ void ThreadManager::createWorkers(const uint num_of_threads) noexcept
             condition_.wait(locker);
         }
         if (task) {
-          task->doTask(cast<uint>(thread_id));
+          task->doTask(thread_id);
           task.reset();
         }
       }

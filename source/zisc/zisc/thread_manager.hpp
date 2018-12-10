@@ -17,6 +17,7 @@
 #include <mutex>
 #include <queue>
 #include <thread>
+#include <type_traits>
 #include <utility>
 #include <vector>
 // Zisc
@@ -34,6 +35,38 @@ namespace zisc {
 class ThreadManager : private NonCopyable<ThreadManager>
 {
  public:
+  //! Result type of tasks
+  template <typename T>
+  class Result : private NonCopyable<Result<T>>
+  {
+   public:
+    using Type = std::remove_reference_t<T>;
+    Result() noexcept;
+    Result(ThreadManager* manager, const uint thread_id) noexcept;
+    ~Result() noexcept;
+    //! Return the result
+    Type get() noexcept;
+    //! Wait for the result to become available
+    void wait() const noexcept;
+   private:
+    friend ThreadManager;
+    using ResultType = std::conditional_t<std::is_void_v<Type>, uint8b, Type>;
+    using ResultReference = std::add_lvalue_reference_t<ResultType>;
+    //! Check if a result has a value
+    bool hasValue() const noexcept;
+    //! Set a result value
+    void set(ResultType&& result) noexcept;
+    //! Return a data as a value
+    ResultReference value() noexcept;
+    ThreadManager* thread_manager_;
+    std::aligned_storage_t<sizeof(ResultType), alignof(ResultType)> data_;
+    uint8b has_value_;
+    uint16b thread_id_;
+  };
+  template <typename Type>
+  using UniqueResult = UniqueMemoryPointer<Result<Type>>;
+
+
   //! Create threads as many CPU threads as
   ThreadManager(
       pmr::memory_resource* mem_resource = SimpleMemoryResource::sharedResource()) noexcept;
@@ -60,13 +93,13 @@ class ThreadManager : private NonCopyable<ThreadManager>
 
   //! A worker thread run a task
   template <typename ReturnType, typename Task>
-  std::future<ReturnType> enqueue(
+  UniqueResult<ReturnType> enqueue(
       Task&& task,
       pmr::memory_resource* mem_resource = SimpleMemoryResource::sharedResource()) noexcept;
 
   //! Worker threads run a loop task in parallel
   template <typename Task, typename Iterator>
-  std::future<void> enqueueLoop(
+  UniqueResult<void> enqueueLoop(
       Task&& task,
       Iterator&& begin,
       Iterator&& end,
@@ -84,10 +117,10 @@ class ThreadManager : private NonCopyable<ThreadManager>
   {
    public:
     virtual ~WorkerTask() noexcept {}
-    //! Do a task
-    virtual void doTask(const uint thread_id) noexcept = 0;
+    //! Run a task
+    virtual void runTask(const uint thread_id) noexcept = 0;
   };
-  using TaskPointer = UniqueMemoryPointer<WorkerTask>;
+  using UniqueTask = UniqueMemoryPointer<WorkerTask>;
 
 
   //! Create worker threads
@@ -96,11 +129,14 @@ class ThreadManager : private NonCopyable<ThreadManager>
   //! Exit workers running
   void exitWorkersRunning() noexcept;
 
+  //! Fetch a task from the top of the queue
+  UniqueTask fetchTask() noexcept;
+
+  //! Return the thread index if the current thread is one of the threads in pool
+  uint getThreadIndex() const noexcept;
+
   //! Initialize this thread manager
   void initialize(const uint num_of_threads) noexcept;
-
-  //! Take a task from the top of the queue
-  TaskPointer takeTask() noexcept;
 
   //! Check if the workers (threads) are enable running
   bool workersAreEnabled() const noexcept;
@@ -108,7 +144,7 @@ class ThreadManager : private NonCopyable<ThreadManager>
 
   std::mutex lock_;
   std::condition_variable condition_;
-  std::queue<TaskPointer, pmr::deque<TaskPointer>> task_queue_;
+  std::queue<UniqueTask, pmr::deque<UniqueTask>> task_queue_;
   pmr::vector<std::thread> workers_;
   uint8b workers_are_enabled_;
   std::array<uint8b, 7> padding_;

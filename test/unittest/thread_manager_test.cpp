@@ -49,10 +49,10 @@ TEST(ThreadManagerTest, EnqueueTaskTest)
     std::function<int (zisc::uint)> task4{task2};
     auto result4 = thread_manager.enqueue<int>(std::move(task4));
 
-    ASSERT_EQ(2, result1.get());
-    ASSERT_EQ(3, result2.get());
-    ASSERT_EQ(2, result3.get());
-    ASSERT_EQ(3, result4.get());
+    ASSERT_EQ(2, result1->get());
+    ASSERT_EQ(3, result2->get());
+    ASSERT_EQ(2, result3->get());
+    ASSERT_EQ(3, result4->get());
   }
   // enqueueLoop()
   {
@@ -68,10 +68,10 @@ TEST(ThreadManagerTest, EnqueueTaskTest)
     std::function<void (zisc::uint, int)> task4{task2};
     auto result4 = thread_manager.enqueueLoop(std::move(task4), 0, 10);
 
-    result1.get();
-    result2.get();
-    result3.get();
-    result4.get();
+    result1->wait();
+    result2->wait();
+    result3->wait();
+    result4->wait();
   }
 }
 
@@ -112,22 +112,22 @@ TEST(ThreadManagerTest, ParallelTest)
     auto result14 = thread_manager.enqueue<void>(Task{task});
     auto result15 = thread_manager.enqueue<void>(Task{task});
     auto result16 = thread_manager.enqueue<void>(Task{task});
-    result1.wait();
-    result2.wait();
-    result3.wait();
-    result4.wait();
-    result5.wait();
-    result6.wait();
-    result7.wait();
-    result8.wait();
-    result9.wait();
-    result10.wait();
-    result11.wait();
-    result12.wait();
-    result13.wait();
-    result14.wait();
-    result15.wait();
-    result16.wait();
+    result1->wait();
+    result2->wait();
+    result3->wait();
+    result4->wait();
+    result5->wait();
+    result6->wait();
+    result7->wait();
+    result8->wait();
+    result9->wait();
+    result10->wait();
+    result11->wait();
+    result12->wait();
+    result13->wait();
+    result14->wait();
+    result15->wait();
+    result16->wait();
     for (zisc::uint i = 0; i < num_of_threads; ++i)
       ASSERT_EQ(i, id_list[i]) << "Task parallel failed.";
   }
@@ -147,7 +147,7 @@ TEST(ThreadManagerTest, ParallelTest)
     constexpr zisc::uint start = 0;
     const zisc::uint end = num_of_threads;
     auto result = thread_manager.enqueueLoop(Task{task}, start, end);
-    result.wait();
+    result->wait();
     for (zisc::uint i = 0; i < num_of_threads; ++i)
       ASSERT_EQ(i, id_list[i]) << "Loop parallel failed.";
   }
@@ -168,7 +168,7 @@ TEST(ThreadManagerTest, ParallelTest)
     }};
 
     auto result = thread_manager.enqueueLoop(Task{task}, list.begin(), list.end());
-    result.wait();
+    result->wait();
     for (zisc::uint i = 0; i < num_of_threads; ++i)
       ASSERT_EQ(i, id_list[i]) << "Loop parallel failed.";
   }
@@ -197,15 +197,18 @@ TEST(ThreadManagerTest, ParallelTest)
 
 TEST(ThreadManagerTest, ExitWorkerRunningTest)
 {
+  constexpr zisc::uint num_of_works = 1024;
+  std::vector<zisc::ThreadManager::UniqueResult<void>> results;
+  results.reserve(num_of_works);
   {
     zisc::ThreadManager thread_manager{24};
-    for (zisc::uint number = 0; number < 1024; ++number) {
+    for (zisc::uint number = 0; number < num_of_works; ++number) {
       auto task = [/* number */](const zisc::uint)
       {
         const std::chrono::milliseconds wait_time{100};
         std::this_thread::sleep_for(wait_time);
       };
-      thread_manager.enqueue<void>(task);
+      results.emplace_back(thread_manager.enqueue<void>(task));
     }
   }
   SUCCEED();
@@ -216,7 +219,7 @@ TEST(ThreadManagerTest, TaskStressTest)
   constexpr zisc::uint num_of_threads = 1024;
   constexpr zisc::uint num_of_tasks = 4'000'000;
 
-  std::vector<std::future<void>> result_list;
+  std::vector<zisc::ThreadManager::UniqueResult<void>> result_list;
   result_list.resize(num_of_tasks);
 
   zisc::ThreadManager thread_manager{num_of_threads};
@@ -233,7 +236,7 @@ TEST(ThreadManagerTest, TaskStressTest)
     result_list[number] = thread_manager.enqueue<void>(task);
   }
   for (auto& result : result_list)
-    result.get();
+    result->wait();
 
   SUCCEED();
 }
@@ -256,7 +259,7 @@ TEST(ThreadManagerTest, LoopTaskStressTest)
   constexpr zisc::uint begin = 0;
   constexpr zisc::uint end = num_of_tasks;
   auto result = thread_manager.enqueueLoop(task, begin, end);
-  result.get();
+  result->wait();
 
   SUCCEED();
 }
@@ -265,7 +268,8 @@ namespace {
 
 void testThreadPoolNest(zisc::ThreadManager& thread_manager, const int level)
 {
-  const int max_level = zisc::cast<int>(thread_manager.numOfThreads());
+//  const int max_level = zisc::cast<int>(thread_manager.numOfThreads());
+  const int max_level = 4;
   if (level < max_level) {
     auto task1 = [&thread_manager, level]()
     {
@@ -284,16 +288,16 @@ void testThreadPoolNest(zisc::ThreadManager& thread_manager, const int level)
     const uint end = thread_manager.numOfThreads();
     auto result2 = thread_manager.enqueueLoop(task2, start, end);
     if (zisc::isOdd(level)) {
-      result1.wait();
-      result2.wait();
+      result1->wait();
+      result2->wait();
     }
     else {
-      result2.wait();
-      result1.wait();
+      result2->wait();
+      result1->wait();
     }
   }
 
-  const std::chrono::milliseconds wait_time{250};
+  const std::chrono::milliseconds wait_time{150};
   std::this_thread::sleep_for(wait_time);
 }
 
@@ -301,7 +305,6 @@ struct TestValue : private zisc::NonCopyable<TestValue>
 {
   TestValue(const int value) : value_{value} {}
   TestValue(TestValue&& other) : value_{other.value_} {}
-  TestValue& operator=(TestValue&& other) {value_ = other.value_; return *this;}
   int value_;
 };
 
@@ -310,7 +313,7 @@ struct TestValue : private zisc::NonCopyable<TestValue>
 TEST(ThreadManagerTest, NestedThreadPoolTest)
 {
   zisc::ThreadManager thread_manager{16};
-  ::testThreadPoolNest(thread_manager, -1);
+  ::testThreadPoolNest(thread_manager, 0);
 }
 
 TEST(ThreadManagerTest, GetValueTest)
@@ -324,9 +327,9 @@ TEST(ThreadManagerTest, GetValueTest)
       return value;
     };
     auto result = thread_manager.enqueue<::TestValue>(nested_task);
-    return result.get();
+    return result->get();
   };
   auto result = thread_manager.enqueue<::TestValue>(task);
-  auto value = result.get();
+  auto value = result->get();
   ASSERT_EQ(100, value.value_) << "The get value test failed.";
 }

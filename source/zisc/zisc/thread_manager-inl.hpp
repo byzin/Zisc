@@ -12,6 +12,7 @@
 
 #include "thread_manager.hpp"
 // Standard C++ library
+#include <algorithm>
 #include <array>
 #include <atomic>
 #include <cstddef>
@@ -19,6 +20,7 @@
 #include <future>
 #include <functional>
 #include <iterator>
+#include <limits>
 #include <memory>
 #include <mutex>
 #include <queue>
@@ -39,6 +41,93 @@
 namespace zisc {
 
 /*!
+  */
+template <typename T> inline
+ThreadManager::Result<T>::Result() noexcept :
+    Result(nullptr, std::numeric_limits<uint16b>::max())
+{
+}
+
+/*!
+  */
+template <typename T> inline
+ThreadManager::Result<T>::Result(ThreadManager* manager,
+                                 const uint thread_id) noexcept :
+    thread_manager_{manager},
+    has_value_{kFalse},
+    thread_id_{zisc::cast<uint16b>(thread_id)}
+{
+}
+
+/*!
+  */
+template <typename T> inline
+ThreadManager::Result<T>::~Result() noexcept
+{
+  if (std::is_destructible_v<ResultType> && hasValue())
+    value().~ResultType();
+}
+
+/*!
+  */
+template <typename T> inline
+auto ThreadManager::Result<T>::get() noexcept -> Type
+{
+  if (!hasValue()) {
+    wait();
+  }
+  if constexpr (!std::is_void_v<Type>)
+    return std::move(value());
+}
+
+/*!
+  */
+template <typename T> inline
+void ThreadManager::Result<T>::wait() const noexcept
+{
+  while (!hasValue()) {
+    UniqueTask task;
+    if (thread_manager_ != nullptr) {
+      std::unique_lock<std::mutex> locker{thread_manager_->lock_};
+      task = thread_manager_->fetchTask();
+    }
+    if (task) {
+      task->runTask(zisc::cast<uint>(thread_id_));
+      task.reset();
+    }
+    else {
+      std::this_thread::yield();
+    }
+  }
+}
+
+/*!
+  */
+template <typename T> inline
+bool ThreadManager::Result<T>::hasValue() const noexcept
+{
+  return has_value_ == kTrue;
+}
+
+/*!
+  */
+template <typename T> inline
+void ThreadManager::Result<T>::set(ResultType&& result) noexcept
+{
+  ZISC_ASSERT(!hasValue(), "The result already has a value.");
+  new (&data_) ResultType{std::move(result)};
+  has_value_ = kTrue;
+}
+
+/*!
+  */
+template <typename T> inline
+auto ThreadManager::Result<T>::value() noexcept -> ResultReference
+{
+  return *treatAs<ResultType*>(&data_);
+}
+
+/*!
   \details
   No detailed.
   */
@@ -55,7 +144,7 @@ ThreadManager::ThreadManager(pmr::memory_resource* mem_resource) noexcept :
 inline
 ThreadManager::ThreadManager(const uint num_of_threads,
                              pmr::memory_resource* mem_resource) noexcept :
-    task_queue_{pmr::deque<TaskPointer>::allocator_type{mem_resource}},
+    task_queue_{pmr::deque<UniqueTask>::allocator_type{mem_resource}},
     workers_{pmr::vector<std::thread>::allocator_type{mem_resource}},
     workers_are_enabled_{kTrue}
 {
@@ -130,36 +219,41 @@ uint ThreadManager::numOfThreads() const noexcept
 inline
 void ThreadManager::createWorkers(const uint num_of_threads) noexcept
 {
-  const std::size_t id_max = (num_of_threads == 0)
-      ? cast<std::size_t>(std::thread::hardware_concurrency())
-      : cast<std::size_t>(num_of_threads);
+  const uint id_max = (num_of_threads == 0)
+      ? cast<uint>(std::thread::hardware_concurrency())
+      : num_of_threads;
   workers_.reserve(id_max);
   for (uint thread_id = 0; thread_id < id_max; ++thread_id) {
     auto work = [this, thread_id]() noexcept
     {
-      TaskPointer task;
+      UniqueTask task;
       while (workersAreEnabled()) {
         {
           std::unique_lock<std::mutex> locker{lock_};
-          task = takeTask();
+          task = fetchTask();
           if (workersAreEnabled() && !task)
             condition_.wait(locker);
         }
         if (task) {
-          task->doTask(thread_id);
+          task->runTask(thread_id);
           task.reset();
         }
       }
     };
     workers_.emplace_back(work);
   }
+  auto comp = [](const std::thread& lhs, const std::thread& rhs)
+  {
+    return lhs.get_id() < rhs.get_id();
+  };
+  std::sort(workers_.begin(), workers_.end(), comp);
 }
 
 namespace inner {
 
-//! Process a task
+//! Run a task
 template <typename ReturnType, typename Task> inline
-ReturnType processTask(Task& task, const uint thread_id) noexcept
+ReturnType runTask(Task& task, const uint thread_id) noexcept
 {
   using TaskI = std::function<ReturnType (uint)>;
   if constexpr (std::is_constructible_v<TaskI, Task>) {
@@ -171,27 +265,9 @@ ReturnType processTask(Task& task, const uint thread_id) noexcept
   }
 }
 
-//! Process a worker task
-template <typename ReturnType, typename Task> inline
-void processWorkerTask(Task& worker_task,
-                       std::promise<ReturnType>& worker_promise,
-                       const uint thread_id) noexcept
-{
-  if constexpr (!std::is_void_v<ReturnType>) {
-    auto result = processTask<ReturnType>(worker_task, thread_id);
-    worker_promise.set_value(std::move(result));
-  }
-  else {
-    processTask<ReturnType>(worker_task, thread_id);
-    worker_promise.set_value();
-  }
-}
-
-//! Process a loop task
+//! Run a loop task
 template <typename Task, typename Iterator> inline
-void processLoopTask(Task& worker_task,
-                     const uint thread_id,
-                     Iterator iterator) noexcept
+void runTask(Task& worker_task, const uint thread_id, Iterator iterator) noexcept
 {
   using TaskII = std::function<void (uint, Iterator)>;
   if constexpr (std::is_constructible_v<TaskII, Task>) {
@@ -225,51 +301,46 @@ uint distance(Iterator begin, Iterator end) noexcept
   "ReturnType task()" or "ReturnType task(int thread_id)".
   */
 template <typename ReturnType, typename Task> inline
-std::future<ReturnType> ThreadManager::enqueue(
+auto ThreadManager::enqueue(
     Task&& task,
-    pmr::memory_resource* mem_resource) noexcept
+    pmr::memory_resource* mem_resource) noexcept -> UniqueResult<ReturnType>
 {
-#ifdef Z_CLANG
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wpadded"
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunused-local-typedef"
-#endif // Z_CLANG
   //! Task class for single task
   class SingleTask : public WorkerTask
   {
    public:
     //! Create a task
-    SingleTask(Task&& worker_task, pmr::memory_resource* mem) noexcept :
+    SingleTask(Task&& worker_task, Result<ReturnType>* result) noexcept :
         worker_task_{std::forward<Task>(worker_task)},
-        worker_promise_{std::allocator_arg,
-                        pmr::polymorphic_allocator<ReturnType>{mem}} {}
-
-    //! Do a task
-    void doTask(const uint thread_id) noexcept override
+        result_{result} {}
+    //! Run a task
+    void runTask(const uint thread_id) noexcept override
     {
-      inner::processWorkerTask<ReturnType>(worker_task_, worker_promise_, thread_id);
+      if constexpr (std::is_void_v<ReturnType>) {
+        inner::runTask<ReturnType>(worker_task_, thread_id);
+        result_->set(0);
+      }
+      else {
+        auto value = inner::runTask<ReturnType>(worker_task_, thread_id);
+        result_->set(std::move(value));
+      }
     }
-
-    using TaskType = std::remove_reference_t<Task>;
-
-    TaskType worker_task_;
-    std::promise<ReturnType> worker_promise_;
+    std::remove_reference_t<Task> worker_task_;
+    Result<ReturnType>* result_;
   };
-#ifdef Z_CLANG
-#pragma clang diagnostic pop
-#pragma clang diagnostic pop
-#endif // Z_CLANG
 
-  // Make a task
-  auto worker_task = UniqueMemoryPointer<SingleTask>::make(mem_resource, 
-                                                           std::forward<Task>(task),
-                                                           mem_resource);
-  auto result = worker_task->worker_promise_.get_future();
-
+  UniqueResult<ReturnType> result;
+  const uint thread_id = getThreadIndex();
   // Enqueue the task
   {
     std::unique_lock<std::mutex> locker{lock_};
+    result = (thread_id != std::numeric_limits<uint>::max())
+        ? UniqueResult<ReturnType>::make(mem_resource, this, thread_id)
+        : UniqueResult<ReturnType>::make(mem_resource);
+    auto worker_task = UniqueMemoryPointer<SingleTask>::make(
+        mem_resource, 
+        std::forward<Task>(task),
+        result.get());
     task_queue_.emplace(std::move(worker_task));
   }
   condition_.notify_one();
@@ -283,39 +354,28 @@ std::future<ReturnType> ThreadManager::enqueue(
   "void task(iterator i)" or "void task(int thread_id, iterator i)".
   */
 template <typename Task, typename Iterator> inline
-std::future<void> ThreadManager::enqueueLoop(
+auto ThreadManager::enqueueLoop(
     Task&& task,
     Iterator&& begin,
     Iterator&& end,
-    pmr::memory_resource* mem_resource) noexcept
+    pmr::memory_resource* mem_resource) noexcept -> UniqueResult<void>
 {
-#ifdef Z_CLANG
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wpadded"
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunused-local-typedef"
-#endif // Z_CLANG
   //! Resources for shared task
-  struct SharedResource : public NonCopyable<SharedResource>
+  struct SharedResource : private NonCopyable<SharedResource>
   {
     SharedResource(Task&& worker_task,
-                   const uint task_count,
-                   pmr::memory_resource* mem) noexcept :
+                   Result<void>* result,
+                   pmr::memory_resource* mem,
+                   const uint task_count) noexcept :
         worker_task_{std::forward<Task>(worker_task)},
-        worker_promise_{std::allocator_arg,
-                        pmr::polymorphic_allocator<void>{mem}},
+        result_{result},
         mem_{mem},
         counter_{task_count} {}
-
-    using TaskType = std::remove_reference_t<Task>;
-
-    TaskType worker_task_;
-    std::promise<void> worker_promise_;
+    std::remove_reference_t<Task> worker_task_;
+    Result<void>* result_;
     pmr::memory_resource* mem_;
     std::atomic<uint> counter_;
-    static_assert(sizeof(std::atomic<uint>) <= sizeof(std::promise<void>));
-    static_assert(alignof(std::atomic<uint>) <= alignof(std::promise<void>));
-    static_assert(alignof(std::atomic<uint>) <= alignof(pmr::memory_resource*));
+    static_assert(alignof(std::atomic<uint>) <= alignof(void*));
   };
 
   //! Task class for shared task
@@ -323,10 +383,9 @@ std::future<void> ThreadManager::enqueueLoop(
   {
    public:
     //! Create a shared task
-    SharedTask(SharedResource* shared_resource, Iterator&& ite) noexcept :
+    SharedTask(SharedResource* shared_resource, Iterator ite) noexcept :
         shared_resource_{shared_resource},
-        iterator_{std::forward<Iterator>(ite)} {}
-
+        iterator_{ite} {}
     //! Destroy a shared task
     ~SharedTask() noexcept override
     {
@@ -334,43 +393,39 @@ std::future<void> ThreadManager::enqueueLoop(
       if (c == 0) {
         UniqueMemoryPointer<SharedResource> r{shared_resource_,
                                               shared_resource_->mem_};
-        r->worker_promise_.set_value();
+        r->result_->set(0);
       }
     }
-
-    //! Do a task
-    void doTask(const uint thread_id) noexcept override
+    //! Run a task
+    void runTask(const uint thread_id) noexcept override
     {
-      inner::processLoopTask(shared_resource_->worker_task_, thread_id, iterator_);
+      inner::runTask(shared_resource_->worker_task_, thread_id, iterator_);
     }
-
-    using IteratorType = std::remove_reference_t<Iterator>;
-
     SharedResource* shared_resource_;
-    IteratorType iterator_;
+    std::remove_reference_t<Iterator> iterator_;
   };
-#ifdef Z_CLANG
-#pragma clang diagnostic pop
-#pragma clang diagnostic pop
-#endif // Z_CLANG
 
-  // Make a shared resource
+  UniqueResult<void> result;
+  const uint thread_id = getThreadIndex();
   const uint distance = inner::distance(begin, end);
-  auto shared_resource = UniqueMemoryPointer<SharedResource>::make(
-      mem_resource,
-      std::forward<Task>(task),
-      distance,
-      mem_resource).release();
-  auto result = shared_resource->worker_promise_.get_future();
-
   // Make worker tasks
   {
     std::unique_lock<std::mutex> locker{lock_};
+    result = (thread_id != std::numeric_limits<uint>::max())
+        ? UniqueResult<void>::make(mem_resource, this, thread_id)
+        : UniqueResult<void>::make(mem_resource);
+    // Make a shared resource
+    auto shared_resource = UniqueMemoryPointer<SharedResource>::make(
+        mem_resource,
+        std::forward<Task>(task),
+        result.get(),
+        mem_resource,
+        distance).release();
     for (auto ite = begin; ite != end; ++ite) {
       auto worker_task = UniqueMemoryPointer<SharedTask>::make(
           mem_resource,
           shared_resource,
-          std::move(ite));
+          ite);
       task_queue_.emplace(std::move(worker_task));
     }
   }
@@ -396,14 +451,32 @@ void ThreadManager::exitWorkersRunning() noexcept
 /*!
   */
 inline
-auto ThreadManager::takeTask() noexcept -> TaskPointer
+auto ThreadManager::fetchTask() noexcept -> UniqueTask
 {
-  TaskPointer task;
+  UniqueTask task;
   if (!task_queue_.empty()) {
     task = std::move(task_queue_.front());
     task_queue_.pop();
   }
   return task;
+}
+
+/*!
+  */
+inline
+uint ThreadManager::getThreadIndex() const noexcept
+{
+  const auto id = std::this_thread::get_id();
+  auto comp = [](const std::thread& lhs, const std::thread::id& rhs)
+  {
+    return lhs.get_id() < rhs;
+  };
+  const auto t = std::lower_bound(workers_.begin(), workers_.end(), id, comp);
+  const bool result = (t != workers_.end()) && (t->get_id() == id);
+  const uint thread_id = result
+      ? cast<uint>(std::distance(workers_.begin(), t))
+      : std::numeric_limits<uint>::max();
+  return thread_id;
 }
 
 /*!
@@ -419,10 +492,10 @@ void ThreadManager::initialize(const uint num_of_threads) noexcept
   // Check the alignment of member variables
   static_assert(alignof(std::condition_variable) <=
                 alignof(std::mutex));
-  static_assert(alignof(std::queue<TaskPointer, pmr::deque<TaskPointer>>) <=
+  static_assert(alignof(std::queue<UniqueTask, pmr::deque<UniqueTask>>) <=
                 alignof(std::condition_variable));
   static_assert(alignof(pmr::vector<std::thread>) <=
-                alignof(std::queue<TaskPointer, pmr::deque<TaskPointer>>));
+                alignof(std::queue<UniqueTask, pmr::deque<UniqueTask>>));
   static_assert(alignof(uint8b) <=
                 alignof(pmr::vector<std::thread>));
 }

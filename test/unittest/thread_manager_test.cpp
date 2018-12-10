@@ -268,8 +268,7 @@ namespace {
 
 void testThreadPoolNest(zisc::ThreadManager& thread_manager, const int level)
 {
-//  const int max_level = zisc::cast<int>(thread_manager.numOfThreads());
-  const int max_level = 4;
+  constexpr int max_level = 3;
   if (level < max_level) {
     auto task1 = [&thread_manager, level]()
     {

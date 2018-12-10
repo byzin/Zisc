@@ -284,8 +284,8 @@ void testThreadPoolNest(zisc::ThreadManager& thread_manager, const int level)
     };
 
     auto result1 = thread_manager.enqueue<void>(task1);
-    constexpr uint start = 0;
-    const uint end = thread_manager.numOfThreads();
+    constexpr zisc::uint start = 0;
+    const zisc::uint end = thread_manager.numOfThreads();
     auto result2 = thread_manager.enqueueLoop(task2, start, end);
     if (zisc::isOdd(level)) {
       result1->wait();

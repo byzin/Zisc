@@ -92,7 +92,7 @@ void ThreadManager::Result<T>::wait() const noexcept
       task = thread_manager_->fetchTask();
     }
     if (task) {
-      task->runTask(zisc::cast<uint>(thread_id_));
+      task->run(zisc::cast<uint>(thread_id_));
       task.reset();
     }
     else {
@@ -235,7 +235,7 @@ void ThreadManager::createWorkers(const uint num_of_threads) noexcept
             condition_.wait(locker);
         }
         if (task) {
-          task->runTask(thread_id);
+          task->run(thread_id);
           task.reset();
         }
       }
@@ -314,16 +314,9 @@ auto ThreadManager::enqueue(
         worker_task_{std::forward<Task>(worker_task)},
         result_{result} {}
     //! Run a task
-    void runTask(const uint thread_id) noexcept override
+    void run(const uint thread_id) noexcept override
     {
-      if constexpr (std::is_void_v<ReturnType>) {
-        inner::runTask<ReturnType>(worker_task_, thread_id);
-        result_->set(0);
-      }
-      else {
-        auto value = inner::runTask<ReturnType>(worker_task_, thread_id);
-        result_->set(std::move(value));
-      }
+      runTask(worker_task_, result_, thread_id);
     }
     std::remove_reference_t<Task> worker_task_;
     Result<ReturnType>* result_;
@@ -397,7 +390,7 @@ auto ThreadManager::enqueueLoop(
       }
     }
     //! Run a task
-    void runTask(const uint thread_id) noexcept override
+    void run(const uint thread_id) noexcept override
     {
       inner::runTask(shared_resource_->worker_task_, thread_id, iterator_);
     }
@@ -498,6 +491,23 @@ void ThreadManager::initialize(const uint num_of_threads) noexcept
                 alignof(std::queue<UniqueTask, pmr::deque<UniqueTask>>));
   static_assert(alignof(uint8b) <=
                 alignof(pmr::vector<std::thread>));
+}
+
+/*!
+  */
+template <typename ReturnType, typename Task> inline
+void ThreadManager::runTask(Task& task,
+                            Result<ReturnType>* result,
+                            const uint thread_id) noexcept
+{
+  if constexpr (std::is_void_v<ReturnType>) {
+    inner::runTask<ReturnType>(task, thread_id);
+    result->set(0);
+  }
+  else {
+    auto value = inner::runTask<ReturnType>(task, thread_id);
+    result->set(std::move(value));
+  }
 }
 
 /*!

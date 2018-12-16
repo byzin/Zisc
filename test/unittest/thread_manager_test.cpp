@@ -313,6 +313,7 @@ TEST(ThreadManagerTest, NestedThreadPoolTest)
 {
   zisc::ThreadManager thread_manager{16};
   ::testThreadPoolNest(thread_manager, 0);
+  SUCCEED();
 }
 
 TEST(ThreadManagerTest, GetValueTest)

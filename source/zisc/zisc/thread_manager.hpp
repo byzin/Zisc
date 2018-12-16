@@ -118,7 +118,7 @@ class ThreadManager : private NonCopyable<ThreadManager>
    public:
     virtual ~WorkerTask() noexcept {}
     //! Run a task
-    virtual void runTask(const uint thread_id) noexcept = 0;
+    virtual void run(const uint thread_id) noexcept = 0;
   };
   using UniqueTask = UniqueMemoryPointer<WorkerTask>;
 
@@ -137,6 +137,12 @@ class ThreadManager : private NonCopyable<ThreadManager>
 
   //! Initialize this thread manager
   void initialize(const uint num_of_threads) noexcept;
+
+  //! Run a task
+  template <typename ReturnType, typename Task>
+  static void runTask(Task& task,
+                      Result<ReturnType>* result,
+                      const uint thread_id) noexcept;
 
   //! Check if the workers (threads) are enable running
   bool workersAreEnabled() const noexcept;

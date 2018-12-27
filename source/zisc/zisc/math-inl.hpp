@@ -127,7 +127,7 @@ template <typename Arithmetic, typename SignedInteger>
 constexpr Arithmetic power(const Arithmetic base,
                            const SignedInteger exponent) noexcept
 {
-  return constant::pow(base, exponent);
+  return constant::power(base, exponent);
 }
 
 /*!

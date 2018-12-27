@@ -31,12 +31,12 @@ template <std::size_t kUlpScale = 4, typename Float>
 constexpr Float getUlps(const Float value) noexcept;
 
 //! Check whether given two values are almost same
-template <std::size_t kUlpScale = 4, typename Float>
-constexpr bool isAlmostEqual(const Float lhs, const Float rhs) noexcept;
+template <std::size_t kUlpScale = 4, typename Arith>
+constexpr bool isAlmostEqual(const Arith lhs, const Arith rhs) noexcept;
 
 //! Check whether given value is almost equal to zero
-template <std::size_t kUlpScale = 4, typename Float>
-constexpr bool isAlmostEqualToZero(const Float value) noexcept;
+template <std::size_t kUlpScale = 4, typename Arith>
+constexpr bool isAlmostEqualToZero(const Arith value) noexcept;
 
 //! Compute the greatest common divisor of the integers m and n
 template <typename Integer1, typename Integer2>
@@ -68,12 +68,16 @@ constexpr Integer factorial(const Integer x) noexcept;
 // Power functions
 
 //! Calculate the value of base raised to the power exponent
-template <int kExponent, typename Arithmetic>
-constexpr Arithmetic power(Arithmetic base) noexcept;
+template <int kExponent, typename Arith>
+constexpr Arith power(Arith base) noexcept;
 
 //! Calculate the value of base raised to the power exponent
-template <typename Arithmetic, typename SignedInteger>
-constexpr Arithmetic pow(Arithmetic base, SignedInteger exponent) noexcept;
+template <typename Arith, typename SignedInteger>
+constexpr Arith power(Arith base, SignedInteger exponent) noexcept;
+
+//! Calculate the value of base raised to the power exponent
+template <typename Float>
+constexpr Float pow(const Float base, const Float exponent) noexcept;
 
 //! Calculate the square root
 template <typename Float>
@@ -126,6 +130,16 @@ constexpr Float acos(const Float x) noexcept;
 //! Calculate atan(x)
 template <typename Float>
 constexpr Float atan(const Float x) noexcept;
+
+// Floating point manipulation
+
+//! Decompose given floating point value
+template <typename Float>
+constexpr Float frexp(const Float x, int* e) noexcept;
+
+//! Multiply a floating point value x by the number 2 raised to the e power
+template <typename Float>
+constexpr Float ldexp(const Float x, const int e) noexcept;
 
 } // namespace consttant
 

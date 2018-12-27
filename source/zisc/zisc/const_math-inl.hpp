@@ -129,6 +129,16 @@ constexpr std::common_type_t<Integer1, Integer2> lcm(Integer1 m,
 
 /*!
   */
+template <typename Arith> inline
+constexpr Arith mla(const Arith a, const Arith b, const Arith c) noexcept
+{
+  static_assert(std::is_arithmetic_v<Arith>, "Arith isn't arithmetic type");
+  const Arith result = a * b + c;
+  return result;
+}
+
+/*!
+  */
 template <typename Float> inline
 constexpr Float invert(const Float x) noexcept
 {
@@ -286,7 +296,7 @@ constexpr Float cbrt(const Float x) noexcept
     constexpr Float k = cast<Float>(2.0);
     const Float y3 = power<3>(y);
     pre_y = y;
-    y = y * ((y3 + k * x) / (k * y3 + x));
+    y = y * (mla(k, x, y3) / mla(k, y3, x));
   }
   return y;
 }
@@ -310,6 +320,32 @@ constexpr Float exp(const Float x) noexcept
   return y;
 }
 
+//! Return the upper part of log(2)
+template <typename Float> constexpr Float getL2u() noexcept;
+
+template <> constexpr float getL2u<float>() noexcept
+{
+  return 0.693145751953125f;
+}
+
+template <> constexpr double getL2u<double>() noexcept
+{
+  return 0.69314718055966295651160180568695068359375;
+}
+
+//! Return the lower part of log(2)
+template <typename Float> constexpr Float getL2l() noexcept;
+
+template <> constexpr float getL2l<float>() noexcept
+{
+  return 1.428606765330187045e-06f;
+}
+
+template <> constexpr double getL2l<double>() noexcept
+{
+  return 0.28235290563031577122588448175013436025525412068e-12;
+}
+
 } // namespace inner
 
 /*!
@@ -317,23 +353,19 @@ constexpr Float exp(const Float x) noexcept
 template <typename Float> inline
 constexpr Float exp(Float x) noexcept
 {
-  constexpr int n = 4;
-  constexpr Float k1 = log(cast<Float>(2.0));
-  constexpr Float k2 = power<n>(cast<Float>(0.5));
-  constexpr Float l2u = cast<Float>(0.69314718055966295651160180568695068359375);
-  constexpr Float l2l = cast<Float>(0.28235290563031577122588448175013436025525412068e-12);
+  constexpr Float lon2 = log(cast<Float>(2.0));
+  constexpr Float l2u = inner::getL2u<Float>();
+  constexpr Float l2l = inner::getL2l<Float>();
 
-  const int q = cast<int>(invert(k1) * x);
-
+  const int q = cast<int>(rint(x * invert(lon2)));
   // Argument reduction
-  x = x - cast<Float>(q) * l2u - cast<Float>(q) * l2l;
-  x = x * k2;
+  x = mla(cast<Float>(q), -l2u, x);
+  x = mla(cast<Float>(q), -l2l, x);
 
+  // Evaluate a series
   Float y = inner::exp(x);
-  for (int iteration = 0; iteration < n; ++iteration)
-    y = (cast<Float>(2.0) + y) * y;
-  y = (y + cast<Float>(1.0)) * power(cast<Float>(2.0), q);
 
+  y = ldexp(y + cast<Float>(1.0), q);
   return y;
 }
 
@@ -436,6 +468,58 @@ constexpr std::tuple<Float, Float> sincosImpl(Float x) noexcept
   return std::make_tuple(s, c);
 }
 
+//! Return the upper part of pi
+template <typename Float> constexpr Float getPiA() noexcept;
+
+template <> constexpr float getPiA<float>() noexcept
+{
+  return 3.140625f;
+}
+
+template <> constexpr double getPiA<double>() noexcept
+{
+  return 3.1415926218032836914;
+}
+
+//! Return the upper part of pi
+template <typename Float> constexpr Float getPiB() noexcept;
+
+template <> constexpr float getPiB<float>() noexcept
+{
+  return 0.0009670257568359375f;
+}
+
+template <> constexpr double getPiB<double>() noexcept
+{
+  return 3.1786509424591713469e-08;
+}
+
+//! Return the lower part of pi
+template <typename Float> constexpr Float getPiC() noexcept;
+
+template <> constexpr float getPiC<float>() noexcept
+{
+  return 6.2771141529083251953e-07f;
+}
+
+template <> constexpr double getPiC<double>() noexcept
+{
+  return 1.2246467864107188502e-16;
+}
+
+//! Return the lower part of pi
+template <typename Float> constexpr Float getPiD() noexcept;
+
+template <> constexpr float getPiD<float>() noexcept
+{
+  return 1.2154201256553420762e-10f;
+}
+
+template <> constexpr double getPiD<double>() noexcept
+{
+  return 1.2736634327021899816e-24;
+}
+
 /*!
   */
 template <typename Float> inline
@@ -446,16 +530,20 @@ constexpr std::tuple<Float, Float> sincos(const Float x) noexcept
   constexpr Float m4_pi = cast<Float>(4.0) / pi<Float>();
   Float a = abs(x);
   const int q = cast<int>(a * m4_pi);
-  const Float r = cast<Float>(q + (q & 1));
 
-  // Split pi/4 into three parts
-  constexpr Float pi_4_a =
-      cast<Float>(0.7853981554508209228515625);
-  constexpr Float pi_4_b =
-      cast<Float>(0.794662735614792836713604629039764404296875e-8);
-  constexpr Float pi_4_c =
-      cast<Float>(0.306161699786838294306516483068750264552437361480769e-16);
-  a = a - r * pi_4_a - r * pi_4_b - r * pi_4_c;
+  {
+    const Float r = cast<Float>(q + (q & 1));
+    // Split pi/4 into four parts
+    constexpr Float k = cast<Float>(0.25);
+    constexpr Float pi_4_a = k * getPiA<Float>();
+    constexpr Float pi_4_b = k * getPiB<Float>();
+    constexpr Float pi_4_c = k * getPiC<Float>();
+    constexpr Float pi_4_d = k * getPiD<Float>();
+    a = mla(r, -pi_4_a, a);
+    a = mla(r, -pi_4_b, a);
+    a = mla(r, -pi_4_c, a);
+    a = mla(r, -pi_4_d, a);
+  }
 
   auto y = sincosImpl(a);
   auto& s = std::get<0>(y);
@@ -547,7 +635,7 @@ constexpr Float atan(const Float x) noexcept
     const int n = (abs(a) < v2) ? 2 : (abs(a) < v1) ? 1 : 0;
     // Apply cotangent half angle formula
     for (int i = 0; i < n; ++i)
-      a = a + sqrt(one + power(a, 2));
+      a = a + sqrt(mla(a, a, one));
 
     a = invert(a);
     // Evaluate a series
@@ -557,7 +645,7 @@ constexpr Float atan(const Float x) noexcept
     y = y * e;
 
     if (one < z) {
-      constexpr Float pi_2 = pi<Float>() / cast<Float>(2.0);
+      constexpr Float pi_2 = cast<Float>(0.5) * pi<Float>();
       y = pi_2 - y;
     }
   }
@@ -601,6 +689,7 @@ constexpr Float acos(const Float x) noexcept
 template <typename Float> inline
 constexpr Float frexp(const Float x, int* e) noexcept
 {
+  static_assert(kIsFloat<Float>, "Float isn't floating point type.");
   using FType = FloatingPointFromBytes<sizeof(Float)>;
   Float y = x;
   constexpr Float zero = cast<Float>(0.0);
@@ -622,9 +711,21 @@ constexpr Float frexp(const Float x, int* e) noexcept
 template <typename Float> inline
 constexpr Float ldexp(const Float x, const int e) noexcept
 {
+  static_assert(kIsFloat<Float>, "Float isn't floating point type.");
   constexpr Float base = cast<Float>(2.0);
   const Float y = (isInf(x) || isNan(x)) ? x : x * power(base, e);
   return y;
+}
+
+/*!
+  */
+template <typename Float> inline
+constexpr Float rint(const Float x) noexcept
+{
+  static_assert(kIsFloat<Float>, "Float isn't floating point type.");
+  constexpr Float half = cast<Float>(0.5);
+  const int64b y = isNegative(x) ? cast<int64b>(x - half) : cast<int64b>(x + half);
+  return cast<Float>(y);
 }
 
 } // namespace constant

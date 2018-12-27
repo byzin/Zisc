@@ -27,15 +27,15 @@ constexpr Float pi() noexcept;
 // Basic operations
 
 //! Return the ULPs of the given value
-template <std::size_t kUlpScale = 4, typename Float>
+template <std::size_t kUlpScale = 2, typename Float>
 constexpr Float getUlps(const Float value) noexcept;
 
 //! Check whether given two values are almost same
-template <std::size_t kUlpScale = 4, typename Arith>
+template <std::size_t kUlpScale = 2, typename Arith>
 constexpr bool isAlmostEqual(const Arith lhs, const Arith rhs) noexcept;
 
 //! Check whether given value is almost equal to zero
-template <std::size_t kUlpScale = 4, typename Arith>
+template <std::size_t kUlpScale = 2, typename Arith>
 constexpr bool isAlmostEqualToZero(const Arith value) noexcept;
 
 //! Compute the greatest common divisor of the integers m and n
@@ -47,6 +47,10 @@ constexpr std::common_type_t<Integer1, Integer2> gcd(Integer1 m,
 template <typename Integer1, typename Integer2>
 constexpr std::common_type_t<Integer1, Integer2> lcm(Integer1 m,
                                                      Integer2 n) noexcept;
+
+//! Return a * b + c
+template <typename Arith>
+constexpr Arith mla(const Arith a, const Arith b, const Arith c) noexcept;
 
 //! Return a inverse number
 template <typename Float>
@@ -140,6 +144,12 @@ constexpr Float frexp(const Float x, int* e) noexcept;
 //! Multiply a floating point value x by the number 2 raised to the e power
 template <typename Float>
 constexpr Float ldexp(const Float x, const int e) noexcept;
+
+// Nearest integer floating point operations
+
+//! Round the floating point argument to an integer value
+template <typename Float>
+constexpr Float rint(const Float x) noexcept;
 
 } // namespace consttant
 

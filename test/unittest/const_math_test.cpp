@@ -296,7 +296,6 @@ struct ConstexprTest
   static void testExp()
   {
     constexpr Float l = zisc::cast<Float>(0.1) * zisc::cast<Float>(i);
-    if (std::is_same_v<double, Float>)
     {
       constexpr Float result = zisc::constant::exp(l);
       const Float expected = std::exp(l);

@@ -95,6 +95,10 @@ function(getClangCompilerOption cxx_compile_flags cxx_linker_flags cxx_definitio
     endif()
   endif()
 
+  if(NOT Z_VISUAL_STUDIO)
+    list(APPEND  compile_flags -mfma)
+  endif()
+
   # Sanitizer
   set(sanitizer_flags "")
   if(Z_ENABLE_ADDRESS_SANITIZER)
@@ -133,7 +137,8 @@ function(getGccCompilerOption cxx_compile_flags cxx_linker_flags cxx_definitions
 
   list(APPEND compile_flags -fconstexpr-depth=${constexpr_depth}
                             -fconstexpr-loop-limit=${constexpr_steps}
-                            -ftemplate-depth=${recursive_template_depth})
+                            -ftemplate-depth=${recursive_template_depth}
+                            -mfma)
 
   if(Z_STATIC_LINK_LIBCXX)
     list(APPEND linker_flags -static-libstdc++)

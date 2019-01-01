@@ -38,6 +38,10 @@ constexpr bool isAlmostEqual(const Arith lhs, const Arith rhs) noexcept;
 template <std::size_t kUlpScale = 2, typename Arith>
 constexpr bool isAlmostEqualToZero(const Arith value) noexcept;
 
+//! Fused multiply-add operation
+template <typename Arith>
+constexpr Arith fma(const Arith a, const Arith b, const Arith c) noexcept;
+
 //! Compute the greatest common divisor of the integers m and n
 template <typename Integer1, typename Integer2>
 constexpr std::common_type_t<Integer1, Integer2> gcd(Integer1 m,
@@ -47,10 +51,6 @@ constexpr std::common_type_t<Integer1, Integer2> gcd(Integer1 m,
 template <typename Integer1, typename Integer2>
 constexpr std::common_type_t<Integer1, Integer2> lcm(Integer1 m,
                                                      Integer2 n) noexcept;
-
-//! Return a * b + c
-template <typename Arith>
-constexpr Arith mla(const Arith a, const Arith b, const Arith c) noexcept;
 
 //! Return a inverse number
 template <typename Float>

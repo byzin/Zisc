@@ -345,69 +345,72 @@ struct ConstexprTest
 
   static void testSin()
   {
+    constexpr Float pi = zisc::constant::pi<Float>();
     {
-      constexpr Float theta = zisc::cast<Float>(0.5) * zisc::kPi<Float> * x;
+      constexpr Float theta = zisc::cast<Float>(0.5) * pi * x;
       constexpr Float result = zisc::constant::sin(theta);
       const Float expected = std::sin(theta);
-      expectFloatEq(expected, result, "sin(" << theta << ") is wrong.");
+      expectFloatEq(expected, result, "sin(" << (theta / pi) << " x pi" << ") is wrong.");
     }
     {
-      constexpr Float theta = zisc::cast<Float>(2.0) * zisc::kPi<Float> * x;
+      constexpr Float theta = zisc::cast<Float>(2.0) * pi * x;
       constexpr Float result = zisc::constant::sin(theta);
       const Float expected = std::sin(theta);
-      expectFloatEq(expected, result, "sin(" << theta << ") is wrong.");
+      expectFloatEq(expected, result, "sin(" << (theta / pi) << " x pi" << ") is wrong.");
     }
     {
-      constexpr Float theta = zisc::cast<Float>(16.0) * zisc::kPi<Float> * x;
+      constexpr Float theta = zisc::cast<Float>(16.0) * pi * x;
       constexpr Float result = zisc::constant::sin(theta);
       const Float expected = std::sin(theta);
-      expectFloatEq(expected, result, "sin(" << theta << ") is wrong.");
+      expectFloatEq(expected, result, "sin(" << (theta / pi) << " x pi" << ") is wrong.");
     }
     ConstexprTest<Float, end, i + 1>::testSin();
   }
 
   static void testCos()
   {
+    constexpr Float pi = zisc::constant::pi<Float>();
     {
-      constexpr Float theta = zisc::cast<Float>(0.5) * zisc::kPi<Float> * x;
+      constexpr Float theta = zisc::cast<Float>(0.5) * pi * x;
       constexpr Float result = zisc::constant::cos(theta);
       const Float expected = std::cos(theta);
-      expectFloatEq(expected, result, "cos(" << theta << ") is wrong.");
+      expectFloatEq(expected, result, "cos(" << (theta / pi) << " x pi" << ") is wrong.");
     }
     {
-      constexpr Float theta = zisc::cast<Float>(2.0) * zisc::kPi<Float> * x;
+      constexpr Float theta = zisc::cast<Float>(2.0) * pi * x;
       constexpr Float result = zisc::constant::cos(theta);
       const Float expected = std::cos(theta);
-      expectFloatEq(expected, result, "cos(" << theta << ") is wrong.");
+      expectFloatEq(expected, result, "cos(" << (theta / pi) << " x pi" << ") is wrong.");
     }
     {
-      constexpr Float theta = zisc::cast<Float>(16.0) * zisc::kPi<Float> * x;
+      constexpr Float theta = zisc::cast<Float>(16.0) * pi * x;
       constexpr Float result = zisc::constant::cos(theta);
       const Float expected = std::cos(theta);
-      expectFloatEq(expected, result, "cos(" << theta << ") is wrong.");
+      expectFloatEq(expected, result, "cos(" << (theta / pi) << " x pi" << ") is wrong.");
     }
     ConstexprTest<Float, end, i + 1>::testCos();
   }
 
   static void testTan()
   {
+    constexpr Float pi = zisc::constant::pi<Float>();
     {
-      constexpr Float theta = zisc::cast<Float>(0.5) * zisc::kPi<Float> * x;
+      constexpr Float theta = zisc::cast<Float>(0.5) * pi * x;
       constexpr Float result = zisc::constant::tan(theta);
       const Float expected = std::tan(theta);
-      expectFloatEq(expected, result, "tan(" << theta << ") is wrong.");
+      expectFloatEq(expected, result, "tan(" << (theta / pi) << " x pi" << ") is wrong.");
     }
     {
-      constexpr Float theta = zisc::cast<Float>(2.0) * zisc::kPi<Float> * x;
+      constexpr Float theta = zisc::cast<Float>(2.0) * pi * x;
       constexpr Float result = zisc::constant::tan(theta);
       const Float expected = std::tan(theta);
-      expectFloatEq(expected, result, "tan(" << theta << ") is wrong.");
+      expectFloatEq(expected, result, "tan(" << (theta / pi) << " x pi" << ") is wrong.");
     }
     {
-      constexpr Float theta = zisc::cast<Float>(16.0) * zisc::kPi<Float> * x;
+      constexpr Float theta = zisc::cast<Float>(16.0) * pi * x;
       constexpr Float result = zisc::constant::tan(theta);
       const Float expected = std::tan(theta);
-      expectFloatEq(expected, result, "tan(" << theta << ") is wrong.");
+      expectFloatEq(expected, result, "tan(" << (theta / pi) << " x pi" << ") is wrong.");
     }
     ConstexprTest<Float, end, i + 1>::testTan();
   }
@@ -562,6 +565,7 @@ struct ConstexprTest<Float, end, end>
 
   static void testSin()
   {
+    constexpr Float pi = zisc::constant::pi<Float>();
     {
       constexpr Float theta = zisc::cast<Float>(0.0);
       constexpr Float result = zisc::constant::sin(theta);
@@ -569,13 +573,13 @@ struct ConstexprTest<Float, end, end>
       expectFloatEq(expected, result, "sin(" << theta << ") is wrong.");
     }
     {
-      constexpr Float theta = zisc::cast<Float>(0.25) * zisc::kPi<Float>;
+      constexpr Float theta = zisc::cast<Float>(0.25) * pi;
       constexpr Float result = zisc::constant::sin(theta);
       const Float expected = std::sin(theta);
       expectFloatEq(expected, result, "sin(" << theta << ") is wrong.");
     }
     {
-      constexpr Float theta = zisc::cast<Float>(0.5) * zisc::kPi<Float>;
+      constexpr Float theta = zisc::cast<Float>(0.5) * pi;
       constexpr Float result = zisc::constant::sin(theta);
       const Float expected = std::sin(theta);
       expectFloatEq(expected, result, "sin(" << theta << ") is wrong.");
@@ -584,6 +588,7 @@ struct ConstexprTest<Float, end, end>
 
   static void testCos()
   {
+    constexpr Float pi = zisc::constant::pi<Float>();
     {
       constexpr Float theta = zisc::cast<Float>(0.0);
       constexpr Float result = zisc::constant::cos(theta);
@@ -591,13 +596,13 @@ struct ConstexprTest<Float, end, end>
       expectFloatEq(expected, result, "cos(" << theta << ") is wrong.");
     }
     {
-      constexpr Float theta = zisc::cast<Float>(0.25) * zisc::kPi<Float>;
+      constexpr Float theta = zisc::cast<Float>(0.25) * pi;
       constexpr Float result = zisc::constant::cos(theta);
       const Float expected = std::cos(theta);
       expectFloatEq(expected, result, "cos(" << theta << ") is wrong.");
     }
     {
-      constexpr Float theta = zisc::cast<Float>(0.5) * zisc::kPi<Float>;
+      constexpr Float theta = zisc::cast<Float>(0.5) * pi;
       constexpr Float result = zisc::constant::cos(theta);
       const Float expected = std::cos(theta);
       expectFloatEq(expected, result, "cos(" << theta << ") is wrong.");

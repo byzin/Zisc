@@ -38,7 +38,7 @@ constexpr Float calcPi(const int64b n) noexcept
   Float pi = t;
   for (int64b k = n; 0 < k; --k) {
     const Float a = cast<Float>(k) / cast<Float>(2 * k + 1);
-    pi = t + a * pi;
+    pi = fma(a, pi, t);
   }
   return pi;
 }
@@ -102,6 +102,16 @@ constexpr bool isAlmostEqualToZero(const Arith value) noexcept
 }
 
 /*!
+  */
+template <typename Arith> inline
+constexpr Arith fma(const Arith a, const Arith b, const Arith c) noexcept
+{
+  static_assert(std::is_arithmetic_v<Arith>, "Arith isn't arithmetic type");
+  const Arith result = a * b + c;
+  return result;
+}
+
+/*!
  \details
  No detailed.
  */
@@ -125,16 +135,6 @@ constexpr std::common_type_t<Integer1, Integer2> lcm(Integer1 m,
   static_assert(kIsInteger<Integer1>, "Integer1 isn't integer type.");
   static_assert(kIsInteger<Integer2>, "Integer2 isn't integer type.");
   return std::lcm(m, n);
-}
-
-/*!
-  */
-template <typename Arith> inline
-constexpr Arith mla(const Arith a, const Arith b, const Arith c) noexcept
-{
-  static_assert(std::is_arithmetic_v<Arith>, "Arith isn't arithmetic type");
-  const Arith result = a * b + c;
-  return result;
 }
 
 /*!
@@ -175,7 +175,7 @@ constexpr std::common_type_t<Integer1, Integer2> sequence(const Integer1 m,
   static_assert(kIsInteger<Integer2>, "Integer2 isn't integer type.");
   std::common_type_t<Integer1, Integer2> x = 1;
   for (auto i = m; i < n; ++i)
-    x = x * (i + 1);
+    x = fma(i, x, x);
   return x;
 }
 
@@ -296,7 +296,7 @@ constexpr Float cbrt(const Float x) noexcept
     constexpr Float k = cast<Float>(2.0);
     const Float y3 = power<3>(y);
     pre_y = y;
-    y = y * (mla(k, x, y3) / mla(k, y3, x));
+    y = y * (fma(k, x, y3) / fma(k, y3, x));
   }
   return y;
 }
@@ -359,8 +359,8 @@ constexpr Float exp(Float x) noexcept
 
   const int q = cast<int>(rint(x * invert(lon2)));
   // Argument reduction
-  x = mla(cast<Float>(q), -l2u, x);
-  x = mla(cast<Float>(q), -l2l, x);
+  x = fma(cast<Float>(q), -l2u, x);
+  x = fma(cast<Float>(q), -l2l, x);
 
   // Evaluate a series
   Float y = inner::exp(x);
@@ -539,10 +539,10 @@ constexpr std::tuple<Float, Float> sincos(const Float x) noexcept
     constexpr Float pi_4_b = k * getPiB<Float>();
     constexpr Float pi_4_c = k * getPiC<Float>();
     constexpr Float pi_4_d = k * getPiD<Float>();
-    a = mla(r, -pi_4_a, a);
-    a = mla(r, -pi_4_b, a);
-    a = mla(r, -pi_4_c, a);
-    a = mla(r, -pi_4_d, a);
+    a = fma(r, -pi_4_a, a);
+    a = fma(r, -pi_4_b, a);
+    a = fma(r, -pi_4_c, a);
+    a = fma(r, -pi_4_d, a);
   }
 
   auto y = sincosImpl(a);
@@ -635,7 +635,7 @@ constexpr Float atan(const Float x) noexcept
     const int n = (abs(a) < v2) ? 2 : (abs(a) < v1) ? 1 : 0;
     // Apply cotangent half angle formula
     for (int i = 0; i < n; ++i)
-      a = a + sqrt(mla(a, a, one));
+      a = a + sqrt(fma(a, a, one));
 
     a = invert(a);
     // Evaluate a series

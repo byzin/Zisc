@@ -21,6 +21,12 @@ function(initCompilerOption)
   set(option_description "Statically link C++ library")
   setBooleanOption(Z_STATIC_LINK_LIBCXX OFF ${option_description})
 
+  set(option_description "Save intermediate compilation results.")
+  setBooleanOption(Z_SAVE_INTERMEDIATE_COMPILATION_RESULTS OFF ${option_description})
+
+  set(option_description "Enable some hardware features (Intel haswell or later, AMD zen or later).")
+  setBooleanOption(Z_ENABLE_HARDWARE_FEATURES OFF ${option_description})
+
   set(option_description "Enable C++ address sanitizer (if compiler supports).")
   setBooleanOption(Z_ENABLE_ADDRESS_SANITIZER OFF ${option_description})
 
@@ -78,11 +84,20 @@ function(getClangCompilerOption cxx_compile_flags cxx_linker_flags cxx_definitio
   set(linker_flags "")
   set(definitions "")
 
-  appendClangOption(compile_flags
-    -fconstexpr-depth=${constexpr_depth}
-    -fconstexpr-backtrace-limit=${constexpr_backtrace}
-    -fconstexpr-steps=${constexpr_steps}
-    -ftemplate-depth=${recursive_template_depth})
+  set(compile_flags -fconstexpr-depth=${constexpr_depth}
+                    -fconstexpr-backtrace-limit=${constexpr_backtrace}
+                    -fconstexpr-steps=${constexpr_steps}
+                    -ftemplate-depth=${recursive_template_depth})
+
+  if(Z_ENABLE_HARDWARE_FEATURES)
+    list(APPEND compile_flags -mfma)
+  endif()
+
+  if(Z_SAVE_INTERMEDIATE_COMPILATION_RESULTS)
+    list(APPEND compile_flags -save-temps=obj)
+  endif()
+
+  appendClangOption(compile_flags ${compile_flags})
 
   if(Z_CLANG_USES_LIBCXX)
     list(APPEND compile_flags -stdlib=libc++)
@@ -93,10 +108,6 @@ function(getClangCompilerOption cxx_compile_flags cxx_linker_flags cxx_definitio
     if(Z_CLANG_USES_LIBCXX)
       list(APPEND linker_flags c++abi)
     endif()
-  endif()
-
-  if(NOT Z_VISUAL_STUDIO)
-    list(APPEND  compile_flags -mfma)
   endif()
 
   # Sanitizer
@@ -137,8 +148,15 @@ function(getGccCompilerOption cxx_compile_flags cxx_linker_flags cxx_definitions
 
   list(APPEND compile_flags -fconstexpr-depth=${constexpr_depth}
                             -fconstexpr-loop-limit=${constexpr_steps}
-                            -ftemplate-depth=${recursive_template_depth}
-                            -mfma)
+                            -ftemplate-depth=${recursive_template_depth})
+
+  if(Z_ENABLE_HARDWARE_FEATURES)
+    list(APPEND compile_flags -mfma)
+  endif()
+
+  if(Z_SAVE_INTERMEDIATE_COMPILATION_RESULTS)
+    list(APPEND compile_flags -save-temps=obj)
+  endif()
 
   if(Z_STATIC_LINK_LIBCXX)
     list(APPEND linker_flags -static-libstdc++)

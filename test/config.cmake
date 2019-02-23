@@ -10,6 +10,7 @@ set(__test_root__ ${CMAKE_CURRENT_LIST_DIR})
 
 function(getTestCompileOption test_compile_flags)
   set(compile_flags "")
+
   # Output variable
   set(${test_compile_flags} ${compile_flags} PARENT_SCOPE)
 endfunction(getTestCompileOption)

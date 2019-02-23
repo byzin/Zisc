@@ -13,6 +13,8 @@
 #include <chrono>
 #include <cmath>
 #include <cstdint>
+#include <iostream>
+#include <iomanip>
 #include <string>
 #include <type_traits>
 #include <tuple>
@@ -402,4 +404,14 @@ TEST(MathTest, ClassificationTest)
     constexpr bool r14 = zisc::isSubnormal(v14);
     ASSERT_TRUE(r14);
   }
+}
+
+TEST(MathTest, FmaTest)
+{
+  volatile const float a = 3.0f;
+  volatile const float b = 5.0f;
+  volatile const float c = 4.0f;
+  std::cout << std::scientific
+            << std::setprecision(std::numeric_limits<float>::max_digits10)
+            << std::fma(a, b, c) << std::endl;
 }

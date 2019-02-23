@@ -84,10 +84,11 @@ function(getClangCompilerOption cxx_compile_flags cxx_linker_flags cxx_definitio
   set(linker_flags "")
   set(definitions "")
 
-  set(compile_flags -fconstexpr-depth=${constexpr_depth}
-                    -fconstexpr-backtrace-limit=${constexpr_backtrace}
-                    -fconstexpr-steps=${constexpr_steps}
-                    -ftemplate-depth=${recursive_template_depth})
+  appendClangOption(compile_flags
+      -fconstexpr-depth=${constexpr_depth}
+      -fconstexpr-backtrace-limit=${constexpr_backtrace}
+      -fconstexpr-steps=${constexpr_steps}
+      -ftemplate-depth=${recursive_template_depth})
 
   if(Z_ENABLE_HARDWARE_FEATURES)
     list(APPEND compile_flags -mfma)
@@ -96,8 +97,6 @@ function(getClangCompilerOption cxx_compile_flags cxx_linker_flags cxx_definitio
   if(Z_SAVE_INTERMEDIATE_COMPILATION_RESULTS)
     list(APPEND compile_flags -save-temps=obj)
   endif()
-
-  appendClangOption(compile_flags ${compile_flags})
 
   if(Z_CLANG_USES_LIBCXX)
     list(APPEND compile_flags -stdlib=libc++)

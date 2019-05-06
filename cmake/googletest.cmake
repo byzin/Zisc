@@ -34,54 +34,48 @@ function(buildGoogleTest gtest_project_root gtest_include_dir gtest_libraries)
   string(REPLACE ";" " " googletest_definitions "${googletest_definitions}")
   set(googletest_cmake_options "")
 
+  if(Z_RELEASE_MODE)
+    set(googletest_postfix "")
+  else()
+    set(googletest_postfix "d")
+  endif()
   if(Z_VISUAL_STUDIO)
-    list(APPEND googletest_cmake_options -Dgtest_force_shared_crt=ON)
-    if(Z_RELEASE_MODE)
-      set(libgtest_lib_name "gtest.lib")
-      set(libgtestmain_lib_name "gtest_main.lib")
-      set(libgmock_lib_name "gmock.lib")
-      set(libgmockmain_lib_name "gmock_main.lib")
-    else()
-      set(libgtest_lib_name "gtestd.lib")
-      set(libgtestmain_lib_name "gtest_maind.lib")
-      set(libgmock_lib_name "gmockd.lib")
-      set(libgmockmain_lib_name "gmock_maind.lib")
-    endif()
+    list(APPEND googletest_cmake_options -Dgtest_force_shared_crt=ON
+                                         -DCMAKE_VS_PLATFORM_TOOLSET_HOST_ARCHITECTURE=${CMAKE_VS_PLATFORM_TOOLSET_HOST_ARCHITECTURE})
+    set(libgtest_lib_name "gtest${googletest_postfix}.lib")
+    set(libgtestmain_lib_name "gtest_main${googletest_postfix}.lib")
+    set(libgmock_lib_name "gmock${googletest_postfix}.lib")
+    set(libgmockmain_lib_name "gmock_main${googletest_postfix}.lib")
   elseif(Z_XCODE)
     set(googletest_toolset ${CMAKE_GENERATOR_TOOLSET})
     set(googletest_c_compiler ${CMAKE_C_COMPILER})
     set(googletest_cxx_compiler ${CMAKE_CXX_COMPILER})
-    if(Z_RELEASE_MODE)
-      set(libgtest_lib_name "libgtest.a")
-      set(libgtestmain_lib_name "libgtest_main.a")
-      set(libgmock_lib_name "libgmock.a")
-      set(libgmockmain_lib_name "libgmock_main.a")
-    else()
-      set(libgtest_lib_name "libgtestd.a")
-      set(libgtestmain_lib_name "libgtest_maind.a")
-      set(libgmock_lib_name "libgmockd.a")
-      set(libgmockmain_lib_name "libgmock_maind.a")
-    endif()
+    set(libgtest_lib_name "libgtest${googletest_postfix}.a")
+    set(libgtestmain_lib_name "libgtest_main${googletest_postfix}.a")
+    set(libgmock_lib_name "libgmock${googletest_postfix}.a")
+    set(libgmockmain_lib_name "libgmock_main${googletest_postfix}.a")
   else()
     if(Z_WINDOWS)
       # For Windows mingw
       list(APPEND googletest_cmake_options -Dgtest_disable_pthreads=ON)
     endif()
+    list(APPEND googletest_cmake_options -DCMAKE_DEBUG_POSTFIX=${googletest_postfix})
     set(googletest_toolset ${CMAKE_GENERATOR_TOOLSET})
     set(googletest_c_compiler ${CMAKE_C_COMPILER})
     set(googletest_cxx_compiler ${CMAKE_CXX_COMPILER})
-    set(libgtest_lib_name "libgtest.a")
-    set(libgtestmain_lib_name "libgtest_main.a")
-    set(libgmock_lib_name "libgmock.a")
-    set(libgmockmain_lib_name "libgmock_main.a")
+    set(libgtest_lib_name "libgtest${googletest_postfix}.a")
+    set(libgtestmain_lib_name "libgtest_main${googletest_postfix}.a")
+    set(libgmock_lib_name "libgmock${googletest_postfix}.a")
+    set(libgmockmain_lib_name "libgmock_main${googletest_postfix}.a")
   endif()
 
   externalproject_add(GoogleTest
                       PREFIX ${googletest_build_dir}
                       SOURCE_DIR ${gtest_project_root}
                       CMAKE_GENERATOR ${CMAKE_GENERATOR}
+                      CMAKE_GENERATOR_PLATFORM ${CMAKE_GENERATOR_PLATFORM}
                       CMAKE_GENERATOR_TOOLSET ${googletest_toolset}
-                      CMAKE_ARGS -DCMAKE_BUILD_TYPE=Release
+                      CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
                                  -DCMAKE_INSTALL_PREFIX=${googletest_build_dir}
                                  -DCMAKE_C_COMPILER=${googletest_c_compiler}
                                  -DCMAKE_CXX_COMPILER=${googletest_cxx_compiler}

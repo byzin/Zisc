@@ -550,7 +550,7 @@ constexpr std::tuple<Float, Float> sincos(const Float x) noexcept
   auto& c = std::get<1>(y);
 
   if (((q + 1) & 2) != 0)
-    swap(s, c);
+    swapValue(s, c);
   if (((q & 4) != 0) != (x < 0))
     s = -s;
   if (((q + 2) & 4) != 0)

@@ -171,7 +171,7 @@ constexpr const std::common_type_t<Type1, Type2>& min(const Type1& a,
 /*!
   */
 template <typename Type> inline
-constexpr void swap(Type& a, Type& b) noexcept
+constexpr void swapValue(Type& a, Type& b) noexcept
 {
   const Type tmp{b};
   b = a;

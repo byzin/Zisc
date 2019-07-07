@@ -12,7 +12,6 @@
 
 // Standard C++ library
 #include <array>
-#include <atomic>
 #include <deque>
 #include <future>
 #include <mutex>
@@ -53,11 +52,9 @@ class WorkerThreadManager : private NonCopyable<WorkerThreadManager<kLockType>>
     using Type = std::remove_volatile_t<T>;
 
     //! Create a result of a task
-    Result(const uint c) noexcept;
+    Result() noexcept;
     //! Create a result of a task
-    Result(const uint c,
-           WorkerThreadManager* manager,
-           const uint thread_id) noexcept;
+    Result(WorkerThreadManager* manager, const uint thread_id) noexcept;
     //! Destroy a result
     ~Result() noexcept;
     //! Return the result
@@ -79,11 +76,9 @@ class WorkerThreadManager : private NonCopyable<WorkerThreadManager<kLockType>>
     ResultReference value() noexcept;
 
     WorkerThreadManager* thread_manager_;
-    std::atomic<uint> counter_;
     ResultData data_;
     uint8b has_value_;
     uint16b thread_id_;
-    static_assert(alignof(std::atomic<uint>) <= alignof(WorkerThreadManager*));
   };
   template <typename Type>
   using UniqueResult = UniqueMemoryPointer<Result<Type>>;
@@ -223,7 +218,6 @@ class WorkerThreadManager : private NonCopyable<WorkerThreadManager<kLockType>>
   Lock lock_;
   Condition condition_;
   uint8b workers_are_enabled_;
-  std::array<uint8b, 5> padding_;
 };
 
 // Type aliases

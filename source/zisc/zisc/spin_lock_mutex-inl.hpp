@@ -39,7 +39,7 @@ inline
 void SpinLockMutex::lock() noexcept
 {
   while (!tryLock()) {
-    ; // spin lock
+    // spin lock
   }
 }
 

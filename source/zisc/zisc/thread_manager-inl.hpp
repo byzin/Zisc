@@ -18,7 +18,6 @@
 #include <cstddef>
 #include <deque>
 #include <future>
-#include <functional>
 #include <iterator>
 #include <limits>
 #include <memory>
@@ -30,7 +29,6 @@
 #include <vector>
 // Zisc
 #include "error.hpp"
-#include "function_reference.hpp"
 #include "memory_resource.hpp"
 #include "non_copyable.hpp"
 #include "type_traits.hpp"
@@ -45,8 +43,8 @@ namespace zisc {
 /*!
   */
 template <ThreadManagerLockType kLockType> template  <typename T> inline
-WorkerThreadManager<kLockType>::Result<T>::Result(const uint c) noexcept :
-    Result(c, nullptr, std::numeric_limits<uint16b>::max())
+WorkerThreadManager<kLockType>::Result<T>::Result() noexcept :
+    Result(nullptr, std::numeric_limits<uint16b>::max())
 {
 }
 
@@ -54,11 +52,9 @@ WorkerThreadManager<kLockType>::Result<T>::Result(const uint c) noexcept :
   */
 template <ThreadManagerLockType kLockType> template <typename T> inline
 WorkerThreadManager<kLockType>::Result<T>::Result(
-    const uint c,
     WorkerThreadManager* manager,
     const uint thread_id) noexcept :
         thread_manager_{manager},
-        counter_{c},
         has_value_{kFalse},
         thread_id_{zisc::cast<uint16b>(thread_id)}
 {
@@ -357,49 +353,43 @@ auto WorkerThreadManager<kLockType>::enqueueTask(
     pmr::memory_resource* mem_resource) noexcept -> UniqueResult<ReturnType>
 {
   using TaskType = std::remove_volatile_t<std::remove_reference_t<Task>>;
-
   constexpr bool is_id_required = std::is_invocable_v<TaskType, uint>;
-
-  using TaskRef = std::conditional_t<is_id_required,
-      FunctionReference<ReturnType (uint)>,
-      FunctionReference<ReturnType ()>>;
 
   //! Represent single task
   class SingleTask : public WorkerTask
   {
    public:
-    SingleTask(TaskRef task_ref, Result<ReturnType>* result) noexcept :
-        task_ref_{task_ref},
+    SingleTask(Task&& t, Result<ReturnType>* result) noexcept :
+        task_{std::forward<Task>(t)},
         result_{result} {}
     //! Run a task
     void run(const uint thread_id) noexcept override
     {
       if constexpr (is_id_required) {
         if constexpr (std::is_void_v<ReturnType>) {
-          task_ref_(thread_id);
+          task_(thread_id);
           result_->set(0);
         }
         else {
-          auto value = task_ref_(thread_id);
+          auto value = task_(thread_id);
           result_->set(std::move(value));
         }
       }
       else {
         static_cast<void>(thread_id);
         if constexpr (std::is_void_v<ReturnType>) {
-          task_ref_();
+          task_();
           result_->set(0);
         }
         else {
-          auto value = task_ref_();
+          auto value = task_();
           result_->set(std::move(value));
         }
       }
     }
    private:
-    TaskRef task_ref_;
+    TaskType task_;
     Result<ReturnType>* result_;
-    static_assert(alignof(Result<void>*) <= alignof(TaskRef));
   };
   using UniqueSingleTask = UniqueMemoryPointer<SingleTask>;
 
@@ -408,14 +398,14 @@ auto WorkerThreadManager<kLockType>::enqueueTask(
   {
     const uint thread_id = getThreadIndex();
     result = (thread_id != std::numeric_limits<uint>::max())
-        ? UniqueResult<ReturnType>::make(mem_resource, 1u, this, thread_id)
-        : UniqueResult<ReturnType>::make(mem_resource, 1u);
+        ? UniqueResult<ReturnType>::make(mem_resource, this, thread_id)
+        : UniqueResult<ReturnType>::make(mem_resource);
   }
 
   // Enqueue a task maker
   {
     UniqueTask worker_task = UniqueSingleTask::make(mem_resource,
-                                                    task,
+                                                    std::forward<Task>(task),
                                                     result.get());
     std::unique_lock<Lock> locker{lock_};
     task_queue_.emplace(std::move(worker_task));
@@ -437,65 +427,84 @@ auto WorkerThreadManager<kLockType>::enqueueLoopTask(
 {
   using Iterator = std::remove_cv_t<std::remove_reference_t<Iterator1>>;
   using TaskType = std::remove_cv_t<std::remove_reference_t<Task>>;
-
   constexpr bool is_id_required = std::is_invocable_v<TaskType, uint, Iterator>;
 
-  using TaskRef = std::conditional_t<is_id_required,
-      FunctionReference<void (uint, Iterator)>,
-      FunctionReference<void (Iterator)>>;
+  //! Shared data by loop tasks
+  struct SharedTaskData
+  {
+    //! Create a shared task data
+    SharedTaskData(Task&& t,
+                   Result<void>* result,
+                   const uint c,
+                   pmr::memory_resource* mem_resource) noexcept :
+        task_{std::forward<Task>(t)},
+        result_{result},
+        mem_resource_{mem_resource},
+        counter_{c} {}
+    TaskType task_;
+    Result<void>* result_;
+    pmr::memory_resource* mem_resource_;
+    std::atomic<uint> counter_;
+    static_assert(alignof(pmr::memory_resource) <= alignof(Result<void>*));
+    static_assert(alignof(std::atomic<uint>) <= alignof(pmr::memory_resource));
+  };
 
   //! Represent one of loop tasks
   class LoopTask : public WorkerTask
   {
    public:
-    LoopTask(TaskRef task_ref, Result<void>* result, Iterator ite) noexcept :
-        task_ref_{task_ref},
-        result_{result},
+    LoopTask(SharedTaskData* shared_data, Iterator ite) noexcept :
+        shared_data_{shared_data},
         ite_{ite} {}
     //! Run a task
     void run(const uint thread_id) noexcept override
     {
       if constexpr (is_id_required) {
-        task_ref_(thread_id, ite_);
+        shared_data_->task_(thread_id, ite_);
       }
       else {
         static_cast<void>(thread_id);
-        task_ref_(ite_);
+        shared_data_->task_(ite_);
       }
       // A manager will be notified when all tasks have been completed
       {
-        const uint c = --(result_->counter_);
-        if (c == 0)
-          result_->set(0);
+        const uint c = --(shared_data_->counter_);
+        if (c == 0) {
+          UniqueMemoryPointer<SharedTaskData> r{shared_data_,
+                                                shared_data_->mem_resource_};
+          r->result_->set(0);
+        }
       }
     }
    private:
-    TaskRef task_ref_;
-    Result<void>* result_;
+    SharedTaskData* shared_data_;
     Iterator ite_;
-    static_assert(alignof(Result<void>*) <= alignof(TaskRef));
-    static_assert(alignof(Iterator) <= alignof(Result<void>*));
   };
   using UniqueLoopTask = UniqueMemoryPointer<LoopTask>;
 
   // Create a result of loop tasks
   UniqueResult<void> result;
   {
-    const uint d = distance(begin, end);
     const uint thread_id = getThreadIndex();
     result = (thread_id != std::numeric_limits<uint>::max())
-        ? UniqueResult<void>::make(mem_resource, d, this, thread_id)
-        : UniqueResult<void>::make(mem_resource, d);
+        ? UniqueResult<void>::make(mem_resource, this, thread_id)
+        : UniqueResult<void>::make(mem_resource);
   }
+
+  // Create a shared data
+  using UniqueSharedData = UniqueMemoryPointer<SharedTaskData>;
+  const uint d = distance(begin, end);
+  auto shared_data = UniqueSharedData::make(mem_resource,
+                                            std::forward<Task>(task),
+                                            result.get(),
+                                            d,
+                                            mem_resource).release();
 
   // Enqueue loop tasks
   {
     std::unique_lock<Lock> locker{lock_};
     for (auto ite = begin; ite != end; ++ite) {
-      UniqueTask worker_task = UniqueLoopTask::make(mem_resource,
-                                                    task,
-                                                    result.get(),
-                                                    ite);
+      UniqueTask worker_task = UniqueLoopTask::make(mem_resource, shared_data, ite);
       task_queue_.emplace(std::move(worker_task));
     }
   }
@@ -555,9 +564,6 @@ template <ThreadManagerLockType kLockType> inline
 void WorkerThreadManager<kLockType>::initialize(const uint num_of_threads) noexcept
 {
   createWorkers(num_of_threads);
-
-  // Avoid padding warning
-  static_cast<void>(padding_);
 
   // Check the alignment of member variables
   static_assert(alignof(pmr::vector<std::thread>) <=

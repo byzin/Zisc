@@ -27,36 +27,13 @@ FunctionReference<ReturnT (ArgumentTypes...)>::FunctionReference() noexcept
 {
 }
 
-/*!
-  */
-template <typename ReturnT, typename ...ArgumentTypes> inline
-FunctionReference<ReturnT (ArgumentTypes...)>::FunctionReference(
-    FunctionPointer function_ptr) noexcept
-{
-  initFunctionPointer(function_ptr);
-}
-
-/*!
-  */
 template <typename ReturnT, typename ...ArgumentTypes>
-template <typename RType, typename ...ArgTypes> inline
+template <typename Function> inline
 FunctionReference<ReturnT (ArgumentTypes...)>::FunctionReference(
-    RType (*function_ptr)(ArgTypes...),
-    EnableIf<is_invocable_v<RType (*)(ArgTypes...),
-                                 ArgumentTypes...>>) noexcept
+    Function&& func,
+    EnableIf<kIsInvocableRaw<Function>>) noexcept
 {
-  initFunctionPointer(function_ptr);
-}
-
-/*!
-  */
-template <typename ReturnT, typename ...ArgumentTypes>
-template <typename Functor> inline
-FunctionReference<ReturnT (ArgumentTypes...)>::FunctionReference(
-    const Functor& functor,
-    EnableIf<is_invocable_v<Functor, ArgumentTypes...>>) noexcept
-{
-  initFunctor(functor);
+  initialize<Function>(std::forward<Function>(func));
 }
 
 /*!
@@ -66,42 +43,32 @@ template <typename ...ArgTypes> inline
 auto FunctionReference<ReturnT (ArgumentTypes...)>::operator()(
     ArgTypes&&... arguments) const noexcept -> ReturnType
 {
-  return invoke(std::forward<ArgTypes>(arguments)...);
+  if constexpr (std::is_void_v<ReturnType>)
+    invoke(std::forward<ArgTypes>(arguments)...);
+  else
+    return invoke(std::forward<ArgTypes>(arguments)...);
 }
 
 /*!
   */
 template <typename ReturnT, typename ...ArgumentTypes> inline
 auto FunctionReference<ReturnT (ArgumentTypes...)>::assign(
-    FunctionPointer function_ptr) noexcept -> FunctionReference&
+    const FunctionReference& other) noexcept -> FunctionReference&
 {
-  initFunctionPointer(function_ptr);
+  memory_ = other.memory_;
+  callback_ = other.callback_;
   return *this;
 }
 
 /*!
   */
 template <typename ReturnT, typename ...ArgumentTypes>
-template <typename RType, typename ...ArgTypes> inline
+template <typename Function> inline
 auto FunctionReference<ReturnT (ArgumentTypes...)>::assign(
-    RType (*function_ptr)(ArgTypes...),
-    EnableIf<is_invocable_v<RType (*)(ArgTypes...),
-                                 ArgumentTypes...>>) noexcept -> FunctionReference&
+    Function&& func,
+    EnableIf<kIsInvocableRaw<Function>>) noexcept -> FunctionReference&
 {
-  initFunctionPointer(function_ptr);
-  return *this;
-}
-
-/*!
-  */
-template <typename ReturnT, typename ...ArgumentTypes>
-template <typename Functor> inline
-auto FunctionReference<ReturnT (ArgumentTypes...)>::assign(
-    const Functor& functor,
-    EnableIf<is_invocable_v<Functor, ArgumentTypes...>>) noexcept
-        -> FunctionReference&
-{
-  initFunctor(functor);
+  initialize<Function>(std::forward<Function>(func));
   return *this;
 }
 
@@ -121,7 +88,10 @@ auto FunctionReference<ReturnT (ArgumentTypes...)>::invoke(
     ArgTypes&&... arguments) const noexcept -> ReturnType
 {
   ZISC_ASSERT(cast<bool>(*this), "This function reference is invalid.");
-  return callback_(memory(), std::forward<ArgTypes>(arguments)...);
+  if constexpr (std::is_void_v<ReturnType>)
+    callback_(memory(), std::forward<ArgTypes>(arguments)...);
+  else
+    return callback_(memory(), std::forward<ArgTypes>(arguments)...);
 }
 
 /*!
@@ -145,26 +115,28 @@ void FunctionReference<ReturnT (ArgumentTypes...)>::swap(
 /*!
   */
 template <typename ReturnT, typename ...ArgumentTypes>
-template <typename FuncPointer> inline
-void FunctionReference<ReturnT (ArgumentTypes...)>::initFunctionPointer(
-    FuncPointer function_ptr) noexcept
+template <typename Function> inline
+void FunctionReference<ReturnT (ArgumentTypes...)>::initialize(
+    Function&& func) noexcept
 {
-  static_assert(sizeof(FuncPointer) <= kStorageSize,
-                "the size of FuncPointer is larger than the size of a memory.");
-  ZISC_ASSERT(function_ptr != nullptr, "The function pointer is null.");
-  ::new (memory()) FuncPointer{function_ptr};
-  callback_ = &invokeFunctionPointer<FuncPointer>;
-}
-
-/*!
-  */
-template <typename ReturnT, typename ...ArgumentTypes>
-template <typename Functor> inline
-void FunctionReference<ReturnT (ArgumentTypes...)>::initFunctor(
-    const Functor& functor) noexcept
-{
-  ::new (memory()) const void*{&functor};
-  callback_ = &invokeFunctor<Functor>;
+  using Func = std::remove_volatile_t<std::remove_reference_t<Function>>;
+  constexpr bool is_function_pointer = std::is_pointer_v<Func>;
+  constexpr bool is_fanctor = std::is_object_v<Func>;
+  if constexpr (is_function_pointer) {
+    // Function pointer case
+    static_assert(sizeof(Func) <= sizeof(Memory),
+                  "the size of Function is larger than the size of a memory.");
+    ::new (memory()) Func{func};
+    callback_ = &invokeFunctionPointer<Func>;
+  }
+  else if constexpr (is_fanctor) {
+    // Functor case
+    static_assert(sizeof(&func) <= sizeof(Memory),
+                  "the size of Function ref is larger than the size of a memory.");
+    ::new (memory()) const void*{&func};
+    callback_ = &invokeFunctor<Func>;
+  }
+  static_assert(is_function_pointer || is_fanctor, "Unsupported function type.");
 }
 
 /*!
@@ -176,7 +148,10 @@ auto FunctionReference<ReturnT (ArgumentTypes...)>::invokeFunctionPointer(
     ArgumentTypes... arguments) noexcept -> ReturnType
 {
   const auto ptr = cast<const FuncPointer*>(function_ptr);
-  return (*ptr)(static_cast<ArgumentTypes>(arguments)...);
+  if constexpr (std::is_void_v<ReturnType>)
+    std::invoke(*ptr, arguments...);
+  else
+    return std::invoke(*ptr, arguments...);
 }
 
 /*!
@@ -188,7 +163,10 @@ auto FunctionReference<ReturnT (ArgumentTypes...)>::invokeFunctor(
     ArgumentTypes... arguments) noexcept -> ReturnType
 {
   const auto ptr = cast<const Functor* const*>(functor);
-  return (*(*ptr))(static_cast<ArgumentTypes>(arguments)...);
+  if constexpr (std::is_void_v<ReturnType>)
+    std::invoke(*(*ptr), arguments...);
+  else
+    return std::invoke(*(*ptr), arguments...);
 }
 
 /*!

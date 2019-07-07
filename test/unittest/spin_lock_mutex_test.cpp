@@ -37,3 +37,25 @@ TEST(SpinLockMutexTest, LockTest)
   const zisc::int64b expected = end * a;
   ASSERT_EQ(expected, value) << "The concurrency of spin lock isn't guaranteed.";
 }
+
+TEST(SpinLockMutexTest, SpinLockTest)
+{
+  zisc::SpinLockMutex locker{};
+  zisc::ThreadManagerSpin thread_manager{};
+
+  zisc::int64b value = 0;
+  const zisc::int64b a = 5;
+  auto test = [&locker, &value, &a](const zisc::uint /* thread_id */, const zisc::int64b /* i */)
+  {
+    std::unique_lock<zisc::SpinLockMutex> l{locker};
+    value += a;
+  };
+
+  constexpr zisc::int64b start = 0;
+  constexpr zisc::int64b end = 131072;
+  auto result = thread_manager.enqueueLoop(test, start, end);
+  result->wait();
+
+  const zisc::int64b expected = end * a;
+  ASSERT_EQ(expected, value) << "The concurrency of spin lock isn't guaranteed.";
+}

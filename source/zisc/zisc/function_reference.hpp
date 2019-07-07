@@ -27,38 +27,26 @@ template <typename> class FunctionReference;
 template <typename ReturnT, typename ...ArgumentTypes>
 class FunctionReference<ReturnT (ArgumentTypes...)>
 {
-//! \todo Unify the invocable function
-#if defined(Z_MAC) && defined(Z_CLANG)
-  template <class Function, class ...ArgTypes>
-  static constexpr bool is_invocable_v = std::__invokable<Function, ArgTypes...>::value;
-#else
-  template <class Function, class ...ArgTypes>
-  static constexpr bool is_invocable_v = std::is_invocable_v<Function, ArgTypes...>;
-#endif
-
  public:
   using ReturnType = ReturnT;
   using FunctionPointer = ReturnType (*)(ArgumentTypes...);
 
 
+  template <typename Function>
+  static constexpr bool kIsInvocableRaw =
+      std::is_invocable_v<Function, ArgumentTypes...> &&
+      !std::is_same_v<FunctionReference,
+                      std::remove_cv_t<std::remove_reference_t<Function>>>;
+
+
   //! Create an empry
   FunctionReference() noexcept;
 
-  //! Create a reference to a function pointer
-  FunctionReference(FunctionPointer function_ptr) noexcept;
-
-  //! Create a reference to a function pointer
-  template <typename RType, typename ...ArgTypes> 
+  //! Create a reference to a function
+  template <typename Function>
   FunctionReference(
-      RType (*function_ptr)(ArgTypes...),
-      EnableIf<is_invocable_v<RType (*)(ArgTypes...), ArgumentTypes...>> = kEnabler)
-          noexcept;
-
-  //! Create a reference to a functor 
-  template <typename Functor> 
-  FunctionReference(
-      const Functor& functor,
-      EnableIf<is_invocable_v<Functor, ArgumentTypes...>> = kEnabler) noexcept;
+      Function&& func,
+      EnableIf<kIsInvocableRaw<Function>> = kEnabler) noexcept;
 
 
   //! Invoke a referenced callable object
@@ -72,21 +60,14 @@ class FunctionReference<ReturnT (ArgumentTypes...)>
   }
 
 
-  //! Refer a function pointer
-  FunctionReference& assign(FunctionPointer function_ptr) noexcept;
+  //! Copy a function reference
+  FunctionReference& assign(const FunctionReference& other) noexcept;
 
   //! Refer a function pointer
-  template <typename RType, typename ...ArgTypes> 
+  template <typename Function>
   FunctionReference& assign(
-      RType (*function_ptr)(ArgTypes...),
-      EnableIf<is_invocable_v<RType (*)(ArgTypes...), ArgumentTypes...>> = kEnabler)
-          noexcept;
-
-  //! Refer a functor
-  template <typename Functor> 
-  FunctionReference& assign(
-      const Functor& functor,
-      EnableIf<is_invocable_v<Functor, ArgumentTypes...>> = kEnabler) noexcept;
+      Function&& func,
+      EnableIf<kIsInvocableRaw<Function>> = kEnabler) noexcept;
 
   //! Clear the stored callable object
   void clear() noexcept;
@@ -109,13 +90,9 @@ class FunctionReference<ReturnT (ArgumentTypes...)>
   using CallbackPointer = ReturnType (*)(const void*, ArgumentTypes...) noexcept;
 
 
-  //! Initialize with a function pointer
-  template <typename FuncPointer>
-  void initFunctionPointer(FuncPointer function_ptr) noexcept;
-
-  //! Initialize with a functor
-  template <typename Functor>
-  void initFunctor(const Functor& functor) noexcept;
+  //! Initialize with a function
+  template <typename Function>
+  void initialize(Function&& func) noexcept;
 
   //! Invoke a referenced callable object 
   template <typename FuncPointer>
@@ -124,7 +101,7 @@ class FunctionReference<ReturnT (ArgumentTypes...)>
 
   //! Invoke a referenced callable object
   template <typename Functor>
-  static ReturnType invokeFunctor(const void* functor,
+  static ReturnType invokeFunctor(const void* function_memory,
                                   ArgumentTypes... argments) noexcept;
 
   //! Return the memory of the function reference

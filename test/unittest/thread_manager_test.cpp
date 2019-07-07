@@ -25,9 +25,13 @@
 #include "zisc/thread_manager.hpp"
 #include "zisc/pcg_engine.hpp"
 
-TEST(ThreadManagerTest, EnqueueTaskTest)
+namespace {
+
+template <zisc::ThreadManagerLockType kLockType> inline
+void testEnqueueTask()
 {
-  zisc::ThreadManager thread_manager{1};
+  using ThreadManager = zisc::WorkerThreadManager<kLockType>;
+  ThreadManager thread_manager{1};
 
   // enqueue()
   {
@@ -35,19 +39,19 @@ TEST(ThreadManagerTest, EnqueueTaskTest)
     {
       return 2;
     };
-    auto result1 = thread_manager.enqueue<int>(task1);
+    auto result1 = thread_manager.template enqueue<int>(task1);
 
     auto task2 = [](const zisc::uint) noexcept
     {
       return 3;
     };
-    auto result2 = thread_manager.enqueue<int>(task2);
+    auto result2 = thread_manager.template enqueue<int>(task2);
 
     std::function<int ()> task3{task1};
-    auto result3 = thread_manager.enqueue<int>(std::move(task3));
+    auto result3 = thread_manager.template enqueue<int>(std::move(task3));
 
     std::function<int (zisc::uint)> task4{task2};
-    auto result4 = thread_manager.enqueue<int>(std::move(task4));
+    auto result4 = thread_manager.template enqueue<int>(std::move(task4));
 
     ASSERT_EQ(2, result1->get());
     ASSERT_EQ(3, result2->get());
@@ -57,16 +61,16 @@ TEST(ThreadManagerTest, EnqueueTaskTest)
   // enqueueLoop()
   {
     auto task1 = [](const int /* index */) {};
-    auto result1 = thread_manager.enqueueLoop(task1, 0, 10);
+    auto result1 = thread_manager.template enqueueLoop(task1, 0, 10);
 
     auto task2 = [](const zisc::uint /* thread_number */, const int /* index */) {};
-    auto result2 = thread_manager.enqueueLoop(task2, 0, 10);
+    auto result2 = thread_manager.template enqueueLoop(task2, 0, 10);
 
     std::function<void (int)> task3{task1};
-    auto result3 = thread_manager.enqueueLoop(std::move(task3), 0, 10);
+    auto result3 = thread_manager.template enqueueLoop(std::move(task3), 0, 10);
 
     std::function<void (zisc::uint, int)> task4{task2};
-    auto result4 = thread_manager.enqueueLoop(std::move(task4), 0, 10);
+    auto result4 = thread_manager.template enqueueLoop(std::move(task4), 0, 10);
 
     result1->wait();
     result2->wait();
@@ -75,10 +79,12 @@ TEST(ThreadManagerTest, EnqueueTaskTest)
   }
 }
 
-TEST(ThreadManagerTest, ParallelTest)
+template <zisc::ThreadManagerLockType kLockType> inline
+void testParallel()
 {
+  using ThreadManager = zisc::WorkerThreadManager<kLockType>;
   constexpr zisc::uint num_of_threads = 16;
-  zisc::ThreadManager thread_manager{num_of_threads};
+  ThreadManager thread_manager{num_of_threads};
 
   ASSERT_EQ(num_of_threads, thread_manager.numOfThreads())
       << "Worker creation failed.";
@@ -96,22 +102,22 @@ TEST(ThreadManagerTest, ParallelTest)
       id_list[id] = id; 
     }};
 
-    auto result1 = thread_manager.enqueue<void>(Task{task});
-    auto result2 = thread_manager.enqueue<void>(Task{task});
-    auto result3 = thread_manager.enqueue<void>(Task{task});
-    auto result4 = thread_manager.enqueue<void>(Task{task});
-    auto result5 = thread_manager.enqueue<void>(Task{task});
-    auto result6 = thread_manager.enqueue<void>(Task{task});
-    auto result7 = thread_manager.enqueue<void>(Task{task});
-    auto result8 = thread_manager.enqueue<void>(Task{task});
-    auto result9 = thread_manager.enqueue<void>(Task{task});
-    auto result10 = thread_manager.enqueue<void>(Task{task});
-    auto result11 = thread_manager.enqueue<void>(Task{task});
-    auto result12 = thread_manager.enqueue<void>(Task{task});
-    auto result13 = thread_manager.enqueue<void>(Task{task});
-    auto result14 = thread_manager.enqueue<void>(Task{task});
-    auto result15 = thread_manager.enqueue<void>(Task{task});
-    auto result16 = thread_manager.enqueue<void>(Task{task});
+    auto result1 = thread_manager.template enqueue<void>(Task{task});
+    auto result2 = thread_manager.template enqueue<void>(Task{task});
+    auto result3 = thread_manager.template enqueue<void>(Task{task});
+    auto result4 = thread_manager.template enqueue<void>(Task{task});
+    auto result5 = thread_manager.template enqueue<void>(Task{task});
+    auto result6 = thread_manager.template enqueue<void>(Task{task});
+    auto result7 = thread_manager.template enqueue<void>(Task{task});
+    auto result8 = thread_manager.template enqueue<void>(Task{task});
+    auto result9 = thread_manager.template enqueue<void>(Task{task});
+    auto result10 = thread_manager.template enqueue<void>(Task{task});
+    auto result11 = thread_manager.template enqueue<void>(Task{task});
+    auto result12 = thread_manager.template enqueue<void>(Task{task});
+    auto result13 = thread_manager.template enqueue<void>(Task{task});
+    auto result14 = thread_manager.template enqueue<void>(Task{task});
+    auto result15 = thread_manager.template enqueue<void>(Task{task});
+    auto result16 = thread_manager.template enqueue<void>(Task{task});
     result1->wait();
     result2->wait();
     result3->wait();
@@ -146,7 +152,7 @@ TEST(ThreadManagerTest, ParallelTest)
 
     constexpr zisc::uint start = 0;
     const zisc::uint end = num_of_threads;
-    auto result = thread_manager.enqueueLoop(Task{task}, start, end);
+    auto result = thread_manager.template enqueueLoop(Task{task}, start, end);
     result->wait();
     for (zisc::uint i = 0; i < num_of_threads; ++i)
       ASSERT_EQ(i, id_list[i]) << "Loop parallel failed.";
@@ -167,7 +173,7 @@ TEST(ThreadManagerTest, ParallelTest)
       id_list[*number] = *number;
     }};
 
-    auto result = thread_manager.enqueueLoop(Task{task}, list.begin(), list.end());
+    auto result = thread_manager.template enqueueLoop(Task{task}, list.begin(), list.end());
     result->wait();
     for (zisc::uint i = 0; i < num_of_threads; ++i)
       ASSERT_EQ(i, id_list[i]) << "Loop parallel failed.";
@@ -195,34 +201,37 @@ TEST(ThreadManagerTest, ParallelTest)
   }
 }
 
-TEST(ThreadManagerTest, ExitWorkerRunningTest)
+template <zisc::ThreadManagerLockType kLockType> inline
+void testExitingWorkerRunning()
 {
+  using ThreadManager = zisc::WorkerThreadManager<kLockType>;
   constexpr zisc::uint num_of_works = 1024;
-  std::vector<zisc::ThreadManager::UniqueResult<void>> results;
+  std::vector<typename ThreadManager::template UniqueResult<void>> results;
   results.reserve(num_of_works);
   {
-    zisc::ThreadManager thread_manager{24};
+    ThreadManager thread_manager{24};
     for (zisc::uint number = 0; number < num_of_works; ++number) {
       auto task = [/* number */](const zisc::uint)
       {
         const std::chrono::milliseconds wait_time{100};
         std::this_thread::sleep_for(wait_time);
       };
-      results.emplace_back(thread_manager.enqueue<void>(task));
+      results.emplace_back(thread_manager.template enqueue<void>(task));
     }
   }
   SUCCEED();
 }
 
-TEST(ThreadManagerTest, TaskStressTest)
+template <zisc::ThreadManagerLockType kLockType> inline
+void testTaskStress(const zisc::uint num_of_threads)
 {
-  constexpr zisc::uint num_of_threads = 1024;
+  using ThreadManager = zisc::WorkerThreadManager<kLockType>;
   constexpr zisc::uint num_of_tasks = 4'000'000;
 
-  std::vector<zisc::ThreadManager::UniqueResult<void>> result_list;
+  std::vector<typename ThreadManager::template UniqueResult<void>> result_list;
   result_list.resize(num_of_tasks);
 
-  zisc::ThreadManager thread_manager{num_of_threads};
+  ThreadManager thread_manager{num_of_threads};
   for (zisc::uint number = 0; number < num_of_tasks; ++number) {
     auto task = [number](const zisc::uint)
     {
@@ -233,7 +242,7 @@ TEST(ThreadManagerTest, TaskStressTest)
         value = i;
       }
     };
-    result_list[number] = thread_manager.enqueue<void>(task);
+    result_list[number] = thread_manager.template enqueue<void>(task);
   }
   for (auto& result : result_list)
     result->wait();
@@ -241,12 +250,13 @@ TEST(ThreadManagerTest, TaskStressTest)
   SUCCEED();
 }
 
-TEST(ThreadManagerTest, LoopTaskStressTest)
+template <zisc::ThreadManagerLockType kLockType> inline
+void testLoopStress(const zisc::uint num_of_threads)
 {
-  constexpr zisc::uint num_of_threads = 1024;
+  using ThreadManager = zisc::WorkerThreadManager<kLockType>;
   constexpr zisc::uint num_of_tasks = 4'000'000;
 
-  zisc::ThreadManager thread_manager{num_of_threads};
+  ThreadManager thread_manager{num_of_threads};
   auto task = [](const zisc::uint, const zisc::uint number)
   {
     zisc::PcgLcgRxsMXs32 sampler{number};
@@ -258,15 +268,15 @@ TEST(ThreadManagerTest, LoopTaskStressTest)
   };
   constexpr zisc::uint begin = 0;
   constexpr zisc::uint end = num_of_tasks;
-  auto result = thread_manager.enqueueLoop(task, begin, end);
+  auto result = thread_manager.template enqueueLoop(task, begin, end);
   result->wait();
 
   SUCCEED();
 }
 
-namespace {
-
-void testThreadPoolNest(zisc::ThreadManager& thread_manager, const int level)
+template <zisc::ThreadManagerLockType kLockType> inline
+void testThreadPoolNest(zisc::WorkerThreadManager<kLockType>& thread_manager,
+                        const int level)
 {
   constexpr int max_level = 3;
   if (level < max_level) {
@@ -282,10 +292,10 @@ void testThreadPoolNest(zisc::ThreadManager& thread_manager, const int level)
       testThreadPoolNest(thread_manager, next_level);
     };
 
-    auto result1 = thread_manager.enqueue<void>(task1);
+    auto result1 = thread_manager.template enqueue<void>(task1);
     constexpr zisc::uint start = 0;
     const zisc::uint end = thread_manager.numOfThreads();
-    auto result2 = thread_manager.enqueueLoop(task2, start, end);
+    auto result2 = thread_manager.template enqueueLoop(task2, start, end);
     if (zisc::isOdd(level)) {
       result1->wait();
       result2->wait();
@@ -307,18 +317,11 @@ struct TestValue : private zisc::NonCopyable<TestValue>
   int value_;
 };
 
-} // namespace 
-
-TEST(ThreadManagerTest, NestedThreadPoolTest)
+template <zisc::ThreadManagerLockType kLockType> inline
+void testGettingValue()
 {
-  zisc::ThreadManager thread_manager{16};
-  ::testThreadPoolNest(thread_manager, 0);
-  SUCCEED();
-}
-
-TEST(ThreadManagerTest, GetValueTest)
-{
-  zisc::ThreadManager thread_manager{1};
+  using ThreadManager = zisc::WorkerThreadManager<kLockType>;
+  ThreadManager thread_manager{1};
   auto task = [&thread_manager]()
   {
     auto nested_task = []()
@@ -326,10 +329,110 @@ TEST(ThreadManagerTest, GetValueTest)
       ::TestValue value{100};
       return value;
     };
-    auto result = thread_manager.enqueue<::TestValue>(nested_task);
+    auto result = thread_manager.template enqueue<::TestValue>(nested_task);
     return result->get();
   };
-  auto result = thread_manager.enqueue<::TestValue>(task);
+  auto result = thread_manager.template enqueue<::TestValue>(task);
   auto value = result->get();
   ASSERT_EQ(100, value.value_) << "The get value test failed.";
+}
+
+} // namespace
+
+TEST(ThreadManagerTest, EnqueueTaskTest)
+{
+  ::testEnqueueTask<zisc::ThreadManagerLockType::kStdMutex>();
+}
+
+TEST(ThreadManagerTest, EnqueueTaskSpinTest)
+{
+  ::testEnqueueTask<zisc::ThreadManagerLockType::kSpinLock>();
+}
+
+TEST(ThreadManagerTest, ParallelTest)
+{
+  ::testParallel<zisc::ThreadManagerLockType::kStdMutex>();
+}
+
+TEST(ThreadManagerTest, ParallelSpinTest)
+{
+  ::testParallel<zisc::ThreadManagerLockType::kSpinLock>();
+}
+
+TEST(ThreadManagerTest, ExitWorkerRunningTest)
+{
+  ::testExitingWorkerRunning<zisc::ThreadManagerLockType::kStdMutex>();
+}
+
+TEST(ThreadManagerTest, ExitWorkerRunningSpinTest)
+{
+  ::testExitingWorkerRunning<zisc::ThreadManagerLockType::kSpinLock>();
+}
+
+TEST(ThreadManagerTest, TaskStressTest)
+{
+  ::testTaskStress<zisc::ThreadManagerLockType::kStdMutex>(1024);
+}
+
+TEST(ThreadManagerTest, TaskStressSpinTest)
+{
+  ::testTaskStress<zisc::ThreadManagerLockType::kSpinLock>(1024);
+}
+
+TEST(ThreadManagerTest, TaskStressPerformanceTest)
+{
+  ::testTaskStress<zisc::ThreadManagerLockType::kStdMutex>(0);
+}
+
+TEST(ThreadManagerTest, TaskStressPerformanceSpinTest)
+{
+  ::testTaskStress<zisc::ThreadManagerLockType::kSpinLock>(0);
+}
+
+TEST(ThreadManagerTest, LoopTaskStressTest)
+{
+  ::testLoopStress<zisc::ThreadManagerLockType::kStdMutex>(1024);
+}
+
+TEST(ThreadManagerTest, LoopTaskStressSpinTest)
+{
+  ::testLoopStress<zisc::ThreadManagerLockType::kSpinLock>(1024);
+}
+
+TEST(ThreadManagerTest, LoopTaskStressPerformaceTest)
+{
+  ::testLoopStress<zisc::ThreadManagerLockType::kStdMutex>(0);
+}
+
+TEST(ThreadManagerTest, LoopTaskStressPerformanceSpinTest)
+{
+  ::testLoopStress<zisc::ThreadManagerLockType::kSpinLock>(0);
+}
+
+TEST(ThreadManagerTest, NestedThreadPoolTest)
+{
+  using ThreadManager =
+      zisc::WorkerThreadManager<zisc::ThreadManagerLockType::kStdMutex>;
+  ThreadManager thread_manager{16};
+  ::testThreadPoolNest(thread_manager, 0);
+  SUCCEED();
+}
+
+TEST(ThreadManagerTest, NestedThreadPoolSpinTest)
+{
+  using ThreadManager =
+      zisc::WorkerThreadManager<zisc::ThreadManagerLockType::kSpinLock>;
+  ThreadManager thread_manager{16};
+  ::testThreadPoolNest(thread_manager, 0);
+  SUCCEED();
+}
+
+TEST(ThreadManagerTest, GetValueTest)
+{
+  ::testGettingValue<zisc::ThreadManagerLockType::kStdMutex>();
+}
+
+TEST(ThreadManagerTest, GetValueSpinTest)
+{
+  ::testGettingValue<zisc::ThreadManagerLockType::kSpinLock>();
 }

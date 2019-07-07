@@ -160,26 +160,8 @@ class WorkerThreadManager : private NonCopyable<WorkerThreadManager<kLockType>>
     //! Run a task
     virtual void run(const uint thread_id) noexcept = 0;
   };
-  using WorkerTaskPointer = std::add_pointer_t<WorkerTask>;
+  using UniqueTask = UniqueMemoryPointer<WorkerTask>;
 
-  //! Base class of worker task maker
-  class WorkerTaskMaker
-  {
-   public:
-    virtual ~WorkerTaskMaker() noexcept {}
-    //! Check if task making is completed
-    virtual bool isCompleted() const noexcept = 0;
-    //! Make a task and next a state of a maker
-    virtual WorkerTaskPointer make(void* memory) noexcept = 0;
-  };
-  using UniqueTaskMaker = UniqueMemoryPointer<WorkerTaskMaker>;
-
-  using WorkerTaskStorage = std::aligned_storage_t<
-      sizeof(void*) + // Inheritance size 
-      sizeof(void*) * 2 + // FunctionReference
-      sizeof(void*) + // Result
-      sizeof(void*), // Iterator
-      alignof(void*)>;
   using Lock =
       std::conditional_t<kLockType == ThreadManagerLockType::kSpinLock,
           SpinLockMutex,
@@ -215,7 +197,7 @@ class WorkerThreadManager : private NonCopyable<WorkerThreadManager<kLockType>>
   void exitWorkersRunning() noexcept;
 
   //! Fetch a task from the top of the queue
-  WorkerTaskPointer fetchTask(void* memory) noexcept;
+  UniqueTask fetchTask() noexcept;
 
   //! Return the thread index if the current thread is one of the threads in pool
   uint getThreadIndex() const noexcept;
@@ -236,7 +218,7 @@ class WorkerThreadManager : private NonCopyable<WorkerThreadManager<kLockType>>
   bool workersAreEnabled() const noexcept;
 
 
-  std::queue<UniqueTaskMaker, pmr::deque<UniqueTaskMaker>> task_queue_;
+  std::queue<UniqueTask, pmr::deque<UniqueTask>> task_queue_;
   pmr::vector<std::thread> workers_;
   Lock lock_;
   Condition condition_;

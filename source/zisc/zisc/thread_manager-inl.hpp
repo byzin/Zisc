@@ -93,16 +93,15 @@ auto WorkerThreadManager<kLockType>::Result<T>::get() noexcept -> Type
 template <ThreadManagerLockType kLockType> template <typename T> inline
 void WorkerThreadManager<kLockType>::Result<T>::wait() const noexcept
 {
-  WorkerTaskStorage storage;
+  UniqueTask task;
   while (!hasValue()) {
-    WorkerTaskPointer task = nullptr;
     if (thread_manager_ != nullptr) {
       std::unique_lock<Lock> locker{thread_manager_->lock_};
-      task = thread_manager_->fetchTask(&storage);
+      task = thread_manager_->fetchTask();
     }
     if (task) {
       task->run(zisc::cast<uint>(thread_id_));
-      std::destroy_at(task);
+      task.reset();
     }
     else {
       std::this_thread::yield();
@@ -155,7 +154,7 @@ template <ThreadManagerLockType kLockType> inline
 WorkerThreadManager<kLockType>::WorkerThreadManager(
     const uint num_of_threads,
     pmr::memory_resource* mem_resource) noexcept :
-        task_queue_{typename pmr::deque<UniqueTaskMaker>::allocator_type{mem_resource}},
+        task_queue_{typename pmr::deque<UniqueTask>::allocator_type{mem_resource}},
         workers_{pmr::vector<std::thread>::allocator_type{mem_resource}},
         workers_are_enabled_{kTrue}
 {
@@ -240,24 +239,21 @@ void WorkerThreadManager<kLockType>::createWorkers(const uint num_of_threads)
   for (uint thread_id = 0; thread_id < id_max; ++thread_id) {
     auto work = [this, thread_id]() noexcept
     {
-      WorkerTaskStorage storage;
+      using LockType = ThreadManagerLockType;
+      UniqueTask task;
       while (workersAreEnabled()) {
-        WorkerTaskPointer task = nullptr;
         {
           std::unique_lock<Lock> locker{lock_};
-          task = fetchTask(&storage);
-          if constexpr (kLockType == ThreadManagerLockType::kStdMutex) {
-            if (workersAreEnabled() && !task)
+          task = fetchTask();
+          if ((kLockType == LockType::kStdMutex) && workersAreEnabled() && !task)
               wait(&locker);
-          }
         }
         if (task) {
           task->run(thread_id);
-          std::destroy_at(task);
+          task.reset();
         }
-        else {
-          if constexpr (kLockType == ThreadManagerLockType::kSpinLock)
-            wait();
+        else if (kLockType == LockType::kSpinLock) {
+          wait();
         }
       }
     };
@@ -405,31 +401,7 @@ auto WorkerThreadManager<kLockType>::enqueueTask(
     Result<ReturnType>* result_;
     static_assert(alignof(Result<void>*) <= alignof(TaskRef));
   };
-  static_assert(sizeof(SingleTask) <= sizeof(WorkerTaskStorage));
-  static_assert(alignof(SingleTask) <= alignof(WorkerTaskStorage));
-
-  //! Task maker for single task 
-  class SingleTaskMaker : public WorkerTaskMaker
-  {
-   public:
-    SingleTaskMaker(TaskRef task_ref, Result<ReturnType>* result) :
-        task_ref_{task_ref},
-        result_{result} {}
-    bool isCompleted() const noexcept override
-    {
-      const bool is_completed = result_ == nullptr;
-      return is_completed;
-    }
-    WorkerTaskPointer make(void* memory) noexcept override
-    {
-      auto single_task = ::new (memory) SingleTask{task_ref_, result_};
-      result_ = nullptr;
-      return single_task;
-    }
-   private:
-    TaskRef task_ref_;
-    Result<ReturnType>* result_;
-  };
+  using UniqueSingleTask = UniqueMemoryPointer<SingleTask>;
 
   // Create a result of loop tasks
   UniqueResult<ReturnType> result;
@@ -440,21 +412,19 @@ auto WorkerThreadManager<kLockType>::enqueueTask(
         : UniqueResult<ReturnType>::make(mem_resource, 1u);
   }
 
-  // Create a task maker
-  UniqueTaskMaker maker = UniqueMemoryPointer<SingleTaskMaker>::make(
-      mem_resource,
-      task,
-      result.get());
-
   // Enqueue a task maker
   {
+    UniqueTask worker_task = UniqueSingleTask::make(mem_resource,
+                                                    task,
+                                                    result.get());
     std::unique_lock<Lock> locker{lock_};
-    task_queue_.emplace(std::move(maker));
+    task_queue_.emplace(std::move(worker_task));
   }
   notifyOne();
 
   return result;
 }
+
 /*!
   */
 template <ThreadManagerLockType kLockType>
@@ -466,10 +436,7 @@ auto WorkerThreadManager<kLockType>::enqueueLoopTask(
     pmr::memory_resource* mem_resource) noexcept -> UniqueResult<void>
 {
   using Iterator = std::remove_cv_t<std::remove_reference_t<Iterator1>>;
-  using TaskType = std::remove_volatile_t<std::remove_reference_t<Task>>;
-  static_assert(std::is_same_v<Iterator,
-                    std::remove_cv_t<std::remove_reference_t<Iterator2>>>,
-                "The Iterator1 and Iterator2 aren't same.");
+  using TaskType = std::remove_cv_t<std::remove_reference_t<Task>>;
 
   constexpr bool is_id_required = std::is_invocable_v<TaskType, uint, Iterator>;
 
@@ -495,7 +462,7 @@ auto WorkerThreadManager<kLockType>::enqueueLoopTask(
         static_cast<void>(thread_id);
         task_ref_(ite_);
       }
-      // Last loop task notifies a manager that loop tasks have been completed
+      // A manager will be notified when all tasks have been completed
       {
         const uint c = --(result_->counter_);
         if (c == 0)
@@ -509,35 +476,7 @@ auto WorkerThreadManager<kLockType>::enqueueLoopTask(
     static_assert(alignof(Result<void>*) <= alignof(TaskRef));
     static_assert(alignof(Iterator) <= alignof(Result<void>*));
   };
-  static_assert(sizeof(LoopTask) <= sizeof(WorkerTaskStorage));
-  static_assert(alignof(LoopTask) <= alignof(WorkerTaskStorage));
-
-  //! Task maker for loop task 
-  class LoopTaskMaker : public WorkerTaskMaker
-  {
-   public:
-    LoopTaskMaker(TaskRef task_ref, Result<void>* result, Iterator b, Iterator e) :
-        task_ref_{task_ref},
-        result_{result},
-        current_{b},
-        end_{e} {}
-    bool isCompleted() const noexcept override
-    {
-      const bool result = current_ == end_;
-      return result;
-    }
-    WorkerTaskPointer make(void* memory) noexcept override
-    {
-      auto ite = current_++;
-      auto loop_task = ::new (memory) LoopTask{task_ref_, result_, ite};
-      return loop_task;
-    }
-   private:
-    TaskRef task_ref_;
-    Result<void>* result_;
-    Iterator current_;
-    Iterator end_;
-  };
+  using UniqueLoopTask = UniqueMemoryPointer<LoopTask>;
 
   // Create a result of loop tasks
   UniqueResult<void> result;
@@ -549,18 +488,16 @@ auto WorkerThreadManager<kLockType>::enqueueLoopTask(
         : UniqueResult<void>::make(mem_resource, d);
   }
 
-  // Create a task maker
-  UniqueTaskMaker maker = UniqueMemoryPointer<LoopTaskMaker>::make(
-      mem_resource,
-      task,
-      result.get(),
-      std::forward<Iterator1>(begin),
-      std::forward<Iterator2>(end));
-
-  // Enqueue a task maker
+  // Enqueue loop tasks
   {
     std::unique_lock<Lock> locker{lock_};
-    task_queue_.emplace(std::move(maker));
+    for (auto ite = begin; ite != end; ++ite) {
+      UniqueTask worker_task = UniqueLoopTask::make(mem_resource,
+                                                    task,
+                                                    result.get(),
+                                                    ite);
+      task_queue_.emplace(std::move(worker_task));
+    }
   }
   notifyAll();
 
@@ -584,15 +521,12 @@ void WorkerThreadManager<kLockType>::exitWorkersRunning() noexcept
 /*!
   */
 template <ThreadManagerLockType kLockType> inline
-auto WorkerThreadManager<kLockType>::fetchTask(void* memory) noexcept
-    -> WorkerTaskPointer
+auto WorkerThreadManager<kLockType>::fetchTask() noexcept -> UniqueTask 
 {
-  WorkerTaskPointer task = nullptr;
+  UniqueTask task;
   if (!task_queue_.empty()) {
-    auto& maker = task_queue_.front();
-    task = maker->make(memory);
-    if (maker->isCompleted())
-      task_queue_.pop();
+    task = std::move(task_queue_.front());
+    task_queue_.pop();
   }
   return task;
 }
@@ -627,7 +561,7 @@ void WorkerThreadManager<kLockType>::initialize(const uint num_of_threads) noexc
 
   // Check the alignment of member variables
   static_assert(alignof(pmr::vector<std::thread>) <=
-                alignof(std::queue<UniqueTaskMaker, pmr::deque<UniqueTaskMaker>>));
+                alignof(std::queue<UniqueTask, pmr::deque<UniqueTask>>));
   static_assert(alignof(Lock) <= alignof(pmr::vector<std::thread>));
   static_assert(alignof(Condition) <= alignof(Lock));
   static_assert(alignof(uint8b) <= alignof(Condition));

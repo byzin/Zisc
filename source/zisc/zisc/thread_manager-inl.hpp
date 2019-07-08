@@ -353,7 +353,6 @@ auto WorkerThreadManager<kLockType>::enqueueTask(
     pmr::memory_resource* mem_resource) noexcept -> UniqueResult<ReturnType>
 {
   using TaskType = std::remove_cv_t<std::remove_reference_t<Task>>;
-  constexpr bool is_id_required = std::is_invocable_v<TaskType, uint>;
 
   //! Represent single task
   class SingleTask : public WorkerTask
@@ -404,7 +403,6 @@ auto WorkerThreadManager<kLockType>::enqueueLoopTask(
 {
   using Iterator = std::remove_cv_t<std::remove_reference_t<Iterator1>>;
   using TaskType = std::remove_cv_t<std::remove_reference_t<Task>>;
-  constexpr bool is_id_required = std::is_invocable_v<TaskType, uint, Iterator>;
 
   //! Shared data by loop tasks
   struct SharedTaskData

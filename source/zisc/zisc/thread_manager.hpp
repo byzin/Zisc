@@ -206,6 +206,18 @@ class WorkerThreadManager : private NonCopyable<WorkerThreadManager<kLockType>>
   //! Notify a waiting thread
   void notifyOne() noexcept;
 
+  //! Run single task
+  template <typename Task, typename Iterator>
+  static void runLoopTask(Task& task,
+                          const uint thread_id,
+                          Iterator ite) noexcept;
+
+  //! Run single task
+  template <typename ReturnType, typename Task>
+  static void runSingleTask(Task& task,
+                            const uint thread_id,
+                            Result<ReturnType>* result) noexcept;
+
   //! Block the current thread
   void wait(std::unique_lock<Lock>* locker = nullptr) noexcept;
 

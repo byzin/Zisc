@@ -267,7 +267,7 @@ TEST(ThreadManagerTest, ParallelTest)
       id_list[*number] = *number;
     }};
 
-    auto result = thread_manager.template enqueueLoop(Task{task}, list.begin(), list.end());
+    auto result = thread_manager.enqueueLoop(Task{task}, list.begin(), list.end());
     result->wait();
     for (zisc::uint i = 0; i < num_of_threads; ++i)
       ASSERT_EQ(i, id_list[i]) << "Loop parallel failed.";
@@ -668,8 +668,7 @@ TEST(ThreadManagerTest, LoopTaskStressPerformanceSpinTest)
 
 TEST(ThreadManagerTest, NestedThreadPoolTest)
 {
-  using ThreadManager =
-      zisc::WorkerThreadManager<zisc::ThreadManagerLockType::kStdMutex>;
+  using ThreadManager = zisc::ThreadManager;
   ThreadManager thread_manager{16};
   ::testThreadPoolNest(thread_manager, 0);
   SUCCEED();
@@ -677,8 +676,7 @@ TEST(ThreadManagerTest, NestedThreadPoolTest)
 
 TEST(ThreadManagerTest, NestedThreadPoolSpinTest)
 {
-  using ThreadManager =
-      zisc::WorkerThreadManager<zisc::ThreadManagerLockType::kSpinLock>;
+  using ThreadManager = zisc::ThreadManagerSpin;
   ThreadManager thread_manager{16};
   ::testThreadPoolNest(thread_manager, 0);
   SUCCEED();

@@ -352,7 +352,7 @@ auto WorkerThreadManager<kLockType>::enqueueTask(
     Task&& task,
     pmr::memory_resource* mem_resource) noexcept -> UniqueResult<ReturnType>
 {
-  using TaskType = std::remove_volatile_t<std::remove_reference_t<Task>>;
+  using TaskType = std::remove_cv_t<std::remove_reference_t<Task>>;
   constexpr bool is_id_required = std::is_invocable_v<TaskType, uint>;
 
   //! Represent single task
@@ -365,27 +365,7 @@ auto WorkerThreadManager<kLockType>::enqueueTask(
     //! Run a task
     void run(const uint thread_id) noexcept override
     {
-      if constexpr (is_id_required) {
-        if constexpr (std::is_void_v<ReturnType>) {
-          task_(thread_id);
-          result_->set(0);
-        }
-        else {
-          auto value = task_(thread_id);
-          result_->set(std::move(value));
-        }
-      }
-      else {
-        static_cast<void>(thread_id);
-        if constexpr (std::is_void_v<ReturnType>) {
-          task_();
-          result_->set(0);
-        }
-        else {
-          auto value = task_();
-          result_->set(std::move(value));
-        }
-      }
+      runSingleTask<ReturnType, TaskType>(task_, thread_id, result_);
     }
    private:
     TaskType task_;
@@ -394,13 +374,10 @@ auto WorkerThreadManager<kLockType>::enqueueTask(
   using UniqueSingleTask = UniqueMemoryPointer<SingleTask>;
 
   // Create a result of loop tasks
-  UniqueResult<ReturnType> result;
-  {
-    const uint thread_id = getThreadIndex();
-    result = (thread_id != std::numeric_limits<uint>::max())
-        ? UniqueResult<ReturnType>::make(mem_resource, this, thread_id)
-        : UniqueResult<ReturnType>::make(mem_resource);
-  }
+  const uint thread_id = getThreadIndex();
+  UniqueResult<ReturnType> result = (thread_id != std::numeric_limits<uint>::max())
+      ? UniqueResult<ReturnType>::make(mem_resource, this, thread_id)
+      : UniqueResult<ReturnType>::make(mem_resource);
 
   // Enqueue a task maker
   {
@@ -448,6 +425,7 @@ auto WorkerThreadManager<kLockType>::enqueueLoopTask(
     static_assert(alignof(pmr::memory_resource) <= alignof(Result<void>*));
     static_assert(alignof(std::atomic<uint>) <= alignof(pmr::memory_resource));
   };
+  using UniqueSharedData = UniqueMemoryPointer<SharedTaskData>;
 
   //! Represent one of loop tasks
   class LoopTask : public WorkerTask
@@ -459,21 +437,12 @@ auto WorkerThreadManager<kLockType>::enqueueLoopTask(
     //! Run a task
     void run(const uint thread_id) noexcept override
     {
-      if constexpr (is_id_required) {
-        shared_data_->task_(thread_id, ite_);
-      }
-      else {
-        static_cast<void>(thread_id);
-        shared_data_->task_(ite_);
-      }
+      runLoopTask<TaskType, Iterator>(shared_data_->task_, thread_id, ite_);
       // A manager will be notified when all tasks have been completed
-      {
-        const uint c = --(shared_data_->counter_);
-        if (c == 0) {
-          UniqueMemoryPointer<SharedTaskData> r{shared_data_,
-                                                shared_data_->mem_resource_};
-          r->result_->set(0);
-        }
+      const uint c = --(shared_data_->counter_);
+      if (c == 0) {
+        UniqueSharedData r{shared_data_, shared_data_->mem_resource_};
+        r->result_->set(0);
       }
     }
    private:
@@ -483,16 +452,12 @@ auto WorkerThreadManager<kLockType>::enqueueLoopTask(
   using UniqueLoopTask = UniqueMemoryPointer<LoopTask>;
 
   // Create a result of loop tasks
-  UniqueResult<void> result;
-  {
-    const uint thread_id = getThreadIndex();
-    result = (thread_id != std::numeric_limits<uint>::max())
-        ? UniqueResult<void>::make(mem_resource, this, thread_id)
-        : UniqueResult<void>::make(mem_resource);
-  }
+  const uint thread_id = getThreadIndex();
+  UniqueResult<void> result = (thread_id != std::numeric_limits<uint>::max())
+      ? UniqueResult<void>::make(mem_resource, this, thread_id)
+      : UniqueResult<void>::make(mem_resource);
 
   // Create a shared data
-  using UniqueSharedData = UniqueMemoryPointer<SharedTaskData>;
   const uint d = distance(begin, end);
   auto shared_data = UniqueSharedData::make(mem_resource,
                                             std::forward<Task>(task),
@@ -596,6 +561,56 @@ void WorkerThreadManager<kLockType>::notifyOne() noexcept
   else {
     // std::mutex
     condition_.notify_one();
+  }
+}
+
+/*!
+  */
+template <ThreadManagerLockType kLockType>
+template <typename Task, typename Iterator> inline
+void WorkerThreadManager<kLockType>::runLoopTask(
+    Task& task,
+    const uint thread_id,
+    Iterator ite) noexcept
+{
+  if constexpr (std::is_invocable_v<Task, uint, Iterator>) {
+    task(thread_id, ite);
+  }
+  else {
+    static_cast<void>(thread_id);
+    task(ite);
+  }
+}
+
+/*!
+  */
+template <ThreadManagerLockType kLockType>
+template <typename ReturnType, typename Task> inline
+void WorkerThreadManager<kLockType>::runSingleTask(
+    Task& task,
+    const uint thread_id,
+    Result<ReturnType>* result) noexcept
+{
+  if constexpr (std::is_invocable_v<Task, uint>) {
+    if constexpr (std::is_void_v<ReturnType>) {
+      task(thread_id);
+      result->set(0);
+    }
+    else {
+      auto value = task(thread_id);
+      result->set(std::move(value));
+    }
+  }
+  else {
+    static_cast<void>(thread_id);
+    if constexpr (std::is_void_v<ReturnType>) {
+      task();
+      result->set(0);
+    }
+    else {
+      auto value = task();
+      result->set(std::move(value));
+    }
   }
 }
 

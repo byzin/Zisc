@@ -45,10 +45,18 @@ void testThreadPoolNest(zisc::WorkerThreadManager<kLockType>& thread_manager,
       testThreadPoolNest(thread_manager, next_level);
     };
 
+#if defined(Z_MSVC)
+    auto result1 = thread_manager.enqueue<void>(task1);
+#else // Z_MSVC
     auto result1 = thread_manager.template enqueue<void>(task1);
+#endif // Z_MSVC
     constexpr zisc::uint start = 0;
     const zisc::uint end = thread_manager.numOfThreads();
+#if defined(Z_MSVC)
+    auto result2 = thread_manager.enqueueLoop(task2, start, end);
+#else // Z_MSVC
     auto result2 = thread_manager.template enqueueLoop(task2, start, end);
+#endif // Z_MSVC
     if (zisc::isOdd(level)) {
       result1->wait();
       result2->wait();

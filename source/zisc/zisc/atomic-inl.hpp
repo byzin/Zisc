@@ -16,6 +16,7 @@
 #include <type_traits>
 #include <utility>
 // Zisc
+#include "zisc/zisc_config.hpp"
 #include "zisc/utility.hpp"
 
 namespace zisc {
@@ -184,9 +185,26 @@ Integer Atomic::addImpl(Integer* ptr, const Integer value) noexcept
 {
   static_assert(std::is_integral_v<Integer>, "The Integer isn't integer type.");
   Integer old = cast<Integer>(0);
-  if constexpr ((kImpl == ImplType::kGcc) || (kImpl == ImplType::kClang))
-  {
+  if constexpr ((kImpl == ImplType::kGcc) || (kImpl == ImplType::kClang)) {
     old = __atomic_fetch_add(ptr, value, __ATOMIC_SEQ_CST);
+  }
+  else if constexpr (kImpl == ImplType::kMsvc) {
+    constexpr std::size_t size = sizeof(Integer);
+    auto p = treatAs<InterlockedType<size>*>(ptr);
+    auto o = treatAs<InterlockedType<size>*>(&old);
+    auto v = treatAs<const InterlockedType<size>*>(&value);
+    if constexpr (size == 1) {
+      *o = _InterlockedExchangeAdd8(p, *v);
+    }
+    else if constexpr (size == 2) {
+      *o = _InterlockedExchangeAdd16(p, *v);
+    }
+    else if constexpr (size == 4) {
+      *o = _InterlockedExchangeAdd(p, *v);
+    }
+    else if constexpr (size == 8) {
+      *o = _InterlockedExchangeAdd64(p, *v);
+    }
   }
   return old;
 }
@@ -198,9 +216,26 @@ Integer Atomic::subImpl(Integer* ptr, const Integer value) noexcept
 {
   static_assert(std::is_integral_v<Integer>, "The Integer isn't integer type.");
   Integer old = cast<Integer>(0);
-  if constexpr ((kImpl == ImplType::kGcc) || (kImpl == ImplType::kClang))
-  {
+  if constexpr ((kImpl == ImplType::kGcc) || (kImpl == ImplType::kClang)) {
     old = __atomic_fetch_sub(ptr, value, __ATOMIC_SEQ_CST);
+  }
+  else if constexpr (kImpl == ImplType::kMsvc) {
+    constexpr std::size_t size = sizeof(Integer);
+    auto p = treatAs<InterlockedType<size>*>(ptr);
+    auto o = treatAs<InterlockedType<size>*>(&old);
+    auto v = treatAs<const InterlockedType<size>*>(&value);
+    if constexpr (size == 1) {
+      *o = _InterlockedExchangeAdd8(p, -*v);
+    }
+    else if constexpr (size == 2) {
+      *o = _InterlockedExchangeAdd16(p, -*v);
+    }
+    else if constexpr (size == 4) {
+      *o = _InterlockedExchangeAdd(p, -*v);
+    }
+    else if constexpr (size == 8) {
+      *o = _InterlockedExchangeAdd64(p, -*v);
+    }
   }
   return old;
 }
@@ -212,9 +247,26 @@ Integer Atomic::exchangeImpl(Integer* ptr, Integer value) noexcept
 {
   static_assert(std::is_integral_v<Integer>, "The Integer isn't integer type.");
   Integer old = cast<Integer>(0);
-  if constexpr ((kImpl == ImplType::kGcc) || (kImpl == ImplType::kClang))
-  {
+  if constexpr ((kImpl == ImplType::kGcc) || (kImpl == ImplType::kClang)) {
     __atomic_exchange(ptr, &value, &old, __ATOMIC_SEQ_CST);
+  }
+  else if constexpr (kImpl == ImplType::kMsvc) {
+    constexpr std::size_t size = sizeof(Integer);
+    auto p = treatAs<InterlockedType<size>*>(ptr);
+    auto o = treatAs<InterlockedType<size>*>(&old);
+    auto v = treatAs<const InterlockedType<size>*>(&value);
+    if constexpr (size == 1) {
+      *o = _InterlockedExchange8(p, *v);
+    }
+    else if constexpr (size == 2) {
+      *o = _InterlockedExchange16(p, *v);
+    }
+    else if constexpr (size == 4) {
+      *o = _InterlockedExchange(p, *v);
+    }
+    else if constexpr (size == 8) {
+      *o = _InterlockedExchange64(p, *v);
+    }
   }
   return old;
 }
@@ -226,10 +278,27 @@ Integer Atomic::incrementImpl(Integer* ptr) noexcept
 {
   static_assert(std::is_integral_v<Integer>, "The Integer isn't integer type.");
   Integer old = cast<Integer>(0);
-  if constexpr ((kImpl == ImplType::kGcc) || (kImpl == ImplType::kClang))
-  {
+  if constexpr ((kImpl == ImplType::kGcc) || (kImpl == ImplType::kClang)) {
     constexpr Integer v = cast<Integer>(1);
     old = addImpl<Integer, kImpl>(ptr, v);
+  }
+  else if constexpr (kImpl == ImplType::kMsvc) {
+    constexpr std::size_t size = sizeof(Integer);
+    auto p = treatAs<InterlockedType<size>*>(ptr);
+    auto o = treatAs<InterlockedType<size>*>(&old);
+    constexpr auto v = cast<InterlockedType<size>>(1);
+    if constexpr (size == 1) {
+      *o = _InterlockedExchangeAdd8(p, v);
+    }
+    else if constexpr (size == 2) {
+      *o = _InterlockedExchangeAdd16(p, v);
+    }
+    else if constexpr (size == 4) {
+      *o = _InterlockedExchangeAdd(p, v);
+    }
+    else if constexpr (size == 8) {
+      *o = _InterlockedExchangeAdd64(p, v);
+    }
   }
   return old;
 }
@@ -241,10 +310,27 @@ Integer Atomic::decrementImpl(Integer* ptr) noexcept
 {
   static_assert(std::is_integral_v<Integer>, "The Integer isn't integer type.");
   Integer old = cast<Integer>(0);
-  if constexpr ((kImpl == ImplType::kGcc) || (kImpl == ImplType::kClang))
-  {
+  if constexpr ((kImpl == ImplType::kGcc) || (kImpl == ImplType::kClang)) {
     constexpr Integer v = cast<Integer>(1);
     old = subImpl<Integer, kImpl>(ptr, v);
+  }
+  else if constexpr (kImpl == ImplType::kMsvc) {
+    constexpr std::size_t size = sizeof(Integer);
+    auto p = treatAs<InterlockedType<size>*>(ptr);
+    auto o = treatAs<InterlockedType<size>*>(&old);
+    constexpr auto v = cast<InterlockedType<size>>(-1);
+    if constexpr (size == 1) {
+      *o = _InterlockedExchangeAdd8(p, v);
+    }
+    else if constexpr (size == 2) {
+      *o = _InterlockedExchangeAdd16(p, v);
+    }
+    else if constexpr (size == 4) {
+      *o = _InterlockedExchangeAdd(p, v);
+    }
+    else if constexpr (size == 8) {
+      *o = _InterlockedExchangeAdd64(p, v);
+    }
   }
   return old;
 }
@@ -257,10 +343,27 @@ Integer Atomic::compareAndExchangeImpl(Integer* ptr,
                                        Integer value) noexcept
 {
   static_assert(std::is_integral_v<Integer>, "The Integer isn't integer type.");
-  if constexpr ((kImpl == ImplType::kGcc) || (kImpl == ImplType::kClang))
-  {
+  if constexpr ((kImpl == ImplType::kGcc) || (kImpl == ImplType::kClang)) {
     constexpr auto mem_order = __ATOMIC_SEQ_CST;
     __atomic_compare_exchange(ptr, &cmp, &value, false, mem_order, mem_order);
+  }
+  else if constexpr (kImpl == ImplType::kMsvc) {
+    constexpr std::size_t size = sizeof(Integer);
+    auto p = treatAs<InterlockedType<size>*>(ptr);
+    auto c = treatAs<InterlockedType<size>*>(&cmp);
+    auto v = treatAs<const InterlockedType<size>*>(&value);
+    if constexpr (size == 1) {
+      *c = _InterlockedCompareExchange8(p, *v, *c);
+    }
+    else if constexpr (size == 2) {
+      *c = _InterlockedCompareExchange16(p, *v, *c);
+    }
+    else if constexpr (size == 4) {
+      *c = _InterlockedCompareExchange(p, *v, *c);
+    }
+    else if constexpr (size == 8) {
+      *c = _InterlockedCompareExchange64(p, *v, *c);
+    }
   }
   return cmp;
 }
@@ -273,12 +376,10 @@ Integer Atomic::minImpl(Integer* ptr, const Integer value) noexcept
   static_assert(std::is_integral_v<Integer>, "The Integer isn't integer type.");
   static_assert(sizeof(Integer) == 4, "The size of integer isn't 4 byte.");
   Integer old = cast<Integer>(0);
-  if constexpr (kImpl == ImplType::kClang)
-  {
+  if constexpr (kImpl == ImplType::kClang) {
     old = __atomic_fetch_min(ptr, value, __ATOMIC_SEQ_CST);
   }
-  else if constexpr (kImpl == ImplType::kGcc)
-  {
+  else if constexpr ((kImpl == ImplType::kGcc) || (kImpl == ImplType::kMsvc)) {
     const auto min_impl = [](const Integer lhs, const Integer rhs)
     {
       return (lhs < rhs) ? lhs : rhs;
@@ -296,12 +397,10 @@ Integer Atomic::maxImpl(Integer* ptr, const Integer value) noexcept
   static_assert(std::is_integral_v<Integer>, "The Integer isn't integer type.");
   static_assert(sizeof(Integer) == 4, "The size of integer isn't 4 byte.");
   Integer old = cast<Integer>(0);
-  if constexpr (kImpl == ImplType::kClang)
-  {
+  if constexpr (kImpl == ImplType::kClang) {
     old = __atomic_fetch_max(ptr, value, __ATOMIC_SEQ_CST);
   }
-  else if constexpr (kImpl == ImplType::kGcc)
-  {
+  else if constexpr ((kImpl == ImplType::kGcc) || (kImpl == ImplType::kMsvc)) {
     const auto max_impl = [](const Integer lhs, const Integer rhs)
     {
       return (lhs < rhs) ? rhs : lhs;
@@ -318,9 +417,26 @@ Integer Atomic::andBitImpl(Integer* ptr, const Integer value) noexcept
 {
   static_assert(std::is_integral_v<Integer>, "The Integer isn't integer type.");
   Integer old = cast<Integer>(0);
-  if constexpr ((kImpl == ImplType::kGcc) || (kImpl == ImplType::kClang))
-  {
+  if constexpr ((kImpl == ImplType::kGcc) || (kImpl == ImplType::kClang)) {
     old = __atomic_fetch_and(ptr, value, __ATOMIC_SEQ_CST);
+  }
+  else if constexpr (kImpl == ImplType::kMsvc) {
+    constexpr std::size_t size = sizeof(Integer);
+    auto p = treatAs<InterlockedType<size>*>(ptr);
+    auto o = treatAs<InterlockedType<size>*>(&old);
+    auto v = treatAs<const InterlockedType<size>*>(&value);
+    if constexpr (size == 1) {
+      *o = _InterlockedAnd8(p, *v);
+    }
+    else if constexpr (size == 2) {
+      *o = _InterlockedAnd16(p, *v);
+    }
+    else if constexpr (size == 4) {
+      *o = _InterlockedAnd(p, *v);
+    }
+    else if constexpr (size == 8) {
+      *o = _InterlockedAnd64(p, *v);
+    }
   }
   return old;
 }
@@ -332,9 +448,26 @@ Integer Atomic::orBitImpl(Integer* ptr, const Integer value) noexcept
 {
   static_assert(std::is_integral_v<Integer>, "The Integer isn't integer type.");
   Integer old = cast<Integer>(0);
-  if constexpr ((kImpl == ImplType::kGcc) || (kImpl == ImplType::kClang))
-  {
+  if constexpr ((kImpl == ImplType::kGcc) || (kImpl == ImplType::kClang)) {
     old = __atomic_fetch_or(ptr, value, __ATOMIC_SEQ_CST);
+  }
+  else if constexpr (kImpl == ImplType::kMsvc) {
+    constexpr std::size_t size = sizeof(Integer);
+    auto p = treatAs<InterlockedType<size>*>(ptr);
+    auto o = treatAs<InterlockedType<size>*>(&old);
+    auto v = treatAs<const InterlockedType<size>*>(&value);
+    if constexpr (size == 1) {
+      *o = _InterlockedOr8(p, *v);
+    }
+    else if constexpr (size == 2) {
+      *o = _InterlockedOr16(p, *v);
+    }
+    else if constexpr (size == 4) {
+      *o = _InterlockedOr(p, *v);
+    }
+    else if constexpr (size == 8) {
+      *o = _InterlockedOr64(p, *v);
+    }
   }
   return old;
 }
@@ -346,9 +479,26 @@ Integer Atomic::xorBitImpl(Integer* ptr, const Integer value) noexcept
 {
   static_assert(std::is_integral_v<Integer>, "The Integer isn't integer type.");
   Integer old = cast<Integer>(0);
-  if constexpr ((kImpl == ImplType::kGcc) || (kImpl == ImplType::kClang))
-  {
+  if constexpr ((kImpl == ImplType::kGcc) || (kImpl == ImplType::kClang)) {
     old = __atomic_fetch_xor(ptr, value, __ATOMIC_SEQ_CST);
+  }
+  else if constexpr (kImpl == ImplType::kMsvc) {
+    constexpr std::size_t size = sizeof(Integer);
+    auto p = treatAs<InterlockedType<size>*>(ptr);
+    auto o = treatAs<InterlockedType<size>*>(&old);
+    auto v = treatAs<const InterlockedType<size>*>(&value);
+    if constexpr (size == 1) {
+      *o = _InterlockedXor8(p, *v);
+    }
+    else if constexpr (size == 2) {
+      *o = _InterlockedXor16(p, *v);
+    }
+    else if constexpr (size == 4) {
+      *o = _InterlockedXor(p, *v);
+    }
+    else if constexpr (size == 8) {
+      *o = _InterlockedXor64(p, *v);
+    }
   }
   return old;
 }
@@ -359,10 +509,12 @@ template <typename Type, Atomic::ImplType kImpl> inline
 constexpr bool Atomic::isAlwaysLockFreeImpl() noexcept
 {
   bool flag = false;
-  if constexpr ((kImpl == ImplType::kGcc) || (kImpl == ImplType::kClang))
-  {
+  if constexpr ((kImpl == ImplType::kGcc) || (kImpl == ImplType::kClang)) {
     constexpr std::size_t size = sizeof(Type);
     flag = __atomic_always_lock_free(size, nullptr);
+  }
+  else if constexpr (kImpl == ImplType::kMsvc) {
+    flag = true;
   }
   return flag;
 }
@@ -373,10 +525,12 @@ template <typename Type, Atomic::ImplType kImpl> inline
 bool Atomic::isLockFreeImpl() noexcept
 {
   bool flag = false;
-  if constexpr ((kImpl == ImplType::kGcc) || (kImpl == ImplType::kClang))
-  {
+  if constexpr ((kImpl == ImplType::kGcc) || (kImpl == ImplType::kClang)) {
     constexpr std::size_t size = sizeof(Type);
     flag = __atomic_is_lock_free(size, nullptr);
+  }
+  else if constexpr (kImpl == ImplType::kMsvc) {
+    flag = true;
   }
   return flag;
 }

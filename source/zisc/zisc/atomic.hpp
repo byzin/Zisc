@@ -10,6 +10,12 @@
 #ifndef ZISC_ATOMIC_HPP
 #define ZISC_ATOMIC_HPP
 
+// Standard C++ library
+#include <cstddef>
+#include <type_traits>
+// Zisc
+#include "zisc/zisc_config.hpp"
+
 namespace zisc {
 
 /*!
@@ -20,7 +26,7 @@ class Atomic
  public:
   enum class ImplType : uint
   {
-    kGcc,
+    kGcc = 0,
     kClang,
     kMsvc
   };
@@ -90,6 +96,12 @@ class Atomic
                          Types&&... arguments) noexcept;
 
  private:
+  template <std::size_t size>
+  using InterlockedType = std::conditional_t<size == 1, char,
+                          std::conditional_t<size == 2, short,
+                          std::conditional_t<size == 4, long,
+                          std::conditional_t<size == 8, long long, void>>>>;
+
   //! Perform atomic addition
   template <typename Integer, ImplType kImpl>
   static Integer addImpl(Integer* ptr, const Integer value) noexcept;

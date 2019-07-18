@@ -233,6 +233,8 @@ void WorkerThreadManager<kLockType>::createWorkers(const uint num_of_threads)
       : num_of_threads;
   workers_.reserve(id_max);
   for (uint thread_id = 0; thread_id < id_max; ++thread_id) {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wpadded"
     auto work = [this, thread_id]() noexcept
     {
       using LockType = ThreadManagerLockType;
@@ -253,6 +255,7 @@ void WorkerThreadManager<kLockType>::createWorkers(const uint num_of_threads)
         }
       }
     };
+#pragma clang diagnostic pop
     workers_.emplace_back(work);
   }
   auto comp = [](const std::thread& lhs, const std::thread& rhs)
@@ -354,6 +357,9 @@ auto WorkerThreadManager<kLockType>::enqueueTask(
 {
   using TaskType = std::remove_cv_t<std::remove_reference_t<Task>>;
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wpadded"
+
   //! Represent single task
   class SingleTask : public WorkerTask
   {
@@ -371,6 +377,8 @@ auto WorkerThreadManager<kLockType>::enqueueTask(
     Result<ReturnType>* result_;
   };
   using UniqueSingleTask = UniqueMemoryPointer<SingleTask>;
+
+#pragma clang diagnostic pop
 
   // Create a result of loop tasks
   const uint thread_id = getThreadIndex();
@@ -403,6 +411,9 @@ auto WorkerThreadManager<kLockType>::enqueueLoopTask(
 {
   using Iterator = std::remove_cv_t<std::remove_reference_t<Iterator1>>;
   using TaskType = std::remove_cv_t<std::remove_reference_t<Task>>;
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wpadded"
 
   //! Shared data by loop tasks
   struct SharedTaskData
@@ -448,6 +459,8 @@ auto WorkerThreadManager<kLockType>::enqueueLoopTask(
     Iterator ite_;
   };
   using UniqueLoopTask = UniqueMemoryPointer<LoopTask>;
+
+#pragma clang diagnostic pop
 
   // Create a result of loop tasks
   const uint thread_id = getThreadIndex();

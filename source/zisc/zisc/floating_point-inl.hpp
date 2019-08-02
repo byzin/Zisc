@@ -223,28 +223,30 @@ constexpr FloatingPoint<kDstFormat> FloatingPoint<kFormat>::downscaled()
     constexpr auto sig_mask = significandBitMask();
     constexpr std::size_t dst_sig_size = DstFloat::significandBitSize();
 
-    constexpr BitType lower_bound = (one().bits() >> sig_size) - dst_exp_bias + 1;
-    constexpr BitType upper_bound = (one().bits() >> sig_size) + dst_exp_bias + 1;
-    BitType src_exp_bit = (bits() & exponentBitMask()) >> sig_size;
+    constexpr BitType lower_bound = ((exp_bias + 1) - dst_exp_bias) << sig_size;
+    constexpr BitType upper_bound = ((exp_bias + 1) + dst_exp_bias) << sig_size;
+
+    const BitType src_exp_bit = bits() & exponentBitMask();
     if (src_exp_bit < upper_bound) {
+      constexpr std::size_t sig_size_diff = sig_size - dst_sig_size;
+      constexpr BitType exp_bias_diff = (exp_bias - dst_exp_bias) << dst_sig_size;
       // Finite values
       const std::size_t shift_size = (src_exp_bit < lower_bound)
-          ? lower_bound - src_exp_bit // Subnormal case
+          ? (lower_bound - src_exp_bit) >> sig_size // Subnormal case
           : 0;                        // Normal case
       if (shift_size <= dst_sig_size) {
         // Exponent bits
         const DstBitType dst_exp_bit = cast<DstBitType>((src_exp_bit < lower_bound)
-           ? 0                                                        // Subnormal
-           : ((src_exp_bit + dst_exp_bias) - exp_bias) << dst_sig_size);// Normal 
+           ? 0                                                // Subnormal
+           : (src_exp_bit >> sig_size_diff) - exp_bias_diff); // Normal
         // Significand bits
         const DstBitType dst_sig_bit = cast<DstBitType>(
             (((implicitBit() | (bits() & sig_mask)) >> shift_size) & sig_mask) >>
-            (sig_size - dst_sig_size));
+            sig_size_diff);
         DstBitType dst_bit = dst_exp_bit | dst_sig_bit;
         // Rounding
         const DstBitType truncated_bit = cast<DstBitType>(
-            (((bits() << dst_sig_size) & sig_mask) >> shift_size) >>
-            (sig_size - dst_sig_size));
+            (((bits() << dst_sig_size) & sig_mask) >> shift_size) >> sig_size_diff);
         dst_bit = DstFloat::round(dst_bit, truncated_bit);
 
         dst.set(dst_bit);
@@ -272,7 +274,7 @@ constexpr auto FloatingPoint<kFormat>::epsilon() noexcept -> FloatingPoint
   // Compute the exponent of the epsilon
   BitType exp_bit = exponentBitMask() >> significandBitSize();
   exp_bit = exp_bit - (exponentBias() + 1 + significandBitSize());
-  exp_bit = exp_bit << significandBitSize();
+  exp_bit = cast<BitType>(exp_bit << significandBitSize());
   return FloatingPoint{exp_bit};
 }
 
@@ -526,9 +528,7 @@ constexpr auto FloatingPoint<kFormat>::min() noexcept -> FloatingPoint
 template <FloatingPointFormat kFormat> inline
 constexpr auto FloatingPoint<kFormat>::one() noexcept -> FloatingPoint
 {
-  BitType exp_bit = exponentBitMask() >> significandBitSize();
-  exp_bit = exp_bit - (exponentBias() + 1);
-  exp_bit = cast<BitType>(exp_bit << significandBitSize());
+  const auto exp_bit = cast<BitType>(exponentBias() << significandBitSize());
   return FloatingPoint{exp_bit};
 }
 

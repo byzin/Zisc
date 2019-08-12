@@ -32,6 +32,12 @@ class Fnv1aHashEngine : public HashEngine<Fnv1aHashEngine<ResultType>, ResultTyp
   template <typename Int8>
   static constexpr ResultType hashValue(const Int8* inputs,
                                         const std::size_t n) noexcept;
+
+  //!
+  static constexpr ResultType prime() noexcept;
+
+  //!
+  static constexpr ResultType offset() noexcept;
 };
 
 using Fnv1aHash32 = Fnv1aHashEngine<uint32b>;

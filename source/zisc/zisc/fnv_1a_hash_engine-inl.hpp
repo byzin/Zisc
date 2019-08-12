@@ -23,40 +23,6 @@
 
 namespace zisc {
 
-namespace inner {
-
-template <typename ResultType> struct Fnv1aHashEngineImpl;
-
-template <>
-struct Fnv1aHashEngineImpl<uint32b>
-{
-  static constexpr uint32b prime() noexcept
-  {
-    return 16777619u;
-  }
-
-  static constexpr uint32b offset() noexcept
-  {
-    return 2166136261u;
-  }
-};
-
-template <>
-struct Fnv1aHashEngineImpl<uint64b>
-{
-  static constexpr uint64b prime() noexcept
-  {
-    return 1099511628211ull;
-  }
-
-  static constexpr uint64b offset() noexcept
-  {
-    return 14695981039346656037ull;
-  }
-};
-
-} // namespace inner
-
 /*!
   */
 template <typename ResultType> template <typename Int8> inline
@@ -64,12 +30,42 @@ constexpr ResultType Fnv1aHashEngine<ResultType>::hashValue(
     const Int8* inputs,
     const std::size_t n) noexcept
 {
-  ResultType x = inner::Fnv1aHashEngineImpl<ResultType>::offset();
-  for (std::size_t i = 0; i < n; ++i) {
-    x = (x ^ cast<ResultType>(inputs[i])) *
-        inner::Fnv1aHashEngineImpl<ResultType>::prime();
-  }
+  ResultType x = offset();
+  for (std::size_t i = 0; i < n; ++i)
+    x = (x ^ cast<ResultType>(inputs[i])) * prime();
   return x;
+}
+
+template <typename ResultType> inline
+constexpr auto Fnv1aHashEngine<ResultType>::prime() noexcept -> ResultType
+{
+  if constexpr (sizeof(ResultType) == 4) {
+    const ResultType p = cast<ResultType>(16777619u);
+    return p;
+  }
+  else if constexpr (sizeof(ResultType) == 8) {
+    const ResultType p = cast<ResultType>(1099511628211ull);
+    return p;
+  }
+  else {
+    static_assert(sizeof(ResultType) == 0, "Unsupported result type is specified.");
+  }
+}
+
+template <typename ResultType> inline
+constexpr auto Fnv1aHashEngine<ResultType>::offset() noexcept -> ResultType
+{
+  if constexpr (sizeof(ResultType) == 4) {
+    const ResultType p = cast<ResultType>(2166136261u);
+    return p;
+  }
+  else if constexpr (sizeof(ResultType) == 8) {
+    const ResultType p = cast<ResultType>(14695981039346656037ull);
+    return p;
+  }
+  else {
+    static_assert(sizeof(ResultType) == 0, "Unsupported result type is specified.");
+  }
 }
 
 } // namespace zisc

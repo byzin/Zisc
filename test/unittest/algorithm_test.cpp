@@ -50,6 +50,102 @@ std::vector<zisc::uint64b> makeSortedArray(const zisc::uint64b n,
 
 }
 
+TEST(AlgorithmTest, clampTest)
+{
+  constexpr double min_value = -1.0;
+  constexpr double max_value = 1.0;
+  {
+    constexpr double value = -2.0;
+    ASSERT_EQ(min_value, zisc::clamp(value, min_value, max_value));
+  }
+  {
+    constexpr double value = 0.0;
+    ASSERT_EQ(value, zisc::clamp(value, min_value, max_value));
+  }
+  {
+    constexpr double value = 2.0;
+    ASSERT_EQ(max_value, zisc::clamp(value, min_value, max_value));
+  }
+}
+
+TEST(AlgorithmTest, isNegativeTest)
+{
+  {
+    constexpr int value = -1;
+    ASSERT_TRUE(zisc::isNegative(value));
+  }
+  {
+    constexpr int value = 0;
+    ASSERT_FALSE(zisc::isNegative(value));
+  }
+  {
+    constexpr int value = 1;
+    ASSERT_FALSE(zisc::isNegative(value));
+  }
+}
+
+TEST(AlgorithmTest, isOddTest)
+{
+  {
+    constexpr int value = 1;
+    ASSERT_TRUE(zisc::isOdd(value));
+  }
+  {
+    constexpr int value = 2;
+    ASSERT_FALSE(zisc::isOdd(value));
+  }
+}
+
+TEST(AlgorithmTest, isInBoundsTest)
+{
+  // (0, 1) test
+  {
+    auto is_in_bounds = [](const double value)
+    {
+      return zisc::isInOpenBounds(value, 0.0, 1.0);
+    };
+    ASSERT_FALSE(is_in_bounds(-1.0));
+    ASSERT_FALSE(is_in_bounds(0.0));
+    ASSERT_TRUE(is_in_bounds(0.5));
+    ASSERT_FALSE(is_in_bounds(1.0));
+    ASSERT_FALSE(is_in_bounds(2.0));
+  }
+  // [0, 1) test
+  {
+    auto is_in_bounds = [](const double value)
+    {
+      return zisc::isInBounds(value, 0.0, 1.0);
+    };
+    ASSERT_FALSE(is_in_bounds(-1.0));
+    ASSERT_TRUE(is_in_bounds(0.0));
+    ASSERT_TRUE(is_in_bounds(0.5));
+    ASSERT_FALSE(is_in_bounds(1.0));
+    ASSERT_FALSE(is_in_bounds(2.0));
+  }
+  // [0, 1] test
+  {
+    auto is_in_bounds = [](const double value)
+    {
+      return zisc::isInClosedBounds(value, 0.0, 1.0);
+    };
+    ASSERT_FALSE(is_in_bounds(-1.0));
+    ASSERT_TRUE(is_in_bounds(0.0));
+    ASSERT_TRUE(is_in_bounds(0.5));
+    ASSERT_TRUE(is_in_bounds(1.0));
+    ASSERT_FALSE(is_in_bounds(2.0));
+  }
+}
+
+TEST(AlgorithmTest, minMaxTest)
+{
+  constexpr int v1 = -1;
+  constexpr int v2 = 1;
+  ASSERT_EQ(v1, zisc::min(v1, v2));
+  ASSERT_EQ(v1, zisc::min(v2, v1));
+  ASSERT_EQ(v2, zisc::max(v1, v2));
+  ASSERT_EQ(v2, zisc::max(v2, v1));
+}
+
 TEST(AlgorithmTest, BinaryTreeTest)
 {
   using zisc::cast;
@@ -58,39 +154,39 @@ TEST(AlgorithmTest, BinaryTreeTest)
   zisc::ArithArray<double, n> array;
   for (zisc::uint i = 0; i < n; ++i)
     array[i] = cast<double>(i);
-  zisc::toBinaryTree(array.begin(), array.end());
+  zisc::Algorithm::toBinaryTree(array.begin(), array.end());
 
-  auto position = zisc::searchBinaryTree(array.begin(), array.end(), 0.5);
+  auto position = zisc::Algorithm::searchBinaryTree(array.begin(), array.end(), 0.5);
   EXPECT_DOUBLE_EQ(0.0, *position);
 
-  position = zisc::searchBinaryTree(array.begin(), array.end(), 1.5);
+  position = zisc::Algorithm::searchBinaryTree(array.begin(), array.end(), 1.5);
   EXPECT_DOUBLE_EQ(1.0, *position);
 
-  position = zisc::searchBinaryTree(array.begin(), array.end(), 2.5);
+  position = zisc::Algorithm::searchBinaryTree(array.begin(), array.end(), 2.5);
   EXPECT_DOUBLE_EQ(2.0, *position);
 
-  position = zisc::searchBinaryTree(array.begin(), array.end(), 6.5);
+  position = zisc::Algorithm::searchBinaryTree(array.begin(), array.end(), 6.5);
   EXPECT_DOUBLE_EQ(6.0, *position);
   
-  position = zisc::searchBinaryTree(array.begin(), array.end(), 5.5);
+  position = zisc::Algorithm::searchBinaryTree(array.begin(), array.end(), 5.5);
   EXPECT_DOUBLE_EQ(5.0, *position);
 
-  position = zisc::searchBinaryTree(array.begin(), array.end(), cast<double>(n));
+  position = zisc::Algorithm::searchBinaryTree(array.begin(), array.end(), cast<double>(n));
   EXPECT_DOUBLE_EQ(cast<double>(n - 1), *position);
 
-  position = zisc::searchBinaryTree(array.begin(), array.end(), 7.0);
+  position = zisc::Algorithm::searchBinaryTree(array.begin(), array.end(), 7.0);
   EXPECT_DOUBLE_EQ(7.0, *position);
 
-  position = zisc::searchBinaryTree(array.begin(), array.end(), 9.0);
+  position = zisc::Algorithm::searchBinaryTree(array.begin(), array.end(), 9.0);
   EXPECT_DOUBLE_EQ(9.0, *position);
 
-  position = zisc::searchBinaryTree(array.begin(), array.end(), 2.0);
+  position = zisc::Algorithm::searchBinaryTree(array.begin(), array.end(), 2.0);
   EXPECT_DOUBLE_EQ(2.0, *position);
 
-  position = zisc::searchBinaryTree(array.begin(), array.end(), 3.0);
+  position = zisc::Algorithm::searchBinaryTree(array.begin(), array.end(), 3.0);
   EXPECT_DOUBLE_EQ(3.0, *position);
 
-  position = zisc::searchBinaryTree(array.begin(), array.end(), 6.0);
+  position = zisc::Algorithm::searchBinaryTree(array.begin(), array.end(), 6.0);
   EXPECT_DOUBLE_EQ(6.0, *position);
 }
 
@@ -110,26 +206,21 @@ TEST(AlgorithmTest, BinaryTreeSearchTest)
 
     // Make a binary tree
     auto tree = array;
-    {
-      auto tmp = tree;
-      zisc::zisc_implementation::toBinaryTree(tmp.begin(), tmp.end(), 0, tree.begin());
-    }
+    zisc::Algorithm::Zisc::toBinaryTree(tree.begin(), tree.end());
 
     for (zisc::uint64b i = 0; i < n; ++i) {
       for (int c = 0; c < 3; ++c) {
         if (!(((i == 0) && (c == 2)) || ((i == n - 1) && (c == 0)))) {
           const auto v = (array[i] + 1) - zisc::cast<zisc::uint64b>(c);
           // STL
-          const auto expected = 
-              zisc::stl_implementation::searchBinaryTree(array.begin(),
-                                                         array.end(),
-                                                         v);
+          const auto expected = zisc::Algorithm::Stl::searchBinaryTree(array.begin(),
+                                                                       array.end(),
+                                                                       v);
           ASSERT_TRUE(expected != array.end()) << "The binary search failed.";
           // ZISC
-          const auto actual =
-              zisc::zisc_implementation::searchBinaryTree(tree.begin(),
-                                                          tree.end(), 
-                                                          v);
+          const auto actual = zisc::Algorithm::Zisc::searchBinaryTree(tree.begin(),
+                                                                      tree.end(), 
+                                                                      v);
           ASSERT_EQ(*expected, *actual) << "The binary tree is wrong.";
         }
       }
@@ -155,10 +246,7 @@ TEST(AlgorithmTest, BinaryTreeSearchPerformanceTest)
 
     // Make a binary tree
     auto tree = array;
-    {
-      auto tmp = tree;
-      zisc::zisc_implementation::toBinaryTree(tmp.begin(), tmp.end(), 0, tree.begin());
-    }
+    zisc::Algorithm::Zisc::toBinaryTree(tree.begin(), tree.end());
 
     zisc::Stopwatch stopwatch;
     stopwatch.start();
@@ -168,9 +256,7 @@ TEST(AlgorithmTest, BinaryTreeSearchPerformanceTest)
           const auto v = (array[i] + 1) - zisc::cast<zisc::uint64b>(c);
           // STL
           [[maybe_unused]] volatile auto result = 
-              zisc::stl_implementation::searchBinaryTree(array.begin(),
-                                                         array.end(),
-                                                         v);
+              zisc::Algorithm::Stl::searchBinaryTree(array.begin(), array.end(), v);
         }
       }
     }
@@ -183,9 +269,7 @@ TEST(AlgorithmTest, BinaryTreeSearchPerformanceTest)
           const auto v = (array[i] + 1) - zisc::cast<zisc::uint64b>(c);
           // Zisc
           [[maybe_unused]] volatile auto result = 
-              zisc::zisc_implementation::searchBinaryTree(tree.begin(),
-                                                          tree.end(), 
-                                                          v);
+              zisc::Algorithm::Zisc::searchBinaryTree(tree.begin(), tree.end(), v);
         }
       }
     }

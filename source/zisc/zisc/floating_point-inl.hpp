@@ -17,6 +17,7 @@
 #include <limits>
 #include <type_traits>
 // Zisc
+#include "algorithm.hpp"
 #include "type_traits.hpp"
 #include "utility.hpp"
 #include "zisc/zisc_config.hpp"

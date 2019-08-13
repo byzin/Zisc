@@ -23,12 +23,14 @@ int main()
   for (const int value : tree)
     std::cout << value << " ";
   std::cout << "]" << std::endl;
-  zisc::toBinaryTree(tree.begin(), tree.end());
+  zisc::Algorithm::toBinaryTree(tree.begin(), tree.end());
   std::cout << "To tree: [ ";
   for (const int value : tree)
     std::cout << value << " ";
   std::cout << "]" << std::endl;
-  const auto position = zisc::searchBinaryTree(tree.begin(), tree.end(), 7);
+  const auto position = zisc::Algorithm::searchBinaryTree(tree.begin(),
+                                                          tree.end(),
+                                                          7);
   std::cout << "The index of 7 is " 
             << std::distance(tree.begin(), position) << std::endl;
 

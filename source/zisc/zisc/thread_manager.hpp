@@ -44,8 +44,10 @@ template <ThreadManagerLockType kLockType>
 class WorkerThreadManager : private NonCopyable<WorkerThreadManager<kLockType>>
 {
  public:
+#if defined(Z_CLANG)
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wpadded"
+#endif // Z_CLANG
   //! Result type of tasks
   template <typename T>
   class Result : private NonCopyable<Result<T>>
@@ -82,7 +84,9 @@ class WorkerThreadManager : private NonCopyable<WorkerThreadManager<kLockType>>
     uint8b has_value_;
     uint16b thread_id_;
   };
+#if defined(Z_CLANG)
 #pragma clang diagnostic pop
+#endif // Z_CLANG
   template <typename Type>
   using UniqueResult = UniqueMemoryPointer<Result<Type>>;
 

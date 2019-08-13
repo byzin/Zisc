@@ -19,6 +19,7 @@
 #include <type_traits>
 #include <utility>
 // Zisc
+#include "algorithm.hpp"
 #include "error.hpp"
 #include "memory_resource.hpp"
 #include "utility.hpp"

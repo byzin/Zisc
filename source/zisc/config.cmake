@@ -11,18 +11,33 @@ set(__zisc_root__ ${CMAKE_CURRENT_LIST_DIR})
 
 function(initZiscOption)
   # Algorithm
-  set(option_description "Use efficient binary tree algorithm.")
-  setBooleanOption(ZISC_ALGORITHM_BINARY_TREE ON ${option_description})
+  set(option_description "Use STL binary tree algorithm.")
+  setBooleanOption(ZISC_ALGORITHM_STL_BINARY_TREE OFF ${option_description})
 
   # Math
-  set(option_description "Use efficient power functions instead of std.")
-  setBooleanOption(ZISC_MATH_EFFICIENT_POWER OFF ${option_description})
+  set(option_description "Use STL math funcs instead of the Zisc funcs.")
+  setBooleanOption(ZISC_MATH_STL OFF ${option_description})
 
-  set(option_description "Use efficient exponential functions instead of std.")
-  setBooleanOption(ZISC_MATH_EFFICIENT_EXPONENTIAL OFF ${option_description})
+  set(option_description "Use STL 'exp' instead of the Zisc func.")
+  setBooleanOption(ZISC_MATH_STL_EXP ON ${option_description})
 
-  set(option_description "Use efficient trigonometric functions instead of std.")
-  setBooleanOption(ZISC_MATH_EFFICIENT_TRIGONOMETRIC OFF ${option_description})
+  set(option_description "Use STL 'log', 'log2' funcs instead of the Zisc funcs.")
+  setBooleanOption(ZISC_MATH_STL_LOG ON ${option_description})
+
+  set(option_description "Use STL 'pow' func instead of the Zisc func")
+  setBooleanOption(ZISC_MATH_STL_POW ON ${option_description})
+
+  set(option_description "Use STL 'sqrt' func instead of the Zisc func")
+  setBooleanOption(ZISC_MATH_STL_SQRT ON ${option_description})
+
+  set(option_description "Use STL 'cbrt' func instead of the Zisc func")
+  setBooleanOption(ZISC_MATH_STL_CBRT ON ${option_description})
+
+  set(option_description "Use STL 'sin', 'cos' and 'tan' funcs instead of the Zisc funcs")
+  setBooleanOption(ZISC_MATH_STL_TRIGONOMETRIC ON ${option_description})
+
+  set(option_description "Use STL 'asin', 'acos' and 'atan' funcs instead of the Zisc funcs")
+  setBooleanOption(ZISC_MATH_STL_INV_TRIGONOMETRIC ON ${option_description})
 
   set(option_description "Enable zisc assertion.")
   if(Z_DEBUG_MODE)
@@ -42,17 +57,32 @@ endfunction(initZiscOption)
 
 function(getZiscOption zisc_compile_flags zisc_linker_flags zisc_definitions)
   # Options
-  if(${ZISC_ALGORITHM_BINARY_TREE})
-    list(APPEND definitions ZISC_ALGORITHM_BINARY_TREE)
+  if(${ZISC_ALGORITHM_STL_BINARY_TREE})
+    list(APPEND definitions ZISC_ALGORITHM_STL_BINARY_TREE)
   endif()
-  if(${ZISC_MATH_EFFICIENT_POWER})
-    list(APPEND definitions ZISC_MATH_EFFICIENT_POWER)
+  if(${ZISC_MATH_STL})
+    list(APPEND definitions ZISC_MATH_STL)
   endif()
-  if(${ZISC_MATH_EFFICIENT_EXPONENTIAL})
-    list(APPEND definitions ZISC_MATH_EFFICIENT_EXPONENTIAL)
+  if(${ZISC_MATH_STL_EXP})
+    list(APPEND definitions ZISC_MATH_STL_EXP)
   endif()
-  if(${ZISC_MATH_EFFICIENT_TRIGONOMETRIC})
-    list(APPEND definitions ZISC_MATH_EFFICIENT_TRIGONOMETRIC)
+  if(${ZISC_MATH_STL_LOG})
+    list(APPEND definitions ZISC_MATH_STL_LOG)
+  endif()
+  if(${ZISC_MATH_STL_POW})
+    list(APPEND definitions ZISC_MATH_STL_POW)
+  endif()
+  if(${ZISC_MATH_STL_SQRT})
+    list(APPEND definitions ZISC_MATH_STL_SQRT)
+  endif()
+  if(${ZISC_MATH_STL_CBRT})
+    list(APPEND definitions ZISC_MATH_STL_CBRT)
+  endif()
+  if(${ZISC_MATH_STL_TRIGONOMETRIC})
+    list(APPEND definitions ZISC_MATH_STL_TRIGONOMETRIC)
+  endif()
+  if(${ZISC_MATH_STL_INV_TRIGONOMETRIC})
+    list(APPEND definitions ZISC_MATH_STL_INV_TRIGONOMETRIC)
   endif()
   if(${ZISC_ENABLE_ASSERTION})
     list(APPEND definitions ZISC_ASSERTION)
@@ -77,20 +107,20 @@ function(loadZisc zisc_header_files zisc_include_dirs zisc_compile_flags zisc_li
   set(zisc_version_patch 47)
   set(zisc_version ${zisc_version_major}.${zisc_version_minor}.${zisc_version_patch})
   message(STATUS "Zisc version: ${zisc_version}")
-  
+
   initZiscOption()
   getZiscOption(compile_flags linker_flags definitions)
 
   if(Z_WINDOWS)
     list(APPEND definitions _ENABLE_EXTENDED_ALIGNED_STORAGE)
   endif()
-  
+
   # Make configuration header file
   file(MAKE_DIRECTORY ${PROJECT_BINARY_DIR}/include)
   set(zisc_config_path ${PROJECT_BINARY_DIR}/include/zisc)
   configure_file(${__zisc_root__}/zisc/zisc_config.hpp.in
                  ${zisc_config_path}/zisc_config.hpp)
- 
+
   # Set source code
   file(GLOB hpp_files ${__zisc_root__}/zisc/*.hpp)
   set(hpp_files ${hpp_files} ${zisc_config_path}/zisc_config.hpp)

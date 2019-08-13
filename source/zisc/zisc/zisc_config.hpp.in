@@ -35,6 +35,53 @@ using uint64b = std::uint64_t;
 constexpr uint8b kFalse = 0;
 constexpr uint8b kTrue = 1;
 
+/*!
+  \brief Configuration of zisc source
+  */
+class Config
+{
+ public:
+  enum class ImplType : uint
+  {
+    kGcc = 0,
+    kClang,
+    kMsvc
+  };
+
+
+  //! Return the implementation type
+  static constexpr ImplType implType() noexcept;
+
+  // Algorithm config
+  static constexpr bool isStlBinaryTreeUsed() noexcept;
+
+  // Math library config
+
+  //! Check if STL math library is used
+  static constexpr bool isStlMathUsed() noexcept;
+
+  //! Check if STL 'exp' is used
+  static constexpr bool isStlMathExpUsed() noexcept;
+
+  //! Check if STL 'log' and 'log2' are used
+  static constexpr bool isStlMathLogUsed() noexcept;
+
+  //! Check if STL 'pow' is used
+  static constexpr bool isStlMathPowUsed() noexcept;
+
+  //! Check if STL 'sqrt' is used
+  static constexpr bool isStlMathSqrtUsed() noexcept;
+
+  //! Check if STL 'cbrt' is used
+  static constexpr bool isStlMathCbrtUsed() noexcept;
+
+  //! Check if STL 'sin', 'cos' and 'tan' are used
+  static constexpr bool isStlMathTrigonometricUsed() noexcept;
+
+  //! Check if STL 'asin', 'acos' and 'atan' are used
+  static constexpr bool isStlMathInvTrigonometricUsed() noexcept;
+};
+
 } // namespace zisc
 
 #include "zisc/zisc_config-inl.hpp"

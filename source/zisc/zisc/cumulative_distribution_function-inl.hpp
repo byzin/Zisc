@@ -111,7 +111,9 @@ auto CumulativeDistributionFunction<X, Pdf>::invert(const PdfType y) const noexc
     -> const XType&
 {
   ZISC_ASSERT(isInClosedBounds(y, 0.0, 1.0), "y is out of range: [0, 1].");
-  const auto position = searchBinaryTree(y_list_.begin(), y_list_.end(), y);
+  const auto position = Algorithm::searchBinaryTree(y_list_.begin(),
+                                                    y_list_.end(),
+                                                    y);
   const auto index = std::distance(y_list_.begin(), position);
   return x_list_[index];
 }
@@ -239,8 +241,8 @@ void CumulativeDistributionFunction<X, Pdf>::initCdf(
       "The sum of the pdf list isn't 1.");
 
   // Make CDF arrays
-  toBinaryTree(x_list_.begin(), x_list_.end(), work_resource);
-  toBinaryTree(y_list_.begin(), y_list_.end(), work_resource);
+  Algorithm::toBinaryTree(x_list_.begin(), x_list_.end(), work_resource);
+  Algorithm::toBinaryTree(y_list_.begin(), y_list_.end(), work_resource);
 }
 
 } // namespace zisc

@@ -26,7 +26,7 @@ namespace zisc {
 template <typename Integer> inline
 Integer Atomic::add(Integer* ptr, const Integer value) noexcept
 {
-  const auto old = addImpl<Integer, implType()>(ptr, value);
+  const auto old = addImpl<Integer, Config::implType()>(ptr, value);
   return old;
 }
 
@@ -35,7 +35,7 @@ Integer Atomic::add(Integer* ptr, const Integer value) noexcept
 template <typename Integer> inline
 Integer Atomic::sub(Integer* ptr, const Integer value) noexcept
 {
-  const auto old = subImpl<Integer, implType()>(ptr, value);
+  const auto old = subImpl<Integer, Config::implType()>(ptr, value);
   return old;
 }
 
@@ -44,7 +44,7 @@ Integer Atomic::sub(Integer* ptr, const Integer value) noexcept
 template <typename Integer> inline
 Integer Atomic::exchange(Integer* ptr, const Integer value) noexcept
 {
-  const auto old = exchangeImpl<Integer, implType()>(ptr, value);
+  const auto old = exchangeImpl<Integer, Config::implType()>(ptr, value);
   return old;
 }
 
@@ -53,7 +53,7 @@ Integer Atomic::exchange(Integer* ptr, const Integer value) noexcept
 template <typename Integer> inline
 Integer Atomic::increment(Integer* ptr) noexcept
 {
-  const auto old = incrementImpl<Integer, implType()>(ptr);
+  const auto old = incrementImpl<Integer, Config::implType()>(ptr);
   return old;
 }
 
@@ -62,7 +62,7 @@ Integer Atomic::increment(Integer* ptr) noexcept
 template <typename Integer> inline
 Integer Atomic::decrement(Integer* ptr) noexcept
 {
-  const auto old = decrementImpl<Integer, implType()>(ptr);
+  const auto old = decrementImpl<Integer, Config::implType()>(ptr);
   return old;
 }
 
@@ -73,7 +73,7 @@ Integer Atomic::compareAndExchange(Integer* ptr,
                                    const Integer cmp,
                                    const Integer value) noexcept
 {
-  const auto old = compareAndExchangeImpl<Integer, implType()>(ptr, cmp, value);
+  const auto old = compareAndExchangeImpl<Integer, Config::implType()>(ptr, cmp, value);
   return old;
 }
 
@@ -82,7 +82,7 @@ Integer Atomic::compareAndExchange(Integer* ptr,
 template <typename Integer> inline
 Integer Atomic::min(Integer* ptr, const Integer value) noexcept
 {
-  const auto old = minImpl<Integer, implType()>(ptr, value);
+  const auto old = minImpl<Integer, Config::implType()>(ptr, value);
   return old;
 }
 
@@ -91,7 +91,7 @@ Integer Atomic::min(Integer* ptr, const Integer value) noexcept
 template <typename Integer> inline
 Integer Atomic::max(Integer* ptr, const Integer value) noexcept
 {
-  const auto old = maxImpl<Integer, implType()>(ptr, value);
+  const auto old = maxImpl<Integer, Config::implType()>(ptr, value);
   return old;
 }
 
@@ -100,7 +100,7 @@ Integer Atomic::max(Integer* ptr, const Integer value) noexcept
 template <typename Integer> inline
 Integer Atomic::andBit(Integer* ptr, const Integer value) noexcept
 {
-  const auto old = andBitImpl<Integer, implType()>(ptr, value);
+  const auto old = andBitImpl<Integer, Config::implType()>(ptr, value);
   return old;
 }
 
@@ -109,7 +109,7 @@ Integer Atomic::andBit(Integer* ptr, const Integer value) noexcept
 template <typename Integer> inline
 Integer Atomic::orBit(Integer* ptr, const Integer value) noexcept
 {
-  const auto old = orBitImpl<Integer, implType()>(ptr, value);
+  const auto old = orBitImpl<Integer, Config::implType()>(ptr, value);
   return old;
 }
 
@@ -118,26 +118,8 @@ Integer Atomic::orBit(Integer* ptr, const Integer value) noexcept
 template <typename Integer> inline
 Integer Atomic::xorBit(Integer* ptr, const Integer value) noexcept
 {
-  const auto old = xorBitImpl<Integer, implType()>(ptr, value);
+  const auto old = xorBitImpl<Integer, Config::implType()>(ptr, value);
   return old;
-}
-
-/*!
-  */
-inline
-constexpr auto Atomic::implType() noexcept -> ImplType
-{
-  ImplType type = ImplType::kGcc;
-#if defined(Z_GCC)
-  type = ImplType::kGcc;
-#elif defined(Z_CLANG)
-  type = ImplType::kClang;
-#elif defined(Z_MSVC)
-  type = ImplType::kMsvc;
-#else
-  static_assert(false, "Unsupported implementation.");
-#endif
-  return type;
 }
 
 /*!
@@ -145,7 +127,7 @@ constexpr auto Atomic::implType() noexcept -> ImplType
 template <typename Type> inline
 constexpr bool Atomic::isAlwaysLockFree() noexcept
 {
-  const bool flag = isAlwaysLockFreeImpl<Type, implType()>();
+  const bool flag = isAlwaysLockFreeImpl<Type, Config::implType()>();
   return flag;
 }
 
@@ -154,7 +136,7 @@ constexpr bool Atomic::isAlwaysLockFree() noexcept
 template <typename Type> inline
 bool Atomic::isLockFree() noexcept
 {
-  const bool flag = isLockFreeImpl<Type, implType()>();
+  const bool flag = isLockFreeImpl<Type, Config::implType()>();
   return flag;
 }
 
@@ -180,15 +162,16 @@ Integer Atomic::perform(Integer* ptr,
 
 /*!
   */
-template <typename Integer, Atomic::ImplType kImpl> inline
+template <typename Integer, Config::ImplType kImpl> inline
 Integer Atomic::addImpl(Integer* ptr, const Integer value) noexcept
 {
   static_assert(std::is_integral_v<Integer>, "The Integer isn't integer type.");
   Integer old = cast<Integer>(0);
-  if constexpr ((kImpl == ImplType::kGcc) || (kImpl == ImplType::kClang)) {
+  if constexpr ((kImpl == Config::ImplType::kGcc) ||
+                (kImpl == Config::ImplType::kClang)) {
     old = __atomic_fetch_add(ptr, value, __ATOMIC_SEQ_CST);
   }
-  else if constexpr (kImpl == ImplType::kMsvc) {
+  else if constexpr (kImpl == Config::ImplType::kMsvc) {
     constexpr std::size_t size = sizeof(Integer);
     auto p = treatAs<InterlockedType<size>*>(ptr);
     auto o = treatAs<InterlockedType<size>*>(&old);
@@ -211,15 +194,16 @@ Integer Atomic::addImpl(Integer* ptr, const Integer value) noexcept
 
 /*!
   */
-template <typename Integer, Atomic::ImplType kImpl> inline
+template <typename Integer, Config::ImplType kImpl> inline
 Integer Atomic::subImpl(Integer* ptr, const Integer value) noexcept
 {
   static_assert(std::is_integral_v<Integer>, "The Integer isn't integer type.");
   Integer old = cast<Integer>(0);
-  if constexpr ((kImpl == ImplType::kGcc) || (kImpl == ImplType::kClang)) {
+  if constexpr ((kImpl == Config::ImplType::kGcc) ||
+                (kImpl == Config::ImplType::kClang)) {
     old = __atomic_fetch_sub(ptr, value, __ATOMIC_SEQ_CST);
   }
-  else if constexpr (kImpl == ImplType::kMsvc) {
+  else if constexpr (kImpl == Config::ImplType::kMsvc) {
     constexpr std::size_t size = sizeof(Integer);
     auto p = treatAs<InterlockedType<size>*>(ptr);
     auto o = treatAs<InterlockedType<size>*>(&old);
@@ -242,15 +226,16 @@ Integer Atomic::subImpl(Integer* ptr, const Integer value) noexcept
 
 /*!
   */
-template <typename Integer, Atomic::ImplType kImpl> inline
+template <typename Integer, Config::ImplType kImpl> inline
 Integer Atomic::exchangeImpl(Integer* ptr, Integer value) noexcept
 {
   static_assert(std::is_integral_v<Integer>, "The Integer isn't integer type.");
   Integer old = cast<Integer>(0);
-  if constexpr ((kImpl == ImplType::kGcc) || (kImpl == ImplType::kClang)) {
+  if constexpr ((kImpl == Config::ImplType::kGcc) ||
+                (kImpl == Config::ImplType::kClang)) {
     __atomic_exchange(ptr, &value, &old, __ATOMIC_SEQ_CST);
   }
-  else if constexpr (kImpl == ImplType::kMsvc) {
+  else if constexpr (kImpl == Config::ImplType::kMsvc) {
     constexpr std::size_t size = sizeof(Integer);
     auto p = treatAs<InterlockedType<size>*>(ptr);
     auto o = treatAs<InterlockedType<size>*>(&old);
@@ -273,16 +258,17 @@ Integer Atomic::exchangeImpl(Integer* ptr, Integer value) noexcept
 
 /*!
   */
-template <typename Integer, Atomic::ImplType kImpl> inline
+template <typename Integer, Config::ImplType kImpl> inline
 Integer Atomic::incrementImpl(Integer* ptr) noexcept
 {
   static_assert(std::is_integral_v<Integer>, "The Integer isn't integer type.");
   Integer old = cast<Integer>(0);
-  if constexpr ((kImpl == ImplType::kGcc) || (kImpl == ImplType::kClang)) {
+  if constexpr ((kImpl == Config::ImplType::kGcc) ||
+                (kImpl == Config::ImplType::kClang)) {
     constexpr Integer v = cast<Integer>(1);
     old = addImpl<Integer, kImpl>(ptr, v);
   }
-  else if constexpr (kImpl == ImplType::kMsvc) {
+  else if constexpr (kImpl == Config::ImplType::kMsvc) {
     constexpr std::size_t size = sizeof(Integer);
     auto p = treatAs<InterlockedType<size>*>(ptr);
     auto o = treatAs<InterlockedType<size>*>(&old);
@@ -305,16 +291,17 @@ Integer Atomic::incrementImpl(Integer* ptr) noexcept
 
 /*!
   */
-template <typename Integer, Atomic::ImplType kImpl> inline
+template <typename Integer, Config::ImplType kImpl> inline
 Integer Atomic::decrementImpl(Integer* ptr) noexcept
 {
   static_assert(std::is_integral_v<Integer>, "The Integer isn't integer type.");
   Integer old = cast<Integer>(0);
-  if constexpr ((kImpl == ImplType::kGcc) || (kImpl == ImplType::kClang)) {
+  if constexpr ((kImpl == Config::ImplType::kGcc) ||
+                (kImpl == Config::ImplType::kClang)) {
     constexpr Integer v = cast<Integer>(1);
     old = subImpl<Integer, kImpl>(ptr, v);
   }
-  else if constexpr (kImpl == ImplType::kMsvc) {
+  else if constexpr (kImpl == Config::ImplType::kMsvc) {
     constexpr std::size_t size = sizeof(Integer);
     auto p = treatAs<InterlockedType<size>*>(ptr);
     auto o = treatAs<InterlockedType<size>*>(&old);
@@ -337,17 +324,18 @@ Integer Atomic::decrementImpl(Integer* ptr) noexcept
 
 /*!
   */
-template <typename Integer, Atomic::ImplType kImpl> inline
+template <typename Integer, Config::ImplType kImpl> inline
 Integer Atomic::compareAndExchangeImpl(Integer* ptr,
                                        Integer cmp,
                                        Integer value) noexcept
 {
   static_assert(std::is_integral_v<Integer>, "The Integer isn't integer type.");
-  if constexpr ((kImpl == ImplType::kGcc) || (kImpl == ImplType::kClang)) {
+  if constexpr ((kImpl == Config::ImplType::kGcc) ||
+                (kImpl == Config::ImplType::kClang)) {
     constexpr auto mem_order = __ATOMIC_SEQ_CST;
     __atomic_compare_exchange(ptr, &cmp, &value, false, mem_order, mem_order);
   }
-  else if constexpr (kImpl == ImplType::kMsvc) {
+  else if constexpr (kImpl == Config::ImplType::kMsvc) {
     constexpr std::size_t size = sizeof(Integer);
     auto p = treatAs<InterlockedType<size>*>(ptr);
     auto c = treatAs<InterlockedType<size>*>(&cmp);
@@ -370,16 +358,17 @@ Integer Atomic::compareAndExchangeImpl(Integer* ptr,
 
 /*!
   */
-template <typename Integer, Atomic::ImplType kImpl> inline
+template <typename Integer, Config::ImplType kImpl> inline
 Integer Atomic::minImpl(Integer* ptr, const Integer value) noexcept
 {
   static_assert(std::is_integral_v<Integer>, "The Integer isn't integer type.");
   static_assert(sizeof(Integer) == 4, "The size of integer isn't 4 byte.");
   Integer old = cast<Integer>(0);
-  if constexpr (kImpl == ImplType::kClang) {
+  if constexpr (kImpl == Config::ImplType::kClang) {
     old = __atomic_fetch_min(ptr, value, __ATOMIC_SEQ_CST);
   }
-  else if constexpr ((kImpl == ImplType::kGcc) || (kImpl == ImplType::kMsvc)) {
+  else if constexpr ((kImpl == Config::ImplType::kGcc) ||
+                     (kImpl == Config::ImplType::kMsvc)) {
     const auto min_impl = [](const Integer lhs, const Integer rhs)
     {
       return (lhs < rhs) ? lhs : rhs;
@@ -391,16 +380,17 @@ Integer Atomic::minImpl(Integer* ptr, const Integer value) noexcept
 
 /*!
   */
-template <typename Integer, Atomic::ImplType kImpl> inline
+template <typename Integer, Config::ImplType kImpl> inline
 Integer Atomic::maxImpl(Integer* ptr, const Integer value) noexcept
 {
   static_assert(std::is_integral_v<Integer>, "The Integer isn't integer type.");
   static_assert(sizeof(Integer) == 4, "The size of integer isn't 4 byte.");
   Integer old = cast<Integer>(0);
-  if constexpr (kImpl == ImplType::kClang) {
+  if constexpr (kImpl == Config::ImplType::kClang) {
     old = __atomic_fetch_max(ptr, value, __ATOMIC_SEQ_CST);
   }
-  else if constexpr ((kImpl == ImplType::kGcc) || (kImpl == ImplType::kMsvc)) {
+  else if constexpr ((kImpl == Config::ImplType::kGcc) ||
+                     (kImpl == Config::ImplType::kMsvc)) {
     const auto max_impl = [](const Integer lhs, const Integer rhs)
     {
       return (lhs < rhs) ? rhs : lhs;
@@ -412,15 +402,16 @@ Integer Atomic::maxImpl(Integer* ptr, const Integer value) noexcept
 
 /*!
   */
-template <typename Integer, Atomic::ImplType kImpl> inline
+template <typename Integer, Config::ImplType kImpl> inline
 Integer Atomic::andBitImpl(Integer* ptr, const Integer value) noexcept
 {
   static_assert(std::is_integral_v<Integer>, "The Integer isn't integer type.");
   Integer old = cast<Integer>(0);
-  if constexpr ((kImpl == ImplType::kGcc) || (kImpl == ImplType::kClang)) {
+  if constexpr ((kImpl == Config::ImplType::kGcc) ||
+                (kImpl == Config::ImplType::kClang)) {
     old = __atomic_fetch_and(ptr, value, __ATOMIC_SEQ_CST);
   }
-  else if constexpr (kImpl == ImplType::kMsvc) {
+  else if constexpr (kImpl == Config::ImplType::kMsvc) {
     constexpr std::size_t size = sizeof(Integer);
     auto p = treatAs<InterlockedType<size>*>(ptr);
     auto o = treatAs<InterlockedType<size>*>(&old);
@@ -443,15 +434,16 @@ Integer Atomic::andBitImpl(Integer* ptr, const Integer value) noexcept
 
 /*!
   */
-template <typename Integer, Atomic::ImplType kImpl> inline
+template <typename Integer, Config::ImplType kImpl> inline
 Integer Atomic::orBitImpl(Integer* ptr, const Integer value) noexcept
 {
   static_assert(std::is_integral_v<Integer>, "The Integer isn't integer type.");
   Integer old = cast<Integer>(0);
-  if constexpr ((kImpl == ImplType::kGcc) || (kImpl == ImplType::kClang)) {
+  if constexpr ((kImpl == Config::ImplType::kGcc) ||
+                (kImpl == Config::ImplType::kClang)) {
     old = __atomic_fetch_or(ptr, value, __ATOMIC_SEQ_CST);
   }
-  else if constexpr (kImpl == ImplType::kMsvc) {
+  else if constexpr (kImpl == Config::ImplType::kMsvc) {
     constexpr std::size_t size = sizeof(Integer);
     auto p = treatAs<InterlockedType<size>*>(ptr);
     auto o = treatAs<InterlockedType<size>*>(&old);
@@ -474,15 +466,16 @@ Integer Atomic::orBitImpl(Integer* ptr, const Integer value) noexcept
 
 /*!
   */
-template <typename Integer, Atomic::ImplType kImpl> inline
+template <typename Integer, Config::ImplType kImpl> inline
 Integer Atomic::xorBitImpl(Integer* ptr, const Integer value) noexcept
 {
   static_assert(std::is_integral_v<Integer>, "The Integer isn't integer type.");
   Integer old = cast<Integer>(0);
-  if constexpr ((kImpl == ImplType::kGcc) || (kImpl == ImplType::kClang)) {
+  if constexpr ((kImpl == Config::ImplType::kGcc) ||
+                (kImpl == Config::ImplType::kClang)) {
     old = __atomic_fetch_xor(ptr, value, __ATOMIC_SEQ_CST);
   }
-  else if constexpr (kImpl == ImplType::kMsvc) {
+  else if constexpr (kImpl == Config::ImplType::kMsvc) {
     constexpr std::size_t size = sizeof(Integer);
     auto p = treatAs<InterlockedType<size>*>(ptr);
     auto o = treatAs<InterlockedType<size>*>(&old);
@@ -505,15 +498,16 @@ Integer Atomic::xorBitImpl(Integer* ptr, const Integer value) noexcept
 
 /*!
   */
-template <typename Type, Atomic::ImplType kImpl> inline
+template <typename Type, Config::ImplType kImpl> inline
 constexpr bool Atomic::isAlwaysLockFreeImpl() noexcept
 {
   bool flag = false;
-  if constexpr ((kImpl == ImplType::kGcc) || (kImpl == ImplType::kClang)) {
+  if constexpr ((kImpl == Config::ImplType::kGcc) ||
+                (kImpl == Config::ImplType::kClang)) {
     constexpr std::size_t size = sizeof(Type);
     flag = __atomic_always_lock_free(size, nullptr);
   }
-  else if constexpr (kImpl == ImplType::kMsvc) {
+  else if constexpr (kImpl == Config::ImplType::kMsvc) {
     flag = true;
   }
   return flag;
@@ -521,15 +515,16 @@ constexpr bool Atomic::isAlwaysLockFreeImpl() noexcept
 
 /*!
   */
-template <typename Type, Atomic::ImplType kImpl> inline
+template <typename Type, Config::ImplType kImpl> inline
 bool Atomic::isLockFreeImpl() noexcept
 {
   bool flag = false;
-  if constexpr ((kImpl == ImplType::kGcc) || (kImpl == ImplType::kClang)) {
+  if constexpr ((kImpl == Config::ImplType::kGcc) ||
+                (kImpl == Config::ImplType::kClang)) {
     constexpr std::size_t size = sizeof(Type);
     flag = __atomic_is_lock_free(size, nullptr);
   }
-  else if constexpr (kImpl == ImplType::kMsvc) {
+  else if constexpr (kImpl == Config::ImplType::kMsvc) {
     flag = true;
   }
   return flag;

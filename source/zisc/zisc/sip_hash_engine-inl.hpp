@@ -17,6 +17,7 @@
 #include <cstddef>
 #include <type_traits>
 // Zisc
+#include "algorithm.hpp"
 #include "string.hpp"
 #include "type_traits.hpp"
 #include "utility.hpp"

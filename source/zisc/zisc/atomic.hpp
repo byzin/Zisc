@@ -24,14 +24,6 @@ namespace zisc {
 class Atomic
 {
  public:
-  enum class ImplType : uint
-  {
-    kGcc = 0,
-    kClang,
-    kMsvc
-  };
-
-
   //! Perform atomic addition
   template <typename Integer>
   static Integer add(Integer* ptr, const Integer value) noexcept;
@@ -78,9 +70,6 @@ class Atomic
   template <typename Integer>
   static Integer xorBit(Integer* ptr, const Integer value) noexcept;
 
-  //! Return the implementation type
-  static constexpr ImplType implType() noexcept;
-
   //! Indicate that the type is always lock-free
   template <typename Type>
   static constexpr bool isAlwaysLockFree() noexcept;
@@ -103,57 +92,57 @@ class Atomic
                           std::conditional_t<size == 8, long long, void>>>>;
 
   //! Perform atomic addition
-  template <typename Integer, ImplType kImpl>
+  template <typename Integer, Config::ImplType kImpl>
   static Integer addImpl(Integer* ptr, const Integer value) noexcept;
 
   //! Perform atomic subtraction
-  template <typename Integer, ImplType kImpl>
+  template <typename Integer, Config::ImplType kImpl>
   static Integer subImpl(Integer* ptr, const Integer value) noexcept;
 
   //! Atomically replace with the given value
-  template <typename Integer, ImplType kImpl>
+  template <typename Integer, Config::ImplType kImpl>
   static Integer exchangeImpl(Integer* ptr, Integer value) noexcept;
 
   //! Perform atomic increment
-  template <typename Integer, ImplType kImpl>
+  template <typename Integer, Config::ImplType kImpl>
   static Integer incrementImpl(Integer* ptr) noexcept;
 
   //! Perform atomic decrement 
-  template <typename Integer, ImplType kImpl>
+  template <typename Integer, Config::ImplType kImpl>
   static Integer decrementImpl(Integer* ptr) noexcept;
 
   //! Atomically compare and perform exchange
-  template <typename Integer, ImplType kImpl>
+  template <typename Integer, Config::ImplType kImpl>
   static Integer compareAndExchangeImpl(Integer* ptr,
                                         Integer cmp,
                                         Integer value) noexcept;
 
   //!
-  template <typename Integer, ImplType kImpl>
+  template <typename Integer, Config::ImplType kImpl>
   static Integer minImpl(Integer* ptr, const Integer value) noexcept;
 
   //!
-  template <typename Integer, ImplType kImpl>
+  template <typename Integer, Config::ImplType kImpl>
   static Integer maxImpl(Integer* ptr, const Integer value) noexcept;
 
   //! Perform atomic bitwise and
-  template <typename Integer, ImplType kImpl>
+  template <typename Integer, Config::ImplType kImpl>
   static Integer andBitImpl(Integer* ptr, const Integer value) noexcept;
 
   //! Perform atomic bitwise or
-  template <typename Integer, ImplType kImpl>
+  template <typename Integer, Config::ImplType kImpl>
   static Integer orBitImpl(Integer* ptr, const Integer value) noexcept;
 
   //! Perform atomic bitwise or
-  template <typename Integer, ImplType kImpl>
+  template <typename Integer, Config::ImplType kImpl>
   static Integer xorBitImpl(Integer* ptr, const Integer value) noexcept;
 
   //! Indicate that the type is always lock-free
-  template <typename Type, ImplType kImpl>
+  template <typename Type, Config::ImplType kImpl>
   static constexpr bool isAlwaysLockFreeImpl() noexcept;
 
   //! Check if the atomic operations are lock-free
-  template <typename Type, ImplType kImpl>
+  template <typename Type, Config::ImplType kImpl>
   static bool isLockFreeImpl() noexcept;
 };
 

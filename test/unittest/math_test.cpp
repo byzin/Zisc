@@ -157,32 +157,32 @@ TEST(MathTest, SolveCubicOneTest)
 {
   constexpr double error = 0.0000001;
   // Example 1
-  const auto r1 = zisc::solveCubicOne(6.0, -5.0, -17.0, 6.0);
+  const auto r1 = zisc::Math::solveCubicOne(6.0, -5.0, -17.0, 6.0);
   EXPECT_NEAR(2.0, r1, error);
   // Example 2
-  const auto r2 = zisc::solveCubicOne(1.0, -2.0, -6.0, 4.0);
+  const auto r2 = zisc::Math::solveCubicOne(1.0, -2.0, -6.0, 4.0);
   EXPECT_NEAR(3.414213562373095, r2, error);
   // Example 3
-  const auto r3 = zisc::solveCubicOne(1.0, 1.0, 1.0, -3.0);
+  const auto r3 = zisc::Math::solveCubicOne(1.0, 1.0, 1.0, -3.0);
   EXPECT_NEAR(1.0, r3, error);
   // Example 4
-  const auto r4 = zisc::solveCubicOne(4.0, 3.0, 2.0, 1.0);
+  const auto r4 = zisc::Math::solveCubicOne(4.0, 3.0, 2.0, 1.0);
   EXPECT_NEAR(-0.605829586188268, r4, error);
   // Example 5
-  const auto r5 = zisc::solveCubicOne(1.0, -6.0, 11.0, -6.0);
+  const auto r5 = zisc::Math::solveCubicOne(1.0, -6.0, 11.0, -6.0);
   EXPECT_NEAR(3.0, r5, error);
   // Example 6
-  const auto r6 = zisc::solveCubicOne(1.0, -5.0, 8.0, -4.0);
+  const auto r6 = zisc::Math::solveCubicOne(1.0, -5.0, 8.0, -4.0);
   EXPECT_NEAR(1.0, r6, error);
   // Example 7
-  const auto r7 = zisc::solveCubicOne(1.0, -3.0, 3.0, -1.0);
+  const auto r7 = zisc::Math::solveCubicOne(1.0, -3.0, 3.0, -1.0);
   EXPECT_NEAR(1.0, r7, error);
 }
 
 TEST(MathTest, SolveQuarticTest)
 {
   // Example 1
-  const auto r1 = zisc::solveQuartic(3.0, 6.0, -123.0, -126.0, 1080.0);
+  const auto r1 = zisc::Math::solveQuartic(3.0, 6.0, -123.0, -126.0, 1080.0);
   const auto& a1 = std::get<0>(r1);
   const int n1 = std::get<1>(r1);
   EXPECT_EQ(4, n1);
@@ -191,21 +191,21 @@ TEST(MathTest, SolveQuarticTest)
   EXPECT_DOUBLE_EQ(-4.0, a1[2]);
   EXPECT_DOUBLE_EQ(-6.0, a1[3]);
   // Example 2
-  const auto r2 = zisc::solveQuartic(-20.0, 5.0, 17.0, -29.0, 87.0);
+  const auto r2 = zisc::Math::solveQuartic(-20.0, 5.0, 17.0, -29.0, 87.0);
   const auto& a2 = std::get<0>(r2);
   const int n2 = std::get<1>(r2);
   EXPECT_EQ(2, n2);
   EXPECT_FLOAT_EQ(1.48758311033f, static_cast<float>(a2[0]));
   EXPECT_FLOAT_EQ(-1.68200392658f, static_cast<float>(a2[1]));
   // Example 3
-  const auto r3 = zisc::solveQuartic(2.0, 2.0, -3.0, -3.0, -4.0);
+  const auto r3 = zisc::Math::solveQuartic(2.0, 2.0, -3.0, -3.0, -4.0);
   const auto& a3 = std::get<0>(r3);
   const int n3 = std::get<1>(r3);
   EXPECT_EQ(2, n3);
   EXPECT_FLOAT_EQ(1.43875f, static_cast<float>(a3[0]));
   EXPECT_FLOAT_EQ(-1.7439762f, static_cast<float>(a3[1]));
   // Example 4 
-  const auto r4 = zisc::solveQuartic(16.0, 96.0, -24.0, -664.0, -315.0);
+  const auto r4 = zisc::Math::solveQuartic(16.0, 96.0, -24.0, -664.0, -315.0);
   const auto& a4 = std::get<0>(r4);
   const int n4 = std::get<1>(r4);
   EXPECT_EQ(4, n4);
@@ -214,7 +214,7 @@ TEST(MathTest, SolveQuarticTest)
   EXPECT_DOUBLE_EQ(-7.0 / 2.0, a4[2]);
   EXPECT_DOUBLE_EQ(-9.0 / 2.0, a4[3]);
   // Equation 5
-  const auto r5 = zisc::solveQuartic(1.0, -22.0, 152.0, -362.0, 231.0);
+  const auto r5 = zisc::Math::solveQuartic(1.0, -22.0, 152.0, -362.0, 231.0);
   const auto& a5 = std::get<0>(r5);
   const int n5 = std::get<1>(r5);
   ASSERT_EQ(4, n5);
@@ -223,7 +223,7 @@ TEST(MathTest, SolveQuarticTest)
   ASSERT_DOUBLE_EQ( 3.0, a5[2]);
   ASSERT_DOUBLE_EQ( 1.0, a5[3]);
   // Equation 3
-  const auto r6 = zisc::solveQuartic(1.0, -7.0, 5.0, 31.0, -30.0);
+  const auto r6 = zisc::Math::solveQuartic(1.0, -7.0, 5.0, 31.0, -30.0);
   const auto& a6 = std::get<0>(r6);
   const int n6 = std::get<1>(r6);
   ASSERT_EQ(4, n6);

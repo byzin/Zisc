@@ -16,6 +16,7 @@
 #include <array>
 #include <cstddef>
 #include <iterator>
+#include <limits>
 #include <string>
 #include <type_traits>
 #include <utility>
@@ -28,35 +29,222 @@
 
 namespace zisc {
 
-namespace stl_implementation {
+/*!
+ \details
+ No detailed.
+ */
+template <typename Arithmetic> inline
+constexpr Arithmetic Algorithm::abs(const Arithmetic x) noexcept
+{
+  static_assert(std::is_arithmetic_v<Arithmetic>,
+                "Arithmetic isn't arithmetic type.");
+  if constexpr (std::is_signed_v<Arithmetic>) {
+    const auto y = isNegative(x) ? -x : x;
+    return y;
+  }
+  else {
+    return x;
+  }
+}
+
+/*!
+ \details
+ No detailed.
+*/
+template <typename Type, typename LowerType, typename UpperType> inline
+constexpr std::common_type_t<Type, LowerType, UpperType> Algorithm::clamp(
+    const Type value, 
+    const LowerType lower, 
+    const UpperType upper) noexcept
+{
+  const auto y = min(max(value, lower), upper);
+  return y;
+}
+
+/*!
+  */
+template <typename Float> inline
+constexpr Float Algorithm::invert(const Float x) noexcept
+{
+  static_assert(kIsFloat<Float>, "Float isn't floating point.");
+  constexpr Float zero = cast<Float>(0.0);
+  constexpr Float one = cast<Float>(1.0);
+  constexpr Float m = std::numeric_limits<Float>::max();
+  const auto y = (x != zero) ? one / x : m;
+  return y;
+}
+
+/*!
+  */
+template <bool kIsLeftClosed,
+          bool kIsRightClosed,
+          typename Type,
+          typename LowerType,
+          typename UpperType> inline
+constexpr bool Algorithm::isInBounds(const Type& value, 
+                                     const LowerType& lower, 
+                                     const UpperType& upper) noexcept
+{
+  const auto result = ((kIsLeftClosed) ? !(value < lower) : (lower < value)) &&
+                      ((kIsRightClosed) ? !(upper < value) : (value < upper));
+  return result;
+}
+
+/*!
+  */
+template <typename Type, typename LowerType, typename UpperType> inline
+constexpr bool Algorithm::isInOpenBounds(const Type& value, 
+                                         const LowerType& lower, 
+                                         const UpperType& upper) noexcept
+{
+  const auto result = isInBounds<false, false>(value, lower, upper);
+  return result;
+}
+
+/*!
+  */
+template <typename Type, typename LowerType, typename UpperType> inline
+constexpr bool Algorithm::isInClosedBounds(const Type& value, 
+                                           const LowerType& lower, 
+                                           const UpperType& upper) noexcept
+{
+  const auto result = isInBounds<true, true>(value, lower, upper);
+  return result;
+}
+
+/*!
+ \details
+ No detailed.
+ */
+template <typename Arithmetic> inline
+constexpr bool Algorithm::isNegative(const Arithmetic n) noexcept
+{
+  static_assert(std::is_arithmetic_v<Arithmetic>,
+                "Arithmetic isn't arithmetic type.");
+  if constexpr (std::is_signed_v<Arithmetic>) {
+    constexpr auto zero = cast<Arithmetic>(0);
+    const bool result = n < zero;
+    return result;
+  }
+  else {
+    return false;
+  }
+}
+
+/*!
+  */
+template <typename Integer> inline
+constexpr bool Algorithm::isOdd(const Integer n) noexcept
+{
+  static_assert(std::is_integral_v<Integer>, "Integer isn't integer type.");
+  constexpr auto lsb = cast<Integer>(0b01);
+  const auto result = ((n & lsb) == lsb);
+  return result;
+}
+
+/*!
+  */
+template <typename Integer> inline
+constexpr bool Algorithm::isPowerOf2(const Integer x) noexcept
+{
+  static_assert(std::is_integral_v<Integer>, "Integer isn't integer type.");
+  const auto result = (x & (x - 1)) == 0;
+  return result;
+}
+
+/*!
+  \details
+  No detailed.
+  */
+template <typename Type1, typename Type2> inline
+constexpr const std::common_type_t<Type1, Type2>& Algorithm::max(
+    const Type1& a,
+    const Type2& b) noexcept
+{
+  const std::common_type_t<Type1, Type2>& y = (b < a) ? a : b;
+  return y;
+}
+
+/*!
+  \details
+  No detailed.
+  */
+template <typename Type1, typename Type2> inline
+constexpr const std::common_type_t<Type1, Type2>& Algorithm::min(
+    const Type1& a,
+    const Type2& b) noexcept
+{
+  const std::common_type_t<Type1, Type2>& y = (b < a) ? b : a;
+  return y;
+}
+
+/*!
+  \details
+  No detailed.
+  */
+template <typename RandomAccessIterator, typename Type> inline
+RandomAccessIterator Algorithm::searchBinaryTree(
+    const RandomAccessIterator begin,
+    const RandomAccessIterator end,
+    const Type& value) noexcept
+{
+  ZISC_ASSERT(0 < std::distance(begin, end), "The end is in advance of the begin.");
+  const auto result = Config::isStlBinaryTreeUsed()
+    ? Stl::searchBinaryTree(begin, end, value)
+    : Zisc::searchBinaryTree(begin, end, value);
+  return result;
+}
+
+/*!
+  \details
+  No detailed.
+  */
+template <typename RandomAccessIterator> inline
+void Algorithm::toBinaryTree(
+    RandomAccessIterator begin, 
+    RandomAccessIterator end,
+    pmr::memory_resource* mem_resource) noexcept
+{
+  ZISC_ASSERT(std::is_sorted(begin, end), "The array isn't sorted.");
+  if (Config::isStlBinaryTreeUsed())
+    Stl::toBinaryTree(begin, end, mem_resource);
+  else
+    Zisc::toBinaryTree(begin, end, mem_resource);
+}
 
 /*!
   */
 template <typename RandomAccessIterator, typename Type> inline
-RandomAccessIterator searchBinaryTree(
+RandomAccessIterator Algorithm::Stl::searchBinaryTree(
     const RandomAccessIterator begin,
     const RandomAccessIterator end,
-    const Type& value,
-    EnableIfRandomAccessIterator<RandomAccessIterator> = kEnabler) noexcept
+    const Type& value) noexcept
 {
+  ZISC_ASSERT(0 < std::distance(begin, end), "The end is in advance of the begin.");
   auto result = std::lower_bound(begin, end, value);
   result = (*result == value) ? result : result - 1;
   return result;
 }
 
-} // namespace stl_implementation
-
-namespace zisc_implementation {
+/*!
+  */
+template <typename RandomAccessIterator> inline
+void Algorithm::Stl::toBinaryTree(
+    RandomAccessIterator /* begin */, 
+    RandomAccessIterator /* end */,
+    pmr::memory_resource* /* mem_resource */) noexcept
+{
+}
 
 /*!
   */
 template <typename RandomAccessIterator, typename Type> inline
-RandomAccessIterator searchBinaryTree(
+RandomAccessIterator Algorithm::Zisc::searchBinaryTree(
     const RandomAccessIterator begin,
     const RandomAccessIterator end,
-    const Type& value,
-    EnableIfRandomAccessIterator<RandomAccessIterator> = kEnabler) noexcept
+    const Type& value) noexcept
 {
+  ZISC_ASSERT(0 < std::distance(begin, end), "The end is in advance of the begin.");
   const std::size_t n = cast<std::size_t>(std::distance(begin, end));
   std::size_t index = 0;
   while (index < n) {
@@ -71,14 +259,38 @@ RandomAccessIterator searchBinaryTree(
 }
 
 /*!
+  \details
+  No detailed.
   */
-template <typename RandomAccessIterator, typename OutputIterator> inline
-void toBinaryTree(
+template <typename RandomAccessIterator> inline
+void Algorithm::Zisc::toBinaryTree(
     RandomAccessIterator begin, 
     RandomAccessIterator end,
-    const std::size_t index,
-    OutputIterator first,
-    EnableIfRandomAccessIterator<RandomAccessIterator> = kEnabler) noexcept
+    pmr::memory_resource* mem_resource) noexcept
+{
+  ZISC_ASSERT(std::is_sorted(begin, end), "The array isn't sorted.");
+  const auto size = std::distance(begin, end);
+  ZISC_ASSERT(0 < size, "The end is in advance of the begin.");
+  if (1 < size) {
+    // Create a temp array
+    using Type = typename std::iterator_traits<RandomAccessIterator>::value_type;
+    zisc::pmr::vector<Type> array{
+        typename decltype(array)::allocator_type{mem_resource}};
+    array.reserve(cast<std::size_t>(size));
+    for (auto iterator = begin; iterator != end; ++iterator)
+      array.emplace_back(std::move(*iterator));
+    // Transform an array to a binary tree
+    toBinaryTreeImpl(array.begin(), array.end(), 0, begin);
+  }
+}
+
+/*!
+  */
+template <typename RandomAccessIterator, typename OutputIterator> inline
+void Algorithm::Zisc::toBinaryTreeImpl(RandomAccessIterator begin, 
+                                       RandomAccessIterator end,
+                                       const std::size_t index,
+                                       OutputIterator first) noexcept
 {
   const std::size_t n = cast<std::size_t>(std::distance(begin, end));
   if (n == 1) {
@@ -99,65 +311,139 @@ void toBinaryTree(
     // Left child
     {
       const std::size_t left_index = (index << 1) + 1;
-      toBinaryTree(begin, center, left_index, first);
+      toBinaryTreeImpl(begin, center, left_index, first);
     }
     // Right child
     {
       const std::size_t right_index = (index << 1) + 2;
-      toBinaryTree(center + 1, end, right_index, first);
+      toBinaryTreeImpl(center + 1, end, right_index, first);
     }
   }
 }
 
-} // namespace zisc_implementation
+/*!
+ \details
+ No detailed.
+ */
+template <typename Arithmetic> inline
+constexpr Arithmetic abs(const Arithmetic x) noexcept
+{
+  static_assert(std::is_arithmetic_v<Arithmetic>,
+                "Arithmetic isn't arithmetic type.");
+  const auto y = Algorithm::abs(x);
+  return y;
+}
 
 /*!
-  \details
-  No detailed.
-  */
-template <typename RandomAccessIterator, typename Type> inline
-RandomAccessIterator searchBinaryTree(
-    const RandomAccessIterator begin,
-    const RandomAccessIterator end,
-    const Type& value,
-    EnableIfRandomAccessIterator<RandomAccessIterator>) noexcept
+ \details
+ No detailed.
+*/
+template <typename Type, typename LowerType, typename UpperType> inline
+constexpr std::common_type_t<Type, LowerType, UpperType> clamp(
+    const Type value, 
+    const LowerType lower, 
+    const UpperType upper) noexcept
 {
-  ZISC_ASSERT(0 < std::distance(begin, end), "The end is in advance of the begin.");
-#ifdef ZISC_ALGORITHM_BINARY_TREE
-  return zisc_implementation::searchBinaryTree(begin, end, value);
-#else // ZISC_ALGORITHM_BINARY_TREE
-  return stl_implementation::searchBinaryTree(begin, end, value);
-#endif // ZISC_ALGORITHM_BINARY_TREE
+  const auto y = Algorithm::clamp(value, lower, upper);
+  return y;
+}
+
+/*!
+  */
+template <typename Float> inline
+constexpr Float invert(const Float x) noexcept
+{
+  static_assert(kIsFloat<Float>, "Float isn't floating point.");
+  const auto y = Algorithm::invert(x);
+  return y;
 }
 
 /*!
   \details
   No detailed.
   */
-template <typename RandomAccessIterator> inline
-void toBinaryTree(
-    RandomAccessIterator begin, 
-    RandomAccessIterator end,
-    pmr::memory_resource* mem_resource,
-    EnableIfRandomAccessIterator<RandomAccessIterator>) noexcept
+template <typename Type1, typename Type2> inline
+constexpr const std::common_type_t<Type1, Type2>& max(const Type1& a,
+                                                      const Type2& b) noexcept
 {
-  ZISC_ASSERT(std::is_sorted(begin, end), "The array isn't sorted.");
+  const std::common_type_t<Type1, Type2>& y = Algorithm::max(a, b);
+  return y;
+}
 
-  const auto size = std::distance(begin, end);
-  ZISC_ASSERT(0 < size, "The end is in advance of the begin.");
-  if (1 < size) {
-#ifdef ZISC_ALGORITHM_BINARY_TREE
-    // Create a temp array
-    using Type = typename std::iterator_traits<RandomAccessIterator>::value_type;
-    zisc::pmr::vector<Type> array{
-        typename decltype(array)::allocator_type{mem_resource}};
-    array.reserve(cast<std::size_t>(size));
-    for (auto iterator = begin; iterator != end; ++iterator)
-      array.emplace_back(std::move(*iterator));
-    // Transform an array to a binary tree
-    zisc_implementation::toBinaryTree(array.begin(), array.end(), 0, begin);
-#endif // ZISC_ALGORITHM_BINARY_TREE
-  }
+/*!
+  \details
+  No detailed.
+  */
+template <typename Type1, typename Type2> inline
+constexpr const std::common_type_t<Type1, Type2>& min(const Type1& a,
+                                                      const Type2& b) noexcept
+{
+  const std::common_type_t<Type1, Type2>& y = Algorithm::min(a, b);
+  return y;
+}
+
+/*!
+  */
+template <bool kIsLeftClosed,
+          bool kIsRightClosed,
+          typename Type,
+          typename LowerType,
+          typename UpperType> inline
+constexpr bool isInBounds(const Type& value, 
+                          const LowerType& lower, 
+                          const UpperType& upper) noexcept
+{
+  const auto result = Algorithm::isInBounds<kIsLeftClosed,
+                                            kIsRightClosed,
+                                            Type,
+                                            LowerType,
+                                            UpperType>(value, lower, upper);
+  return result;
+}
+
+/*!
+  */
+template <typename Type, typename LowerType, typename UpperType> inline
+constexpr bool isInOpenBounds(const Type& value, 
+                              const LowerType& lower, 
+                              const UpperType& upper) noexcept
+{
+  const auto result = isInBounds<false, false>(value, lower, upper);
+  return result;
+}
+
+/*!
+  */
+template <typename Type, typename LowerType, typename UpperType> inline
+constexpr bool isInClosedBounds(const Type& value, 
+                                const LowerType& lower, 
+                                const UpperType& upper) noexcept
+{
+  const auto result = isInBounds<true, true>(value, lower, upper);
+  return result;
+}
+
+/*!
+ \details
+ No detailed.
+ */
+template <typename Arithmetic> inline
+constexpr bool isNegative(const Arithmetic n) noexcept
+{
+  static_assert(std::is_arithmetic_v<Arithmetic>,
+                "Arithmetic isn't arithmetic type.");
+  const auto result = Algorithm::isNegative(n);
+  return result;
+}
+
+/*!
+  */
+template <typename Integer> inline
+constexpr bool isOdd(const Integer n) noexcept
+{
+  static_assert(std::is_integral_v<Integer>, "Integer isn't integer type.");
+  const auto result = Algorithm::isOdd(n);
+  return result;
 }
 
 } // namespace zisc

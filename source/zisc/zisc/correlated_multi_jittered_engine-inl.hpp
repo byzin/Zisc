@@ -153,7 +153,7 @@ template <uint32b kRootN> template <uint32b l> inline
 uint32b CorrelatedMultiJitteredEngine<kRootN>::permute(uint32b i,
                                                       const uint32b p) noexcept
 {
-  constexpr bool is_power_of_2 = (1 < l) && isPowerOf2(l);
+  constexpr bool is_power_of_2 = (1 < l) && Algorithm::isPowerOf2(l);
   constexpr uint32b w = makeWMask(l - 1);
   if (is_power_of_2) {
     // fast case

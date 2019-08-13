@@ -17,7 +17,7 @@
 #include <memory>
 #include <type_traits>
 // Zisc
-#include "const_math.hpp"
+#include "math_const.hpp"
 #include "error.hpp"
 #include "simple_memory_resource.hpp"
 #include "utility.hpp"
@@ -241,7 +241,8 @@ void MemoryChunk::setChunkInfo(const std::size_t size,
     }
     {
       constexpr std::size_t chunk_align = headerAlignment();
-      static_assert(isPowerOf2(chunk_align), "The chunk align isn't power of 2.");
+      static_assert(Algorithm::isPowerOf2(chunk_align),
+                    "The chunk align isn't power of 2.");
       std::size_t o2 = (chunk_align - constant::mod<chunk_align>(size));
       o2 = (o2 == chunk_align) ? 0 : o2;
       ZISC_ASSERT(o2 < chunk_align, "The size of the offset2 exceeded the limit.");

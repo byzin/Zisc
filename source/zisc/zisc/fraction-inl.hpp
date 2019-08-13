@@ -14,6 +14,7 @@
 // Standard C++ library
 #include <numeric>
 // Zisc
+#include "algorithm.hpp"
 #include "type_traits.hpp"
 #include "utility.hpp"
 #include "zisc/zisc_config.hpp"

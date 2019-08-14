@@ -20,6 +20,10 @@
 #include <string>
 #include <type_traits>
 #include <utility>
+// Microsoft
+#if defined(Z_MSVC)
+#include <intrin.h>
+#endif // Z_MSVC
 // Zisc
 #include "error.hpp"
 #include "memory_resource.hpp"

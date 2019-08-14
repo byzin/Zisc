@@ -179,6 +179,16 @@ constexpr const std::common_type_t<Type1, Type2>& Algorithm::min(
 }
 
 /*!
+  */
+template <typename Integer> inline
+Integer Algorithm::popcount(const Integer x) noexcept
+{
+  static_assert(std::is_integral_v<Integer>, "Integer isn't integer type.");
+  const auto y = popcountImpl<Config::implType()>(x);
+  return y;
+}
+
+/*!
   \details
   No detailed.
   */
@@ -319,6 +329,94 @@ void Algorithm::Zisc::toBinaryTreeImpl(RandomAccessIterator begin,
       toBinaryTreeImpl(center + 1, end, right_index, first);
     }
   }
+}
+
+/*!
+  */
+template <typename Integer> inline
+constexpr Integer Algorithm::makePopcountMask(const std::size_t stage) noexcept
+{
+  static_assert(std::is_integral_v<Integer>, "Integer isn't integer type.");
+  constexpr std::size_t bit_size = 8 * sizeof(Integer);
+  Integer mask = cast<Integer>(0b1);
+  std::size_t i = 0;
+  for (; i < stage; ++i)
+    mask = cast<Integer>(mask << (1 << i)) | mask;
+  for (; cast<std::size_t>(2 << i) < bit_size; ++i)
+    mask = cast<Integer>(mask << (2 << i)) | mask;
+  return mask;
+}
+
+/*!
+  */
+template <std::size_t kStage, typename Integer> inline
+Integer Algorithm::popcountFallback(const Integer x) noexcept
+{
+  static_assert(std::is_integral_v<Integer>, "Integer isn't integer type.");
+  constexpr Integer l_mask = makePopcountMask<Integer>(kStage);
+  constexpr Integer h_mask = cast<Integer>(~l_mask);
+  const Integer l = x & l_mask;
+  const Integer h = x & h_mask;
+  Integer y = l + cast<Integer>(h >> (1 << kStage));
+  constexpr std::size_t bit_size = 8 * sizeof(Integer);
+  if constexpr ((2 << kStage) < bit_size)
+    y = popcountFallback<kStage + 1, Integer>(y);
+  return y;
+}
+
+/*!
+  */
+template <Config::ImplType kImpl, typename Integer> inline
+Integer Algorithm::popcountImpl(const Integer x) noexcept
+{
+  static_assert(std::is_integral_v<Integer>, "Integer isn't integer type.");
+  constexpr std::size_t size = sizeof(Integer);
+  Integer y = cast<Integer>(0);
+  if constexpr ((kImpl == Config::ImplType::kClang) ||
+                (kImpl == Config::ImplType::kGcc)) {
+    if constexpr ((size == 8) && (sizeof(long) == 8)) {
+      constexpr bool is_uint = std::is_unsigned_v<Integer>;
+      using IType = std::conditional_t<is_uint, unsigned long, long>;
+      const IType v = cast<IType>(x);
+      y = __builtin_popcountl(v);
+    }
+    else if constexpr ((size == 8) && (sizeof(long long) == 8)) {
+      constexpr bool is_uint = std::is_unsigned_v<Integer>;
+      using IType = std::conditional_t<is_uint, unsigned long long, long long>;
+      const IType v = cast<IType>(x);
+      y = __builtin_popcountll(v);
+    }
+    else  {
+      constexpr bool is_uint = std::is_unsigned_v<Integer>;
+      using IType = std::conditional_t<is_uint, uint, int>;
+      const IType v = cast<IType>(x);
+      y = cast<Integer>(__builtin_popcount(v));
+    }
+  }
+  else if constexpr (kImpl == Config::ImplType::kMsvc) {
+    if constexpr (size == 2) {
+      constexpr bool is_uint = std::is_unsigned_v<Integer>;
+      using IType = std::conditional_t<is_uint, unsigned short, short>;
+      const IType v = cast<IType>(x);
+      y = __popcnt16(v);
+    }
+    else if constexpr (size == 8) {
+      constexpr bool is_uint = std::is_unsigned_v<Integer>;
+      using IType = std::conditional_t<is_uint, unsigned long long, long long>;
+      const IType v = cast<IType>(x);
+      y = __popcnt64(v);
+    }
+    else {
+      constexpr bool is_uint = std::is_unsigned_v<Integer>;
+      using IType = std::conditional_t<is_uint, unsigned int, int>;
+      const IType v = cast<IType>(x);
+      y = cast<Integer>(__popcnt(v));
+    }
+  }
+  else {
+    y = popcountFallback<0>(x);
+  }
+  return y;
 }
 
 /*!

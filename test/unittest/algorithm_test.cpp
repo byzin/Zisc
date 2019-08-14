@@ -9,10 +9,13 @@
 
 // Standard C++ library
 #include <algorithm>
+#include <bitset>
 #include <chrono>
 #include <cmath>
 #include <iostream>
 #include <limits>
+#include <random>
+#include <type_traits>
 #include <vector>
 // GoogleTest
 #include "gtest/gtest.h"
@@ -144,6 +147,110 @@ TEST(AlgorithmTest, minMaxTest)
   ASSERT_EQ(v1, zisc::min(v2, v1));
   ASSERT_EQ(v2, zisc::max(v1, v2));
   ASSERT_EQ(v2, zisc::max(v2, v1));
+}
+
+TEST(AlgorithmTest, Popcount8Test)
+{
+  std::mt19937 rng;
+  rng.seed(123'456'789u);
+  using UInt =  std::mt19937::result_type;
+  static_assert(std::is_unsigned_v<UInt>, "The result type isn't unsigned.");
+  static_assert(std::mt19937::max() == std::numeric_limits<zisc::uint32b>::max());
+  static_assert(std::mt19937::min() == std::numeric_limits<zisc::uint32b>::min());
+
+  const auto get_expected = [](const zisc::uint8b x)
+  {
+    std::bitset<8> bits{x};
+    return zisc::cast<zisc::uint8b>(bits.count());
+  };
+
+  constexpr std::size_t n = 100'000'000;
+  constexpr char error_message[] = "zisc popcount is wrong.";
+  for (std::size_t i = 0; i < n; ++i) {
+    const auto x = zisc::cast<zisc::uint8b>(rng() & 0b1111'1111u);
+    const auto expected = get_expected(x);
+    const auto result = zisc::Algorithm::popcount(x);
+    ASSERT_EQ(expected, result) << error_message
+        << " x = " << x << ", expected = " << expected << ", result = " << result;
+  }
+}
+
+TEST(AlgorithmTest, Popcount16Test)
+{
+  std::mt19937 rng;
+  rng.seed(123'456'789u);
+  using UInt =  std::mt19937::result_type;
+  static_assert(std::is_unsigned_v<UInt>, "The result type isn't unsigned.");
+  static_assert(std::mt19937::max() == std::numeric_limits<zisc::uint32b>::max());
+  static_assert(std::mt19937::min() == std::numeric_limits<zisc::uint32b>::min());
+
+  const auto get_expected = [](const zisc::uint16b x)
+  {
+    std::bitset<16> bits{x};
+    return zisc::cast<zisc::uint16b>(bits.count());
+  };
+
+  constexpr std::size_t n = 100'000'000;
+  constexpr char error_message[] = "zisc popcount is wrong.";
+  for (std::size_t i = 0; i < n; ++i) {
+    const auto x = zisc::cast<zisc::uint16b>(rng() & 0b1111'1111'1111'1111u);
+    const auto expected = get_expected(x);
+    const auto result = zisc::Algorithm::popcount(x);
+    ASSERT_EQ(expected, result) << error_message
+        << " x = " << x << ", expected = " << expected << ", result = " << result;
+  }
+}
+
+TEST(AlgorithmTest, Popcount32Test)
+{
+  std::mt19937 rng;
+  rng.seed(123'456'789u);
+  using UInt =  std::mt19937::result_type;
+  static_assert(std::is_unsigned_v<UInt>, "The result type isn't unsigned.");
+  static_assert(std::mt19937::max() == std::numeric_limits<zisc::uint32b>::max());
+  static_assert(std::mt19937::min() == std::numeric_limits<zisc::uint32b>::min());
+
+  const auto get_expected = [](const zisc::uint32b x)
+  {
+    std::bitset<32> bits{x};
+    return zisc::cast<zisc::uint32b>(bits.count());
+  };
+
+  constexpr std::size_t n = 100'000'000;
+  constexpr char error_message[] = "zisc popcount is wrong.";
+  for (std::size_t i = 0; i < n; ++i) {
+    const auto x = zisc::cast<zisc::uint32b>(rng());
+    const auto expected = get_expected(x);
+    const auto result = zisc::Algorithm::popcount(x);
+    ASSERT_EQ(expected, result) << error_message
+        << " x = " << x << ", expected = " << expected << ", result = " << result;
+  }
+}
+
+TEST(AlgorithmTest, Popcount64Test)
+{
+  std::mt19937_64 rng;
+  rng.seed(123'456'789u);
+  using UInt =  std::mt19937_64::result_type;
+  static_assert(std::is_unsigned_v<UInt>, "The result type isn't unsigned.");
+  static_assert(std::mt19937_64::max() == std::numeric_limits<zisc::uint64b>::max());
+  static_assert(std::mt19937_64::min() == std::numeric_limits<zisc::uint64b>::min());
+
+  const auto get_expected = [](const zisc::uint64b x)
+  {
+    std::bitset<64> bits{x};
+    return zisc::cast<zisc::uint64b>(bits.count());
+  };
+
+  constexpr std::size_t n = 100'000'000;
+  constexpr char error_message[] = "zisc popcount is wrong.";
+  for (std::size_t i = 0; i < n; ++i) {
+    const auto x = zisc::cast<zisc::uint64b>(rng());
+    const auto expected = get_expected(x);
+    const auto result = zisc::Algorithm::popcount(x);
+    ASSERT_EQ(expected, result) << error_message
+        << " x = " << x << ", expected = " << expected << ", result = " << result;
+  }
 }
 
 TEST(AlgorithmTest, BinaryTreeTest)

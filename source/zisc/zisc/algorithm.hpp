@@ -86,6 +86,12 @@ class Algorithm
       const Type1& a,
       const Type2& b) noexcept;
 
+  // Integer
+
+  //! Return the number of non-zero bits in the given x
+  template <typename Integer>
+  static Integer popcount(const Integer x) noexcept;
+
   // Binary search operations
 
   //! Return the iterator pointing that the element is greatest <= value
@@ -149,6 +155,17 @@ class Algorithm
   };
 
  private:
+  //! Return a mask of popcount
+  template <typename Integer>
+  static constexpr Integer makePopcountMask(const std::size_t stage) noexcept;
+
+  //! Return the number of non-zero bits in the given x
+  template <std::size_t kStage, typename Integer>
+  static Integer popcountFallback(const Integer x) noexcept;
+
+  //! Return the number of non-zero bits in the given x
+  template <Config::ImplType kImpl, typename Integer>
+  static Integer popcountImpl(const Integer x) noexcept;
 };
 
 // STL style function aliases

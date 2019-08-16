@@ -382,13 +382,13 @@ Integer Algorithm::popcountImpl(const Integer x) noexcept
       constexpr bool is_uint = std::is_unsigned_v<Integer>;
       using IType = std::conditional_t<is_uint, unsigned long, long>;
       const IType v = cast<IType>(x);
-      y = __builtin_popcountl(v);
+      y = cast<Integer>(__builtin_popcountl(v));
     }
     else if constexpr ((size == 8) && (sizeof(long long) == 8)) {
       constexpr bool is_uint = std::is_unsigned_v<Integer>;
       using IType = std::conditional_t<is_uint, unsigned long long, long long>;
       const IType v = cast<IType>(x);
-      y = __builtin_popcountll(v);
+      y = cast<Integer>(__builtin_popcountll(v));
     }
     else  {
       constexpr bool is_uint = std::is_unsigned_v<Integer>;
@@ -402,13 +402,13 @@ Integer Algorithm::popcountImpl(const Integer x) noexcept
       constexpr bool is_uint = std::is_unsigned_v<Integer>;
       using IType = std::conditional_t<is_uint, unsigned short, short>;
       const IType v = cast<IType>(x);
-      y = __popcnt16(v);
+      y = cast<Integer>(__popcnt16(v));
     }
     else if constexpr (size == 8) {
       constexpr bool is_uint = std::is_unsigned_v<Integer>;
       using IType = std::conditional_t<is_uint, unsigned long long, long long>;
       const IType v = cast<IType>(x);
-      y = __popcnt64(v);
+      y = cast<Integer>(__popcnt64(v));
     }
     else {
       constexpr bool is_uint = std::is_unsigned_v<Integer>;

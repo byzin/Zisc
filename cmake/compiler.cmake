@@ -103,7 +103,6 @@ function(getSanitizerOption compile_sanitizer_flags linker_sanitizer_flags)
                            enum
                            float-cast-overflow
                            float-divide-by-zero
-                           function
                            integer-divide-by-zero
                            nonnull-attribute
                            null
@@ -115,8 +114,11 @@ function(getSanitizerOption compile_sanitizer_flags linker_sanitizer_flags)
                            return
                            returns-nonnull-attribute
                            unreachable
-                           vla-bound
-                           vptr)
+                           vla-bound)
+    if(NOT Z_WINDOWS)
+      list(APPEND check_list function
+                             vptr)
+    endif()
   endif()
   if(Z_ENABLE_SANITIZER_UNDEF_BEHAVIOR_FULL)
     list(APPEND check_list implicit-unsigned-integer-truncation

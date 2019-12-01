@@ -1,8 +1,9 @@
 # Zisc #
 
-**Zisc** provides commonly used C++ classes and functions.
+Zisc provides commonly used C++ classes and functions.
 
-**Z**in's m**isc**ellaneous C++ library
+Zin's miscellaneous C++ library
+
 Version: 0.0.50
 
 ## Requirement ##

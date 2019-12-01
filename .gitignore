@@ -20,10 +20,8 @@
 # Documents
 !/README.md
 !/LICENSE
-!/documents/
-!/documents/Doxyfile
-!/documents/reference/
-!/documents/reference/.gitkeep
+!/document/
+!/document/doxygen_dark_theme
 
 # Source code
 !/CMakeLists.txt

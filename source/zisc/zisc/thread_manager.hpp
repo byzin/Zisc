@@ -39,6 +39,8 @@ enum class ThreadManagerLockType : uint
 
 /*!
   \brief ThreadManager class provides task parallel and data parallel thread pool
+
+  \example thread_manager_example.cpp
   */
 template <ThreadManagerLockType kLockType>
 class WorkerThreadManager : private NonCopyable<WorkerThreadManager<kLockType>>

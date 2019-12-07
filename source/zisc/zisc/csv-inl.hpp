@@ -22,7 +22,7 @@
 // Zisc
 #include "error.hpp"
 #include "json_value_parser.hpp"
-#include "memory_resource.hpp"
+#include "std_memory_resource.hpp"
 #include "string.hpp"
 #include "type_traits.hpp"
 #include "utility.hpp"
@@ -77,8 +77,8 @@ constexpr auto getCsvPattern() noexcept
   No detailed.
   */
 template <typename Type, typename ...Types> inline
-Csv<Type, Types...>::Csv(pmr::memory_resource* mem_resource) noexcept : 
-    data_{pmr::polymorphic_allocator<RecordType>{mem_resource}},
+Csv<Type, Types...>::Csv(std::pmr::memory_resource* mem_resource) noexcept : 
+    data_{std::pmr::polymorphic_allocator<RecordType>{mem_resource}},
     csv_pattern_{inner::getCsvPattern<Type, Types...>().toCString(), 
                  std::regex_constants::optimize | std::regex_constants::ECMAScript}
 {

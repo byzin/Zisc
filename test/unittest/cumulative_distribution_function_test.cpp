@@ -17,7 +17,7 @@
 // Zisc
 #include "zisc/cumulative_distribution_function.hpp"
 #include "zisc/memory_manager.hpp"
-#include "zisc/memory_resource.hpp"
+#include "zisc/std_memory_resource.hpp"
 #include "zisc/utility.hpp"
 
 namespace {
@@ -76,8 +76,8 @@ TEST(CumulativeDistributionFunctionTest, ConstPmrVectorTest)
 {
   zisc::DynamicMemoryManager<1024> memory_manager;
 
-  zisc::pmr::polymorphic_allocator<int> alloc1{&memory_manager};
-  zisc::pmr::polymorphic_allocator<double> alloc2{&memory_manager};
+  std::pmr::polymorphic_allocator<int> alloc1{&memory_manager};
+  std::pmr::polymorphic_allocator<double> alloc2{&memory_manager};
 
   zisc::pmr::vector<int> x_list{{0, 1, 2, 3, 4}, alloc1};
   zisc::pmr::vector<double> y_list{{0.2, 0.3, 0.0, 0.3, 0.2}, alloc2};
@@ -93,8 +93,8 @@ TEST(CumulativeDistributionFunctionTest, PmrVectorTest)
 {
   zisc::DynamicMemoryManager<1024> memory_manager;
 
-  zisc::pmr::polymorphic_allocator<int> alloc1{&memory_manager};
-  zisc::pmr::polymorphic_allocator<double> alloc2{&memory_manager};
+  std::pmr::polymorphic_allocator<int> alloc1{&memory_manager};
+  std::pmr::polymorphic_allocator<double> alloc2{&memory_manager};
 
   zisc::pmr::vector<int> x_list{{0, 1, 2, 3, 4}, alloc1};
   zisc::pmr::vector<double> y_list{{0.2, 0.3, 0.0, 0.3, 0.2}, alloc2};

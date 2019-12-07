@@ -13,8 +13,8 @@
 // Standard C++ library
 #include <type_traits>
 // Zisc
-#include "memory_resource.hpp"
 #include "non_copyable.hpp"
+#include "std_memory_resource.hpp"
 #include "type_traits.hpp"
 #include "zisc/zisc_config.hpp"
 
@@ -37,7 +37,8 @@ class UniqueMemoryPointer : private NonCopyable<UniqueMemoryPointer<Type>>
   UniqueMemoryPointer() noexcept;
 
   //! Create a unique pointer
-  UniqueMemoryPointer(pointer data, pmr::memory_resource* mem_resource) noexcept;
+  UniqueMemoryPointer(pointer data,
+                      std::pmr::memory_resource* mem_resource) noexcept;
 
   //! Move a data
   UniqueMemoryPointer(UniqueMemoryPointer&& other) noexcept;
@@ -81,14 +82,14 @@ class UniqueMemoryPointer : private NonCopyable<UniqueMemoryPointer<Type>>
 
   //! Create a unique pointer
   template <typename ...Types>
-  static UniqueMemoryPointer make(pmr::memory_resource* mem_resource,
+  static UniqueMemoryPointer make(std::pmr::memory_resource* mem_resource,
                                   Types&&... arguments) noexcept;
 
   //! Return the memory resource
-  pmr::memory_resource* memoryResource() noexcept;
+  std::pmr::memory_resource* memoryResource() noexcept;
 
   //! Return the memory resource
-  const pmr::memory_resource* memoryResource() const noexcept;
+  const std::pmr::memory_resource* memoryResource() const noexcept;
 
   //! Return the data and release the ownership
   pointer release() noexcept;
@@ -97,7 +98,7 @@ class UniqueMemoryPointer : private NonCopyable<UniqueMemoryPointer<Type>>
   void reset() noexcept;
 
   //! Replace the managed object
-  void reset(pointer data, pmr::memory_resource* mem_resource) noexcept;
+  void reset(pointer data, std::pmr::memory_resource* mem_resource) noexcept;
 
   //! Swap the managed objects
   void swap(UniqueMemoryPointer& other) noexcept;
@@ -108,11 +109,11 @@ class UniqueMemoryPointer : private NonCopyable<UniqueMemoryPointer<Type>>
             EnableIfBaseOf<Type, Super> = kEnabler) noexcept;
 
  private:
-  using Allocator = pmr::polymorphic_allocator<value_type>;
+  using Allocator = std::pmr::polymorphic_allocator<value_type>;
 
 
   pointer data_ = nullptr;
-  pmr::memory_resource* mem_resource_ = nullptr;
+  std::pmr::memory_resource* mem_resource_ = nullptr;
 };
 
 //! Swap the managed objects

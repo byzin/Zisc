@@ -86,7 +86,7 @@ TEST(UniqueMemoryPointerTest, FunctionTest)
 
   // Reset
   {
-    zisc::pmr::polymorphic_allocator<::Test> alloc{shared_resource};
+    std::pmr::polymorphic_allocator<::Test> alloc{shared_resource};
     auto test = alloc.allocate(1);
     alloc.construct(test);
 

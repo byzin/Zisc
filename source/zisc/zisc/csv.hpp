@@ -18,9 +18,9 @@
 #include <string>
 #include <tuple>
 // Zisc
-#include "memory_resource.hpp"
 #include "non_copyable.hpp"
 #include "simple_memory_resource.hpp"
+#include "std_memory_resource.hpp"
 #include "zisc/zisc_config.hpp"
 
 namespace zisc {
@@ -40,7 +40,7 @@ class Csv : private NonCopyable<Csv<Type, Types...>>
 
 
   //! Initialize CSV
-  Csv(pmr::memory_resource* mem_resource = SimpleMemoryResource::sharedResource())
+  Csv(std::pmr::memory_resource* mem_resource = SimpleMemoryResource::sharedResource())
       noexcept;
 
 

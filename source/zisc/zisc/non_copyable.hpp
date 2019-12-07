@@ -25,8 +25,13 @@ class NonCopyable
   ~NonCopyable() {}
 
  private:
+  //! Prohibit copy constructor
   NonCopyable(const NonCopyable&) = delete;
+
+  //! Prohibit copy assignment
   NonCopyable& operator=(const NonCopyable&) = delete;
+
+  //! Prohibit copy assignment
   Type& operator=(const Type&) = delete;
 };
 

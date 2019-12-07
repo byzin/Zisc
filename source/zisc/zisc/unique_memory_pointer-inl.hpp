@@ -17,8 +17,8 @@
 #include <utility>
 // Zisc
 #include "error.hpp"
-#include "memory_resource.hpp"
 #include "non_copyable.hpp"
+#include "std_memory_resource.hpp"
 #include "zisc/zisc_config.hpp"
 
 namespace zisc {
@@ -35,7 +35,7 @@ UniqueMemoryPointer<Type>::UniqueMemoryPointer() noexcept
 template <typename Type> inline
 UniqueMemoryPointer<Type>::UniqueMemoryPointer(
     pointer data,
-    pmr::memory_resource* mem_resource) noexcept :
+    std::pmr::memory_resource* mem_resource) noexcept :
         data_{data},
         mem_resource_{mem_resource}
 {
@@ -131,7 +131,7 @@ auto UniqueMemoryPointer<Type>::get() const noexcept -> const_pointer
 /*!
   */
 template <typename Type> template <typename ...Types> inline
-auto UniqueMemoryPointer<Type>::make(pmr::memory_resource* mem_resource,
+auto UniqueMemoryPointer<Type>::make(std::pmr::memory_resource* mem_resource,
                                      Types&&... arguments) noexcept
     -> UniqueMemoryPointer
 {
@@ -158,7 +158,7 @@ void UniqueMemoryPointer<Type>::reset() noexcept
   */
 template <typename Type> inline
 void UniqueMemoryPointer<Type>::reset(pointer data,
-                                      pmr::memory_resource* mem_resource) noexcept
+                                      std::pmr::memory_resource* mem_resource) noexcept
 {
   auto prev_data = get();
   if (prev_data != nullptr) {
@@ -174,7 +174,7 @@ void UniqueMemoryPointer<Type>::reset(pointer data,
 /*!
   */
 template <typename Type> inline
-pmr::memory_resource* UniqueMemoryPointer<Type>::memoryResource() noexcept
+std::pmr::memory_resource* UniqueMemoryPointer<Type>::memoryResource() noexcept
 {
   return mem_resource_;
 }
@@ -182,7 +182,7 @@ pmr::memory_resource* UniqueMemoryPointer<Type>::memoryResource() noexcept
 /*!
   */
 template <typename Type> inline
-const pmr::memory_resource* UniqueMemoryPointer<Type>::memoryResource()
+const std::pmr::memory_resource* UniqueMemoryPointer<Type>::memoryResource()
     const noexcept
 {
   return mem_resource_;

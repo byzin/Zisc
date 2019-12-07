@@ -63,6 +63,7 @@ constexpr ResultType HashEngine<HashClass, ResultType>::hash(
 {
   static_assert(kIsUnsignedInteger<UnsignedInteger>,
                 "UnsignedInteger isn't unsigned integer type.");
+
   // Make a seed array
   std::array<uint8b, sizeof(UnsignedInteger)> seed_array{};
   for (std::size_t i = 0; i < seed_array.size(); ++i)

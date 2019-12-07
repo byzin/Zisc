@@ -46,7 +46,7 @@ class HashEngine
  private:
   //! Implementation of the hash function
   template <typename Int8>
-  static constexpr ResultType hashValue(const Int8* inputs,
+  static constexpr ResultType hashValue(const Int8* seed,
                                         const std::size_t n) noexcept;
 };
 

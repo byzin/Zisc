@@ -27,12 +27,14 @@ namespace zisc {
   */
 template <typename ResultType> template <typename Int8> inline
 constexpr ResultType Fnv1aHashEngine<ResultType>::hashValue(
-    const Int8* inputs,
+    const Int8* seed,
     const std::size_t n) noexcept
 {
+  static_assert(sizeof(Int8) == 1, "The Int8 isn't 8bit integer.");
+
   ResultType x = offset();
   for (std::size_t i = 0; i < n; ++i)
-    x = (x ^ cast<ResultType>(inputs[i])) * prime();
+    x = (x ^ cast<ResultType>(seed[i])) * prime();
   return x;
 }
 

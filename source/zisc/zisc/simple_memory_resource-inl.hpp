@@ -17,7 +17,7 @@
 #include <mutex>
 // Zisc
 #include "error.hpp"
-#include "memory_resource.hpp"
+#include "std_memory_resource.hpp"
 #include "utility.hpp"
 
 namespace zisc {
@@ -75,7 +75,7 @@ void SimpleMemoryResource::do_deallocate(void* data, std::size_t, std::size_t)
 /*!
   */
 inline
-bool SimpleMemoryResource::do_is_equal(const pmr::memory_resource& other)
+bool SimpleMemoryResource::do_is_equal(const std::pmr::memory_resource& other)
     const noexcept
 {
   const bool result = dynamic_cast<const SimpleMemoryResource*>(&other) != nullptr;

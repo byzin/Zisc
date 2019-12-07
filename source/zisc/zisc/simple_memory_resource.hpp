@@ -14,14 +14,14 @@
 #include <cstddef>
 #include <mutex>
 // Zisc
-#include "memory_resource.hpp"
+#include "std_memory_resource.hpp"
 
 namespace zisc {
 
 /*!
   \brief a saimple memory allocator that uses 'malloc' and 'free'
   */
-class SimpleMemoryResource : public pmr::memory_resource
+class SimpleMemoryResource : public std::pmr::memory_resource
 {
  public:
   //! Allocate memory
@@ -41,7 +41,7 @@ class SimpleMemoryResource : public pmr::memory_resource
   void do_deallocate(void* data, std::size_t size, std::size_t alignment) override;
 
   //! Compare for equality with another memory resource
-  bool do_is_equal(const pmr::memory_resource& other) const noexcept override;
+  bool do_is_equal(const std::pmr::memory_resource& other) const noexcept override;
 
   //! Check if an address of 'data' is aligned at 'alignment' bytes
   static bool isAligned(const void* data, const std::size_t alignment) noexcept;

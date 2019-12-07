@@ -65,12 +65,17 @@ endif()
 find_package(Doxygen)
 if(DOXYGEN_FOUND)
   include(${PROJECT_SOURCE_DIR}/cmake/document.cmake)
+  set(html_theme_path ${PROJECT_SOURCE_DIR}/document/doxygen_dark_theme)
+  if(EXISTS ${html_theme_path})
+    list(APPEND html_theme_params HTML_HEADER ${html_theme_path}/html_header.html)
+    list(APPEND html_theme_params HTML_FOOTER ${html_theme_path}/html_footer.html)
+    list(APPEND html_theme_params HTML_EXTRA_STYLESHEET
+                                  ${html_theme_path}/custom_dark_theme.css)
+  endif()
   addDoxygenDoc(documents ${PROJECT_BINARY_DIR}/documents
     SOURCE_FILEDIRS ${PROJECT_SOURCE_DIR}/README.md
                     ${PROJECT_SOURCE_DIR}/LICENSE
                     ${zisc_include_dirs}
     EXAMPLE_FILEDIRS ${PROJECT_SOURCE_DIR}/example
-    HTML_HEADER ${PROJECT_SOURCE_DIR}/document/doxygen_dark_theme/html_header.html
-    HTML_FOOTER ${PROJECT_SOURCE_DIR}/document/doxygen_dark_theme/html_footer.html
-    HTML_EXTRA_STYLESHEET ${PROJECT_SOURCE_DIR}/document/doxygen_dark_theme/custom_dark_theme.css)
+    ${html_theme_params})
 endif()

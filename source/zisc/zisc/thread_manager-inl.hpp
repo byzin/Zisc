@@ -29,11 +29,11 @@
 #include <vector>
 // Zisc
 #include "error.hpp"
-#include "memory_resource.hpp"
 #include "non_copyable.hpp"
 #include "type_traits.hpp"
 #include "simple_memory_resource.hpp"
 #include "spin_lock_mutex.hpp"
+#include "std_memory_resource.hpp"
 #include "unique_memory_pointer.hpp"
 #include "utility.hpp"
 #include "zisc/zisc_config.hpp"
@@ -137,7 +137,7 @@ auto WorkerThreadManager<kLockType>::Result<T>::value() noexcept -> ResultRefere
   */
 template <ThreadManagerLockType kLockType> inline
 WorkerThreadManager<kLockType>::WorkerThreadManager(
-    pmr::memory_resource* mem_resource) noexcept :
+    std::pmr::memory_resource* mem_resource) noexcept :
         WorkerThreadManager(std::thread::hardware_concurrency(), mem_resource)
 {
 }
@@ -149,7 +149,7 @@ WorkerThreadManager<kLockType>::WorkerThreadManager(
 template <ThreadManagerLockType kLockType> inline
 WorkerThreadManager<kLockType>::WorkerThreadManager(
     const uint num_of_threads,
-    pmr::memory_resource* mem_resource) noexcept :
+    std::pmr::memory_resource* mem_resource) noexcept :
         task_queue_{typename pmr::deque<UniqueTask>::allocator_type{mem_resource}},
         workers_{pmr::vector<std::thread>::allocator_type{mem_resource}},
         workers_are_enabled_{kTrue}
@@ -275,7 +275,7 @@ template <ThreadManagerLockType kLockType>
 template <typename ReturnType, typename Task> inline
 auto WorkerThreadManager<kLockType>::enqueue(
     Task&& task,
-    pmr::memory_resource* mem_resource,
+    std::pmr::memory_resource* mem_resource,
     EnableIf<std::is_invocable_v<Task>>) noexcept -> UniqueResult<ReturnType>
 {
   auto result = enqueueTask<ReturnType>(std::forward<Task>(task), mem_resource);
@@ -288,7 +288,7 @@ template <ThreadManagerLockType kLockType>
 template <typename ReturnType, typename Task> inline
 auto WorkerThreadManager<kLockType>::enqueue(
     Task&& task,
-    pmr::memory_resource* mem_resource,
+    std::pmr::memory_resource* mem_resource,
     EnableIf<std::is_invocable_v<Task, uint>>) noexcept -> UniqueResult<ReturnType>
 {
   auto result = enqueueTask<ReturnType>(std::forward<Task>(task), mem_resource);
@@ -302,7 +302,7 @@ auto WorkerThreadManager<kLockType>::enqueueLoop(
     Task&& task,
     Iterator1&& begin,
     Iterator2&& end,
-    pmr::memory_resource* mem_resource,
+    std::pmr::memory_resource* mem_resource,
     EnableIf<std::is_invocable_v<Task, Iterator1>>)
         noexcept -> UniqueResult<void>
 {
@@ -321,7 +321,7 @@ auto WorkerThreadManager<kLockType>::enqueueLoop(
     Task&& task,
     Iterator1&& begin,
     Iterator2&& end,
-    pmr::memory_resource* mem_resource,
+    std::pmr::memory_resource* mem_resource,
     EnableIf<std::is_invocable_v<Task, uint, Iterator1>>)
         noexcept -> UniqueResult<void>
 {
@@ -357,7 +357,7 @@ template <ThreadManagerLockType kLockType>
 template <typename ReturnType, typename Task> inline
 auto WorkerThreadManager<kLockType>::enqueueTask(
     Task&& task,
-    pmr::memory_resource* mem_resource) noexcept -> UniqueResult<ReturnType>
+    std::pmr::memory_resource* mem_resource) noexcept -> UniqueResult<ReturnType>
 {
   using TaskType = std::remove_cv_t<std::remove_reference_t<Task>>;
 
@@ -415,7 +415,7 @@ auto WorkerThreadManager<kLockType>::enqueueLoopTask(
     Task&& task,
     Iterator1&& begin,
     Iterator2&& end,
-    pmr::memory_resource* mem_resource) noexcept -> UniqueResult<void>
+    std::pmr::memory_resource* mem_resource) noexcept -> UniqueResult<void>
 {
   using Iterator = std::remove_cv_t<std::remove_reference_t<Iterator1>>;
   using TaskType = std::remove_cv_t<std::remove_reference_t<Task>>;
@@ -432,17 +432,17 @@ auto WorkerThreadManager<kLockType>::enqueueLoopTask(
     SharedTaskData(Task&& t,
                    Result<void>* result,
                    const uint c,
-                   pmr::memory_resource* mem_resource) noexcept :
+                   std::pmr::memory_resource* mem_resource) noexcept :
         task_{std::forward<Task>(t)},
         result_{result},
         mem_resource_{mem_resource},
         counter_{c} {}
     TaskType task_;
     Result<void>* result_;
-    pmr::memory_resource* mem_resource_;
+    std::pmr::memory_resource* mem_resource_;
     std::atomic<uint> counter_;
-    static_assert(alignof(pmr::memory_resource) <= alignof(Result<void>*));
-    static_assert(alignof(std::atomic<uint>) <= alignof(pmr::memory_resource));
+    static_assert(alignof(std::pmr::memory_resource) <= alignof(Result<void>*));
+    static_assert(alignof(std::atomic<uint>) <= alignof(std::pmr::memory_resource));
   };
   using UniqueSharedData = UniqueMemoryPointer<SharedTaskData>;
 

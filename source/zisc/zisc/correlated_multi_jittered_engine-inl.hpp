@@ -90,15 +90,12 @@ constexpr bool CorrelatedMultiJitteredEngine<kRootN>::isEndOfPeriod(
 {
   static_assert(kIsUnsignedInteger<UnsignedInteger>,
                 "UnsignedInteger isn't unsigned integer.");
-  if (std::numeric_limits<UnsignedInteger>::max() < getPeriod()) {
-    constexpr UnsignedInteger end_of_period =
-        std::numeric_limits<UnsignedInteger>::max();
-    return sample == end_of_period;
-  }
-  else {
-    constexpr UnsignedInteger end_of_period = getPeriod() - 1;
-    return sample == end_of_period;
-  }
+  constexpr UnsignedInteger end_of_period =
+      (std::numeric_limits<UnsignedInteger>::max() < getPeriod())
+          ? std::numeric_limits<UnsignedInteger>::max()
+          : getPeriod() - 1;
+  const bool is_end_of_period = sample == end_of_period;
+  return is_end_of_period;
 }
 
 /*!

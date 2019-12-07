@@ -20,7 +20,7 @@
 #include "algorithm.hpp"
 #include "compensated_summation.hpp"
 #include "error.hpp"
-#include "memory_resource.hpp"
+#include "std_memory_resource.hpp"
 #include "type_traits.hpp"
 #include "utility.hpp"
 #include "zisc/zisc_config.hpp"
@@ -31,9 +31,9 @@ namespace zisc {
   */
 template <typename X, typename Pdf> inline
 CumulativeDistributionFunction<X, Pdf>::CumulativeDistributionFunction(
-    pmr::memory_resource* mem_resource) noexcept :
-        x_list_{pmr::polymorphic_allocator<XType>{mem_resource}},
-        y_list_{pmr::polymorphic_allocator<PdfType>{mem_resource}}
+    std::pmr::memory_resource* mem_resource) noexcept :
+        x_list_{std::pmr::polymorphic_allocator<XType>{mem_resource}},
+        y_list_{std::pmr::polymorphic_allocator<PdfType>{mem_resource}}
 {
 }
 
@@ -43,10 +43,10 @@ template <typename X, typename Pdf> inline
 CumulativeDistributionFunction<X, Pdf>::CumulativeDistributionFunction(
     const std::vector<XType>& x_list,
     const std::vector<PdfType>& y_list,
-    pmr::memory_resource* mem_resource,
-    pmr::memory_resource* work_resource) noexcept :
-        x_list_{pmr::polymorphic_allocator<XType>{mem_resource}},
-        y_list_{pmr::polymorphic_allocator<PdfType>{mem_resource}}
+    std::pmr::memory_resource* mem_resource,
+    std::pmr::memory_resource* work_resource) noexcept :
+        x_list_{std::pmr::polymorphic_allocator<XType>{mem_resource}},
+        y_list_{std::pmr::polymorphic_allocator<PdfType>{mem_resource}}
 {
   set(x_list, y_list, work_resource);
 }
@@ -57,8 +57,8 @@ template <typename X, typename Pdf> inline
 CumulativeDistributionFunction<X, Pdf>::CumulativeDistributionFunction(
     const pmr::vector<XType>& x_list,
     const pmr::vector<PdfType>& y_list,
-    pmr::memory_resource* mem_resource,
-    pmr::memory_resource* work_resource) noexcept :
+    std::pmr::memory_resource* mem_resource,
+    std::pmr::memory_resource* work_resource) noexcept :
         x_list_{x_list, mem_resource},
         y_list_{y_list, mem_resource}
 {
@@ -71,7 +71,7 @@ template <typename X, typename Pdf> inline
 CumulativeDistributionFunction<X, Pdf>::CumulativeDistributionFunction(
     pmr::vector<XType>&& x_list,
     pmr::vector<PdfType>&& y_list,
-    pmr::memory_resource* work_resource) noexcept :
+    std::pmr::memory_resource* work_resource) noexcept :
         x_list_{std::move(x_list)},
         y_list_{std::move(y_list)}
 {
@@ -132,7 +132,7 @@ template <typename X, typename Pdf> inline
 void CumulativeDistributionFunction<X, Pdf>::set(
     const std::vector<XType>& x_list,
     const std::vector<PdfType>& y_list,
-    pmr::memory_resource* work_resource) noexcept
+    std::pmr::memory_resource* work_resource) noexcept
 {
   ZISC_ASSERT(x_list.size() == y_list.size(),
               "The x and y lists aren't same length.");
@@ -154,7 +154,7 @@ template <typename X, typename Pdf> inline
 void CumulativeDistributionFunction<X, Pdf>::set(
     const pmr::vector<XType>& x_list,
     const pmr::vector<PdfType>& y_list,
-    pmr::memory_resource* work_resource) noexcept
+    std::pmr::memory_resource* work_resource) noexcept
 {
   ZISC_ASSERT(x_list.size() == y_list.size(),
               "The x and y lists aren't same length.");
@@ -171,7 +171,7 @@ template <typename X, typename Pdf> inline
 void CumulativeDistributionFunction<X, Pdf>::set(
     pmr::vector<XType>&& x_list,
     pmr::vector<PdfType>&& y_list,
-    pmr::memory_resource* work_resource) noexcept
+    std::pmr::memory_resource* work_resource) noexcept
 {
   ZISC_ASSERT(x_list.size() == y_list.size(),
               "The x and y lists aren't same length.");
@@ -222,7 +222,7 @@ auto CumulativeDistributionFunction<X, Pdf>::yList() const noexcept
   */
 template <typename X, typename Pdf> inline
 void CumulativeDistributionFunction<X, Pdf>::initCdf(
-    pmr::memory_resource* work_resource) noexcept
+    std::pmr::memory_resource* work_resource) noexcept
 {
   ZISC_ASSERT(x_list_.size() == y_list_.size(),
               "The xlist and ylist aren't same length.");

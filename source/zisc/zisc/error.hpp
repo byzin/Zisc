@@ -15,35 +15,54 @@
 
 // Preprocessor
 
+//! Return full path to the current file
 #define ZISC_GET_FILE_NAME __FILE__
 
+//! Return current line number in the source file
 #define ZISC_GET_LINE_NUMBER __LINE__
+
+/*!
+  \def ZISC_ASSERT(condition, ...)
+  \brief If condition is false, assert outputs messages and calls std::abort
+  */
+
+/*!
+  \def ZISC_STATIC_ASSERT(condition, message)
+  \brief If condition is false, a compile-time error is issued, and assert outputs message
+  */
 
 #ifdef ZISC_ASSERTION
 
-#define ZISC_ASSERT(condition, ...) \
-    zisc::assertIfFalse(condition, \
-                        "AssertError in ", \
-                        ZISC_GET_FILE_NAME, \
-                        " at ", \
-                        ZISC_GET_LINE_NUMBER, \
-                        ": ", \
-                        __VA_ARGS__)
+  #define ZISC_ASSERT(condition, ...) \
+      zisc::assertIfFalse(condition, \
+                          "AssertError in " ZISC_GET_FILE_NAME " at ", \
+                          ZISC_GET_LINE_NUMBER, \
+                          ": ", \
+                          __VA_ARGS__)
+
+  #define ZISC_STATIC_ASSERT(condition, message) \
+      static_asseert(condition, message)
 
 #else // ZISC_ASSERTION
 
-#define ZISC_ASSERT(...)
+  #define ZISC_ASSERT(...)
+
+  #define ZISC_STATIC_ASSERT(...)
 
 #endif // ZISC_ASSERTION
 
+/*!
+  \def ZISC_LOG(log_stream, ...)
+  \brief Output messages on the input stream
+  */
+
 #ifdef ZISC_LOGGING
 
-#define ZISC_LOG(log_stream, ...) \
-    zisc::outputMessage(log_stream, __VA_ARGS__)
+  #define ZISC_LOG(log_stream, ...) zisc::outputMessage(log_stream, __VA_ARGS__)
 
 #else // ZISC_LOGGING
 
-#define ZISC_LOG(...)
+  #define ZISC_LOG(...)
 
 #endif // ZISC_LOGGING
 

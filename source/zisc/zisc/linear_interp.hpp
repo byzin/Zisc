@@ -16,9 +16,9 @@
 #include <type_traits>
 #include <utility>
 // Zisc
-#include "memory_resource.hpp"
 #include "non_copyable.hpp"
 #include "simple_memory_resource.hpp"
+#include "std_memory_resource.hpp"
 
 namespace zisc {
 
@@ -38,7 +38,7 @@ class LinearInterp : private NonCopyable<LinearInterp<Float>>
 
   //! Create an empty instance
   LinearInterp(
-      pmr::memory_resource* mem_resource = SimpleMemoryResource::sharedResource())
+      std::pmr::memory_resource* mem_resource = SimpleMemoryResource::sharedResource())
           noexcept;
 
   //! Move instance data

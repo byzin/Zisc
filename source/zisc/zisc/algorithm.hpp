@@ -10,11 +10,9 @@
 #ifndef ZISC_ALGORITHM_HPP
 #define ZISC_ALGORITHM_HPP
 
-// Standard C++ library
-#include <vector>
 // Zisc
-#include "memory_resource.hpp"
 #include "simple_memory_resource.hpp"
+#include "std_memory_resource.hpp"
 #include "type_traits.hpp"
 #include "zisc/zisc_config.hpp"
 
@@ -106,7 +104,7 @@ class Algorithm
   static void toBinaryTree(
       RandomAccessIterator begin,
       RandomAccessIterator end,
-      pmr::memory_resource* mem_resource = SimpleMemoryResource::sharedResource()) noexcept;
+      std::pmr::memory_resource* mem_resource = SimpleMemoryResource::sharedResource()) noexcept;
 
   //! STL implementation
   class Stl
@@ -124,7 +122,7 @@ class Algorithm
     static void toBinaryTree(
         RandomAccessIterator begin,
         RandomAccessIterator end,
-        pmr::memory_resource* mem_resource = SimpleMemoryResource::sharedResource()) noexcept;
+        std::pmr::memory_resource* mem_resource = SimpleMemoryResource::sharedResource()) noexcept;
   };
 
   //! Zisc implementation
@@ -143,7 +141,7 @@ class Algorithm
     static void toBinaryTree(
         RandomAccessIterator begin,
         RandomAccessIterator end,
-        pmr::memory_resource* mem_resource = SimpleMemoryResource::sharedResource()) noexcept;
+        std::pmr::memory_resource* mem_resource = SimpleMemoryResource::sharedResource()) noexcept;
 
    private:
     //! Transform a sorted unique array to a binary tree

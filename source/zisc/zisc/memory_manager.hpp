@@ -18,8 +18,8 @@
 #include "memory_arena.hpp"
 #include "memory_chunk.hpp"
 #include "memory_manager_iterator.hpp"
-#include "memory_resource.hpp"
 #include "non_copyable.hpp"
+#include "std_memory_resource.hpp"
 #include "zisc/zisc_config.hpp"
 
 namespace zisc {
@@ -27,7 +27,7 @@ namespace zisc {
 /*!
   */
 template <MemoryArenaType kArenaType, std::size_t kArenaSize>
-class MemoryManager : public pmr::memory_resource,
+class MemoryManager : public std::pmr::memory_resource,
                       private NonCopyable<MemoryManager<kArenaType, kArenaSize>>
 {
  public:
@@ -74,7 +74,7 @@ class MemoryManager : public pmr::memory_resource,
   void do_deallocate(void* data, std::size_t size, std::size_t alignment) override;
 
   //! Compare for equality
-  bool do_is_equal(const pmr::memory_resource& other) const noexcept override;
+  bool do_is_equal(const std::pmr::memory_resource& other) const noexcept override;
 
   //! Reset the used memory
   void reset() noexcept;

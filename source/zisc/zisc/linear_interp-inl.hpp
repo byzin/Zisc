@@ -21,7 +21,7 @@
 // Zisc
 #include "algorithm.hpp"
 #include "error.hpp"
-#include "memory_resource.hpp"
+#include "std_memory_resource.hpp"
 #include "utility.hpp"
 
 namespace zisc {
@@ -31,7 +31,7 @@ namespace zisc {
  No detailed.
  */
 template <typename Float> inline
-LinearInterp<Float>::LinearInterp(pmr::memory_resource* mem_resource) noexcept :
+LinearInterp<Float>::LinearInterp(std::pmr::memory_resource* mem_resource) noexcept :
     data_{typename pmr::list<Pair>::allocator_type{mem_resource}}
 {
 }

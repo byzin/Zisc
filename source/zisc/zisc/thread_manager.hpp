@@ -21,10 +21,10 @@
 #include <utility>
 #include <vector>
 // Zisc
-#include "memory_resource.hpp"
 #include "non_copyable.hpp"
 #include "simple_memory_resource.hpp"
 #include "spin_lock_mutex.hpp"
+#include "std_memory_resource.hpp"
 #include "type_traits.hpp"
 #include "unique_memory_pointer.hpp"
 #include "zisc/zisc_config.hpp"
@@ -95,12 +95,12 @@ class WorkerThreadManager : private NonCopyable<WorkerThreadManager<kLockType>>
 
   //! Create threads as many CPU threads as
   WorkerThreadManager(
-      pmr::memory_resource* mem_resource = SimpleMemoryResource::sharedResource()) noexcept;
+      std::pmr::memory_resource* mem_resource = SimpleMemoryResource::sharedResource()) noexcept;
 
   //! Create threads
   WorkerThreadManager(
       const uint num_of_threads,
-      pmr::memory_resource* mem_resource = SimpleMemoryResource::sharedResource()) noexcept;
+      std::pmr::memory_resource* mem_resource = SimpleMemoryResource::sharedResource()) noexcept;
 
   //! Terminate threads
   ~WorkerThreadManager();
@@ -121,14 +121,14 @@ class WorkerThreadManager : private NonCopyable<WorkerThreadManager<kLockType>>
   template <typename ReturnType, typename Task>
   UniqueResult<ReturnType> enqueue(
       Task&& task,
-      pmr::memory_resource* mem_resource = SimpleMemoryResource::sharedResource(),
+      std::pmr::memory_resource* mem_resource = SimpleMemoryResource::sharedResource(),
       EnableIf<std::is_invocable_v<Task>> = kEnabler) noexcept;
 
   //! A worker thread run a task
   template <typename ReturnType, typename Task>
   UniqueResult<ReturnType> enqueue(
       Task&& task,
-      pmr::memory_resource* mem_resource = SimpleMemoryResource::sharedResource(),
+      std::pmr::memory_resource* mem_resource = SimpleMemoryResource::sharedResource(),
       EnableIf<std::is_invocable_v<Task, uint>> = kEnabler) noexcept;
 
   //! Worker threads run a loop task in parallel
@@ -137,7 +137,7 @@ class WorkerThreadManager : private NonCopyable<WorkerThreadManager<kLockType>>
       Task&& task,
       Iterator1&& begin,
       Iterator2&& end,
-      pmr::memory_resource* mem_resource = SimpleMemoryResource::sharedResource(),
+      std::pmr::memory_resource* mem_resource = SimpleMemoryResource::sharedResource(),
       EnableIf<std::is_invocable_v<Task, Iterator1>> = kEnabler) noexcept;
 
   //! Worker threads run a loop task in parallel
@@ -146,7 +146,7 @@ class WorkerThreadManager : private NonCopyable<WorkerThreadManager<kLockType>>
       Task&& task,
       Iterator1&& begin,
       Iterator2&& end,
-      pmr::memory_resource* mem_resource = SimpleMemoryResource::sharedResource(),
+      std::pmr::memory_resource* mem_resource = SimpleMemoryResource::sharedResource(),
       EnableIf<std::is_invocable_v<Task, uint, Iterator1>> = kEnabler) noexcept;
 
   //! Get the number of logical cores
@@ -187,7 +187,7 @@ class WorkerThreadManager : private NonCopyable<WorkerThreadManager<kLockType>>
   template <typename ReturnType, typename Task>
   UniqueResult<ReturnType> enqueueTask(
       Task&& task,
-      pmr::memory_resource* mem_resource) noexcept;
+      std::pmr::memory_resource* mem_resource) noexcept;
 
   //! Worker threads run a loop task in parallel
   template <typename Task, typename Iterator1, typename Iterator2>
@@ -195,7 +195,7 @@ class WorkerThreadManager : private NonCopyable<WorkerThreadManager<kLockType>>
       Task&& task,
       Iterator1&& begin,
       Iterator2&& end,
-      pmr::memory_resource* mem_resource) noexcept;
+      std::pmr::memory_resource* mem_resource) noexcept;
 
   //! Exit workers running
   void exitWorkersRunning() noexcept;

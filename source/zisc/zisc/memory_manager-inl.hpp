@@ -21,8 +21,8 @@
 #include "memory_arena.hpp"
 #include "memory_chunk.hpp"
 #include "memory_manager_iterator.hpp"
-#include "memory_resource.hpp"
 #include "non_copyable.hpp"
+#include "std_memory_resource.hpp"
 #include "utility.hpp"
 #include "zisc/zisc_config.hpp"
 
@@ -142,7 +142,7 @@ void MemoryManager<kArenaType, kArenaSize>::do_deallocate(void* data,
   */
 template <MemoryArenaType kArenaType, std::size_t kArenaSize> inline
 bool MemoryManager<kArenaType, kArenaSize>::do_is_equal(
-    const pmr::memory_resource& other) const noexcept
+    const std::pmr::memory_resource& other) const noexcept
 {
   const bool result = this == &other;
   return result;

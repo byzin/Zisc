@@ -22,6 +22,7 @@
 #include "zisc/lock_free_bounded_queue.hpp"
 #include "zisc/non_copyable.hpp"
 #include "zisc/simple_memory_resource.hpp"
+#include "zisc/stopwatch.hpp"
 #include "zisc/utility.hpp"
 #include "zisc/zisc_config.hpp"
 
@@ -211,6 +212,8 @@ TEST(LockFreeBoundedQueueTest, MultiThreadTest)
   constexpr std::size_t num_of_threads = 1 << 5;
   constexpr std::size_t works_per_thread = 1 << 19; 
   constexpr std::size_t num_of_works = num_of_threads * works_per_thread;
+  std::cout << "Num of threads: " << num_of_threads << std::endl;
+  std::cout << "Num of elements: " << num_of_works << std::endl;
 
   zisc::SimpleMemoryResource mem_resource;
   Queue q{num_of_works, &mem_resource};
@@ -222,6 +225,7 @@ TEST(LockFreeBoundedQueueTest, MultiThreadTest)
   workers.reserve(num_of_threads);
 
   // Test multiple producer
+  zisc::Stopwatch stopwatch;
   std::atomic_size_t counter = 0;
   auto enqueue_job = [&q, &counter, works_per_thread]()
   {
@@ -231,10 +235,17 @@ TEST(LockFreeBoundedQueueTest, MultiThreadTest)
       q.enqueue(value);
     }
   };
+  stopwatch.start();
   for (std::size_t i = 0; i < num_of_threads; ++i)
     workers.emplace_back(enqueue_job);
   for (std::size_t i = 0; i < num_of_threads; ++i)
     workers[i].join();
+  auto elapsed_time = stopwatch.elapsedTime();
+  {
+    const auto millis = std::chrono::duration_cast<std::chrono::milliseconds>(elapsed_time);
+    std::cout << "Multiple producer time: " << millis.count() << " ms" << std::endl;
+  }
+  stopwatch.stop();
   workers.clear();
 
   // Validate the enqueing results
@@ -261,10 +272,16 @@ TEST(LockFreeBoundedQueueTest, MultiThreadTest)
         results[value] = 1;
     }
   };
+  stopwatch.start();
   for (std::size_t i = 0; i < num_of_threads; ++i)
     workers.emplace_back(dequeue_job);
   for (std::size_t i = 0; i < num_of_threads; ++i)
     workers[i].join();
+  elapsed_time = stopwatch.elapsedTime();
+  {
+    const auto millis = std::chrono::duration_cast<std::chrono::milliseconds>(elapsed_time);
+    std::cout << "Multiple consumer time: " << millis.count() << " ms" << std::endl;
+  }
 
   // Valudate the dequeuing results
   ASSERT_TRUE(q.isEmpty()) << "Multiple consumer test failed.";

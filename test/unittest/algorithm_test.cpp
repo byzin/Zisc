@@ -149,6 +149,88 @@ TEST(AlgorithmTest, minMaxTest)
   ASSERT_EQ(v2, zisc::max(v2, v1));
 }
 
+TEST(AlgorithmTest, GetExponentTest)
+{
+  {
+    constexpr zisc::uint v = 8;
+    constexpr auto result = zisc::Algorithm::getExponent(v);
+    constexpr zisc::uint expected = 3;
+    ASSERT_EQ(expected, result);
+  }
+  {
+    constexpr int v = 100;
+    constexpr auto result = zisc::Algorithm::getExponent(v);
+    constexpr int expected = 6;
+    ASSERT_EQ(expected, result);
+  }
+  {
+    constexpr std::size_t size = sizeof(zisc::uint8b) * 8;
+    for (std::size_t bit = 0; bit < size; ++bit) {
+      const zisc::uint8b v = zisc::cast<zisc::uint8b>(zisc::cast<zisc::uint8b>(0b1) << bit);
+      const auto result = zisc::Algorithm::getExponent(v);
+      ASSERT_EQ(bit, result);
+    }
+  }
+  {
+    constexpr std::size_t size = sizeof(zisc::uint16b) * 8;
+    for (std::size_t bit = 0; bit < size; ++bit) {
+      const zisc::uint16b v = zisc::cast<zisc::uint16b>(zisc::cast<zisc::uint16b>(0b1) << bit);
+      const auto result = zisc::Algorithm::getExponent(v);
+      ASSERT_EQ(bit, result);
+    }
+  }
+  {
+    constexpr std::size_t size = sizeof(zisc::uint32b) * 8;
+    for (std::size_t bit = 0; bit < size; ++bit) {
+      const zisc::uint32b v = zisc::cast<zisc::uint32b>(0b1) << bit;
+      const auto result = zisc::Algorithm::getExponent(v);
+      ASSERT_EQ(bit, result);
+    }
+  }
+  {
+    constexpr std::size_t size = sizeof(zisc::uint64b) * 8;
+    for (std::size_t bit = 0; bit < size; ++bit) {
+      const zisc::uint64b v = zisc::cast<zisc::uint64b>(0b1) << bit;
+      const auto result = zisc::Algorithm::getExponent(v);
+      ASSERT_EQ(bit, result);
+    }
+  }
+}
+
+TEST(AlgorithmTest, RoundUpToPowerOf2Test)
+{
+  {
+    constexpr zisc::uint64b v = 1;
+    constexpr auto result = zisc::Algorithm::roundUpToPowerOf2(v);
+    constexpr zisc::uint64b expected = 1;
+    ASSERT_EQ(expected, result);
+  }
+  {
+    constexpr int v = 3;
+    constexpr auto result = zisc::Algorithm::roundUpToPowerOf2(v);
+    constexpr int expected = 4;
+    ASSERT_EQ(expected, result);
+  }
+  {
+    constexpr zisc::uint16b v = 100;
+    constexpr auto result = zisc::Algorithm::roundUpToPowerOf2(v);
+    constexpr zisc::uint16b expected = 128;
+    ASSERT_EQ(expected, result);
+  }
+  {
+    constexpr zisc::uint v = 1000;
+    constexpr auto result = zisc::Algorithm::roundUpToPowerOf2(v);
+    constexpr zisc::uint expected = 1024;
+    ASSERT_EQ(expected, result);
+  }
+  {
+    constexpr zisc::uint64b v = 30'000;
+    constexpr auto result = zisc::Algorithm::roundUpToPowerOf2(v);
+    constexpr zisc::uint64b expected = 32'768;
+    ASSERT_EQ(expected, result);
+  }
+}
+
 TEST(AlgorithmTest, Popcount8Test)
 {
   std::mt19937 rng;

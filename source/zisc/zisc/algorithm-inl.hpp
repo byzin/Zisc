@@ -136,27 +136,6 @@ constexpr bool Algorithm::isNegative(const Arithmetic n) noexcept
 }
 
 /*!
-  */
-template <typename Integer> inline
-constexpr bool Algorithm::isOdd(const Integer n) noexcept
-{
-  static_assert(std::is_integral_v<Integer>, "Integer isn't integer type.");
-  constexpr auto lsb = cast<Integer>(0b01);
-  const auto result = ((n & lsb) == lsb);
-  return result;
-}
-
-/*!
-  */
-template <typename Integer> inline
-constexpr bool Algorithm::isPowerOf2(const Integer x) noexcept
-{
-  static_assert(std::is_integral_v<Integer>, "Integer isn't integer type.");
-  const auto result = (x & (x - 1)) == 0;
-  return result;
-}
-
-/*!
   \details
   No detailed.
   */
@@ -183,12 +162,76 @@ constexpr const std::common_type_t<Type1, Type2>& Algorithm::min(
 }
 
 /*!
+  \param[in] x \a x should be greater than 0
+  \return The exponent corresponds the \a x in the base-2 if \a x is positive, 
+          otherwize \a x 
+  */
+template <typename Integer> inline
+constexpr Integer Algorithm::getExponent(Integer x) noexcept
+{
+  static_assert(std::is_integral_v<Integer>, "Integer isn't integer type.");
+  constexpr auto zero = cast<Integer>(0);
+  Integer exponent = 0;
+  if (zero < x) {
+    constexpr std::size_t half_bits = sizeof(Integer) * 4;
+    for (Integer bits = half_bits; bits > 0; bits = bits >> 1) {
+      const Integer upper_bits = x >> bits;
+      exponent += (upper_bits != 0) ? bits : 0;
+      x = (upper_bits != 0) ? upper_bits : x; 
+    }
+  }
+  return exponent;
+}
+
+/*!
+  */
+template <typename Integer> inline
+constexpr bool Algorithm::isOdd(const Integer n) noexcept
+{
+  static_assert(std::is_integral_v<Integer>, "Integer isn't integer type.");
+  constexpr auto lsb = cast<Integer>(0b01);
+  const auto result = ((n & lsb) == lsb);
+  return result;
+}
+
+/*!
+  */
+template <typename Integer> inline
+constexpr bool Algorithm::isPowerOf2(const Integer x) noexcept
+{
+  static_assert(std::is_integral_v<Integer>, "Integer isn't integer type.");
+  const auto result = (x & (x - 1)) == 0;
+  return result;
+}
+
+/*!
   */
 template <typename Integer> inline
 Integer Algorithm::popcount(const Integer x) noexcept
 {
   static_assert(std::is_integral_v<Integer>, "Integer isn't integer type.");
   const auto y = popcountImpl<Config::implType()>(x);
+  return y;
+}
+
+/*!
+  \param[in] x The \a x should be positive.
+  \return The smallest power of 2 that is greater or equal to \a x
+          if \a x is positive, otherwize \a x
+  */
+template <typename Integer> inline
+constexpr Integer Algorithm::roundUpToPowerOf2(const Integer x) noexcept
+{
+  static_assert(std::is_integral_v<Integer>, "Integer isn't integer type.");
+  constexpr auto zero = cast<Integer>(0);
+  Integer y = x;
+  if (zero < x) {
+    --y;
+    constexpr int bits = sizeof(Integer) * 8;
+    for (int shift = 1; shift < bits; shift = shift << 1)
+      y = y | (y >> shift);
+    ++y;
+  }
   return y;
 }
 

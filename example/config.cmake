@@ -62,26 +62,28 @@ function(buildExample)
   # Build examples
   setExample(AlgorithmExample 
              ${__example_root__}/algorithm_example.cpp)
-  setExample(CumulativeDistributionFunctionExample
-             ${__example_root__}/cumulative_distribution_function_example.cpp)
+  setExample(CmjEngineExample
+             ${__example_root__}/correlated_multi_jittered_engine_example.cpp)
   setExample(CompensatedSummationExample
              ${__example_root__}/compensated_summation_example.cpp)
   setExample(CsvExample
              ${__example_root__}/csv_example.cpp)
+  setExample(CumulativeDistributionFunctionExample
+             ${__example_root__}/cumulative_distribution_function_example.cpp)
+  setExample(ErrorExample
+             ${__example_root__}/error_example.cpp)
+  setExample(LinearAlgebraExample
+             ${__example_root__}/linear_algebra_example.cpp) 
+  setExample(LockFreeBoundedQueueExample
+             ${__example_root__}/lock_free_bounded_queue_example.cpp)
   setExample(PseudoRandomNumberEngineExample
              ${__example_root__}/pseudo_random_number_engine_example.cpp)
   setExample(StopwatchExample
              ${__example_root__}/stopwatch_example.cpp)
-  setExample(LinearAlgebraExample
-             ${__example_root__}/linear_algebra_example.cpp) 
-  setExample(UnitExample
-             ${__example_root__}/unit_example.cpp)
-  setExample(ThreadManagerExample
-             ${__example_root__}/thread_manager_example.cpp)
   setExample(StringExample
              ${__example_root__}/string_example.cpp)
-  setExample(CmjEngineExample
-             ${__example_root__}/correlated_multi_jittered_engine_example.cpp)
-  setExample(ErrorExample
-             ${__example_root__}/error_example.cpp)
+  setExample(ThreadManagerExample
+             ${__example_root__}/thread_manager_example.cpp)
+  setExample(UnitExample
+             ${__example_root__}/unit_example.cpp)
 endfunction(buildExample)

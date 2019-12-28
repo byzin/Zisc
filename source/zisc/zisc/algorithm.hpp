@@ -64,14 +64,6 @@ class Algorithm
   template <typename Arithmetic>
   static constexpr bool isNegative(const Arithmetic n) noexcept;
 
-  //! Test whether the n is odd
-  template <typename Integer>
-  static constexpr bool isOdd(const Integer n) noexcept;
-
-  //! Check if the x is power of 2
-  template <typename Integer>
-  static constexpr bool isPowerOf2(const Integer x) noexcept;
-
   //! Return the large of two elements
   template <typename Type1, typename Type2>
   static constexpr const std::common_type_t<Type1, Type2>& max(
@@ -86,9 +78,25 @@ class Algorithm
 
   // Integer
 
-  //! Return the number of non-zero bits in the given x
+  //! Return the exponent corresponds to the given value in the base-2
+  template <typename Integer>
+  static constexpr Integer getExponent(Integer x) noexcept;
+
+  //! Test whether the n is odd
+  template <typename Integer>
+  static constexpr bool isOdd(const Integer n) noexcept;
+
+  //! Check if the x is power of 2
+  template <typename Integer>
+  static constexpr bool isPowerOf2(const Integer x) noexcept;
+
+  //! Compute the number of non-zero bits in the given value 
   template <typename Integer>
   static Integer popcount(const Integer x) noexcept;
+
+  //! Compute the smallest power of 2 that is greater or equal to the given value
+  template <typename Integer>
+  static constexpr Integer roundUpToPowerOf2(const Integer x) noexcept;
 
   // Binary search operations
 

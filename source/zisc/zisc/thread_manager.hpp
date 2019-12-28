@@ -39,8 +39,6 @@ enum class ThreadManagerLockType : uint
 
 /*!
   \brief ThreadManager class provides task parallel and data parallel thread pool
-
-  \example thread_manager_example.cpp
   */
 template <ThreadManagerLockType kLockType>
 class WorkerThreadManager : private NonCopyable<WorkerThreadManager<kLockType>>
@@ -246,6 +244,11 @@ using ThreadManager = WorkerThreadManager<ThreadManagerLockType::kStdMutex>;
 using ThreadManagerSpin = WorkerThreadManager<ThreadManagerLockType::kSpinLock>;
 
 } // namespace zisc
+
+/*!
+  \example thread_manager_example.cpp
+  This is an example of how to use ThreadManager class."
+  */
 
 #include "thread_manager-inl.hpp"
 

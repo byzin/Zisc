@@ -109,7 +109,6 @@ function(getSanitizerOption compile_sanitizer_flags linker_sanitizer_flags)
                            nullability-arg
                            nullability-assign
                            nullability-return
-                           object-size
                            pointer-overflow
                            return
                            returns-nonnull-attribute

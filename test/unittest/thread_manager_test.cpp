@@ -419,6 +419,7 @@ TEST(ThreadManagerTest, LoopTaskStressPerformanceTest2)
       results[index] = Cmj::generate2D<double>(i, number);
     }
   };
+  thread_manager.setCapacity(num_of_tasks);
   constexpr zisc::uint begin = 0;
   constexpr zisc::uint end = num_of_tasks;
   auto result = thread_manager.enqueueLoop(task, begin, end, &mem_resource);

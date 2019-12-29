@@ -16,14 +16,13 @@
 #include <array>
 #include <atomic>
 #include <cstddef>
-#include <deque>
 #include <future>
 #include <iterator>
 #include <limits>
 #include <memory>
 #include <mutex>
-#include <queue>
 #include <thread>
+#include <tuple>
 #include <type_traits>
 #include <utility>
 #include <vector>
@@ -87,10 +86,8 @@ void ThreadManager::Result<T>::wait() const noexcept
 {
   UniqueTask task;
   while (!hasValue()) {
-    if (thread_manager_ != nullptr) {
-      std::unique_lock<std::mutex> locker{thread_manager_->lock_};
+    if (thread_manager_ != nullptr)
       task = thread_manager_->fetchTask();
-    }
     if (task) {
       task->run(cast<uint>(thread_id_));
       task.reset();
@@ -144,7 +141,7 @@ ThreadManager::ThreadManager(std::pmr::memory_resource* mem_resource) noexcept :
 inline
 ThreadManager::ThreadManager(const uint num_of_threads,
                              std::pmr::memory_resource* mem_resource) noexcept :
-    task_queue_{typename pmr::deque<UniqueTask>::allocator_type{mem_resource}},
+    task_queue_{defaultTaskCapacity(), mem_resource},
     workers_{pmr::vector<std::thread>::allocator_type{mem_resource}},
     workers_are_enabled_{kTrue}
 {
@@ -193,6 +190,24 @@ std::array<Integer, 2> ThreadManager::calcThreadRange(
 }
 
 /*!
+  */
+inline
+std::size_t ThreadManager::capacity() const noexcept
+{
+  const std::size_t cap = task_queue_.capacity();
+  return cap;
+}
+
+/*!
+  */
+inline
+bool ThreadManager::isEmpty() const noexcept
+{
+  const bool result = task_queue_.isEmpty();
+  return result;
+}
+
+/*!
   \details
   No detailed.
   */
@@ -226,6 +241,23 @@ std::pmr::memory_resource* ThreadManager::resource() const noexcept
 }
 
 /*!
+  */
+inline
+void ThreadManager::setCapacity(const std::size_t cap) noexcept
+{
+  task_queue_.setCapacity(cap);
+}
+
+/*!
+  */
+inline
+int ThreadManager::size() const noexcept
+{
+  const int s = task_queue_.size();
+  return s;
+}
+
+/*!
   \details
   No detailed.
   */
@@ -235,19 +267,19 @@ void ThreadManager::createWorkers(const uint num_of_threads) noexcept
   const uint id_max = (num_of_threads == 0) ? logicalCores() : num_of_threads;
   workers_.reserve(id_max);
   for (uint thread_id = 0; thread_id < id_max; ++thread_id) {
-#if defined(Z_CLANG)
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wpadded"
-#endif // Z_CLANG
-    auto work = [this, thread_id]() noexcept
+    int32b padding = 0;
+    auto work = [this, thread_id, padding]() noexcept
     {
+      (void)padding;
       UniqueTask task;
       while (workersAreEnabled()) {
         {
-          std::unique_lock<std::mutex> locker{lock_};
           task = fetchTask();
-          if (workersAreEnabled() && !task)
-            condition_.wait(locker);
+          if (!task) {
+            std::unique_lock<std::mutex> locker{lock_};
+            if (workersAreEnabled())
+              condition_.wait(locker);
+          }
         }
         if (task) {
           task->run(thread_id);
@@ -255,9 +287,6 @@ void ThreadManager::createWorkers(const uint num_of_threads) noexcept
         }
       }
     };
-#if defined(Z_CLANG)
-#pragma clang diagnostic pop
-#endif // Z_CLANG
     workers_.emplace_back(work);
   }
   auto comp = [](const std::thread& lhs, const std::thread& rhs)
@@ -269,13 +298,22 @@ void ThreadManager::createWorkers(const uint num_of_threads) noexcept
 
 /*!
   */
+inline
+constexpr std::size_t ThreadManager::defaultTaskCapacity() noexcept
+{
+  const std::size_t cap = 128;
+  return cap;
+}
+
+/*!
+  */
 template <typename ReturnType, typename Task> inline
 auto ThreadManager::enqueue(
     Task&& task,
     std::pmr::memory_resource* mem_resource,
     EnableIf<std::is_invocable_v<Task>>) noexcept -> UniqueResult<ReturnType>
 {
-  auto result = enqueueTask<ReturnType>(std::forward<Task>(task), mem_resource);
+  auto result = enqueueBridge<ReturnType>(std::forward<Task>(task), mem_resource);
   return result;
 }
 
@@ -287,7 +325,7 @@ auto ThreadManager::enqueue(
     std::pmr::memory_resource* mem_resource,
     EnableIf<std::is_invocable_v<Task, uint>>) noexcept -> UniqueResult<ReturnType>
 {
-  auto result = enqueueTask<ReturnType>(std::forward<Task>(task), mem_resource);
+  auto result = enqueueBridge<ReturnType>(std::forward<Task>(task), mem_resource);
   return result;
 }
 /*!
@@ -301,10 +339,10 @@ auto ThreadManager::enqueueLoop(
     EnableIf<std::is_invocable_v<Task, Iterator1>>)
         noexcept -> UniqueResult<void>
 {
-  auto result = enqueueLoopTask(std::forward<Task>(task),
-                                std::forward<Iterator1>(begin),
-                                std::forward<Iterator2>(end),
-                                mem_resource);
+  auto result = enqueueLoopBridge1(std::forward<Task>(task),
+                                   std::forward<Iterator1>(begin),
+                                   std::forward<Iterator2>(end),
+                                   mem_resource);
   return result;
 }
 
@@ -319,10 +357,10 @@ auto ThreadManager::enqueueLoop(
     EnableIf<std::is_invocable_v<Task, uint, Iterator1>>)
         noexcept -> UniqueResult<void>
 {
-  auto result = enqueueLoopTask(std::forward<Task>(task),
-                                std::forward<Iterator1>(begin),
-                                std::forward<Iterator2>(end),
-                                mem_resource);
+  auto result = enqueueLoopBridge1(std::forward<Task>(task),
+                                   std::forward<Iterator1>(begin),
+                                   std::forward<Iterator2>(end),
+                                   mem_resource);
   return result;
 }
 
@@ -348,52 +386,78 @@ uint ThreadManager::distance(Iterator&& begin, Iterator&& end)
 /*!
   */
 template <typename ReturnType, typename Task> inline
-auto ThreadManager::enqueueTask(
+auto ThreadManager::enqueueBridge(
     Task&& task,
     std::pmr::memory_resource* mem_resource) noexcept -> UniqueResult<ReturnType>
 {
-  using TaskType = std::remove_cv_t<std::remove_reference_t<Task>>;
+  using TaskT = std::remove_cv_t<std::remove_reference_t<Task>>;
+  using ResultP = Result<ReturnType>*;
 
-#if defined(Z_CLANG)
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wpadded"
-#endif // Z_CLANG
+  constexpr std::size_t size = sizeof(TaskT) + sizeof(ResultP);
+  constexpr std::size_t alignment = std::max(alignof(TaskT), alignof(ResultP));
+  constexpr std::size_t padding_size = ((size % alignment) != 0)
+      ? alignment - (size % alignment)
+      : 0;
 
-  //! Represent single task
-  class SingleTask : public WorkerTask
-  {
-   public:
-    SingleTask(Task&& t, Result<ReturnType>* result) noexcept :
-        task_{std::forward<Task>(t)},
-        result_{result} {}
-    //! Run a task
-    void run(const uint thread_id) noexcept override
+  if constexpr (0 < padding_size) {
+    class SingleTask : public WorkerTask
     {
-      runSingleTask<ReturnType, TaskType>(task_, thread_id, result_);
-    }
-   private:
-    TaskType task_;
-    Result<ReturnType>* result_;
-  };
-  using UniqueSingleTask = UniqueMemoryPointer<SingleTask>;
+     public:
+      SingleTask(Task&& t, ResultP result) noexcept :
+          task_{std::forward<Task>(t)},
+          result_{result} {(void)padding_;}
+      void run(const uint thread_id) noexcept override
+      {
+        runSingleTask<ReturnType, TaskT>(task_, thread_id, result_);
+      }
+     private:
+      TaskT task_;
+      std::array<uint8b, padding_size> padding_;
+      ResultP result_;
+    };
+    return enqueueImpl<SingleTask, ReturnType>(std::forward<Task>(task),
+                                               mem_resource);
+  }
+  else {
+    class SingleTask : public WorkerTask
+    {
+     public:
+      SingleTask(Task&& t, ResultP result) noexcept :
+          task_{std::forward<Task>(t)},
+          result_{result} {}
+      void run(const uint thread_id) noexcept override
+      {
+        runSingleTask<ReturnType, TaskT>(task_, thread_id, result_);
+      }
+     private:
+      TaskT task_;
+      ResultP result_;
+    };
+    return enqueueImpl<SingleTask, ReturnType>(std::forward<Task>(task),
+                                               mem_resource);
+  }
+}
 
-#if defined(Z_CLANG)
-#pragma clang diagnostic pop
-#endif // Z_CLANG
-
+/*!
+  */
+template <typename SingleTask, typename ReturnType, typename Task> inline
+auto ThreadManager::enqueueImpl(
+    Task&& task,
+    std::pmr::memory_resource* mem_resource) noexcept -> UniqueResult<ReturnType>
+{
   // Create a result of loop tasks
   const uint thread_id = getThreadIndex();
-  UniqueResult<ReturnType> result = (thread_id != std::numeric_limits<uint>::max())
+  UniqueResult<ReturnType> result = (thread_id != invalidId())
       ? UniqueResult<ReturnType>::make(mem_resource, this, thread_id)
       : UniqueResult<ReturnType>::make(mem_resource);
 
   // Enqueue a task maker
+  using UniqueSingleTask = UniqueMemoryPointer<SingleTask>;
   {
     UniqueTask worker_task = UniqueSingleTask::make(mem_resource,
                                                     std::forward<Task>(task),
                                                     result.get());
-    std::unique_lock<std::mutex> locker{lock_};
-    task_queue_.emplace(std::move(worker_task));
+    task_queue_.enqueue(std::move(worker_task));
   }
   condition_.notify_one();
 
@@ -403,76 +467,185 @@ auto ThreadManager::enqueueTask(
 /*!
   */
 template <typename Task, typename Iterator1, typename Iterator2> inline
-auto ThreadManager::enqueueLoopTask(
+auto ThreadManager::enqueueLoopBridge1(
+    Task&& task,
+    Iterator1&& begin,
+    Iterator2&& end,
+    std::pmr::memory_resource* mem_resource) noexcept -> UniqueResult<void>
+{
+  using TaskT = std::remove_cv_t<std::remove_reference_t<Task>>;
+  using ResultP = Result<void>*;
+  using MemoryP = std::pmr::memory_resource*;
+  using AtomicT = std::atomic_uint;
+  static_assert(alignof(ResultP) == alignof(MemoryP));
+  static_assert(alignof(AtomicT) == 4);
+
+  constexpr std::size_t size = sizeof(TaskT) +
+                               sizeof(ResultP) +
+                               sizeof(MemoryP) +
+                               sizeof(AtomicT);
+  constexpr std::size_t alignment = std::max({alignof(TaskT),
+                                              alignof(ResultP),
+                                              alignof(MemoryP),
+                                              alignof(AtomicT)});
+  constexpr std::size_t padding_size = (size % alignment != 0)
+      ? alignment - (size % alignment)
+      : 0;
+
+  if constexpr ((alignof(ResultP) <= alignof(TaskT)) && (0 < padding_size)) {
+    struct SharedTaskData
+    {
+      SharedTaskData(Task&& t, ResultP r, const uint c, MemoryP m) noexcept :
+          task_{std::forward<Task>(t)},
+          result_{r},
+          mem_resource_{m},
+          counter_{c} {(void)padding_;}
+      TaskT task_;
+      ResultP result_;
+      MemoryP mem_resource_;
+      AtomicT counter_;
+      std::array<uint8b, padding_size> padding_;
+    };
+    return enqueueLoopBridge2<SharedTaskData>(std::forward<Task>(task),
+                                              std::forward<Iterator1>(begin),
+                                              std::forward<Iterator2>(end),
+                                              mem_resource);
+  }
+  else if constexpr ((alignof(TaskT) < alignof(AtomicT)) && (0 < padding_size)) {
+    struct SharedTaskData
+    {
+      SharedTaskData(Task&& t, ResultP r, const uint c, MemoryP m) noexcept :
+          result_{r},
+          mem_resource_{m},
+          counter_{c},
+          task_{std::forward<Task>(t)} {(void)padding_;}
+      ResultP result_;
+      MemoryP mem_resource_;
+      AtomicT counter_;
+      TaskT task_;
+      std::array<uint8b, padding_size> padding_;
+    };
+    return enqueueLoopBridge2<SharedTaskData>(std::forward<Task>(task),
+                                              std::forward<Iterator1>(begin),
+                                              std::forward<Iterator2>(end),
+                                              mem_resource);
+  }
+  else {
+    struct SharedTaskData
+    {
+      SharedTaskData(Task&& t, ResultP r, const uint c, MemoryP m) noexcept :
+          result_{r},
+          mem_resource_{m},
+          task_{std::forward<Task>(t)},
+          counter_{c} {}
+      ResultP result_;
+      MemoryP mem_resource_;
+      TaskT task_;
+      AtomicT counter_;
+    };
+    return enqueueLoopBridge2<SharedTaskData>(std::forward<Task>(task),
+                                              std::forward<Iterator1>(begin),
+                                              std::forward<Iterator2>(end),
+                                              mem_resource);
+  }
+}
+
+/*!
+  */
+template <typename SharedTaskData,
+          typename Task, typename Iterator1, typename Iterator2 > inline
+auto ThreadManager::enqueueLoopBridge2(
     Task&& task,
     Iterator1&& begin,
     Iterator2&& end,
     std::pmr::memory_resource* mem_resource) noexcept -> UniqueResult<void>
 {
   using Iterator = std::remove_cv_t<std::remove_reference_t<Iterator1>>;
-  using TaskType = std::remove_cv_t<std::remove_reference_t<Task>>;
-
-#if defined(Z_CLANG)
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wpadded"
-#endif // Z_CLANG
-
-  //! Shared data by loop tasks
-  struct SharedTaskData
-  {
-    //! Create a shared task data
-    SharedTaskData(Task&& t,
-                   Result<void>* result,
-                   const uint c,
-                   std::pmr::memory_resource* mem_resource) noexcept :
-        task_{std::forward<Task>(t)},
-        result_{result},
-        mem_resource_{mem_resource},
-        counter_{c} {}
-    TaskType task_;
-    Result<void>* result_;
-    std::pmr::memory_resource* mem_resource_;
-    std::atomic<uint> counter_;
-    static_assert(alignof(std::pmr::memory_resource) <= alignof(Result<void>*));
-    static_assert(alignof(std::atomic<uint>) <= alignof(std::pmr::memory_resource));
-  };
+  using TaskT = std::remove_cv_t<std::remove_reference_t<Task>>;
   using UniqueSharedData = UniqueMemoryPointer<SharedTaskData>;
 
-  //! Represent one of loop tasks
-  class LoopTask : public WorkerTask
-  {
-   public:
-    LoopTask(SharedTaskData* shared_data, Iterator ite) noexcept :
-        shared_data_{shared_data},
-        ite_{ite} {}
-    //! Run a task
-    void run(const uint thread_id) noexcept override
+  constexpr std::size_t size = sizeof(SharedTaskData*) + sizeof(Iterator);
+  constexpr std::size_t alignment = std::max(alignof(SharedTaskData*),
+                                             alignof(Iterator));
+  constexpr std::size_t padding_size = (size % alignment != 0)
+      ? alignment - (size % alignment)
+      : 0;
+
+  if constexpr (0 < padding_size) {
+    class LoopTask : public WorkerTask
     {
-      runLoopTask<TaskType, Iterator>(shared_data_->task_, thread_id, ite_);
-      // A manager will be notified when all tasks have been completed
-      const uint c = --(shared_data_->counter_);
-      if (c == 0) {
-        UniqueSharedData r{shared_data_, shared_data_->mem_resource_};
-        r->result_->set(0);
+     public:
+      LoopTask(SharedTaskData* shared_data, Iterator ite) noexcept :
+          shared_data_{shared_data},
+          ite_{ite} {(void)padding_;}
+      void run(const uint thread_id) noexcept override
+      {
+        runLoopTask<TaskT, Iterator>(shared_data_->task_, thread_id, ite_);
+        // A manager will be notified when all tasks have been completed
+        const uint c = --(shared_data_->counter_);
+        if (c == 0) {
+          UniqueSharedData data{shared_data_, shared_data_->mem_resource_};
+          data->result_->set(0);
+        }
       }
-    }
-   private:
-    SharedTaskData* shared_data_;
-    Iterator ite_;
-  };
-  using UniqueLoopTask = UniqueMemoryPointer<LoopTask>;
+     private:
+      SharedTaskData* shared_data_;
+      std::array<uint8b, padding_size> padding_;
+      Iterator ite_;
+    };
+    return enqueueLoopImpl<SharedTaskData, LoopTask>(
+        std::forward<Task>(task),
+        std::forward<Iterator1>(begin),
+        std::forward<Iterator2>(end),
+        mem_resource);
+  }
+  else {
+    class LoopTask : public WorkerTask
+    {
+     public:
+      LoopTask(SharedTaskData* shared_data, Iterator ite) noexcept :
+          shared_data_{shared_data},
+          ite_{ite} {}
+      void run(const uint thread_id) noexcept override
+      {
+        runLoopTask<TaskT, Iterator>(shared_data_->task_, thread_id, ite_);
+        // A manager will be notified when all tasks have been completed
+        const uint c = --(shared_data_->counter_);
+        if (c == 0) {
+          UniqueSharedData data{shared_data_, shared_data_->mem_resource_};
+          data->result_->set(0);
+        }
+      }
+     private:
+      SharedTaskData* shared_data_;
+      Iterator ite_;
+    };
+    return enqueueLoopImpl<SharedTaskData, LoopTask>(
+        std::forward<Task>(task),
+        std::forward<Iterator1>(begin),
+        std::forward<Iterator2>(end),
+        mem_resource);
+  }
+}
 
-#if defined(Z_CLANG)
-#pragma clang diagnostic pop
-#endif // Z_CLANG
-
+/*!
+  */
+template <typename SharedTaskData, typename LoopTask,
+          typename Task, typename Iterator1, typename Iterator2> inline
+auto ThreadManager::enqueueLoopImpl(
+    Task&& task,
+    Iterator1&& begin,
+    Iterator2&& end,
+    std::pmr::memory_resource* mem_resource) noexcept -> UniqueResult<void>
+{
   // Create a result of loop tasks
   const uint thread_id = getThreadIndex();
-  UniqueResult<void> result = (thread_id != std::numeric_limits<uint>::max())
+  UniqueResult<void> result = (thread_id != invalidId())
       ? UniqueResult<void>::make(mem_resource, this, thread_id)
       : UniqueResult<void>::make(mem_resource);
 
   // Create a shared data
+  using UniqueSharedData = UniqueMemoryPointer<SharedTaskData>;
   const uint d = distance(begin, end);
   auto shared_data = UniqueSharedData::make(mem_resource,
                                             std::forward<Task>(task),
@@ -481,11 +654,13 @@ auto ThreadManager::enqueueLoopTask(
                                             mem_resource).release();
 
   // Enqueue loop tasks
+  using UniqueLoopTask = UniqueMemoryPointer<LoopTask>;
   {
-    std::unique_lock<std::mutex> locker{lock_};
     for (auto ite = begin; ite != end; ++ite) {
-      UniqueTask worker_task = UniqueLoopTask::make(mem_resource, shared_data, ite);
-      task_queue_.emplace(std::move(worker_task));
+      UniqueTask worker_task = UniqueLoopTask::make(mem_resource,
+                                                    shared_data,
+                                                    ite);
+      task_queue_.enqueue(std::move(worker_task));
     }
   }
   condition_.notify_all();
@@ -513,10 +688,10 @@ inline
 auto ThreadManager::fetchTask() noexcept -> UniqueTask 
 {
   UniqueTask task;
-  if (!task_queue_.empty()) {
-    task = std::move(task_queue_.front());
-    task_queue_.pop();
-  }
+  auto result = task_queue_.dequeue();
+  const bool flag = std::get<0>(result);
+  if (flag)
+    task = std::move(std::get<1>(result));
   return task;
 }
 
@@ -547,10 +722,19 @@ void ThreadManager::initialize(const uint num_of_threads) noexcept
 
   // Check the alignment of member variables
   static_assert(alignof(pmr::vector<std::thread>) <=
-                alignof(std::queue<UniqueTask, pmr::deque<UniqueTask>>));
+                alignof(LockFreeBoundedQueue<UniqueTask>));
   static_assert(alignof(std::mutex) <= alignof(pmr::vector<std::thread>));
   static_assert(alignof(std::condition_variable) <= alignof(std::mutex));
   static_assert(alignof(uint8b) <= alignof(std::condition_variable));
+}
+
+/*!
+  */
+inline
+constexpr uint ThreadManager::invalidId() noexcept
+{
+  const uint id = std::numeric_limits<uint>::max();
+  return id;
 }
 
 /*!

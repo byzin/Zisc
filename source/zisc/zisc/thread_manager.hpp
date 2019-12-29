@@ -12,14 +12,14 @@
 
 // Standard C++ library
 #include <array>
-#include <deque>
 #include <future>
-#include <queue>
+#include <mutex>
 #include <thread>
 #include <type_traits>
 #include <utility>
 #include <vector>
 // Zisc
+#include "lock_free_bounded_queue.hpp"
 #include "non_copyable.hpp"
 #include "std_memory_resource.hpp"
 #include "type_traits.hpp"
@@ -34,10 +34,6 @@ namespace zisc {
 class ThreadManager : private NonCopyable<ThreadManager>
 {
  public:
-#if defined(Z_CLANG)
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wpadded"
-#endif // Z_CLANG
   //! Result type of tasks
   template <typename T>
   class Result : private NonCopyable<Result<T>>
@@ -55,6 +51,7 @@ class ThreadManager : private NonCopyable<ThreadManager>
     Type get() noexcept;
     //! Wait for the result to become available
     void wait() const noexcept;
+
    private:
     friend ThreadManager;
     using ResultT = std::conditional_t<std::is_void_v<Type>, uint8b, Type>;
@@ -73,9 +70,6 @@ class ThreadManager : private NonCopyable<ThreadManager>
     uint8b has_value_;
     uint16b thread_id_;
   };
-#if defined(Z_CLANG)
-#pragma clang diagnostic pop
-#endif // Z_CLANG
   template <typename Type>
   using UniqueResult = UniqueMemoryPointer<Result<Type>>;
 
@@ -101,6 +95,9 @@ class ThreadManager : private NonCopyable<ThreadManager>
   template <typename Integer>
   std::array<Integer, 2> calcThreadRange(const Integer range, 
                                          const uint thread_id) const noexcept;
+
+  //! Return the maximum possible number of tasks
+  std::size_t capacity() const noexcept;
 
   //! Run the given task on a worker thread in the manager
   template <typename ReturnType, typename Task>
@@ -134,6 +131,9 @@ class ThreadManager : private NonCopyable<ThreadManager>
       std::pmr::memory_resource* mem_resource,
       EnableIf<std::is_invocable_v<Task, uint, Iterator1>> = kEnabler) noexcept;
 
+  //! Check whether the task queue is empty
+  bool isEmpty() const noexcept;
+
   //! Return the number of logical cores
   static uint logicalCores() noexcept;
 
@@ -142,6 +142,12 @@ class ThreadManager : private NonCopyable<ThreadManager>
 
   //! Return a pointer to the underling memory resource
   std::pmr::memory_resource* resource() const noexcept;
+
+  //! Change the maximum possible number of tasks. The queued tasks are cleared
+  void setCapacity(const std::size_t cap) noexcept;
+
+  //! Return the number of queued tasks
+  int size() const noexcept;
 
  private:
   //! Base class of worker task
@@ -158,19 +164,46 @@ class ThreadManager : private NonCopyable<ThreadManager>
   //! Create worker threads
   void createWorkers(const uint num_of_threads) noexcept;
 
+  //! Return the default capacity of the task queue
+  static constexpr std::size_t defaultTaskCapacity() noexcept;
+
   //! Return the distance of given two iterators
   template <typename Iterator>
   static uint distance(Iterator&& begin, Iterator&& end) noexcept;
 
   //! Run the given task on a worker thread in the manager
   template <typename ReturnType, typename Task>
-  UniqueResult<ReturnType> enqueueTask(
+  UniqueResult<ReturnType> enqueueBridge(
+      Task&& task,
+      std::pmr::memory_resource* mem_resource) noexcept;
+
+  //! Run the given task on a worker thread in the manager
+  template <typename SingleTask, typename ReturnType, typename Task>
+  UniqueResult<ReturnType> enqueueImpl(
       Task&& task,
       std::pmr::memory_resource* mem_resource) noexcept;
 
   //! Run tasks on the worker threads in the manager
   template <typename Task, typename Iterator1, typename Iterator2>
-  UniqueResult<void> enqueueLoopTask(
+  UniqueResult<void> enqueueLoopBridge1(
+      Task&& task,
+      Iterator1&& begin,
+      Iterator2&& end,
+      std::pmr::memory_resource* mem_resource) noexcept;
+
+  //! Run tasks on the worker threads in the manager
+  template <typename SharedTaskData,
+            typename Task, typename Iterator1, typename Iterator2>
+  UniqueResult<void> enqueueLoopBridge2(
+      Task&& task,
+      Iterator1&& begin,
+      Iterator2&& end,
+      std::pmr::memory_resource* mem_resource) noexcept;
+
+  //! Run tasks on the worker threads in the manager
+  template <typename SharedTaskData, typename LoopTask,
+            typename Task, typename Iterator1, typename Iterator2>
+  UniqueResult<void> enqueueLoopImpl(
       Task&& task,
       Iterator1&& begin,
       Iterator2&& end,
@@ -188,6 +221,9 @@ class ThreadManager : private NonCopyable<ThreadManager>
   //! Initialize this thread manager
   void initialize(const uint num_of_threads) noexcept;
 
+  //! Return the invalid thread ID
+  static constexpr uint invalidId() noexcept;
+
   //! Run single task
   template <typename Task, typename Iterator>
   static void runLoopTask(Task& task,
@@ -204,7 +240,7 @@ class ThreadManager : private NonCopyable<ThreadManager>
   bool workersAreEnabled() const noexcept;
 
 
-  std::queue<UniqueTask, pmr::deque<UniqueTask>> task_queue_;
+  LockFreeBoundedQueue<UniqueTask> task_queue_;
   pmr::vector<std::thread> workers_;
   std::mutex lock_;
   std::condition_variable condition_;

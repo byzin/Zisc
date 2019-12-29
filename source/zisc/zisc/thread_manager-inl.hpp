@@ -31,8 +31,6 @@
 #include "error.hpp"
 #include "non_copyable.hpp"
 #include "type_traits.hpp"
-#include "simple_memory_resource.hpp"
-#include "spin_lock_mutex.hpp"
 #include "std_memory_resource.hpp"
 #include "unique_memory_pointer.hpp"
 #include "utility.hpp"
@@ -42,61 +40,59 @@ namespace zisc {
 
 /*!
   */
-template <ThreadManagerLockType kLockType> template  <typename T> inline
-WorkerThreadManager<kLockType>::Result<T>::Result() noexcept :
+template <typename T> inline
+ThreadManager::Result<T>::Result() noexcept :
     Result(nullptr, std::numeric_limits<uint16b>::max())
 {
 }
 
 /*!
   */
-template <ThreadManagerLockType kLockType> template <typename T> inline
-WorkerThreadManager<kLockType>::Result<T>::Result(
-    WorkerThreadManager* manager,
-    const uint thread_id) noexcept :
-        thread_manager_{manager},
-        has_value_{kFalse},
-        thread_id_{zisc::cast<uint16b>(thread_id)}
+template <typename T> inline
+ThreadManager::Result<T>::Result(ThreadManager* manager,
+                                 const uint thread_id) noexcept :
+    thread_manager_{manager},
+    has_value_{kFalse},
+    thread_id_{zisc::cast<uint16b>(thread_id)}
 {
 }
 
 /*!
   */
-template <ThreadManagerLockType kLockType> template <typename T> inline
-WorkerThreadManager<kLockType>::Result<T>::~Result() noexcept
+template <typename T> inline
+ThreadManager::Result<T>::~Result() noexcept
 {
-  if constexpr (std::is_destructible_v<ResultType>) {
+  if constexpr (std::is_destructible_v<ResultT>) {
     if (hasValue()) {
-      auto& v = value();
-      std::destroy_at(&v);
+      ResultReference v = value();
+      std::destroy_at(std::addressof(v));
     }
   }
 }
 
 /*!
   */
-template <ThreadManagerLockType kLockType> template <typename T> inline
-auto WorkerThreadManager<kLockType>::Result<T>::get() noexcept -> Type
+template <typename T> inline
+auto ThreadManager::Result<T>::get() noexcept -> Type
 {
-  if (!hasValue())
-    wait();
+  wait();
   if constexpr (!std::is_void_v<Type>)
     return std::move(value());
 }
 
 /*!
   */
-template <ThreadManagerLockType kLockType> template <typename T> inline
-void WorkerThreadManager<kLockType>::Result<T>::wait() const noexcept
+template <typename T> inline
+void ThreadManager::Result<T>::wait() const noexcept
 {
   UniqueTask task;
   while (!hasValue()) {
     if (thread_manager_ != nullptr) {
-      std::unique_lock<Lock> locker{thread_manager_->lock_};
+      std::unique_lock<std::mutex> locker{thread_manager_->lock_};
       task = thread_manager_->fetchTask();
     }
     if (task) {
-      task->run(zisc::cast<uint>(thread_id_));
+      task->run(cast<uint>(thread_id_));
       task.reset();
     }
     else {
@@ -107,38 +103,37 @@ void WorkerThreadManager<kLockType>::Result<T>::wait() const noexcept
 
 /*!
   */
-template <ThreadManagerLockType kLockType> template <typename T> inline
-bool WorkerThreadManager<kLockType>::Result<T>::hasValue() const noexcept
+template <typename T> inline
+bool ThreadManager::Result<T>::hasValue() const noexcept
 {
   return has_value_ == kTrue;
 }
 
 /*!
   */
-template <ThreadManagerLockType kLockType> template <typename T> inline
-void WorkerThreadManager<kLockType>::Result<T>::set(ResultType&& result) noexcept
+template <typename T> inline
+void ThreadManager::Result<T>::set(ResultT&& result) noexcept
 {
   ZISC_ASSERT(!hasValue(), "The result already has a value.");
-  new (&data_) ResultType{std::move(result)};
+  new (&data_) ResultT{std::move(result)};
   has_value_ = kTrue;
 }
 
 /*!
   */
-template <ThreadManagerLockType kLockType> template <typename T> inline
-auto WorkerThreadManager<kLockType>::Result<T>::value() noexcept -> ResultReference
+template <typename T> inline
+auto ThreadManager::Result<T>::value() noexcept -> ResultReference
 {
-  return *treatAs<ResultType*>(&data_);
+  return *treatAs<ResultT*>(&data_);
 }
 
 /*!
   \details
   No detailed.
   */
-template <ThreadManagerLockType kLockType> inline
-WorkerThreadManager<kLockType>::WorkerThreadManager(
-    std::pmr::memory_resource* mem_resource) noexcept :
-        WorkerThreadManager(std::thread::hardware_concurrency(), mem_resource)
+inline
+ThreadManager::ThreadManager(std::pmr::memory_resource* mem_resource) noexcept :
+    ThreadManager(logicalCores(), mem_resource)
 {
 }
 
@@ -146,13 +141,12 @@ WorkerThreadManager<kLockType>::WorkerThreadManager(
   \details
   No detailed.
   */
-template <ThreadManagerLockType kLockType> inline
-WorkerThreadManager<kLockType>::WorkerThreadManager(
-    const uint num_of_threads,
-    std::pmr::memory_resource* mem_resource) noexcept :
-        task_queue_{typename pmr::deque<UniqueTask>::allocator_type{mem_resource}},
-        workers_{pmr::vector<std::thread>::allocator_type{mem_resource}},
-        workers_are_enabled_{kTrue}
+inline
+ThreadManager::ThreadManager(const uint num_of_threads,
+                             std::pmr::memory_resource* mem_resource) noexcept :
+    task_queue_{typename pmr::deque<UniqueTask>::allocator_type{mem_resource}},
+    workers_{pmr::vector<std::thread>::allocator_type{mem_resource}},
+    workers_are_enabled_{kTrue}
 {
   initialize(num_of_threads);
 }
@@ -161,16 +155,16 @@ WorkerThreadManager<kLockType>::WorkerThreadManager(
   \details
   No detailed.
   */
-template <ThreadManagerLockType kLockType> inline
-WorkerThreadManager<kLockType>::~WorkerThreadManager()
+inline
+ThreadManager::~ThreadManager()
 {
   exitWorkersRunning();
 }
 
 /*!
   */
-template <ThreadManagerLockType kLockType> template <typename Integer> inline
-std::array<Integer, 2> WorkerThreadManager<kLockType>::calcThreadRange(
+template <typename Integer> inline
+std::array<Integer, 2> ThreadManager::calcThreadRange(
     const Integer range,
     const uint num_of_threads,
     const uint thread_id) noexcept
@@ -190,8 +184,8 @@ std::array<Integer, 2> WorkerThreadManager<kLockType>::calcThreadRange(
 
 /*!
   */
-template <ThreadManagerLockType kLockType> template <typename Integer> inline
-std::array<Integer, 2> WorkerThreadManager<kLockType>::calcThreadRange(
+template <typename Integer> inline
+std::array<Integer, 2> ThreadManager::calcThreadRange(
     const Integer range,
     const uint thread_id) const noexcept
 {
@@ -202,10 +196,11 @@ std::array<Integer, 2> WorkerThreadManager<kLockType>::calcThreadRange(
   \details
   No detailed.
   */
-template <ThreadManagerLockType kLockType> inline
-uint WorkerThreadManager<kLockType>::logicalCores() noexcept
+inline
+uint ThreadManager::logicalCores() noexcept
 {
-  return cast<uint>(std::thread::hardware_concurrency());
+  const uint cores = std::thread::hardware_concurrency();
+  return cores;
 }
 
 /*!
@@ -214,23 +209,30 @@ uint WorkerThreadManager<kLockType>::logicalCores() noexcept
 
   \return The number of worker threads
   */
-template <ThreadManagerLockType kLockType> inline
-uint WorkerThreadManager<kLockType>::numOfThreads() const noexcept
+inline
+uint ThreadManager::numOfThreads() const noexcept
 {
-  return cast<uint>(workers_.size());
+  const std::size_t num_of_threads = workers_.size();
+  return cast<uint>(num_of_threads);
+}
+
+/*!
+  */
+inline
+std::pmr::memory_resource* ThreadManager::resource() const noexcept
+{
+  auto mem_resource = workers_.get_allocator().resource();
+  return mem_resource;
 }
 
 /*!
   \details
   No detailed.
   */
-template <ThreadManagerLockType kLockType> inline
-void WorkerThreadManager<kLockType>::createWorkers(const uint num_of_threads)
-    noexcept
+inline
+void ThreadManager::createWorkers(const uint num_of_threads) noexcept
 {
-  const uint id_max = (num_of_threads == 0)
-      ? cast<uint>(std::thread::hardware_concurrency())
-      : num_of_threads;
+  const uint id_max = (num_of_threads == 0) ? logicalCores() : num_of_threads;
   workers_.reserve(id_max);
   for (uint thread_id = 0; thread_id < id_max; ++thread_id) {
 #if defined(Z_CLANG)
@@ -239,21 +241,17 @@ void WorkerThreadManager<kLockType>::createWorkers(const uint num_of_threads)
 #endif // Z_CLANG
     auto work = [this, thread_id]() noexcept
     {
-      using LockType = ThreadManagerLockType;
       UniqueTask task;
       while (workersAreEnabled()) {
         {
-          std::unique_lock<Lock> locker{lock_};
+          std::unique_lock<std::mutex> locker{lock_};
           task = fetchTask();
-          if ((kLockType == LockType::kStdMutex) && workersAreEnabled() && !task)
-              wait(&locker);
+          if (workersAreEnabled() && !task)
+            condition_.wait(locker);
         }
         if (task) {
           task->run(thread_id);
           task.reset();
-        }
-        else if (kLockType == LockType::kSpinLock) {
-          wait();
         }
       }
     };
@@ -271,9 +269,8 @@ void WorkerThreadManager<kLockType>::createWorkers(const uint num_of_threads)
 
 /*!
   */
-template <ThreadManagerLockType kLockType>
 template <typename ReturnType, typename Task> inline
-auto WorkerThreadManager<kLockType>::enqueue(
+auto ThreadManager::enqueue(
     Task&& task,
     std::pmr::memory_resource* mem_resource,
     EnableIf<std::is_invocable_v<Task>>) noexcept -> UniqueResult<ReturnType>
@@ -284,9 +281,8 @@ auto WorkerThreadManager<kLockType>::enqueue(
 
 /*!
   */
-template <ThreadManagerLockType kLockType>
 template <typename ReturnType, typename Task> inline
-auto WorkerThreadManager<kLockType>::enqueue(
+auto ThreadManager::enqueue(
     Task&& task,
     std::pmr::memory_resource* mem_resource,
     EnableIf<std::is_invocable_v<Task, uint>>) noexcept -> UniqueResult<ReturnType>
@@ -296,9 +292,8 @@ auto WorkerThreadManager<kLockType>::enqueue(
 }
 /*!
   */
-template <ThreadManagerLockType kLockType>
 template <typename Task, typename Iterator1, typename Iterator2> inline
-auto WorkerThreadManager<kLockType>::enqueueLoop(
+auto ThreadManager::enqueueLoop(
     Task&& task,
     Iterator1&& begin,
     Iterator2&& end,
@@ -315,9 +310,8 @@ auto WorkerThreadManager<kLockType>::enqueueLoop(
 
 /*!
   */
-template <ThreadManagerLockType kLockType>
 template <typename Task, typename Iterator1, typename Iterator2> inline
-auto WorkerThreadManager<kLockType>::enqueueLoop(
+auto ThreadManager::enqueueLoop(
     Task&& task,
     Iterator1&& begin,
     Iterator2&& end,
@@ -334,8 +328,8 @@ auto WorkerThreadManager<kLockType>::enqueueLoop(
 
 /*!
   */
-template <ThreadManagerLockType kLockType> template <typename Iterator> inline
-uint WorkerThreadManager<kLockType>::distance(Iterator&& begin, Iterator&& end)
+template <typename Iterator> inline
+uint ThreadManager::distance(Iterator&& begin, Iterator&& end)
     noexcept
 {
   using IteratorType = std::remove_cv_t<std::remove_reference_t<Iterator>>;
@@ -353,9 +347,8 @@ uint WorkerThreadManager<kLockType>::distance(Iterator&& begin, Iterator&& end)
 
 /*!
   */
-template <ThreadManagerLockType kLockType>
 template <typename ReturnType, typename Task> inline
-auto WorkerThreadManager<kLockType>::enqueueTask(
+auto ThreadManager::enqueueTask(
     Task&& task,
     std::pmr::memory_resource* mem_resource) noexcept -> UniqueResult<ReturnType>
 {
@@ -399,19 +392,18 @@ auto WorkerThreadManager<kLockType>::enqueueTask(
     UniqueTask worker_task = UniqueSingleTask::make(mem_resource,
                                                     std::forward<Task>(task),
                                                     result.get());
-    std::unique_lock<Lock> locker{lock_};
+    std::unique_lock<std::mutex> locker{lock_};
     task_queue_.emplace(std::move(worker_task));
   }
-  notifyOne();
+  condition_.notify_one();
 
   return result;
 }
 
 /*!
   */
-template <ThreadManagerLockType kLockType>
 template <typename Task, typename Iterator1, typename Iterator2> inline
-auto WorkerThreadManager<kLockType>::enqueueLoopTask(
+auto ThreadManager::enqueueLoopTask(
     Task&& task,
     Iterator1&& begin,
     Iterator2&& end,
@@ -490,35 +482,35 @@ auto WorkerThreadManager<kLockType>::enqueueLoopTask(
 
   // Enqueue loop tasks
   {
-    std::unique_lock<Lock> locker{lock_};
+    std::unique_lock<std::mutex> locker{lock_};
     for (auto ite = begin; ite != end; ++ite) {
       UniqueTask worker_task = UniqueLoopTask::make(mem_resource, shared_data, ite);
       task_queue_.emplace(std::move(worker_task));
     }
   }
-  notifyAll();
+  condition_.notify_all();
 
   return result;
 }
 
 /*!
   */
-template <ThreadManagerLockType kLockType> inline
-void WorkerThreadManager<kLockType>::exitWorkersRunning() noexcept
+inline
+void ThreadManager::exitWorkersRunning() noexcept
 {
   {
-    std::unique_lock<Lock> locker{lock_};
+    std::unique_lock<std::mutex> locker{lock_};
     workers_are_enabled_ = kFalse;
   }
-  notifyAll();
+  condition_.notify_all();
   for (auto& worker : workers_)
     worker.join();
 }
 
 /*!
   */
-template <ThreadManagerLockType kLockType> inline
-auto WorkerThreadManager<kLockType>::fetchTask() noexcept -> UniqueTask 
+inline
+auto ThreadManager::fetchTask() noexcept -> UniqueTask 
 {
   UniqueTask task;
   if (!task_queue_.empty()) {
@@ -530,8 +522,8 @@ auto WorkerThreadManager<kLockType>::fetchTask() noexcept -> UniqueTask
 
 /*!
   */
-template <ThreadManagerLockType kLockType> inline
-uint WorkerThreadManager<kLockType>::getThreadIndex() const noexcept
+inline
+uint ThreadManager::getThreadIndex() const noexcept
 {
   const auto id = std::this_thread::get_id();
   auto comp = [](const std::thread& lhs, const std::thread::id& rhs)
@@ -548,50 +540,23 @@ uint WorkerThreadManager<kLockType>::getThreadIndex() const noexcept
 
 /*!
   */
-template <ThreadManagerLockType kLockType> inline
-void WorkerThreadManager<kLockType>::initialize(const uint num_of_threads) noexcept
+inline
+void ThreadManager::initialize(const uint num_of_threads) noexcept
 {
   createWorkers(num_of_threads);
 
   // Check the alignment of member variables
   static_assert(alignof(pmr::vector<std::thread>) <=
                 alignof(std::queue<UniqueTask, pmr::deque<UniqueTask>>));
-  static_assert(alignof(Lock) <= alignof(pmr::vector<std::thread>));
-  static_assert(alignof(Condition) <= alignof(Lock));
-  static_assert(alignof(uint8b) <= alignof(Condition));
+  static_assert(alignof(std::mutex) <= alignof(pmr::vector<std::thread>));
+  static_assert(alignof(std::condition_variable) <= alignof(std::mutex));
+  static_assert(alignof(uint8b) <= alignof(std::condition_variable));
 }
 
 /*!
   */
-template <ThreadManagerLockType kLockType> inline
-void WorkerThreadManager<kLockType>::notifyAll() noexcept
-{
-  if constexpr (kLockType == ThreadManagerLockType::kSpinLock) {
-  }
-  else {
-    // std::mutex
-    condition_.notify_all();
-  }
-}
-
-/*!
-  */
-template <ThreadManagerLockType kLockType> inline
-void WorkerThreadManager<kLockType>::notifyOne() noexcept
-{
-  if constexpr (kLockType == ThreadManagerLockType::kSpinLock) {
-  }
-  else {
-    // std::mutex
-    condition_.notify_one();
-  }
-}
-
-/*!
-  */
-template <ThreadManagerLockType kLockType>
 template <typename Task, typename Iterator> inline
-void WorkerThreadManager<kLockType>::runLoopTask(
+void ThreadManager::runLoopTask(
     Task& task,
     const uint thread_id,
     Iterator ite) noexcept
@@ -607,9 +572,8 @@ void WorkerThreadManager<kLockType>::runLoopTask(
 
 /*!
   */
-template <ThreadManagerLockType kLockType>
 template <typename ReturnType, typename Task> inline
-void WorkerThreadManager<kLockType>::runSingleTask(
+void ThreadManager::runSingleTask(
     Task& task,
     const uint thread_id,
     Result<ReturnType>* result) noexcept
@@ -639,23 +603,8 @@ void WorkerThreadManager<kLockType>::runSingleTask(
 
 /*!
   */
-template <ThreadManagerLockType kLockType> inline
-void WorkerThreadManager<kLockType>::wait(std::unique_lock<Lock>* locker) noexcept
-{
-  if constexpr (kLockType == ThreadManagerLockType::kSpinLock) {
-    static_cast<void>(locker);
-    std::this_thread::yield();
-  }
-  else {
-    // std::mutex
-    condition_.wait(*locker);
-  }
-}
-
-/*!
-  */
-template <ThreadManagerLockType kLockType> inline
-bool WorkerThreadManager<kLockType>::workersAreEnabled() const noexcept
+inline
+bool ThreadManager::workersAreEnabled() const noexcept
 {
   return workers_are_enabled_ == kTrue;
 }

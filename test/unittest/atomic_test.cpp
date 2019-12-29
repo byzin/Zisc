@@ -17,6 +17,7 @@
 #include "gtest/gtest.h"
 // Zisc
 #include "zisc/atomic.hpp"
+#include "zisc/simple_memory_resource.hpp"
 #include "zisc/thread_manager.hpp"
 #include "zisc/zisc_config.hpp"
 
@@ -30,7 +31,8 @@ void testAtomicAddition()
   std::cout << "Atomic is lock-free: "
             << zisc::Atomic::isLockFree<Type>() << std::endl;
 
-  zisc::ThreadManager thread_manager{100};
+  zisc::SimpleMemoryResource mem_resource;
+  zisc::ThreadManager thread_manager{100, &mem_resource};
 
   Type value = zisc::cast<Type>(0);
   std::vector<int> table;
@@ -45,7 +47,7 @@ void testAtomicAddition()
 
   constexpr std::size_t s = 0;
   constexpr std::size_t e = resolution;
-  auto result = thread_manager.enqueueLoop(test, s, e);
+  auto result = thread_manager.enqueueLoop(test, s, e, &mem_resource);
   result->wait();
 
   const char* error_message = "Atomic addition failed: ";
@@ -63,7 +65,8 @@ void testAtomicSubtraction()
   std::cout << "Atomic is lock-free: "
             << zisc::Atomic::isLockFree<Type>() << std::endl;
 
-  zisc::ThreadManager thread_manager{100};
+  zisc::SimpleMemoryResource mem_resource;
+  zisc::ThreadManager thread_manager{100, &mem_resource};
 
   Type value = zisc::cast<Type>(0);
   std::vector<int> table;
@@ -78,7 +81,7 @@ void testAtomicSubtraction()
 
   constexpr std::size_t s = 0;
   constexpr std::size_t e = resolution;
-  auto result = thread_manager.enqueueLoop(test, s, e);
+  auto result = thread_manager.enqueueLoop(test, s, e, &mem_resource);
   result->wait();
 
   const char* error_message = "Atomic subtraction failed: ";
@@ -96,7 +99,8 @@ void testAtomicExchange()
   std::cout << "Atomic is lock-free: "
             << zisc::Atomic::isLockFree<Type>() << std::endl;
 
-  zisc::ThreadManager thread_manager{100};
+  zisc::SimpleMemoryResource mem_resource;
+  zisc::ThreadManager thread_manager{100, &mem_resource};
 
   Type value = zisc::cast<Type>(0);
   std::vector<int> table;
@@ -110,7 +114,7 @@ void testAtomicExchange()
 
   constexpr Type s = zisc::cast<Type>(1);
   constexpr Type e = zisc::cast<Type>(resolution);
-  auto result = thread_manager.enqueueLoop(test, s, e);
+  auto result = thread_manager.enqueueLoop(test, s, e, &mem_resource);
   result->wait();
 
   const char* error_message = "Atomic exchange failed: ";
@@ -130,7 +134,8 @@ void testAtomicIncrement()
   std::cout << "Atomic is lock-free: "
             << zisc::Atomic::isLockFree<Type>() << std::endl;
 
-  zisc::ThreadManager thread_manager{100};
+  zisc::SimpleMemoryResource mem_resource;
+  zisc::ThreadManager thread_manager{100, &mem_resource};
 
   Type value = zisc::cast<Type>(0);
   std::vector<int> table;
@@ -144,7 +149,7 @@ void testAtomicIncrement()
 
   constexpr std::size_t s = 0;
   constexpr std::size_t e = resolution;
-  auto result = thread_manager.enqueueLoop(test, s, e);
+  auto result = thread_manager.enqueueLoop(test, s, e, &mem_resource);
   result->wait();
 
   const char* error_message = "Atomic increment failed: ";
@@ -162,7 +167,8 @@ void testAtomicDecrement()
   std::cout << "Atomic is lock-free: "
             << zisc::Atomic::isLockFree<Type>() << std::endl;
 
-  zisc::ThreadManager thread_manager{100};
+  zisc::SimpleMemoryResource mem_resource;
+  zisc::ThreadManager thread_manager{100, &mem_resource};
 
   Type value = zisc::cast<Type>(0);
   std::vector<int> table;
@@ -176,7 +182,7 @@ void testAtomicDecrement()
 
   constexpr std::size_t s = 0;
   constexpr std::size_t e = resolution;
-  auto result = thread_manager.enqueueLoop(test, s, e);
+  auto result = thread_manager.enqueueLoop(test, s, e, &mem_resource);
   result->wait();
 
   const char* error_message = "Atomic decrement failed: ";
@@ -194,7 +200,8 @@ void testAtomicMin()
   std::cout << "Atomic is lock-free: "
             << zisc::Atomic::isLockFree<Type>() << std::endl;
 
-  zisc::ThreadManager thread_manager{100};
+  zisc::SimpleMemoryResource mem_resource;
+  zisc::ThreadManager thread_manager{100, &mem_resource};
 
   Type value = zisc::cast<Type>(0);
 
@@ -205,7 +212,7 @@ void testAtomicMin()
 
   constexpr Type s = zisc::cast<Type>(0);
   constexpr Type e = zisc::cast<Type>(resolution);
-  auto result = thread_manager.enqueueLoop(test, s, e);
+  auto result = thread_manager.enqueueLoop(test, s, e, &mem_resource);
   result->wait();
 
   const char* error_message = "Atomic min failed: ";
@@ -221,7 +228,8 @@ void testAtomicMax()
   std::cout << "Atomic is lock-free: "
             << zisc::Atomic::isLockFree<Type>() << std::endl;
 
-  zisc::ThreadManager thread_manager{100};
+  zisc::SimpleMemoryResource mem_resource;
+  zisc::ThreadManager thread_manager{100, &mem_resource};
 
   Type value = zisc::cast<Type>(0);
 
@@ -232,7 +240,7 @@ void testAtomicMax()
 
   constexpr Type s = zisc::cast<Type>(0);
   constexpr Type e = zisc::cast<Type>(resolution);
-  auto result = thread_manager.enqueueLoop(test, s, e);
+  auto result = thread_manager.enqueueLoop(test, s, e, &mem_resource);
   result->wait();
 
   const char* error_message = "Atomic min failed: ";
@@ -248,7 +256,8 @@ void testAtomicCmpxchg()
   std::cout << "Atomic is lock-free: "
             << zisc::Atomic::isLockFree<Type>() << std::endl;
 
-  zisc::ThreadManager thread_manager{100};
+  zisc::SimpleMemoryResource mem_resource;
+  zisc::ThreadManager thread_manager{100, &mem_resource};
 
   Type value = zisc::cast<Type>(0);
   std::vector<int> table;
@@ -267,7 +276,7 @@ void testAtomicCmpxchg()
 
   constexpr std::size_t s = 0;
   constexpr std::size_t e = resolution;
-  auto result = thread_manager.enqueueLoop(test, s, e);
+  auto result = thread_manager.enqueueLoop(test, s, e, &mem_resource);
   result->wait();
 
   const char* error_message = "Atomic cmpxchg failed: ";
@@ -285,7 +294,8 @@ void testAtomicAnd()
   std::cout << "Atomic is lock-free: "
             << zisc::Atomic::isLockFree<Type>() << std::endl;
 
-  zisc::ThreadManager thread_manager{100};
+  zisc::SimpleMemoryResource mem_resource;
+  zisc::ThreadManager thread_manager{100, &mem_resource};
 
   Type value = std::numeric_limits<Type>::max();
 
@@ -297,7 +307,7 @@ void testAtomicAnd()
 
   constexpr std::size_t s = 0;
   constexpr std::size_t e = 8 * sizeof(Type);
-  auto result = thread_manager.enqueueLoop(test, s, e);
+  auto result = thread_manager.enqueueLoop(test, s, e, &mem_resource);
   result->wait();
 
   const char* error_message = "Atomic and failed: ";
@@ -312,7 +322,8 @@ void testAtomicOr()
   std::cout << "Atomic is lock-free: "
             << zisc::Atomic::isLockFree<Type>() << std::endl;
 
-  zisc::ThreadManager thread_manager{100};
+  zisc::SimpleMemoryResource mem_resource;
+  zisc::ThreadManager thread_manager{100, &mem_resource};
 
   Type value = zisc::cast<Type>(0);
 
@@ -324,7 +335,7 @@ void testAtomicOr()
 
   constexpr std::size_t s = 0;
   constexpr std::size_t e = 8 * sizeof(Type);
-  auto result = thread_manager.enqueueLoop(test, s, e);
+  auto result = thread_manager.enqueueLoop(test, s, e, &mem_resource);
   result->wait();
 
   const char* error_message = "Atomic or failed: ";

@@ -278,7 +278,7 @@ auto LockFreeBoundedQueue<Type>::RingBuffer::dequeue(const bool nonempty) noexce
         index = entry & (n - 1);
         break;
       }
-      if ((entry | n) != entry_cycle) {
+      else if ((entry | n) != entry_cycle) {
         entry_new = entry & ~cast<UInt>(n);
         if (entry == entry_new)
           break;
@@ -298,14 +298,14 @@ auto LockFreeBoundedQueue<Type>::RingBuffer::dequeue(const bool nonempty) noexce
     if (flag && !again && !nonempty) {
       UInt tail = tail_.load(std::memory_order_acquire);
       flag = 0 < diff(tail, head + 1);
-      if (!flag) {
-        catchUp(tail, head + 1);
-        threshold_.fetch_sub(1, std::memory_order_acq_rel);
-        index = invalidIndex();
-      }
       if (flag) {
         flag = 0 < threshold_.fetch_sub(1, std::memory_order_acq_rel);
         index = flag ? index : invalidIndex();
+      }
+      else {
+        catchUp(tail, head + 1);
+        threshold_.fetch_sub(1, std::memory_order_acq_rel);
+        index = invalidIndex();
       }
     }
   }

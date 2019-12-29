@@ -14,7 +14,6 @@
 #include <array>
 #include <deque>
 #include <future>
-#include <mutex>
 #include <queue>
 #include <thread>
 #include <type_traits>
@@ -22,8 +21,6 @@
 #include <vector>
 // Zisc
 #include "non_copyable.hpp"
-#include "simple_memory_resource.hpp"
-#include "spin_lock_mutex.hpp"
 #include "std_memory_resource.hpp"
 #include "type_traits.hpp"
 #include "unique_memory_pointer.hpp"
@@ -31,17 +28,10 @@
 
 namespace zisc {
 
-enum class ThreadManagerLockType : uint
-{
-  kStdMutex,
-  kSpinLock,
-};
-
 /*!
   \brief ThreadManager class provides task parallel and data parallel thread pool
   */
-template <ThreadManagerLockType kLockType>
-class WorkerThreadManager : private NonCopyable<WorkerThreadManager<kLockType>>
+class ThreadManager : private NonCopyable<ThreadManager>
 {
  public:
 #if defined(Z_CLANG)
@@ -58,7 +48,7 @@ class WorkerThreadManager : private NonCopyable<WorkerThreadManager<kLockType>>
     //! Create a result of a task
     Result() noexcept;
     //! Create a result of a task
-    Result(WorkerThreadManager* manager, const uint thread_id) noexcept;
+    Result(ThreadManager* manager, const uint thread_id) noexcept;
     //! Destroy a result
     ~Result() noexcept;
     //! Return the result
@@ -66,20 +56,19 @@ class WorkerThreadManager : private NonCopyable<WorkerThreadManager<kLockType>>
     //! Wait for the result to become available
     void wait() const noexcept;
    private:
-    friend WorkerThreadManager;
-    using ResultType = std::conditional_t<std::is_void_v<Type>, uint8b, Type>;
-    using ResultData = std::aligned_storage_t<sizeof(ResultType),
-                                              alignof(ResultType)>;
-    using ResultReference = std::add_lvalue_reference_t<ResultType>;
+    friend ThreadManager;
+    using ResultT = std::conditional_t<std::is_void_v<Type>, uint8b, Type>;
+    using ResultData = std::aligned_storage_t<sizeof(ResultT), alignof(ResultT)>;
+    using ResultReference = std::add_lvalue_reference_t<ResultT>;
 
     //! Check if a result has a value
     bool hasValue() const noexcept;
     //! Set a result value
-    void set(ResultType&& result) noexcept;
+    void set(ResultT&& result) noexcept;
     //! Return a data as a value
     ResultReference value() noexcept;
 
-    WorkerThreadManager* thread_manager_;
+    ThreadManager* thread_manager_;
     ResultData data_;
     uint8b has_value_;
     uint16b thread_id_;
@@ -92,16 +81,14 @@ class WorkerThreadManager : private NonCopyable<WorkerThreadManager<kLockType>>
 
 
   //! Create threads as many CPU threads as
-  WorkerThreadManager(
-      std::pmr::memory_resource* mem_resource = SimpleMemoryResource::sharedResource()) noexcept;
+  ThreadManager(std::pmr::memory_resource* mem_resource) noexcept;
 
   //! Create threads
-  WorkerThreadManager(
-      const uint num_of_threads,
-      std::pmr::memory_resource* mem_resource = SimpleMemoryResource::sharedResource()) noexcept;
+  ThreadManager(const uint num_of_threads,
+                std::pmr::memory_resource* mem_resource) noexcept;
 
   //! Terminate threads
-  ~WorkerThreadManager();
+  ~ThreadManager();
 
 
   //! Calculate a range of a thread
@@ -115,43 +102,46 @@ class WorkerThreadManager : private NonCopyable<WorkerThreadManager<kLockType>>
   std::array<Integer, 2> calcThreadRange(const Integer range, 
                                          const uint thread_id) const noexcept;
 
-  //! A worker thread run a task
+  //! Run the given task on a worker thread in the manager
   template <typename ReturnType, typename Task>
   UniqueResult<ReturnType> enqueue(
       Task&& task,
-      std::pmr::memory_resource* mem_resource = SimpleMemoryResource::sharedResource(),
+      std::pmr::memory_resource* mem_resource,
       EnableIf<std::is_invocable_v<Task>> = kEnabler) noexcept;
 
-  //! A worker thread run a task
+  //! Run the given task on a worker thread in the manager
   template <typename ReturnType, typename Task>
   UniqueResult<ReturnType> enqueue(
       Task&& task,
-      std::pmr::memory_resource* mem_resource = SimpleMemoryResource::sharedResource(),
+      std::pmr::memory_resource* mem_resource,
       EnableIf<std::is_invocable_v<Task, uint>> = kEnabler) noexcept;
 
-  //! Worker threads run a loop task in parallel
+  //! Run tasks on the worker threads in the manager
   template <typename Task, typename Iterator1, typename Iterator2>
   UniqueResult<void> enqueueLoop(
       Task&& task,
       Iterator1&& begin,
       Iterator2&& end,
-      std::pmr::memory_resource* mem_resource = SimpleMemoryResource::sharedResource(),
+      std::pmr::memory_resource* mem_resource,
       EnableIf<std::is_invocable_v<Task, Iterator1>> = kEnabler) noexcept;
 
-  //! Worker threads run a loop task in parallel
+  //! Run tasks on the worker threads in the manager
   template <typename Task, typename Iterator1, typename Iterator2>
   UniqueResult<void> enqueueLoop(
       Task&& task,
       Iterator1&& begin,
       Iterator2&& end,
-      std::pmr::memory_resource* mem_resource = SimpleMemoryResource::sharedResource(),
+      std::pmr::memory_resource* mem_resource,
       EnableIf<std::is_invocable_v<Task, uint, Iterator1>> = kEnabler) noexcept;
 
-  //! Get the number of logical cores
+  //! Return the number of logical cores
   static uint logicalCores() noexcept;
 
   //! Return the number of threads
   uint numOfThreads() const noexcept;
+
+  //! Return a pointer to the underling memory resource
+  std::pmr::memory_resource* resource() const noexcept;
 
  private:
   //! Base class of worker task
@@ -164,15 +154,6 @@ class WorkerThreadManager : private NonCopyable<WorkerThreadManager<kLockType>>
   };
   using UniqueTask = UniqueMemoryPointer<WorkerTask>;
 
-  using Lock =
-      std::conditional_t<kLockType == ThreadManagerLockType::kSpinLock,
-          SpinLockMutex,
-          std::mutex>;
-  using Condition =
-      std::conditional_t<kLockType == ThreadManagerLockType::kSpinLock,
-          uint8b,
-          std::condition_variable>;
-
 
   //! Create worker threads
   void createWorkers(const uint num_of_threads) noexcept;
@@ -181,13 +162,13 @@ class WorkerThreadManager : private NonCopyable<WorkerThreadManager<kLockType>>
   template <typename Iterator>
   static uint distance(Iterator&& begin, Iterator&& end) noexcept;
 
-  //! A worker thread runs a task
+  //! Run the given task on a worker thread in the manager
   template <typename ReturnType, typename Task>
   UniqueResult<ReturnType> enqueueTask(
       Task&& task,
       std::pmr::memory_resource* mem_resource) noexcept;
 
-  //! Worker threads run a loop task in parallel
+  //! Run tasks on the worker threads in the manager
   template <typename Task, typename Iterator1, typename Iterator2>
   UniqueResult<void> enqueueLoopTask(
       Task&& task,
@@ -207,12 +188,6 @@ class WorkerThreadManager : private NonCopyable<WorkerThreadManager<kLockType>>
   //! Initialize this thread manager
   void initialize(const uint num_of_threads) noexcept;
 
-  //! Notify all waiting threads
-  void notifyAll() noexcept;
-
-  //! Notify a waiting thread
-  void notifyOne() noexcept;
-
   //! Run single task
   template <typename Task, typename Iterator>
   static void runLoopTask(Task& task,
@@ -225,23 +200,16 @@ class WorkerThreadManager : private NonCopyable<WorkerThreadManager<kLockType>>
                             const uint thread_id,
                             Result<ReturnType>* result) noexcept;
 
-  //! Block the current thread
-  void wait(std::unique_lock<Lock>* locker = nullptr) noexcept;
-
   //! Check if the workers (threads) are enable running
   bool workersAreEnabled() const noexcept;
 
 
   std::queue<UniqueTask, pmr::deque<UniqueTask>> task_queue_;
   pmr::vector<std::thread> workers_;
-  Lock lock_;
-  Condition condition_;
+  std::mutex lock_;
+  std::condition_variable condition_;
   uint8b workers_are_enabled_;
 };
-
-// Type aliases
-using ThreadManager = WorkerThreadManager<ThreadManagerLockType::kStdMutex>;
-using ThreadManagerSpin = WorkerThreadManager<ThreadManagerLockType::kSpinLock>;
 
 } // namespace zisc
 

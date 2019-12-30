@@ -9,7 +9,7 @@
 set(__zisc_root__ ${CMAKE_CURRENT_LIST_DIR})
 
 
-function(initZiscOption)
+function(initZiscOptions)
   # Algorithm
   set(option_description "Use STL binary tree algorithm.")
   setBooleanOption(ZISC_ALGORITHM_STL_BINARY_TREE OFF ${option_description})
@@ -45,17 +45,10 @@ function(initZiscOption)
   else()
     setBooleanOption(ZISC_ENABLE_ASSERTION OFF ${option_description})
   endif()
-
-  set(option_description "Enable zisc logging.")
-  if(Z_DEBUG_MODE)
-    setBooleanOption(ZISC_ENABLE_LOGGIN ON ${option_description})
-  else()
-    setBooleanOption(ZISC_ENABLE_LOGGIN OFF ${option_description})
-  endif()
-endfunction(initZiscOption)
+endfunction(initZiscOptions)
 
 
-function(getZiscOption zisc_compile_flags zisc_linker_flags zisc_definitions)
+function(getZiscFlags zisc_compile_flags zisc_linker_flags zisc_definitions)
   # Options
   if(${ZISC_ALGORITHM_STL_BINARY_TREE})
     list(APPEND definitions ZISC_ALGORITHM_STL_BINARY_TREE)
@@ -87,14 +80,11 @@ function(getZiscOption zisc_compile_flags zisc_linker_flags zisc_definitions)
   if(${ZISC_ENABLE_ASSERTION})
     list(APPEND definitions ZISC_ASSERTION)
   endif()
-  if(${ZISC_ENABLE_LOGGIN})
-    list(APPEND definitions ZISC_LOGGING)
-  endif()
 
 
   # Output variables
   set(${zisc_definitions} ${definitions} PARENT_SCOPE)
-endfunction(getZiscOption)
+endfunction(getZiscFlags)
 
 
 # Defined variables
@@ -108,8 +98,8 @@ function(loadZisc zisc_header_files zisc_include_dirs zisc_compile_flags zisc_li
   set(zisc_version ${zisc_version_major}.${zisc_version_minor}.${zisc_version_patch})
   message(STATUS "Zisc version: ${zisc_version}")
 
-  initZiscOption()
-  getZiscOption(compile_flags linker_flags definitions)
+  initZiscOptions()
+  getZiscFlags(compile_flags linker_flags definitions)
 
   if(Z_WINDOWS)
     list(APPEND definitions _ENABLE_EXTENDED_ALIGNED_STORAGE)

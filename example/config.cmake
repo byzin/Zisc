@@ -9,7 +9,7 @@
 set(__example_root__ ${CMAKE_CURRENT_LIST_DIR})
 
 
-function(getExampleWarningOption example_warning_flags)
+function(getExampleWarningFlags example_warning_flags)
   set(warning_flags "")
 
   # Suppress warnings
@@ -28,7 +28,7 @@ function(getExampleWarningOption example_warning_flags)
   endif()
 
   set(${example_warning_flags} ${warning_flags} PARENT_SCOPE)
-endfunction(getExampleWarningOption)
+endfunction(getExampleWarningFlags)
 
 
 function(setExample example_name)
@@ -41,20 +41,20 @@ function(setExample example_name)
       CXX_STANDARD 17
       CXX_STANDARD_REQUIRED ON
       RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/Examples)
-  getCxxWarningOption(cxx_warning_flags)
-  getExampleWarningOption(example_warning_flags)
+  getCxxWarningFlags(cxx_warning_flags)
+  getExampleWarningFlags(example_warning_flags)
   target_compile_options(${example_name} PRIVATE ${cxx_compile_flags} 
                                                  ${zisc_compile_flags}
                                                  ${cxx_warning_flags}
                                                  ${example_warning_flags})
   target_include_directories(${example_name} PRIVATE ${zisc_include_dirs})
-  find_package(Threads REQUIRED)
   target_link_libraries(${example_name} PRIVATE Threads::Threads
                                                 ${cxx_linker_flags}
                                                 ${zisc_linker_flags})
-  target_compile_definitions(${example_name} PRIVATE ${environment_definitions}
+  target_compile_definitions(${example_name} PRIVATE ${platform_definitions}
                                                      ${cxx_definitions}
                                                      ${zisc_definitions})
+  setStaticAnalyzer(${example_name})
 endfunction(setExample)
 
 

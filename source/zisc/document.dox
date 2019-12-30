@@ -1,13 +1,13 @@
 /*!
   \namespace zisc
   \brief Main classes and functions of Zisc
-  \details
-  No detailed.
+
+  No detailed description.
   */
 
 /*!
   \namespace zisc::inner
   \brief Helper classes and functions of Zisc
-  \details
-  No detailed.
+
+  No detailed description.
   */

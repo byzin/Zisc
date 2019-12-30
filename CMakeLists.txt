@@ -6,7 +6,7 @@
 # http://opensource.org/licenses/mit-license.php
 #
 
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.14)
 
 
 function(checkSubmodule submodule_path)
@@ -30,16 +30,16 @@ endif()
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Build configuration
-include(${PROJECT_SOURCE_DIR}/cmake/general.cmake)
+include(${PROJECT_SOURCE_DIR}/cmake/platform.cmake)
 restrictBuildDirectory(${PROJECT_SOURCE_DIR}/build)
-detectEnvironment(environment_definitions)
+initPlatform(platform_definitions)
 # Command options
 include(${PROJECT_SOURCE_DIR}/cmake/option.cmake)
-initCommandOption()
+initCommandOptions()
 #
 include(${PROJECT_SOURCE_DIR}/cmake/compiler.cmake)
-initCompilerOption()
-getCxxCompilerOption(cxx_compile_flags cxx_linker_flags cxx_definitions)
+initCompilerOptions()
+getCxxCompilerFlags(cxx_compile_flags cxx_linker_flags cxx_definitions)
 
 # Load zisc
 include(${PROJECT_SOURCE_DIR}/source/zisc/config.cmake)
@@ -74,7 +74,8 @@ if(DOXYGEN_FOUND)
   endif()
   addDoxygenDoc(documents ${PROJECT_BINARY_DIR}/documents
     SOURCE_FILEDIRS ${PROJECT_SOURCE_DIR}/README.md
-                    ${PROJECT_SOURCE_DIR}/LICENSE
+                    ${PROJECT_SOURCE_DIR}/LICENSE.txt
+                    ${PROJECT_SOURCE_DIR}/source/zisc/document.dox
                     ${zisc_include_dirs}
     EXAMPLE_FILEDIRS ${PROJECT_SOURCE_DIR}/example
     ${html_theme_params})

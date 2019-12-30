@@ -1,4 +1,4 @@
-# file: general.cmake
+# file: platform.cmake
 # author: Sho Ikeda
 # 
 # Copyright (c) 2015-2020 Sho Ikeda
@@ -29,27 +29,27 @@ endfunction(restrictBuildDirectory)
 
 
 # Check development environment
-function(detectEnvironment environment_definitions)
+function(initPlatform platform_definitions)
   set(definitions "")
 
   # Detect Platform
   if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     set(Z_WINDOWS ON PARENT_SCOPE)
-    set(platform_definition Z_WINDOWS)
+    set(system_definition Z_WINDOWS)
   elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     set(Z_LINUX ON PARENT_SCOPE)
-    set(platform_definition Z_LINUX)
+    set(system_definition Z_LINUX)
   elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     set(Z_MAC ON PARENT_SCOPE)
-    set(platform_definition Z_MAC)
+    set(system_definition Z_MAC)
   else()
     set(unsupported_platform ON)
   endif()
-  list(APPEND definitions ${platform_definition})
+  list(APPEND definitions ${system_definition})
   if(unsupported_platform)
-    message(WARNING "Unsupported platform: ${CMAKE_SYSTEM_NAME}")
+    message(WARNING "Unsupported system: ${CMAKE_SYSTEM_NAME}")
   else()
-    message(STATUS "Platform: ${CMAKE_SYSTEM_NAME}")
+    message(STATUS "System: ${CMAKE_SYSTEM_NAME}")
   endif()
 
   # Detect C++ compiler
@@ -119,5 +119,5 @@ function(detectEnvironment environment_definitions)
 
 
   # Output variable
-  set(${environment_definitions} ${definitions} PARENT_SCOPE)
-endfunction(detectEnvironment)
+  set(${platform_definitions} ${definitions} PARENT_SCOPE)
+endfunction(initPlatform)

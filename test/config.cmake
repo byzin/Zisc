@@ -8,14 +8,14 @@
 
 set(__test_root__ ${CMAKE_CURRENT_LIST_DIR})
 
-function(getTestCompileOption test_compile_flags)
+function(getTestCompileFlags test_compile_flags)
   set(compile_flags "")
 
   # Output variable
   set(${test_compile_flags} ${compile_flags} PARENT_SCOPE)
-endfunction(getTestCompileOption)
+endfunction(getTestCompileFlags)
 
-function(getTestWarningOption test_warning_flags)
+function(getTestWarningFlags test_warning_flags)
   set(warning_flags "")
 
   # Suppress warnings
@@ -40,7 +40,7 @@ function(getTestWarningOption test_warning_flags)
 
   # Output variable
   set(${test_warning_flags} ${warning_flags} PARENT_SCOPE)
-endfunction(getTestWarningOption)
+endfunction(getTestWarningFlags)
 
 
 function(buildUnitTest)
@@ -58,22 +58,21 @@ function(buildUnitTest)
   source_group(UnitTest FILES ${unittest_source_files})
   set_target_properties(UnitTest PROPERTIES CXX_STANDARD 17
                                             CXX_STANDARD_REQUIRED ON)
-  getCxxWarningOption(cxx_warning_flags)
-  getTestCompileOption(test_compile_flags)
-  getTestWarningOption(test_warning_flags)
+  getCxxWarningFlags(cxx_warning_flags)
+  getTestCompileFlags(test_compile_flags)
+  getTestWarningFlags(test_warning_flags)
   target_compile_options(UnitTest PRIVATE ${cxx_compile_flags}
                                           ${zisc_compile_flags}
-                                          ${cxx_warning_flags}
                                           ${test_compile_flags}
+                                          ${cxx_warning_flags}
                                           ${test_warning_flags})
   target_include_directories(UnitTest PRIVATE ${zisc_include_dirs})
   target_include_directories(UnitTest SYSTEM PRIVATE ${gtest_include_dir})
-  find_package(Threads REQUIRED)
   target_link_libraries(UnitTest PRIVATE Threads::Threads
                                          ${cxx_linker_flags}
                                          ${zisc_linker_flags}
                                          ${gtest_libraries})
-  target_compile_definitions(UnitTest PRIVATE ${environment_definitions}
+  target_compile_definitions(UnitTest PRIVATE ${platform_definitions}
                                               ${cxx_definitions}
                                               ${zisc_definitions})
   setStaticAnalyzer(UnitTest)

@@ -171,7 +171,7 @@ TEST(ConstMathTest, PiTest)
   // Long double
   {
     constexpr long double pi = zisc::constant::Math::pi<long double>();
-    EXPECT_DOUBLE_EQ(3.141592653589793238513l, pi);
+    EXPECT_EQ(3.141592653589793238513l, pi);
   }
 }
 

@@ -8,7 +8,7 @@
 
 
 #
-function(initCompilerOption)
+function(initCompilerOptions)
   set(option_description "Enable compiler full warning (if supported).")
   setBooleanOption(Z_ENABLE_COMPILER_WARNING ON ${option_description})
 
@@ -45,12 +45,15 @@ function(initCompilerOption)
   set(option_description "Enable C++ leak sanitizer (if compiler supports).")
   setBooleanOption(Z_ENABLE_SANITIZER_LEAK OFF ${option_description})
 
-  set(option_description "Enable static analyzer (clang-tidy, include-what-you-use, link-what-you-use).")
-  setBooleanOption(Z_ENABLE_STATIC_ANALYZER OFF ${option_description})
-endfunction(initCompilerOption)
+  set(option_description "Enable clang-tidy analyzer.")
+  setBooleanOption(Z_ENABLE_STATIC_ANALYZER_CLANG_TIDY OFF ${option_description})
+
+  set(option_description "Enable link-what-you-use analyzer.")
+  setBooleanOption(Z_ENABLE_STATIC_ANALYZER_LWYU OFF ${option_description})
+endfunction(initCompilerOptions)
 
 
-function(getMsvcCompilerOption cxx_compile_flags cxx_linker_flags cxx_definitions)
+function(getMsvcCompilerFlags cxx_compile_flags cxx_linker_flags cxx_definitions)
   set(compile_flags "")
   set(linker_flags "")
   set(definitions "")
@@ -63,10 +66,10 @@ function(getMsvcCompilerOption cxx_compile_flags cxx_linker_flags cxx_definition
   set(${cxx_compile_flags} ${compile_flags} PARENT_SCOPE)
   set(${cxx_linker_flags} ${linker_flags} PARENT_SCOPE)
   set(${cxx_definitions} ${definitions} PARENT_SCOPE)
-endfunction(getMsvcCompilerOption)
+endfunction(getMsvcCompilerFlags)
 
 
-function(appendClangOption cxx_compile_flags)
+function(appendClangFlags cxx_compile_flags)
   set(compile_flags ${${cxx_compile_flags}})
   foreach(compile_flag IN LISTS ARGN)
     if(Z_VISUAL_STUDIO)
@@ -79,10 +82,10 @@ function(appendClangOption cxx_compile_flags)
     endif()
   endforeach(compile_flag)
   set(${cxx_compile_flags} ${compile_flags} PARENT_SCOPE)
-endfunction(appendClangOption)
+endfunction(appendClangFlags)
 
 
-function(getSanitizerOption compile_sanitizer_flags linker_sanitizer_flags)
+function(getSanitizerFlags compile_sanitizer_flags linker_sanitizer_flags)
   set(check_list "")
 
   # Collect sanitizer checks
@@ -142,15 +145,15 @@ function(getSanitizerOption compile_sanitizer_flags linker_sanitizer_flags)
     set(${compile_sanitizer_flags} ${compile_flags} PARENT_SCOPE)
     set(${linker_sanitizer_flags} ${linker_flags} PARENT_SCOPE)
   endif()
-endfunction(getSanitizerOption)
+endfunction(getSanitizerFlags)
 
 
-function(getClangCompilerOption cxx_compile_flags cxx_linker_flags cxx_definitions)
+function(getClangCompilerFlags cxx_compile_flags cxx_linker_flags cxx_definitions)
   set(compile_flags "")
   set(linker_flags "")
   set(definitions "")
 
-  appendClangOption(compile_flags
+  appendClangFlags(compile_flags
       -fconstexpr-depth=${constexpr_depth}
       -fconstexpr-backtrace-limit=${constexpr_backtrace}
       -fconstexpr-steps=${constexpr_steps}
@@ -176,7 +179,7 @@ function(getClangCompilerOption cxx_compile_flags cxx_linker_flags cxx_definitio
   endif()
 
   # Sanitizer
-  getSanitizerOption(compile_sanitizer_flags linker_sanitizer_flags)
+  getSanitizerFlags(compile_sanitizer_flags linker_sanitizer_flags)
   list(APPEND compile_flags ${compile_sanitizer_flags})
   list(APPEND linker_flags ${linker_sanitizer_flags})
 
@@ -184,10 +187,10 @@ function(getClangCompilerOption cxx_compile_flags cxx_linker_flags cxx_definitio
   set(${cxx_compile_flags} ${compile_flags} PARENT_SCOPE)
   set(${cxx_linker_flags} ${linker_flags} PARENT_SCOPE)
   set(${cxx_definitions} ${definitions} PARENT_SCOPE)
-endfunction(getClangCompilerOption)
+endfunction(getClangCompilerFlags)
 
 
-function(getGccCompilerOption cxx_compile_flags cxx_linker_flags cxx_definitions)
+function(getGccCompilerFlags cxx_compile_flags cxx_linker_flags cxx_definitions)
   set(compile_flags "")
   set(linker_flags "")
   set(definitions "")
@@ -209,7 +212,7 @@ function(getGccCompilerOption cxx_compile_flags cxx_linker_flags cxx_definitions
   endif()
 
   # Sanitizer
-  getSanitizerOption(compile_sanitizer_flags linker_sanitizer_flags)
+  getSanitizerFlags(compile_sanitizer_flags linker_sanitizer_flags)
   list(APPEND compile_flags ${compile_sanitizer_flags})
   list(APPEND linker_flags ${linker_sanitizer_flags})
 
@@ -217,10 +220,21 @@ function(getGccCompilerOption cxx_compile_flags cxx_linker_flags cxx_definitions
   set(${cxx_compile_flags} ${compile_flags} PARENT_SCOPE)
   set(${cxx_linker_flags} ${linker_flags} PARENT_SCOPE)
   set(${cxx_definitions} ${definitions} PARENT_SCOPE)
-endfunction(getGccCompilerOption)
+endfunction(getGccCompilerFlags)
 
 
-function(getClangWarningOption compiler_warning_flags)
+function(getMsvcWarningFlags compiler_warning_flags)
+  set(warning_flags "")
+  list(APPEND warning_flags /W4)
+  if(Z_TREAT_COMPILER_WARNING_AS_ERROR)
+    list(APPEND warning_flags /WX)
+  endif()
+  # Output variables
+  set(${compiler_warning_flags} ${warning_flags} PARENT_SCOPE)
+endfunction(getMsvcWarningFlags)
+
+
+function(getClangWarningFlags compiler_warning_flags)
   set(warning_flags "")
   list(APPEND warning_flags -Weverything
                             -Wno-c++98-compat
@@ -231,10 +245,10 @@ function(getClangWarningOption compiler_warning_flags)
   endif()
   # Output variables
   set(${compiler_warning_flags} ${warning_flags} PARENT_SCOPE)
-endfunction(getClangWarningOption)
+endfunction(getClangWarningFlags)
 
 
-function(getGccWarningOption compiler_warning_flags)
+function(getGccWarningFlags compiler_warning_flags)
   set(warning_flags "")
   list(APPEND warning_flags -pedantic
                             -Wall
@@ -265,22 +279,12 @@ function(getGccWarningOption compiler_warning_flags)
   endif()
   # Output variables
   set(${compiler_warning_flags} ${warning_flags} PARENT_SCOPE)
-endfunction(getGccWarningOption)
-
-function(getMsvcWarningOption compiler_warning_flags)
-  set(warning_flags "")
-  list(APPEND warning_flags /W4)
-  if(Z_TREAT_COMPILER_WARNING_AS_ERROR)
-    list(APPEND warning_flags /WX)
-  endif()
-  # Output variables
-  set(${compiler_warning_flags} ${warning_flags} PARENT_SCOPE)
-endfunction(getMsvcWarningOption)
+endfunction(getGccWarningFlags)
 
 
 # Output functions
 # Get compile options
-function(getCxxCompilerOption cxx_compile_flags cxx_linker_flags cxx_definitions)
+function(getCxxCompilerFlags cxx_compile_flags cxx_linker_flags cxx_definitions)
 
   set(constexpr_depth 512)
   set(constexpr_backtrace 16)
@@ -288,67 +292,80 @@ function(getCxxCompilerOption cxx_compile_flags cxx_linker_flags cxx_definitions
   set(recursive_template_depth 2048)
 
   if(Z_GCC)
-    getGccCompilerOption(compile_flags linker_flags definitions)
+    getGccCompilerFlags(compile_flags linker_flags definitions)
   elseif(Z_CLANG)
-    getClangCompilerOption(compile_flags linker_flags definitions)
+    getClangCompilerFlags(compile_flags linker_flags definitions)
   elseif(Z_MSVC)
-    getMsvcCompilerOption(compile_flags linker_flags definitions)
+    getMsvcCompilerFlags(compile_flags linker_flags definitions)
   endif()
   # Output variables
   set(${cxx_compile_flags} ${compile_flags} PARENT_SCOPE)
   set(${cxx_linker_flags} ${linker_flags} PARENT_SCOPE)
   set(${cxx_definitions} ${definitions} PARENT_SCOPE)
-endfunction(getCxxCompilerOption)
+endfunction(getCxxCompilerFlags)
 
 
 #
-function(getCxxWarningOption compiler_warning_flags)
+function(getCxxWarningFlags compiler_warning_flags)
   set(compiler_version ${CMAKE_CXX_COMPILER_VERSION})
   set(environment "${CMAKE_SYSTEM_NAME} ${CMAKE_CXX_COMPILER_ID} ${compiler_version}")
 
   set(warning_flags "")
   if(Z_ENABLE_COMPILER_WARNING)
     if(Z_GCC)
-      getGccWarningOption(warning_flags)
+      getGccWarningFlags(warning_flags)
     elseif(Z_CLANG)
-      getClangWarningOption(warning_flags)
+      getClangWarningFlags(warning_flags)
     elseif(Z_MSVC)
-      getMsvcWarningOption(warning_flags)
+      getMsvcWarningFlags(warning_flags)
     else()
       message(WARNING "${environment}: Warning option isn't supported.")
     endif()
   endif()
   # Output variables
   set(${compiler_warning_flags} ${warning_flags} PARENT_SCOPE)
-endfunction(getCxxWarningOption)
+endfunction(getCxxWarningFlags)
 
 
 #
 function(setStaticAnalyzer target)
-  if(Z_ENABLE_STATIC_ANALYZER)
-    set(static_analyzer_list "")
+  set(static_analyzer_list "")
 
-    # clang-tidy
-    if(Z_CLANG)
-      find_program(Z_CLANG_TIDY_PROGRAM clang-tidy)
-      if(Z_CLANG_TIDY_PROGRAM)
-        set(tidy_program "${Z_CLANG_TIDY_PROGRAM};-checks=-*,clang-analyzer-*")
-        set_target_properties(${target} PROPERTIES
-            C_CLANG_TIDY "${tidy_program}"
-            CXX_CLANG_TIDY "${tidy_program}")
-        list(APPEND static_analyzer_list "clang-tidy (${Z_CLANG_TIDY_PROGRAM})")
-      else()
-        message(WARNING "[${target}] Could not find 'clang-tidy'.")
-      endif()
-    endif()
-
-    # link-what-you-use
-    if(NOT Z_MAC)
+  # clang-tidy
+  if(Z_ENABLE_STATIC_ANALYZER_CLANG_TIDY AND Z_CLANG)
+    find_program(clang_tidy "clang-tidy")
+    if(clang_tidy)
+      set(tidy_command "${clang_tidy}")
+      set(exception_check_list "")
+      list(APPEND exception_check_list modernize-use-auto
+                                       modernize-use-trailing-return-type
+                                       modernize-avoid-c-arrays
+                                       readability-uppercase-literal-suffix
+                                       readability-magic-numbers
+                                       readability-braces-around-statements
+                                       readability-named-parameter
+                                       readability-static-accessed-through-instance
+                                       )
+      set(exception_checks "")
+      foreach(exception_check IN LISTS exception_check_list)
+        set(exception_checks "${exception_checks},-${exception_check}")
+      endforeach(exception_check)
+      list(APPEND tidy_command "-checks=-*,clang-analyzer-*,modernize-*,performance-*,portability-*,readability-*${exception_checks}")
       set_target_properties(${target} PROPERTIES
-          LINK_WHAT_YOU_USE TRUE)
-      list(APPEND static_analyzer_list "link-what-you-use")
+          C_CLANG_TIDY "${tidy_command}"
+          CXX_CLANG_TIDY "${tidy_command}")
+      list(APPEND static_analyzer_list "clang-tidy")
+    else()
+      message(WARNING "[${target}] Could not find 'clang-tidy'.")
     endif()
-
-    message(STATUS "[${target}] Static analyzer: ${static_analyzer_list}")
   endif()
+
+  # link-what-you-use
+  if(Z_ENABLE_STATIC_ANALYZER_LWYU)
+    set_target_properties(${target} PROPERTIES
+        LINK_WHAT_YOU_USE TRUE)
+    list(APPEND static_analyzer_list "link-what-you-use")
+  endif()
+
+  message(STATUS "[${target}] Static analyzer: ${static_analyzer_list}")
 endfunction(setStaticAnalyzer)

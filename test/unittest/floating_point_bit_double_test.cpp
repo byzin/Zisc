@@ -1,5 +1,5 @@
 /*!
-  \file floating_point_test.cpp
+  \file floating_point_double_test.cpp
   \author Sho Ikeda
 
   Copyright (c) 2015-2019 Sho Ikeda
@@ -16,7 +16,6 @@
 // Zisc
 #include "zisc/floating_point.hpp"
 #include "zisc/math.hpp"
-#include "zisc/sip_hash_engine.hpp"
 #include "zisc/utility.hpp"
 #include "zisc/zisc_config.hpp"
 // Test
@@ -306,48 +305,48 @@ struct BitTest<Float, end, end>
 
 } // namespace 
 
-TEST(FloatingPointBitTest, makeExponentBitsFloatTest)
+TEST(FloatingPointBitTest, makeExponentBitsDoubleTest)
 {
-  ::BitTest<float, ::end, ::start>::testExponentBit();
+  ::BitTest<double, ::end, ::start>::testExponentBit();
 }
 
-TEST(FloatingPointBitTest, makeSignificandBitsFloatTest)
+TEST(FloatingPointBitTest, makeSignificandBitsDoubleTest)
 {
-  ::BitTest<float, ::end, ::start>::testSignificandBit();
+  ::BitTest<double, ::end, ::start>::testSignificandBit();
 }
 
-TEST(FloatingPointBitTest, makeSignBitsFloatTest)
+TEST(FloatingPointBitTest, makeSignBitsDoubleTest)
 {
-  ::BitTest<float, ::end, ::start>::testSignBit();
+  ::BitTest<double, ::end, ::start>::testSignBit();
 }
 
-TEST(FloatingPointBitTest, makeBitsFloatTest)
+TEST(FloatingPointBitTest, makeBitsDoubleTest)
 {
-  ::BitTest<float, ::end, ::start>::testBit();
+  ::BitTest<double, ::end, ::start>::testBit();
 }
 
-TEST(FloatingPointBitTest, FloatMakingTest)
+TEST(FloatingPointBitTest, DoubleMakingTest)
 {
-  ::BitTest<float, ::end, ::start>::testFloatMaking();
+  ::BitTest<double, ::end, ::start>::testFloatMaking();
 }
 
-TEST(FloatingPointBitTest, FloatMapTest)
+TEST(FloatingPointBitTest, DoubleMapTest)
 {
-  using zisc::SingleFloat;
+  using zisc::DoubleFloat;
   {
-    constexpr zisc::uint32b x = 0;
-    constexpr float result = SingleFloat::mapTo01(x);
-    EXPECT_EQ(0.0f, result);
+    constexpr zisc::uint64b x = 0;
+    constexpr double result = DoubleFloat::mapTo01(x);
+    EXPECT_EQ(0.0, result);
   }
   {
-    constexpr zisc::uint32b x = std::numeric_limits<zisc::uint32b>::max() / 2;
-    constexpr float result = SingleFloat::mapTo01(x);
-    EXPECT_FLOAT_EQ(0.5f, result);
+    constexpr zisc::uint64b x = std::numeric_limits<zisc::uint64b>::max() / 2;
+    constexpr double result = DoubleFloat::mapTo01(x);
+    EXPECT_DOUBLE_EQ(0.5, result);
   }
   {
-    constexpr zisc::uint32b x = std::numeric_limits<zisc::uint32b>::max();
-    constexpr float result = SingleFloat::mapTo01(x);
-    EXPECT_FLOAT_EQ(1.0f, result);
-    EXPECT_GT(1.0f, result);
+    constexpr zisc::uint64b x = std::numeric_limits<zisc::uint64b>::max();
+    constexpr double result = DoubleFloat::mapTo01(x);
+    EXPECT_DOUBLE_EQ(1.0, result);
+    EXPECT_GT(1.0, result);
   }
 }

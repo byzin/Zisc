@@ -40,7 +40,10 @@ function(setExample example_name)
   set_target_properties(${example_name} PROPERTIES
       CXX_STANDARD 17
       CXX_STANDARD_REQUIRED ON
-      RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/Examples)
+      RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/Examples
+      RUNTIME_OUTPUT_DIRECTORY_DEBUG ${PROJECT_BINARY_DIR}/Examples
+      RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO ${PROJECT_BINARY_DIR}/Examples
+      RUNTIME_OUTPUT_DIRECTORY_RELEASE ${PROJECT_BINARY_DIR}/Examples)
   getCxxWarningFlags(cxx_warning_flags)
   getExampleWarningFlags(example_warning_flags)
   target_compile_options(${example_name} PRIVATE ${cxx_compile_flags} 

@@ -8,11 +8,19 @@
 
 set(__test_root__ ${CMAKE_CURRENT_LIST_DIR})
 
-function(getTestCompileFlags test_compile_flags)
+function(getTestCompileFlags test_compile_flags test_linker_flags test_definitions)
   set(compile_flags "")
+  set(linker_flags "")
+  set(definitions "")
+
+  if(Z_MSVC)
+    list(APPEND compile_flags /bigobj)
+  endif()
 
   # Output variable
   set(${test_compile_flags} ${compile_flags} PARENT_SCOPE)
+  set(${test_linker_flags} ${linker_flags} PARENT_SCOPE)
+  set(${test_definitions} ${definitions} PARENT_SCOPE)
 endfunction(getTestCompileFlags)
 
 function(getTestWarningFlags test_warning_flags)
@@ -56,10 +64,15 @@ function(buildUnitTest)
                                    ${__test_root__}/unittest/*.hpp)
   add_executable(UnitTest ${unittest_source_files} ${zisc_header_files})
   source_group(UnitTest FILES ${unittest_source_files})
-  set_target_properties(UnitTest PROPERTIES CXX_STANDARD 17
-                                            CXX_STANDARD_REQUIRED ON)
+  set_target_properties(UnitTest PROPERTIES
+      CXX_STANDARD 17
+      CXX_STANDARD_REQUIRED ON
+      RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}
+      RUNTIME_OUTPUT_DIRECTORY_DEBUG ${PROJECT_BINARY_DIR}
+      RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO ${PROJECT_BINARY_DIR}
+      RUNTIME_OUTPUT_DIRECTORY_RELEASE ${PROJECT_BINARY_DIR})
   getCxxWarningFlags(cxx_warning_flags)
-  getTestCompileFlags(test_compile_flags)
+  getTestCompileFlags(test_compile_flags test_linker_flags test_definitions)
   getTestWarningFlags(test_warning_flags)
   target_compile_options(UnitTest PRIVATE ${cxx_compile_flags}
                                           ${zisc_compile_flags}
@@ -70,10 +83,12 @@ function(buildUnitTest)
   target_include_directories(UnitTest SYSTEM PRIVATE ${gtest_include_dir})
   target_link_libraries(UnitTest PRIVATE Threads::Threads
                                          ${cxx_linker_flags}
+                                         ${gtest_libraries}
                                          ${zisc_linker_flags}
-                                         ${gtest_libraries})
+                                         ${test_linker_flags})
   target_compile_definitions(UnitTest PRIVATE ${platform_definitions}
                                               ${cxx_definitions}
-                                              ${zisc_definitions})
+                                              ${zisc_definitions}
+                                              ${test_definitions})
   setStaticAnalyzer(UnitTest)
 endfunction(buildUnitTest)

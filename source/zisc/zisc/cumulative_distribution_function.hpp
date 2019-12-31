@@ -43,24 +43,18 @@ class CumulativeDistributionFunction
   CumulativeDistributionFunction(
       const std::vector<XType>& x_list,
       const std::vector<PdfType>& y_list,
-      std::pmr::memory_resource* mem_resource = SimpleMemoryResource::sharedResource(),
-      std::pmr::memory_resource* work_resource = SimpleMemoryResource::sharedResource())
-          noexcept;
+      std::pmr::memory_resource* mem_resource = SimpleMemoryResource::sharedResource()) noexcept;
 
   //! Create a CDF
   CumulativeDistributionFunction(
       const pmr::vector<XType>& x_list,
       const pmr::vector<PdfType>& y_list,
-      std::pmr::memory_resource* mem_resource = SimpleMemoryResource::sharedResource(),
-      std::pmr::memory_resource* work_resource = SimpleMemoryResource::sharedResource())
-          noexcept;
+      std::pmr::memory_resource* mem_resource = SimpleMemoryResource::sharedResource()) noexcept;
 
   //! Create a CDF
   CumulativeDistributionFunction(
       pmr::vector<XType>&& x_list,
-      pmr::vector<PdfType>&& y_list,
-      std::pmr::memory_resource* work_resource = SimpleMemoryResource::sharedResource())
-          noexcept;
+      pmr::vector<PdfType>&& y_list) noexcept;
 
   //! Move data
   CumulativeDistributionFunction(CumulativeDistributionFunction&& other) noexcept;
@@ -80,23 +74,17 @@ class CumulativeDistributionFunction
   //! Set a CDF data
   void set(
       const std::vector<XType>& x_list,
-      const std::vector<PdfType>& y_list,
-      std::pmr::memory_resource* work_resource = SimpleMemoryResource::sharedResource())
-          noexcept;
+      const std::vector<PdfType>& y_list) noexcept;
 
   //! Set a CDF data
   void set(
       const pmr::vector<XType>& x_list,
-      const pmr::vector<PdfType>& y_list,
-      std::pmr::memory_resource* work_resource = SimpleMemoryResource::sharedResource())
-          noexcept;
+      const pmr::vector<PdfType>& y_list) noexcept;
 
   //! Set a CDF data
   void set(
       pmr::vector<XType>&& x_list,
-      pmr::vector<PdfType>&& y_list,
-      std::pmr::memory_resource* work_resource = SimpleMemoryResource::sharedResource())
-          noexcept;
+      pmr::vector<PdfType>&& y_list) noexcept;
 
   //! Return the x list
   pmr::vector<XType>& xList() noexcept;
@@ -115,7 +103,7 @@ class CumulativeDistributionFunction
 
 
   //! Initialize the CDF
-  void initCdf(std::pmr::memory_resource* work_resource) noexcept;
+  void initCdf() noexcept;
 
 
   pmr::vector<XType> x_list_;

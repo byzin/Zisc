@@ -1,7 +1,12 @@
 /*!
   \file type_traits_test.cpp
   \author Sho Ikeda
+  \brief No brief description
 
+  \details
+  No detailed description.
+
+  \copyright
   Copyright (c) 2015-2020 Sho Ikeda
   This software is released under the MIT License.
   http://opensource.org/licenses/mit-license.php
@@ -260,107 +265,6 @@ TEST(TypeTraitsTest, IsFloatTest)
   EXPECT_FALSE(zisc::kIsFloat<std::list<int>::iterator*>);
   EXPECT_FALSE(zisc::kIsFloat<std::list<std::string>::iterator>);
   EXPECT_FALSE(zisc::kIsFloat<std::list<std::string>::iterator*>);
-}
-
-TEST(TypeTraitsTest, IsIteratorTest)
-{
-  // Boolean
-  EXPECT_FALSE(zisc::kIsIterator<void>);
-  EXPECT_FALSE(zisc::kIsIterator<void*>);
-  EXPECT_FALSE(zisc::kIsIterator<bool>);
-  EXPECT_TRUE(zisc::kIsIterator<bool*>);
-  EXPECT_FALSE(zisc::kIsIterator<char>);
-  EXPECT_TRUE(zisc::kIsIterator<char*>);
-  EXPECT_FALSE(zisc::kIsIterator<unsigned char>);
-  EXPECT_TRUE(zisc::kIsIterator<unsigned char*>);
-  EXPECT_FALSE(zisc::kIsIterator<short>);
-  EXPECT_TRUE(zisc::kIsIterator<short*>);
-  EXPECT_FALSE(zisc::kIsIterator<unsigned short>);
-  EXPECT_TRUE(zisc::kIsIterator<unsigned short*>);
-  EXPECT_FALSE(zisc::kIsIterator<int>);
-  EXPECT_TRUE(zisc::kIsIterator<int*>);
-  EXPECT_FALSE(zisc::kIsIterator<unsigned int>);
-  EXPECT_TRUE(zisc::kIsIterator<unsigned int*>);
-  EXPECT_FALSE(zisc::kIsIterator<long>);
-  EXPECT_TRUE(zisc::kIsIterator<long*>);
-  EXPECT_FALSE(zisc::kIsIterator<unsigned long>);
-  EXPECT_TRUE(zisc::kIsIterator<unsigned long*>);
-  EXPECT_FALSE(zisc::kIsIterator<long long>);
-  EXPECT_TRUE(zisc::kIsIterator<long long*>);
-  EXPECT_FALSE(zisc::kIsIterator<unsigned long long>);
-  EXPECT_TRUE(zisc::kIsIterator<unsigned long long*>);
-  EXPECT_FALSE(zisc::kIsIterator<float>);
-  EXPECT_TRUE(zisc::kIsIterator<float*>);
-  EXPECT_FALSE(zisc::kIsIterator<double>);
-  EXPECT_TRUE(zisc::kIsIterator<double*>);
-  EXPECT_FALSE(zisc::kIsIterator<long double>);
-  EXPECT_TRUE(zisc::kIsIterator<long double*>);
-  EXPECT_FALSE(zisc::kIsIterator<std::string>);
-  EXPECT_TRUE(zisc::kIsIterator<std::string*>);
-  EXPECT_FALSE(zisc::kIsIterator<std::vector<int>>);
-  EXPECT_TRUE(zisc::kIsIterator<std::vector<int>*>);
-  EXPECT_FALSE(zisc::kIsIterator<std::list<int>>);
-  EXPECT_TRUE(zisc::kIsIterator<std::list<int>*>);
-  EXPECT_TRUE(zisc::kIsIterator<std::vector<int>::iterator>);
-  EXPECT_TRUE(zisc::kIsIterator<std::vector<int>::iterator*>);
-  EXPECT_TRUE(zisc::kIsIterator<std::vector<std::string>::iterator>);
-  EXPECT_TRUE(zisc::kIsIterator<std::vector<std::string>::iterator*>);
-  EXPECT_TRUE(zisc::kIsIterator<std::list<int>::iterator>);
-  EXPECT_TRUE(zisc::kIsIterator<std::list<int>::iterator*>);
-  EXPECT_TRUE(zisc::kIsIterator<std::list<std::string>::iterator>);
-  EXPECT_TRUE(zisc::kIsIterator<std::list<std::string>::iterator*>);
-}
-
-TEST(TypeTraitsTest, IsRandomAccessIteratorTest)
-{
-  // Boolean
-  EXPECT_FALSE(zisc::kIsRandomAccessIterator<void>);
-  EXPECT_FALSE(zisc::kIsRandomAccessIterator<void*>);
-  EXPECT_FALSE(zisc::kIsRandomAccessIterator<bool>);
-  EXPECT_TRUE(zisc::kIsRandomAccessIterator<bool*>);
-  EXPECT_FALSE(zisc::kIsRandomAccessIterator<char>);
-  EXPECT_TRUE(zisc::kIsRandomAccessIterator<char*>);
-  EXPECT_FALSE(zisc::kIsRandomAccessIterator<unsigned char>);
-  EXPECT_TRUE(zisc::kIsRandomAccessIterator<unsigned char*>);
-  EXPECT_FALSE(zisc::kIsRandomAccessIterator<short>);
-  EXPECT_TRUE(zisc::kIsRandomAccessIterator<short*>);
-  EXPECT_FALSE(zisc::kIsRandomAccessIterator<unsigned short>);
-  EXPECT_TRUE(zisc::kIsRandomAccessIterator<unsigned short*>);
-  EXPECT_FALSE(zisc::kIsRandomAccessIterator<int>);
-  EXPECT_TRUE(zisc::kIsRandomAccessIterator<int*>);
-  EXPECT_FALSE(zisc::kIsRandomAccessIterator<unsigned int>);
-  EXPECT_TRUE(zisc::kIsRandomAccessIterator<unsigned int*>);
-  EXPECT_FALSE(zisc::kIsRandomAccessIterator<long>);
-  EXPECT_TRUE(zisc::kIsRandomAccessIterator<long*>);
-  EXPECT_FALSE(zisc::kIsRandomAccessIterator<unsigned long>);
-  EXPECT_TRUE(zisc::kIsRandomAccessIterator<unsigned long*>);
-  EXPECT_FALSE(zisc::kIsRandomAccessIterator<long long>);
-  EXPECT_TRUE(zisc::kIsRandomAccessIterator<long long*>);
-  EXPECT_FALSE(zisc::kIsRandomAccessIterator<unsigned long long>);
-  EXPECT_TRUE(zisc::kIsRandomAccessIterator<unsigned long long*>);
-  EXPECT_FALSE(zisc::kIsRandomAccessIterator<float>);
-  EXPECT_TRUE(zisc::kIsRandomAccessIterator<float*>);
-  EXPECT_FALSE(zisc::kIsRandomAccessIterator<double>);
-  EXPECT_TRUE(zisc::kIsRandomAccessIterator<double*>);
-  EXPECT_FALSE(zisc::kIsRandomAccessIterator<long double>);
-  EXPECT_TRUE(zisc::kIsRandomAccessIterator<long double*>);
-  EXPECT_FALSE(zisc::kIsRandomAccessIterator<std::string>);
-  EXPECT_TRUE(zisc::kIsRandomAccessIterator<std::string*>);
-  EXPECT_FALSE(zisc::kIsRandomAccessIterator<std::vector<int>>);
-  EXPECT_TRUE(zisc::kIsRandomAccessIterator<std::vector<int>*>);
-  EXPECT_FALSE(zisc::kIsRandomAccessIterator<std::list<int>>);
-  EXPECT_TRUE(zisc::kIsRandomAccessIterator<std::list<int>*>);
-  using Array = std::array<int, 2>;
-  EXPECT_TRUE(zisc::kIsRandomAccessIterator<Array::iterator>);
-  EXPECT_TRUE(zisc::kIsRandomAccessIterator<Array::iterator*>);
-  EXPECT_TRUE(zisc::kIsRandomAccessIterator<std::vector<int>::iterator>);
-  EXPECT_TRUE(zisc::kIsRandomAccessIterator<std::vector<int>::iterator*>);
-  EXPECT_TRUE(zisc::kIsRandomAccessIterator<std::vector<std::string>::iterator>);
-  EXPECT_TRUE(zisc::kIsRandomAccessIterator<std::vector<std::string>::iterator*>);
-  EXPECT_FALSE(zisc::kIsRandomAccessIterator<std::list<int>::iterator>);
-  EXPECT_TRUE(zisc::kIsRandomAccessIterator<std::list<int>::iterator*>);
-  EXPECT_FALSE(zisc::kIsRandomAccessIterator<std::list<std::string>::iterator>);
-  EXPECT_TRUE(zisc::kIsRandomAccessIterator<std::list<std::string>::iterator*>);
 }
 
 template <typename Type>

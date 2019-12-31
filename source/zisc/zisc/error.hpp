@@ -15,56 +15,47 @@
 
 // Preprocessor
 
-//! Return full path to the current file
+//! Return the full path to the current file
 #define ZISC_GET_FILE_NAME __FILE__
 
-//! Return current line number in the source file
+//! Return the current line number in the source file
 #define ZISC_GET_LINE_NUMBER __LINE__
 
 /*!
   \def ZISC_ASSERT(condition, ...)
   \brief If condition is false, assert outputs messages and calls std::abort
-  */
 
-/*!
-  \def ZISC_STATIC_ASSERT(condition, message)
-  \brief If condition is false, a compile-time error is issued, and assert outputs message
-  */
+  No detailed description.
 
+  \param [in] condition No description.
+  \param [in] ... No description.
+  */
 #ifdef ZISC_ASSERTION
-
   #define ZISC_ASSERT(condition, ...) \
       zisc::assertIfFalse(condition, \
                           "AssertError in " ZISC_GET_FILE_NAME " at ", \
                           ZISC_GET_LINE_NUMBER, \
                           ": ", \
                           __VA_ARGS__)
-
-  #define ZISC_STATIC_ASSERT(condition, message) \
-      static_asseert(condition, message)
-
 #else // ZISC_ASSERTION
-
-  #define ZISC_ASSERT(...)
-
-  #define ZISC_STATIC_ASSERT(...)
-
+  #define ZISC_ASSERT(condition, ...) (void)condition
 #endif // ZISC_ASSERTION
 
 /*!
-  \def ZISC_LOG(log_stream, ...)
-  \brief Output messages on the input stream
+  \def ZISC_STATIC_ASSERT(condition, message)
+  \brief If condition is false, a compile-time error is issued, and assert outputs message
+
+  No detailed description.
+
+  \param [in] condition No description.
+  \param [in] message No description.
   */
-
-#ifdef ZISC_LOGGING
-
-  #define ZISC_LOG(log_stream, ...) zisc::outputMessage(log_stream, __VA_ARGS__)
-
-#else // ZISC_LOGGING
-
-  #define ZISC_LOG(...)
-
-#endif // ZISC_LOGGING
+#ifdef ZISC_ASSERTION
+  #define ZISC_STATIC_ASSERT(condition, message) \
+      static_assert(condition, message)
+#else // ZISC_ASSERTION
+  #define ZISC_STATIC_ASSERT(condition, message) (void)condition; (void)message
+#endif // ZISC_ASSERTION
 
 namespace zisc {
 
@@ -82,6 +73,12 @@ template <typename ...Types>
 void raiseError(Types&&... messages) noexcept;
 
 } // namespace zisc
+
+/*!
+  \example error_example.cpp
+
+  This is an example of how to use the zisc error functions.
+  */
 
 #include "error-inl.hpp"
 

@@ -1,7 +1,12 @@
 /*!
   \file fnv_1a_hash_engine-inl.hpp
   \author Sho Ikeda
+  \brief No brief description
 
+  \details
+  No detailed description.
+
+  \copyright
   Copyright (c) 2015-2020 Sho Ikeda
   This software is released under the MIT License.
   http://opensource.org/licenses/mit-license.php
@@ -24,6 +29,12 @@
 namespace zisc {
 
 /*!
+  \details No detailed description
+
+  \tparam Int8 No description.
+  \param [in] seed No description.
+  \param [in] n No description.
+  \return No description
   */
 template <typename ResultType> template <typename Int8> inline
 constexpr ResultType Fnv1aHashEngine<ResultType>::hashValue(
@@ -31,13 +42,17 @@ constexpr ResultType Fnv1aHashEngine<ResultType>::hashValue(
     const std::size_t n) noexcept
 {
   static_assert(sizeof(Int8) == 1, "The Int8 isn't 8bit integer.");
-
   ResultType x = offset();
   for (std::size_t i = 0; i < n; ++i)
     x = (x ^ cast<ResultType>(seed[i])) * prime();
   return x;
 }
 
+/*!
+  \details No detailed description
+
+  \return No description
+  */
 template <typename ResultType> inline
 constexpr auto Fnv1aHashEngine<ResultType>::prime() noexcept -> ResultType
 {
@@ -54,6 +69,11 @@ constexpr auto Fnv1aHashEngine<ResultType>::prime() noexcept -> ResultType
   }
 }
 
+/*!
+  \details No detailed description
+
+  \return No description
+  */
 template <typename ResultType> inline
 constexpr auto Fnv1aHashEngine<ResultType>::offset() noexcept -> ResultType
 {

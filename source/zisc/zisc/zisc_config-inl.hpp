@@ -1,7 +1,12 @@
 /*!
   \file zisc_config-inl.hpp
   \author Sho Ikeda
+  \brief No brief description
 
+  \details
+  No detailed description.
+
+  \copyright
   Copyright (c) 2015-2020 Sho Ikeda
   This software is released under the MIT License.
   http://opensource.org/licenses/mit-license.php
@@ -15,16 +20,19 @@
 
 namespace zisc {
 
-static_assert(sizeof(int8b) == 1, "The size of int8b is wrong.");
-static_assert(sizeof(int16b) == 2, "The size of int16b is wrong.");
-static_assert(sizeof(int32b) == 4, "The size of int32b is wrong.");
-static_assert(sizeof(int64b) == 8, "The size of int64b is wrong.");
-static_assert(sizeof(uint8b) == 1, "The size of uint8b is wrong.");
-static_assert(sizeof(uint16b) == 2, "The size of uint16b is wrong.");
-static_assert(sizeof(uint32b) == 4, "The size of uint32b is wrong.");
-static_assert(sizeof(uint64b) == 8, "The size of uint64b is wrong.");
+static_assert(sizeof(int8b) == 1, "The size of int8b isn't 1 byte.");
+static_assert(sizeof(int16b) == 2, "The size of int16b isn't 2 bytes.");
+static_assert(sizeof(int32b) == 4, "The size of int32b isn't 4 bytes.");
+static_assert(sizeof(int64b) == 8, "The size of int64b isn't 8 bytes.");
+static_assert(sizeof(uint8b) == 1, "The size of uint8b isn't 1 byte.");
+static_assert(sizeof(uint16b) == 2, "The size of uint16b isn't 2 bytes.");
+static_assert(sizeof(uint32b) == 4, "The size of uint32b isn't 4 bytes.");
+static_assert(sizeof(uint64b) == 8, "The size of uint64b isn't 8 bytes.");
 
 /*!
+  \details No detailed description
+
+  \return No description
   */
 inline
 constexpr auto Config::implType() noexcept -> ImplType
@@ -43,6 +51,9 @@ constexpr auto Config::implType() noexcept -> ImplType
 }
 
 /*!
+  \details No detailed description
+
+  \return No description
   */
 inline
 constexpr bool Config::isStlBinaryTreeUsed() noexcept
@@ -56,6 +67,9 @@ constexpr bool Config::isStlBinaryTreeUsed() noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \return No description
   */
 inline
 constexpr bool Config::isStlMathUsed() noexcept
@@ -69,6 +83,9 @@ constexpr bool Config::isStlMathUsed() noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \return No description
   */
 inline
 constexpr bool Config::isStlMathExpUsed() noexcept
@@ -81,6 +98,9 @@ constexpr bool Config::isStlMathExpUsed() noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \return No description
   */
 inline
 constexpr bool Config::isStlMathLogUsed() noexcept
@@ -93,6 +113,9 @@ constexpr bool Config::isStlMathLogUsed() noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \return No description
   */
 inline
 constexpr bool Config::isStlMathPowUsed() noexcept
@@ -105,6 +128,9 @@ constexpr bool Config::isStlMathPowUsed() noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \return No description
   */
 inline
 constexpr bool Config::isStlMathSqrtUsed() noexcept
@@ -117,6 +143,9 @@ constexpr bool Config::isStlMathSqrtUsed() noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \return No description
   */
 inline
 constexpr bool Config::isStlMathCbrtUsed() noexcept
@@ -129,6 +158,9 @@ constexpr bool Config::isStlMathCbrtUsed() noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \return No description
   */
 inline
 constexpr bool Config::isStlMathTrigonometricUsed() noexcept
@@ -141,6 +173,9 @@ constexpr bool Config::isStlMathTrigonometricUsed() noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \return No description
   */
 inline
 constexpr bool Config::isStlMathInvTrigonometricUsed() noexcept

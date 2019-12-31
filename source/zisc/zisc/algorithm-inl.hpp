@@ -1,7 +1,12 @@
 /*!
   \file algorithm-inl.hpp
   \author Sho Ikeda
+  \brief No brief description
 
+  \details
+  No detailed description.
+
+  \copyright
   Copyright (c) 2015-2020 Sho Ikeda
   This software is released under the MIT License.
   http://opensource.org/licenses/mit-license.php
@@ -34,9 +39,12 @@
 namespace zisc {
 
 /*!
- \details
- No detailed.
- */
+  \details No detailed description
+
+  \tparam Arithmetic No description.
+  \param [in] x No description.
+  \return No description
+  */
 template <typename Arithmetic> inline
 constexpr Arithmetic Algorithm::abs(const Arithmetic x) noexcept
 {
@@ -52,9 +60,16 @@ constexpr Arithmetic Algorithm::abs(const Arithmetic x) noexcept
 }
 
 /*!
- \details
- No detailed.
-*/
+  \details No detailed description
+
+  \tparam Type No description.
+  \tparam LowerType No description.
+  \tparam UpperType No description.
+  \param [in] value No description.
+  \param [in] lower No description.
+  \param [in] upper No description.
+  \return No description
+  */
 template <typename Type, typename LowerType, typename UpperType> inline
 constexpr std::common_type_t<Type, LowerType, UpperType> Algorithm::clamp(
     const Type value, 
@@ -66,6 +81,11 @@ constexpr std::common_type_t<Type, LowerType, UpperType> Algorithm::clamp(
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] x No description.
+  \return No description
   */
 template <typename Float> inline
 constexpr Float Algorithm::invert(const Float x) noexcept
@@ -79,6 +99,17 @@ constexpr Float Algorithm::invert(const Float x) noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \tparam kIsLeftClosed No description.
+  \tparam kIsRightClosed No description.
+  \tparam Type No description.
+  \tparam LowerType No description.
+  \tparam UpperType No description.
+  \param [in] value No description.
+  \param [in] lower No description.
+  \param [in] upper No description.
+  \return No description
   */
 template <bool kIsLeftClosed,
           bool kIsRightClosed,
@@ -95,6 +126,15 @@ constexpr bool Algorithm::isInBounds(const Type& value,
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Type No description.
+  \tparam LowerType No description.
+  \tparam UpperType No description.
+  \param [in] value No description.
+  \param [in] lower No description.
+  \param [in] upper No description.
+  \return No description
   */
 template <typename Type, typename LowerType, typename UpperType> inline
 constexpr bool Algorithm::isInOpenBounds(const Type& value, 
@@ -106,6 +146,15 @@ constexpr bool Algorithm::isInOpenBounds(const Type& value,
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Type No description.
+  \tparam LowerType No description.
+  \tparam UpperType No description.
+  \param [in] value No description.
+  \param [in] lower No description.
+  \param [in] upper No description.
+  \return No description
   */
 template <typename Type, typename LowerType, typename UpperType> inline
 constexpr bool Algorithm::isInClosedBounds(const Type& value, 
@@ -117,17 +166,20 @@ constexpr bool Algorithm::isInClosedBounds(const Type& value,
 }
 
 /*!
- \details
- No detailed.
- */
+  \details No detailed description
+
+  \tparam Arithmetic No description.
+  \param [in] x No description.
+  \return No description
+  */
 template <typename Arithmetic> inline
-constexpr bool Algorithm::isNegative(const Arithmetic n) noexcept
+constexpr bool Algorithm::isNegative(const Arithmetic x) noexcept
 {
   static_assert(std::is_arithmetic_v<Arithmetic>,
                 "Arithmetic isn't arithmetic type.");
   if constexpr (std::is_signed_v<Arithmetic>) {
     constexpr auto zero = cast<Arithmetic>(0);
-    const bool result = n < zero;
+    const bool result = x < zero;
     return result;
   }
   else {
@@ -136,8 +188,13 @@ constexpr bool Algorithm::isNegative(const Arithmetic n) noexcept
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \tparam Type1 No description.
+  \tparam Type2 No description.
+  \param [in] a No description.
+  \param [in] b No description.
+  \return No description
   */
 template <typename Type1, typename Type2> inline
 constexpr const std::common_type_t<Type1, Type2>& Algorithm::max(
@@ -149,8 +206,13 @@ constexpr const std::common_type_t<Type1, Type2>& Algorithm::max(
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \tparam Type1 No description.
+  \tparam Type2 No description.
+  \param [in] a No description.
+  \param [in] b No description.
+  \return No description
   */
 template <typename Type1, typename Type2> inline
 constexpr const std::common_type_t<Type1, Type2>& Algorithm::min(
@@ -162,7 +224,10 @@ constexpr const std::common_type_t<Type1, Type2>& Algorithm::min(
 }
 
 /*!
-  \param[in] x \a x should be greater than 0
+  \details No detailed description
+
+  \tparam Integer No description.
+  \param [in] x \a x should be greater than 0
   \return The exponent corresponds the \a x in the base-2 if \a x is positive, 
           otherwize \a x 
   */
@@ -184,17 +249,27 @@ constexpr Integer Algorithm::getExponent(Integer x) noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Integer No description.
+  \param [in] x No description.
+  \return No description
   */
 template <typename Integer> inline
-constexpr bool Algorithm::isOdd(const Integer n) noexcept
+constexpr bool Algorithm::isOdd(const Integer x) noexcept
 {
   static_assert(std::is_integral_v<Integer>, "Integer isn't integer type.");
   constexpr auto lsb = cast<Integer>(0b01);
-  const auto result = ((n & lsb) == lsb);
+  const auto result = ((x & lsb) == lsb);
   return result;
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Integer No description.
+  \param [in] x No description.
+  \return No description
   */
 template <typename Integer> inline
 constexpr bool Algorithm::isPowerOf2(const Integer x) noexcept
@@ -205,6 +280,11 @@ constexpr bool Algorithm::isPowerOf2(const Integer x) noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Integer No description.
+  \param [in] x No description.
+  \return No description
   */
 template <typename Integer> inline
 Integer Algorithm::popcount(const Integer x) noexcept
@@ -215,7 +295,10 @@ Integer Algorithm::popcount(const Integer x) noexcept
 }
 
 /*!
-  \param[in] x The \a x should be positive.
+  \details No detailed description
+
+  \tparam Integer No description.
+  \param [in] x The \a x should be positive.
   \return The smallest power of 2 that is greater or equal to \a x
           if \a x is positive, otherwize \a x
   */
@@ -236,8 +319,14 @@ constexpr Integer Algorithm::roundUpToPowerOf2(const Integer x) noexcept
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \tparam RandomAccessIterator No description.
+  \tparam Type No description.
+  \param [in] begin No description.
+  \param [in] end No description.
+  \param [in] value No description.
+  \return No description
   */
 template <typename RandomAccessIterator, typename Type> inline
 RandomAccessIterator Algorithm::searchBinaryTree(
@@ -245,7 +334,7 @@ RandomAccessIterator Algorithm::searchBinaryTree(
     const RandomAccessIterator end,
     const Type& value) noexcept
 {
-  ZISC_ASSERT(0 < std::distance(begin, end), "The end is in advance of the begin.");
+  //! \todo exception check
   const auto result = Config::isStlBinaryTreeUsed()
     ? Stl::searchBinaryTree(begin, end, value)
     : Zisc::searchBinaryTree(begin, end, value);
@@ -253,23 +342,32 @@ RandomAccessIterator Algorithm::searchBinaryTree(
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \tparam RandomAccessIterator No description.
+  \param [in,out] begin No description.
+  \param [in,out] end No description.
   */
 template <typename RandomAccessIterator> inline
-void Algorithm::toBinaryTree(
-    RandomAccessIterator begin, 
-    RandomAccessIterator end,
-    std::pmr::memory_resource* mem_resource) noexcept
+void Algorithm::toBinaryTree(RandomAccessIterator begin, 
+                             RandomAccessIterator end) noexcept
 {
-  ZISC_ASSERT(std::is_sorted(begin, end), "The array isn't sorted.");
+  //! \todo exception check
   if (Config::isStlBinaryTreeUsed())
-    Stl::toBinaryTree(begin, end, mem_resource);
+    Stl::toBinaryTree(begin, end);
   else
-    Zisc::toBinaryTree(begin, end, mem_resource);
+    Zisc::toBinaryTree(begin, end);
 }
 
 /*!
+  \details No detailed description
+
+  \tparam RandomAccessIterator No description.
+  \tparam Type No description.
+  \param [in] begin No description.
+  \param [in] end No description.
+  \param [in] value No description.
+  \return No description
   */
 template <typename RandomAccessIterator, typename Type> inline
 RandomAccessIterator Algorithm::Stl::searchBinaryTree(
@@ -277,23 +375,37 @@ RandomAccessIterator Algorithm::Stl::searchBinaryTree(
     const RandomAccessIterator end,
     const Type& value) noexcept
 {
-  ZISC_ASSERT(0 < std::distance(begin, end), "The end is in advance of the begin.");
+  //! \todo exception check
   auto result = std::lower_bound(begin, end, value);
   result = (*result == value) ? result : result - 1;
   return result;
 }
 
 /*!
+  \details No detailed description
+
+  \tparam RandomAccessIterator No description.
+  \param [in,out] begin No description.
+  \param [in,out] end No description.
   */
 template <typename RandomAccessIterator> inline
 void Algorithm::Stl::toBinaryTree(
-    RandomAccessIterator /* begin */, 
-    RandomAccessIterator /* end */,
-    std::pmr::memory_resource* /* mem_resource */) noexcept
+    RandomAccessIterator begin, 
+    RandomAccessIterator end) noexcept
 {
+  //! \todo exception check
+  std::sort(begin, end);
 }
 
 /*!
+  \details No detailed description
+
+  \tparam RandomAccessIterator No description.
+  \tparam Type No description.
+  \param [in] begin No description.
+  \param [in] end No description.
+  \param [in] value No description.
+  \return No description
   */
 template <typename RandomAccessIterator, typename Type> inline
 RandomAccessIterator Algorithm::Zisc::searchBinaryTree(
@@ -301,7 +413,7 @@ RandomAccessIterator Algorithm::Zisc::searchBinaryTree(
     const RandomAccessIterator end,
     const Type& value) noexcept
 {
-  ZISC_ASSERT(0 < std::distance(begin, end), "The end is in advance of the begin.");
+  //! \todo exception check
   const std::size_t n = cast<std::size_t>(std::distance(begin, end));
   std::size_t index = 0;
   while (index < n) {
@@ -316,23 +428,25 @@ RandomAccessIterator Algorithm::Zisc::searchBinaryTree(
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \tparam RandomAccessIterator No description.
+  \param [in,out] begin No description.
+  \param [in,out] end No description.
   */
 template <typename RandomAccessIterator> inline
 void Algorithm::Zisc::toBinaryTree(
     RandomAccessIterator begin, 
-    RandomAccessIterator end,
-    std::pmr::memory_resource* mem_resource) noexcept
+    RandomAccessIterator end) noexcept
 {
-  ZISC_ASSERT(std::is_sorted(begin, end), "The array isn't sorted.");
+  //! \todo exception check
+  std::sort(begin, end);
   const auto size = std::distance(begin, end);
   ZISC_ASSERT(0 < size, "The end is in advance of the begin.");
   if (1 < size) {
     // Create a temp array
     using Type = typename std::iterator_traits<RandomAccessIterator>::value_type;
-    pmr::vector<Type> array{
-        typename decltype(array)::allocator_type{mem_resource}};
+    std::vector<Type> array;
     array.reserve(cast<std::size_t>(size));
     for (auto iterator = begin; iterator != end; ++iterator)
       array.emplace_back(std::move(*iterator));
@@ -342,6 +456,14 @@ void Algorithm::Zisc::toBinaryTree(
 }
 
 /*!
+  \details No detailed description
+
+  \tparam RandomAccessIterator No description.
+  \tparam OutputIterator No description.
+  \param [in] begin No description.
+  \param [in] end No description.
+  \param [in] index No description.
+  \param [out] first No description.
   */
 template <typename RandomAccessIterator, typename OutputIterator> inline
 void Algorithm::Zisc::toBinaryTreeImpl(RandomAccessIterator begin, 
@@ -379,6 +501,11 @@ void Algorithm::Zisc::toBinaryTreeImpl(RandomAccessIterator begin,
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Integer description.
+  \param [in] stage No description.
+  \return No description
   */
 template <typename Integer> inline
 constexpr Integer Algorithm::makePopcountMask(const std::size_t stage) noexcept
@@ -395,6 +522,12 @@ constexpr Integer Algorithm::makePopcountMask(const std::size_t stage) noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \tparam kStage No description.
+  \tparam Integer No description.
+  \param [in] x No description.
+  \return No description
   */
 template <std::size_t kStage, typename Integer> inline
 Integer Algorithm::popcountFallback(const Integer x) noexcept
@@ -412,6 +545,12 @@ Integer Algorithm::popcountFallback(const Integer x) noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \tparam kImpl No description.
+  \tparam Integer No description.
+  \param [in] x No description.
+  \return No description
   */
 template <Config::ImplType kImpl, typename Integer> inline
 Integer Algorithm::popcountImpl(const Integer x) noexcept
@@ -467,9 +606,12 @@ Integer Algorithm::popcountImpl(const Integer x) noexcept
 }
 
 /*!
- \details
- No detailed.
- */
+  \details No detailed description
+
+  \tparam Arithmetic description.
+  \param [in] x No description.
+  \return No description
+  */
 template <typename Arithmetic> inline
 constexpr Arithmetic abs(const Arithmetic x) noexcept
 {
@@ -480,9 +622,17 @@ constexpr Arithmetic abs(const Arithmetic x) noexcept
 }
 
 /*!
- \details
- No detailed.
-*/
+  \details No detailed description
+
+  \tparam Type No description.
+  \tparam LowerType No description.
+  \tparam UpperType No description.
+  \param [in] value No description.
+  \param [in] lower No description.
+  \param [in] upper No description.
+  \return No description
+  */
+
 template <typename Type, typename LowerType, typename UpperType> inline
 constexpr std::common_type_t<Type, LowerType, UpperType> clamp(
     const Type value, 
@@ -494,6 +644,11 @@ constexpr std::common_type_t<Type, LowerType, UpperType> clamp(
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] x No description.
+  \return No description
   */
 template <typename Float> inline
 constexpr Float invert(const Float x) noexcept
@@ -504,8 +659,13 @@ constexpr Float invert(const Float x) noexcept
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \tparam Type1 No description.
+  \tparam Type2 No description.
+  \param [in] a No description.
+  \param [in] b No description.
+  \return No description
   */
 template <typename Type1, typename Type2> inline
 constexpr const std::common_type_t<Type1, Type2>& max(const Type1& a,
@@ -516,8 +676,13 @@ constexpr const std::common_type_t<Type1, Type2>& max(const Type1& a,
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \tparam Type1 No description.
+  \tparam Type2 No description.
+  \param [in] a No description.
+  \param [in] b No description.
+  \return No description
   */
 template <typename Type1, typename Type2> inline
 constexpr const std::common_type_t<Type1, Type2>& min(const Type1& a,
@@ -528,6 +693,17 @@ constexpr const std::common_type_t<Type1, Type2>& min(const Type1& a,
 }
 
 /*!
+  \details No detailed description
+
+  \tparam kIsLeftClosed No description.
+  \tparam kIsRightClosed No description.
+  \tparam Type No description.
+  \tparam LowerType No description.
+  \tparam UpperType No description.
+  \param [in] value No description.
+  \param [in] lower No description.
+  \param [in] upper No description.
+  \return No description
   */
 template <bool kIsLeftClosed,
           bool kIsRightClosed,
@@ -547,6 +723,15 @@ constexpr bool isInBounds(const Type& value,
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Type No description.
+  \tparam LowerType No description.
+  \tparam UpperType No description.
+  \param [in] value No description.
+  \param [in] lower No description.
+  \param [in] upper No description.
+  \return No description
   */
 template <typename Type, typename LowerType, typename UpperType> inline
 constexpr bool isInOpenBounds(const Type& value, 
@@ -558,6 +743,15 @@ constexpr bool isInOpenBounds(const Type& value,
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Type No description.
+  \tparam LowerType No description.
+  \tparam UpperType No description.
+  \param [in] value No description.
+  \param [in] lower No description.
+  \param [in] upper No description.
+  \return No description
   */
 template <typename Type, typename LowerType, typename UpperType> inline
 constexpr bool isInClosedBounds(const Type& value, 
@@ -569,25 +763,33 @@ constexpr bool isInClosedBounds(const Type& value,
 }
 
 /*!
- \details
- No detailed.
- */
+  \details No detailed description
+
+  \tparam Arithmetic No description.
+  \param [in] x No description.
+  \return No description
+  */
 template <typename Arithmetic> inline
-constexpr bool isNegative(const Arithmetic n) noexcept
+constexpr bool isNegative(const Arithmetic x) noexcept
 {
   static_assert(std::is_arithmetic_v<Arithmetic>,
                 "Arithmetic isn't arithmetic type.");
-  const auto result = Algorithm::isNegative(n);
+  const auto result = Algorithm::isNegative(x);
   return result;
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Integer No description.
+  \param [in] x No description.
+  \return No description
   */
 template <typename Integer> inline
-constexpr bool isOdd(const Integer n) noexcept
+constexpr bool isOdd(const Integer x) noexcept
 {
   static_assert(std::is_integral_v<Integer>, "Integer isn't integer type.");
-  const auto result = Algorithm::isOdd(n);
+  const auto result = Algorithm::isOdd(x);
   return result;
 }
 

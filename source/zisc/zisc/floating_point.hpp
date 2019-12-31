@@ -1,7 +1,12 @@
 /*!
   \file floating_point.hpp
   \author Sho Ikeda
+  \brief No brief description
 
+  \details
+  No detailed description.
+
+  \copyright
   Copyright (c) 2015-2020 Sho Ikeda
   This software is released under the MIT License.
   http://opensource.org/licenses/mit-license.php
@@ -22,6 +27,9 @@
 namespace zisc {
 
 /*!
+  \brief No brief description
+
+  No detailed description.
   */
 enum class FloatingPointFormat
 {
@@ -32,14 +40,22 @@ enum class FloatingPointFormat
 
 /*!
   \brief Replesent a floating point based on IEEE 754
+
+  No detailed description.
+
+  \tparam kFormat No description.
+
+  \todo Implement operator+-* / with float
   */
 template <FloatingPointFormat kFormat>
 class FloatingPoint
 {
  public:
+  //! Data type
   using FloatType =
     std::conditional_t<kFormat == FloatingPointFormat::kHalf, int16b,
     std::conditional_t<kFormat == FloatingPointFormat::kSingle, float, double>>;
+  //! Bit representation type
   using BitType =
     std::conditional_t<kFormat == FloatingPointFormat::kHalf, uint16b,
     std::conditional_t<kFormat == FloatingPointFormat::kSingle, uint32b, uint64b>>;

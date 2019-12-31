@@ -187,11 +187,11 @@ struct ConstexprTest<Float, end, end>
     {
       constexpr Float n = std::numeric_limits<Float>::quiet_NaN();
 
-      constexpr auto result = run_frexp(n);
-      constexpr Float result_m = result.first;
+      const auto result = run_frexp(n);
+      const Float result_m = result.first;
       EXPECT_TRUE(std::isnan(result_m)) << "frexp(NaN) is wrong.";
 
-      constexpr Float result_f = zisc::constant::ldexp(result_m, 1);
+      const Float result_f = zisc::constant::ldexp(result_m, 1);
       EXPECT_TRUE(std::isnan(result_f)) << "frexp(NaN) is wrong.";
     }
   }

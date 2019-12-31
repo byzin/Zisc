@@ -1,7 +1,12 @@
 /*!
   \file fraction-inl.hpp
   \author Sho Ikeda
+  \brief No brief description
 
+  \details
+  No detailed description.
+
+  \copyright
   Copyright (c) 2015-2020 Sho Ikeda
   This software is released under the MIT License.
   http://opensource.org/licenses/mit-license.php
@@ -21,11 +26,8 @@
 
 namespace zisc {
 
-// public member function
-
 /*!
-  \details
-  No detailed.
+  \details No detailed description
   */
 template <typename SignedInteger> inline
 constexpr Fraction<SignedInteger>::Fraction() noexcept :
@@ -35,8 +37,9 @@ constexpr Fraction<SignedInteger>::Fraction() noexcept :
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \param [in] n No description.
   */
 template <typename SignedInteger> inline
 constexpr Fraction<SignedInteger>::Fraction(const SignedInteger n) noexcept
@@ -46,8 +49,10 @@ constexpr Fraction<SignedInteger>::Fraction(const SignedInteger n) noexcept
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \param [in] n No description.
+  \param [in] d No description.
   */
 template <typename SignedInteger> inline
 constexpr Fraction<SignedInteger>::Fraction(const SignedInteger n, 
@@ -58,14 +63,22 @@ constexpr Fraction<SignedInteger>::Fraction(const SignedInteger n,
 }
 
 /*!
+  \details No detailed description
+
+  \return No description
   */
 template <typename SignedInteger> inline
 constexpr Fraction<SignedInteger> Fraction<SignedInteger>::operator-() const noexcept
 {
-  return Fraction{-numerator(), denominator()};
+  const Fraction frac{-numerator(), denominator()};
+  return frac;
 }
 
 /*!
+  \details No detailed description
+
+  \param [in] other No description.
+  \return No description
   */
 template <typename SignedInteger> inline
 constexpr Fraction<SignedInteger>& Fraction<SignedInteger>::operator+=(
@@ -76,6 +89,10 @@ constexpr Fraction<SignedInteger>& Fraction<SignedInteger>::operator+=(
 }
 
 /*!
+  \details No detailed description
+
+  \param [in] other No description.
+  \return No description
   */
 template <typename SignedInteger> inline
 constexpr Fraction<SignedInteger>& Fraction<SignedInteger>::operator-=(
@@ -86,6 +103,10 @@ constexpr Fraction<SignedInteger>& Fraction<SignedInteger>::operator-=(
 }
 
 /*!
+  \details No detailed description
+
+  \param [in] other No description.
+  \return No description
   */
 template <typename SignedInteger> inline
 constexpr Fraction<SignedInteger>& Fraction<SignedInteger>::operator*=(
@@ -96,6 +117,10 @@ constexpr Fraction<SignedInteger>& Fraction<SignedInteger>::operator*=(
 }
 
 /*!
+  \details No detailed description
+
+  \param [in] other No description.
+  \return No description
   */
 template <typename SignedInteger> inline
 constexpr Fraction<SignedInteger>& Fraction<SignedInteger>::operator/=(
@@ -106,9 +131,10 @@ constexpr Fraction<SignedInteger>& Fraction<SignedInteger>::operator/=(
 }
 
 /*!
- \details
- No detailed.
- */
+  \details No detailed description
+
+  \return No description
+  */
 template <typename SignedInteger> inline
 constexpr SignedInteger& Fraction<SignedInteger>::denominator() noexcept
 {
@@ -116,9 +142,10 @@ constexpr SignedInteger& Fraction<SignedInteger>::denominator() noexcept
 }
 
 /*!
- \details
- No detailed.
- */
+  \details No detailed description
+
+  \return No description
+  */
 template <typename SignedInteger> inline
 constexpr const SignedInteger& Fraction<SignedInteger>::denominator() const noexcept
 {
@@ -126,18 +153,21 @@ constexpr const SignedInteger& Fraction<SignedInteger>::denominator() const noex
 }
 
 /*!
- \details
- No detailed.
- */
+  \details No detailed description
+
+  \return No description
+  */
 template <typename SignedInteger> inline
 constexpr SignedInteger& Fraction<SignedInteger>::numerator() noexcept
 {
   return numerator_;
 }
+
 /*!
- \details
- No detailed.
- */
+  \details No detailed description
+
+  \return No description
+  */
 template <typename SignedInteger> inline
 constexpr const SignedInteger& Fraction<SignedInteger>::numerator() const noexcept
 {
@@ -145,33 +175,37 @@ constexpr const SignedInteger& Fraction<SignedInteger>::numerator() const noexce
 }
 
 /*!
+  \details No detailed description
+
+  \return No description
   */
 template <typename SignedInteger> inline
 constexpr auto Fraction<SignedInteger>::invert() const noexcept -> Fraction
 {
-  return Fraction{denominator(), numerator()};
+  const Fraction inv_frac{denominator(), numerator()};
+  return inv_frac;
 }
 
 /*!
- \details
- No detailed.
- */
+  \details No detailed description
+
+  \return No description
+  */
 template <typename SignedInteger> template <typename Float> inline
 constexpr Float Fraction<SignedInteger>::toFloat() const noexcept
 {
   static_assert(kIsFloat<Float>, "Float isn't floating point.");
-  return cast<Float>(numerator()) / cast<Float>(denominator());
+  const Float f = cast<Float>(numerator()) / cast<Float>(denominator());
+  return f;
 }
 
 /*!
-  */
-template <typename SignedInteger> inline
-constexpr SignedInteger Fraction<SignedInteger>::abs(const SignedInteger n) noexcept
-{
-  return isNegative(n) ? -n : n;
-}
+  \details No detailed description
 
-/*!
+  \tparam SignedInteger No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
   */
 template <typename SignedInteger> inline
 constexpr Fraction<SignedInteger> operator+(
@@ -186,6 +220,12 @@ constexpr Fraction<SignedInteger> operator+(
 }
 
 /*!
+  \details No detailed description
+
+  \tparam SignedInteger No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
   */
 template <typename SignedInteger> inline
 constexpr Fraction<SignedInteger> operator-(
@@ -195,7 +235,13 @@ constexpr Fraction<SignedInteger> operator-(
   return lhs + (-rhs);
 }
 
-/*
+/*!
+  \details No detailed description
+
+  \tparam SignedInteger No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
   */
 template <typename SignedInteger> inline
 constexpr Fraction<SignedInteger> operator*(
@@ -210,6 +256,12 @@ constexpr Fraction<SignedInteger> operator*(
 }
 
 /*!
+  \details No detailed description
+
+  \tparam SignedInteger No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
   */
 template <typename SignedInteger> inline
 constexpr Fraction<SignedInteger> operator/(
@@ -220,7 +272,13 @@ constexpr Fraction<SignedInteger> operator/(
 }
 
 /*!
- */
+  \details No detailed description
+
+  \tparam SignedInteger No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
+  */
 template <typename SignedInteger> inline
 constexpr bool operator==(const Fraction<SignedInteger>& lhs,
                           const Fraction<SignedInteger>& rhs) noexcept
@@ -230,7 +288,13 @@ constexpr bool operator==(const Fraction<SignedInteger>& lhs,
 }
 
 /*!
- */
+  \details No detailed description
+
+  \tparam SignedInteger No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
+  */
 template <typename SignedInteger> inline
 constexpr bool operator!=(const Fraction<SignedInteger>& lhs,
                           const Fraction<SignedInteger>& rhs) noexcept
@@ -239,9 +303,13 @@ constexpr bool operator!=(const Fraction<SignedInteger>& lhs,
 }
 
 /*!
- \details
- No detailed.
- */
+  \details No detailed description
+
+  \tparam SignedInteger No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
+  */
 template <typename SignedInteger> inline
 constexpr bool operator<(const Fraction<SignedInteger>& lhs,
                          const Fraction<SignedInteger>& rhs) noexcept
@@ -251,9 +319,13 @@ constexpr bool operator<(const Fraction<SignedInteger>& lhs,
 }
 
 /*!
- \details
- No detailed.
- */
+  \details No detailed description
+
+  \tparam SignedInteger No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
+  */
 template <typename SignedInteger> inline
 constexpr bool operator<=(const Fraction<SignedInteger>& lhs,
                           const Fraction<SignedInteger>& rhs) noexcept
@@ -262,9 +334,13 @@ constexpr bool operator<=(const Fraction<SignedInteger>& lhs,
 }
 
 /*!
- \details
- No detailed.
- */
+  \details No detailed description
+
+  \tparam SignedInteger No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
+  */
 template <typename SignedInteger> inline
 constexpr bool operator>(const Fraction<SignedInteger>& lhs,
                          const Fraction<SignedInteger>& rhs) noexcept
@@ -273,9 +349,13 @@ constexpr bool operator>(const Fraction<SignedInteger>& lhs,
 }
 
 /*!
- \details
- No detailed.
- */
+  \details No detailed description
+
+  \tparam SignedInteger No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
+  */
 template <typename SignedInteger> inline
 constexpr bool operator>=(const Fraction<SignedInteger>& lhs,
                           const Fraction<SignedInteger>& rhs) noexcept

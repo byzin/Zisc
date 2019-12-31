@@ -20,8 +20,11 @@
 namespace zisc {
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \tparam Types No description.
+  \param [in] condition No description.
+  \param [in] messages No description.
   */
 template <typename ...Types> inline
 void assertIfFalse(const bool condition, Types&&... messages) noexcept
@@ -32,6 +35,12 @@ void assertIfFalse(const bool condition, Types&&... messages) noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Types No description.
+  \param [out] output_stream No description.
+  \param [in] messages No description.
+  \return No description
   */
 template <typename ...Types> inline
 std::ostream& outputMessage(std::ostream& output_stream,
@@ -41,8 +50,10 @@ std::ostream& outputMessage(std::ostream& output_stream,
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \tparam Types No description.
+  \param [in] messages No description.
   */
 template <typename ...Types> inline
 void raiseError(Types&&... messages) noexcept

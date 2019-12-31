@@ -18,9 +18,7 @@
 // Zisc
 #include "arith_array.hpp"
 #include "math.hpp"
-#include "point.hpp"
 #include "utility.hpp"
-#include "vector.hpp"
 #include "zisc/zisc_config.hpp"
 
 namespace zisc {
@@ -484,30 +482,6 @@ constexpr ArithArray<Arith, kRow> operator*(
     result[row] = value;
   }
   return result;
-}
-
-/*!
-  \details
-  No detailed.
-  */
-template <typename Arith, uint kRow, uint kColumn> inline
-constexpr Point<Arith, kRow> operator*(
-    const Matrix<Arith, kRow, kColumn>& matrix,
-    const Point<Arith, kColumn>& point) noexcept
-{
-  return Point<Arith, kRow>{matrix * point.data()};
-}
-
-/*!
-  \details
-  No detailed.
-  */
-template <typename Arith, uint kRow, uint kColumn> inline
-constexpr Vector<Arith, kRow> operator*(
-    const Matrix<Arith, kRow, kColumn>& matrix,
-    const Vector<Arith, kColumn>& vector) noexcept
-{
-  return Vector<Arith, kRow>{matrix * vector.data()};
 }
 
 /*!

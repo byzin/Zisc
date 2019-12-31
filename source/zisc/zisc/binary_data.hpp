@@ -1,10 +1,13 @@
 /*!
-  \file file binary_data.hpp
+  \file binary_data.hpp
   \author Sho Ikeda
+  \brief No brief description
 
-  Copyright (c) 2015-2020 Sho Ikeda
-  This software is released under the MIT License.
-  http://opensource.org/licenses/mit-license.php
+  \details
+  No detailed description.
+
+  \copyright
+  No copyright
   */
 
 #ifndef ZISC_BINARY_DATA_HPP

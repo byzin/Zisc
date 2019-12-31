@@ -1,7 +1,12 @@
 /*!
   \file algorithm.hpp
   \author Sho Ikeda
+  \brief No brief description
 
+  \details
+  No detailed description.
+
+  \copyright
   Copyright (c) 2015-2020 Sho Ikeda
   This software is released under the MIT License.
   http://opensource.org/licenses/mit-license.php
@@ -19,6 +24,9 @@
 namespace zisc {
 
 /*!
+  \brief No brief description
+
+  No detailed description.
   */
 class Algorithm
 {
@@ -27,14 +35,14 @@ class Algorithm
   template <typename Arithmetic>
   static constexpr Arithmetic abs(const Arithmetic x) noexcept;
 
-  //! Clamp the value x to be between min and max
+  //! Clamp the value \a x between \a lower and \a upper
   template <typename Type, typename LowerType, typename UpperType>
   static constexpr std::common_type_t<Type, LowerType, UpperType> clamp(
       const Type value, 
       const LowerType lower, 
       const UpperType upper) noexcept;
 
-  //! Return a inverse number
+  //! Return a inverse number of the given value
   template <typename Float>
   static constexpr Float invert(const Float x) noexcept;
 
@@ -48,29 +56,29 @@ class Algorithm
                                    const LowerType& lower, 
                                    const UpperType& upper) noexcept;
 
-  //! Test whether a value is in a range: (lower, upper)
+  //! Test whether a value is in a range: (\a lower, \a upper )
   template <typename Type, typename LowerType, typename UpperType>
   static constexpr bool isInOpenBounds(const Type& value, 
                                        const LowerType& lower, 
                                        const UpperType& upper) noexcept;
 
-  //! Test whether a value is in a range: [lower, upper]
+  //! Test whether a value is in a range: [\a lower, \a upper ]
   template <typename Type, typename LowerType, typename UpperType>
   static constexpr bool isInClosedBounds(const Type& value, 
                                          const LowerType& lower, 
                                          const UpperType& upper) noexcept;
 
-  //! Test whether the n is negative
+  //! Test whether the given value is negative
   template <typename Arithmetic>
-  static constexpr bool isNegative(const Arithmetic n) noexcept;
+  static constexpr bool isNegative(const Arithmetic x) noexcept;
 
-  //! Return the large of two elements
+  //! Return the greater of two elements
   template <typename Type1, typename Type2>
   static constexpr const std::common_type_t<Type1, Type2>& max(
       const Type1& a,
       const Type2& b) noexcept;
 
-  //! Return the small of two elements
+  //! Return the smaller of two elements
   template <typename Type1, typename Type2>
   static constexpr const std::common_type_t<Type1, Type2>& min(
       const Type1& a,
@@ -82,11 +90,11 @@ class Algorithm
   template <typename Integer>
   static constexpr Integer getExponent(Integer x) noexcept;
 
-  //! Test whether the n is odd
+  //! Test whether the given value is odd
   template <typename Integer>
-  static constexpr bool isOdd(const Integer n) noexcept;
+  static constexpr bool isOdd(const Integer x) noexcept;
 
-  //! Check if the x is power of 2
+  //! Check if the given value is power of 2
   template <typename Integer>
   static constexpr bool isPowerOf2(const Integer x) noexcept;
 
@@ -109,10 +117,8 @@ class Algorithm
 
   //! Transform a sorted unique array to a binary tree
   template <typename RandomAccessIterator>
-  static void toBinaryTree(
-      RandomAccessIterator begin,
-      RandomAccessIterator end,
-      std::pmr::memory_resource* mem_resource = SimpleMemoryResource::sharedResource()) noexcept;
+  static void toBinaryTree(RandomAccessIterator begin,
+                           RandomAccessIterator end) noexcept;
 
   //! STL implementation
   class Stl
@@ -127,10 +133,8 @@ class Algorithm
 
     //! Transform a sorted unique array to a binary tree
     template <typename RandomAccessIterator>
-    static void toBinaryTree(
-        RandomAccessIterator begin,
-        RandomAccessIterator end,
-        std::pmr::memory_resource* mem_resource = SimpleMemoryResource::sharedResource()) noexcept;
+    static void toBinaryTree(RandomAccessIterator begin,
+                             RandomAccessIterator end) noexcept;
   };
 
   //! Zisc implementation
@@ -146,10 +150,8 @@ class Algorithm
 
     //! Transform a sorted unique array to a binary tree
     template <typename RandomAccessIterator>
-    static void toBinaryTree(
-        RandomAccessIterator begin,
-        RandomAccessIterator end,
-        std::pmr::memory_resource* mem_resource = SimpleMemoryResource::sharedResource()) noexcept;
+    static void toBinaryTree(RandomAccessIterator begin,
+                             RandomAccessIterator end) noexcept;
 
    private:
     //! Transform a sorted unique array to a binary tree
@@ -227,13 +229,19 @@ constexpr bool isInClosedBounds(const Type& value,
 
 //! Test whether the n is negative
 template <typename Arithmetic>
-constexpr bool isNegative(const Arithmetic n) noexcept;
+constexpr bool isNegative(const Arithmetic x) noexcept;
 
 //! Test whether the n is odd
 template <typename Integer>
-constexpr bool isOdd(const Integer n) noexcept;
+constexpr bool isOdd(const Integer x) noexcept;
 
 } // namespace zisc
+
+/*!
+  \example algorithm_example.cpp
+
+  This is an example of how to use zisc::Algorithm.
+  */
 
 #include "algorithm-inl.hpp"
 

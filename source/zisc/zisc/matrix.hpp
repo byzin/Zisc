@@ -15,9 +15,6 @@
 #include <tuple>
 // Zisc
 #include "arith_array.hpp"
-#include "dimension.hpp"
-#include "point.hpp"
-#include "vector.hpp"
 #include "zisc/zisc_config.hpp"
 
 namespace zisc {
@@ -152,18 +149,6 @@ template <typename Arith, uint kRow, uint kColumn>
 constexpr ArithArray<Arith, kRow> operator*(
     const Matrix<Arith, kRow, kColumn>& lhs,
     const ArithArray<Arith, kColumn>& rhs) noexcept;
-
-//! Multiply a matrix and a point
-template <typename Arith, uint kRow, uint kColumn>
-constexpr Point<Arith, kRow> operator*(
-    const Matrix<Arith, kRow, kColumn>& matrix,
-    const Point<Arith, kColumn>& point) noexcept;
-
-//! Multiply a matrix and a point
-template <typename Arith, uint kRow, uint kColumn>
-constexpr Vector<Arith, kRow> operator*(
-    const Matrix<Arith, kRow, kColumn>& matrix,
-    const Vector<Arith, kColumn>& vector) noexcept;
 
 //! Check if the two matrixes are same
 template <typename Arith, uint kRow1, uint kColumn1, uint kRow2, uint kColumn2>

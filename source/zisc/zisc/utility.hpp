@@ -1,7 +1,12 @@
 /*!
   \file utility.hpp
   \author Sho Ikeda
+  \brief No brief description
 
+  \details
+  No detailed description.
+
+  \copyright
   Copyright (c) 2015-2020 Sho Ikeda
   This software is released under the MIT License.
   http://opensource.org/licenses/mit-license.php
@@ -20,8 +25,8 @@ template <typename Type, typename T>
 constexpr Type cast(T&& value) noexcept;
 
 //! Swap the values
-template <typename Type>
-constexpr void swapValue(Type& a, Type& b) noexcept;
+template <typename Type1, typename Type2>
+constexpr void swap(Type1& a, Type2& b) noexcept;
 
 //! Treat T* as Type*
 template <typename Type, typename T>

@@ -1,7 +1,12 @@
 /*!
   \file zisc_config.hpp
   \author Sho Ikeda
+  \brief No brief description
 
+  \details
+  No detailed description.
+
+  \copyright
   Copyright (c) 2015-2020 Sho Ikeda
   This software is released under the MIT License.
   http://opensource.org/licenses/mit-license.php
@@ -21,15 +26,15 @@ constexpr char kZiscVersion[] = "@zisc_version@";
 namespace zisc {
 
 // General
-using int8b = std::int8_t;
-using int16b = std::int16_t;
-using int32b = std::int32_t;
-using int64b = std::int64_t;
-using uint = unsigned int;
-using uint8b = std::uint8_t;
-using uint16b = std::uint16_t;
-using uint32b = std::uint32_t;
-using uint64b = std::uint64_t;
+using int8b = std::int8_t; //!< 8-bit signed integer type
+using int16b = std::int16_t; //!< 16-bit signed integer type
+using int32b = std::int32_t; //!< 32-bit signed integer type
+using int64b = std::int64_t; //!< 64-bit signed integer type
+using uint = unsigned int; //!< Unsigned integer type
+using uint8b = std::uint8_t; //!< 8-bit unsigned integer type
+using uint16b = std::uint16_t; //!< 16-bit unsigned integer type
+using uint32b = std::uint32_t; //!< 32-bit unsigned integer type
+using uint64b = std::uint64_t; //!< 64-bit unsigned integer type
 
 // Boolean values
 constexpr uint8b kFalse = 0;
@@ -37,10 +42,17 @@ constexpr uint8b kTrue = 1;
 
 /*!
   \brief Configuration of zisc source
+
+  No detailed description.
   */
 class Config
 {
  public:
+  /*!
+    \brief No brief description
+
+    No detailed description.
+    */
   enum class ImplType : uint
   {
     kGcc = 0,

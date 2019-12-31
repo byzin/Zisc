@@ -1,7 +1,12 @@
 /*!
   \file correlated_multi_jittered_engine-inl.hpp
   \author Sho Ikeda
+  \brief No brief description
 
+  \details
+  No detailed description.
+
+  \copyright
   Copyright (c) 2015-2020 Sho Ikeda
   This software is released under the MIT License.
   http://opensource.org/licenses/mit-license.php
@@ -25,6 +30,12 @@
 namespace zisc {
 
 /*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] s No description.
+  \param [in] p No description.
+  \return No description
   */
 template <uint32b kRootN> template <typename Float> inline
 Float CorrelatedMultiJitteredEngine<kRootN>::generate1D(
@@ -45,6 +56,12 @@ Float CorrelatedMultiJitteredEngine<kRootN>::generate1D(
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] s No description.
+  \param [in] p No description.
+  \return No description
   */
 template <uint32b kRootN> template <typename Float> inline
 std::array<Float, 2> CorrelatedMultiJitteredEngine<kRootN>::generate2D(
@@ -74,6 +91,9 @@ std::array<Float, 2> CorrelatedMultiJitteredEngine<kRootN>::generate2D(
 }
 
 /*!
+  \details No detailed description
+
+  \return No description
   */
 template <uint32b kRootN> inline
 constexpr std::size_t CorrelatedMultiJitteredEngine<kRootN>::getPeriod() noexcept
@@ -83,6 +103,11 @@ constexpr std::size_t CorrelatedMultiJitteredEngine<kRootN>::getPeriod() noexcep
 }
 
 /*!
+  \details No detailed description
+
+  \tparam UnsignedInteger No description.
+  \param [in] sample No description.
+  \return No description
   */
 template <uint32b kRootN> template <typename UnsignedInteger> inline
 constexpr bool CorrelatedMultiJitteredEngine<kRootN>::isEndOfPeriod(
@@ -99,13 +124,16 @@ constexpr bool CorrelatedMultiJitteredEngine<kRootN>::isEndOfPeriod(
 }
 
 /*!
-  */
+  \details No detailed description
 
-/*!
+  \param [in] i No description.
+  \param [in] p No description.
+  \return No description
   */
 template <uint32b kRootN> inline
-uint32b CorrelatedMultiJitteredEngine<kRootN>::hashInteger(uint32b i,
-                                                          const uint32b p) noexcept
+uint32b CorrelatedMultiJitteredEngine<kRootN>::hashInteger(
+    uint32b i,
+    const uint32b p) noexcept
 {
   i ^= p;
   i ^= i >> 17;
@@ -121,6 +149,10 @@ uint32b CorrelatedMultiJitteredEngine<kRootN>::hashInteger(uint32b i,
 }
 
 /*!
+  \details No detailed description
+
+  \param [in] w No description.
+  \return No description
   */
 template <uint32b kRootN> inline
 constexpr uint32b CorrelatedMultiJitteredEngine<kRootN>::makeWMask(
@@ -135,6 +167,11 @@ constexpr uint32b CorrelatedMultiJitteredEngine<kRootN>::makeWMask(
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] x No description.
+  \return No description
   */
 template <uint32b kRootN> template <typename Float> inline
 Float CorrelatedMultiJitteredEngine<kRootN>::mapTo01Float(const uint32b x) noexcept
@@ -145,10 +182,17 @@ Float CorrelatedMultiJitteredEngine<kRootN>::mapTo01Float(const uint32b x) noexc
 }
 
 /*!
+  \details No detailed description
+
+  \tparam l No description.
+  \param [in] i No description.
+  \param [in] p No description.
+  \return No description
   */
 template <uint32b kRootN> template <uint32b l> inline
-uint32b CorrelatedMultiJitteredEngine<kRootN>::permute(uint32b i,
-                                                      const uint32b p) noexcept
+uint32b CorrelatedMultiJitteredEngine<kRootN>::permute(
+    uint32b i,
+    const uint32b p) noexcept
 {
   constexpr bool is_power_of_2 = (1 < l) && Algorithm::isPowerOf2(l);
   constexpr uint32b w = makeWMask(l - 1);
@@ -168,10 +212,17 @@ uint32b CorrelatedMultiJitteredEngine<kRootN>::permute(uint32b i,
 }
 
 /*!
+  \details No detailed description
+
+  \tparam w No description.
+  \param [in] i No description.
+  \param [in] p No description.
+  \return No description
   */
 template <uint32b kRootN> template <uint32b w> inline
-uint32b CorrelatedMultiJitteredEngine<kRootN>::permuteImpl(uint32b i,
-                                                          const uint32b p) noexcept
+uint32b CorrelatedMultiJitteredEngine<kRootN>::permuteImpl(
+    uint32b i,
+    const uint32b p) noexcept
 {
   i ^= p;
   i *= 0xe170893d;

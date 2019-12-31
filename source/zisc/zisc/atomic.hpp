@@ -1,7 +1,12 @@
 /*!
   \file atomic.hpp
   \author Sho Ikeda
+  \brief No brief description
 
+  \details
+  No detailed description.
+
+  \copyright
   Copyright (c) 2015-2020 Sho Ikeda
   This software is released under the MIT License.
   http://opensource.org/licenses/mit-license.php
@@ -20,6 +25,8 @@ namespace zisc {
 
 /*!
   \brief Atomic functions
+
+  No detailed description.
   */
 class Atomic
 {
@@ -85,6 +92,7 @@ class Atomic
                          Types&&... arguments) noexcept;
 
  private:
+  //! Integer type for Windows atomic functions
   template <std::size_t size>
   using InterlockedType = std::conditional_t<size == 1, char,
                           std::conditional_t<size == 2, short,

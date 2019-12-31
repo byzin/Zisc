@@ -1,7 +1,12 @@
 /*!
   \file floating_point-inl.hpp
   \author Sho Ikeda
+  \brief No brief description
 
+  \details
+  No detailed description.
+
+  \copyright
   Copyright (c) 2015-2020 Sho Ikeda
   This software is released under the MIT License.
   http://opensource.org/licenses/mit-license.php
@@ -25,6 +30,7 @@
 namespace zisc {
 
 /*!
+  \details No detailed description
   */
 template <FloatingPointFormat kFormat> inline
 constexpr FloatingPoint<kFormat>::FloatingPoint() noexcept :
@@ -35,6 +41,9 @@ constexpr FloatingPoint<kFormat>::FloatingPoint() noexcept :
 }
 
 /*!
+  \details No detailed description
+
+  \param [in] data No description.
   */
 template <FloatingPointFormat kFormat> inline
 constexpr FloatingPoint<kFormat>::FloatingPoint(const BitType data) noexcept :
@@ -44,6 +53,10 @@ constexpr FloatingPoint<kFormat>::FloatingPoint(const BitType data) noexcept :
 }
 
 /*!
+  \details No detailed description
+
+  \tparam kSrcFormat No description.
+  \param [in] other No description.
   */
 template <FloatingPointFormat kFormat> template <FloatingPointFormat kSrcFormat>
 inline
@@ -55,15 +68,24 @@ constexpr FloatingPoint<kFormat>::FloatingPoint(
 }
 
 /*!
+  \details No detailed description
+
+  \return No description
   */
 template <FloatingPointFormat kFormat> inline
-constexpr auto FloatingPoint<kFormat>::operator-() const noexcept -> FloatingPoint
+constexpr auto FloatingPoint<kFormat>::operator-() const noexcept
+    -> FloatingPoint
 {
   const BitType v = bits() ^ signBitMask();
   return FloatingPoint{v};
 }
 
 /*!
+  \details No detailed description
+
+  \tparam kSrcFormat No description.
+  \param [in] other No description.
+  \return No description
   */
 template <FloatingPointFormat kFormat> template <FloatingPointFormat kSrcFormat>
 inline
@@ -75,6 +97,10 @@ constexpr auto FloatingPoint<kFormat>::operator=(
 }
 
 /*!
+  \details No detailed description
+
+  \param [in] other No description.
+  \return No description
   */
 template <FloatingPointFormat kFormat> inline
 constexpr auto FloatingPoint<kFormat>::operator+=(
@@ -85,6 +111,10 @@ constexpr auto FloatingPoint<kFormat>::operator+=(
 }
 
 /*!
+  \details No detailed description
+
+  \param [in] other No description.
+  \return No description
   */
 template <FloatingPointFormat kFormat> inline
 constexpr auto FloatingPoint<kFormat>::operator-=(
@@ -95,6 +125,10 @@ constexpr auto FloatingPoint<kFormat>::operator-=(
 }
 
 /*!
+  \details No detailed description
+
+  \param [in] other No description.
+  \return No description
   */
 template <FloatingPointFormat kFormat> inline
 constexpr auto FloatingPoint<kFormat>::operator*=(
@@ -105,6 +139,10 @@ constexpr auto FloatingPoint<kFormat>::operator*=(
 }
 
 /*!
+  \details No detailed description
+
+  \param [in] other No description.
+  \return No description
   */
 template <FloatingPointFormat kFormat> inline
 constexpr auto FloatingPoint<kFormat>::operator/=(
@@ -114,7 +152,10 @@ constexpr auto FloatingPoint<kFormat>::operator/=(
   return *this;
 }
 
-/*!
+/*
+  \details No detailed description
+
+  \return No description
   */
 template <FloatingPointFormat kFormat> inline
 constexpr auto FloatingPoint<kFormat>::operator++() noexcept -> FloatingPoint&
@@ -123,7 +164,10 @@ constexpr auto FloatingPoint<kFormat>::operator++() noexcept -> FloatingPoint&
   return *this;
 }
 
-/*!
+/*
+  \details No detailed description
+
+  \return No description
   */
 template <FloatingPointFormat kFormat> inline
 constexpr auto FloatingPoint<kFormat>::operator--() noexcept -> FloatingPoint&
@@ -132,7 +176,10 @@ constexpr auto FloatingPoint<kFormat>::operator--() noexcept -> FloatingPoint&
   return *this;
 }
 
-/*!
+/*
+  \details No detailed description
+
+  \return No description
   */
 template <FloatingPointFormat kFormat> inline
 constexpr auto FloatingPoint<kFormat>::operator++(int) noexcept -> FloatingPoint
@@ -142,7 +189,10 @@ constexpr auto FloatingPoint<kFormat>::operator++(int) noexcept -> FloatingPoint
   return result;
 }
 
-/*!
+/*
+  \details No detailed description
+
+  \return No description
   */
 template <FloatingPointFormat kFormat> inline
 constexpr auto FloatingPoint<kFormat>::operator--(int) noexcept -> FloatingPoint
@@ -152,23 +202,35 @@ constexpr auto FloatingPoint<kFormat>::operator--(int) noexcept -> FloatingPoint
   return result;
 }
 
-/*!
+/*
+  \details No detailed description
+
+  \return No description
   */
 template <FloatingPointFormat kFormat> inline
 constexpr FloatingPoint<kFormat>::operator float() const noexcept
 {
-  return SingleFloat{*this}.toFloat();
+  const SingleFloat f{*this};
+  return f.toFloat();
 }
 
-/*!
+/*
+  \details No detailed description
+
+  \return No description
   */
 template <FloatingPointFormat kFormat> inline
 constexpr FloatingPoint<kFormat>::operator double() const noexcept
 {
-  return DoubleFloat{*this}.toFloat();
+  const DoubleFloat d{*this};
+  return d.toFloat();
 }
 
 /*!
+  \details No detailed description
+
+  \tparam kSrcFormat No description.
+  \param [in] other No description.
   */
 template <FloatingPointFormat kFormat> template <FloatingPointFormat kSrcFormat>
 inline
@@ -185,6 +247,9 @@ constexpr void FloatingPoint<kFormat>::assign(
 }
 
 /*!
+  \details No detailed description
+
+  \return No description
   */
 template <FloatingPointFormat kFormat> inline
 constexpr auto FloatingPoint<kFormat>::bits() const noexcept -> BitType
@@ -193,6 +258,10 @@ constexpr auto FloatingPoint<kFormat>::bits() const noexcept -> BitType
 }
 
 /*!
+  \details No detailed description
+
+  \tparam kDstFormat No description.
+  \return No description
   */
 template <FloatingPointFormat kFormat> template <FloatingPointFormat kDstFormat>
 inline
@@ -268,6 +337,9 @@ constexpr FloatingPoint<kDstFormat> FloatingPoint<kFormat>::downscaled()
 }
 
 /*!
+  \details No detailed description
+
+  \return No description
   */
 template <FloatingPointFormat kFormat> inline
 constexpr auto FloatingPoint<kFormat>::epsilon() noexcept -> FloatingPoint
@@ -280,6 +352,9 @@ constexpr auto FloatingPoint<kFormat>::epsilon() noexcept -> FloatingPoint
 }
 
 /*!
+  \details No detailed description
+
+  \return No description
   */
 template <FloatingPointFormat kFormat> inline
 constexpr std::size_t FloatingPoint<kFormat>::exponentBias() noexcept
@@ -289,6 +364,9 @@ constexpr std::size_t FloatingPoint<kFormat>::exponentBias() noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \return No description
   */
 template <FloatingPointFormat kFormat> inline
 constexpr auto FloatingPoint<kFormat>::exponentBitMask() noexcept -> BitType
@@ -302,6 +380,9 @@ constexpr auto FloatingPoint<kFormat>::exponentBitMask() noexcept -> BitType
 }
 
 /*!
+  \details No detailed description
+
+  \return No description
   */
 template <FloatingPointFormat kFormat> inline
 constexpr std::size_t FloatingPoint<kFormat>::exponentBitSize() noexcept
@@ -312,6 +393,10 @@ constexpr std::size_t FloatingPoint<kFormat>::exponentBitSize() noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \param [in] value No description.
+  \return No description
   */
 template <FloatingPointFormat kFormat> inline
 constexpr auto FloatingPoint<kFormat>::fromFloat(const FloatType value) noexcept
@@ -321,6 +406,9 @@ constexpr auto FloatingPoint<kFormat>::fromFloat(const FloatType value) noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \return No description
   */
 template <FloatingPointFormat kFormat> inline
 constexpr auto FloatingPoint<kFormat>::implicitBit() noexcept -> BitType
@@ -329,6 +417,9 @@ constexpr auto FloatingPoint<kFormat>::implicitBit() noexcept -> BitType
 }
 
 /*!
+  \details No detailed description
+
+  \return No description
   */
 template <FloatingPointFormat kFormat> inline
 constexpr auto FloatingPoint<kFormat>::infinity() noexcept -> FloatingPoint
@@ -337,6 +428,9 @@ constexpr auto FloatingPoint<kFormat>::infinity() noexcept -> FloatingPoint
 }
 
 /*!
+  \details No detailed description
+
+  \return No description
   */
 template <FloatingPointFormat kFormat> inline
 constexpr bool FloatingPoint<kFormat>::isFinite() const noexcept
@@ -346,6 +440,9 @@ constexpr bool FloatingPoint<kFormat>::isFinite() const noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \return No description
   */
 template <FloatingPointFormat kFormat> inline
 constexpr bool FloatingPoint<kFormat>::isInf() const noexcept
@@ -357,6 +454,9 @@ constexpr bool FloatingPoint<kFormat>::isInf() const noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \return No description
   */
 template <FloatingPointFormat kFormat> inline
 constexpr bool FloatingPoint<kFormat>::isNan() const noexcept
@@ -368,6 +468,9 @@ constexpr bool FloatingPoint<kFormat>::isNan() const noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \return No description
   */
 template <FloatingPointFormat kFormat> inline
 constexpr bool FloatingPoint<kFormat>::isNormal() const noexcept
@@ -378,6 +481,9 @@ constexpr bool FloatingPoint<kFormat>::isNormal() const noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \return No description
   */
 template <FloatingPointFormat kFormat> inline
 constexpr bool FloatingPoint<kFormat>::isSubnormal() const noexcept
@@ -389,6 +495,9 @@ constexpr bool FloatingPoint<kFormat>::isSubnormal() const noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \return No description
   */
 template <FloatingPointFormat kFormat> inline
 constexpr bool FloatingPoint<kFormat>::isZero() const noexcept
@@ -399,16 +508,27 @@ constexpr bool FloatingPoint<kFormat>::isZero() const noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \param [in] value No description.
+  \return No description
   */
 template <FloatingPointFormat kFormat> inline
 constexpr auto FloatingPoint<kFormat>::makeBits(const FloatType value) noexcept
     -> BitType
 {
   const auto exp_bit = makeExponentBits(value);
-  return makeSignBit(value) | exp_bit | makeSignificandBits(value, exp_bit);
+  const auto result =  makeSignBit(value) |
+                       exp_bit |
+                       makeSignificandBits(value, exp_bit);
+  return result;
 }
 
 /*!
+  \details No detailed description
+
+  \param [in] value No description.
+  \return No description
   */
 template <FloatingPointFormat kFormat> inline
 constexpr auto FloatingPoint<kFormat>::makeExponentBits(const FloatType value)
@@ -435,6 +555,10 @@ constexpr auto FloatingPoint<kFormat>::makeExponentBits(const FloatType value)
 }
 
 /*!
+  \details No detailed description
+
+  \param [in] data No description.
+  \return No description
   */
 template <FloatingPointFormat kFormat> inline
 constexpr auto FloatingPoint<kFormat>::makeFloat(const BitType data) noexcept
@@ -469,16 +593,25 @@ constexpr auto FloatingPoint<kFormat>::makeFloat(const BitType data) noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \param [in] value No description.
+  \return No description
   */
 template <FloatingPointFormat kFormat> inline
 constexpr auto FloatingPoint<kFormat>::makeSignificandBits(const FloatType value)
     noexcept -> BitType
 {
   const auto exp_bit = makeExponentBits(value);
-  return makeSignificandBits(value, exp_bit);
+  const auto result = makeSignificandBits(value, exp_bit);
+  return result;
 }
 
 /*!
+  \details No detailed description
+
+  \param [in] value No description.
+  \return No description
   */
 template <FloatingPointFormat kFormat> inline
 constexpr auto FloatingPoint<kFormat>::makeSignBit(const FloatType value)
@@ -489,9 +622,12 @@ constexpr auto FloatingPoint<kFormat>::makeSignBit(const FloatType value)
 }
 
 /*!
-  \details
-  Please see "Generating uniform doubles in the unit interval"
-  on 'http://xoroshiro.di.unimi.it/' for the details
+  \details For more detail, please see the following link:
+  <a href="http://xoroshiro.di.unimi.it/">Generating uniform doubles in the unit interval</a>.
+
+  \tparam UInt No description.
+  \param [in] x No description.
+  \return No description
   */
 template <FloatingPointFormat kFormat> template <typename UInt> inline
 constexpr auto FloatingPoint<kFormat>::mapTo01(const UInt x) noexcept
@@ -506,6 +642,9 @@ constexpr auto FloatingPoint<kFormat>::mapTo01(const UInt x) noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \return No description
   */
 template <FloatingPointFormat kFormat> inline
 constexpr auto FloatingPoint<kFormat>::max() noexcept -> FloatingPoint
@@ -516,6 +655,9 @@ constexpr auto FloatingPoint<kFormat>::max() noexcept -> FloatingPoint
 }
 
 /*!
+  \details No detailed description
+
+  \return No description
   */
 template <FloatingPointFormat kFormat> inline
 constexpr auto FloatingPoint<kFormat>::min() noexcept -> FloatingPoint
@@ -525,6 +667,9 @@ constexpr auto FloatingPoint<kFormat>::min() noexcept -> FloatingPoint
 }
 
 /*!
+  \details No detailed description
+
+  \return No description
   */
 template <FloatingPointFormat kFormat> inline
 constexpr auto FloatingPoint<kFormat>::one() noexcept -> FloatingPoint
@@ -534,6 +679,9 @@ constexpr auto FloatingPoint<kFormat>::one() noexcept -> FloatingPoint
 }
 
 /*!
+  \details No detailed description
+
+  \return No description
   */
 template <FloatingPointFormat kFormat> inline
 constexpr auto FloatingPoint<kFormat>::quietNan() noexcept -> FloatingPoint
@@ -544,6 +692,11 @@ constexpr auto FloatingPoint<kFormat>::quietNan() noexcept -> FloatingPoint
 }
 
 /*!
+  \details No detailed description
+
+  \param [in] bit No description.
+  \param [in] truncated_bit No description.
+  \return No description
   */
 template <FloatingPointFormat kFormat> inline
 constexpr auto FloatingPoint<kFormat>::round(
@@ -557,6 +710,9 @@ constexpr auto FloatingPoint<kFormat>::round(
 }
 
 /*!
+  \details No detailed description
+
+  \return No description
   */
 template <FloatingPointFormat kFormat> inline
 constexpr auto FloatingPoint<kFormat>::roundError() noexcept -> FloatingPoint
@@ -568,6 +724,9 @@ constexpr auto FloatingPoint<kFormat>::roundError() noexcept -> FloatingPoint
 }
 
 /*!
+  \details No detailed description
+
+  \return No description
   */
 template <FloatingPointFormat kFormat> inline
 constexpr auto FloatingPoint<kFormat>::signalingNan() noexcept -> FloatingPoint
@@ -578,6 +737,9 @@ constexpr auto FloatingPoint<kFormat>::signalingNan() noexcept -> FloatingPoint
 }
 
 /*!
+  \details No detailed description
+
+  \return No description
   */
 template <FloatingPointFormat kFormat> inline
 constexpr auto FloatingPoint<kFormat>::signBitMask() noexcept -> BitType
@@ -587,6 +749,9 @@ constexpr auto FloatingPoint<kFormat>::signBitMask() noexcept -> BitType
 }
 
 /*!
+  \details No detailed description
+
+  \return No description
   */
 template <FloatingPointFormat kFormat> inline
 constexpr auto FloatingPoint<kFormat>::significandBitMask() noexcept -> BitType
@@ -600,6 +765,9 @@ constexpr auto FloatingPoint<kFormat>::significandBitMask() noexcept -> BitType
 }
 
 /*!
+  \details No detailed description
+
+  \return No description
   */
 template <FloatingPointFormat kFormat> inline
 constexpr std::size_t FloatingPoint<kFormat>::significandBitSize() noexcept
@@ -610,6 +778,9 @@ constexpr std::size_t FloatingPoint<kFormat>::significandBitSize() noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \param [in] value No description.
   */
 template <FloatingPointFormat kFormat> inline
 constexpr void FloatingPoint<kFormat>::setFloat(const FloatType value) noexcept
@@ -618,6 +789,9 @@ constexpr void FloatingPoint<kFormat>::setFloat(const FloatType value) noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \param [in] data No description.
   */
 template <FloatingPointFormat kFormat> inline
 constexpr void FloatingPoint<kFormat>::set(const BitType data) noexcept
@@ -626,6 +800,9 @@ constexpr void FloatingPoint<kFormat>::set(const BitType data) noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \return No description
   */
 template <FloatingPointFormat kFormat> inline
 constexpr auto FloatingPoint<kFormat>::toFloat() const noexcept -> FloatType
@@ -634,6 +811,10 @@ constexpr auto FloatingPoint<kFormat>::toFloat() const noexcept -> FloatType
 }
 
 /*!
+  \details No detailed description
+
+  \tparam kDstFormat No description.
+  \return No description
   */
 template <FloatingPointFormat kFormat> template <FloatingPointFormat kDstFormat>
 inline
@@ -690,6 +871,9 @@ constexpr FloatingPoint<kDstFormat> FloatingPoint<kFormat>::upscaled()
 }
 
 /*!
+  \details No detailed description
+
+  \return No description
   */
 template <FloatingPointFormat kFormat> inline
 constexpr auto FloatingPoint<kFormat>::zero() noexcept -> FloatingPoint
@@ -698,6 +882,11 @@ constexpr auto FloatingPoint<kFormat>::zero() noexcept -> FloatingPoint
 }
 
 /*!
+  \details No detailed description
+
+  \tparam UInt No description.
+  \param [in] x No description.
+  \return No description
   */
 template <FloatingPointFormat kFormat> template <typename UInt> inline
 constexpr auto FloatingPoint<kFormat>::expandToBitSize(const UInt x) noexcept
@@ -720,6 +909,10 @@ constexpr auto FloatingPoint<kFormat>::expandToBitSize(const UInt x) noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \param [in] exponent No description.
+  \return No description
   */
 template <FloatingPointFormat kFormat> inline
 constexpr auto FloatingPoint<kFormat>::getPowered(const int exponent)
@@ -739,6 +932,11 @@ constexpr auto FloatingPoint<kFormat>::getPowered(const int exponent)
 }
 
 /*!
+  \details No detailed description
+
+  \param [in] value No description.
+  \param [in] exp_bit No description.
+  \return No description
   */
 template <FloatingPointFormat kFormat> inline
 constexpr auto FloatingPoint<kFormat>::makeSignificandBits(const FloatType value,
@@ -762,6 +960,12 @@ constexpr auto FloatingPoint<kFormat>::makeSignificandBits(const FloatType value
 }
 
 /*!
+  \details No detailed description
+
+  \tparam kFormat No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
   */
 template <FloatingPointFormat kFormat> inline
 constexpr FloatingPoint<kFormat> operator+(
@@ -780,6 +984,12 @@ constexpr FloatingPoint<kFormat> operator+(
 }
 
 /*!
+  \details No detailed description
+
+  \tparam kFormat No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
   */
 template <FloatingPointFormat kFormat> inline
 constexpr FloatingPoint<kFormat> operator-(
@@ -798,6 +1008,12 @@ constexpr FloatingPoint<kFormat> operator-(
 }
 
 /*!
+  \details No detailed description
+
+  \tparam kFormat No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
   */
 template <FloatingPointFormat kFormat> inline
 constexpr FloatingPoint<kFormat> operator*(
@@ -816,6 +1032,12 @@ constexpr FloatingPoint<kFormat> operator*(
 }
 
 /*!
+  \details No detailed description
+
+  \tparam kFormat No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
   */
 template <FloatingPointFormat kFormat> inline
 constexpr FloatingPoint<kFormat> operator/(
@@ -834,6 +1056,12 @@ constexpr FloatingPoint<kFormat> operator/(
 }
 
 /*!
+  \details No detailed description
+
+  \tparam kFormat No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
   */
 template <FloatingPointFormat kFormat> inline
 constexpr bool operator==(const FloatingPoint<kFormat>& lhs,
@@ -843,6 +1071,12 @@ constexpr bool operator==(const FloatingPoint<kFormat>& lhs,
 }
 
 /*!
+  \details No detailed description
+
+  \tparam kFormat No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
   */
 template <FloatingPointFormat kFormat> inline
 constexpr bool operator!=(const FloatingPoint<kFormat>& lhs,
@@ -852,6 +1086,12 @@ constexpr bool operator!=(const FloatingPoint<kFormat>& lhs,
 }
 
 /*!
+  \details No detailed description
+
+  \tparam kFormat No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
   */
 template <FloatingPointFormat kFormat> inline
 constexpr bool operator<(const FloatingPoint<kFormat>& lhs,
@@ -871,6 +1111,12 @@ constexpr bool operator<(const FloatingPoint<kFormat>& lhs,
 }
 
 /*!
+  \details No detailed description
+
+  \tparam kFormat No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
   */
 template <FloatingPointFormat kFormat> inline
 constexpr bool operator<=(const FloatingPoint<kFormat>& lhs,
@@ -880,6 +1126,12 @@ constexpr bool operator<=(const FloatingPoint<kFormat>& lhs,
 }
 
 /*!
+  \details No detailed description
+
+  \tparam kFormat No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
   */
 template <FloatingPointFormat kFormat> inline
 constexpr bool operator>(const FloatingPoint<kFormat>& lhs,
@@ -889,6 +1141,12 @@ constexpr bool operator>(const FloatingPoint<kFormat>& lhs,
 }
 
 /*!
+  \details No detailed description
+
+  \tparam kFormat No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
   */
 template <FloatingPointFormat kFormat> inline
 constexpr bool operator>=(const FloatingPoint<kFormat>& lhs,
@@ -898,6 +1156,11 @@ constexpr bool operator>=(const FloatingPoint<kFormat>& lhs,
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] x No description.
+  \return No description
   */
 template <typename Float> inline
 constexpr bool isFinite(const Float& x) noexcept
@@ -913,6 +1176,11 @@ constexpr bool isFinite(const Float& x) noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] x No description.
+  \return No description
   */
 template <typename Float> inline
 constexpr bool isInf(const Float& x) noexcept
@@ -929,6 +1197,11 @@ constexpr bool isInf(const Float& x) noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] x No description.
+  \return No description
   */
 template <typename Float> inline
 constexpr bool isNan(const Float& x) noexcept
@@ -944,6 +1217,11 @@ constexpr bool isNan(const Float& x) noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] x No description.
+  \return No description
   */
 template <typename Float> inline
 constexpr bool isNormal(const Float& x) noexcept
@@ -961,6 +1239,11 @@ constexpr bool isNormal(const Float& x) noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] x No description.
+  \return No description
   */
 template <typename Float> inline
 constexpr bool isSubnormal(const Float& x) noexcept
@@ -978,6 +1261,11 @@ constexpr bool isSubnormal(const Float& x) noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] x No description.
+  \return No description
   */
 template <typename Float> inline
 constexpr bool isZero(const Float& x) noexcept

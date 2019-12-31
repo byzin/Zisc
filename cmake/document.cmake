@@ -15,6 +15,7 @@ function(addDoxygenDoc target destination)
                      HTML_EXTRA_STYLESHEET
                      HTML_EXTRA_FILES)
   set(multi_value_args SOURCE_FILEDIRS
+                       COMPILER_DEFINITIONS
                        EXCLUDE_FILEDIRS
                        EXAMPLE_FILEDIRS)
   cmake_parse_arguments(PARSE_ARGV 2 ZDOXYGEN "${options}" "${one_value_args}" "${multi_value_args}")
@@ -59,6 +60,7 @@ function(addDoxygenDoc target destination)
   if(ZDOXYGEN_HTML_EXTRA_FILES)
     set(DOXYGEN_HTML_EXTRA_FILES ${ZDOXYGEN_HTML_EXTRA_FILES})
   endif()
+  set(DOXYGEN_PREDEFINED ${ZDOXYGEN_COMPILER_DEFINITIONS})
   doxygen_add_docs(${target}
     ${ZDOXYGEN_SOURCE_FILEDIRS}
     WORKING_DIRECTORY ${destination} 

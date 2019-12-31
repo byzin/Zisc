@@ -43,12 +43,11 @@ template <typename X, typename Pdf> inline
 CumulativeDistributionFunction<X, Pdf>::CumulativeDistributionFunction(
     const std::vector<XType>& x_list,
     const std::vector<PdfType>& y_list,
-    std::pmr::memory_resource* mem_resource,
-    std::pmr::memory_resource* work_resource) noexcept :
+    std::pmr::memory_resource* mem_resource) noexcept :
         x_list_{std::pmr::polymorphic_allocator<XType>{mem_resource}},
         y_list_{std::pmr::polymorphic_allocator<PdfType>{mem_resource}}
 {
-  set(x_list, y_list, work_resource);
+  set(x_list, y_list);
 }
 
 /*!
@@ -57,12 +56,11 @@ template <typename X, typename Pdf> inline
 CumulativeDistributionFunction<X, Pdf>::CumulativeDistributionFunction(
     const pmr::vector<XType>& x_list,
     const pmr::vector<PdfType>& y_list,
-    std::pmr::memory_resource* mem_resource,
-    std::pmr::memory_resource* work_resource) noexcept :
+    std::pmr::memory_resource* mem_resource) noexcept :
         x_list_{x_list, mem_resource},
         y_list_{y_list, mem_resource}
 {
-  initCdf(work_resource);
+  initCdf();
 }
 
 /*!
@@ -70,12 +68,11 @@ CumulativeDistributionFunction<X, Pdf>::CumulativeDistributionFunction(
 template <typename X, typename Pdf> inline
 CumulativeDistributionFunction<X, Pdf>::CumulativeDistributionFunction(
     pmr::vector<XType>&& x_list,
-    pmr::vector<PdfType>&& y_list,
-    std::pmr::memory_resource* work_resource) noexcept :
+    pmr::vector<PdfType>&& y_list) noexcept :
         x_list_{std::move(x_list)},
         y_list_{std::move(y_list)}
 {
-  initCdf(work_resource);
+  initCdf();
 }
 
 /*!
@@ -131,8 +128,7 @@ std::size_t CumulativeDistributionFunction<X, Pdf>::size() const noexcept
 template <typename X, typename Pdf> inline
 void CumulativeDistributionFunction<X, Pdf>::set(
     const std::vector<XType>& x_list,
-    const std::vector<PdfType>& y_list,
-    std::pmr::memory_resource* work_resource) noexcept
+    const std::vector<PdfType>& y_list) noexcept
 {
   ZISC_ASSERT(x_list.size() == y_list.size(),
               "The x and y lists aren't same length.");
@@ -145,7 +141,7 @@ void CumulativeDistributionFunction<X, Pdf>::set(
     y_list_[index] = y_list[index];
   }
 
-  initCdf(work_resource);
+  initCdf();
 }
 
 /*!
@@ -153,8 +149,7 @@ void CumulativeDistributionFunction<X, Pdf>::set(
 template <typename X, typename Pdf> inline
 void CumulativeDistributionFunction<X, Pdf>::set(
     const pmr::vector<XType>& x_list,
-    const pmr::vector<PdfType>& y_list,
-    std::pmr::memory_resource* work_resource) noexcept
+    const pmr::vector<PdfType>& y_list) noexcept
 {
   ZISC_ASSERT(x_list.size() == y_list.size(),
               "The x and y lists aren't same length.");
@@ -162,7 +157,7 @@ void CumulativeDistributionFunction<X, Pdf>::set(
   x_list_ = x_list;
   y_list_ = y_list;
 
-  initCdf(work_resource);
+  initCdf();
 }
 
 /*!
@@ -170,8 +165,7 @@ void CumulativeDistributionFunction<X, Pdf>::set(
 template <typename X, typename Pdf> inline
 void CumulativeDistributionFunction<X, Pdf>::set(
     pmr::vector<XType>&& x_list,
-    pmr::vector<PdfType>&& y_list,
-    std::pmr::memory_resource* work_resource) noexcept
+    pmr::vector<PdfType>&& y_list) noexcept
 {
   ZISC_ASSERT(x_list.size() == y_list.size(),
               "The x and y lists aren't same length.");
@@ -179,7 +173,7 @@ void CumulativeDistributionFunction<X, Pdf>::set(
   x_list_ = std::move(x_list);
   y_list_ = std::move(y_list);
 
-  initCdf(work_resource);
+  initCdf();
 }
 
 /*!
@@ -221,8 +215,7 @@ auto CumulativeDistributionFunction<X, Pdf>::yList() const noexcept
 /*!
   */
 template <typename X, typename Pdf> inline
-void CumulativeDistributionFunction<X, Pdf>::initCdf(
-    std::pmr::memory_resource* work_resource) noexcept
+void CumulativeDistributionFunction<X, Pdf>::initCdf() noexcept
 {
   ZISC_ASSERT(x_list_.size() == y_list_.size(),
               "The xlist and ylist aren't same length.");
@@ -241,8 +234,8 @@ void CumulativeDistributionFunction<X, Pdf>::initCdf(
       "The sum of the pdf list isn't 1.");
 
   // Make CDF arrays
-  Algorithm::toBinaryTree(x_list_.begin(), x_list_.end(), work_resource);
-  Algorithm::toBinaryTree(y_list_.begin(), y_list_.end(), work_resource);
+  Algorithm::toBinaryTree(x_list_.begin(), x_list_.end());
+  Algorithm::toBinaryTree(y_list_.begin(), y_list_.end());
 }
 
 } // namespace zisc

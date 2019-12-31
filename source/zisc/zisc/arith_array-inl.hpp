@@ -1,10 +1,13 @@
 /*!
   \file arith_array-inl.hpp
   \author Sho Ikeda
+  \brief No brief description
 
-  Copyright (c) 2015-2020 Sho Ikeda
-  This software is released under the MIT License.
-  http://opensource.org/licenses/mit-license.php
+  \details
+  No detailed description.
+
+  \copyright
+  No copyright
   */
 
 #ifndef ZISC_ARITH_ARRAY_INL_HPP
@@ -27,31 +30,31 @@
 namespace zisc {
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
   */
 template <typename Arith, uint kN> inline
-constexpr ArithArray<Arith, kN>::ArithArray() noexcept :
-    data_{}
+constexpr ArithArray<Arith, kN>::ArithArray() noexcept : data_{}
 {
   constexpr auto value = cast<Arith>(0);
   fill(value);
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \param [in] value_list No description.
   */
 template <typename Arith, uint kN> inline
-constexpr ArithArray<Arith, kN>::ArithArray(std::initializer_list<Arith> init_list)
-    noexcept :
-        data_{makeArray(init_list, std::make_index_sequence<kN>())}
+constexpr ArithArray<Arith, kN>::ArithArray(
+    const std::initializer_list<Arith> value_list) noexcept :
+        data_{makeArray(value_list, std::make_index_sequence<kN>())}
 {
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \param [in] other No description.
   */
 template <typename Arith, uint kN> inline
 constexpr ArithArray<Arith, kN>::ArithArray(const ArrayType& other) noexcept :
@@ -60,8 +63,9 @@ constexpr ArithArray<Arith, kN>::ArithArray(const ArrayType& other) noexcept :
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \param [in] other No description.
   */
 template <typename Arith, uint kN> inline
 constexpr ArithArray<Arith, kN>::ArithArray(ArrayType&& other) noexcept :
@@ -70,8 +74,9 @@ constexpr ArithArray<Arith, kN>::ArithArray(ArrayType&& other) noexcept :
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \return No description
   */
 template <typename Arith, uint kN> inline
 constexpr auto ArithArray<Arith, kN>::begin() noexcept -> iterator
@@ -80,8 +85,9 @@ constexpr auto ArithArray<Arith, kN>::begin() noexcept -> iterator
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \return No description
   */
 template <typename Arith, uint kN> inline
 constexpr auto ArithArray<Arith, kN>::begin() const noexcept -> const_iterator
@@ -90,8 +96,9 @@ constexpr auto ArithArray<Arith, kN>::begin() const noexcept -> const_iterator
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \return No description
   */
 template <typename Arith, uint kN> inline
 constexpr auto ArithArray<Arith, kN>::cbegin() const noexcept -> const_iterator
@@ -100,8 +107,9 @@ constexpr auto ArithArray<Arith, kN>::cbegin() const noexcept -> const_iterator
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \return No description
   */
 template <typename Arith, uint kN> inline
 constexpr auto ArithArray<Arith, kN>::end() noexcept -> iterator
@@ -110,8 +118,9 @@ constexpr auto ArithArray<Arith, kN>::end() noexcept -> iterator
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \return No description
   */
 template <typename Arith, uint kN> inline
 constexpr auto ArithArray<Arith, kN>::end() const noexcept -> const_iterator
@@ -120,8 +129,9 @@ constexpr auto ArithArray<Arith, kN>::end() const noexcept -> const_iterator
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \return No description
   */
 template <typename Arith, uint kN> inline
 constexpr auto ArithArray<Arith, kN>::cend() const noexcept -> const_iterator
@@ -130,8 +140,9 @@ constexpr auto ArithArray<Arith, kN>::cend() const noexcept -> const_iterator
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \return No description
   */
 template <typename Arith, uint kN> inline
 constexpr auto ArithArray<Arith, kN>::operator+=(const ArithArray& other) noexcept
@@ -142,8 +153,10 @@ constexpr auto ArithArray<Arith, kN>::operator+=(const ArithArray& other) noexce
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \param [in] other No description.
+  \return No description
   */
 template <typename Arith, uint kN> inline
 constexpr auto ArithArray<Arith, kN>::operator-=(const ArithArray& other) noexcept
@@ -154,8 +167,10 @@ constexpr auto ArithArray<Arith, kN>::operator-=(const ArithArray& other) noexce
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \param [in] scalar No description.
+  \return No description
   */
 template <typename Arith, uint kN> inline
 constexpr auto ArithArray<Arith, kN>::operator*=(const Arith scalar) noexcept
@@ -166,8 +181,10 @@ constexpr auto ArithArray<Arith, kN>::operator*=(const Arith scalar) noexcept
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \param [in] other No description.
+  \return No description
   */
 template <typename Arith, uint kN> inline
 constexpr auto ArithArray<Arith, kN>::operator*=(const ArithArray& other) noexcept
@@ -178,8 +195,10 @@ constexpr auto ArithArray<Arith, kN>::operator*=(const ArithArray& other) noexce
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \param [in] scalar No description.
+  \return No description
   */
 template <typename Arith, uint kN> inline
 constexpr auto ArithArray<Arith, kN>::operator/=(const Arith scalar) noexcept
@@ -190,8 +209,10 @@ constexpr auto ArithArray<Arith, kN>::operator/=(const Arith scalar) noexcept
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \param [in] other No description.
+  \return No description
   */
 template <typename Arith, uint kN> inline
 constexpr auto ArithArray<Arith, kN>::operator/=(const ArithArray& other) noexcept
@@ -202,8 +223,10 @@ constexpr auto ArithArray<Arith, kN>::operator/=(const ArithArray& other) noexce
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \param [in] index No description.
+  \return No description
   */
 template <typename Arith, uint kN> inline
 constexpr auto ArithArray<Arith, kN>::operator[](const uint index) noexcept
@@ -213,8 +236,10 @@ constexpr auto ArithArray<Arith, kN>::operator[](const uint index) noexcept
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \param [in] index No description.
+  \return No description
   */
 template <typename Arith, uint kN> inline
 constexpr auto ArithArray<Arith, kN>::operator[](const uint index) const noexcept
@@ -224,20 +249,23 @@ constexpr auto ArithArray<Arith, kN>::operator[](const uint index) const noexcep
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \param [in] lower No description.
+  \param [in] upper No description.
   */
 template <typename Arith, uint kN> inline
-constexpr void ArithArray<Arith, kN>::clampAll(const Arith min_value,
-                                               const Arith max_value) noexcept
+constexpr void ArithArray<Arith, kN>::clampAll(const Arith lower,
+                                               const Arith upper) noexcept
 {
   for (auto& element : *this)
-    element = zisc::clamp(element, min_value, max_value);
+    element = zisc::clamp(element, lower, upper);
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \param [in] value No description.
   */
 template <typename Arith, uint kN> inline
 constexpr void ArithArray<Arith, kN>::fill(const Arith& value) noexcept
@@ -247,6 +275,10 @@ constexpr void ArithArray<Arith, kN>::fill(const Arith& value) noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \param [in] index No description.
+  \return No description
   */
 template <typename Arith, uint kN> inline
 constexpr auto ArithArray<Arith, kN>::get(const uint index) noexcept
@@ -256,6 +288,10 @@ constexpr auto ArithArray<Arith, kN>::get(const uint index) noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \param [in] index No description.
+  \return No description
   */
 template <typename Arith, uint kN> inline
 constexpr auto ArithArray<Arith, kN>::get(const uint index) const noexcept
@@ -265,6 +301,9 @@ constexpr auto ArithArray<Arith, kN>::get(const uint index) const noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \return No description
   */
 template <typename Arith, uint kN> inline
 constexpr bool ArithArray<Arith, kN>::hasInf() const noexcept
@@ -278,6 +317,9 @@ constexpr bool ArithArray<Arith, kN>::hasInf() const noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \return No description
   */
 template <typename Arith, uint kN> inline
 constexpr bool ArithArray<Arith, kN>::hasNan() const noexcept
@@ -291,6 +333,9 @@ constexpr bool ArithArray<Arith, kN>::hasNan() const noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \return No description
   */
 template <typename Arith, uint kN> inline
 constexpr bool ArithArray<Arith, kN>::hasSubnormal() const noexcept
@@ -304,6 +349,10 @@ constexpr bool ArithArray<Arith, kN>::hasSubnormal() const noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \param [in] value No description.
+  \return No description
   */
 template <typename Arith, uint kN> inline
 constexpr bool ArithArray<Arith, kN>::hasValue(const Arith value) const noexcept
@@ -315,8 +364,11 @@ constexpr bool ArithArray<Arith, kN>::hasValue(const Arith value) const noexcept
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \param [in] lower No description.
+  \param [in] upper No description.
+  \return No description
   */
 template <typename Arith, uint kN> inline
 constexpr bool ArithArray<Arith, kN>::isAllInBounds(
@@ -330,8 +382,11 @@ constexpr bool ArithArray<Arith, kN>::isAllInBounds(
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \param [in] lower No description.
+  \param [in] upper No description.
+  \return No description
   */
 template <typename Arith, uint kN> inline
 constexpr bool ArithArray<Arith, kN>::isAllInClosedBounds(
@@ -345,8 +400,9 @@ constexpr bool ArithArray<Arith, kN>::isAllInClosedBounds(
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \return No description
   */
 template <typename Arith, uint kN> inline
 constexpr bool ArithArray<Arith, kN>::isAllZero() const noexcept
@@ -360,8 +416,9 @@ constexpr bool ArithArray<Arith, kN>::isAllZero() const noexcept
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \return No description
   */
 template <typename Arith, uint kN> inline
 constexpr Arith ArithArray<Arith, kN>::max() const noexcept
@@ -373,8 +430,9 @@ constexpr Arith ArithArray<Arith, kN>::max() const noexcept
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \return No description
   */
 template <typename Arith, uint kN> inline
 constexpr Arith ArithArray<Arith, kN>::min() const noexcept
@@ -386,8 +444,10 @@ constexpr Arith ArithArray<Arith, kN>::min() const noexcept
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \param [in] index No description.
+  \param [in] value No description.
   */
 template <typename Arith, uint kN> inline
 constexpr void ArithArray<Arith, kN>::set(const uint index,
@@ -397,17 +457,21 @@ constexpr void ArithArray<Arith, kN>::set(const uint index,
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \param [in] value_list No description.
   */
 template <typename Arith, uint kN> inline
-constexpr void ArithArray<Arith, kN>::set(std::initializer_list<Arith> init_list)
+constexpr void ArithArray<Arith, kN>::set(std::initializer_list<Arith> value_list)
     noexcept
 {
-  data_ = makeArray(init_list, std::make_index_sequence<kN>());
+  data_ = makeArray(value_list, std::make_index_sequence<kN>());
 }
 
 /*!
+  \details No detailed description
+
+  \return No description
   */
 template <typename Arith, uint kN> inline
 constexpr auto ArithArray<Arith, kN>::size() noexcept -> size_type
@@ -416,8 +480,9 @@ constexpr auto ArithArray<Arith, kN>::size() noexcept -> size_type
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \return No description
   */
 template <typename Arith, uint kN> inline
 constexpr Arith ArithArray<Arith, kN>::sum() const noexcept
@@ -435,18 +500,31 @@ constexpr Arith ArithArray<Arith, kN>::sum() const noexcept
     return sum;
   }
 }
+
+/*!
+  \details No detailed description
+
+  \tparam indices No description.
+  \param [in] value_list No description.
+  \return No description
+  */
 template <typename Arith, uint kN> template <std::size_t ...indices> inline
 constexpr auto ArithArray<Arith, kN>::makeArray(
-    std::initializer_list<Arith> init_list,
-    std::index_sequence<indices...>) noexcept -> ArrayType
+    const std::initializer_list<Arith> value_list,
+    const std::index_sequence<indices...>) noexcept -> ArrayType
 {
-  return ArrayType{{*(init_list.begin() + indices)...}};
+  static_assert(sizeof...(indices) == kN);
+  const ArrayType a{{*(value_list.begin() + indices)...}};
+  return a;
 }
 
 /*!
-  */
+  \details No detailed description
 
-/*!
+  \tparam Arith No description.
+  \tparam kN No description.
+  \param [in] array No description.
+  \return No description
   */
 template <typename Arith, uint kN> inline
 constexpr ArithArray<Arith, kN> operator-(const ArithArray<Arith, kN>& array) noexcept
@@ -458,6 +536,13 @@ constexpr ArithArray<Arith, kN> operator-(const ArithArray<Arith, kN>& array) no
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Arith No description.
+  \tparam kN No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
   */
 template <typename Arith, uint kN> inline
 constexpr ArithArray<Arith, kN> operator+(const ArithArray<Arith, kN>& lhs,
@@ -470,6 +555,13 @@ constexpr ArithArray<Arith, kN> operator+(const ArithArray<Arith, kN>& lhs,
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Arith No description.
+  \tparam kN No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
   */
 template <typename Arith, uint kN> inline
 constexpr ArithArray<Arith, kN> operator-(const ArithArray<Arith, kN>& lhs,
@@ -482,6 +574,13 @@ constexpr ArithArray<Arith, kN> operator-(const ArithArray<Arith, kN>& lhs,
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Arith No description.
+  \tparam kN No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
   */
 template <typename Arith, uint kN> inline
 constexpr ArithArray<Arith, kN> operator*(const ArithArray<Arith, kN>& lhs,
@@ -494,6 +593,13 @@ constexpr ArithArray<Arith, kN> operator*(const ArithArray<Arith, kN>& lhs,
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Arith No description.
+  \tparam kN No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
   */
 template <typename Arith, uint kN> inline
 constexpr ArithArray<Arith, kN> operator*(const Arith lhs,
@@ -506,6 +612,13 @@ constexpr ArithArray<Arith, kN> operator*(const Arith lhs,
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Arith No description.
+  \tparam kN No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
   */
 template <typename Arith, uint kN> inline
 constexpr ArithArray<Arith, kN> operator*(const ArithArray<Arith, kN>& lhs,
@@ -515,6 +628,13 @@ constexpr ArithArray<Arith, kN> operator*(const ArithArray<Arith, kN>& lhs,
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Arith No description.
+  \tparam kN No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
   */
 template <typename Arith, uint kN> inline
 constexpr ArithArray<Arith, kN> operator/(const ArithArray<Arith, kN>& lhs,
@@ -527,6 +647,13 @@ constexpr ArithArray<Arith, kN> operator/(const ArithArray<Arith, kN>& lhs,
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Arith No description.
+  \tparam kN No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
   */
 template <typename Arith, uint kN> inline
 constexpr ArithArray<Arith, kN> operator/(const Arith lhs,
@@ -539,6 +666,13 @@ constexpr ArithArray<Arith, kN> operator/(const Arith lhs,
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Arith No description.
+  \tparam kN No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
   */
 template <typename Arith, uint kN> inline
 constexpr ArithArray<Arith, kN> operator/(const ArithArray<Arith, kN>& lhs,
@@ -551,6 +685,13 @@ constexpr ArithArray<Arith, kN> operator/(const ArithArray<Arith, kN>& lhs,
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Arith No description.
+  \tparam kN No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
   */
 template <typename Arith, uint kN> inline
 constexpr bool operator==(const ArithArray<Arith, kN>& lhs,
@@ -563,6 +704,13 @@ constexpr bool operator==(const ArithArray<Arith, kN>& lhs,
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Arith No description.
+  \tparam kN No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
   */
 template <typename Arith, uint kN> inline
 constexpr bool operator!=(const ArithArray<Arith, kN>& lhs,
@@ -572,8 +720,13 @@ constexpr bool operator!=(const ArithArray<Arith, kN>& lhs,
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \tparam Arith No description.
+  \tparam kN No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
   */
 template <typename Arith, uint kN> inline
 constexpr Arith dot(const ArithArray<Arith, kN>& lhs,
@@ -586,8 +739,12 @@ constexpr Arith dot(const ArithArray<Arith, kN>& lhs,
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \tparam Arith No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
   */
 template <typename Arith> inline
 constexpr ArithArray<Arith, 3>  cross(const ArithArray<Arith, 3>& lhs,
@@ -599,8 +756,13 @@ constexpr ArithArray<Arith, 3>  cross(const ArithArray<Arith, 3>& lhs,
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \tparam Arith No description.
+  \tparam kN No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
   */
 template <typename Arith, uint kN> inline
 constexpr ArithArray<Arith, kN> maxElements(
@@ -614,8 +776,13 @@ constexpr ArithArray<Arith, kN> maxElements(
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \tparam Arith No description.
+  \tparam kN No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
   */
 template <typename Arith, uint kN> inline
 constexpr ArithArray<Arith, kN> minElements(
@@ -629,8 +796,12 @@ constexpr ArithArray<Arith, kN> minElements(
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \tparam Arith No description.
+  \tparam kN No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
   */
 template <typename Arith, uint kN> inline
 constexpr void minMaxElements(ArithArray<Arith, kN>& lhs,
@@ -643,6 +814,13 @@ constexpr void minMaxElements(ArithArray<Arith, kN>& lhs,
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Arith No description.
+  \tparam kN No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \param [in] index No description.
   */
 template <typename Arith, uint kN> inline
 constexpr void swapElement(const ArithArray<Arith, kN>& lhs,

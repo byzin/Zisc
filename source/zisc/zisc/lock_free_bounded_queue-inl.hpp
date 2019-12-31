@@ -1,7 +1,12 @@
 /*!
   \file lock_free_bounded_queue-inl.hpp
   \author Sho Ikeda
+  \brief No brief description
 
+  \details
+  No detailed description.
+
+  \copyright
   Copyright (c) 2015-2020 Sho Ikeda
   This software is released under the MIT License.
   http://opensource.org/licenses/mit-license.php
@@ -29,6 +34,9 @@
 namespace zisc {
 
 /*!
+  \details No detailed description
+
+  \param [in,out] mem_resource No description.
   */
 template <typename Type> inline
 LockFreeBoundedQueue<Type>::LockFreeBoundedQueue(
@@ -38,6 +46,10 @@ LockFreeBoundedQueue<Type>::LockFreeBoundedQueue(
 }
 
 /*!
+  \details No detailed description
+
+  \param [in] cap No description.
+  \param [in,out] mem_resource No description.
   */
 template <typename Type> inline
 LockFreeBoundedQueue<Type>::LockFreeBoundedQueue(
@@ -52,6 +64,9 @@ LockFreeBoundedQueue<Type>::LockFreeBoundedQueue(
 }
 
 /*!
+  \details No detailed description
+
+  \param [in] other No description.
   */
 template <typename Type> inline
 LockFreeBoundedQueue<Type>::LockFreeBoundedQueue(
@@ -64,6 +79,10 @@ LockFreeBoundedQueue<Type>::LockFreeBoundedQueue(
 }
 
 /*!
+  \details No detailed description
+
+  \param [in] other No description.
+  \return No description
   */
 template <typename Type> inline
 auto LockFreeBoundedQueue<Type>::operator=(LockFreeBoundedQueue&& other)
@@ -76,6 +95,9 @@ auto LockFreeBoundedQueue<Type>::operator=(LockFreeBoundedQueue&& other)
 }
 
 /*!
+  \details No detailed description
+
+  \return No description
   */
 template <typename Type> inline
 std::size_t LockFreeBoundedQueue<Type>::capacity() const noexcept
@@ -87,6 +109,9 @@ std::size_t LockFreeBoundedQueue<Type>::capacity() const noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \return No description
   */
 template <typename Type> inline
 constexpr std::size_t LockFreeBoundedQueue<Type>::capacityMax() noexcept
@@ -97,6 +122,7 @@ constexpr std::size_t LockFreeBoundedQueue<Type>::capacityMax() noexcept
 }
 
 /*!
+  \details No detailed description
   */
 template <typename Type> inline
 void LockFreeBoundedQueue<Type>::clear() noexcept
@@ -110,6 +136,9 @@ void LockFreeBoundedQueue<Type>::clear() noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \return No description
   */
 template <typename Type> inline
 const pmr::vector<Type>& LockFreeBoundedQueue<Type>::data() const noexcept
@@ -118,6 +147,9 @@ const pmr::vector<Type>& LockFreeBoundedQueue<Type>::data() const noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \return No description
   */
 template <typename Type> inline
 std::tuple<bool, Type> LockFreeBoundedQueue<Type>::dequeue() noexcept
@@ -136,6 +168,10 @@ std::tuple<bool, Type> LockFreeBoundedQueue<Type>::dequeue() noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \param [in] value No description.
+  \return No description
   */
 template <typename Type> inline
 bool LockFreeBoundedQueue<Type>::enqueue(const Type& value) noexcept
@@ -152,6 +188,10 @@ bool LockFreeBoundedQueue<Type>::enqueue(const Type& value) noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \param [in] value No description.
+  \return No description
   */
 template <typename Type> inline
 bool LockFreeBoundedQueue<Type>::enqueue(Type&& value) noexcept
@@ -168,6 +208,9 @@ bool LockFreeBoundedQueue<Type>::enqueue(Type&& value) noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \return No description
   */
 template <typename Type> inline
 bool LockFreeBoundedQueue<Type>::isEmpty() const noexcept
@@ -178,6 +221,9 @@ bool LockFreeBoundedQueue<Type>::isEmpty() const noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \param [in] cap No description.
   */
 template <typename Type> inline
 void LockFreeBoundedQueue<Type>::setCapacity(const std::size_t cap) noexcept
@@ -193,6 +239,9 @@ void LockFreeBoundedQueue<Type>::setCapacity(const std::size_t cap) noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \return No description
   */
 template <typename Type> inline
 int LockFreeBoundedQueue<Type>::size() const noexcept
@@ -202,6 +251,9 @@ int LockFreeBoundedQueue<Type>::size() const noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \param [in,out] mem_resource No description.
   */
 template <typename Type> inline
 LockFreeBoundedQueue<Type>::RingBuffer::RingBuffer(
@@ -211,6 +263,9 @@ LockFreeBoundedQueue<Type>::RingBuffer::RingBuffer(
 }
 
 /*!
+  \details No detailed description
+
+  \param [in] other No description.
   */
 template <typename Type> inline
 LockFreeBoundedQueue<Type>::RingBuffer::RingBuffer(RingBuffer&& other) noexcept :
@@ -222,6 +277,9 @@ LockFreeBoundedQueue<Type>::RingBuffer::RingBuffer(RingBuffer&& other) noexcept 
 }
 
 /*!
+  \details No detailed description
+
+  \param [in] other No description.
   */
 template <typename Type> inline
 auto LockFreeBoundedQueue<Type>::RingBuffer::operator=(RingBuffer&& other)
@@ -235,6 +293,7 @@ auto LockFreeBoundedQueue<Type>::RingBuffer::operator=(RingBuffer&& other)
 }
 
 /*!
+  \details No detailed description
   */
 template <typename Type> inline
 void LockFreeBoundedQueue<Type>::RingBuffer::clear() noexcept
@@ -246,6 +305,10 @@ void LockFreeBoundedQueue<Type>::RingBuffer::clear() noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \param [in] nonempty No description.
+  \return No description
   */
 template <typename Type> inline
 auto LockFreeBoundedQueue<Type>::RingBuffer::dequeue(const bool nonempty) noexcept
@@ -284,6 +347,7 @@ auto LockFreeBoundedQueue<Type>::RingBuffer::dequeue(const bool nonempty) noexce
           break;
       }
       else {
+        //! \todo Exception check
         again = ++attempt <= 10000;
         if (again)
           break;
@@ -313,6 +377,11 @@ auto LockFreeBoundedQueue<Type>::RingBuffer::dequeue(const bool nonempty) noexce
 }
 
 /*!
+  \details No detailed description
+
+  \param [in] index No description.
+  \param [in] nonempty No description.
+  \return No description
   */
 template <typename Type> inline
 bool LockFreeBoundedQueue<Type>::RingBuffer::enqueue(
@@ -357,6 +426,10 @@ bool LockFreeBoundedQueue<Type>::RingBuffer::enqueue(
 }
 
 /*!
+  \details No detailed description
+
+  \param [in] s No description.
+  \param [in] e No description.
   */
 template <typename Type> inline
 void LockFreeBoundedQueue<Type>::RingBuffer::fill(const UInt s,
@@ -380,6 +453,9 @@ void LockFreeBoundedQueue<Type>::RingBuffer::fill(const UInt s,
 }
 
 /*!
+  \details No detailed description
+
+  \return No description
   */
 template <typename Type> inline
 constexpr auto LockFreeBoundedQueue<Type>::RingBuffer::invalidIndex() noexcept
@@ -390,6 +466,9 @@ constexpr auto LockFreeBoundedQueue<Type>::RingBuffer::invalidIndex() noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \return No description
   */
 template <typename Type> inline
 std::size_t LockFreeBoundedQueue<Type>::RingBuffer::order() const noexcept
@@ -399,7 +478,9 @@ std::size_t LockFreeBoundedQueue<Type>::RingBuffer::order() const noexcept
 }
 
 /*!
-  \param[in] s \a s must be a power of 2.
+  \details No detailed description
+
+  \param [in] s \a s must be a power of 2.
   */
 template <typename Type> inline
 void LockFreeBoundedQueue<Type>::RingBuffer::setSize(const std::size_t s) noexcept
@@ -410,6 +491,9 @@ void LockFreeBoundedQueue<Type>::RingBuffer::setSize(const std::size_t s) noexce
 }
 
 /*!
+  \details No detailed description
+
+  \return No description
   */
 template <typename Type> inline
 std::size_t LockFreeBoundedQueue<Type>::RingBuffer::size() const noexcept
@@ -420,6 +504,9 @@ std::size_t LockFreeBoundedQueue<Type>::RingBuffer::size() const noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \return No description
   */
 template <typename Type> inline
 constexpr std::size_t LockFreeBoundedQueue<Type>::RingBuffer::cacheBytes() noexcept
@@ -429,6 +516,9 @@ constexpr std::size_t LockFreeBoundedQueue<Type>::RingBuffer::cacheBytes() noexc
 }
 
 /*!
+  \details No detailed description
+
+  \return No description
   */
 template <typename Type> inline
 constexpr std::size_t LockFreeBoundedQueue<Type>::RingBuffer::cacheShift() noexcept
@@ -441,6 +531,10 @@ constexpr std::size_t LockFreeBoundedQueue<Type>::RingBuffer::cacheShift() noexc
 }
 
 /*!
+  \details No detailed description
+
+  \param [in] tail No description.
+  \param [in] head No description.
   */
 template <typename Type> inline
 void LockFreeBoundedQueue<Type>::RingBuffer::catchUp(UInt tail,
@@ -458,6 +552,11 @@ void LockFreeBoundedQueue<Type>::RingBuffer::catchUp(UInt tail,
 }
 
 /*!
+  \details No detailed description
+
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
   */
 template <typename Type> inline
 auto LockFreeBoundedQueue<Type>::RingBuffer::diff(const UInt lhs, const UInt rhs)
@@ -468,6 +567,10 @@ auto LockFreeBoundedQueue<Type>::RingBuffer::diff(const UInt lhs, const UInt rhs
 }
 
 /*!
+  \details No detailed description
+
+  \param [in] half No description.
+  \return No description
   */
 template <typename Type> inline
 auto LockFreeBoundedQueue<Type>::RingBuffer::getThreshold3(const UInt half)
@@ -478,6 +581,10 @@ auto LockFreeBoundedQueue<Type>::RingBuffer::getThreshold3(const UInt half)
 }
 
 /*!
+  \details No detailed description
+
+  \param [in] index No description.
+  \return No description
   */
 template <typename Type> inline
 auto LockFreeBoundedQueue<Type>::RingBuffer::mapIndex(const UInt index)
@@ -494,6 +601,9 @@ auto LockFreeBoundedQueue<Type>::RingBuffer::mapIndex(const UInt index)
 }
 
 /*!
+  \details No detailed description
+
+  \return No description
   */
 template <typename Type> inline
 constexpr auto LockFreeBoundedQueue<Type>::RingBuffer::ringMin() noexcept -> UInt

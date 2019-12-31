@@ -1,7 +1,12 @@
 /*!
   \file function_reference.hpp
   \author Sho Ikeda
+  \brief No brief description
 
+  \details
+  No detailed description.
+
+  \copyright
   Copyright (c) 2015-2020 Sho Ikeda
   This software is released under the MIT License.
   http://opensource.org/licenses/mit-license.php
@@ -24,6 +29,11 @@ template <typename> class FunctionReference;
 
 /*!
   \brief A reference to a function
+
+  No detailed description.
+
+  \tparam ReturnT No description.
+  \tparam ArgumentTypes No description.
   */
 template <typename ReturnT, typename ...ArgumentTypes>
 class FunctionReference<ReturnT (ArgumentTypes...)>
@@ -116,6 +126,7 @@ class FunctionReference<ReturnT (ArgumentTypes...)>
   CallbackPointer callback_ = nullptr;
 };
 
+//! Swap memories in the given instances
 template <typename ReturnT, typename ...ArgumentTypes>
 void swap(FunctionReference<ReturnT (ArgumentTypes...)>& lhs,
           FunctionReference<ReturnT (ArgumentTypes...)>& rhs) noexcept;

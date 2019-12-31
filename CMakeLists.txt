@@ -77,6 +77,9 @@ if(DOXYGEN_FOUND)
                     ${PROJECT_SOURCE_DIR}/LICENSE.txt
                     ${PROJECT_SOURCE_DIR}/source/zisc/document.dox
                     ${zisc_include_dirs}
+    COMPILER_DEFINITIONS ${platform_definitions}
+                         ${cxx_definitions}
+                         ${zisc_definitions}
     EXAMPLE_FILEDIRS ${PROJECT_SOURCE_DIR}/example
     ${html_theme_params})
 endif()

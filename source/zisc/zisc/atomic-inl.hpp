@@ -1,7 +1,12 @@
 /*!
   \file atomic-inl.hpp
   \author Sho Ikeda
+  \brief No brief description
 
+  \details
+  No detailed description.
+
+  \copyright
   Copyright (c) 2015-2020 Sho Ikeda
   This software is released under the MIT License.
   http://opensource.org/licenses/mit-license.php
@@ -22,6 +27,12 @@
 namespace zisc {
 
 /*!
+  \details No detailed description
+
+  \tparam Integer No description.
+  \param [in,out] ptr No description.
+  \param [in] value No description.
+  \return No description
   */
 template <typename Integer> inline
 Integer Atomic::add(Integer* ptr, const Integer value) noexcept
@@ -31,6 +42,12 @@ Integer Atomic::add(Integer* ptr, const Integer value) noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Integer No description.
+  \param [in,out] ptr No description.
+  \param [in] value No description.
+  \return No description
   */
 template <typename Integer> inline
 Integer Atomic::sub(Integer* ptr, const Integer value) noexcept
@@ -40,6 +57,12 @@ Integer Atomic::sub(Integer* ptr, const Integer value) noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Integer No description.
+  \param [in,out] ptr No description.
+  \param [in] value No description.
+  \return No description
   */
 template <typename Integer> inline
 Integer Atomic::exchange(Integer* ptr, const Integer value) noexcept
@@ -49,6 +72,11 @@ Integer Atomic::exchange(Integer* ptr, const Integer value) noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Integer No description.
+  \param [in,out] ptr No description.
+  \return No description
   */
 template <typename Integer> inline
 Integer Atomic::increment(Integer* ptr) noexcept
@@ -58,6 +86,11 @@ Integer Atomic::increment(Integer* ptr) noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Integer No description.
+  \param [in,out] ptr No description.
+  \return No description
   */
 template <typename Integer> inline
 Integer Atomic::decrement(Integer* ptr) noexcept
@@ -67,6 +100,13 @@ Integer Atomic::decrement(Integer* ptr) noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Integer No description.
+  \param [in,out] ptr No description.
+  \param [in] cmp No description.
+  \param [in] value No description.
+  \return No description
   */
 template <typename Integer> inline
 Integer Atomic::compareAndExchange(Integer* ptr,
@@ -78,6 +118,12 @@ Integer Atomic::compareAndExchange(Integer* ptr,
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Integer No description.
+  \param [in,out] ptr No description.
+  \param [in] value No description.
+  \return No description
   */
 template <typename Integer> inline
 Integer Atomic::min(Integer* ptr, const Integer value) noexcept
@@ -87,6 +133,12 @@ Integer Atomic::min(Integer* ptr, const Integer value) noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Integer No description.
+  \param [in,out] ptr No description.
+  \param [in] value No description.
+  \return No description
   */
 template <typename Integer> inline
 Integer Atomic::max(Integer* ptr, const Integer value) noexcept
@@ -96,6 +148,12 @@ Integer Atomic::max(Integer* ptr, const Integer value) noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Integer No description.
+  \param [in,out] ptr No description.
+  \param [in] value No description.
+  \return No description
   */
 template <typename Integer> inline
 Integer Atomic::andBit(Integer* ptr, const Integer value) noexcept
@@ -105,6 +163,12 @@ Integer Atomic::andBit(Integer* ptr, const Integer value) noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Integer No description.
+  \param [in,out] ptr No description.
+  \param [in] value No description.
+  \return No description
   */
 template <typename Integer> inline
 Integer Atomic::orBit(Integer* ptr, const Integer value) noexcept
@@ -114,6 +178,12 @@ Integer Atomic::orBit(Integer* ptr, const Integer value) noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Integer No description.
+  \param [in,out] ptr No description.
+  \param [in] value No description.
+  \return No description
   */
 template <typename Integer> inline
 Integer Atomic::xorBit(Integer* ptr, const Integer value) noexcept
@@ -123,6 +193,10 @@ Integer Atomic::xorBit(Integer* ptr, const Integer value) noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Type No description.
+  \return No description
   */
 template <typename Type> inline
 constexpr bool Atomic::isAlwaysLockFree() noexcept
@@ -132,6 +206,10 @@ constexpr bool Atomic::isAlwaysLockFree() noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Type No description.
+  \return No description
   */
 template <typename Type> inline
 bool Atomic::isLockFree() noexcept
@@ -141,6 +219,15 @@ bool Atomic::isLockFree() noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Integer No description.
+  \tparam Function No description.
+  \tparam Types No description.
+  \param [in,out] ptr No description.
+  \param [in] expression No description.
+  \param [in] arguments No description.
+  \return No description
   */
 template <typename Integer, typename Function, typename ...Types> inline
 Integer Atomic::perform(Integer* ptr,
@@ -161,6 +248,13 @@ Integer Atomic::perform(Integer* ptr,
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Integer No description.
+  \tparam kImpl No description.
+  \param [in,out] ptr No description.
+  \param [in] value No description.
+  \return No description
   */
 template <typename Integer, Config::ImplType kImpl> inline
 Integer Atomic::addImpl(Integer* ptr, const Integer value) noexcept
@@ -193,6 +287,13 @@ Integer Atomic::addImpl(Integer* ptr, const Integer value) noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Integer No description.
+  \tparam kImpl No description.
+  \param [in,out] ptr No description.
+  \param [in] value No description.
+  \return No description
   */
 template <typename Integer, Config::ImplType kImpl> inline
 Integer Atomic::subImpl(Integer* ptr, const Integer value) noexcept
@@ -225,6 +326,13 @@ Integer Atomic::subImpl(Integer* ptr, const Integer value) noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Integer No description.
+  \tparam kImpl No description.
+  \param [in,out] ptr No description.
+  \param [in] value No description.
+  \return No description
   */
 template <typename Integer, Config::ImplType kImpl> inline
 Integer Atomic::exchangeImpl(Integer* ptr, Integer value) noexcept
@@ -257,6 +365,12 @@ Integer Atomic::exchangeImpl(Integer* ptr, Integer value) noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Integer No description.
+  \tparam kImpl No description.
+  \param [in,out] ptr No description.
+  \return No description
   */
 template <typename Integer, Config::ImplType kImpl> inline
 Integer Atomic::incrementImpl(Integer* ptr) noexcept
@@ -290,6 +404,12 @@ Integer Atomic::incrementImpl(Integer* ptr) noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Integer No description.
+  \tparam kImpl No description.
+  \param [in,out] ptr No description.
+  \return No description
   */
 template <typename Integer, Config::ImplType kImpl> inline
 Integer Atomic::decrementImpl(Integer* ptr) noexcept
@@ -323,6 +443,14 @@ Integer Atomic::decrementImpl(Integer* ptr) noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Integer No description.
+  \tparam kImpl No description.
+  \param [in,out] ptr No description.
+  \param [in] cmp No description.
+  \param [in] value No description.
+  \return No description
   */
 template <typename Integer, Config::ImplType kImpl> inline
 Integer Atomic::compareAndExchangeImpl(Integer* ptr,
@@ -357,6 +485,13 @@ Integer Atomic::compareAndExchangeImpl(Integer* ptr,
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Integer No description.
+  \tparam kImpl No description.
+  \param [in,out] ptr No description.
+  \param [in] value No description.
+  \return No description
   */
 template <typename Integer, Config::ImplType kImpl> inline
 Integer Atomic::minImpl(Integer* ptr, const Integer value) noexcept
@@ -379,6 +514,13 @@ Integer Atomic::minImpl(Integer* ptr, const Integer value) noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Integer No description.
+  \tparam kImpl No description.
+  \param [in,out] ptr No description.
+  \param [in] value No description.
+  \return No description
   */
 template <typename Integer, Config::ImplType kImpl> inline
 Integer Atomic::maxImpl(Integer* ptr, const Integer value) noexcept
@@ -401,6 +543,13 @@ Integer Atomic::maxImpl(Integer* ptr, const Integer value) noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Integer No description.
+  \tparam kImpl No description.
+  \param [in,out] ptr No description.
+  \param [in] value No description.
+  \return No description
   */
 template <typename Integer, Config::ImplType kImpl> inline
 Integer Atomic::andBitImpl(Integer* ptr, const Integer value) noexcept
@@ -433,6 +582,13 @@ Integer Atomic::andBitImpl(Integer* ptr, const Integer value) noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Integer No description.
+  \tparam kImpl No description.
+  \param [in,out] ptr No description.
+  \param [in] value No description.
+  \return No description
   */
 template <typename Integer, Config::ImplType kImpl> inline
 Integer Atomic::orBitImpl(Integer* ptr, const Integer value) noexcept
@@ -465,6 +621,13 @@ Integer Atomic::orBitImpl(Integer* ptr, const Integer value) noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Integer No description.
+  \tparam kImpl No description.
+  \param [in,out] ptr No description.
+  \param [in] value No description.
+  \return No description
   */
 template <typename Integer, Config::ImplType kImpl> inline
 Integer Atomic::xorBitImpl(Integer* ptr, const Integer value) noexcept
@@ -497,6 +660,11 @@ Integer Atomic::xorBitImpl(Integer* ptr, const Integer value) noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Type No description.
+  \tparam kImpl No description.
+  \return No description
   */
 template <typename Type, Config::ImplType kImpl> inline
 constexpr bool Atomic::isAlwaysLockFreeImpl() noexcept
@@ -508,12 +676,18 @@ constexpr bool Atomic::isAlwaysLockFreeImpl() noexcept
     flag = __atomic_always_lock_free(size, nullptr);
   }
   else if constexpr (kImpl == Config::ImplType::kMsvc) {
+    //! \todo Confirm if is it lock free
     flag = true;
   }
   return flag;
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Type No description.
+  \tparam kImpl No description.
+  \return No description
   */
 template <typename Type, Config::ImplType kImpl> inline
 bool Atomic::isLockFreeImpl() noexcept
@@ -525,6 +699,7 @@ bool Atomic::isLockFreeImpl() noexcept
     flag = __atomic_is_lock_free(size, nullptr);
   }
   else if constexpr (kImpl == Config::ImplType::kMsvc) {
+    //! \todo Confirm if is it lock free
     flag = true;
   }
   return flag;

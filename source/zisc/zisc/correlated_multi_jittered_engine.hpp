@@ -1,7 +1,12 @@
 /*!
   \file correlated_multi_jittered_engine.hpp
   \author Sho Ikeda
+  \brief No brief description
 
+  \details
+  No detailed description.
+
+  \copyright
   Copyright (c) 2015-2020 Sho Ikeda
   This software is released under the MIT License.
   http://opensource.org/licenses/mit-license.php
@@ -20,10 +25,12 @@
 namespace zisc {
 
 /*!
-  \brief Correlated Multi-Jittered Sampling
-  \details
-  "Correlated Multi-Jittered Sampling"
-  Andrew Kensler, Pixar Technical Memo 13-01, 2013
+  \brief Correlated Multi-Jittered Sampler
+
+  For more detail, please see the following paper:
+  <a href="https://graphics.pixar.com/library/MultiJitteredSampling/">Correlated Multi-Jittered Sampling</a>.
+
+  \tparam kRootN No description.
   */
 template <uint32b kRootN>
 class CorrelatedMultiJitteredEngine
@@ -64,6 +71,7 @@ class CorrelatedMultiJitteredEngine
   static uint32b permuteImpl(uint32b i, const uint32b p) noexcept;
 };
 
+// Type aliases
 using CmjN16 = CorrelatedMultiJitteredEngine<4>;
 using CmjN64 = CorrelatedMultiJitteredEngine<8>;
 using CmjN81 = CorrelatedMultiJitteredEngine<9>;

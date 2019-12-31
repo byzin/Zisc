@@ -1,7 +1,12 @@
 /*!
   \file error_example.cpp
   \author Sho Ikeda
+  \brief No brief description
 
+  \details
+  No detailed description.
+
+  \copyright
   Copyright (c) 2015-2020 Sho Ikeda
   This software is released under the MIT License.
   http://opensource.org/licenses/mit-license.php
@@ -25,14 +30,6 @@ int main()
                         kZiscVersionMinor, ".",
                         kZiscVersionPatch);
   }
-  // Log example
-  {
-    zisc::outputMessage(std::cout, "Log messages example.");
-    ZISC_LOG(std::cout, "Zisc version: ",
-                        kZiscVersionMajor, ".",
-                        kZiscVersionMinor, ".",
-                        kZiscVersionPatch);
-  }
   // Assert example
   {
     zisc::outputMessage(std::cout, "Assert example.");
@@ -40,6 +37,11 @@ int main()
                        kZiscVersionMajor, ".",
                        kZiscVersionMinor, ".",
                        kZiscVersionPatch);
+  }
+  // Static assert example
+  {
+    constexpr int value = 10;
+    ZISC_STATIC_ASSERT(value == 10, "The value isn't 10.");
   }
 
   return 0;

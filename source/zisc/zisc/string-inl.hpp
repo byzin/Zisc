@@ -1,7 +1,12 @@
 /*!
   \file string-inl.hpp
   \author Sho Ikeda
+  \brief No brief description
 
+  \details
+  No detailed description.
+
+  \copyright
   Copyright (c) 2015-2020 Sho Ikeda
   This software is released under the MIT License.
   http://opensource.org/licenses/mit-license.php
@@ -15,7 +20,6 @@
 #include <array>
 #include <cstddef>
 #include <cstdlib>
-#include <regex>
 #include <string>
 #include <string_view>
 #include <utility>
@@ -28,8 +32,7 @@
 namespace zisc {
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
   */
 template <typename CharType, uint kN> inline
 constexpr BasicString<CharType, kN>::BasicString() noexcept
@@ -38,8 +41,9 @@ constexpr BasicString<CharType, kN>::BasicString() noexcept
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \param [in] other No description.
   */
 template <typename CharType, uint kN> inline
 constexpr BasicString<CharType, kN>::BasicString(
@@ -49,6 +53,9 @@ constexpr BasicString<CharType, kN>::BasicString(
 }
 
 /*!
+  \details No detailed description
+
+  \return No description
   */
 template <typename CharType, uint kN> inline
 constexpr auto BasicString<CharType, kN>::begin() noexcept -> iterator
@@ -57,6 +64,9 @@ constexpr auto BasicString<CharType, kN>::begin() noexcept -> iterator
 }
 
 /*!
+  \details No detailed description
+
+  \return No description
   */
 template <typename CharType, uint kN> inline
 constexpr auto BasicString<CharType, kN>::begin() const noexcept -> const_iterator
@@ -65,6 +75,9 @@ constexpr auto BasicString<CharType, kN>::begin() const noexcept -> const_iterat
 }
 
 /*!
+  \details No detailed description
+
+  \return No description
   */
 template <typename CharType, uint kN> inline
 constexpr auto BasicString<CharType, kN>::cbegin() const noexcept -> const_iterator
@@ -73,6 +86,9 @@ constexpr auto BasicString<CharType, kN>::cbegin() const noexcept -> const_itera
 }
 
 /*!
+  \details No detailed description
+
+  \return No description
   */
 template <typename CharType, uint kN> inline
 constexpr auto BasicString<CharType, kN>::end() noexcept -> iterator
@@ -81,6 +97,9 @@ constexpr auto BasicString<CharType, kN>::end() noexcept -> iterator
 }
 
 /*!
+  \details No detailed description
+
+  \return No description
   */
 template <typename CharType, uint kN> inline
 constexpr auto BasicString<CharType, kN>::end() const noexcept -> const_iterator
@@ -89,6 +108,9 @@ constexpr auto BasicString<CharType, kN>::end() const noexcept -> const_iterator
 }
 
 /*!
+  \details No detailed description
+
+  \return No description
   */
 template <typename CharType, uint kN> inline
 constexpr auto BasicString<CharType, kN>::cend() const noexcept -> const_iterator
@@ -97,8 +119,10 @@ constexpr auto BasicString<CharType, kN>::cend() const noexcept -> const_iterato
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \param [in] index No description.
+  \return No description
   */
 template <typename CharType, uint kN> inline
 constexpr auto BasicString<CharType, kN>::operator[](const uint index) noexcept
@@ -108,8 +132,10 @@ constexpr auto BasicString<CharType, kN>::operator[](const uint index) noexcept
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \param [in] index No description.
+  \return No description
   */
 template <typename CharType, uint kN> inline
 constexpr auto BasicString<CharType, kN>::operator[](const uint index) const noexcept
@@ -119,6 +145,9 @@ constexpr auto BasicString<CharType, kN>::operator[](const uint index) const noe
 }
 
 /*!
+  \details No detailed description
+
+  \return No description
   */
 template <typename CharType, uint kN> inline
 constexpr auto BasicString<CharType, kN>::data() noexcept -> ArrayType&
@@ -127,6 +156,9 @@ constexpr auto BasicString<CharType, kN>::data() noexcept -> ArrayType&
 }
 
 /*!
+  \details No detailed description
+
+  \return No description
   */
 template <typename CharType, uint kN> inline
 constexpr auto BasicString<CharType, kN>::data() const noexcept -> const ArrayType&
@@ -135,8 +167,10 @@ constexpr auto BasicString<CharType, kN>::data() const noexcept -> const ArrayTy
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \param [in] index No description.
+  \return No description
   */
 template <typename CharType, uint kN> inline
 constexpr auto BasicString<CharType, kN>::get(const uint index) noexcept
@@ -146,8 +180,10 @@ constexpr auto BasicString<CharType, kN>::get(const uint index) noexcept
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \param [in] index No description.
+  \return No description
   */
 template <typename CharType, uint kN> inline
 constexpr auto BasicString<CharType, kN>::get(const uint index) const noexcept
@@ -157,8 +193,9 @@ constexpr auto BasicString<CharType, kN>::get(const uint index) const noexcept
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \return No description
   */
 template <typename CharType, uint kN> inline
 constexpr auto BasicString<CharType, kN>::size() const noexcept -> size_type
@@ -167,8 +204,9 @@ constexpr auto BasicString<CharType, kN>::size() const noexcept -> size_type
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \return No description
   */
 template <typename CharType, uint kN> inline
 constexpr auto BasicString<CharType, kN>::toCString() const noexcept
@@ -178,26 +216,51 @@ constexpr auto BasicString<CharType, kN>::toCString() const noexcept
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \return No description
   */
 template <typename CharType, uint kN> inline
-std::string BasicString<CharType, kN>::toStdString() const noexcept
+std::basic_string<CharType> BasicString<CharType, kN>::toStdString()
+    const noexcept
 {
-  return std::string{toCString()};
+  auto str_view = toStdStringView();
+  return std::basic_string<CharType>{str_view.data(), str_view.size()};
 }
 
 /*!
+  \details No detailed description
+
+  \return No description
+  */
+template <typename CharType, uint kN> inline
+std::basic_string_view<CharType> BasicString<CharType, kN>::toStdStringView()
+    const noexcept
+{
+  std::basic_string_view<CharType> str_view{data_.data(), data_.size()};
+  return str_view;
+}
+
+/*!
+  \details No detailed description
+
+  \tparam indices No description.
+  \param [in] other No description.
+  \return No description
   */
 template <typename CharType, uint kN> template <std::size_t ...indices> inline
 constexpr auto BasicString<CharType, kN>::makeArray(
     const CharType (&other)[kN],
     std::index_sequence<indices...>) noexcept -> ArrayType
 {
-  return ArrayType{{other[indices]...}};
+  const ArrayType a{{other[indices]...}};
+  return a;
 }
 
 /*!
+  \details No detailed description
+
+  \return No description
   */
 template <typename CharType, uint kN> inline
 constexpr auto BasicString<CharType, kN>::makeEmptyArray() noexcept -> ArrayType
@@ -209,54 +272,85 @@ constexpr auto BasicString<CharType, kN>::makeEmptyArray() noexcept -> ArrayType
 }
 
 /*!
+  \details No detailed description
+
+  \param [in] s No description.
+  \return No description
   */
 inline
 constexpr std::size_t getSize(const char* s) noexcept
 {
   std::size_t size = 0;
-  for (; s[size] != '\0'; ++size) {}
+  for (; s[size] != '\0'; ++size);
   return size;
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \tparam CharType No description.
+  \tparam kN1 No description.
+  \tparam kN2 No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
   */
 template <typename CharType, uint kN1, uint kN2> inline
 constexpr BasicString<CharType, kN1 + kN2 - 1> operator+(
     const BasicString<CharType, kN1>& lhs,
     const BasicString<CharType, kN2>& rhs) noexcept
 {
-  return concatenate(lhs, rhs);
+  const auto result = concatenate(lhs, rhs);
+  return result;
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \tparam CharType No description.
+  \tparam kN1 No description.
+  \tparam kN2 No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
   */
 template <typename CharType, uint kN1, uint kN2> inline
 constexpr BasicString<CharType, kN1 + kN2 - 1> operator+(
     const CharType (&lhs)[kN1],
     const BasicString<CharType, kN2>& rhs) noexcept
 {
-  return concatenate(lhs, rhs);
+  const auto result = concatenate(lhs, rhs);
+  return result;
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \tparam CharType No description.
+  \tparam kN1 No description.
+  \tparam kN2 No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
   */
 template <typename CharType, uint kN1, uint kN2> inline
 constexpr BasicString<CharType, kN1 + kN2 - 1> operator+(
     const BasicString<CharType, kN1>& lhs,
     const CharType (&rhs)[kN2]) noexcept
 {
-  return concatenate(lhs, rhs);
+  const auto result = concatenate(lhs, rhs);
+  return result;
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \tparam CharType No description.
+  \tparam kN1 No description.
+  \tparam kN2 No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
   */
 template <typename CharType, uint kN1, uint kN2> inline
 constexpr bool operator==(
@@ -270,8 +364,13 @@ constexpr bool operator==(
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \tparam CharType No description.
+  \tparam kN No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
   */
 template <typename CharType, uint kN> inline
 constexpr bool operator==(
@@ -283,8 +382,13 @@ constexpr bool operator==(
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \tparam CharType No description.
+  \tparam kN No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
   */
 template <typename CharType, uint kN> inline
 constexpr bool operator==(
@@ -295,8 +399,13 @@ constexpr bool operator==(
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \tparam CharType No description.
+  \tparam kN No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
   */
 template <typename CharType, uint kN> inline
 constexpr bool operator==(
@@ -310,8 +419,13 @@ constexpr bool operator==(
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \tparam CharType No description.
+  \tparam kN No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
   */
 template <typename CharType, uint kN> inline
 constexpr bool operator==(
@@ -322,8 +436,14 @@ constexpr bool operator==(
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \tparam CharType No description.
+  \tparam kN1 No description.
+  \tparam kN2 No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
   */
 template <typename CharType, uint kN1, uint kN2> inline
 constexpr bool operator!=(
@@ -334,8 +454,13 @@ constexpr bool operator!=(
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \tparam CharType No description.
+  \tparam kN No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
   */
 template <typename CharType, uint kN> inline
 constexpr bool operator!=(
@@ -346,8 +471,13 @@ constexpr bool operator!=(
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \tparam CharType No description.
+  \tparam kN No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
   */
 template <typename CharType, uint kN> inline
 constexpr bool operator!=(
@@ -358,8 +488,14 @@ constexpr bool operator!=(
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \tparam CharType No description.
+  \tparam kN1 No description.
+  \tparam kN2 No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
   */
 template <typename CharType, uint kN1, uint kN2> inline
 constexpr BasicString<CharType, kN1 + kN2 - 1> concatenate(
@@ -376,8 +512,14 @@ constexpr BasicString<CharType, kN1 + kN2 - 1> concatenate(
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \tparam CharType No description.
+  \tparam kN1 No description.
+  \tparam kN2 No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
   */
 template <typename CharType, uint kN1, uint kN2> inline
 constexpr BasicString<CharType, kN1 + kN2 - 1> concatenate(
@@ -390,8 +532,14 @@ constexpr BasicString<CharType, kN1 + kN2 - 1> concatenate(
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \tparam CharType No description.
+  \tparam kN1 No description.
+  \tparam kN2 No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
   */
 template <typename CharType, uint kN1, uint kN2> inline
 constexpr BasicString<CharType, kN1 + kN2 - 1> concatenate(
@@ -404,13 +552,18 @@ constexpr BasicString<CharType, kN1 + kN2 - 1> concatenate(
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \tparam CharType No description.
+  \tparam kN No description.
+  \param [in] other No description.
+  \return No description
   */
 template <typename CharType, uint kN> inline
 constexpr BasicString<CharType, kN> toString(const CharType (&other)[kN]) noexcept
 {
-  return BasicString<CharType, kN>{other};
+  const BasicString<CharType, kN> s{other};
+  return s;
 }
 
 } // namespace zisc

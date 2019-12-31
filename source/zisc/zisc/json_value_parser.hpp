@@ -1,7 +1,12 @@
 /*!
   \file json_value_parser.hpp
   \author Sho Ikeda
+  \brief No brief description
 
+  \details
+  No detailed description.
+
+  \copyright
   Copyright (c) 2015-2020 Sho Ikeda
   This software is released under the MIT License.
   http://opensource.org/licenses/mit-license.php
@@ -23,85 +28,38 @@ namespace zisc {
 
 /*!
   \brief JSON value parser
-  \details
-  https://www.json.org/index.html
+
+  For more detail, please see the following link:
+  <a href="https://www.json.org/json-en.html">Introducing JSON</a>.
   */
 class JsonValueParser
 {
-  //! JSON value pattern
-  struct Pattern
-  {
-    static constexpr auto getTrue() noexcept
-    {
-      auto pattern = toString(R"(true)");
-      return pattern;
-    }
-
-    static constexpr auto getFalse() noexcept
-    {
-      auto pattern = toString(R"(false)");
-      return pattern;
-    }
-
-    static constexpr auto getBoolean() noexcept
-    {
-      auto pattern = Pattern::getTrue() + R"(|)" + Pattern::getFalse();
-      return pattern;
-    }
-
-    static constexpr auto getInteger() noexcept
-    {
-      auto pattern = toString(R"(-?(?:[1-9][0-9]*|0))");
-      return pattern;
-    }
-
-    static constexpr auto getFloat() noexcept
-    {
-      auto integer = getInteger();
-      auto pattern = integer + R"((?:\.[0-9]+)?(?:[eE][+-]?[0-9]+)?)";
-      return pattern;
-    }
-
-    static constexpr auto getString() noexcept
-    {
-      auto character = toString(R"([^"\\[:cntrl:]])");
-      auto escaped = toString(R"(\\["\\bfnrt])");
-      auto pattern = R"("(?:)" + character + R"(|)" + escaped + R"()*")";
-      return pattern;
-    }
-  };
-
  public:
+  //! Return the true pattern
+  static constexpr auto truePattern() noexcept;
+
+  //! Return the false string pattern
+  static constexpr auto falsePattern() noexcept;
+
+  //! Return the boolean pattern
+  static constexpr auto booleanPattern() noexcept;
+
+  //! Return the integer pattern
+  static constexpr auto integerPattern() noexcept;
+
+  //! Return the float string pattern
+  static constexpr auto floatPattern() noexcept;
+
+  //! Return the string pattern
+  static constexpr auto stringPattern() noexcept;
+
+
   //! Initialize a pattern instance
   JsonValueParser() noexcept;
 
 
-  //! Return the boolean pattern
-  static constexpr auto booleanPattern() noexcept
-  {
-    return Pattern::getBoolean();
-  }
-
-  //! Return the false pattern
-  static constexpr auto falsePattern() noexcept
-  {
-    return Pattern::getFalse();
-  }
-
-  //! Return the float pattern
-  static constexpr auto floatPattern() noexcept
-  {
-    return Pattern::getFloat();
-  }
-
   //! Return the floating point regex object
   const std::regex& floatRegex() const noexcept;
-
-  //! Return the integer pattern
-  static constexpr auto integerPattern() noexcept
-  {
-    return Pattern::getInteger();
-  }
 
   //! Return the integer regex object
   const std::regex& integerRegex() const noexcept;
@@ -137,12 +95,6 @@ class JsonValueParser
   //! Check whether the 'json_value' is JSON type
   template <typename Type>
   static bool isTypeValue(const std::string_view json_value) noexcept;
-
-  //! Return the string pattern
-  static constexpr auto stringPattern() noexcept
-  {
-    return Pattern::getString();
-  }
 
   //! Return the string regex object
   const std::regex& stringRegex() const noexcept;
@@ -182,12 +134,6 @@ class JsonValueParser
   template <typename Type>
   static Type toCxxTypeValue(const std::string_view json_value) noexcept;
 
-  //! Return the true pattern
-  static constexpr auto truePattern() noexcept
-  {
-    return Pattern::getTrue();
-  }
-
  private:
   //! Convert JSON float to C++ float
   template <typename Float>
@@ -207,8 +153,8 @@ class JsonValueParser
   static std::size_t getCxxStringSize(std::string_view json_value) noexcept;
 
   //! Check whether the 'json_value' is JSON value
-  static bool isValue(const std::regex& pattern,
-                      const std::string_view json_value) noexcept;
+  static bool isValueOf(const std::regex& pattern,
+                        const std::string_view json_value) noexcept;
 
   //! Return the regex options for instance
   static constexpr std::regex::flag_type regexIOptions() noexcept;

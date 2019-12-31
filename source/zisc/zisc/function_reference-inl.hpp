@@ -1,7 +1,12 @@
 /*!
   \file function_reference-inl.hpp
   \author Sho Ikeda
+  \brief No brief description
 
+  \details
+  No detailed description.
+
+  \copyright
   Copyright (c) 2015-2020 Sho Ikeda
   This software is released under the MIT License.
   http://opensource.org/licenses/mit-license.php
@@ -21,12 +26,19 @@
 namespace zisc {
 
 /*!
+  \details No detailed description
   */
 template <typename ReturnT, typename ...ArgumentTypes> inline
 FunctionReference<ReturnT (ArgumentTypes...)>::FunctionReference() noexcept
 {
 }
 
+/*!
+  \details No detailed description
+
+  \tparam Function No description.
+  \param [in] func No description.
+  */
 template <typename ReturnT, typename ...ArgumentTypes>
 template <typename Function> inline
 FunctionReference<ReturnT (ArgumentTypes...)>::FunctionReference(
@@ -37,7 +49,13 @@ FunctionReference<ReturnT (ArgumentTypes...)>::FunctionReference(
 }
 
 /*!
+  \details No detailed description
+
+  \tparam ArgTypes No description.
+  \param [in] arguments No description.
+  \return No description
   */
+
 template <typename ReturnT, typename ...ArgumentTypes>
 template <typename ...ArgTypes> inline
 auto FunctionReference<ReturnT (ArgumentTypes...)>::operator()(
@@ -50,6 +68,10 @@ auto FunctionReference<ReturnT (ArgumentTypes...)>::operator()(
 }
 
 /*!
+  \details No detailed description
+
+  \param [in] other No description.
+  \return No description
   */
 template <typename ReturnT, typename ...ArgumentTypes> inline
 auto FunctionReference<ReturnT (ArgumentTypes...)>::assign(
@@ -61,6 +83,11 @@ auto FunctionReference<ReturnT (ArgumentTypes...)>::assign(
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Function No description.
+  \param [in] func No description.
+  \return No description
   */
 template <typename ReturnT, typename ...ArgumentTypes>
 template <typename Function> inline
@@ -73,6 +100,7 @@ auto FunctionReference<ReturnT (ArgumentTypes...)>::assign(
 }
 
 /*!
+  \details No detailed description
   */
 template <typename ReturnT, typename ...ArgumentTypes> inline
 void FunctionReference<ReturnT (ArgumentTypes...)>::clear() noexcept
@@ -81,6 +109,11 @@ void FunctionReference<ReturnT (ArgumentTypes...)>::clear() noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \tparam ArgTypes No description.
+  \param [in] arguments No description.
+  \return No description
   */
 template <typename ReturnT, typename ...ArgumentTypes>
 template <typename ...ArgTypes> inline
@@ -95,24 +128,23 @@ auto FunctionReference<ReturnT (ArgumentTypes...)>::invoke(
 }
 
 /*!
+  \details No detailed description
+
+  \param [in,out] other No description.
   */
 template <typename ReturnT, typename ...ArgumentTypes> inline
 void FunctionReference<ReturnT (ArgumentTypes...)>::swap(
     FunctionReference& other) noexcept
 {
-  {
-    auto tmp = other.memory_;
-    other.memory_ = memory_;
-    memory_ = tmp;
-  }
-  {
-    auto tmp = other.callback_;
-    other.callback_ = callback_;
-    callback_ = tmp;
-  }
+  zisc::swap(memory_, other.memory_);
+  zisc::swap(callback_, other.callback_);
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Function No description.
+  \param [in] func No description.
   */
 template <typename ReturnT, typename ...ArgumentTypes>
 template <typename Function> inline
@@ -140,6 +172,11 @@ void FunctionReference<ReturnT (ArgumentTypes...)>::initialize(
 }
 
 /*!
+  \details No detailed description
+
+  \tparam FuncPointer No description.
+  \param [in] arguments No description.
+  \return No description
   */
 template <typename ReturnT, typename ...ArgumentTypes>
 template <typename FuncPointer> inline
@@ -155,6 +192,11 @@ auto FunctionReference<ReturnT (ArgumentTypes...)>::invokeFunctionPointer(
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Functor No description.
+  \param [in] arguments No description.
+  \return No description
   */
 template <typename ReturnT, typename ...ArgumentTypes>
 template <typename Functor> inline
@@ -170,6 +212,9 @@ auto FunctionReference<ReturnT (ArgumentTypes...)>::invokeFunctor(
 }
 
 /*!
+  \details No detailed description
+
+  \return No description
   */
 template <typename ReturnT, typename ...ArgumentTypes> inline
 void* FunctionReference<ReturnT (ArgumentTypes...)>::memory() noexcept
@@ -178,6 +223,9 @@ void* FunctionReference<ReturnT (ArgumentTypes...)>::memory() noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \return No description
   */
 template <typename ReturnT, typename ...ArgumentTypes> inline
 const void* FunctionReference<ReturnT (ArgumentTypes...)>::memory() const noexcept
@@ -186,6 +234,12 @@ const void* FunctionReference<ReturnT (ArgumentTypes...)>::memory() const noexce
 }
 
 /*!
+  \details No detailed description
+
+  \tparam ReturnT No description.
+  \tparam ArgumentTypes No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
   */
 template <typename ReturnT, typename ...ArgumentTypes> inline
 void swap(FunctionReference<ReturnT (ArgumentTypes...)>& lhs,

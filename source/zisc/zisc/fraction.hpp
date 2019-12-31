@@ -1,7 +1,12 @@
 /*!
   \file fraction.hpp
   \author Sho Ikeda
+  \brief No brief description
 
+  \details
+  No detailed description.
+
+  \copyright
   Copyright (c) 2015-2020 Sho Ikeda
   This software is released under the MIT License.
   http://opensource.org/licenses/mit-license.php
@@ -19,7 +24,14 @@
 namespace zisc {
 
 /*!
- */
+  \brief No brief description
+
+  No detailed description.
+
+  \tparam SignedInteger No description.
+
+  \todo Implement explicit conversion
+  */
 template <typename SignedInteger>
 class Fraction
 {
@@ -77,10 +89,6 @@ class Fraction
   constexpr Float toFloat() const noexcept;
 
  private:
-  //! Return the absolute value
-  static constexpr SignedInteger abs(const SignedInteger n) noexcept;
-
-
   SignedInteger numerator_,
                 denominator_;
 };
@@ -156,7 +164,7 @@ constexpr bool operator>=(
 
 namespace zisc {
 
-constexpr Fraction32 kPiFraction{355, 113};
+constexpr Fraction32 kPiFraction{355, 113}; //!< Pi constant
 
 } // namespace zisc
 

@@ -1,7 +1,12 @@
 /*!
   \file string.hpp
   \author Sho Ikeda
+  \brief No brief description
 
+  \details
+  No detailed description.
+
+  \copyright
   Copyright (c) 2015-2020 Sho Ikeda
   This software is released under the MIT License.
   http://opensource.org/licenses/mit-license.php
@@ -15,7 +20,6 @@
 #include <cstddef>
 #include <string>
 #include <string_view>
-#include <regex>
 // Zisc
 #include "zisc/zisc_config.hpp"
 
@@ -23,8 +27,13 @@ namespace zisc {
 
 /*!
   \brief Constexprable string class
-  \details
-  No detailed.
+
+  No detailed description.
+
+  \tparam CharType No description.
+  \tparam kN No description.
+
+  \todo Implement explicit conversion operator
   */
 template <typename CharType, uint kN>
 class BasicString
@@ -99,8 +108,11 @@ class BasicString
   //! Return a standard c character array
   constexpr const_pointer toCString() const noexcept;
 
-  //! Convert to std::string
-  std::string toStdString() const noexcept;
+  //! Convert to std::basic_string<CharType>
+  std::basic_string<CharType> toStdString() const noexcept;
+
+  //! Convert to std::basic_string_view<CharType>
+  std::basic_string_view<CharType> toStdStringView() const noexcept;
 
  private:
   //! Make a array
@@ -223,6 +235,12 @@ template <typename CharType, uint kN>
 constexpr BasicString<CharType, kN> toString(const CharType (&other)[kN]) noexcept;
 
 } // namespace zisc
+
+/*!
+  \example string_example.cpp
+
+  This is an example of how to use zisc::BasicString.
+  */
 
 #include "string-inl.hpp"
 

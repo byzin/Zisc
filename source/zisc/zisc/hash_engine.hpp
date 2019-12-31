@@ -1,7 +1,12 @@
 /*!
   \file hash_engine.hpp
   \author Sho Ikeda
+  \brief No brief description
 
+  \details
+  No detailed description.
+
+  \copyright
   Copyright (c) 2015-2020 Sho Ikeda
   This software is released under the MIT License.
   http://opensource.org/licenses/mit-license.php
@@ -21,6 +26,12 @@
 namespace zisc {
 
 /*!
+  \brief No brief description
+
+  No detailed description.
+
+  \tparam HashClass No description.
+  \tparam ResultType No description.
   */
 template <typename HashClass, typename ResultType>
 class HashEngine

@@ -1,7 +1,12 @@
 /*!
   \file compensated_summation-inl.hpp
   \author Sho Ikeda
+  \brief No brief description
 
+  \details
+  No detailed description.
+
+  \copyright
   Copyright (c) 2015-2020 Sho Ikeda
   This software is released under the MIT License.
   http://opensource.org/licenses/mit-license.php
@@ -21,8 +26,7 @@
 namespace zisc {
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
   */
 template <typename Float> inline
 constexpr CompensatedSummation<Float>::CompensatedSummation() noexcept :
@@ -32,8 +36,9 @@ constexpr CompensatedSummation<Float>::CompensatedSummation() noexcept :
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \param [in] value No description.
   */
 template <typename Float> inline
 constexpr CompensatedSummation<Float>::CompensatedSummation(const Float value)
@@ -44,8 +49,9 @@ constexpr CompensatedSummation<Float>::CompensatedSummation(const Float value)
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \param [in] init_list No description.
   */
 template <typename Float> inline
 constexpr CompensatedSummation<Float>::CompensatedSummation(
@@ -57,8 +63,9 @@ constexpr CompensatedSummation<Float>::CompensatedSummation(
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \return No description
   */
 template <typename Float> inline
 constexpr Float CompensatedSummation<Float>::get() const noexcept
@@ -67,8 +74,9 @@ constexpr Float CompensatedSummation<Float>::get() const noexcept
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \param [in] value No description.
   */
 template <typename Float> inline
 constexpr void CompensatedSummation<Float>::set(const Float value) noexcept
@@ -78,8 +86,9 @@ constexpr void CompensatedSummation<Float>::set(const Float value) noexcept
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \param [in] value No description.
   */
 template <typename Float> inline
 constexpr void CompensatedSummation<Float>::add(const Float value) noexcept
@@ -92,8 +101,9 @@ constexpr void CompensatedSummation<Float>::add(const Float value) noexcept
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \param [in] init_list No description.
   */
 template <typename Float> inline
 constexpr void CompensatedSummation<Float>::add(
@@ -103,8 +113,10 @@ constexpr void CompensatedSummation<Float>::add(
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \param [in] begin No description.
+  \param [in] end No description.
   */
 template <typename Float> inline
 constexpr void CompensatedSummation<Float>::add(

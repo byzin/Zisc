@@ -1,10 +1,13 @@
 /*!
   \file arith_array.hpp
   \author Sho Ikeda
+  \brief No brief description
 
-  Copyright (c) 2015-2020 Sho Ikeda
-  This software is released under the MIT License.
-  http://opensource.org/licenses/mit-license.php
+  \details
+  No detailed description.
+
+  \copyright
+  No copyright
   */
 
 #ifndef ZISC_ARITH_ARRAY_HPP
@@ -22,14 +25,18 @@
 namespace zisc {
 
 /*!
-  \details
-  No detailed.
+  \brief No brief description
+
+  No detailed description.
+
+  \tparam Arith No description.
+  \tparam kN No description.
   */
 template <typename Arith, uint kN>
 class ArithArray
 {
   static_assert(std::is_arithmetic_v<Arith>, "Arith isn't arithmetic type.");
-  using ArrayType = std::array<Arith, kN>;
+  using ArrayType = std::array<Arith, kN>; //!< Array data type
 
  public:
   // Type aliases for STL
@@ -50,7 +57,7 @@ class ArithArray
   constexpr ArithArray() noexcept;
 
   //! Initialize the elements
-  constexpr ArithArray(std::initializer_list<Arith> init_list) noexcept;
+  constexpr ArithArray(const std::initializer_list<Arith> value_list) noexcept;
 
   //! Copy array
   constexpr ArithArray(const ArrayType& other) noexcept;
@@ -104,8 +111,8 @@ class ArithArray
   constexpr const_reference operator[](const uint index) const noexcept;
 
 
-  //! Clamp all elements
-  constexpr void clampAll(const Arith min_value, const Arith max_value) noexcept;
+  //! Clamp all elements between \a lower and \a upper
+  constexpr void clampAll(const Arith lower, const Arith upper) noexcept;
 
   //! Fill the container with specified value
   constexpr void fill(const Arith& value) noexcept;
@@ -149,7 +156,7 @@ class ArithArray
   constexpr void set(const uint index, const Arith value) noexcept;
 
   //! Set values
-  constexpr void set(std::initializer_list<Arith> init_list) noexcept;
+  constexpr void set(std::initializer_list<Arith> value_list) noexcept;
 
   //! Return the number of elements
   static constexpr size_type size() noexcept;
@@ -160,8 +167,9 @@ class ArithArray
  private:
   //! Make a array
   template <std::size_t ...indices>
-  static constexpr ArrayType makeArray(std::initializer_list<Arith> init_list,
-                                       std::index_sequence<indices...>) noexcept;
+  static constexpr ArrayType makeArray(
+      const std::initializer_list<Arith> value_list,
+      const std::index_sequence<indices...>) noexcept;
 
 
   ArrayType data_;

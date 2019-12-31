@@ -1,7 +1,12 @@
 /*!
   \file lock_free_bounded_queue.hpp
   \author Sho Ikeda
+  \brief No brief description
 
+  \details
+  No detailed description.
+
+  \copyright
   Copyright (c) 2015-2020 Sho Ikeda
   This software is released under the MIT License.
   http://opensource.org/licenses/mit-license.php
@@ -24,10 +29,12 @@ namespace zisc {
 
 /*!
   \brief Scalable Circular Queue (SCQ)
-  \details
+
   For more detail, please see the following paper: 
-  <a href="https://arxiv.org/abs/1908.04511">A Scalable, Portable, and Memory-Efficient Lock-Free FIFO Queue</a>. \n
+  <a href="https://arxiv.org/abs/1908.04511">A Scalable, Portable, and Memory-Efficient Lock-Free FIFO Queue</a>. <br>
   Assume that the number of threads is less than or equal size().
+
+  \tparam Type No description.
   */
 template <typename Type>
 class LockFreeBoundedQueue : public NonCopyable<LockFreeBoundedQueue<Type>>
@@ -164,7 +171,8 @@ class LockFreeBoundedQueue : public NonCopyable<LockFreeBoundedQueue<Type>>
 
 /*!
   \example lock_free_bounded_queue_example.cpp
-  This is an example of how to use LockFreeBoundedQueue class.
+
+  This is an example of how to use zisc::LockFreeBoundedQueue.
   */
 
 #include "lock_free_bounded_queue-inl.hpp"

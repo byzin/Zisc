@@ -11,8 +11,6 @@
 // Zisc
 #include "zisc/arith_array.hpp"
 #include "zisc/matrix.hpp"
-#include "zisc/point.hpp"
-#include "zisc/vector.hpp"
 #include "zisc/utility.hpp"
 #include "zisc/zisc_config.hpp"
 
@@ -193,36 +191,6 @@ TEST(MatrixTest, OperatorTest)
                                                        6.0, 7.0, 8.0,
                                                        9.0, 10.0, 11.0};
     constexpr zisc::ArithArray<double, column> a{1.0, 2.0, 3.0};
-
-    constexpr auto result = matrix * a;
-    ASSERT_EQ(row, result.size());
-    constexpr double expected[] = {8.0, 26.0, 44.0, 62.0};
-    for (zisc::uint r = 0; r < row; ++r)
-      ASSERT_DOUBLE_EQ(expected[r], result[r]);
-  }
-  {
-    constexpr zisc::uint row = 4;
-    constexpr zisc::uint column = 3;
-    constexpr zisc::Matrix<double, row, column> matrix{0.0, 1.0, 2.0,
-                                                       3.0, 4.0, 5.0,
-                                                       6.0, 7.0, 8.0,
-                                                       9.0, 10.0, 11.0};
-    constexpr zisc::Point<double, column> a{1.0, 2.0, 3.0};
-
-    constexpr auto result = matrix * a;
-    ASSERT_EQ(row, result.size());
-    constexpr double expected[] = {8.0, 26.0, 44.0, 62.0};
-    for (zisc::uint r = 0; r < row; ++r)
-      ASSERT_DOUBLE_EQ(expected[r], result[r]);
-  }
-  {
-    constexpr zisc::uint row = 4;
-    constexpr zisc::uint column = 3;
-    constexpr zisc::Matrix<double, row, column> matrix{0.0, 1.0, 2.0,
-                                                       3.0, 4.0, 5.0,
-                                                       6.0, 7.0, 8.0,
-                                                       9.0, 10.0, 11.0};
-    constexpr zisc::Vector<double, column> a{1.0, 2.0, 3.0};
 
     constexpr auto result = matrix * a;
     ASSERT_EQ(row, result.size());

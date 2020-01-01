@@ -1,7 +1,12 @@
-/*
+/*!
   \file matrix-inl.hpp
   \author Sho Ikeda
+  \brief No brief description
 
+  \details
+  No detailed description.
+
+  \copyright
   Copyright (c) 2015-2020 Sho Ikeda
   This software is released under the MIT License.
   http://opensource.org/licenses/mit-license.php
@@ -23,11 +28,8 @@
 
 namespace zisc {
 
-// public member function
-
 /*!
-  \details
-  No detailed.
+  \details No detailed description
   */
 template <typename Arith, uint kRow, uint kColumn> inline
 constexpr Matrix<Arith, kRow, kColumn>::Matrix() noexcept :
@@ -36,9 +38,10 @@ constexpr Matrix<Arith, kRow, kColumn>::Matrix() noexcept :
 }
 
 /*!
- \details
- No detailed.
- */
+  \details No detailed description
+
+  \param [in] init_list No description.
+  */
 template <typename Arith, uint kRow, uint kColumn> inline
 constexpr Matrix<Arith, kRow, kColumn>::Matrix(
     std::initializer_list<Arith> init_list) noexcept :
@@ -47,6 +50,9 @@ constexpr Matrix<Arith, kRow, kColumn>::Matrix(
 }
 
 /*!
+  \details No detailed description
+
+  \param [in] other No description.
   */
 template <typename Arith, uint kRow, uint kColumn> inline
 constexpr auto Matrix<Arith, kRow, kColumn>::operator+=(const Matrix& other)
@@ -57,6 +63,9 @@ constexpr auto Matrix<Arith, kRow, kColumn>::operator+=(const Matrix& other)
 }
 
 /*!
+  \details No detailed description
+
+  \param [in] other No description.
   */
 template <typename Arith, uint kRow, uint kColumn> inline
 constexpr auto Matrix<Arith, kRow, kColumn>::operator-=(const Matrix& other)
@@ -67,9 +76,10 @@ constexpr auto Matrix<Arith, kRow, kColumn>::operator-=(const Matrix& other)
 }
 
 /*!
- \details
- No detailed.
- */
+  \details No detailed description
+
+  \return No description
+  */
 template <typename Arith, uint kRow, uint kColumn> inline
 constexpr Arith& Matrix<Arith, kRow, kColumn>::operator()(
     const uint row,
@@ -79,9 +89,10 @@ constexpr Arith& Matrix<Arith, kRow, kColumn>::operator()(
 }
 
 /*!
- \details
- No detailed.
- */
+  \details No detailed description
+
+  \return No description
+  */
 template <typename Arith, uint kRow, uint kColumn> inline
 constexpr const Arith& Matrix<Arith, kRow, kColumn>::operator()(
     const uint row,
@@ -91,8 +102,11 @@ constexpr const Arith& Matrix<Arith, kRow, kColumn>::operator()(
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \param [in] row No description.
+  \param [in] column No description.
+  \return No description
   */
 template <typename Arith, uint kRow, uint kColumn> inline
 constexpr Arith Matrix<Arith, kRow, kColumn>::cofactor(
@@ -104,8 +118,9 @@ constexpr Arith Matrix<Arith, kRow, kColumn>::cofactor(
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \return No description
   */
 template <typename Arith, uint kRow, uint kColumn> inline
 constexpr auto Matrix<Arith, kRow, kColumn>::cofactorMatrix() const noexcept -> Matrix
@@ -120,8 +135,9 @@ constexpr auto Matrix<Arith, kRow, kColumn>::cofactorMatrix() const noexcept -> 
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \return No description
   */
 template <typename Arith, uint kRow, uint kColumn> inline
 constexpr uint Matrix<Arith, kRow, kColumn>::columnSize() noexcept
@@ -130,6 +146,9 @@ constexpr uint Matrix<Arith, kRow, kColumn>::columnSize() noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \return No description
   */
 template <typename Arith, uint kRow, uint kColumn> inline
 constexpr auto Matrix<Arith, kRow, kColumn>::data() noexcept -> ArrayType&
@@ -138,6 +157,9 @@ constexpr auto Matrix<Arith, kRow, kColumn>::data() noexcept -> ArrayType&
 }
 
 /*!
+  \details No detailed description
+
+  \return No description
   */
 template <typename Arith, uint kRow, uint kColumn> inline
 constexpr auto Matrix<Arith, kRow, kColumn>::data() const noexcept
@@ -147,8 +169,9 @@ constexpr auto Matrix<Arith, kRow, kColumn>::data() const noexcept
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \return No description
   */
 template <typename Arith, uint kRow, uint kColumn> inline
 constexpr Arith Matrix<Arith, kRow, kColumn>::determinant() const noexcept
@@ -176,9 +199,12 @@ constexpr Arith Matrix<Arith, kRow, kColumn>::determinant() const noexcept
 }
 
 /*!
- \details
- No detailed.
- */
+  \details No detailed description
+
+  \param [in] row No description.
+  \param [in] column No description.
+  \return No description
+  */
 template <typename Arith, uint kRow, uint kColumn> inline
 constexpr Arith& Matrix<Arith, kRow, kColumn>::get(
     const uint row, 
@@ -188,9 +214,12 @@ constexpr Arith& Matrix<Arith, kRow, kColumn>::get(
 }
 
 /*!
- \details
- No detailed.
- */
+  \details No detailed description
+
+  \param [in] row No description.
+  \param [in] column No description.
+  \return No description
+  */
 template <typename Arith, uint kRow, uint kColumn> inline
 constexpr const Arith& Matrix<Arith, kRow, kColumn>::get(
     const uint row, 
@@ -200,8 +229,9 @@ constexpr const Arith& Matrix<Arith, kRow, kColumn>::get(
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \return No description
   */
 template <typename Arith, uint kRow, uint kColumn> inline
 constexpr auto Matrix<Arith, kRow, kColumn>::inverseMatrix() const noexcept
@@ -236,8 +266,9 @@ constexpr auto Matrix<Arith, kRow, kColumn>::inverseMatrix() const noexcept
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \return No description
   */
 template <typename Arith, uint kRow, uint kColumn> inline
 constexpr bool Matrix<Arith, kRow, kColumn>::isSquareMatrix() noexcept
@@ -246,8 +277,9 @@ constexpr bool Matrix<Arith, kRow, kColumn>::isSquareMatrix() noexcept
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \return No description
   */
 template <typename Arith, uint kRow, uint kColumn> inline
 constexpr uint Matrix<Arith, kRow, kColumn>::rowSize() noexcept
@@ -256,8 +288,11 @@ constexpr uint Matrix<Arith, kRow, kColumn>::rowSize() noexcept
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \param [in] row No description.
+  \param [in] column No description.
+  \param [in] value No description.
   */
 template <typename Arith, uint kRow, uint kColumn> inline
 constexpr void Matrix<Arith, kRow, kColumn>::set(const uint row,
@@ -268,8 +303,9 @@ constexpr void Matrix<Arith, kRow, kColumn>::set(const uint row,
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \param [in] init_list No description.
   */
 template <typename Arith, uint kRow, uint kColumn> inline
 constexpr void Matrix<Arith, kRow, kColumn>::set(
@@ -279,8 +315,9 @@ constexpr void Matrix<Arith, kRow, kColumn>::set(
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \return No description
   */
 template <typename Arith, uint kRow, uint kColumn> inline
 constexpr Matrix<Arith, kColumn, kRow> Matrix<Arith, kRow, kColumn>::
@@ -296,12 +333,13 @@ constexpr Matrix<Arith, kColumn, kRow> Matrix<Arith, kRow, kColumn>::
 }
 
 /*!
-  \details
-  Decompose a matrix A into LU matrixes
+  \details Decompose a matrix A into LU matrixes
     | a00, a01, a02 |         | l00, u01, u02 |
   A | a10, a11, a12 | into LU | l10, l11, u12 |
     | a20, a21, a22 |         | l20, l21, l22 |
- */
+
+  \return No description
+  */
 template <typename Arith, uint kRow, uint kColumn> inline
 constexpr auto Matrix<Arith, kRow, kColumn>::decomposeLu() const noexcept
     -> std::tuple<Matrix, ArithArray<uint, kRow+1>>
@@ -355,8 +393,11 @@ constexpr auto Matrix<Arith, kRow, kColumn>::decomposeLu() const noexcept
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \param [in] row No description.
+  \param [in] column No description.
+  \return No description
   */
 template <typename Arith, uint kRow, uint kColumn> inline
 constexpr Arith Matrix<Arith, kRow, kColumn>::minorDeterminant(
@@ -380,6 +421,14 @@ constexpr Arith Matrix<Arith, kRow, kColumn>::minorDeterminant(
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Arith No description.
+  \tparam kRow No description.
+  \tparam kColumn No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
   */
 template <typename Arith, uint kRow, uint kColumn> inline
 constexpr Matrix<Arith, kRow, kColumn> operator+(
@@ -392,6 +441,14 @@ constexpr Matrix<Arith, kRow, kColumn> operator+(
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Arith No description.
+  \tparam kRow No description.
+  \tparam kColumn No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
   */
 template <typename Arith, uint kRow, uint kColumn> inline
 constexpr Matrix<Arith, kRow, kColumn> operator-(
@@ -404,9 +461,16 @@ constexpr Matrix<Arith, kRow, kColumn> operator-(
 }
 
 /*!
- \details
- No detailed.
- */
+  \details No detailed description
+
+  \tparam Arith No description.
+  \tparam L No description.
+  \tparam M No description.
+  \tparam N No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
+  */
 template <typename Arith, uint L, uint M, uint N> inline
 constexpr Matrix<Arith, L, N> operator*(
     const Matrix<Arith, L, M>& lhs,
@@ -425,8 +489,14 @@ constexpr Matrix<Arith, L, N> operator*(
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \tparam Arith No description.
+  \tparam kRow No description.
+  \tparam kColumn No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
   */
 template <typename Arith, uint kRow, uint kColumn> inline
 constexpr Matrix<Arith, kRow, kColumn> operator*(
@@ -439,8 +509,14 @@ constexpr Matrix<Arith, kRow, kColumn> operator*(
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \tparam Arith No description.
+  \tparam kRow No description.
+  \tparam kColumn No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
   */
 template <typename Arith, uint kRow, uint kColumn> inline
 constexpr Matrix<Arith, kRow, kColumn> operator*(
@@ -451,6 +527,14 @@ constexpr Matrix<Arith, kRow, kColumn> operator*(
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Arith No description.
+  \tparam kRow No description.
+  \tparam kColumn No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
   */
 template <typename Arith, uint kRow, uint kColumn> inline
 constexpr ArithArray<Arith,  kColumn> operator*(
@@ -468,6 +552,14 @@ constexpr ArithArray<Arith,  kColumn> operator*(
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Arith No description.
+  \tparam kRow No description.
+  \tparam kColumn No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
   */
 template <typename Arith, uint kRow, uint kColumn> inline
 constexpr ArithArray<Arith, kRow> operator*(
@@ -485,6 +577,16 @@ constexpr ArithArray<Arith, kRow> operator*(
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Arith No description.
+  \tparam kRow1 No description.
+  \tparam kColumn1 No description.
+  \tparam kRow2 No description.
+  \tparam kColumn2 No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
   */
 template <typename Arith, uint kRow1, uint kColumn1, uint kRow2, uint kColumn2>
 inline
@@ -499,6 +601,16 @@ constexpr bool operator==(
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Arith No description.
+  \tparam kRow1 No description.
+  \tparam kColumn1 No description.
+  \tparam kRow2 No description.
+  \tparam kColumn2 No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
   */
 template <typename Arith, uint kRow1, uint kColumn1, uint kRow2, uint kColumn2>
 inline

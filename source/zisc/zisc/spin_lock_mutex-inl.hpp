@@ -1,7 +1,12 @@
 /*!
   \file spin_lock_mutex-inl.hpp
   \author Sho Ikeda
+  \brief No brief description
 
+  \details
+  No detailed description.
+
+  \copyright
   Copyright (c) 2015-2020 Sho Ikeda
   This software is released under the MIT License.
   http://opensource.org/licenses/mit-license.php
@@ -20,6 +25,7 @@
 namespace zisc {
 
 /*!
+  \details No detailed description
   */
 inline
 SpinLockMutex::SpinLockMutex() noexcept
@@ -27,6 +33,7 @@ SpinLockMutex::SpinLockMutex() noexcept
 }
 
 /*!
+  \details No detailed description
   */
 inline
 SpinLockMutex::~SpinLockMutex() noexcept
@@ -34,6 +41,7 @@ SpinLockMutex::~SpinLockMutex() noexcept
 }
 
 /*!
+  \details No detailed description
   */
 inline
 void SpinLockMutex::lock() noexcept
@@ -44,6 +52,9 @@ void SpinLockMutex::lock() noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \return No description
   */
 inline
 bool SpinLockMutex::try_lock() noexcept
@@ -52,6 +63,9 @@ bool SpinLockMutex::try_lock() noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \return No description
   */
 inline
 bool SpinLockMutex::tryLock() noexcept
@@ -60,6 +74,7 @@ bool SpinLockMutex::tryLock() noexcept
 }
 
 /*!
+  \details No detailed description
   */
 inline
 void SpinLockMutex::unlock() noexcept

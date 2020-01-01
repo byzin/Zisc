@@ -1,7 +1,12 @@
 /*!
   \file pcg_engine-inl.hpp
   \author Sho Ikeda
+  \brief No brief description
 
+  \details
+  No detailed description.
+
+  \copyright
   Copyright (c) 2015-2020 Sho Ikeda
   This software is released under the MIT License.
   http://opensource.org/licenses/mit-license.php
@@ -24,6 +29,7 @@
 namespace zisc {
 
 /*!
+  \details No detailed description
   */
 template <PcgBase Base, PcgMethod Method, typename Seed, typename Result> inline
 PcgEngine<Base, Method, Seed, Result>::PcgEngine() noexcept
@@ -33,6 +39,9 @@ PcgEngine<Base, Method, Seed, Result>::PcgEngine() noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \param [in] seed No description.
   */
 template <PcgBase Base, PcgMethod Method, typename Seed, typename Result> inline
 PcgEngine<Base, Method, Seed, Result>::PcgEngine(const SeedType seed) noexcept
@@ -41,16 +50,6 @@ PcgEngine<Base, Method, Seed, Result>::PcgEngine(const SeedType seed) noexcept
 }
 
 namespace inner {
-
-/*!
-  */
-template <typename ResultType, typename BitCountType> inline
-ResultType rotateRightPcg(const ResultType value, const BitCountType rot) noexcept
-{
-  constexpr BitCountType bits = cast<BitCountType>(sizeof(ResultType) * 8);
-  constexpr BitCountType mask = bits - 1;
-  return cast<ResultType>(value >> rot) | cast<ResultType>(value << ((-rot) & mask));
-}
 
 template <PcgMethod, typename SeedType, typename ResultType, typename BitCountType>
 struct PcgMixin;
@@ -93,6 +92,14 @@ struct PcgMixin<PcgMethod::XshRs, SeedType, ResultType, BitCountType>
 template <typename SeedType, typename ResultType, typename BitCountType>
 struct PcgMixin<PcgMethod::XshRr, SeedType, ResultType, BitCountType>
 {
+  static ResultType rotateRightPcg(const ResultType value,
+                                   const BitCountType rot) noexcept
+  {
+    constexpr BitCountType bits = cast<BitCountType>(sizeof(ResultType) * 8);
+    constexpr BitCountType mask = bits - 1;
+    return cast<ResultType>(value >> rot) | cast<ResultType>(value << ((-rot) & mask));
+  }
+
   static ResultType output(SeedType internal) noexcept
   {
     // Constant values
@@ -123,17 +130,25 @@ struct PcgMixin<PcgMethod::XshRr, SeedType, ResultType, BitCountType>
   }
 };
 
-template <typename Type> inline constexpr Type mcgMultiplierPcg();
-template <> inline constexpr uint8b mcgMultiplierPcg<uint8b>() {return 217u;}
-template <> inline constexpr uint16b mcgMultiplierPcg<uint16b>() {return 62169u;}
-template <> inline constexpr uint32b mcgMultiplierPcg<uint32b>() {return 277803737u;}
-template <> inline constexpr uint64b mcgMultiplierPcg<uint64b>() {return 12605985483714917081ull;}
-
 /*!
   */
 template <typename SeedType, typename ResultType, typename BitCountType>
 struct PcgMixin<PcgMethod::RxsMXs, SeedType, ResultType, BitCountType>
 {
+  static constexpr SeedType mcgMultiplierPcg() noexcept
+  {
+    SeedType m = 0;
+    if constexpr (std::is_same_v<uint8b, SeedType>)
+      m = 217u;
+    else if constexpr (std::is_same_v<uint16b, SeedType>)
+      m = 62169u;
+    else if constexpr (std::is_same_v<uint32b, SeedType>)
+      m = 277803737u;
+    else if constexpr (std::is_same_v<uint64b, SeedType>)
+      m = 12605985483714917081ull;
+    return m;
+  }
+
   static ResultType output(SeedType internal) noexcept
   {
     // Constant values
@@ -152,7 +167,7 @@ struct PcgMixin<PcgMethod::RxsMXs, SeedType, ResultType, BitCountType>
         ? cast<BitCountType>(internal >> (bits - opbits)) & mask
         : 0;
     internal ^= internal >> (opbits + rshift);
-    internal *= mcgMultiplierPcg<SeedType>();
+    internal *= mcgMultiplierPcg();
     ResultType result = internal >> shift;
     result ^= result >> xshift;
     return result;
@@ -162,6 +177,9 @@ struct PcgMixin<PcgMethod::RxsMXs, SeedType, ResultType, BitCountType>
 } // namespace inner 
 
 /*!
+  \details No detailed description
+
+  \return No description
   */
 template <PcgBase Base, PcgMethod Method, typename Seed, typename Result> inline
 auto PcgEngine<Base, Method, Seed, Result>::generate() noexcept -> ResultType
@@ -173,6 +191,9 @@ auto PcgEngine<Base, Method, Seed, Result>::generate() noexcept -> ResultType
 }
 
 /*!
+  \details No detailed description
+
+  \return No description
   */
 template <PcgBase Base, PcgMethod Method, typename Seed, typename Result> inline
 constexpr std::size_t PcgEngine<Base, Method, Seed, Result>::getPeriodPow2() noexcept
@@ -183,30 +204,36 @@ constexpr std::size_t PcgEngine<Base, Method, Seed, Result>::getPeriodPow2() noe
 }
 
 /*!
+  \details No detailed description
+
+  \tparam UInteger No description.
+  \param [in] sample No description.
+  \return No description
   */
 template <PcgBase Base, PcgMethod Method, typename Seed, typename Result>
-template <typename UnsignedInteger> inline
+template <typename UInteger> inline
 constexpr bool PcgEngine<Base, Method, Seed, Result>::isEndOfPeriod(
-    const UnsignedInteger sample) noexcept
+    const UInteger sample) noexcept
 {
-  static_assert(kIsUnsignedInteger<UnsignedInteger>,
-                "UnsignedInteger isn't unsigned integer type.");
-  constexpr std::size_t sample_bit_size = sizeof(UnsignedInteger) * 8;
+  static_assert(kIsUnsignedInteger<UInteger>,
+                "UInteger isn't unsigned integer type.");
+  constexpr std::size_t sample_bit_size = sizeof(UInteger) * 8;
   constexpr std::size_t period_pow2 = getPeriodPow2();
   if constexpr (sample_bit_size <= period_pow2) {
     // Workaround
-    constexpr UnsignedInteger end_of_period =
-        std::numeric_limits<UnsignedInteger>::max();
+    constexpr UInteger end_of_period = std::numeric_limits<UInteger>::max();
     return sample == end_of_period;
   }
   else {
-    constexpr UnsignedInteger end_of_period =
-        (cast<UnsignedInteger>(1u) << period_pow2) - 1;
+    constexpr UInteger end_of_period = (cast<UInteger>(1u) << period_pow2) - 1;
     return sample == end_of_period;
   }
 }
 
 /*!
+  \details No detailed description
+
+  \param [in] seed No description.
   */
 template <PcgBase Base, PcgMethod Method, typename Seed, typename Result> inline
 void PcgEngine<Base, Method, Seed, Result>::setSeed(const SeedType seed) noexcept
@@ -216,15 +243,23 @@ void PcgEngine<Base, Method, Seed, Result>::setSeed(const SeedType seed) noexcep
 }
 
 /*!
+  \details No detailed description
+
+  \param [in] state No description.
+  \return No description
   */
 template <PcgBase Base, PcgMethod Method, typename Seed, typename Result> inline
-auto PcgEngine<Base, Method, Seed, Result>::bump(const SeedType state) const noexcept
-    -> SeedType
+auto PcgEngine<Base, Method, Seed, Result>::bump(const SeedType state)
+    const noexcept -> SeedType
 {
-  return state * multiplier() + increment();
+  const SeedType result = state * multiplier() + increment();
+  return result;
 }
 
 /*!
+  \details No detailed description
+
+  \return No description
   */
 template <PcgBase Base, PcgMethod Method, typename Seed, typename Result> inline
 auto PcgEngine<Base, Method, Seed, Result>::generateBase() noexcept -> SeedType
@@ -240,35 +275,51 @@ auto PcgEngine<Base, Method, Seed, Result>::generateBase() noexcept -> SeedType
   }
 }
 
-namespace inner {
+/*!
+  \details No detailed description
 
-template <typename Type> inline constexpr Type incrementPcg();
-template <> inline constexpr uint8b incrementPcg<uint8b>() {return 77u;}
-template <> inline constexpr uint16b incrementPcg<uint16b>() {return 47989u;}
-template <> inline constexpr uint32b incrementPcg<uint32b>() {return 2891336453u;}
-template <> inline constexpr uint64b incrementPcg<uint64b>() {return 1442695040888963407ull;}
-
-template <typename Type> inline constexpr Type multiplierPcg();
-template <> inline constexpr uint8b multiplierPcg<uint8b>() {return 141u;}
-template <> inline constexpr uint16b multiplierPcg<uint16b>() {return 12829u;}
-template <> inline constexpr uint32b multiplierPcg<uint32b>() {return 747796405u;}
-template <> inline constexpr uint64b multiplierPcg<uint64b>() {return 6364136223846793005ull;}
-
-} // namespace inner
-
+  \return No description
+  */
 template <PcgBase Base, PcgMethod Method, typename Seed, typename Result> inline
 constexpr auto PcgEngine<Base, Method, Seed, Result>::increment() noexcept
     -> SeedType
 {
+  using SType = std::remove_cv_t<SeedType>;
+  SType i = 0;
   constexpr bool is_mcg = (Base == PcgBase::Mcg);
-  return is_mcg ? 0 : inner::incrementPcg<SeedType>();
+  if constexpr (!is_mcg) {
+    if constexpr (std::is_same_v<uint8b, SType>)
+      i = 77u;
+    else if constexpr (std::is_same_v<uint16b, SType>)
+      i = 47989u;
+    else if constexpr (std::is_same_v<uint32b, SType>)
+      i = 2891336453u;
+    else if constexpr (std::is_same_v<uint64b, SType>)
+      i = 1442695040888963407ull;
+  }
+  return i;
 }
 
+/*!
+  \details No detailed description
+
+  \return No description
+  */
 template <PcgBase Base, PcgMethod Method, typename Seed, typename Result> inline
 constexpr auto PcgEngine<Base, Method, Seed, Result>::multiplier() noexcept
     -> SeedType
 {
-  return inner::multiplierPcg<SeedType>();
+  using SType = std::remove_cv_t<SeedType>;
+  SType m = 0;
+  if constexpr (std::is_same_v<uint8b, SType>)
+    m = 141u;
+  else if constexpr (std::is_same_v<uint16b, SType>)
+    m = 12829u;
+  else if constexpr (std::is_same_v<uint32b, SType>)
+    m = 747796405u;
+  else if constexpr (std::is_same_v<uint64b, SType>)
+    m = 6364136223846793005ull;
+  return m;
 }
 
 } // namespace zisc

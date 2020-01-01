@@ -1,14 +1,19 @@
 /*!
-  \file unique_memory_pointer.hpp
+  \file unique_pointer.hpp
   \author Sho Ikeda
+  \brief No brief description
 
+  \details
+  No detailed description.
+
+  \copyright
   Copyright (c) 2015-2020 Sho Ikeda
   This software is released under the MIT License.
   http://opensource.org/licenses/mit-license.php
   */
 
-#ifndef ZISC_UNIQUE_MEMORY_POINTER_HPP
-#define ZISC_UNIQUE_MEMORY_POINTER_HPP
+#ifndef ZISC_UNIQUE_POINTER_HPP
+#define ZISC_UNIQUE_POINTER_HPP
 
 // Standard C++ library
 #include <type_traits>
@@ -21,11 +26,17 @@
 namespace zisc {
 
 /*!
+  \brief No brief description
+
+  No detailed description.
+
+  \tparam Type No description.
   */
 template <typename Type>
-class UniqueMemoryPointer : private NonCopyable<UniqueMemoryPointer<Type>>
+class UniquePointer : private NonCopyable<UniquePointer<Type>>
 {
  public:
+  //! Type aliases for STL
   using value_type = Type;
   using reference = std::add_lvalue_reference_t<value_type>;
   using const_reference = std::add_const_t<reference>;
@@ -34,31 +45,35 @@ class UniqueMemoryPointer : private NonCopyable<UniqueMemoryPointer<Type>>
 
 
   //! Create an empty unique pointer
-  UniqueMemoryPointer() noexcept;
+  UniquePointer() noexcept;
 
   //! Create a unique pointer
-  UniqueMemoryPointer(pointer data,
-                      std::pmr::memory_resource* mem_resource) noexcept;
+  UniquePointer(pointer data, std::pmr::memory_resource* mem_resource) noexcept;
 
   //! Move a data
-  UniqueMemoryPointer(UniqueMemoryPointer&& other) noexcept;
+  UniquePointer(UniquePointer&& other) noexcept;
 
   //! Move a data
   template <typename Super>
-  UniqueMemoryPointer(UniqueMemoryPointer<Super>&& other,
-                      EnableIfBaseOf<Type, Super> = kEnabler) noexcept;
+  UniquePointer(UniquePointer<Super>&& other,
+                EnableIfBaseOf<Type, Super> = kEnabler) noexcept;
 
   //! Destruct the managed object
-  ~UniqueMemoryPointer() noexcept;
+  ~UniquePointer() noexcept;
 
 
   //! Move a data
-  UniqueMemoryPointer& operator=(UniqueMemoryPointer&& other) noexcept;
+  UniquePointer& operator=(UniquePointer&& other) noexcept;
+
+  //! Move a data
+  template <typename Super>
+  UniquePointer& operator=(UniquePointer&& other) noexcept;
 
   //! Check whether this owns an object
   explicit operator bool() const noexcept
   {
-    return get() != nullptr;
+    const bool result = get() != nullptr;
+    return result;
   }
 
   //! Dereferences pointer to the managed object
@@ -82,7 +97,7 @@ class UniqueMemoryPointer : private NonCopyable<UniqueMemoryPointer<Type>>
 
   //! Create a unique pointer
   template <typename ...Types>
-  static UniqueMemoryPointer make(std::pmr::memory_resource* mem_resource,
+  static UniquePointer make(std::pmr::memory_resource* mem_resource,
                                   Types&&... arguments) noexcept;
 
   //! Return the memory resource
@@ -100,13 +115,13 @@ class UniqueMemoryPointer : private NonCopyable<UniqueMemoryPointer<Type>>
   //! Replace the managed object
   void reset(pointer data, std::pmr::memory_resource* mem_resource) noexcept;
 
-  //! Swap the managed objects
-  void swap(UniqueMemoryPointer& other) noexcept;
+  //! Replace the managed objects with the given object
+  template <typename Super>
+  void reset(UniquePointer<Super>& other,
+             EnableIfBaseOf<Type, Super> = kEnabler) noexcept;
 
   //! Swap the managed objects
-  template <typename Super>
-  void swap(UniqueMemoryPointer<Super>& other,
-            EnableIfBaseOf<Type, Super> = kEnabler) noexcept;
+  void swap(UniquePointer& other) noexcept;
 
  private:
   using Allocator = std::pmr::polymorphic_allocator<value_type>;
@@ -118,10 +133,10 @@ class UniqueMemoryPointer : private NonCopyable<UniqueMemoryPointer<Type>>
 
 //! Swap the managed objects
 template <typename Type>
-void swap(UniqueMemoryPointer<Type>& lhs, UniqueMemoryPointer<Type>& rhs) noexcept;
+void swap(UniquePointer<Type>& lhs, UniquePointer<Type>& rhs) noexcept;
 
 } // namespace zisc
 
-#include "unique_memory_pointer-inl.hpp"
+#include "unique_pointer-inl.hpp"
 
-#endif // ZISC_UNIQUE_MEMORY_POINTER_HPP
+#endif // ZISC_UNIQUE_POINTER_HPP

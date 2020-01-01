@@ -57,7 +57,7 @@ LockFreeBoundedQueue<Type>::LockFreeBoundedQueue(
     std::pmr::memory_resource* mem_resource) noexcept :
         free_elements_buffer_{mem_resource},
         allocated_elements_buffer_{mem_resource},
-        elements_{std::pmr::polymorphic_allocator<Type>{mem_resource}},
+        elements_{typename pmr::vector<Type>::allocator_type{mem_resource}},
         size_{0}
 {
   setCapacity(cap);
@@ -258,7 +258,7 @@ int LockFreeBoundedQueue<Type>::size() const noexcept
 template <typename Type> inline
 LockFreeBoundedQueue<Type>::RingBuffer::RingBuffer(
     std::pmr::memory_resource* mem_resource) noexcept :
-        indices_{std::pmr::polymorphic_allocator<std::atomic<UInt>>{mem_resource}}
+        indices_{typename pmr::vector<std::atomic<UInt>>::allocator_type{mem_resource}}
 {
 }
 

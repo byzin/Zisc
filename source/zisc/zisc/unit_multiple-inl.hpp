@@ -1,7 +1,12 @@
 /*!
   \file unit_multiple-inl.hpp
   \author Sho Ikeda
+  \brief No brief description
 
+  \details
+  No detailed description.
+
+  \copyright
   Copyright (c) 2015-2020 Sho Ikeda
   This software is released under the MIT License.
   http://opensource.org/licenses/mit-license.php
@@ -23,6 +28,7 @@
 namespace zisc {
 
 /*!
+  \details No detailed description
   */
 template <int64b kBase, int64b kExponent> inline
 constexpr UnitMultiple<kBase, kExponent>::UnitMultiple() noexcept : value_{}
@@ -30,6 +36,9 @@ constexpr UnitMultiple<kBase, kExponent>::UnitMultiple() noexcept : value_{}
 }
 
 /*!
+  \details No detailed description
+
+  \param [in] value No description.
   */
 template <int64b kBase, int64b kExponent> inline
 constexpr UnitMultiple<kBase, kExponent>::UnitMultiple(
@@ -39,6 +48,9 @@ constexpr UnitMultiple<kBase, kExponent>::UnitMultiple(
 }
 
 /*!
+  \details No detailed description
+
+  \param [in] value No description.
   */
 template <int64b kBase, int64b kExponent> inline
 constexpr UnitMultiple<kBase, kExponent>::UnitMultiple(
@@ -48,6 +60,10 @@ constexpr UnitMultiple<kBase, kExponent>::UnitMultiple(
 }
 
 /*!
+  \details No detailed description
+
+  \tparam kOtherExponent No description.
+  \param [in] other No description.
   */
 template <int64b kBase, int64b kExponent> template <int64b kOtherExponent> inline
 constexpr UnitMultiple<kBase, kExponent>::UnitMultiple(
@@ -57,6 +73,10 @@ constexpr UnitMultiple<kBase, kExponent>::UnitMultiple(
 }
 
 /*!
+  \details No detailed description
+
+  \param [in] value No description.
+  \return No description
   */
 template <int64b kBase, int64b kExponent> inline
 constexpr auto UnitMultiple<kBase, kExponent>::operator=(
@@ -67,6 +87,10 @@ constexpr auto UnitMultiple<kBase, kExponent>::operator=(
 }
 
 /*!
+  \details No detailed description
+
+  \param [in] value No description.
+  \return No description
   */
 template <int64b kBase, int64b kExponent> inline
 constexpr auto UnitMultiple<kBase, kExponent>::operator=(
@@ -77,6 +101,10 @@ constexpr auto UnitMultiple<kBase, kExponent>::operator=(
 }
 
 /*!
+  \details No detailed description
+
+  \param [in] other No description.
+  \return No description
   */
 template <int64b kBase, int64b kExponent> template <int64b kOtherExponent> inline
 constexpr auto UnitMultiple<kBase, kExponent>::operator=(
@@ -87,6 +115,9 @@ constexpr auto UnitMultiple<kBase, kExponent>::operator=(
 }
 
 /*!
+  \details No detailed description
+
+  \return No description
   */
 template <int64b kBase, int64b kExponent> inline
 constexpr auto UnitMultiple<kBase, kExponent>::base() noexcept -> ArithmeticType
@@ -95,6 +126,9 @@ constexpr auto UnitMultiple<kBase, kExponent>::base() noexcept -> ArithmeticType
 }
 
 /*!
+  \details No detailed description
+
+  \return No description
   */
 template <int64b kBase, int64b kExponent> inline
 constexpr auto UnitMultiple<kBase, kExponent>::exponent() noexcept -> ArithmeticType
@@ -103,6 +137,10 @@ constexpr auto UnitMultiple<kBase, kExponent>::exponent() noexcept -> Arithmetic
 }
 
 /*!
+  \details No detailed description
+
+  \tparam kToExponent No description.
+  \return No description
   */
 template <int64b kBase, int64b kExponent> template <int64b kToExponent> inline
 constexpr UnitMultiple<kBase, kToExponent> UnitMultiple<kBase, kExponent>::
@@ -120,6 +158,9 @@ constexpr UnitMultiple<kBase, kToExponent> UnitMultiple<kBase, kExponent>::
 }
 
 /*!
+  \details No detailed description
+
+  \param [in] value No description.
   */
 template <int64b kBase, int64b kExponent> inline
 constexpr void UnitMultiple<kBase, kExponent>::setValue(
@@ -129,6 +170,9 @@ constexpr void UnitMultiple<kBase, kExponent>::setValue(
 }
 
 /*!
+  \details No detailed description
+
+  \param [in] value No description.
   */
 template <int64b kBase, int64b kExponent> inline
 constexpr void UnitMultiple<kBase, kExponent>::setValue(
@@ -138,6 +182,10 @@ constexpr void UnitMultiple<kBase, kExponent>::setValue(
 }
 
 /*!
+  \details No detailed description
+
+  \tparam kOtherExponent No description.
+  \param [in] other No description.
   */
 template <int64b kBase, int64b kExponent> template <int64b kOtherExponent> inline
 constexpr void UnitMultiple<kBase, kExponent>::setValue(
@@ -147,6 +195,9 @@ constexpr void UnitMultiple<kBase, kExponent>::setValue(
 }
 
 /*!
+  \details No detailed description
+
+  \return No description
   */
 template <int64b kBase, int64b kExponent> inline
 constexpr auto UnitMultiple<kBase, kExponent>::value() noexcept
@@ -156,6 +207,9 @@ constexpr auto UnitMultiple<kBase, kExponent>::value() noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \return No description
   */
 template <int64b kBase, int64b kExponent> inline
 constexpr auto UnitMultiple<kBase, kExponent>::value() const noexcept
@@ -165,6 +219,14 @@ constexpr auto UnitMultiple<kBase, kExponent>::value() const noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \tparam kBase No description.
+  \tparam kExponent1 No description.
+  \tparam kExponent2 No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
   */
 template <int64b kBase, int64b kExponent1, int64b kExponent2> inline
 constexpr UnitMultiple<kBase, std::min(kExponent1, kExponent2)> operator+(
@@ -177,6 +239,14 @@ constexpr UnitMultiple<kBase, std::min(kExponent1, kExponent2)> operator+(
 }
 
 /*!
+  \details No detailed description
+
+  \tparam kBase No description.
+  \tparam kExponent1 No description.
+  \tparam kExponent2 No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
   */
 template <int64b kBase, int64b kExponent1, int64b kExponent2> inline
 constexpr UnitMultiple<kBase, std::min(kExponent1, kExponent2)> operator-(
@@ -189,6 +259,14 @@ constexpr UnitMultiple<kBase, std::min(kExponent1, kExponent2)> operator-(
 }
 
 /*!
+  \details No detailed description
+
+  \tparam kBase No description.
+  \tparam kExponent No description.
+  \tparam Integer No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
   */
 template <int64b kBase, int64b kExponent, typename Integer> inline
 constexpr UnitMultiple<kBase, kExponent> operator*(
@@ -197,12 +275,21 @@ constexpr UnitMultiple<kBase, kExponent> operator*(
 {
   static_assert(kIsInteger<Integer>, "Integer isn't integer type.");
   using Multiple = UnitMultiple<kBase, kExponent>;
+  using FracType = typename Multiple::FractionType;
   const auto result = lhs.value() *
-      typename Multiple::FractionType{cast<typename Multiple::ArithmeticType>(rhs)};
+                      FracType{cast<typename FracType::ArithmeticType>(rhs)};
   return Multiple{result};
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Integer No description.
+  \tparam kBase No description.
+  \tparam kExponent No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
   */
 template <typename Integer, int64b kBase, int64b kExponent> inline
 constexpr UnitMultiple<kBase, kExponent> operator*(
@@ -214,6 +301,14 @@ constexpr UnitMultiple<kBase, kExponent> operator*(
 }
 
 /*!
+  \details No detailed description
+
+  \tparam kBase No description.
+  \tparam kExponent No description.
+  \tparam Integer No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
   */
 template <int64b kBase, int64b kExponent, typename Integer> inline
 constexpr UnitMultiple<kBase, kExponent> operator/(
@@ -222,12 +317,21 @@ constexpr UnitMultiple<kBase, kExponent> operator/(
 {
   static_assert(kIsInteger<Integer>, "Integer isn't integer type.");
   using Multiple = UnitMultiple<kBase, kExponent>;
+  using FracType = typename Multiple::FractionType;
   const auto result = lhs.value() /
-      typename Multiple::FractionType{cast<typename Multiple::ArithmeticType>(rhs)};
+                      FracType{cast<typename FracType::ArithmeticType>(rhs)};
   return Multiple{result};
 }
 
 /*!
+  \details No detailed description
+
+  \tparam kBase No description.
+  \tparam kExponent1 No description.
+  \tparam kExponent2 No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
   */
 template <int64b kBase, int64b kExponent1, int64b kExponent2> inline
 constexpr bool operator==(
@@ -240,16 +344,33 @@ constexpr bool operator==(
 }
 
 /*!
+  \details No detailed description
+
+  \tparam kBase No description.
+  \tparam kExponent1 No description.
+  \tparam kExponent2 No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
   */
 template <int64b kBase, int64b kExponent1, int64b kExponent2> inline
 constexpr bool operator!=(
     const UnitMultiple<kBase, kExponent1>& lhs,
     const UnitMultiple<kBase, kExponent2>& rhs) noexcept
 {
-  return !(lhs == rhs);
+  const bool result = !(lhs == rhs);
+  return result;
 }
 
 /*!
+  \details No detailed description
+
+  \tparam kBase No description.
+  \tparam kExponent1 No description.
+  \tparam kExponent2 No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
   */
 template <int64b kBase, int64b kExponent1, int64b kExponent2> inline
 constexpr bool operator<(
@@ -262,6 +383,14 @@ constexpr bool operator<(
 }
 
 /*!
+  \details No detailed description
+
+  \tparam kBase No description.
+  \tparam kExponent1 No description.
+  \tparam kExponent2 No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
   */
 template <int64b kBase, int64b kExponent1, int64b kExponent2> inline
 constexpr bool operator<=(
@@ -274,23 +403,41 @@ constexpr bool operator<=(
 }
 
 /*!
+  \details No detailed description
+
+  \tparam kBase No description.
+  \tparam kExponent1 No description.
+  \tparam kExponent2 No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
   */
 template <int64b kBase, int64b kExponent1, int64b kExponent2> inline
 constexpr bool operator>(
     const UnitMultiple<kBase, kExponent1>& lhs,
     const UnitMultiple<kBase, kExponent2>& rhs) noexcept
 {
-  return rhs < lhs;
+  const bool result = rhs < lhs;
+  return result;
 }
 
 /*!
+  \details No detailed description
+
+  \tparam kBase No description.
+  \tparam kExponent1 No description.
+  \tparam kExponent2 No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
   */
 template <int64b kBase, int64b kExponent1, int64b kExponent2> inline
 constexpr bool operator>=(
     const UnitMultiple<kBase, kExponent1>& lhs,
     const UnitMultiple<kBase, kExponent2>& rhs) noexcept
 {
-  return rhs <= lhs;
+  const bool result = rhs <= lhs;
+  return result;
 }
 
 } // namespace zisc

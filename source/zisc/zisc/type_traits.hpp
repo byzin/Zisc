@@ -99,6 +99,9 @@ class TypeTraits
 
   template <typename T, typename... Args>
   using EnableIfConstructible = EnableIf<std::is_constructible_v<T, Args...>>;
+
+  template <typename T, typename... Args>
+  using EnableIfInvocable = EnableIf<std::is_invocable_v<T, Args...>>;
 };
 
 // Type properties
@@ -157,6 +160,9 @@ using EnableIfBaseOf = TypeTraits::EnableIfBaseOf<B, D, Type>;
 
 template <typename T, typename... Args>
 using EnableIfConstructible = TypeTraits::EnableIfConstructible<T, Args...>;
+
+template <typename T, typename... Args>
+using EnableIfInvocable = TypeTraits::EnableIfInvocable<T, Args...>;
 
 } // namespace zisc
 

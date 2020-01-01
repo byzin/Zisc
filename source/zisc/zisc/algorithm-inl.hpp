@@ -446,6 +446,7 @@ void Algorithm::Zisc::toBinaryTree(
   if (1 < size) {
     // Create a temp array
     using Type = typename std::iterator_traits<RandomAccessIterator>::value_type;
+    //! \todo Remove temporary array. Optimize memory usage
     std::vector<Type> array;
     array.reserve(cast<std::size_t>(size));
     for (auto iterator = begin; iterator != end; ++iterator)

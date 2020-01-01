@@ -1,7 +1,12 @@
 /*!
-  \file unique_memory_pointer_test.cpp
+  \file unique_pointer_test.cpp
   \author Sho Ikeda
+  \brief No brief description
 
+  \details
+  No detailed description.
+
+  \copyright
   Copyright (c) 2015-2020 Sho Ikeda
   This software is released under the MIT License.
   http://opensource.org/licenses/mit-license.php
@@ -15,7 +20,7 @@
 #include "gtest/gtest.h"
 // Zisc
 #include "zisc/simple_memory_resource.hpp"
-#include "zisc/unique_memory_pointer.hpp"
+#include "zisc/unique_pointer.hpp"
 #include "zisc/zisc_config.hpp"
 
 namespace {
@@ -50,28 +55,22 @@ int Test::counter_ = 0;
 
 } // namespace
 
-TEST(UniqueMemoryPointerTest, FunctionTest)
+TEST(UniquePointerTest, FunctionTest)
 {
-  using UniquePointer = zisc::UniqueMemoryPointer<::Test>;
+  using UniquePointer = zisc::UniquePointer<::Test>;
 
   // null pointer
   UniquePointer p1;
   ASSERT_FALSE(p1) << "The empty unique pointer should be false.";
   ASSERT_EQ(0, ::Test::counter_);
 
-  auto shared_resource = zisc::SimpleMemoryResource::sharedResource();
-  ASSERT_TRUE(shared_resource->is_equal(*shared_resource));
-  shared_resource->reset();
-  shared_resource->setMutex(nullptr);
-  ASSERT_TRUE(0 <= shared_resource->capacity());
-  ASSERT_TRUE(shared_resource->usedMemory() == 0);
-
+  zisc::SimpleMemoryResource mem_resource;
   {
-    auto p2 = UniquePointer::make(shared_resource, 100);
+    auto p2 = UniquePointer::make(&mem_resource, 100);
     ASSERT_EQ(100, (*p2).number_);
     ASSERT_EQ(1, ::Test::counter_);
 
-    auto p3 = UniquePointer::make(shared_resource);
+    auto p3 = UniquePointer::make(&mem_resource);
     ASSERT_EQ(1, p3->number_);
     ASSERT_EQ(2, ::Test::counter_);
 
@@ -86,12 +85,12 @@ TEST(UniqueMemoryPointerTest, FunctionTest)
 
   // Reset
   {
-    std::pmr::polymorphic_allocator<::Test> alloc{shared_resource};
+    std::pmr::polymorphic_allocator<::Test> alloc{&mem_resource};
     auto test = alloc.allocate(1);
     alloc.construct(test);
 
     ASSERT_EQ(2, ::Test::counter_);
-    p1.reset(test, shared_resource);
+    p1.reset(test, &mem_resource);
     ASSERT_EQ(1, ::Test::counter_);
   }
 
@@ -100,7 +99,7 @@ TEST(UniqueMemoryPointerTest, FunctionTest)
   ASSERT_EQ(0, ::Test::counter_);
 
   {
-    UniquePointer p = zisc::UniqueMemoryPointer<::Super>::make(shared_resource, 20);
+    UniquePointer p = zisc::UniquePointer<::Super>::make(&mem_resource, 20);
     ASSERT_EQ(20, p->number_);
     ASSERT_EQ(1, ::Test::counter_);
   }

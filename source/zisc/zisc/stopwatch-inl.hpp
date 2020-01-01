@@ -1,27 +1,32 @@
 /*!
   \file stopwatch-inl.hpp
   \author Sho Ikeda
+  \brief No brief description
 
+  \details
+  No detailed description.
+
+  \copyright
   Copyright (c) 2015-2020 Sho Ikeda
   This software is released under the MIT License.
   http://opensource.org/licenses/mit-license.php
   */
 
+#ifndef ZISC_STOPWATCH_INL_HPP
+#define ZISC_STOPWATCH_INL_HPP
+
 #include "stopwatch.hpp"
 // Standard C++ library
 #include <chrono>
 #include <cstdint>
+#include <utility>
 // Zisc
 #include "utility.hpp"
-
-#ifndef ZISC_STOPWATCH_INL_HPP
-#define ZISC_STOPWATCH_INL_HPP
 
 namespace zisc {
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
   */
 inline
 Stopwatch::Stopwatch() noexcept :
@@ -31,8 +36,37 @@ Stopwatch::Stopwatch() noexcept :
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \param [in] other No description.
+  */
+inline
+Stopwatch::Stopwatch(Stopwatch&& other) noexcept :
+    start_time_{std::move(other.start_time_)},
+    elapsed_time_{std::move(other.elapsed_time_)},
+    state_{std::move(other.state_)}
+{
+}
+
+/*!
+  \details No detailed description
+
+  \param [in] other No description.
+  \return No description
+  */
+inline
+Stopwatch& Stopwatch::operator=(Stopwatch&& other) noexcept
+{
+  start_time_ = std::move(other.start_time_);
+  elapsed_time_ = std::move(other.elapsed_time_);
+  state_ = std::move(other.state_);
+  return *this;
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
   */
 inline
 auto Stopwatch::elapsedTime() const noexcept -> Clock::duration
@@ -46,8 +80,9 @@ auto Stopwatch::elapsedTime() const noexcept -> Clock::duration
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \return No description
   */
 inline
 bool Stopwatch::isIdleState() const noexcept
@@ -56,8 +91,9 @@ bool Stopwatch::isIdleState() const noexcept
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \return No description
   */
 inline
 bool Stopwatch::isPauseState() const noexcept
@@ -66,8 +102,9 @@ bool Stopwatch::isPauseState() const noexcept
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \return No description
   */
 inline
 bool Stopwatch::isRunState() const noexcept
@@ -76,8 +113,9 @@ bool Stopwatch::isRunState() const noexcept
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \return No description
   */
 inline
 auto Stopwatch::pause() noexcept -> Clock::duration
@@ -93,8 +131,7 @@ auto Stopwatch::pause() noexcept -> Clock::duration
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
   */
 inline
 void Stopwatch::start() noexcept
@@ -104,8 +141,7 @@ void Stopwatch::start() noexcept
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
   */
 inline
 void Stopwatch::stop() noexcept

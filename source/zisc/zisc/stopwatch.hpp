@@ -1,7 +1,12 @@
 /*!
   \file stopwatch.hpp
   \author Sho Ikeda
+  \brief No brief description
 
+  \details
+  No detailed description.
+
+  \copyright
   Copyright (c) 2015-2020 Sho Ikeda
   This software is released under the MIT License.
   http://opensource.org/licenses/mit-license.php
@@ -19,10 +24,12 @@
 namespace zisc {
 
 /*!
- \brief Measure elapsed processor time
- \details
- No detailed.
- */
+  \brief Measure elapsed processor time
+
+  No detailed description.
+
+  \todo Add tests
+  */
 class Stopwatch : private NonCopyable<Stopwatch>
 {
  public:
@@ -32,6 +39,13 @@ class Stopwatch : private NonCopyable<Stopwatch>
 
   //! Initialize
   Stopwatch() noexcept;
+
+  //! Move data
+  Stopwatch(Stopwatch&& other) noexcept;
+
+
+  //! Move data
+  Stopwatch& operator=(Stopwatch&& other) noexcept;
 
 
   //! Return the total elapsed time
@@ -70,6 +84,12 @@ class Stopwatch : private NonCopyable<Stopwatch>
 };
 
 } // namespace zisc
+
+/*!
+  \example stopwatch_example.cpp
+
+  This is an example of how to use zisc::Stopwatch.
+  */
 
 #include "stopwatch-inl.hpp"
 

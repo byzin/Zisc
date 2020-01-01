@@ -1,7 +1,12 @@
 /*!
   \file math_const-inl.hpp
   \author Sho Ikeda
+  \brief No brief description
 
+  \details
+  No detailed description.
+
+  \copyright
   Copyright (c) 2015-2020 Sho Ikeda
   This software is released under the MIT License.
   http://opensource.org/licenses/mit-license.php
@@ -30,6 +35,10 @@ namespace zisc {
 namespace constant {
 
 /*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \return No description
   */
 template <typename Float> inline
 constexpr Float Math::pi() noexcept
@@ -41,6 +50,12 @@ constexpr Float Math::pi() noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \tparam kUlpScale No description.
+  \tparam Float No description.
+  \param [in] value No description.
+  \return No description
   */
 template <std::size_t kUlpScale, typename Float> inline
 constexpr Float Math::getUlps(const Float value) noexcept
@@ -53,6 +68,13 @@ constexpr Float Math::getUlps(const Float value) noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \tparam kUlpScale No description.
+  \tparam Arith No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
   */
 template <std::size_t kUlpScale, typename Arith> inline
 constexpr bool Math::isAlmostEqual(const Arith lhs, const Arith rhs) noexcept
@@ -70,6 +92,13 @@ constexpr bool Math::isAlmostEqual(const Arith lhs, const Arith rhs) noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Arith No description.
+  \param [in] a No description.
+  \param [in] b No description.
+  \param [in] c No description.
+  \return No description
   */
 template <typename Arith> inline
 constexpr Arith Math::fma(const Arith a, const Arith b, const Arith c) noexcept
@@ -80,9 +109,14 @@ constexpr Arith Math::fma(const Arith a, const Arith b, const Arith c) noexcept
 }
 
 /*!
- \details
- No detailed.
- */
+  \details No detailed description
+
+  \tparam Integer1 No description.
+  \tparam Integer2 No description.
+  \param [in] m No description.
+  \param [in] n No description.
+  \return No description
+  */
 template <typename Integer1, typename Integer2> inline
 constexpr std::common_type_t<Integer1, Integer2> Math::gcd(Integer1 m,
                                                            Integer2 n) noexcept
@@ -93,9 +127,14 @@ constexpr std::common_type_t<Integer1, Integer2> Math::gcd(Integer1 m,
 }
 
 /*!
- \details
- No detailed.
- */
+  \details No detailed description
+
+  \tparam Integer1 No description.
+  \tparam Integer2 No description.
+  \param [in] m No description.
+  \param [in] n No description.
+  \return No description
+  */
 template <typename Integer1, typename Integer2> inline
 constexpr std::common_type_t<Integer1, Integer2> Math::lcm(Integer1 m,
                                                            Integer2 n) noexcept
@@ -106,9 +145,13 @@ constexpr std::common_type_t<Integer1, Integer2> Math::lcm(Integer1 m,
 }
 
 /*!
- \details
- No detailed.
- */
+  \details No detailed description
+
+  \tparam y No description.
+  \tparam Integer No description.
+  \param [in] x No description.
+  \return No description
+  */
 template <long y, typename Integer> inline
 constexpr Integer Math::mod(Integer x) noexcept
 {
@@ -122,6 +165,13 @@ constexpr Integer Math::mod(Integer x) noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Integer1 No description.
+  \tparam Integer2 No description.
+  \param [in] m No description.
+  \param [in] n No description.
+  \return No description
   */
 template <typename Integer1, typename Integer2> inline
 constexpr std::common_type_t<Integer1, Integer2> Math::sequence(
@@ -137,6 +187,11 @@ constexpr std::common_type_t<Integer1, Integer2> Math::sequence(
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Integer No description.
+  \param [in] x No description.
+  \return No description
   */
 template <typename Integer> inline
 constexpr Integer Math::factorial(const Integer x) noexcept
@@ -147,6 +202,12 @@ constexpr Integer Math::factorial(const Integer x) noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \tparam kExponent No description.
+  \tparam Arith No description.
+  \param [in] base No description.
+  \return No description
   */
 template <int kExponent, typename Arith> inline
 constexpr Arith Math::power(Arith base) noexcept
@@ -173,6 +234,13 @@ constexpr Arith Math::power(Arith base) noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Arith No description.
+  \tparam SignedInteger No description.
+  \param [in] base No description.
+  \param [in] exponent No description.
+  \return No description
   */
 template <typename Arith, typename SignedInteger> inline
 constexpr Arith Math::power(Arith base, SignedInteger exponent) noexcept
@@ -202,7 +270,14 @@ constexpr Arith Math::power(Arith base, SignedInteger exponent) noexcept
   return x;
 }
 
-//! Calculate the value of base raised to the power exponent
+/*!
+  \details No detailed description
+
+  \tparam Float description.
+  \param [in] base No description.
+  \param [in] exponent No description.
+  \return No description
+  */
 template <typename Float> inline
 constexpr Float Math::pow(const Float base, const Float exponent) noexcept
 {
@@ -212,6 +287,11 @@ constexpr Float Math::pow(const Float base, const Float exponent) noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] x No description.
+  \return No description
   */
 template <typename Float> inline
 constexpr Float Math::sqrt(const Float x) noexcept
@@ -227,6 +307,11 @@ constexpr Float Math::sqrt(const Float x) noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] x No description.
+  \return No description
   */
 template <typename Float> inline
 constexpr Float Math::cbrt(const Float x) noexcept
@@ -243,6 +328,11 @@ constexpr Float Math::cbrt(const Float x) noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] x No description.
+  \return No description
   */
 template <typename Float> inline
 constexpr Float Math::exp(Float x) noexcept
@@ -264,6 +354,11 @@ constexpr Float Math::exp(Float x) noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] x No description.
+  \return No description
   */
 template <typename Float> inline
 constexpr Float Math::log2(const Float x) noexcept
@@ -277,6 +372,11 @@ constexpr Float Math::log2(const Float x) noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] x No description.
+  \return No description
   */
 template <typename Float> inline
 constexpr Float Math::log(Float x) noexcept
@@ -288,6 +388,11 @@ constexpr Float Math::log(Float x) noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] x No description.
+  \return No description
   */
 template <typename Float> inline
 constexpr Float Math::log10(const Float x) noexcept
@@ -299,6 +404,11 @@ constexpr Float Math::log10(const Float x) noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] x No description.
+  \return No description
   */
 template <typename Float> inline
 constexpr Float Math::sin(const Float x) noexcept
@@ -310,6 +420,11 @@ constexpr Float Math::sin(const Float x) noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] x No description.
+  \return No description
   */
 template <typename Float> inline
 constexpr Float Math::cos(const Float x) noexcept
@@ -321,6 +436,11 @@ constexpr Float Math::cos(const Float x) noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] x No description.
+  \return No description
   */
 template <typename Float> inline
 constexpr Float Math::tan(const Float x) noexcept
@@ -333,6 +453,11 @@ constexpr Float Math::tan(const Float x) noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] x No description.
+  \return No description
   */
 template <typename Float> inline
 constexpr Float Math::atan(const Float x) noexcept
@@ -367,6 +492,11 @@ constexpr Float Math::atan(const Float x) noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] x No description.
+  \return No description
   */
 template <typename Float> inline
 constexpr Float Math::asin(const Float x) noexcept
@@ -383,6 +513,11 @@ constexpr Float Math::asin(const Float x) noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] x No description.
+  \return No description
   */
 template <typename Float> inline
 constexpr Float Math::acos(const Float x) noexcept
@@ -399,6 +534,12 @@ constexpr Float Math::acos(const Float x) noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] x No description.
+  \param [out] e No description.
+  \return No description
   */
 template <typename Float> inline
 constexpr Float Math::frexp(const Float x, int* e) noexcept
@@ -421,6 +562,12 @@ constexpr Float Math::frexp(const Float x, int* e) noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] x No description.
+  \param [in] e No description.
+  \return No description
   */
 template <typename Float> inline
 constexpr Float Math::ldexp(const Float x, const int e) noexcept
@@ -432,6 +579,11 @@ constexpr Float Math::ldexp(const Float x, const int e) noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] x No description.
+  \return No description
   */
 template <typename Float> inline
 constexpr Float Math::rint(const Float x) noexcept
@@ -442,6 +594,13 @@ constexpr Float Math::rint(const Float x) noexcept
   return cast<Float>(y);
 }
 
+/*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] n No description.
+  \return No description
+  */
 template <typename Float> inline
 constexpr Float Math::calcPi(const int64b n) noexcept
 {
@@ -455,6 +614,12 @@ constexpr Float Math::calcPi(const int64b n) noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \tparam kN No description.
+  \tparam Float No description.
+  \param [in] x No description.
+  \return No description
   */
 template <int kN, typename Float> inline
 constexpr Float Math::estimateNRoot(const Float x) noexcept
@@ -467,6 +632,11 @@ constexpr Float Math::estimateNRoot(const Float x) noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] x No description.
+  \return No description
   */
 template <typename Float> inline
 constexpr Float Math::expImpl(const Float x) noexcept
@@ -484,6 +654,10 @@ constexpr Float Math::expImpl(const Float x) noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \return No description
   */
 template <typename Float> inline
 constexpr Float Math::getL2u() noexcept
@@ -502,7 +676,12 @@ constexpr Float Math::getL2u() noexcept
   }
 }
 
-//! Return the upper part of log(2)
+/*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \return No description
+  */
 template <typename Float> inline
 constexpr Float Math::getL2l() noexcept
 {
@@ -521,8 +700,11 @@ constexpr Float Math::getL2l() noexcept
 }
 
 /*!
-  \details
-  x must be satisfied [1, 2).
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] x \a x must be satisfied [1, 2).
+  \return No description
   */
 template <typename Float> inline
 constexpr Float Math::log2Impl(Float x) noexcept
@@ -544,7 +726,13 @@ constexpr Float Math::log2Impl(Float x) noexcept
   return y;
 }
 
-//! x should be [0, pi/4)
+/*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] x \a x should be [0, pi/4)
+  \return No description
+  */
 template <typename Float> inline
 constexpr std::tuple<Float, Float> Math::sincosImpl(Float x) noexcept
 {
@@ -579,6 +767,10 @@ constexpr std::tuple<Float, Float> Math::sincosImpl(Float x) noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \return No description
   */
 template <typename Float> inline
 constexpr Float Math::getPiA() noexcept
@@ -598,6 +790,10 @@ constexpr Float Math::getPiA() noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \return No description
   */
 template <typename Float> inline
 constexpr Float Math::getPiB() noexcept
@@ -617,6 +813,10 @@ constexpr Float Math::getPiB() noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \return No description
   */
 template <typename Float> inline
 constexpr Float Math::getPiC() noexcept
@@ -636,6 +836,10 @@ constexpr Float Math::getPiC() noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \return No description
   */
 template <typename Float> inline
 constexpr Float Math::getPiD() noexcept
@@ -655,6 +859,11 @@ constexpr Float Math::getPiD() noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] x No description.
+  \return No description
   */
 template <typename Float> inline
 constexpr std::tuple<Float, Float> Math::sincos(const Float x) noexcept
@@ -694,6 +903,11 @@ constexpr std::tuple<Float, Float> Math::sincos(const Float x) noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] x No description.
+  \return No description
   */
 template <typename Float> inline
 constexpr Float Math::atanImpl(const Float x) noexcept
@@ -714,6 +928,13 @@ constexpr Float Math::atanImpl(const Float x) noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Arith No description.
+  \param [in] a No description.
+  \param [in] b No description.
+  \param [in] c No description.
+  \return No description
   */
 template <typename Arith> inline
 constexpr Arith fma(const Arith a, const Arith b, const Arith c) noexcept
@@ -724,9 +945,14 @@ constexpr Arith fma(const Arith a, const Arith b, const Arith c) noexcept
 }
 
 /*!
- \details
- No detailed.
- */
+  \details No detailed description
+
+  \tparam Integer1 No description.
+  \tparam Integer2 No description.
+  \param [in] m No description.
+  \param [in] n No description.
+  \return No description
+  */
 template <typename Integer1, typename Integer2> inline
 constexpr std::common_type_t<Integer1, Integer2> gcd(Integer1 m,
                                                      Integer2 n) noexcept
@@ -738,9 +964,14 @@ constexpr std::common_type_t<Integer1, Integer2> gcd(Integer1 m,
 }
 
 /*!
- \details
- No detailed.
- */
+  \details No detailed description
+
+  \tparam Integer1 No description.
+  \tparam Integer2 No description.
+  \param [in] m No description.
+  \param [in] n No description.
+  \return No description
+  */
 template <typename Integer1, typename Integer2> inline
 constexpr std::common_type_t<Integer1, Integer2> lcm(Integer1 m,
                                                      Integer2 n) noexcept
@@ -752,9 +983,13 @@ constexpr std::common_type_t<Integer1, Integer2> lcm(Integer1 m,
 }
 
 /*!
- \details
- No detailed.
- */
+  \details No detailed description
+
+  \tparam y No description.
+  \tparam Integer No description.
+  \param [in] x No description.
+  \return No description
+  */
 template <long y, typename Integer> inline
 constexpr Integer mod(Integer x) noexcept
 {
@@ -764,6 +999,13 @@ constexpr Integer mod(Integer x) noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Integer1 No description.
+  \tparam Integer2 No description.
+  \param [in] m No description.
+  \param [in] n No description.
+  \return No description
   */
 template <typename Integer1, typename Integer2> inline
 constexpr std::common_type_t<Integer1, Integer2> sequence(
@@ -777,6 +1019,11 @@ constexpr std::common_type_t<Integer1, Integer2> sequence(
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Integer No description.
+  \param [in] x No description.
+  \return No description
   */
 template <typename Integer> inline
 constexpr Integer factorial(const Integer x) noexcept
@@ -787,6 +1034,12 @@ constexpr Integer factorial(const Integer x) noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \tparam kExponent No description.
+  \tparam Arith No description.
+  \param [in] base No description.
+  \return No description
   */
 template <int kExponent, typename Arith> inline
 constexpr Arith power(Arith base) noexcept
@@ -798,6 +1051,13 @@ constexpr Arith power(Arith base) noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Arith No description.
+  \tparam SignedInteger No description.
+  \param [in] base No description.
+  \param [in] exponent No description.
+  \return No description
   */
 template <typename Arith, typename SignedInteger> inline
 constexpr Arith power(Arith base, SignedInteger exponent) noexcept
@@ -810,7 +1070,14 @@ constexpr Arith power(Arith base, SignedInteger exponent) noexcept
   return y;
 }
 
-//! Calculate the value of base raised to the power exponent
+/*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] base No description.
+  \param [in] exponent No description.
+  \return No description
+  */
 template <typename Float> inline
 constexpr Float pow(const Float base, const Float exponent) noexcept
 {
@@ -819,6 +1086,11 @@ constexpr Float pow(const Float base, const Float exponent) noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] x No description.
+  \return No description
   */
 template <typename Float> inline
 constexpr Float sqrt(const Float x) noexcept
@@ -829,6 +1101,11 @@ constexpr Float sqrt(const Float x) noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] x No description.
+  \return No description
   */
 template <typename Float> inline
 constexpr Float cbrt(const Float x) noexcept
@@ -839,6 +1116,11 @@ constexpr Float cbrt(const Float x) noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] x No description.
+  \return No description
   */
 template <typename Float> inline
 constexpr Float exp(Float x) noexcept
@@ -848,6 +1130,11 @@ constexpr Float exp(Float x) noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] x No description.
+  \return No description
   */
 template <typename Float> inline
 constexpr Float log2(const Float x) noexcept
@@ -858,6 +1145,11 @@ constexpr Float log2(const Float x) noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] x No description.
+  \return No description
   */
 template <typename Float> inline
 constexpr Float log(Float x) noexcept
@@ -868,6 +1160,11 @@ constexpr Float log(Float x) noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] x No description.
+  \return No description
   */
 template <typename Float> inline
 constexpr Float log10(const Float x) noexcept
@@ -878,6 +1175,11 @@ constexpr Float log10(const Float x) noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] x No description.
+  \return No description
   */
 template <typename Float> inline
 constexpr Float sin(const Float x) noexcept
@@ -888,6 +1190,11 @@ constexpr Float sin(const Float x) noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] x No description.
+  \return No description
   */
 template <typename Float> inline
 constexpr Float cos(const Float x) noexcept
@@ -898,6 +1205,11 @@ constexpr Float cos(const Float x) noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] x No description.
+  \return No description
   */
 template <typename Float> inline
 constexpr Float tan(const Float x) noexcept
@@ -908,6 +1220,11 @@ constexpr Float tan(const Float x) noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] x No description.
+  \return No description
   */
 template <typename Float> inline
 constexpr Float atan(const Float x) noexcept
@@ -918,6 +1235,11 @@ constexpr Float atan(const Float x) noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] x No description.
+  \return No description
   */
 template <typename Float> inline
 constexpr Float asin(const Float x) noexcept
@@ -928,6 +1250,11 @@ constexpr Float asin(const Float x) noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] x No description.
+  \return No description
   */
 template <typename Float> inline
 constexpr Float acos(const Float x) noexcept
@@ -938,6 +1265,12 @@ constexpr Float acos(const Float x) noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] x No description.
+  \param [out] e No description.
+  \return No description
   */
 template <typename Float> inline
 constexpr Float frexp(const Float x, int* e) noexcept
@@ -948,6 +1281,12 @@ constexpr Float frexp(const Float x, int* e) noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] x No description.
+  \param [in] e No description.
+  \return No description
   */
 template <typename Float> inline
 constexpr Float ldexp(const Float x, const int e) noexcept
@@ -958,6 +1297,11 @@ constexpr Float ldexp(const Float x, const int e) noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] x No description.
+  \return No description
   */
 template <typename Float> inline
 constexpr Float rint(const Float x) noexcept

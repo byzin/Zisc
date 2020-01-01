@@ -1,7 +1,12 @@
 /*!
   \file pseudo_random_number_engine.hpp
   \author Sho Ikeda
+  \brief No brief description
 
+  \details
+  No detailed description.
+
+  \copyright
   Copyright (c) 2015-2020 Sho Ikeda
   This software is released under the MIT License.
   http://opensource.org/licenses/mit-license.php
@@ -20,8 +25,12 @@ namespace zisc {
 
 /*!
   \brief Base class of pseudo random number algorithm
-  \details
-  No detailed.
+
+  No detailed description.
+
+  \tparam GeneratorClass No description.
+  \tparam Seed No description.
+  \tparam Result No description.
   */
 template <typename GeneratorClass, typename Seed, typename Result>
 class PseudoRandomNumberEngine
@@ -55,8 +64,8 @@ class PseudoRandomNumberEngine
   Float generate01Float() noexcept;
 
   //! Check if a specified sample (0 base count) is the end of period
-  template <typename UnsignedInteger>
-  static constexpr bool isEndOfPeriod(const UnsignedInteger sample) noexcept;
+  template <typename UInteger>
+  static constexpr bool isEndOfPeriod(const UInteger sample) noexcept;
 
   //! Set a random seed
   void setSeed(const SeedType seed) noexcept;
@@ -79,6 +88,12 @@ using RandomNumberEngine = PseudoRandomNumberEngine<
                                typename GeneratorClass::ResultType>;
 
 } // namespace zisc
+
+/*!
+  \example pseudo_random_number_engine_example.cpp
+
+  This is an example of how to use zisc pseudo random number generators.
+  */
 
 #include "pseudo_random_number_engine-inl.hpp"
 

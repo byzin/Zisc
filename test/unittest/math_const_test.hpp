@@ -1,7 +1,12 @@
 /*!
-  \file math_const_test.cpp
+  \file math_const_test.hpp
   \author Sho Ikeda
+  \brief No brief description
 
+  \details
+  No detailed description.
+
+  \copyright
   Copyright (c) 2015-2020 Sho Ikeda
   This software is released under the MIT License.
   http://opensource.org/licenses/mit-license.php
@@ -40,6 +45,7 @@ void printFloat(const char* message, const Float x)
   std::cout << std::endl;
   const auto data = FloatData::fromFloat(x);
   std::cout << "                     hex: " << std::hex << data.bits() << std::endl;
+  std::cout << std::dec;
 }
 
 template <int end, int i>

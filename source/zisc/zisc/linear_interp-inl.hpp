@@ -1,7 +1,12 @@
 /*!
-  \file linear_interp-inl.hpp
+  \file linear_interop-inl.hpp
   \author Sho Ikeda
+  \brief No brief description
 
+  \details
+  No detailed description.
+
+  \copyright
   Copyright (c) 2015-2020 Sho Ikeda
   This software is released under the MIT License.
   http://opensource.org/licenses/mit-license.php
@@ -18,6 +23,7 @@
 #include <tuple>
 #include <type_traits>
 #include <utility>
+#include <vector>
 // Zisc
 #include "algorithm.hpp"
 #include "error.hpp"
@@ -27,19 +33,22 @@
 namespace zisc {
 
 /*!
- \details
- No detailed.
- */
+  \details No detailed description
+
+  \param [in,out] mem_resource No description.
+  */
 template <typename Float> inline
-LinearInterp<Float>::LinearInterp(std::pmr::memory_resource* mem_resource) noexcept :
-    data_{typename pmr::list<Pair>::allocator_type{mem_resource}}
+LinearInterp<Float>::LinearInterp(std::pmr::memory_resource* mem_resource)
+    noexcept :
+        data_{typename pmr::vector<Pair>::allocator_type{mem_resource}}
 {
 }
 
 /*!
- \details
- No detailed.
- */
+  \details No detailed description
+
+  \param [in] other No description.
+  */
 template <typename Float> inline
 LinearInterp<Float>::LinearInterp(LinearInterp&& other) noexcept :
     data_{std::move(other.data_)}
@@ -47,19 +56,26 @@ LinearInterp<Float>::LinearInterp(LinearInterp&& other) noexcept :
 }
 
 /*!
- \details
- No detailed.
- */
+  \details No detailed description
+
+  \param [in] x No description.
+  \return No description
+  */
 template <typename Float> inline
 Float LinearInterp<Float>::operator()(const Float x) const noexcept
 {
-  return interpolate(x);
+  const Float y = interpolate(x);
+  return y;
 }
 
 /*!
- \details
- No detailed.
- */
+  \details No detailed description
+
+  \tparam XType No description.
+  \tparam YType No description.
+  \param [in] x No description.
+  \param [in] y No description.
+  */
 template <typename Float> template <typename XType, typename YType> inline
 void LinearInterp<Float>::add(const XType x, const YType y) noexcept
 {
@@ -76,8 +92,31 @@ void LinearInterp<Float>::add(const XType x, const YType y) noexcept
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \return No description
+  */
+template <typename Float> inline
+std::size_t LinearInterp<Float>::capacity() const noexcept
+{
+  const std::size_t cap = data_.capacity();
+  return cap;
+}
+
+/*!
+  \details No detailed description
+  */
+template <typename Float> inline
+void LinearInterp<Float>::clear() noexcept
+{
+  data_.clear();
+}
+
+/*!
+  \details No detailed description
+
+  \param [in] x No description.
+  \return No description
   */
 template <typename Float> inline
 bool LinearInterp<Float>::exists(const Float x) const noexcept
@@ -87,39 +126,62 @@ bool LinearInterp<Float>::exists(const Float x) const noexcept
 }
 
 /*!
- \details
- No detailed.
- */
+  \details No detailed description
+
+  \param [in] x No description.
+  \return No description
+  */
 template <typename Float> inline
 Float LinearInterp<Float>::interpolate(const Float x) const noexcept
 {
+  //! \todo Exception check
   ZISC_ASSERT(
       isInClosedBounds(x, std::get<0>(data_.front()), std::get<0>(data_.back())),
       "The x is out of range.");
 
   const auto upper = lowerBound(x);
-  if (exists(x, upper))
-    return std::get<1>(*upper);
-  const auto lower = std::prev(upper);
-  const Float weight = (x - std::get<0>(*lower)) / 
-                       (std::get<0>(*upper) - std::get<0>(*lower));
-  return std::get<1>(*lower) + weight * (std::get<1>(*upper) - std::get<1>(*lower));
+  Float y = std::get<1>(*upper);
+  if (!exists(x, upper))
+  {
+    const auto lower = std::prev(upper);
+    const Float weight = (x - std::get<0>(*lower)) / 
+                         (std::get<0>(*upper) - std::get<0>(*lower));
+    y = std::get<1>(*lower) + weight * (y - std::get<1>(*lower));
+  }
+  return y;
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \param [in] cap No description.
+  */
+template <typename Float> inline
+void LinearInterp<Float>::setCapacity(const std::size_t cap) noexcept
+{
+  data_.reserve(cap);
+}
+
+/*!
+  \details No detailed description
+
+  \param [in] x No description.
+  \param [in] position No description.
+  \return No description
   */
 template <typename Float> inline
 bool LinearInterp<Float>::exists(const Float x, 
                                  const ConstIterator& position) const noexcept
 {
-  return (position != data_.end()) && (std::get<0>(*position) == x);
+  const bool result = (position != data_.end()) && (std::get<0>(*position) == x);
+  return result;
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \param [in] x No description.
+  \return No description
   */
 template <typename Float> inline
 auto LinearInterp<Float>::lowerBound(const Float x) noexcept -> Iterator
@@ -132,8 +194,10 @@ auto LinearInterp<Float>::lowerBound(const Float x) noexcept -> Iterator
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \param [in] x No description.
+  \return No description
   */
 template <typename Float> inline
 auto LinearInterp<Float>::lowerBound(const Float x) const noexcept -> ConstIterator

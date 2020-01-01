@@ -1,7 +1,12 @@
 /*!
   \file unit_multiple.hpp
   \author Sho Ikeda
+  \brief No brief description
 
+  \details
+  No detailed description.
+
+  \copyright
   Copyright (c) 2015-2020 Sho Ikeda
   This software is released under the MIT License.
   http://opensource.org/licenses/mit-license.php
@@ -21,6 +26,11 @@ namespace zisc {
 
 /*!
   \brief Represent a multiple of a unit
+
+  No detailed description.
+
+  \tparam kBase No description.
+  \tparam kExponent No description.
   */
 template <int64b kBase, int64b kExponent>
 class UnitMultiple

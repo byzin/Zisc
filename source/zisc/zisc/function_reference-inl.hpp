@@ -175,6 +175,7 @@ void FunctionReference<ReturnT (ArgumentTypes...)>::initialize(
   \details No detailed description
 
   \tparam FuncPointer No description.
+  \param [in] function_ptr No description.
   \param [in] arguments No description.
   \return No description
   */
@@ -195,6 +196,7 @@ auto FunctionReference<ReturnT (ArgumentTypes...)>::invokeFunctionPointer(
   \details No detailed description
 
   \tparam Functor No description.
+  \param [in] functor No description.
   \param [in] arguments No description.
   \return No description
   */

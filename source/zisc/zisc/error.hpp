@@ -1,7 +1,12 @@
 /*!
   \file error.hpp
   \author Sho Ikeda
+  \brief No brief description
 
+  \details
+  No detailed description.
+
+  \copyright
   Copyright (c) 2015-2020 Sho Ikeda
   This software is released under the MIT License.
   http://opensource.org/licenses/mit-license.php
@@ -38,7 +43,7 @@
                           ": ", \
                           __VA_ARGS__)
 #else // ZISC_ASSERTION
-  #define ZISC_ASSERT(condition, ...) (void)(condition)
+  #define ZISC_ASSERT(condition, ...) static_cast<void>(condition)
 #endif // ZISC_ASSERTION
 
 /*!
@@ -54,7 +59,9 @@
   #define ZISC_STATIC_ASSERT(condition, message) \
       static_assert(condition, message)
 #else // ZISC_ASSERTION
-  #define ZISC_STATIC_ASSERT(condition, message) (void)(condition); (void)(message)
+  #define ZISC_STATIC_ASSERT(condition, message) \
+      static_cast<void>(condition); \
+      static_cast<void>(message)
 #endif // ZISC_ASSERTION
 
 namespace zisc {

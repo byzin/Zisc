@@ -79,6 +79,12 @@ using CmjN256 = CorrelatedMultiJitteredEngine<16>;
 
 } // namespace zisc
 
+/*!
+  \example correlated_multi_jittered_engine_example.cpp
+
+  This is an example of how to use zisc::CorrelatedMultiJitteredEngine.
+  */
+
 #include "correlated_multi_jittered_engine-inl.hpp"
 
 #endif // ZISC_CORRELATED_MULTI_JITTERED_ENGINE_HPP

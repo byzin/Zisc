@@ -14,6 +14,7 @@
 #include <vector>
 // Zisc
 #include "zisc/cumulative_distribution_function.hpp"
+#include "zisc/simple_memory_resource.hpp"
 
 int main()
 {
@@ -31,7 +32,8 @@ int main()
   }
 
   using Cdf = zisc::CumulativeDistributionFunction<int, double>;
-  const Cdf cdf{value_list, pdf_list};
+  zisc::SimpleMemoryResource mem_resource;
+  const Cdf cdf{value_list, pdf_list, &mem_resource};
 
   std::cout << "P^{-1}(0.5) == " << cdf.invert(0.5) << std::endl;
 

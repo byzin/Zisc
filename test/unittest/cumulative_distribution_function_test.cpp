@@ -16,7 +16,7 @@
 #include "gtest/gtest.h"
 // Zisc
 #include "zisc/cumulative_distribution_function.hpp"
-#include "zisc/memory_manager.hpp"
+#include "zisc/simple_memory_resource.hpp"
 #include "zisc/std_memory_resource.hpp"
 #include "zisc/utility.hpp"
 
@@ -50,7 +50,8 @@ void test(const Cdf& cdf)
 
 TEST(CumulativeDistributionFunctionTest, DefaultTest)
 {
-  auto cdf = std::make_unique<::Cdf>();
+  zisc::SimpleMemoryResource mem_resource;
+  auto cdf = std::make_unique<::Cdf>(&mem_resource);
 
   std::vector<int> x_list{{0, 1, 2, 3, 4}};
   std::vector<double> y_list{{0.2, 0.3, 0.0, 0.3, 0.2}};
@@ -65,7 +66,8 @@ TEST(CumulativeDistributionFunctionTest, StdVectorTest)
   std::vector<int> x_list{{0, 1, 2, 3, 4}};
   std::vector<double> y_list{{0.2, 0.3, 0.0, 0.3, 0.2}};
 
-  auto cdf = std::make_unique<::Cdf>(x_list, y_list);
+  zisc::SimpleMemoryResource mem_resource;
+  auto cdf = std::make_unique<::Cdf>(x_list, y_list, &mem_resource);
   ::test(*cdf);
 
   cdf->set(x_list, y_list);
@@ -74,15 +76,15 @@ TEST(CumulativeDistributionFunctionTest, StdVectorTest)
 
 TEST(CumulativeDistributionFunctionTest, ConstPmrVectorTest)
 {
-  zisc::DynamicMemoryManager<1024> memory_manager;
+  zisc::SimpleMemoryResource mem_resource;
 
-  std::pmr::polymorphic_allocator<int> alloc1{&memory_manager};
-  std::pmr::polymorphic_allocator<double> alloc2{&memory_manager};
+  std::pmr::polymorphic_allocator<int> alloc1{&mem_resource};
+  std::pmr::polymorphic_allocator<double> alloc2{&mem_resource};
 
   zisc::pmr::vector<int> x_list{{0, 1, 2, 3, 4}, alloc1};
   zisc::pmr::vector<double> y_list{{0.2, 0.3, 0.0, 0.3, 0.2}, alloc2};
 
-  auto cdf = std::make_unique<::Cdf>(x_list, y_list);
+  auto cdf = std::make_unique<::Cdf>(x_list, y_list, &mem_resource);
   ::test(*cdf);
 
   cdf->set(x_list, y_list);
@@ -91,15 +93,15 @@ TEST(CumulativeDistributionFunctionTest, ConstPmrVectorTest)
 
 TEST(CumulativeDistributionFunctionTest, PmrVectorTest)
 {
-  zisc::DynamicMemoryManager<1024> memory_manager;
+  zisc::SimpleMemoryResource mem_resource;
 
-  std::pmr::polymorphic_allocator<int> alloc1{&memory_manager};
-  std::pmr::polymorphic_allocator<double> alloc2{&memory_manager};
+  std::pmr::polymorphic_allocator<int> alloc1{&mem_resource};
+  std::pmr::polymorphic_allocator<double> alloc2{&mem_resource};
 
   zisc::pmr::vector<int> x_list{{0, 1, 2, 3, 4}, alloc1};
   zisc::pmr::vector<double> y_list{{0.2, 0.3, 0.0, 0.3, 0.2}, alloc2};
 
-  auto cdf = std::make_unique<::Cdf>(std::move(x_list), std::move(y_list));
+  auto cdf = std::make_unique<::Cdf>(std::move(x_list), std::move(y_list), &mem_resource);
   ::test(*cdf);
 
   x_list = zisc::pmr::vector<int>{{0, 1, 2, 3, 4}, alloc1};

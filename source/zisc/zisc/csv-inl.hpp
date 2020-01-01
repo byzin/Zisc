@@ -42,7 +42,7 @@ namespace zisc {
   */
 template <typename Type, typename ...Types> inline
 Csv<Type, Types...>::Csv(std::pmr::memory_resource* mem_resource) noexcept : 
-    data_{std::pmr::polymorphic_allocator<RecordType>{mem_resource}},
+    data_{typename pmr::vector<RecordType>::allocator_type{mem_resource}},
     csv_pattern_{csvPattern().toCString(),
                  std::regex_constants::optimize|std::regex_constants::ECMAScript}
 {
@@ -293,7 +293,7 @@ auto Csv<Type, Types...>::parseCsvLine(const std::string& line) const noexcept
 //  if (!is_success) {
 //    error << R"(Parsing ")" << line << R"(" failed.)" << std::endl;
 //  }
-  (void)is_success;
+  static_cast<void>(is_success);
   auto field = toCxx(result, std::make_index_sequence<columnSize()>());
   return field;
 }

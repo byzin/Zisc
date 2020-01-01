@@ -1,7 +1,12 @@
 /*!
-  \file linear_interp_test.cpp
+  \file linear_interop_test.cpp
   \author Sho Ikeda
+  \brief No brief description
 
+  \details
+  No detailed description.
+
+  \copyright
   Copyright (c) 2015-2020 Sho Ikeda
   This software is released under the MIT License.
   http://opensource.org/licenses/mit-license.php
@@ -11,13 +16,15 @@
 #include "gtest/gtest.h"
 // Zisc
 #include "zisc/linear_interp.hpp"
+#include "zisc/simple_memory_resource.hpp"
 #include "zisc/utility.hpp"
 
 TEST(LinearInterpTest, InterpolateTest)
 {
   using zisc::cast;
 
-  zisc::LinearInterp<double> interp;
+  zisc::SimpleMemoryResource mem_resource;
+  zisc::LinearInterp<double> interp{&mem_resource};
   for (int i = 0; i < 11; ++i)
     interp.add(cast<double>(i), cast<double>(i * i));
 

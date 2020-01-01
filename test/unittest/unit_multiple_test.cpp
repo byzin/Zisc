@@ -1,7 +1,12 @@
 /*!
   \file unit_multiple_test.cpp
   \author Sho Ikeda
+  \brief No brief description
 
+  \details
+  No detailed description.
+
+  \copyright
   Copyright (c) 2015-2020 Sho Ikeda
   This software is released under the MIT License.
   http://opensource.org/licenses/mit-license.php
@@ -69,7 +74,7 @@ TEST(UnitMultipleTest, ConstructorTest)
   {
     auto make_value = [](const std::int64_t v)
     {
-      zisc::ByteUnit value1{10};
+//      zisc::ByteUnit value1{10};
       zisc::MebiUnit value2{v};
       zisc::KibiUnit value3{value2};
       value3.setValue(value2);

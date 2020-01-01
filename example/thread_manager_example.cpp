@@ -1,7 +1,12 @@
 /*!
   \file thread_manager_example.cpp
   \author Sho Ikeda
+  \brief No brief description
 
+  \details
+  No detailed description.
+
+  \copyright
   Copyright (c) 2015-2020 Sho Ikeda
   This software is released under the MIT License.
   http://opensource.org/licenses/mit-license.php
@@ -23,6 +28,7 @@ int main()
   std::cout << "## ThreadManager example" << std::endl;
   zisc::SimpleMemoryResource mem_resource;
   zisc::ThreadManager thread_manager{4, &mem_resource};
+  thread_manager.setCapacity(8);
   auto task = [](const zisc::uint thread_id)
   {
     const std::chrono::seconds wait_time{1 + thread_id * 2};
@@ -31,8 +37,8 @@ int main()
   };
   // Task parallel example
   std::cout << "Task parallel example" << std::endl;
-  auto task1_result = thread_manager.enqueue<void>(task, &mem_resource);
-  auto task2_result = thread_manager.enqueue<void>(task, &mem_resource);
+  auto task1_result = thread_manager.enqueue<void>(task);
+  auto task2_result = thread_manager.enqueue<void>(task);
   task1_result.get();
   task2_result.get();
   // Loop parallel
@@ -43,7 +49,7 @@ int main()
     std::this_thread::sleep_for(wait_time);
     std::cout << "  Task" << index << " processed at thread " << thread_id << std::endl;
   };
-  auto task_result = thread_manager.enqueueLoop(std::function<void (int,int)>{loop_task}, 0, 8, &mem_resource);
+  auto task_result = thread_manager.enqueueLoop(std::function<void (int,int)>{loop_task}, 0, 8);
   task_result.get();
 
   return 0;

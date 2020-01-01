@@ -1,7 +1,12 @@
 /*!
   \file pseudo_random_number_engine-inl.hpp
   \author Sho Ikeda
+  \brief No brief description
 
+  \details
+  No detailed description.
+
+  \copyright
   Copyright (c) 2015-2020 Sho Ikeda
   This software is released under the MIT License.
   http://opensource.org/licenses/mit-license.php
@@ -24,19 +29,25 @@
 namespace zisc {
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \return No description
   */
 template <typename GeneratorClass, typename Seed, typename Result> inline
 auto PseudoRandomNumberEngine<GeneratorClass, Seed, Result>::operator()() noexcept
     -> ResultType
 {
-  return generate();
+  const ResultType result = generate();
+  return result;
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] lower No description.
+  \param [in] upper No description.
+  \return No description
   */
 template <typename GeneratorClass, typename Seed, typename Result>
 template <typename Float> inline
@@ -44,23 +55,30 @@ Float PseudoRandomNumberEngine<GeneratorClass, Seed, Result>::operator()(
     const Float lower,
     const Float upper) noexcept
 {
-  return generateFloat(lower, upper);
+  const Float result = generateFloat(lower, upper);
+  return result;
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \return No description
   */
 template <typename GeneratorClass, typename Seed, typename Result> inline
 auto PseudoRandomNumberEngine<GeneratorClass, Seed, Result>::generate() noexcept
     -> ResultType
 {
-  return cast<GeneratorClass*>(this)->generate();
+  const ResultType result = cast<GeneratorClass*>(this)->generate();
+  return result;
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] lower No description.
+  \param [in] upper No description.
+  \return No description
   */
 template <typename GeneratorClass, typename Seed, typename Result>
 template <typename Float> inline
@@ -70,13 +88,17 @@ Float PseudoRandomNumberEngine<GeneratorClass, Seed, Result>::generateFloat(
 {
   static_assert(kIsFloat<Float>, "Float isn't floating point type.");
   const Float u = generate01Float<Float>();
-  const Float value = lower + (upper - lower) * u;
-  ZISC_ASSERT(isInBounds(value, lower, upper),
-              "The value is out of range [lower, upper).");
-  return value;
+  const Float result = lower + (upper - lower) * u;
+  ZISC_ASSERT(isInBounds(result, lower, upper),
+              "The result is out of range [lower, upper).");
+  return result;
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \return No description
   */
 template <typename GeneratorClass, typename Seed, typename Result>
 template <typename Float> inline
@@ -88,25 +110,32 @@ Float PseudoRandomNumberEngine<GeneratorClass, Seed, Result>::generate01Float()
   const ResultType x = generate();
   // Map to a [0, 1) float
   using FloatType = FloatingPointFromBytes<sizeof(Float)>;
-  return FloatType::mapTo01(x);
+  const Float result = FloatType::mapTo01(x);
+  return result;
 }
 
 /*!
+  \details No detailed description
+
+  \tparam UInteger No description.
+  \param [in] sample No description.
+  \return No description
   */
 template <typename GeneratorClass, typename Seed, typename Result>
-template <typename UnsignedInteger> inline
+template <typename UInteger> inline
 constexpr bool PseudoRandomNumberEngine<GeneratorClass, Seed, Result>::
-    isEndOfPeriod(const UnsignedInteger sample) noexcept
+    isEndOfPeriod(const UInteger sample) noexcept
 {
-  static_assert(kIsUnsignedInteger<UnsignedInteger>,
-                "UnsignedInteger isn't unsigned integer type.");
+  static_assert(kIsUnsignedInteger<UInteger>,
+                "UInteger isn't unsigned integer type.");
   const bool result = GeneratorClass::isEndOfPeriod(sample);
   return result;
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
+
+  \param [in] seed No description.
   */
 template <typename GeneratorClass, typename Seed, typename Result> inline
 void PseudoRandomNumberEngine<GeneratorClass, Seed, Result>::setSeed(
@@ -116,8 +145,7 @@ void PseudoRandomNumberEngine<GeneratorClass, Seed, Result>::setSeed(
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
   */
 template <typename GeneratorClass, typename Seed, typename Result> inline
 PseudoRandomNumberEngine<GeneratorClass, Seed, Result>::PseudoRandomNumberEngine()
@@ -126,8 +154,7 @@ PseudoRandomNumberEngine<GeneratorClass, Seed, Result>::PseudoRandomNumberEngine
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
   */
 template <typename GeneratorClass, typename Seed, typename Result> inline
 PseudoRandomNumberEngine<GeneratorClass, Seed, Result>::PseudoRandomNumberEngine(

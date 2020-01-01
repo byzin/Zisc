@@ -1,7 +1,12 @@
 /*!
   \file unit-inl.hpp
   \author Sho Ikeda
+  \brief No brief description
 
+  \details
+  No detailed description.
+
+  \copyright
   Copyright (c) 2015-2020 Sho Ikeda
   This software is released under the MIT License.
   http://opensource.org/licenses/mit-license.php
@@ -22,11 +27,11 @@
 namespace zisc {
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
 
-  \param[in] angle angle
-  \return radian
+  \tparam Float No description.
+  \param [in] angle No description.
+  \return Radian
   */
 template <typename Float> inline
 constexpr Float toRadian(const Float angle) noexcept
@@ -37,11 +42,11 @@ constexpr Float toRadian(const Float angle) noexcept
 }
 
 /*!
-  \details
-  No detailed.
+  \details No detailed description
 
-  \param[in] radian radian
-  \return degree
+  \tparam Float No description.
+  \param [in] radian No description.
+  \return Degree
   */
 template <typename Float> inline
 constexpr Float toAngle(const Float radian) noexcept

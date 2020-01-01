@@ -36,20 +36,19 @@ class CumulativeDistributionFunction
 
   //! Create a CDF
   CumulativeDistributionFunction(
-      std::pmr::memory_resource* mem_resource = SimpleMemoryResource::sharedResource())
-          noexcept;
+      std::pmr::memory_resource* mem_resource) noexcept;
 
   //! Create a CDF
   CumulativeDistributionFunction(
       const std::vector<XType>& x_list,
       const std::vector<PdfType>& y_list,
-      std::pmr::memory_resource* mem_resource = SimpleMemoryResource::sharedResource()) noexcept;
+      std::pmr::memory_resource* mem_resource) noexcept;
 
   //! Create a CDF
   CumulativeDistributionFunction(
       const pmr::vector<XType>& x_list,
       const pmr::vector<PdfType>& y_list,
-      std::pmr::memory_resource* mem_resource = SimpleMemoryResource::sharedResource()) noexcept;
+      std::pmr::memory_resource* mem_resource) noexcept;
 
   //! Create a CDF
   CumulativeDistributionFunction(

@@ -1,7 +1,12 @@
 /*!
   \file spin_lock_mutex.hpp
   \author Sho Ikeda
+  \brief No brief description
 
+  \details
+  No detailed description.
+
+  \copyright
   Copyright (c) 2015-2020 Sho Ikeda
   This software is released under the MIT License.
   http://opensource.org/licenses/mit-license.php
@@ -19,9 +24,9 @@ namespace zisc {
 
 /*!
   \brief SpinLockMutex class provides spin lock functions
-  \details
-  See the following URL
-  http://en.cppreference.com/w/cpp/atomic/atomic_flag
+
+  For more detail, please see the following link:
+  <a href="http://en.cppreference.com/w/cpp/atomic/atomic_flag">std::atomic_flag</a>.
   */
 class SpinLockMutex : private NonCopyable<SpinLockMutex>
 {

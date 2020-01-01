@@ -1,7 +1,12 @@
 /*!
   \file pcg_engine.hpp
   \author Sho Ikeda
+  \brief No brief description
 
+  \details
+  No detailed description.
+
+  \copyright
   Copyright (c) 2015-2020 Sho Ikeda
   This software is released under the MIT License.
   http://opensource.org/licenses/mit-license.php
@@ -21,12 +26,22 @@
 
 namespace zisc {
 
+/*!
+  \brief No brief description
+
+  No detailed description.
+  */
 enum class PcgBase : int
 {
   Lcg,
   Mcg
 };
 
+/*!
+  \brief No brief description
+
+  No detailed description.
+  */
 enum class PcgMethod : int
 {
   XshRs,
@@ -35,8 +50,14 @@ enum class PcgMethod : int
 };
 
 /*!
-  \details
-  No detailed.
+  \brief No brief description
+
+  No detailed description.
+
+  \tparam Base No description.
+  \tparam Method No description.
+  \tparam Seed No description.
+  \tparam Result No description.
   */
 template <PcgBase Base, PcgMethod Method, typename Seed, typename Result>
 class PcgEngine : public PseudoRandomNumberEngine<
@@ -64,8 +85,8 @@ class PcgEngine : public PseudoRandomNumberEngine<
   static constexpr std::size_t getPeriodPow2() noexcept;
 
   //! Check if a specified sample (0 base count) is the end of period
-  template <typename UnsignedInteger>
-  static constexpr bool isEndOfPeriod(const UnsignedInteger sample) noexcept;
+  template <typename UInteger>
+  static constexpr bool isEndOfPeriod(const UInteger sample) noexcept;
 
   //! Set seed
   void setSeed(const SeedType seed) noexcept;

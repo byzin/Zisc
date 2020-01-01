@@ -1,7 +1,12 @@
 /*!
   \file xoshiro_2star_engine-inl.hpp
   \author Sho Ikeda
+  \brief No brief description
 
+  \details
+  No detailed description.
+
+  \copyright
   Copyright (c) 2015-2020 Sho Ikeda
   This software is released under the MIT License.
   http://opensource.org/licenses/mit-license.php
@@ -25,6 +30,7 @@
 namespace zisc {
 
 /*!
+  \details No detailed description
   */
 template <typename Seed, typename Result, uint8b kA, uint8b kB, uint8b kC> inline
 Xoshiro2StarEngine<Seed, Result, kA, kB, kC>::Xoshiro2StarEngine() noexcept
@@ -34,6 +40,9 @@ Xoshiro2StarEngine<Seed, Result, kA, kB, kC>::Xoshiro2StarEngine() noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \param [in] seed No description.
   */
 template <typename Seed, typename Result, uint8b kA, uint8b kB, uint8b kC> inline
 Xoshiro2StarEngine<Seed, Result, kA, kB, kC>::Xoshiro2StarEngine(
@@ -43,9 +52,13 @@ Xoshiro2StarEngine<Seed, Result, kA, kB, kC>::Xoshiro2StarEngine(
 }
 
 /*!
+  \details No detailed description
+
+  \return No description
   */
 template <typename Seed, typename Result, uint8b kA, uint8b kB, uint8b kC> inline
-auto Xoshiro2StarEngine<Seed, Result, kA, kB, kC>::generate() noexcept -> ResultType
+auto Xoshiro2StarEngine<Seed, Result, kA, kB, kC>::generate() noexcept
+    -> ResultType
 {
   const ResultType result = rotateLeft<7>(state_[kA] * 5u) * 9u;
   const SeedType t = state_[1] << kB;
@@ -63,6 +76,9 @@ auto Xoshiro2StarEngine<Seed, Result, kA, kB, kC>::generate() noexcept -> Result
 }
 
 /*!
+  \details No detailed description
+
+  \return No description
   */
 template <typename Seed, typename Result, uint8b kA, uint8b kB, uint8b kC> inline
 constexpr std::size_t Xoshiro2StarEngine<Seed, Result, kA, kB, kC>::getPeriodPow2()
@@ -73,31 +89,38 @@ constexpr std::size_t Xoshiro2StarEngine<Seed, Result, kA, kB, kC>::getPeriodPow
 }
 
 /*!
+  \details No detailed description
+
+  \tparam UInteger No description.
+  \param [in] sample No description.
+  \return No description
   */
 template <typename Seed, typename Result, uint8b kA, uint8b kB, uint8b kC>
-template <typename UnsignedInteger> inline
+template <typename UInteger> inline
 constexpr bool Xoshiro2StarEngine<Seed, Result, kA, kB, kC>::isEndOfPeriod(
-    const UnsignedInteger sample) noexcept
+    const UInteger sample) noexcept
 {
-  static_assert(kIsUnsignedInteger<UnsignedInteger>,
-                "UnsignedInteger isn't unsigned integer type.");
-  constexpr std::size_t sample_bit_size = sizeof(UnsignedInteger) * 8;
+  static_assert(kIsUnsignedInteger<UInteger>,
+                "UInteger isn't unsigned integer type.");
+  constexpr std::size_t sample_bit_size = sizeof(UInteger) * 8;
   constexpr std::size_t period_pow2 = getPeriodPow2();
   if constexpr (sample_bit_size <= period_pow2) {
     // Workaround
-    constexpr UnsignedInteger end_of_period = (sample_bit_size == period_pow2)
-        ? std::numeric_limits<UnsignedInteger>::max() - 1
-        : std::numeric_limits<UnsignedInteger>::max();
+    constexpr UInteger end_of_period = (sample_bit_size == period_pow2)
+        ? std::numeric_limits<UInteger>::max() - 1
+        : std::numeric_limits<UInteger>::max();
     return sample == end_of_period;
   }
   else {
-    constexpr UnsignedInteger end_of_period =
-        (cast<UnsignedInteger>(1u) << period_pow2) - 2;
+    constexpr UInteger end_of_period = (cast<UInteger>(1u) << period_pow2) - 2;
     return sample == end_of_period;
   }
 }
 
 /*!
+  \details No detailed description
+
+  \param [in] seed No description.
   */
 template <typename Seed, typename Result, uint8b kA, uint8b kB, uint8b kC> inline
 void Xoshiro2StarEngine<Seed, Result, kA, kB, kC>::setSeed(const SeedType seed)
@@ -107,6 +130,11 @@ void Xoshiro2StarEngine<Seed, Result, kA, kB, kC>::setSeed(const SeedType seed)
 }
 
 /*!
+  \details No detailed description
+
+  \tparam k No description.
+  \param [in] x No description.
+  \return No description
   */
 template <typename Seed, typename Result, uint8b kA, uint8b kB, uint8b kC>
 template <Seed k> inline

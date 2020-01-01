@@ -1,7 +1,12 @@
 /*!
   \file matrix.hpp
   \author Sho Ikeda
+  \brief No brief description
 
+  \details
+  No detailed description.
+
+  \copyright
   Copyright (c) 2015-2020 Sho Ikeda
   This software is released under the MIT License.
   http://opensource.org/licenses/mit-license.php
@@ -20,8 +25,15 @@
 namespace zisc {
 
 /*!
-  \details
-  No detailed.
+  \brief No brief description
+
+  No detailed description.
+
+  \tparam Arith No description.
+  \tparam kRow No description.
+  \tparam kColumn No description.
+
+  \todo Optimize performance 
   */
 template <typename Arith, uint kRow, uint kColumn>
 class Matrix
@@ -163,6 +175,12 @@ constexpr bool operator!=(
     const Matrix<Arith, kRow2, kColumn2>& rhs) noexcept;
 
 } // namespace zisc
+
+/*!
+  \example linear_algebra_example.cpp
+
+  This is an example of how to use zisc::Matrix.
+  */
 
 #include "matrix-inl.hpp"
 

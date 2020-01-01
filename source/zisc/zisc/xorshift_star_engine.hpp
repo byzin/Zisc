@@ -1,7 +1,12 @@
 /*!
   \file xorshift_star_engine.hpp
   \author Sho Ikeda
+  \brief No brief description
 
+  \details
+  No detailed description.
+
+  \copyright
   Copyright (c) 2015-2020 Sho Ikeda
   This software is released under the MIT License.
   http://opensource.org/licenses/mit-license.php
@@ -20,6 +25,16 @@
 namespace zisc {
 
 /*!
+  \brief No brief description
+
+  No detailed description.
+
+  \tparam Seed No description.
+  \tparam Result No description.
+  \tparam kMultiplier No description.
+  \tparam kA No description.
+  \tparam kB No description.
+  \tparam kC No description.
   */
 template <typename Seed, typename Result,
           Seed kMultiplier, uint8b kA, uint8b kB, uint8b kC>
@@ -48,8 +63,8 @@ class XorshiftStarEngine : public PseudoRandomNumberEngine<
   static constexpr std::size_t getPeriodPow2() noexcept;
 
   //! Check if a specified sample (0 base count) is the end of period
-  template <typename UnsignedInteger>
-  static constexpr bool isEndOfPeriod(const UnsignedInteger sample) noexcept;
+  template <typename UInteger>
+  static constexpr bool isEndOfPeriod(const UInteger sample) noexcept;
 
   //! Set a seed
   void setSeed(const SeedType seed) noexcept;

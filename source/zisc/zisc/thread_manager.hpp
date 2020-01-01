@@ -1,7 +1,12 @@
 /*!
   \file thread_manager.hpp
   \author Sho Ikeda
+  \brief No brief description
 
+  \details
+  No detailed description.
+
+  \copyright
   Copyright (c) 2015-2020 Sho Ikeda
   This software is released under the MIT License.
   http://opensource.org/licenses/mit-license.php
@@ -23,13 +28,15 @@
 #include "non_copyable.hpp"
 #include "std_memory_resource.hpp"
 #include "type_traits.hpp"
-#include "unique_memory_pointer.hpp"
+#include "unique_pointer.hpp"
 #include "zisc/zisc_config.hpp"
 
 namespace zisc {
 
 /*!
   \brief ThreadManager class provides task parallel and data parallel thread pool
+
+  No detailed description.
   */
 class ThreadManager : private NonCopyable<ThreadManager>
 {
@@ -71,7 +78,7 @@ class ThreadManager : private NonCopyable<ThreadManager>
     uint16b thread_id_;
   };
   template <typename Type>
-  using UniqueResult = UniqueMemoryPointer<Result<Type>>;
+  using UniqueResult = UniquePointer<Result<Type>>;
 
 
   //! Create threads as many CPU threads as
@@ -103,15 +110,13 @@ class ThreadManager : private NonCopyable<ThreadManager>
   template <typename ReturnType, typename Task>
   UniqueResult<ReturnType> enqueue(
       Task&& task,
-      std::pmr::memory_resource* mem_resource,
-      EnableIf<std::is_invocable_v<Task>> = kEnabler) noexcept;
+      EnableIfInvocable<Task> = kEnabler) noexcept;
 
   //! Run the given task on a worker thread in the manager
   template <typename ReturnType, typename Task>
   UniqueResult<ReturnType> enqueue(
       Task&& task,
-      std::pmr::memory_resource* mem_resource,
-      EnableIf<std::is_invocable_v<Task, uint>> = kEnabler) noexcept;
+      EnableIfInvocable<Task, uint> = kEnabler) noexcept;
 
   //! Run tasks on the worker threads in the manager
   template <typename Task, typename Iterator1, typename Iterator2>
@@ -119,8 +124,7 @@ class ThreadManager : private NonCopyable<ThreadManager>
       Task&& task,
       Iterator1&& begin,
       Iterator2&& end,
-      std::pmr::memory_resource* mem_resource,
-      EnableIf<std::is_invocable_v<Task, Iterator1>> = kEnabler) noexcept;
+      EnableIfInvocable<Task, Iterator1> = kEnabler) noexcept;
 
   //! Run tasks on the worker threads in the manager
   template <typename Task, typename Iterator1, typename Iterator2>
@@ -128,8 +132,7 @@ class ThreadManager : private NonCopyable<ThreadManager>
       Task&& task,
       Iterator1&& begin,
       Iterator2&& end,
-      std::pmr::memory_resource* mem_resource,
-      EnableIf<std::is_invocable_v<Task, uint, Iterator1>> = kEnabler) noexcept;
+      EnableIfInvocable<Task, uint, Iterator1> = kEnabler) noexcept;
 
   //! Check whether the task queue is empty
   bool isEmpty() const noexcept;
@@ -158,7 +161,7 @@ class ThreadManager : private NonCopyable<ThreadManager>
     //! Run a task
     virtual void run(const uint thread_id) noexcept = 0;
   };
-  using UniqueTask = UniqueMemoryPointer<WorkerTask>;
+  using UniqueTask = UniquePointer<WorkerTask>;
 
 
   //! Create worker threads
@@ -173,41 +176,31 @@ class ThreadManager : private NonCopyable<ThreadManager>
 
   //! Run the given task on a worker thread in the manager
   template <typename ReturnType, typename Task>
-  UniqueResult<ReturnType> enqueueBridge(
-      Task&& task,
-      std::pmr::memory_resource* mem_resource) noexcept;
+  UniqueResult<ReturnType> enqueueBridge(Task&& task) noexcept;
 
   //! Run the given task on a worker thread in the manager
   template <typename SingleTask, typename ReturnType, typename Task>
-  UniqueResult<ReturnType> enqueueImpl(
-      Task&& task,
-      std::pmr::memory_resource* mem_resource) noexcept;
+  UniqueResult<ReturnType> enqueueImpl(Task&& task) noexcept;
 
   //! Run tasks on the worker threads in the manager
   template <typename Task, typename Iterator1, typename Iterator2>
-  UniqueResult<void> enqueueLoopBridge1(
-      Task&& task,
-      Iterator1&& begin,
-      Iterator2&& end,
-      std::pmr::memory_resource* mem_resource) noexcept;
+  UniqueResult<void> enqueueLoopBridge1(Task&& task,
+                                        Iterator1&& begin,
+                                        Iterator2&& end) noexcept;
 
   //! Run tasks on the worker threads in the manager
   template <typename SharedTaskData,
             typename Task, typename Iterator1, typename Iterator2>
-  UniqueResult<void> enqueueLoopBridge2(
-      Task&& task,
-      Iterator1&& begin,
-      Iterator2&& end,
-      std::pmr::memory_resource* mem_resource) noexcept;
+  UniqueResult<void> enqueueLoopBridge2(Task&& task,
+                                        Iterator1&& begin,
+                                        Iterator2&& end) noexcept;
 
   //! Run tasks on the worker threads in the manager
   template <typename SharedTaskData, typename LoopTask,
             typename Task, typename Iterator1, typename Iterator2>
-  UniqueResult<void> enqueueLoopImpl(
-      Task&& task,
-      Iterator1&& begin,
-      Iterator2&& end,
-      std::pmr::memory_resource* mem_resource) noexcept;
+  UniqueResult<void> enqueueLoopImpl(Task&& task,
+                                     Iterator1&& begin,
+                                     Iterator2&& end) noexcept;
 
   //! Exit workers running
   void exitWorkersRunning() noexcept;

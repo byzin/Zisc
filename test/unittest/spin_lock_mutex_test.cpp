@@ -1,7 +1,12 @@
 /*!
   \file spin_lock_mutex_test.cpp
   \author Sho Ikeda
+  \brief No brief description
 
+  \details
+  No detailed description.
+
+  \copyright
   Copyright (c) 2015-2020 Sho Ikeda
   This software is released under the MIT License.
   http://opensource.org/licenses/mit-license.php
@@ -33,7 +38,8 @@ TEST(SpinLockMutexTest, LockTest)
 
   constexpr zisc::int64b start = 0;
   constexpr zisc::int64b end = 131072;
-  auto result = thread_manager.enqueueLoop(test, start, end, &mem_resource);
+  thread_manager.setCapacity(end);
+  auto result = thread_manager.enqueueLoop(test, start, end);
   result->wait();
 
   const zisc::int64b expected = end * a;

@@ -93,7 +93,7 @@ void* SimpleMemoryResource::allocateMemory(const std::size_t size,
 #else
       std::aligned_alloc(alignment, size);
 #endif
-  ZISC_ASSERT(isAligned(data, alignment), "The data isn't aligned.");
+  ZISC_ASSERT(Memory::isAligned(data, alignment), "The data isn't aligned.");
   return data;
 }
 

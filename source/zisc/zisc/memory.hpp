@@ -22,8 +22,17 @@ namespace zisc {
 
 //! \todo Implement getter of system memory info
 
-//! Check if an address of the \a data is aligned at the \a alignment bytes
-bool isAligned(const void* data, const std::size_t alignment) noexcept;
+/*!
+  \brief No brief description
+
+  No detailed description.
+  */
+class Memory
+{
+ public:
+  //! Check if an address of the \a data is aligned at the \a alignment bytes
+  static bool isAligned(const void* data, const std::size_t alignment) noexcept;
+};
 
 } // namespace zisc
 

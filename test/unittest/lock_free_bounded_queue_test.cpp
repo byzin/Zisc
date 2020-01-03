@@ -31,19 +31,19 @@ TEST(LockFreeBoundedQueueTest, LockFreeTest)
 {
   {
     std::atomic<zisc::int32b> v;
-    ASSERT_TRUE(v.is_lock_free()) << "std::atomic<int32_t> isn't lock free.";
+    EXPECT_TRUE(v.is_always_lock_free) << "std::atomic<int32_t> isn't lock free.";
   }
   {
     std::atomic<zisc::uint32b> v;
-    ASSERT_TRUE(v.is_lock_free()) << "std::atomic<uint32_t> isn't lock free.";
+    EXPECT_TRUE(v.is_always_lock_free) << "std::atomic<uint32_t> isn't lock free.";
   }
   {
     std::atomic<zisc::int64b> v;
-    ASSERT_TRUE(v.is_lock_free()) << "std::atomic<int64_t> isn't lock free.";
+    EXPECT_TRUE(v.is_always_lock_free) << "std::atomic<int64_t> isn't lock free.";
   }
   {
     std::atomic<zisc::uint64b> v;
-    ASSERT_TRUE(v.is_lock_free()) << "std::atomic<uint64_t> isn't lock free.";
+    EXPECT_TRUE(v.is_always_lock_free) << "std::atomic<uint64_t> isn't lock free.";
   }
 }
 

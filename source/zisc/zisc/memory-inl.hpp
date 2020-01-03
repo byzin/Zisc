@@ -31,7 +31,7 @@ namespace zisc {
   \return No description
   */
 inline
-bool isAligned(const void* data, const std::size_t alignment) noexcept
+bool Memory::isAligned(const void* data, const std::size_t alignment) noexcept
 {
   const std::size_t address = treatAs<std::size_t>(data);
   const bool result = (address & (alignment - 1)) == 0;

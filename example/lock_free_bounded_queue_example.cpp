@@ -28,7 +28,7 @@ void showAtomicProperties(const std::string_view type_name) noexcept
   std::cout << "  std::atomic<" << type_name << ">: "
             << "size: " << sizeof(v) << ", "
             << "alignment: " << std::alignment_of_v<Atomic> << ", "
-            << "lock free: " << v.is_lock_free() << std::endl;
+            << "lock free: " << v.is_always_lock_free << std::endl;
 }
 
 int main()

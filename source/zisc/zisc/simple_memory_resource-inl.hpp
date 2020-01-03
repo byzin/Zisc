@@ -87,9 +87,7 @@ void* SimpleMemoryResource::allocateMemory(const std::size_t size,
 {
   //! \todo Solve code branch
   auto data =
-#if defined(Z_APPLE_CLANG)
-      aligned_alloc(alignment, size);
-#elif defined(Z_VISUAL_STUDIO)
+#if defined(Z_APPLE_CLANG) || defined(Z_VISUAL_STUDIO)
       std::malloc(size);
   static_cast<void>(alignment);
 #else

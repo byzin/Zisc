@@ -15,6 +15,10 @@
 #ifndef ZISC_CONFIG_INL_HPP
 #define ZISC_CONFIG_INL_HPP
 
+// Standard C++ library
+#include <cstdint>
+#include <string_view>
+
 // Zisc
 #include "zisc/zisc_config.hpp"
 
@@ -48,6 +52,52 @@ constexpr auto Config::implType() noexcept -> ImplType
   static_assert(false, "Unsupported implementation is specified.");
 #endif
   return type;
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+inline
+constexpr int Config::versionMajor() noexcept
+{
+  return @PROJECT_VERSION_MAJOR@;
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+inline
+constexpr int Config::versionMinor() noexcept
+{
+  return @PROJECT_VERSION_MINOR@;
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+inline
+constexpr int Config::versionPatch() noexcept
+{
+  return @PROJECT_VERSION_PATCH@;
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+inline
+constexpr std::string_view Config::versionString() noexcept
+{
+  constexpr auto version_str = "@PROJECT_VERSION@";
+  const std::string_view version{version_str};
+  return version;
 }
 
 /*!

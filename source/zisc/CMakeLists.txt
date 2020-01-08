@@ -1,4 +1,4 @@
-# file: config.cmake
+# file:CMakeLists.txt
 # author: Sho Ikeda
 # 
 # Copyright (c) 2015-2020 Sho Ikeda
@@ -6,7 +6,7 @@
 # http://opensource.org/licenses/mit-license.php
 # 
 
-set(__zisc_root__ ${CMAKE_CURRENT_LIST_DIR})
+cmake_minimum_required(VERSION 3.16)
 
 
 function(initZiscOptions)
@@ -87,41 +87,60 @@ function(getZiscFlags zisc_compile_flags zisc_linker_flags zisc_definitions)
 endfunction(getZiscFlags)
 
 
-# Defined variables
-#   zisc_include_dirs:
-#   zisc_definitions: 
-function(loadZisc zisc_header_files zisc_include_dirs zisc_compile_flags zisc_linker_flags zisc_definitions)
-  # Set version information
-  set(zisc_version_major 0)
-  set(zisc_version_minor 0)
-  set(zisc_version_patch 50)
-  set(zisc_version ${zisc_version_major}.${zisc_version_minor}.${zisc_version_patch})
-  message(STATUS "Zisc version: ${zisc_version}")
+#
+set(project_description "Zisc provides commonly used C++ classes and functions.")
+project(Zisc VERSION 0.0.50 DESCRIPTION "${project_description}" LANGUAGES CXX)
+message(STATUS "${PROJECT_NAME} version: ${PROJECT_VERSION}")
 
-  initZiscOptions()
-  getZiscFlags(compile_flags linker_flags definitions)
+include(${PROJECT_SOURCE_DIR}/cmake/general.cmake)
+include(${PROJECT_SOURCE_DIR}/cmake/platform.cmake)
+getPlatformFlags(platform_definitions)
+setVariablesOnCMake(${platform_definitions})
+initZiscOptions()
 
-  if(Z_WINDOWS)
-    list(APPEND definitions _ENABLE_EXTENDED_ALIGNED_STORAGE)
-  endif()
+# Make zisc configuration header file
+set(zisc_config_dir ${PROJECT_BINARY_DIR}/include/zisc)
+file(MAKE_DIRECTORY ${zisc_config_dir})
+configure_file(${PROJECT_SOURCE_DIR}/zisc/zisc_config-inl.hpp.in
+               ${zisc_config_dir}/zisc_config-inl.hpp)
 
-  # Make configuration header file
-  file(MAKE_DIRECTORY ${PROJECT_BINARY_DIR}/include)
-  set(zisc_config_path ${PROJECT_BINARY_DIR}/include/zisc)
-  configure_file(${__zisc_root__}/zisc/zisc_config.hpp.in
-                 ${zisc_config_path}/zisc_config.hpp)
+# Create Zisc library
+file(GLOB cpp_files ${PROJECT_SOURCE_DIR}/zisc/*.cpp)
+file(GLOB hpp_files ${PROJECT_SOURCE_DIR}/zisc/*.hpp)
+list(APPEND hpp_files ${zisc_config_dir}/zisc_config-inl.hpp)
+source_group(${PROJECT_NAME} FILES ${cpp_files} ${hpp_files})
+add_library(${PROJECT_NAME} STATIC ${cpp_files} ${hpp_files})
 
-  # Set source code
-  file(GLOB hpp_files ${__zisc_root__}/zisc/*.hpp)
-  set(hpp_files ${hpp_files} ${zisc_config_path}/zisc_config.hpp)
-  source_group(Zisc FILES ${hpp_files})
+# Find dependencies
+set(THREADS_PREFER_PTHREAD_FLAG ON)
+find_package(Threads REQUIRED)
 
+# Compiler flags
+include(${PROJECT_SOURCE_DIR}/cmake/compiler.cmake)
+initCompilerOptions()
+set_target_properties(${PROJECT_NAME} PROPERTIES CXX_STANDARD 17
+                                                 CXX_STANDARD_REQUIRED ON)
 
-  # Output variables
-  set(${zisc_header_files} ${hpp_files} PARENT_SCOPE)
-  set(${zisc_include_dirs} ${__zisc_root__}
-                           ${PROJECT_BINARY_DIR}/include PARENT_SCOPE)
-  set(${zisc_compile_flags} ${compile_flags} PARENT_SCOPE)
-  set(${zisc_linker_flags} ${linker_flags} PARENT_SCOPE)
-  set(${zisc_definitions} ${definitions} PARENT_SCOPE)
-endfunction(loadZisc)
+getCxxFeatureList(cxx_feature_list)
+target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17 ${cxx_feature_list})
+
+getCxxCompilerFlags(cxx_compile_flags cxx_linker_flags cxx_definitions)
+getCxxWarningFlags(cxx_compile_warning_flags)
+getZiscFlags(zisc_compile_flags zisc_linker_flags zisc_definitions)
+if(Z_WINDOWS)
+  list(APPEND zisc_definitions _ENABLE_EXTENDED_ALIGNED_STORAGE)
+endif()
+target_compile_options(${PROJECT_NAME} PUBLIC ${cxx_compile_flags}
+                                              ${zisc_compile_flags}
+                                       PRIVATE ${cxx_compile_warning_flags})
+target_link_libraries(${PROJECT_NAME} PUBLIC Threads::Threads)
+target_link_options(${PROJECT_NAME} PUBLIC ${cxx_linker_flags}
+                                           ${zisc_linker_flags})
+target_compile_definitions(${PROJECT_NAME} PUBLIC ${platform_definitions}
+                                                  ${cxx_definitions}
+                                                  ${zisc_definitions})
+target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}
+                                                  ${PROJECT_BINARY_DIR}/include)
+
+#
+setStaticAnalyzer(${PROJECT_NAME})

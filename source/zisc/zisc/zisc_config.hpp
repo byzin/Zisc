@@ -17,11 +17,7 @@
 
 // Standard C++ library
 #include <cstdint>
-
-constexpr unsigned int kZiscVersionMajor = @zisc_version_major@;
-constexpr unsigned int kZiscVersionMinor = @zisc_version_minor@;
-constexpr unsigned int kZiscVersionPatch = @zisc_version_patch@;
-constexpr char kZiscVersion[] = "@zisc_version@";
+#include <string_view>
 
 namespace zisc {
 
@@ -64,10 +60,24 @@ class Config
   //! Return the implementation type
   static constexpr ImplType implType() noexcept;
 
+  //! Return the value of the major component of the Zisc version number
+  static constexpr int versionMajor() noexcept;
+
+  //! Return the value of the minor component of the Zisc version number
+  static constexpr int versionMinor() noexcept;
+
+  //! Return the value of the patch component of the Zisc version number
+  static constexpr int versionPatch() noexcept;
+
+  //! Return the version string of Zisc
+  static constexpr std::string_view versionString() noexcept;
+
+  // Algorithm config
+
   // Algorithm config
   static constexpr bool isStlBinaryTreeUsed() noexcept;
 
-  // Math library config
+  // Math config
 
   //! Check if STL math library is used
   static constexpr bool isStlMathUsed() noexcept;

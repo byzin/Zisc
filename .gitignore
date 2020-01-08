@@ -12,26 +12,32 @@
 # git file
 !/.gitignore
 
-# cmake file
-!/cmake/
-!/cmake/*.cmake
-!/cmake/.gitkeep
-
 # Documents
 !/README.md
 !/LICENSE.txt
 !/document/
+!/document/CMakeLists.txt
 !/document/doxygen_dark_theme
+
+# Project cmake file
+!/cmake/
+!/cmake/*.cmake
 
 # Source code
 !/CMakeLists.txt
 !/source/
 !/source/zisc/
-!/source/zisc/config.cmake
+!/source/zisc/CMakeLists.txt
 !/source/zisc/document.dox
 !/source/zisc/zisc/
 !/source/zisc/zisc/*.hpp
+!/source/zisc/zisc/*.cpp
 !/source/zisc/zisc/*.hpp.in
+# Zisc cmake file
+!source/zisc/cmake/
+!source/zisc/cmake/*.cmake
+!source/zisc/cmake/.gitkeep
+
 
 # Test
 !/test/
@@ -47,7 +53,7 @@
 
 # Example
 !/example/
-!/example/config.cmake
+!/example/CMakeLists.txt
 !/example/*.cpp
 
 # Build directory

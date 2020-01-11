@@ -18,7 +18,7 @@
 #include <limits>
 // Zisc
 #include "utility.hpp"
-#include "zisc/zisc_config.hpp"
+#include "zisc_config.hpp"
 // Platform
 #if defined(Z_WINDOWS)
 #define NOMINMAX
@@ -35,7 +35,6 @@ namespace zisc {
 
   \return No description
   */
-inline
 Memory::SystemMemoryStats Memory::retrieveSystemStatsImpl() noexcept
 {
   SystemMemoryStats stats;

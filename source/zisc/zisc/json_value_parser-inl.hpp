@@ -29,7 +29,7 @@
 #include "utility.hpp"
 #include "string.hpp"
 #include "type_traits.hpp"
-#include "zisc/zisc_config.hpp"
+#include "zisc_config.hpp"
 
 namespace zisc {
 

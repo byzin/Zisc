@@ -22,7 +22,7 @@
 #include <type_traits>
 // Zisc
 #include "hash_engine.hpp"
-#include "zisc/zisc_config.hpp"
+#include "zisc_config.hpp"
 
 namespace zisc {
 

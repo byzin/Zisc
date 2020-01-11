@@ -32,10 +32,32 @@ endfunction(restrictBuildDirectory)
 function(checkSubmodule submodule_path)
   if(NOT EXISTS ${submodule_path})
     get_filename_component(submodule_name "${submodule_path}" NAME)
-    message(WARNING
-            "Submodule '{submodule_name}' not found. Please init the submodule.")
+    message(FATAL_ERROR
+            "Submodule '${submodule_name}' not found. Please init the submodule.")
   endif()
 endfunction(checkSubmodule)
+
+
+#
+function(checkTarget target)
+  if(NOT TARGET ${target})
+    message(FATAL_ERROR
+            "Target `${target}` not found. Please init the target.")
+  endif()
+endfunction(checkTarget)
+
+
+# Build GoogleTest libraries
+function(addGoogleTest source_dir binary_dir)
+  message(STATUS "Add GoogleTest library.")
+  checkSubmodule(${source_dir})
+  set(BUILD_GMOCK OFF CACHE BOOL "" FORCE)
+  set(INSTALL_GTEST OFF CACHE BOOL "" FORCE)
+  set(gtest_force_shared_crt ON CACHE BOOL "" FORCE) # Prevent overriding the parent project's compiler/linker settings on Windows
+  set(gtest_build_tests OFF CACHE BOOL "" FORCE)
+  set(gtest_build_samples OFF CACHE BOOL "" FORCE)
+  add_subdirectory(${source_dir} ${binary_dir})
+endfunction(addGoogleTest)
 
 
 #

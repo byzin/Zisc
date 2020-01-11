@@ -21,8 +21,8 @@
 #include <type_traits>
 #include <utility>
 // Zisc
-#include "zisc/zisc_config.hpp"
-#include "zisc/utility.hpp"
+#include "utility.hpp"
+#include "zisc_config.hpp"
 
 namespace zisc {
 

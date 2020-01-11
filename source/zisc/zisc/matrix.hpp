@@ -20,7 +20,7 @@
 #include <tuple>
 // Zisc
 #include "arith_array.hpp"
-#include "zisc/zisc_config.hpp"
+#include "zisc_config.hpp"
 
 namespace zisc {
 

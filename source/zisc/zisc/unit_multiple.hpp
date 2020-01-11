@@ -20,7 +20,7 @@
 // Zisc
 #include "fraction.hpp"
 #include "utility.hpp"
-#include "zisc/zisc_config.hpp"
+#include "zisc_config.hpp"
 
 namespace zisc {
 

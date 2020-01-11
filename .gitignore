@@ -41,7 +41,7 @@
 
 # Test
 !/test/
-!/test/config.cmake
+!/test/CMakeLists.txt
 !/test/googletest
 !/test/unittest/
 !/test/unittest/*.hpp

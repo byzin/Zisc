@@ -20,7 +20,7 @@
 #include <cstddef>
 #include <cstdint>
 // Zisc
-#include "zisc/zisc_config.hpp"
+#include "zisc_config.hpp"
 
 namespace zisc {
 

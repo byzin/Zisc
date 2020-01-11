@@ -8,6 +8,7 @@
 
 cmake_minimum_required(VERSION 3.16)
 
+
 set(__zisc_dir__ ${CMAKE_SOURCE_DIR}/source/zisc)
 
 
@@ -16,9 +17,8 @@ project(Document VERSION 0.0.1)
 find_package(Doxygen)
 if(DOXYGEN_FOUND)
   # Check dependencies
-  if(NOT TARGET Zisc)
-    message(FATAL_ERROR "Zisc not found.")
-  endif()
+  include(${__zisc_dir__}/cmake/general.cmake)
+  checkTarget(Zisc)
 
   include(${__zisc_dir__}/cmake/document.cmake)
 

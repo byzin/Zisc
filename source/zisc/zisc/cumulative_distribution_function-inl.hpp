@@ -23,7 +23,7 @@
 #include "std_memory_resource.hpp"
 #include "type_traits.hpp"
 #include "utility.hpp"
-#include "zisc/zisc_config.hpp"
+#include "zisc_config.hpp"
 
 namespace zisc {
 

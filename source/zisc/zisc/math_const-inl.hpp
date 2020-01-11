@@ -28,7 +28,7 @@
 #include "floating_point.hpp"
 #include "utility.hpp"
 #include "type_traits.hpp"
-#include "zisc/zisc_config.hpp"
+#include "zisc_config.hpp"
 
 namespace zisc {
 

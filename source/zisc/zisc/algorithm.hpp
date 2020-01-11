@@ -19,7 +19,7 @@
 #include "simple_memory_resource.hpp"
 #include "std_memory_resource.hpp"
 #include "type_traits.hpp"
-#include "zisc/zisc_config.hpp"
+#include "zisc_config.hpp"
 
 namespace zisc {
 
@@ -174,6 +174,24 @@ class Algorithm
   //! Return the number of non-zero bits in the given x
   template <Config::ImplType kImpl, typename Integer>
   static Integer popcountImpl(const Integer x) noexcept;
+
+  //! Return the number of non-zero bits in the given x
+  static short popcountMsvcImpl(const short x) noexcept;
+
+  //! Return the number of non-zero bits in the given x
+  static unsigned short popcountMsvcImpl(const unsigned short x) noexcept;
+
+  //! Return the number of non-zero bits in the given x
+  static int popcountMsvcImpl(const int x) noexcept;
+
+  //! Return the number of non-zero bits in the given x
+  static unsigned int popcountMsvcImpl(const unsigned int x) noexcept;
+
+  //! Return the number of non-zero bits in the given x
+  static long long popcountMsvcImpl(const long long x) noexcept;
+
+  //! Return the number of non-zero bits in the given x
+  static unsigned long long popcountMsvcImpl(const unsigned long long x) noexcept;
 };
 
 // STL style function aliases

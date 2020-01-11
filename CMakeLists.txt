@@ -34,10 +34,11 @@ add_subdirectory(${PROJECT_SOURCE_DIR}/source/zisc ${PROJECT_BINARY_DIR}/Zisc)
 add_subdirectory(${PROJECT_SOURCE_DIR}/example ${PROJECT_BINARY_DIR}/Examples)
 
 # Build unit test
-#if(ZISC_BUILD_TESTS)
-#  include(${PROJECT_SOURCE_DIR}/test/config.cmake)
-#  buildUnitTest()
-#endif()
+if(ZISC_BUILD_TESTS)
+  include(${PROJECT_SOURCE_DIR}/cmake/googletest.cmake)
+  addZiscGoogleTest()
+  add_subdirectory(${PROJECT_SOURCE_DIR}/test ${PROJECT_BINARY_DIR}/UnitTest)
+endif()
 
 # Build documents
 add_subdirectory(${PROJECT_SOURCE_DIR}/document ${PROJECT_BINARY_DIR}/Document)

@@ -25,16 +25,12 @@
 #include <string>
 #include <type_traits>
 #include <utility>
-// Microsoft
-#if defined(Z_MSVC)
-#include <intrin.h>
-#endif // Z_MSVC
 // Zisc
 #include "error.hpp"
 #include "std_memory_resource.hpp"
 #include "type_traits.hpp"
 #include "utility.hpp"
-#include "zisc/zisc_config.hpp"
+#include "zisc_config.hpp"
 
 namespace zisc {
 
@@ -585,19 +581,19 @@ Integer Algorithm::popcountImpl(const Integer x) noexcept
       constexpr bool is_uint = std::is_unsigned_v<Integer>;
       using IType = std::conditional_t<is_uint, unsigned short, short>;
       const IType v = cast<IType>(x);
-      y = cast<Integer>(__popcnt16(v));
+      y = cast<Integer>(popcountMsvcImpl(v));
     }
     else if constexpr (size == 8) {
       constexpr bool is_uint = std::is_unsigned_v<Integer>;
       using IType = std::conditional_t<is_uint, unsigned long long, long long>;
       const IType v = cast<IType>(x);
-      y = cast<Integer>(__popcnt64(v));
+      y = cast<Integer>(popcountMsvcImpl(v));
     }
     else {
       constexpr bool is_uint = std::is_unsigned_v<Integer>;
       using IType = std::conditional_t<is_uint, unsigned int, int>;
       const IType v = cast<IType>(x);
-      y = cast<Integer>(__popcnt(v));
+      y = cast<Integer>(popcountMsvcImpl(v));
     }
   }
   else {

@@ -22,7 +22,7 @@
 #include <string_view>
 // Zisc
 #include "string.hpp"
-#include "zisc/zisc_config.hpp"
+#include "zisc_config.hpp"
 
 namespace zisc {
 

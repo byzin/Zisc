@@ -26,17 +26,17 @@ int main()
     zisc::outputMessage(std::cout);
     zisc::outputMessage(std::cout,
                         "Zisc version: ",
-                        kZiscVersionMajor, ".",
-                        kZiscVersionMinor, ".",
-                        kZiscVersionPatch);
+                        zisc::Config::versionMajor(), ".",
+                        zisc::Config::versionMinor(), ".",
+                        zisc::Config::versionPatch());
   }
   // Assert example
   {
     zisc::outputMessage(std::cout, "Assert example.");
     ZISC_ASSERT(false, "Zisc version: ",
-                       kZiscVersionMajor, ".",
-                       kZiscVersionMinor, ".",
-                       kZiscVersionPatch);
+                       zisc::Config::versionMajor, ".",
+                       zisc::Config::versionMinor, ".",
+                       zisc::Config::versionPatch);
   }
   // Static assert example
   {

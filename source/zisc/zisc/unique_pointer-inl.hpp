@@ -25,7 +25,7 @@
 #include "non_copyable.hpp"
 #include "std_memory_resource.hpp"
 #include "utility.hpp"
-#include "zisc/zisc_config.hpp"
+#include "zisc_config.hpp"
 
 namespace zisc {
 

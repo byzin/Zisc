@@ -24,7 +24,7 @@
 #include "arith_array.hpp"
 #include "math.hpp"
 #include "utility.hpp"
-#include "zisc/zisc_config.hpp"
+#include "zisc_config.hpp"
 
 namespace zisc {
 

@@ -29,7 +29,7 @@
 #include "std_memory_resource.hpp"
 #include "type_traits.hpp"
 #include "unique_pointer.hpp"
-#include "zisc/zisc_config.hpp"
+#include "zisc_config.hpp"
 
 namespace zisc {
 

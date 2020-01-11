@@ -11,6 +11,7 @@ cmake_minimum_required(VERSION 3.16)
 
 set(__zisc_dir__ ${CMAKE_SOURCE_DIR}/source/zisc)
 
+
 function(getExampleWarningFlags example_warning_flags)
   set(warning_flags "")
 
@@ -40,7 +41,6 @@ function(addExample target)
   add_executable(${target} ${example_source_files})
 
   #
-  include(${__zisc_dir__}/cmake/compiler.cmake)
   set_target_properties(${target} PROPERTIES
       CXX_STANDARD 17
       CXX_STANDARD_REQUIRED ON
@@ -49,6 +49,7 @@ function(addExample target)
       RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO ${PROJECT_BINARY_DIR}
       RUNTIME_OUTPUT_DIRECTORY_RELEASE ${PROJECT_BINARY_DIR})
 
+  include(${__zisc_dir__}/cmake/compiler.cmake)
   getCxxWarningFlags(cxx_compile_warning_flags)
   getExampleWarningFlags(example_warning_flags)
   target_compile_options(${target} PRIVATE ${cxx_compile_warning_flags}
@@ -64,16 +65,14 @@ endfunction(addExample)
 set(project_description "Examples of Zisc")
 project(Examples VERSION 0.0.1 DESCRIPTION "${project_description}" LANGUAGES  CXX)
 
-# Check dependencies
-if(NOT TARGET Zisc)
-  message(FATAL_ERROR "Zisc not found.")
-endif()
-
 # Initialize platform info
 include(${__zisc_dir__}/cmake/general.cmake)
 include(${__zisc_dir__}/cmake/platform.cmake)
 getPlatformFlags(platform_definitions)
 setVariablesOnCMake(${platform_definitions})
+
+# Check dependencies
+checkTarget(Zisc)
 
 # Build examples
 addExample(AlgorithmExample 

@@ -105,11 +105,11 @@ configure_file(${PROJECT_SOURCE_DIR}/zisc/zisc_config-inl.hpp.in
                ${zisc_config_dir}/zisc_config-inl.hpp)
 
 # Create Zisc library
-file(GLOB cpp_files ${PROJECT_SOURCE_DIR}/zisc/*.cpp)
-file(GLOB hpp_files ${PROJECT_SOURCE_DIR}/zisc/*.hpp)
-list(APPEND hpp_files ${zisc_config_dir}/zisc_config-inl.hpp)
-source_group(${PROJECT_NAME} FILES ${cpp_files} ${hpp_files})
-add_library(${PROJECT_NAME} STATIC ${cpp_files} ${hpp_files})
+file(GLOB zisc_source_files ${PROJECT_SOURCE_DIR}/zisc/*.cpp
+                            ${PROJECT_SOURCE_DIR}/zisc/*.hpp)
+list(APPEND zisc_source_files ${zisc_config_dir}/zisc_config-inl.hpp)
+source_group(${PROJECT_NAME} FILES ${zisc_source_files})
+add_library(${PROJECT_NAME} STATIC ${zisc_source_files})
 
 # Find dependencies
 set(THREADS_PREFER_PTHREAD_FLAG ON)

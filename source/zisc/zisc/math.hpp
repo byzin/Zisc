@@ -22,7 +22,7 @@
 #include <type_traits>
 // Zisc
 #include "math_const.hpp"
-#include "zisc/zisc_config.hpp"
+#include "zisc_config.hpp"
 
 namespace zisc {
 

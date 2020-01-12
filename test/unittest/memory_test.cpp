@@ -38,7 +38,7 @@ TEST(MemoryTest, SystemMemoryStatsTest)
     const zisc::ByteUnit bytes{b};
     const auto mb = bytes.representedAs<zisc::MebiUnit::exponent()>();
     std::cout << "## Total physical memory size: " << mb.value().toFloat<double>()
-              << " ms" << std::endl;
+              << " MB" << std::endl;
     EXPECT_GT(b, 0) << "The platform has no physical memory";
   }
   {
@@ -46,20 +46,20 @@ TEST(MemoryTest, SystemMemoryStatsTest)
     const zisc::ByteUnit bytes{b};
     const auto mb = bytes.representedAs<zisc::MebiUnit::exponent()>();
     std::cout << "## Free  physical memory size: " << mb.value().toFloat<double>()
-              << " ms" << std::endl;
+              << " MB" << std::endl;
   }
   {
     const Arith b = zisc::cast<Arith>(system_stats.virtualMemoryTotal());
     const zisc::ByteUnit bytes{b};
     const auto mb = bytes.representedAs<zisc::MebiUnit::exponent()>();
     std::cout << "## Total virtual memory size: " << mb.value().toFloat<double>()
-              << " ms" << std::endl;
+              << " MB" << std::endl;
   }
   {
     const Arith b = zisc::cast<Arith>(system_stats.virtualMemoryFree());
     const zisc::ByteUnit bytes{b};
     const auto mb = bytes.representedAs<zisc::MebiUnit::exponent()>();
     std::cout << "## Free  virtual memory size: " << mb.value().toFloat<double>()
-              << " ms" << std::endl;
+              << " MB" << std::endl;
   }
 }

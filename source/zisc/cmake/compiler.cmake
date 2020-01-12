@@ -384,7 +384,7 @@ function(getCxxFeatureList cxx_feature_list)
     cxx_binary_literals
     cxx_constexpr
     cxx_contextual_conversions
-    cxx_decltype_incomplete_return_types
+    # cxx_decltype_incomplete_return_types
     cxx_decltype
     cxx_decltype_auto
     cxx_default_function_template_args

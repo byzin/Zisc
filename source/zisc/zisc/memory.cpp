@@ -42,7 +42,7 @@ Memory::SystemMemoryStats Memory::retrieveSystemStatsImpl() noexcept
   {
     MEMORYSTATUSEX info{};
     info.dwLength = sizeof(info);
-//    GlobalMemoryStatusEx(&info);
+    GlobalMemoryStatusEx(&info);
     stats.setPhysicalMemoryTotal(info.ullTotalPhys);
     stats.setPhysicalMemoryFree(info.ullAvailPhys);
     stats.setVirtualMemoryTotal(info.ullTotalVirtual);

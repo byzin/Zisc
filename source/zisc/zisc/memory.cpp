@@ -14,9 +14,11 @@
 
 #include "memory.hpp"
 // Standard C++ library
+#include <array>
 #include <cstddef>
 #include <limits>
 // Zisc
+#include "error.hpp"
 #include "utility.hpp"
 #include "zisc_config.hpp"
 // Platform
@@ -26,6 +28,9 @@
 #elif defined(Z_LINUX)
 #include <sys/sysinfo.h>
 #elif defined(Z_MAC)
+#include <mach/mach.h>
+#include <sys/sysctl.h>
+#include <sys/types.h>
 #endif
 
 namespace zisc {
@@ -62,6 +67,55 @@ Memory::SystemMemoryStats Memory::retrieveSystemStatsImpl() noexcept
     stats.setVirtualMemoryFree(free_virtual_mem);
   }
 #elif defined(Z_MAC)
+  {
+    mach_port_t host_port = mach_host_self();
+    vm_size_t pagesize = 0;
+    host_page_size(host_port, &pagesize);
+
+    // Total size of physical memory
+    {
+      std::array<int, 2> mib{{CTL_HW, HW_MEMSIZE}};
+      std::size_t total_physical_mem = 0;
+      std::size_t size = sizeof(total_physical_mem);
+      const int result = sysctl(mib.data(),
+                                mib.size(),
+                                &total_physical_mem,
+                                &size,
+                                nullptr,
+                                0);
+      ZISC_ASSERT(0 == result, "Retrieving physical memory info failed.");
+      static_cast<void>(result);
+      stats.setPhysicalMemoryTotal(total_physical_mem);
+    }
+    // Free physical memory size
+    {
+      mach_msg_type_number_t count = HOST_VM_INFO_COUNT;
+      vm_statistics_data_t vmstats;
+      const auto result = host_statistics(host_port,
+                                          HOST_VM_INFO,
+                                          treatAs<host_info_t>(&vmstats),
+                                          &count);
+      ZISC_ASSERT(result == KERN_SUCCESS,
+                  "Retrieving physical memory info failed.");
+      static_cast<void>(result);
+      const std::size_t free_physical_mem = vmstats.free_count * pagesize;
+      stats.setPhysicalMemoryFree(free_physical_mem);
+    }
+    // Virtual memory
+    {
+      xsw_usage vmusage;
+      std::size_t size = sizeof(vmusage);
+      const auto result = sysctlbyname("vm.swapusage",
+                                       &vmusage,
+                                       &size,
+                                       nullptr,
+                                       0);
+      ZISC_ASSERT(0 == result, "Retrieving virtual memory info failed.");
+      static_cast<void>(result);
+      stats.setVirtualMemoryTotal(vmusage.xsu_total);
+      stats.setVirtualMemoryFree(vmusage.xsu_avail);
+    }
+  }
 #else
   {
     constexpr std::size_t m = std::numeric_limits<std::size_t>::max();

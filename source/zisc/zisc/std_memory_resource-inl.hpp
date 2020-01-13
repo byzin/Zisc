@@ -95,8 +95,8 @@ template <typename Type> inline
 void UniquePtrDeleter<Type>::operator()(Pointer memory) noexcept
 {
   if (memory != nullptr) {
+    std::destroy_at(memory);
     std::pmr::polymorphic_allocator<Type> alloc{resource()};
-    alloc.destroy(memory);
     constexpr std::size_t n = 1;
     alloc.deallocate(memory, n);
   }

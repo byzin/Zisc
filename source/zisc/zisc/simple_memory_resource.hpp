@@ -16,9 +16,13 @@
 #define ZISC_SIMPLE_MEMORY_RESOURCE_HPP
 
 // Standard C++ library
+#include <array>
 #include <cstddef>
+#include <type_traits>
 // Zisc
+#include "non_copyable.hpp"
 #include "std_memory_resource.hpp"
+#include "zisc_config.hpp"
 
 namespace zisc {
 
@@ -27,9 +31,36 @@ namespace zisc {
 
   No detailed description.
   */
-class SimpleMemoryResource : public std::pmr::memory_resource
+class SimpleMemoryResource : public std::pmr::memory_resource,
+                             public NonCopyable<SimpleMemoryResource>
 {
+  static constexpr std::size_t kPadSize = std::alignment_of_v<std::max_align_t> -
+                                          sizeof(std::size_t);
+
  public:
+  /*!
+    \brief No brief description
+
+    No detailed description.
+    */
+  struct alignas(std::alignment_of_v<std::max_align_t>) Header
+  {
+    std::size_t size_;
+    std::array<uint8b, kPadSize> padding_;
+  };
+
+
+  // Create a memory resource
+  SimpleMemoryResource() noexcept;
+
+  //! Move a data
+  SimpleMemoryResource(SimpleMemoryResource&& other) noexcept;
+
+
+  //! Move a data
+  SimpleMemoryResource& operator=(SimpleMemoryResource&& other) noexcept;
+
+
   // STL functions
   //! Allocate memory
   void* do_allocate(std::size_t size,
@@ -45,11 +76,23 @@ class SimpleMemoryResource : public std::pmr::memory_resource
 
 
   //! Allocate memory
-  static void* allocateMemory(const std::size_t size,
-                              const std::size_t alignment) noexcept;
+  void* allocateMemory(const std::size_t size,
+                       const std::size_t alignment) noexcept;
 
   //! Deallocate memory
-  static void deallocateMemory(void* data) noexcept;
+  void deallocateMemory(void* data,
+                        const std::size_t size,
+                        const std::size_t alignment) noexcept;
+
+  //! Return the total memory usage
+  std::size_t totalMemoryUsage() const noexcept;
+
+  //! Return the peak memory usage
+  std::size_t peakMemoryUsage() const noexcept;
+
+ private:
+  std::size_t total_memory_usage_ = 0;
+  std::size_t peak_memory_usage_ = 0;
 };
 
 } // namespace zisc

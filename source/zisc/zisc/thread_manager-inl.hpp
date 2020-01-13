@@ -36,7 +36,6 @@
 #include "non_copyable.hpp"
 #include "type_traits.hpp"
 #include "std_memory_resource.hpp"
-#include "unique_pointer.hpp"
 #include "utility.hpp"
 #include "zisc_config.hpp"
 
@@ -99,7 +98,7 @@ auto ThreadManager::Result<T>::get() noexcept -> Type
 template <typename T> inline
 void ThreadManager::Result<T>::wait() const noexcept
 {
-  UniqueTask task;
+  UniqueTask task{};
   while (!hasValue()) {
     if (thread_manager_ != nullptr)
       task = thread_manager_->fetchTask();
@@ -250,8 +249,7 @@ std::size_t ThreadManager::capacity() const noexcept
   \return No description
   */
 template <typename ReturnType, typename Task> inline
-auto ThreadManager::enqueue(Task&& task,
-                            EnableIfInvocable<Task>) noexcept
+auto ThreadManager::enqueue(Task&& task, EnableIfInvocable<Task>) noexcept
     -> UniqueResult<ReturnType>
 {
   auto result = enqueueBridge<ReturnType>(std::forward<Task>(task));
@@ -267,8 +265,7 @@ auto ThreadManager::enqueue(Task&& task,
   \return No description
   */
 template <typename ReturnType, typename Task> inline
-auto ThreadManager::enqueue(Task&& task,
-                            EnableIfInvocable<Task, uint>) noexcept
+auto ThreadManager::enqueue(Task&& task, EnableIfInvocable<Task, uint>) noexcept
     -> UniqueResult<ReturnType>
 {
   auto result = enqueueBridge<ReturnType>(std::forward<Task>(task));
@@ -409,7 +406,7 @@ void ThreadManager::createWorkers(const uint num_of_threads) noexcept
     auto work = [this, thread_id, padding]() noexcept
     {
       static_cast<void>(padding);
-      UniqueTask task;
+      UniqueTask task{};
       while (workersAreEnabled()) {
         {
           task = fetchTask();
@@ -542,20 +539,18 @@ template <typename SingleTask, typename ReturnType, typename Task> inline
 auto ThreadManager::enqueueImpl(Task&& task) noexcept
     -> UniqueResult<ReturnType>
 {
-  auto mem_resource = resource();
-
   // Create a result of loop tasks
   const uint thread_id = getThreadIndex();
   UniqueResult<ReturnType> result = (thread_id != invalidId())
-      ? UniqueResult<ReturnType>::make(mem_resource, this, thread_id)
-      : UniqueResult<ReturnType>::make(mem_resource);
+      ? pmr::allocateUnique(resultAllocator<ReturnType>(), this, thread_id)
+      : pmr::allocateUnique(resultAllocator<ReturnType>());
 
   // Enqueue a task maker
-  using UniqueSingleTask = UniquePointer<SingleTask>;
   {
-    UniqueTask worker_task = UniqueSingleTask::make(mem_resource,
-                                                    std::forward<Task>(task),
-                                                    result.get());
+    UniqueTask worker_task = pmr::allocateUnique<SingleTask>(
+        resource(),
+        std::forward<Task>(task),
+        result.get());
     task_queue_.enqueue(std::move(worker_task));
   }
   condition_.notify_one();
@@ -675,7 +670,7 @@ auto ThreadManager::enqueueLoopBridge2(Task&& task,
 {
   using Iterator = std::remove_cv_t<std::remove_reference_t<Iterator1>>;
   using TaskT = std::remove_cv_t<std::remove_reference_t<Task>>;
-  using UniqueSharedData = UniquePointer<SharedTaskData>;
+  using UniqueSharedData = pmr::unique_ptr<SharedTaskData>;
 
   constexpr std::size_t size = sizeof(SharedTaskData*) + sizeof(Iterator);
   constexpr std::size_t alignment = std::max(alignof(SharedTaskData*),
@@ -697,7 +692,9 @@ auto ThreadManager::enqueueLoopBridge2(Task&& task,
         // A manager will be notified when all tasks have been completed
         const uint c = --(shared_data_->counter_);
         if (c == 0) {
-          UniqueSharedData data{shared_data_, shared_data_->mem_resource_};
+          std::pmr::polymorphic_allocator<SharedTaskData> alloc{
+              shared_data_->mem_resource_};
+          UniqueSharedData data{shared_data_, alloc};
           data->result_->set(0);
         }
       }
@@ -724,7 +721,9 @@ auto ThreadManager::enqueueLoopBridge2(Task&& task,
         // A manager will be notified when all tasks have been completed
         const uint c = --(shared_data_->counter_);
         if (c == 0) {
-          UniqueSharedData data{shared_data_, shared_data_->mem_resource_};
+          std::pmr::polymorphic_allocator<SharedTaskData> alloc{
+              shared_data_->mem_resource_};
+          UniqueSharedData data{shared_data_, alloc};
           data->result_->set(0);
         }
       }
@@ -764,25 +763,24 @@ auto ThreadManager::enqueueLoopImpl(Task&& task,
   // Create a result of loop tasks
   const uint thread_id = getThreadIndex();
   UniqueResult<void> result = (thread_id != invalidId())
-      ? UniqueResult<void>::make(mem_resource, this, thread_id)
-      : UniqueResult<void>::make(mem_resource);
+      ? pmr::allocateUnique(resultAllocator<void>(), this, thread_id)
+      : pmr::allocateUnique(resultAllocator<void>());
 
   // Create a shared data
-  using UniqueSharedData = UniquePointer<SharedTaskData>;
   const uint d = distance(begin, end);
-  auto shared_data = UniqueSharedData::make(mem_resource,
-                                            std::forward<Task>(task),
-                                            result.get(),
-                                            d,
-                                            mem_resource).release();
+  auto shared_data = pmr::allocateUnique<SharedTaskData>(
+      mem_resource,
+      std::forward<Task>(task),
+      result.get(),
+      d,
+      mem_resource).release();
 
   // Enqueue loop tasks
-  using UniqueLoopTask = UniquePointer<LoopTask>;
   {
     for (auto ite = begin; ite != end; ++ite) {
-      UniqueTask worker_task = UniqueLoopTask::make(mem_resource,
-                                                    shared_data,
-                                                    ite);
+      UniqueTask worker_task = pmr::allocateUnique<LoopTask>(mem_resource,
+                                                             shared_data,
+                                                             ite);
       task_queue_.enqueue(std::move(worker_task));
     }
   }
@@ -814,11 +812,9 @@ void ThreadManager::exitWorkersRunning() noexcept
 inline
 auto ThreadManager::fetchTask() noexcept -> UniqueTask 
 {
-  UniqueTask task;
   auto result = task_queue_.dequeue();
   const bool flag = std::get<0>(result);
-  if (flag)
-    task = std::move(std::get<1>(result));
+  UniqueTask task = flag ? std::move(std::get<1>(result)) : UniqueTask{};
   return task;
 }
 
@@ -871,6 +867,20 @@ constexpr uint ThreadManager::invalidId() noexcept
 {
   const uint id = std::numeric_limits<uint>::max();
   return id;
+}
+
+/*!
+  \details No detailed description
+
+  \tparam Type No description.
+  \return No description
+  */
+template <typename Type> inline
+auto ThreadManager::resultAllocator() const noexcept
+    -> std::pmr::polymorphic_allocator<Result<Type>>
+{
+  std::pmr::polymorphic_allocator<Result<Type>> alloc{resource()};
+  return alloc;
 }
 
 /*!

@@ -28,7 +28,6 @@
 #include "non_copyable.hpp"
 #include "std_memory_resource.hpp"
 #include "type_traits.hpp"
-#include "unique_pointer.hpp"
 #include "zisc_config.hpp"
 
 namespace zisc {
@@ -78,7 +77,7 @@ class ThreadManager : private NonCopyable<ThreadManager>
     uint16b thread_id_;
   };
   template <typename Type>
-  using UniqueResult = UniquePointer<Result<Type>>;
+  using UniqueResult = pmr::unique_ptr<Result<Type>>;
 
 
   //! Create threads as many CPU threads as
@@ -161,7 +160,7 @@ class ThreadManager : private NonCopyable<ThreadManager>
     //! Run a task
     virtual void run(const uint thread_id) noexcept = 0;
   };
-  using UniqueTask = UniquePointer<WorkerTask>;
+  using UniqueTask = pmr::unique_ptr<WorkerTask>;
 
 
   //! Create worker threads
@@ -216,6 +215,10 @@ class ThreadManager : private NonCopyable<ThreadManager>
 
   //! Return the invalid thread ID
   static constexpr uint invalidId() noexcept;
+
+  //! Return the allocator of the result type
+  template <typename Type>
+  std::pmr::polymorphic_allocator<Result<Type>> resultAllocator() const noexcept;
 
   //! Run single task
   template <typename Task, typename Iterator>

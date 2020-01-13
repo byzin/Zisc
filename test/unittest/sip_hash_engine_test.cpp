@@ -79,10 +79,10 @@ TEST(SipHashEngineTest, 32BitHashTest)
     [[maybe_unused]] constexpr auto result = SipHash::hash(seed);
   }
   {
-    constexpr std::array<zisc::uint8b, 4> seed0{{1, 2, 3, 4}};
+    alignas(4) constexpr std::array<zisc::uint8b, 4> seed0{{1, 2, 3, 4}};
     constexpr auto expected = SipHash::hash(seed0.data(), 4);
 
-    constexpr char seed1[] = {1, 2, 3, 4, '\0'};
+    alignas(4) constexpr char seed1[] = {1, 2, 3, 4, '\0'};
     constexpr auto result1 = SipHash::hash(seed1);
     EXPECT_EQ(*reinterpret_cast<const zisc::uint32b*>(seed0.data()),
               *reinterpret_cast<const zisc::uint32b*>(seed1));
@@ -106,10 +106,10 @@ TEST(SipHashEngineTest, 64BitHashTest)
     [[maybe_unused]] constexpr auto result = SipHash::hash(seed);
   }
   {
-    constexpr std::array<zisc::uint8b, 8> seed0{{1, 2, 3, 4, 5, 6, 7, 8}};
+    alignas(8) constexpr std::array<zisc::uint8b, 8> seed0{{1, 2, 3, 4, 5, 6, 7, 8}};
     constexpr auto expected = SipHash::hash(seed0.data(), 8);
 
-    constexpr char seed1[] = {1, 2, 3, 4, 5, 6, 7, 8, '\0'};
+    alignas(8) constexpr char seed1[] = {1, 2, 3, 4, 5, 6, 7, 8, '\0'};
     constexpr auto result1 = SipHash::hash(seed1);
     EXPECT_EQ(*reinterpret_cast<const zisc::uint64b*>(seed0.data()),
               *reinterpret_cast<const zisc::uint64b*>(seed1));

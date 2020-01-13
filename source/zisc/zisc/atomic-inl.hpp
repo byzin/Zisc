@@ -497,13 +497,12 @@ template <typename Integer, Config::ImplType kImpl> inline
 Integer Atomic::minImpl(Integer* ptr, const Integer value) noexcept
 {
   static_assert(std::is_integral_v<Integer>, "The Integer isn't integer type.");
-  static_assert(sizeof(Integer) == 4, "The size of integer isn't 4 byte.");
   Integer old = cast<Integer>(0);
-  if constexpr (kImpl == Config::ImplType::kClang) {
+  constexpr std::size_t size = sizeof(Integer);
+  if constexpr ((kImpl == Config::ImplType::kClang) && (size == 4)) {
     old = __atomic_fetch_min(ptr, value, __ATOMIC_SEQ_CST);
   }
-  else if constexpr ((kImpl == Config::ImplType::kGcc) ||
-                     (kImpl == Config::ImplType::kMsvc)) {
+  else {
     const auto min_impl = [](const Integer lhs, const Integer rhs)
     {
       return (lhs < rhs) ? lhs : rhs;
@@ -526,13 +525,12 @@ template <typename Integer, Config::ImplType kImpl> inline
 Integer Atomic::maxImpl(Integer* ptr, const Integer value) noexcept
 {
   static_assert(std::is_integral_v<Integer>, "The Integer isn't integer type.");
-  static_assert(sizeof(Integer) == 4, "The size of integer isn't 4 byte.");
   Integer old = cast<Integer>(0);
-  if constexpr (kImpl == Config::ImplType::kClang) {
+  constexpr std::size_t size = sizeof(Integer);
+  if constexpr ((kImpl == Config::ImplType::kClang) && (size == 4)) {
     old = __atomic_fetch_max(ptr, value, __ATOMIC_SEQ_CST);
   }
-  else if constexpr ((kImpl == Config::ImplType::kGcc) ||
-                     (kImpl == Config::ImplType::kMsvc)) {
+  else {
     const auto max_impl = [](const Integer lhs, const Integer rhs)
     {
       return (lhs < rhs) ? rhs : lhs;

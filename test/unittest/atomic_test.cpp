@@ -218,7 +218,7 @@ void testAtomicMin()
 
   auto test = [&value](const zisc::uint, const Type v)
   {
-    zisc::Atomic::min(&value, -v);
+    zisc::Atomic::min(&value, zisc::cast<Type>(-v));
   };
 
   constexpr Type s = zisc::cast<Type>(0);
@@ -616,10 +616,40 @@ TEST(AtomicTest, CmpxchgUInt64Test)
   ::testAtomicCmpxchg<zisc::uint64b, resolution>();
 }
 
+TEST(AtomicTest, MinInt8Test)
+{
+  constexpr std::size_t resolution = 100;
+  ::testAtomicMin<zisc::int8b, resolution>();
+}
+
+TEST(AtomicTest, MinInt16Test)
+{
+  constexpr std::size_t resolution = 30'000;
+  ::testAtomicMin<zisc::int16b, resolution>();
+}
+
 TEST(AtomicTest, MinInt32Test)
 {
   constexpr std::size_t resolution = 1'000'000;
   ::testAtomicMin<zisc::int32b, resolution>();
+}
+
+TEST(AtomicTest, MinInt64Test)
+{
+  constexpr std::size_t resolution = 1'000'000;
+  ::testAtomicMin<zisc::int64b, resolution>();
+}
+
+TEST(AtomicTest, MaxInt8Test)
+{
+  constexpr std::size_t resolution = 100;
+  ::testAtomicMax<zisc::int8b, resolution>();
+}
+
+TEST(AtomicTest, MaxInt16Test)
+{
+  constexpr std::size_t resolution = 30'000;
+  ::testAtomicMax<zisc::int16b, resolution>();
 }
 
 TEST(AtomicTest, MaxInt32Test)
@@ -628,10 +658,34 @@ TEST(AtomicTest, MaxInt32Test)
   ::testAtomicMax<zisc::int32b, resolution>();
 }
 
+TEST(AtomicTest, MaxInt64Test)
+{
+  constexpr std::size_t resolution = 1'000'000;
+  ::testAtomicMax<zisc::int64b, resolution>();
+}
+
+TEST(AtomicTest, MaxUInt8Test)
+{
+  constexpr std::size_t resolution = 100;
+  ::testAtomicMax<zisc::uint8b, resolution>();
+}
+
+TEST(AtomicTest, MaxUInt16Test)
+{
+  constexpr std::size_t resolution = 30'000;
+  ::testAtomicMax<zisc::uint16b, resolution>();
+}
+
 TEST(AtomicTest, MaxUInt32Test)
 {
   constexpr std::size_t resolution = 1'000'000;
   ::testAtomicMax<zisc::uint32b, resolution>();
+}
+
+TEST(AtomicTest, MaxUInt64Test)
+{
+  constexpr std::size_t resolution = 1'000'000;
+  ::testAtomicMax<zisc::uint64b, resolution>();
 }
 
 TEST(AtomicTest, AndUInt8Test)

@@ -102,3 +102,6 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE ${test_definitions})
 
 #
 setStaticAnalyzer(${PROJECT_NAME})
+
+# Save the dependency list
+savePrerequisites(${PROJECT_NAME} ${PROJECT_BINARY_DIR} "" "" "")

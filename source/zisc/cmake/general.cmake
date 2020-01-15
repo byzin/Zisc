@@ -6,6 +6,8 @@
 # http://opensource.org/licenses/mit-license.php
 # 
 
+set(__general_path__ ${CMAKE_CURRENT_LIST_FILE})
+
 
 # Set boolean value option
 macro(setBooleanOption variable value doc_string)
@@ -42,7 +44,7 @@ endfunction(checkSubmodule)
 function(checkTarget target)
   if(NOT TARGET ${target})
     message(FATAL_ERROR
-            "Target `${target}` not found. Please init the target.")
+            "Target '${target}' not found. Please init the target.")
   endif()
 endfunction(checkTarget)
 
@@ -102,10 +104,97 @@ function(setVariablesOnCMake)
 endfunction(setVariablesOnCMake)
 
 
-function(getPrerequisites target)
+function(getPrerequisites target_path exe_path dirs rpaths dependency_list)
   include(GetPrerequisites)
+  # Check the given target path
+  is_file_executable("${target_path}" is_executable)
+  if(${is_executable})
+    # Get dependency list
+    get_prerequisites("${target_path}" deps 0 1 "${exe_path}" "${dirs}" "${rpaths}")
+    set(dep_list "")
+    foreach(dependency IN LISTS deps)
+      gp_append_unique(dep_list ${dependency})
+    endforeach(dependency)
+
+    # Output value
+    set(${dependency_list} "${dep_list}" PARENT_SCOPE)
+  else()
+    message(WARNING "'${target_path}' isn't executable.")
+  endif()
 endfunction(getPrerequisites)
 
 
-function(printPrerequisites target)
-endfunction(printPrerequisites)
+function(getResolvedPrerequisites dependency_list target_path exe_path dirs rpaths resolved_dep_list)
+  include(GetPrerequisites)
+  # Get resolved dependency list
+  set(resolved_list "")
+  foreach(dependency IN LISTS dependency_list)
+    gp_resolve_item("${target_path}" ${dependency} "${exe_path}" "${dirs}" dependency "${rpaths}")
+    get_filename_component(dependency ${dependency} REALPATH)
+    list(APPEND resolved_list ${dependency})
+  endforeach(dependency)
+
+  # Output value
+  set(${resolved_dep_list} ${resolved_list} PARENT_SCOPE)
+endfunction(getResolvedPrerequisites)
+
+
+function(getPrerequisitesString target_path exe_path dirs rpaths dependency_list_string)
+  include(GetPrerequisites)
+
+  # Get dependency list
+  getPrerequisites(${target_path} "${exe_path}" "${dirs}" "${rpaths}" dependency_list)
+  getResolvedPrerequisites("${dependency_list}" ${target_path} "${exe_path}" "${dirs}" "${rpaths}" resolved_dep_list)
+
+  #
+  list(LENGTH dependency_list num_of_dependencies)
+  set(text "")
+  foreach(index RANGE 1 ${num_of_dependencies})
+    math(EXPR index "${index} - 1")
+    list(GET dependency_list ${index} dependency)
+    list(GET resolved_dep_list ${index} resolved_dep)
+
+    # Get type string
+    gp_file_type(${target_path} ${resolved_dep} dependency_type)
+    string(LENGTH "${dependency_type}" type_length)
+    foreach(count RANGE ${type_length} 7)
+      string(APPEND dependency_type " ")
+    endforeach(count)
+
+    # Get dependency string
+    string(APPEND text "[${dependency_type}] ${dependency}\n"
+                       "        -> ${resolved_dep}\n")
+  endforeach(index)
+  set(${dependency_list_string} ${text} PARENT_SCOPE)
+endfunction(getPrerequisitesString)
+
+
+function(savePrerequisites target output_dir exe_path dirs rpaths)
+  set(prerequisite_target ${target}_prerequisite)
+
+  # Check the output directory
+  if(NOT (EXISTS "${output_dir}" AND IS_DIRECTORY "${output_dir}"))
+    message(FATAL_ERROR "The directory '${output_dir}' not found.")
+  endif()
+
+  # Generate a prerequisite script
+  set(script "")
+  set(prerequisite_file ${output_dir}/${prerequisite_target}.txt)
+  string(APPEND script
+      "include(${__general_path__})\n"
+      "getPrerequisitesString(\${target_path} \"${exe_path}\" \"${dirs}\" \"${rpaths}\" text)\n"
+      "file(WRITE ${prerequisite_file} \${text})\n"
+      )
+
+  # Save the script into a file
+  set(script_file ${output_dir}/${prerequisite_target}.cmake)
+  file(WRITE ${script_file} ${script})
+
+  add_custom_target(
+      ${prerequisite_target} ALL
+      ${CMAKE_COMMAND} -D target_path=$<TARGET_FILE:${target}> -P ${script_file}
+      DEPENDS ${target}
+      WORKING_DIRECTORY "${output_dir}"
+      COMMENT "Get the list of shared libraries required by '${target}'."
+      SOURCES ${script_file})
+endfunction(savePrerequisites)

@@ -58,6 +58,9 @@ function(addExample target)
 
   #
   setStaticAnalyzer(${target})
+
+  # Save the dependency list
+  # savePrerequisites(${target} ${PROJECT_BINARY_DIR} "" "" "")
 endfunction(addExample)
 
 

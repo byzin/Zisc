@@ -89,7 +89,7 @@ endfunction(getZiscFlags)
 
 #
 set(project_description "Zisc provides commonly used C++ classes and functions.")
-project(Zisc VERSION 0.0.51 DESCRIPTION "${project_description}" LANGUAGES CXX)
+project(Zisc VERSION 0.0.52 DESCRIPTION "${project_description}" LANGUAGES CXX)
 message(STATUS "${PROJECT_NAME} version: ${PROJECT_VERSION}")
 
 include(${PROJECT_SOURCE_DIR}/cmake/general.cmake)
@@ -102,7 +102,8 @@ initZiscOptions()
 set(zisc_config_dir ${PROJECT_BINARY_DIR}/include/zisc)
 file(MAKE_DIRECTORY ${zisc_config_dir})
 configure_file(${PROJECT_SOURCE_DIR}/zisc/zisc_config-inl.hpp.in
-               ${zisc_config_dir}/zisc_config-inl.hpp)
+               ${zisc_config_dir}/zisc_config-inl.hpp
+               @ONLY)
 
 # Create Zisc library
 file(GLOB zisc_source_files ${PROJECT_SOURCE_DIR}/zisc/*.cpp
@@ -127,9 +128,6 @@ target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17 ${cxx_feature_list})
 getCxxCompilerFlags(cxx_compile_flags cxx_linker_flags cxx_definitions)
 getCxxWarningFlags(cxx_compile_warning_flags)
 getZiscFlags(zisc_compile_flags zisc_linker_flags zisc_definitions)
-if(Z_WINDOWS)
-  list(APPEND zisc_definitions _ENABLE_EXTENDED_ALIGNED_STORAGE)
-endif()
 target_compile_options(${PROJECT_NAME} PUBLIC ${cxx_compile_flags}
                                               ${zisc_compile_flags}
                                        PRIVATE ${cxx_compile_warning_flags})

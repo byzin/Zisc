@@ -31,10 +31,10 @@ TEST(MemoryTest, SystemMemoryStatsTest)
   using Arith = typename zisc::ByteUnit::ArithmeticType;
   {
     constexpr std::size_t m = std::numeric_limits<std::size_t>::max();
-    ASSERT_NE(system_stats.physicalMemoryTotal(), m) << "Unsupported platform.";
+    ASSERT_NE(system_stats.totalPhysicalMemory(), m) << "Unsupported platform.";
   }
   {
-    const Arith b = zisc::cast<Arith>(system_stats.physicalMemoryTotal());
+    const Arith b = zisc::cast<Arith>(system_stats.totalPhysicalMemory());
     const zisc::ByteUnit bytes{b};
     const auto mb = bytes.representedAs<zisc::MebiUnit::exponent()>();
     std::cout << "## Total physical memory size: " << mb.value().toFloat<double>()
@@ -42,21 +42,21 @@ TEST(MemoryTest, SystemMemoryStatsTest)
     EXPECT_GT(b, 0) << "The platform has no physical memory";
   }
   {
-    const Arith b = zisc::cast<Arith>(system_stats.physicalMemoryFree());
+    const Arith b = zisc::cast<Arith>(system_stats.availablePhysicalMemory());
     const zisc::ByteUnit bytes{b};
     const auto mb = bytes.representedAs<zisc::MebiUnit::exponent()>();
     std::cout << "## Free  physical memory size: " << mb.value().toFloat<double>()
               << " MB" << std::endl;
   }
   {
-    const Arith b = zisc::cast<Arith>(system_stats.virtualMemoryTotal());
+    const Arith b = zisc::cast<Arith>(system_stats.totalVirtualMemory());
     const zisc::ByteUnit bytes{b};
     const auto mb = bytes.representedAs<zisc::MebiUnit::exponent()>();
     std::cout << "## Total virtual memory size: " << mb.value().toFloat<double>()
               << " MB" << std::endl;
   }
   {
-    const Arith b = zisc::cast<Arith>(system_stats.virtualMemoryFree());
+    const Arith b = zisc::cast<Arith>(system_stats.availableVirtualMemory());
     const zisc::ByteUnit bytes{b};
     const auto mb = bytes.representedAs<zisc::MebiUnit::exponent()>();
     std::cout << "## Free  virtual memory size: " << mb.value().toFloat<double>()

@@ -39,34 +39,34 @@ class Memory
   {
    public:
     //! Return the amount of actual physical memory currently available in bytes
-    std::size_t physicalMemoryFree() const noexcept;
+    std::size_t availablePhysicalMemory() const noexcept;
 
     //! Return the amount of actual physical memory in bytes
-    std::size_t physicalMemoryTotal() const noexcept;
+    std::size_t totalPhysicalMemory() const noexcept;
 
     //! Return the amount of swap memory space currently available in bytes
-    std::size_t virtualMemoryFree() const noexcept;
+    std::size_t availableVirtualMemory() const noexcept;
 
     //! Return the amount of swap memory space in bytes
-    std::size_t virtualMemoryTotal() const noexcept;
+    std::size_t totalVirtualMemory() const noexcept;
 
     //! Set the amount of actual physical memory currently available in bytes
-    void setPhysicalMemoryFree(const std::size_t s) noexcept;
+    void setAvailablePhysicalMemory(const std::size_t s) noexcept;
 
     //! Set the amount of actual physical memory in bytes
-    void setPhysicalMemoryTotal(const std::size_t s) noexcept;
+    void setTotalPhysicalMemory(const std::size_t s) noexcept;
 
     //! Set the amount of swap memory space currently available in bytes
-    void setVirtualMemoryFree(const std::size_t s) noexcept;
+    void setAvailableVirtualMemory(const std::size_t s) noexcept;
 
     //! Set the amount of swap memory space in bytes
-    void setVirtualMemoryTotal(const std::size_t s) noexcept;
+    void setTotalVirtualMemory(const std::size_t s) noexcept;
 
    private:
-    std::size_t physical_memory_total_ = 0;
-    std::size_t physical_memory_free_ = 0;
-    std::size_t virtual_memory_total_ = 0;
-    std::size_t virtual_memory_free_ = 0;
+    std::size_t total_physical_memory_ = 0;
+    std::size_t available_physical_memory_ = 0;
+    std::size_t total_virtual_memory_ = 0;
+    std::size_t available_virtual_memory_ = 0;
   };
 
   //! Retrieve the system memory statistics

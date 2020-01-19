@@ -48,23 +48,23 @@ Memory::SystemMemoryStats Memory::retrieveSystemStatsImpl() noexcept
     MEMORYSTATUSEX info{};
     info.dwLength = sizeof(info);
     GlobalMemoryStatusEx(&info);
-    stats.setPhysicalMemoryTotal(info.ullTotalPhys);
-    stats.setPhysicalMemoryFree(info.ullAvailPhys);
-    stats.setVirtualMemoryTotal(info.ullTotalVirtual);
-    stats.setVirtualMemoryFree(info.ullAvailVirtual);
+    stats.setTotalPhysicalMemory(info.ullTotalPhys);
+    stats.setAvailablePhysicalMemory(info.ullAvailPhys);
+    stats.setTotalVirtualMemory(info.ullTotalVirtual);
+    stats.setAvailableVirtualMemory(info.ullAvailVirtual);
   }
 #elif defined(Z_LINUX)
   {
     struct sysinfo info{};
     sysinfo(&info);
     const std::size_t total_physical_mem = info.totalram * info.mem_unit;
-    stats.setPhysicalMemoryTotal(total_physical_mem);
+    stats.setTotalPhysicalMemory(total_physical_mem);
     const std::size_t free_physical_mem = info.freeram * info.mem_unit;
-    stats.setPhysicalMemoryFree(free_physical_mem);
+    stats.setAvailablePhysicalMemory(free_physical_mem);
     const std::size_t total_virtual_mem = info.totalswap * info.mem_unit;
-    stats.setVirtualMemoryTotal(total_virtual_mem);
+    stats.setTotalVirtualMemory(total_virtual_mem);
     const std::size_t free_virtual_mem = info.freeswap * info.mem_unit;
-    stats.setVirtualMemoryFree(free_virtual_mem);
+    stats.setAvailableVirtualMemory(free_virtual_mem);
   }
 #elif defined(Z_MAC)
   {
@@ -85,7 +85,7 @@ Memory::SystemMemoryStats Memory::retrieveSystemStatsImpl() noexcept
                                 0);
       ZISC_ASSERT(0 == result, "Retrieving physical memory info failed.");
       static_cast<void>(result);
-      stats.setPhysicalMemoryTotal(total_physical_mem);
+      stats.setTotalPhysicalMemory(total_physical_mem);
     }
     // Free physical memory size
     {
@@ -99,7 +99,7 @@ Memory::SystemMemoryStats Memory::retrieveSystemStatsImpl() noexcept
                   "Retrieving physical memory info failed.");
       static_cast<void>(result);
       const std::size_t free_physical_mem = vmstats.free_count * pagesize;
-      stats.setPhysicalMemoryFree(free_physical_mem);
+      stats.setAvailablePhysicalMemory(free_physical_mem);
     }
     // Virtual memory
     {
@@ -112,17 +112,17 @@ Memory::SystemMemoryStats Memory::retrieveSystemStatsImpl() noexcept
                                        0);
       ZISC_ASSERT(0 == result, "Retrieving virtual memory info failed.");
       static_cast<void>(result);
-      stats.setVirtualMemoryTotal(vmusage.xsu_total);
-      stats.setVirtualMemoryFree(vmusage.xsu_avail);
+      stats.setTotalVirtualMemory(vmusage.xsu_total);
+      stats.setAvailableVirtualMemory(vmusage.xsu_avail);
     }
   }
 #else
   {
     constexpr std::size_t m = std::numeric_limits<std::size_t>::max();
-    stats.setPhysicalMemoryTotal(m);
-    stats.setPhysicalMemoryFree(m);
-    stats.setVirtualMemoryTotal(m);
-    stats.setVirtualMemoryFree(m);
+    stats.setTotalPhysicalMemory(m);
+    stats.setAvailablePhysicalMemory(m);
+    stats.setTotalVirtualMemory(m);
+    stats.setAvailableVirtualMemory(m);
   }
 #endif
   return stats;

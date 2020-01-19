@@ -20,11 +20,11 @@
 !/document/doxygen_dark_theme
 
 # Project cmake file
+!/CMakeLists.txt
 !/cmake/
 !/cmake/*.cmake
 
 # Source code
-!/CMakeLists.txt
 !/source/
 !/source/zisc/
 !/source/zisc/CMakeLists.txt
@@ -37,7 +37,6 @@
 !source/zisc/cmake/
 !source/zisc/cmake/*.cmake
 !source/zisc/cmake/.gitkeep
-
 
 # Test
 !/test/

@@ -35,7 +35,7 @@ endfunction(getExampleWarningFlags)
 
 
 # Add an example
-function(addExample target)
+function(addExample target save_prerequisites)
   set(example_source_files ${ARGN})
   source_group(${PROJECT_NAME} FILES ${example_source_files})
   add_executable(${target} ${example_source_files})
@@ -60,7 +60,9 @@ function(addExample target)
   setStaticAnalyzer(${target})
 
   # Save the dependency list
-  # savePrerequisites(${target} ${PROJECT_BINARY_DIR} "" "" "")
+  if(save_prerequisites)
+    savePrerequisites(${target} ${PROJECT_BINARY_DIR} "" "" "")
+  endif()
 endfunction(addExample)
 
 
@@ -78,29 +80,29 @@ setVariablesOnCMake(${platform_definitions})
 checkTarget(Zisc)
 
 # Build examples
-addExample(AlgorithmExample 
+addExample(AlgorithmExample ON
            ${PROJECT_SOURCE_DIR}/algorithm_example.cpp)
-addExample(CmjEngineExample
+addExample(CmjEngineExample OFF
            ${PROJECT_SOURCE_DIR}/correlated_multi_jittered_engine_example.cpp)
-addExample(CompensatedSummationExample
+addExample(CompensatedSummationExample OFF
            ${PROJECT_SOURCE_DIR}/compensated_summation_example.cpp)
-addExample(CsvExample
+addExample(CsvExample OFF
            ${PROJECT_SOURCE_DIR}/csv_example.cpp)
-addExample(CumulativeDistributionFunctionExample
+addExample(CumulativeDistributionFunctionExample OFF
            ${PROJECT_SOURCE_DIR}/cumulative_distribution_function_example.cpp)
-addExample(ErrorExample
+addExample(ErrorExample OFF
            ${PROJECT_SOURCE_DIR}/error_example.cpp)
-addExample(LinearAlgebraExample
+addExample(LinearAlgebraExample OFF
            ${PROJECT_SOURCE_DIR}/linear_algebra_example.cpp) 
-addExample(LockFreeBoundedQueueExample
+addExample(LockFreeBoundedQueueExample OFF
            ${PROJECT_SOURCE_DIR}/lock_free_bounded_queue_example.cpp)
-addExample(PseudoRandomNumberEngineExample
+addExample(PseudoRandomNumberEngineExample OFF
            ${PROJECT_SOURCE_DIR}/pseudo_random_number_engine_example.cpp)
-addExample(StopwatchExample
+addExample(StopwatchExample OFF
            ${PROJECT_SOURCE_DIR}/stopwatch_example.cpp)
-addExample(StringExample
+addExample(StringExample OFF
            ${PROJECT_SOURCE_DIR}/string_example.cpp)
-addExample(ThreadManagerExample
+addExample(ThreadManagerExample OFF
            ${PROJECT_SOURCE_DIR}/thread_manager_example.cpp)
-addExample(UnitExample
+addExample(UnitExample OFF
            ${PROJECT_SOURCE_DIR}/unit_example.cpp)

@@ -31,9 +31,9 @@ namespace zisc {
   \return No description
   */
 inline
-std::size_t Memory::SystemMemoryStats::physicalMemoryFree() const noexcept
+std::size_t Memory::SystemMemoryStats::availablePhysicalMemory() const noexcept
 {
-  return physical_memory_free_;
+  return available_physical_memory_;
 }
 
 /*!
@@ -42,9 +42,9 @@ std::size_t Memory::SystemMemoryStats::physicalMemoryFree() const noexcept
   \return No description
   */
 inline
-std::size_t Memory::SystemMemoryStats::physicalMemoryTotal() const noexcept
+std::size_t Memory::SystemMemoryStats::totalPhysicalMemory() const noexcept
 {
-  return physical_memory_total_;
+  return total_physical_memory_;
 }
 
 /*!
@@ -53,9 +53,9 @@ std::size_t Memory::SystemMemoryStats::physicalMemoryTotal() const noexcept
   \return No description
   */
 inline
-std::size_t Memory::SystemMemoryStats::virtualMemoryFree() const noexcept
+std::size_t Memory::SystemMemoryStats::availableVirtualMemory() const noexcept
 {
-  return virtual_memory_free_;
+  return available_virtual_memory_;
 }
 
 /*!
@@ -64,9 +64,9 @@ std::size_t Memory::SystemMemoryStats::virtualMemoryFree() const noexcept
   \return No description
   */
 inline
-std::size_t Memory::SystemMemoryStats::virtualMemoryTotal() const noexcept
+std::size_t Memory::SystemMemoryStats::totalVirtualMemory() const noexcept
 {
-  return virtual_memory_total_;
+  return total_virtual_memory_;
 }
 
 /*!
@@ -75,9 +75,9 @@ std::size_t Memory::SystemMemoryStats::virtualMemoryTotal() const noexcept
   \param [in] s No description.
   */
 inline
-void Memory::SystemMemoryStats::setPhysicalMemoryFree(const std::size_t s) noexcept
+void Memory::SystemMemoryStats::setAvailablePhysicalMemory(const std::size_t s) noexcept
 {
-  physical_memory_free_ = s;
+  available_physical_memory_ = s;
 }
 
 /*!
@@ -86,9 +86,9 @@ void Memory::SystemMemoryStats::setPhysicalMemoryFree(const std::size_t s) noexc
   \param [in] s No description.
   */
 inline
-void Memory::SystemMemoryStats::setPhysicalMemoryTotal(const std::size_t s) noexcept
+void Memory::SystemMemoryStats::setTotalPhysicalMemory(const std::size_t s) noexcept
 {
-  physical_memory_total_ = s;
+  total_physical_memory_ = s;
 }
 
 /*!
@@ -97,9 +97,9 @@ void Memory::SystemMemoryStats::setPhysicalMemoryTotal(const std::size_t s) noex
   \param [in] s No description.
   */
 inline
-void Memory::SystemMemoryStats::setVirtualMemoryFree(const std::size_t s) noexcept
+void Memory::SystemMemoryStats::setAvailableVirtualMemory(const std::size_t s) noexcept
 {
-  virtual_memory_free_ = s;
+  available_virtual_memory_ = s;
 }
 
 /*!
@@ -108,9 +108,9 @@ void Memory::SystemMemoryStats::setVirtualMemoryFree(const std::size_t s) noexce
   \param [in] s No description.
   */
 inline
-void Memory::SystemMemoryStats::setVirtualMemoryTotal(const std::size_t s) noexcept
+void Memory::SystemMemoryStats::setTotalVirtualMemory(const std::size_t s) noexcept
 {
-  virtual_memory_total_ = s;
+  total_virtual_memory_ = s;
 }
 
 /*!

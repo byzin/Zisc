@@ -13,13 +13,16 @@
 #include <cstddef>
 #include <iostream>
 #include <memory>
+#include <system_error>
 #include <thread>
 #include <tuple>
+#include <type_traits>
 #include <utility>
 #include <vector>
 // GoogleTest
 #include "gtest/gtest.h"
 // Zisc
+#include "zisc/error.hpp"
 #include "zisc/lock_free_bounded_queue.hpp"
 #include "zisc/non_copyable.hpp"
 #include "zisc/simple_memory_resource.hpp"
@@ -78,6 +81,41 @@ TEST(LockFreeBoundedQueueTest, ConstructorTest)
   ASSERT_EQ(cap, q->capacity()) << "Constructing of LockFreeBoundedQueue failed.";
 }
 
+TEST(LockFreeBoundedQueueTest, ExceptionSizeTest)
+{
+  constexpr std::size_t sys_size = sizeof(zisc::SystemError);
+  constexpr std::size_t sys_align = std::alignment_of_v<zisc::SystemError>;
+  std::cout << "sizeof(zisc::SystemError) = " << sys_size << std::endl;
+  std::cout << "alignof(zisc::SystemError) = " << sys_align << std::endl;
+  {
+    using Queue = zisc::LockFreeBoundedQueue<zisc::uint32b>;
+    const char* name = "zisc::LockFreeBoundedQueue<int>::OverflowError";
+    constexpr std::size_t size = sizeof(Queue::OverflowError);
+//    constexpr std::size_t align = std::alignment_of_v<Queue::OverflowError>;
+    std::cout << "sizeof(" << name << ") = " << size << std::endl;
+    ASSERT_EQ(size, sys_size + sys_align)
+        << "The size of " << name << " is wrong.";
+  }
+  {
+    using Queue = zisc::LockFreeBoundedQueue<zisc::uint64b>;
+    const char* name = "zisc::LockFreeBoundedQueue<long long>::OverflowError";
+    constexpr std::size_t size = sizeof(Queue::OverflowError);
+//    constexpr std::size_t align = std::alignment_of_v<Queue::OverflowError>;
+    std::cout << "sizeof(" << name << ") = " << size << std::endl;
+    ASSERT_EQ(size, sys_size + sizeof(zisc::uint64b))
+        << "The size of " << name << " is wrong.";
+  }
+  {
+    using Queue = zisc::LockFreeBoundedQueue<long double>;
+    const char* name = "zisc::LockFreeBoundedQueue<long double>::OverflowError";
+    constexpr std::size_t size = sizeof(Queue::OverflowError);
+//    constexpr std::size_t align = std::alignment_of_v<Queue::OverflowError>;
+    std::cout << "sizeof(" << name << ") = " << size << std::endl;
+    ASSERT_EQ(size, sys_size + sizeof(long double))
+        << "The size of " << name << " is wrong.";
+  }
+}
+
 TEST(LockFreeBoundedQueueTest, QueueTest)
 {
   using Queue = zisc::LockFreeBoundedQueue<int>;
@@ -96,6 +134,18 @@ TEST(LockFreeBoundedQueueTest, QueueTest)
   ASSERT_TRUE(q.enqueue(3)) << message;
   ASSERT_EQ(8, q.size()) << message;
 
+  auto enqueue_overflow = [&q](const int value)
+  {
+    try {
+      q.enqueue(value);
+    }
+    catch (const Queue::OverflowError& error) {
+      std::cout << error.what() << " value: " << error.get() << std::endl;
+      throw;
+    }
+  };
+  ASSERT_THROW(enqueue_overflow(9), Queue::OverflowError) << message;
+
   q.clear();
 
   ASSERT_TRUE(q.isEmpty()) << message;
@@ -111,6 +161,7 @@ TEST(LockFreeBoundedQueueTest, QueueTest)
   ASSERT_TRUE(q.enqueue(6)) << message;
   ASSERT_TRUE(q.enqueue(4)) << message;
   ASSERT_EQ(8, q.size()) << message;
+  ASSERT_THROW(enqueue_overflow(9), Queue::OverflowError) << message;
 
   message = "Dequeuing of LockFreeBoundedQueue failed.";
   const auto check_dequeue = [message](const std::tuple<bool, int>& value,
@@ -182,6 +233,19 @@ TEST(LockFreeBoundedQueueTest, QueueMovableValueTest)
   ASSERT_TRUE(q.enqueue(::Movable{6})) << message;
   ASSERT_TRUE(q.enqueue(::Movable{4})) << message;
   ASSERT_EQ(8, q.size()) << message;
+
+  auto enqueue_overflow = [&q](const int value)
+  {
+    try {
+      q.enqueue(::Movable{value});
+    }
+    catch (Queue::OverflowError& error) {
+      auto r = std::move(error.get());
+      std::cout << error.what() << " value: " << zisc::cast<int>(r) << std::endl;
+      throw;
+    }
+  };
+  ASSERT_THROW(enqueue_overflow(9), Queue::OverflowError) << message;
 
   message = "Dequeuing of LockFreeBoundedQueue failed.";
   const auto check_dequeue = [message](const std::tuple<bool, ::Movable>& value,

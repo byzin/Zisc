@@ -59,7 +59,7 @@ FunctionReference<ReturnT (ArgumentTypes...)>::FunctionReference(
 template <typename ReturnT, typename ...ArgumentTypes>
 template <typename ...ArgTypes> inline
 auto FunctionReference<ReturnT (ArgumentTypes...)>::operator()(
-    ArgTypes&&... arguments) const noexcept -> ReturnType
+    ArgTypes&&... arguments) const -> ReturnType
 {
   if constexpr (std::is_void_v<ReturnType>)
     invoke(std::forward<ArgTypes>(arguments)...);
@@ -118,7 +118,7 @@ void FunctionReference<ReturnT (ArgumentTypes...)>::clear() noexcept
 template <typename ReturnT, typename ...ArgumentTypes>
 template <typename ...ArgTypes> inline
 auto FunctionReference<ReturnT (ArgumentTypes...)>::invoke(
-    ArgTypes&&... arguments) const noexcept -> ReturnType
+    ArgTypes&&... arguments) const -> ReturnType
 {
   ZISC_ASSERT(cast<bool>(*this), "This function reference is invalid.");
   if constexpr (std::is_void_v<ReturnType>)
@@ -183,7 +183,7 @@ template <typename ReturnT, typename ...ArgumentTypes>
 template <typename FuncPointer> inline
 auto FunctionReference<ReturnT (ArgumentTypes...)>::invokeFunctionPointer(
     const void* function_ptr,
-    ArgumentTypes... arguments) noexcept -> ReturnType
+    ArgumentTypes... arguments) -> ReturnType
 {
   const auto ptr = cast<const FuncPointer*>(function_ptr);
   if constexpr (std::is_void_v<ReturnType>)
@@ -204,7 +204,7 @@ template <typename ReturnT, typename ...ArgumentTypes>
 template <typename Functor> inline
 auto FunctionReference<ReturnT (ArgumentTypes...)>::invokeFunctor(
     const void* functor,
-    ArgumentTypes... arguments) noexcept -> ReturnType
+    ArgumentTypes... arguments) -> ReturnType
 {
   const auto ptr = cast<const Functor* const*>(functor);
   if constexpr (std::is_void_v<ReturnType>)

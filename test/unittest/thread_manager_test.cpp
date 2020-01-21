@@ -368,10 +368,16 @@ TEST(ThreadManagerTest, TaskStressPerformanceTest)
           value = i;
         }
       };
+      if (number == 0) {
+        std::cout << "sizeof(task)  = " << sizeof(decltype(task)) << std::endl;
+        std::cout << "alignof(task) = " << std::alignment_of_v<decltype(task)> << std::endl;
+      }
       result_list[number] = thread_manager.enqueue<void>(task);
     }
     for (auto& result : result_list)
       result->wait();
+    std::cout << "sizeof(result)  = " << sizeof(decltype(result_list[0])) << std::endl;
+    std::cout << "alignof(result) = " << std::alignment_of_v<decltype(result_list[0])> << std::endl;
   }
   ASSERT_FALSE(mem_resource.totalMemoryUsage())
       << mem_resource.totalMemoryUsage() << " bytes isn't deallocated.";
@@ -395,10 +401,14 @@ TEST(ThreadManagerTest, LoopTaskStressTest)
         value = i;
       }
     };
+    std::cout << "sizeof(task)  = " << sizeof(decltype(task)) << std::endl;
+    std::cout << "alignof(task) = " << std::alignment_of_v<decltype(task)> << std::endl;
     constexpr zisc::uint begin = 0;
     constexpr zisc::uint end = num_of_tasks;
     auto result = thread_manager.enqueueLoop(task, begin, end);
     result->wait();
+    std::cout << "sizeof(result)  = " << sizeof(decltype(result)) << std::endl;
+    std::cout << "alignof(result) = " << std::alignment_of_v<decltype(result)> << std::endl;
   }
   ASSERT_FALSE(mem_resource.totalMemoryUsage())
       << mem_resource.totalMemoryUsage() << " bytes isn't deallocated.";
@@ -422,10 +432,14 @@ TEST(ThreadManagerTest, LoopTaskStressPerformanceTest)
         value = i;
       }
     };
+    std::cout << "sizeof(task)  = " << sizeof(decltype(task)) << std::endl;
+    std::cout << "alignof(task) = " << std::alignment_of_v<decltype(task)> << std::endl;
     constexpr zisc::uint begin = 0;
     constexpr zisc::uint end = num_of_tasks;
     auto result = thread_manager.enqueueLoop(task, begin, end);
     result->wait();
+    std::cout << "sizeof(result)  = " << sizeof(decltype(result)) << std::endl;
+    std::cout << "alignof(result) = " << std::alignment_of_v<decltype(result)> << std::endl;
   }
   ASSERT_FALSE(mem_resource.totalMemoryUsage())
       << mem_resource.totalMemoryUsage() << " bytes isn't deallocated.";
@@ -454,11 +468,15 @@ TEST(ThreadManagerTest, LoopTaskStressPerformanceTest2)
         results[index] = Cmj::generate2D<double>(i, number);
       }
     };
+    std::cout << "sizeof(task)  = " << sizeof(decltype(task)) << std::endl;
+    std::cout << "alignof(task) = " << std::alignment_of_v<decltype(task)> << std::endl;
     thread_manager.setCapacity(num_of_tasks);
     constexpr zisc::uint begin = 0;
     constexpr zisc::uint end = num_of_tasks;
     auto result = thread_manager.enqueueLoop(task, begin, end);
     result->wait();
+    std::cout << "sizeof(result)  = " << sizeof(decltype(result)) << std::endl;
+    std::cout << "alignof(result) = " << std::alignment_of_v<decltype(result)> << std::endl;
   }
   ASSERT_FALSE(mem_resource.totalMemoryUsage())
       << mem_resource.totalMemoryUsage() << " bytes isn't deallocated.";

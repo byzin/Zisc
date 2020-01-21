@@ -62,7 +62,7 @@ class FunctionReference<ReturnT (ArgumentTypes...)>
 
   //! Invoke a referenced callable object
   template <typename ...ArgTypes>
-  ReturnType operator()(ArgTypes&&... arguments) const noexcept;
+  ReturnType operator()(ArgTypes&&... arguments) const;
 
   //! Check whether this refers a callable object 
   explicit operator bool() const noexcept
@@ -85,7 +85,7 @@ class FunctionReference<ReturnT (ArgumentTypes...)>
 
   //! Invoke a referenced callable object
   template <typename ...ArgTypes>
-  ReturnType invoke(ArgTypes&&... arguments) const noexcept;
+  ReturnType invoke(ArgTypes&&... arguments) const;
 
   //! Exchange referenced callable objects of this and other
   void swap(FunctionReference& other) noexcept;
@@ -98,7 +98,7 @@ class FunctionReference<ReturnT (ArgumentTypes...)>
       sizeof(void*),
       sizeof(FunctionPointer));
   using Memory = std::aligned_union_t<kStorageSize, void*, FunctionPointer>;
-  using CallbackPointer = ReturnType (*)(const void*, ArgumentTypes...) noexcept;
+  using CallbackPointer = ReturnType (*)(const void*, ArgumentTypes...);
 
 
   //! Initialize with a function
@@ -108,12 +108,12 @@ class FunctionReference<ReturnT (ArgumentTypes...)>
   //! Invoke a referenced callable object 
   template <typename FuncPointer>
   static ReturnType invokeFunctionPointer(const void* function_ptr,
-                                          ArgumentTypes... argments) noexcept;
+                                          ArgumentTypes... argments);
 
   //! Invoke a referenced callable object
   template <typename Functor>
   static ReturnType invokeFunctor(const void* function_memory,
-                                  ArgumentTypes... argments) noexcept;
+                                  ArgumentTypes... argments);
 
   //! Return the memory of the function reference
   void* memory() noexcept;

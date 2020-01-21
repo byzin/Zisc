@@ -54,9 +54,9 @@ class ThreadManager : private NonCopyable<ThreadManager>
     //! Destroy a result
     ~Result() noexcept;
     //! Return the result
-    Type get() noexcept;
+    Type get();
     //! Wait for the result to become available
-    void wait() const noexcept;
+    void wait() const;
 
    private:
     friend ThreadManager;
@@ -109,13 +109,13 @@ class ThreadManager : private NonCopyable<ThreadManager>
   template <typename ReturnType, typename Task>
   UniqueResult<ReturnType> enqueue(
       Task&& task,
-      EnableIfInvocable<Task> = kEnabler) noexcept;
+      EnableIfInvocable<Task> = kEnabler);
 
   //! Run the given task on a worker thread in the manager
   template <typename ReturnType, typename Task>
   UniqueResult<ReturnType> enqueue(
       Task&& task,
-      EnableIfInvocable<Task, uint> = kEnabler) noexcept;
+      EnableIfInvocable<Task, uint> = kEnabler);
 
   //! Run tasks on the worker threads in the manager
   template <typename Task, typename Iterator1, typename Iterator2>
@@ -123,7 +123,7 @@ class ThreadManager : private NonCopyable<ThreadManager>
       Task&& task,
       Iterator1&& begin,
       Iterator2&& end,
-      EnableIfInvocable<Task, Iterator1> = kEnabler) noexcept;
+      EnableIfInvocable<Task, Iterator1> = kEnabler);
 
   //! Run tasks on the worker threads in the manager
   template <typename Task, typename Iterator1, typename Iterator2>
@@ -131,7 +131,7 @@ class ThreadManager : private NonCopyable<ThreadManager>
       Task&& task,
       Iterator1&& begin,
       Iterator2&& end,
-      EnableIfInvocable<Task, uint, Iterator1> = kEnabler) noexcept;
+      EnableIfInvocable<Task, uint, Iterator1> = kEnabler);
 
   //! Check whether the task queue is empty
   bool isEmpty() const noexcept;
@@ -158,7 +158,7 @@ class ThreadManager : private NonCopyable<ThreadManager>
    public:
     virtual ~WorkerTask() noexcept {}
     //! Run a task
-    virtual void run(const uint thread_id) noexcept = 0;
+    virtual void run(const uint thread_id) = 0;
   };
   using UniqueTask = pmr::unique_ptr<WorkerTask>;
 
@@ -175,31 +175,31 @@ class ThreadManager : private NonCopyable<ThreadManager>
 
   //! Run the given task on a worker thread in the manager
   template <typename ReturnType, typename Task>
-  UniqueResult<ReturnType> enqueueBridge(Task&& task) noexcept;
+  UniqueResult<ReturnType> enqueueBridge(Task&& task);
 
   //! Run the given task on a worker thread in the manager
   template <typename SingleTask, typename ReturnType, typename Task>
-  UniqueResult<ReturnType> enqueueImpl(Task&& task) noexcept;
+  UniqueResult<ReturnType> enqueueImpl(Task&& task);
 
   //! Run tasks on the worker threads in the manager
   template <typename Task, typename Iterator1, typename Iterator2>
   UniqueResult<void> enqueueLoopBridge1(Task&& task,
                                         Iterator1&& begin,
-                                        Iterator2&& end) noexcept;
+                                        Iterator2&& end);
 
   //! Run tasks on the worker threads in the manager
   template <typename SharedTaskData,
             typename Task, typename Iterator1, typename Iterator2>
   UniqueResult<void> enqueueLoopBridge2(Task&& task,
                                         Iterator1&& begin,
-                                        Iterator2&& end) noexcept;
+                                        Iterator2&& end);
 
   //! Run tasks on the worker threads in the manager
   template <typename SharedTaskData, typename LoopTask,
             typename Task, typename Iterator1, typename Iterator2>
   UniqueResult<void> enqueueLoopImpl(Task&& task,
                                      Iterator1&& begin,
-                                     Iterator2&& end) noexcept;
+                                     Iterator2&& end);
 
   //! Exit workers running
   void exitWorkersRunning() noexcept;
@@ -224,13 +224,13 @@ class ThreadManager : private NonCopyable<ThreadManager>
   template <typename Task, typename Iterator>
   static void runLoopTask(Task& task,
                           const uint thread_id,
-                          Iterator ite) noexcept;
+                          Iterator ite);
 
   //! Run single task
   template <typename ReturnType, typename Task>
   static void runSingleTask(Task& task,
                             const uint thread_id,
-                            Result<ReturnType>* result) noexcept;
+                            Result<ReturnType>* result);
 
   //! Check if the workers (threads) are enable running
   bool workersAreEnabled() const noexcept;
@@ -241,6 +241,7 @@ class ThreadManager : private NonCopyable<ThreadManager>
   std::mutex lock_;
   std::condition_variable condition_;
   uint8b workers_are_enabled_;
+  std::array<uint8b, 7> padding_;
 };
 
 } // namespace zisc

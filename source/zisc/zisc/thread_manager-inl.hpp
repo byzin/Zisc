@@ -85,7 +85,7 @@ ThreadManager::Result<T>::~Result() noexcept
   \return No description
   */
 template <typename T> inline
-auto ThreadManager::Result<T>::get() noexcept -> Type
+auto ThreadManager::Result<T>::get() -> Type
 {
   wait();
   if constexpr (!std::is_void_v<Type>)
@@ -96,7 +96,7 @@ auto ThreadManager::Result<T>::get() noexcept -> Type
   \details No detailed description
   */
 template <typename T> inline
-void ThreadManager::Result<T>::wait() const noexcept
+void ThreadManager::Result<T>::wait() const
 {
   UniqueTask task{};
   while (!hasValue()) {
@@ -169,7 +169,8 @@ ThreadManager::ThreadManager(const uint num_of_threads,
                              std::pmr::memory_resource* mem_resource) noexcept :
     task_queue_{defaultTaskCapacity(), mem_resource},
     workers_{pmr::vector<std::thread>::allocator_type{mem_resource}},
-    workers_are_enabled_{kTrue}
+    workers_are_enabled_{kTrue},
+    padding_{}
 {
   initialize(num_of_threads);
 }
@@ -249,7 +250,7 @@ std::size_t ThreadManager::capacity() const noexcept
   \return No description
   */
 template <typename ReturnType, typename Task> inline
-auto ThreadManager::enqueue(Task&& task, EnableIfInvocable<Task>) noexcept
+auto ThreadManager::enqueue(Task&& task, EnableIfInvocable<Task>)
     -> UniqueResult<ReturnType>
 {
   auto result = enqueueBridge<ReturnType>(std::forward<Task>(task));
@@ -265,7 +266,7 @@ auto ThreadManager::enqueue(Task&& task, EnableIfInvocable<Task>) noexcept
   \return No description
   */
 template <typename ReturnType, typename Task> inline
-auto ThreadManager::enqueue(Task&& task, EnableIfInvocable<Task, uint>) noexcept
+auto ThreadManager::enqueue(Task&& task, EnableIfInvocable<Task, uint>)
     -> UniqueResult<ReturnType>
 {
   auto result = enqueueBridge<ReturnType>(std::forward<Task>(task));
@@ -287,7 +288,7 @@ template <typename Task, typename Iterator1, typename Iterator2> inline
 auto ThreadManager::enqueueLoop(Task&& task,
                                 Iterator1&& begin,
                                 Iterator2&& end,
-                                EnableIfInvocable<Task, Iterator1>) noexcept
+                                EnableIfInvocable<Task, Iterator1>)
     -> UniqueResult<void>
 {
   auto result = enqueueLoopBridge1(std::forward<Task>(task),
@@ -311,7 +312,7 @@ template <typename Task, typename Iterator1, typename Iterator2> inline
 auto ThreadManager::enqueueLoop(Task&& task,
                                 Iterator1&& begin,
                                 Iterator2&& end,
-                                EnableIfInvocable<Task, uint, Iterator1>) noexcept
+                                EnableIfInvocable<Task, uint, Iterator1>)
     -> UniqueResult<void>
 {
   auto result = enqueueLoopBridge1(std::forward<Task>(task),
@@ -403,7 +404,7 @@ void ThreadManager::createWorkers(const uint num_of_threads) noexcept
   workers_.reserve(id_max);
   for (uint thread_id = 0; thread_id < id_max; ++thread_id) {
     int32b padding = 0;
-    auto work = [this, thread_id, padding]() noexcept
+    auto work = [this, thread_id, padding]()
     {
       static_cast<void>(padding);
       UniqueTask task{};
@@ -425,7 +426,7 @@ void ThreadManager::createWorkers(const uint num_of_threads) noexcept
     workers_.emplace_back(work);
   }
   // Sort workers by their IDs
-  auto comp = [](const std::thread& lhs, const std::thread& rhs)
+  auto comp = [](const std::thread& lhs, const std::thread& rhs) noexcept
   {
     return lhs.get_id() < rhs.get_id();
   };
@@ -477,8 +478,7 @@ uint ThreadManager::distance(Iterator&& begin, Iterator&& end) noexcept
   \return No description
   */
 template <typename ReturnType, typename Task> inline
-auto ThreadManager::enqueueBridge(Task&& task) noexcept
-    -> UniqueResult<ReturnType>
+auto ThreadManager::enqueueBridge(Task&& task) -> UniqueResult<ReturnType>
 {
   using TaskT = std::remove_cv_t<std::remove_reference_t<Task>>;
   using ResultP = Result<ReturnType>*;
@@ -496,7 +496,7 @@ auto ThreadManager::enqueueBridge(Task&& task) noexcept
       SingleTask(Task&& t, ResultP result) noexcept :
           task_{std::forward<Task>(t)},
           result_{result} {static_cast<void>(padding_);}
-      void run(const uint thread_id) noexcept override
+      void run(const uint thread_id) override
       {
         runSingleTask<ReturnType, TaskT>(task_, thread_id, result_);
       }
@@ -514,7 +514,7 @@ auto ThreadManager::enqueueBridge(Task&& task) noexcept
       SingleTask(Task&& t, ResultP result) noexcept :
           task_{std::forward<Task>(t)},
           result_{result} {}
-      void run(const uint thread_id) noexcept override
+      void run(const uint thread_id) override
       {
         runSingleTask<ReturnType, TaskT>(task_, thread_id, result_);
       }
@@ -536,8 +536,7 @@ auto ThreadManager::enqueueBridge(Task&& task) noexcept
   \return No description
   */
 template <typename SingleTask, typename ReturnType, typename Task> inline
-auto ThreadManager::enqueueImpl(Task&& task) noexcept
-    -> UniqueResult<ReturnType>
+auto ThreadManager::enqueueImpl(Task&& task) -> UniqueResult<ReturnType>
 {
   // Create a result of loop tasks
   const uint thread_id = getThreadIndex();
@@ -572,8 +571,7 @@ auto ThreadManager::enqueueImpl(Task&& task) noexcept
 template <typename Task, typename Iterator1, typename Iterator2> inline
 auto ThreadManager::enqueueLoopBridge1(Task&& task,
                                        Iterator1&& begin,
-                                       Iterator2&& end) noexcept
-    -> UniqueResult<void>
+                                       Iterator2&& end) -> UniqueResult<void>
 {
   using TaskT = std::remove_cv_t<std::remove_reference_t<Task>>;
   using ResultP = Result<void>*;
@@ -665,8 +663,7 @@ template <typename SharedTaskData,
           typename Task, typename Iterator1, typename Iterator2 > inline
 auto ThreadManager::enqueueLoopBridge2(Task&& task,
                                        Iterator1&& begin,
-                                       Iterator2&& end) noexcept
-    -> UniqueResult<void>
+                                       Iterator2&& end) -> UniqueResult<void>
 {
   using Iterator = std::remove_cv_t<std::remove_reference_t<Iterator1>>;
   using TaskT = std::remove_cv_t<std::remove_reference_t<Task>>;
@@ -686,7 +683,7 @@ auto ThreadManager::enqueueLoopBridge2(Task&& task,
       LoopTask(SharedTaskData* shared_data, Iterator ite) noexcept :
           shared_data_{shared_data},
           ite_{ite} {static_cast<void>(padding_);}
-      void run(const uint thread_id) noexcept override
+      void run(const uint thread_id) override
       {
         runLoopTask<TaskT, Iterator>(shared_data_->task_, thread_id, ite_);
         // A manager will be notified when all tasks have been completed
@@ -715,7 +712,7 @@ auto ThreadManager::enqueueLoopBridge2(Task&& task,
       LoopTask(SharedTaskData* shared_data, Iterator ite) noexcept :
           shared_data_{shared_data},
           ite_{ite} {}
-      void run(const uint thread_id) noexcept override
+      void run(const uint thread_id) override
       {
         runLoopTask<TaskT, Iterator>(shared_data_->task_, thread_id, ite_);
         // A manager will be notified when all tasks have been completed
@@ -755,8 +752,7 @@ template <typename SharedTaskData, typename LoopTask,
           typename Task, typename Iterator1, typename Iterator2> inline
 auto ThreadManager::enqueueLoopImpl(Task&& task,
                                     Iterator1&& begin,
-                                    Iterator2&& end) noexcept
-    -> UniqueResult<void>
+                                    Iterator2&& end) -> UniqueResult<void>
 {
   auto mem_resource = resource();
 
@@ -855,6 +851,8 @@ void ThreadManager::initialize(const uint num_of_threads) noexcept
   static_assert(alignof(std::mutex) <= alignof(pmr::vector<std::thread>));
   static_assert(alignof(std::condition_variable) <= alignof(std::mutex));
   static_assert(alignof(uint8b) <= alignof(std::condition_variable));
+
+  static_cast<void>(padding_);
 }
 
 /*!
@@ -893,10 +891,9 @@ auto ThreadManager::resultAllocator() const noexcept
   \param [in] ite No description.
   */
 template <typename Task, typename Iterator> inline
-void ThreadManager::runLoopTask(
-    Task& task,
-    const uint thread_id,
-    Iterator ite) noexcept
+void ThreadManager::runLoopTask(Task& task,
+                                const uint thread_id,
+                                Iterator ite)
 {
   if constexpr (std::is_invocable_v<Task, uint, Iterator>) {
     task(thread_id, ite);
@@ -917,10 +914,9 @@ void ThreadManager::runLoopTask(
   \param [out] result No description.
   */
 template <typename ReturnType, typename Task> inline
-void ThreadManager::runSingleTask(
-    Task& task,
-    const uint thread_id,
-    Result<ReturnType>* result) noexcept
+void ThreadManager::runSingleTask(Task& task,
+                                  const uint thread_id,
+                                  Result<ReturnType>* result)
 {
   if constexpr (std::is_invocable_v<Task, uint>) {
     if constexpr (std::is_void_v<ReturnType>) {

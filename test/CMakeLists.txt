@@ -34,20 +34,17 @@ function(getTestWarningFlags test_warning_flags)
   # Suppress warnings
   if(ZISC_SUPPRESS_EXCESSIVE_WARNING)
     if(Z_CLANG)
-      list(APPEND warning_flags -Wno-covered-switch-default
-                                -Wno-exit-time-destructors
-                                -Wno-float-equal
+      list(APPEND warning_flags -Wno-float-equal
                                 -Wno-global-constructors
                                 -Wno-sign-conversion
                                 -Wno-used-but-marked-unused
                                 -Wno-weak-vtables
-                                -Wno-zero-as-null-pointer-constant
                                 )
     elseif(Z_GCC)
       list(APPEND warning_flags -Wno-sign-conversion
                                 -Wno-strict-overflow
                                 -Wno-unused-but-set-variable
-                                 )
+                                )
     endif()
   endif()
 

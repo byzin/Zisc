@@ -17,6 +17,9 @@
 
 // Standard C++ library
 #include <ostream>
+#include <string>
+#include <string_view>
+#include <system_error>
 
 // Preprocessor
 
@@ -65,6 +68,56 @@
 #endif // ZISC_ASSERTION
 
 namespace zisc {
+
+/*!
+  \brief No brief description
+
+  No detailed description.
+  */
+enum class ErrorCode : int
+{
+  kLockFreeBoundedQueueOverflow
+};
+
+//! Return the string of the given error code
+std::string getErrorCodeString(const ErrorCode code) noexcept;
+
+/*!
+  \brief No brief description
+
+  No detailed description.
+  */
+class ErrorCategory : public std::error_category
+{
+ public:
+  //! Construct an error category
+  ErrorCategory() noexcept;
+
+  //! Destruct an error category
+  ~ErrorCategory() noexcept override;
+
+
+  //! Return the name of the category
+  const char* name() const noexcept override;
+
+  //! Return the explanatory string
+  std::string message(const int condition) const override;
+};
+
+/*!
+  \brief No brief description
+
+  No detailed description.
+  */
+class SystemError : public std::system_error
+{
+ public:
+  //! Construct the system error
+  SystemError(const ErrorCode code);
+
+  //! Construct the system error
+  SystemError(const ErrorCode code, const std::string_view what_arg);
+};
 
 //! If condition is false, print messages and raise an error
 template <typename ...Types>

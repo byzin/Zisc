@@ -18,14 +18,12 @@ function(getExampleWarningFlags example_warning_flags)
   # Suppress warnings
   if(ZISC_SUPPRESS_EXCESSIVE_WARNING)
     if(Z_CLANG)
-      list(APPEND warning_flags -Wno-exit-time-destructors
-                                -Wno-float-equal
+      list(APPEND warning_flags -Wno-float-equal
                                 -Wno-sign-conversion 
                                 -Wno-weak-vtables
                                 )
     elseif(Z_GCC)
       list(APPEND warning_flags -Wno-sign-conversion 
-                                -Wno-strict-overflow
                                 )
     endif()
   endif()

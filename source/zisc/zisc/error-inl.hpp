@@ -20,9 +20,76 @@
 #include <cstdlib>
 #include <iostream>
 #include <ostream>
+#include <string>
+#include <string_view>
+#include <system_error>
 #include <utility>
 
 namespace zisc {
+
+/*!
+  \details No detailed description
+  */
+inline
+ErrorCategory::ErrorCategory() noexcept : std::error_category()
+{
+}
+
+/*!
+  \details No detailed description
+  */
+inline
+ErrorCategory::~ErrorCategory() noexcept
+{
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+inline
+const char* ErrorCategory::name() const noexcept
+{
+  const char* n = "Zisc";
+  return n;
+}
+
+/*!
+  \details No detailed description
+
+  \param [in] condition No description.
+  \return No description
+  */
+inline
+std::string ErrorCategory::message(const int condition) const
+{
+  const ErrorCode code = static_cast<ErrorCode>(condition);
+  const std::string code_string{getErrorCodeString(code)};
+  return code_string;
+}
+
+/*!
+  \details No detailed description
+
+  \param [in] code No description.
+  */
+inline
+SystemError::SystemError(const ErrorCode code) :
+    std::system_error(static_cast<int>(code), ErrorCategory{})
+{
+}
+
+/*!
+  \details No detailed description
+
+  \param [in] code No description.
+  */
+inline
+SystemError::SystemError(const ErrorCode code, const std::string_view what_arg) :
+    std::system_error(static_cast<int>(code), ErrorCategory{}, what_arg.data())
+{
+}
 
 /*!
   \details No detailed description

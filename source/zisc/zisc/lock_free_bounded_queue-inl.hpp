@@ -21,6 +21,7 @@
 #include <atomic>
 #include <cstddef>
 #include <limits>
+#include <string_view>
 #include <tuple>
 #include <utility>
 #include <vector>
@@ -32,6 +33,68 @@
 #include "zisc_config.hpp"
 
 namespace zisc {
+
+/*!
+  \details No detailed description
+
+  \param [in] what_arg No description.
+  \param [in] value No description.
+  */
+template <typename Type> inline
+LockFreeBoundedQueue<Type>::OverflowError::OverflowError(
+    const std::string_view what_arg,
+    const Type& value) :
+        SystemError(ErrorCode::kLockFreeBoundedQueueOverflow, what_arg),
+        value_{value}
+{
+}
+
+/*!
+  \details No detailed description
+
+  \param [in] what_arg No description.
+  \param [in] value No description.
+  */
+template <typename Type> inline
+LockFreeBoundedQueue<Type>::OverflowError::OverflowError(
+    const std::string_view what_arg,
+    Type&& value) :
+        SystemError(ErrorCode::kLockFreeBoundedQueueOverflow, what_arg),
+        value_{std::move(value)}
+{
+}
+
+/*!
+  \details No detailed description
+  */
+template <typename Type> inline
+LockFreeBoundedQueue<Type>::OverflowError::~OverflowError()
+{
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+template <typename Type> inline
+auto LockFreeBoundedQueue<Type>::OverflowError::get() noexcept
+    -> Reference
+{
+  return value_;
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+template <typename Type> inline
+auto LockFreeBoundedQueue<Type>::OverflowError::get() const noexcept
+    -> ConstReference
+{
+  return value_;
+}
 
 /*!
   \details No detailed description
@@ -172,12 +235,18 @@ std::tuple<bool, Type> LockFreeBoundedQueue<Type>::dequeue() noexcept
 
   \param [in] value No description.
   \return No description
+  \exception OverflowError No description.
   */
 template <typename Type> inline
-bool LockFreeBoundedQueue<Type>::enqueue(const Type& value) noexcept
+bool LockFreeBoundedQueue<Type>::enqueue(const Type& value)
 {
   using UInt = typename RingBuffer::UInt;
   const UInt index = free_elements_buffer_.dequeue(true); // Get an entry index
+
+  // Check overflow
+  if (index == RingBuffer::overflowIndex())
+    throw OverflowError{"Queue overflow happened.", value};
+
   const bool result = index != RingBuffer::invalidIndex();
   if (result) {
     elements_[index] = value;
@@ -185,6 +254,7 @@ bool LockFreeBoundedQueue<Type>::enqueue(const Type& value) noexcept
     ++size_;
   }
   return result;
+
 }
 
 /*!
@@ -192,12 +262,18 @@ bool LockFreeBoundedQueue<Type>::enqueue(const Type& value) noexcept
 
   \param [in] value No description.
   \return No description
+  \exception OverflowError No description.
   */
 template <typename Type> inline
-bool LockFreeBoundedQueue<Type>::enqueue(Type&& value) noexcept
+bool LockFreeBoundedQueue<Type>::enqueue(Type&& value)
 {
   using UInt = typename RingBuffer::UInt;
   const UInt index = free_elements_buffer_.dequeue(true); // Get an entry index
+
+  // Check overflow
+  if (index == RingBuffer::overflowIndex())
+    throw OverflowError{"Queue overflow happened.", std::move(value)};
+
   const bool result = index != RingBuffer::invalidIndex();
   if (result) {
     elements_[index] = std::move(value);
@@ -307,6 +383,19 @@ void LockFreeBoundedQueue<Type>::RingBuffer::clear() noexcept
 /*!
   \details No detailed description
 
+  \return No description
+  */
+template <typename Type> inline
+constexpr auto LockFreeBoundedQueue<Type>::RingBuffer::overflowIndex() noexcept
+    -> UInt
+{
+  constexpr UInt index = std::numeric_limits<UInt>::max() - 1;
+  return index;
+}
+
+/*!
+  \details No detailed description
+
   \param [in] nonempty No description.
   \return No description
   */
@@ -347,10 +436,14 @@ auto LockFreeBoundedQueue<Type>::RingBuffer::dequeue(const bool nonempty) noexce
           break;
       }
       else {
-        //! \todo Exception check
         again = ++attempt <= 10000;
         if (again)
           break;
+        if (nonempty) {
+          flag = false;
+          index = overflowIndex();
+          break;
+        }
         entry_new = head_cycle ^ ((~entry) & cast<UInt>(n));
       }
     } while ((diff(entry_cycle, head_cycle) < 0) &&

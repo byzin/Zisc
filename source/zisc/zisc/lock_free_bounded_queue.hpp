@@ -18,10 +18,14 @@
 // Standard C++ library
 #include <atomic>
 #include <cstddef>
+#include <string_view>
 #include <tuple>
+#include <type_traits>
 #include <vector>
 // Zisc
+#include "error.hpp"
 #include "non_copyable.hpp"
+#include "padded_value.hpp"
 #include "std_memory_resource.hpp"
 #include "zisc_config.hpp"
 
@@ -40,6 +44,40 @@ template <typename Type>
 class LockFreeBoundedQueue : public NonCopyable<LockFreeBoundedQueue<Type>>
 {
  public:
+  /*!
+    \brief No brief description
+
+    No detailed description.
+    */
+  class OverflowError : public SystemError
+  {
+   public:
+    using ConstType = std::add_const_t<Type>;
+    using Reference = std::add_lvalue_reference_t<Type>;
+    using ConstReference = std::add_lvalue_reference_t<ConstType>;
+
+
+    //! Construct the lock fee queue error
+    OverflowError(const std::string_view what_arg, const Type& value);
+
+    //! Construct the lock fee queue error
+    OverflowError(const std::string_view what_arg, Type&& value);
+
+    //!
+    ~OverflowError() override;
+
+
+    //! Return the overflowing value
+    Reference get() noexcept;
+
+    //! Return the overflowing value
+    ConstReference get() const noexcept;
+
+   private:
+    static constexpr std::size_t kAlignment = std::alignment_of_v<SystemError>;
+    PaddedValue<Type, kAlignment> value_;
+  };
+
   //! Create a queue
   LockFreeBoundedQueue(std::pmr::memory_resource* mem_resource) noexcept;
 
@@ -71,10 +109,10 @@ class LockFreeBoundedQueue : public NonCopyable<LockFreeBoundedQueue<Type>>
   std::tuple<bool, Type> dequeue() noexcept;
 
   //! Append the given element value to the end of the queue
-  bool enqueue(const Type& value) noexcept;
+  bool enqueue(const Type& value);
 
   //! Append the given element value to the end of the queue
-  bool enqueue(Type&& value) noexcept;
+  bool enqueue(Type&& value);
 
   //! Check whether the queue is empty
   bool isEmpty() const noexcept;
@@ -107,6 +145,9 @@ class LockFreeBoundedQueue : public NonCopyable<LockFreeBoundedQueue<Type>>
 
     //! Clear indices
     void clear() noexcept;
+
+    //! Return the index represent an overflow
+    static constexpr UInt overflowIndex() noexcept;
 
     //! Take the first element of the queue
     UInt dequeue(const bool nonempty) noexcept;

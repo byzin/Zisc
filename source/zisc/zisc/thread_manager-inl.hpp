@@ -150,6 +150,17 @@ auto ThreadManager::Result<T>::value() noexcept -> ResultReference
 /*!
   \details No detailed description
 
+  \param [in] what_arg No description.
+  */
+inline
+ThreadManager::OverflowError::OverflowError(const std::string_view what_arg) :
+    SystemError(ErrorCode::kThreadManagerQueueOverflow, what_arg)
+{
+}
+
+/*!
+  \details No detailed description
+
   \param [in,out] mem_resource No description.
   */
 inline
@@ -244,6 +255,18 @@ std::size_t ThreadManager::capacity() const noexcept
 /*!
   \details No detailed description
 
+  \return No description
+  */
+inline
+constexpr std::size_t ThreadManager::defaultTaskCapacity() noexcept
+{
+  const std::size_t cap = 1024;
+  return cap;
+}
+
+/*!
+  \details No detailed description
+
   \tparam ReturnType No description.
   \tparam Task No description.
   \param [in] task No description.
@@ -253,7 +276,7 @@ template <typename ReturnType, typename Task> inline
 auto ThreadManager::enqueue(Task&& task, EnableIfInvocable<Task>)
     -> UniqueResult<ReturnType>
 {
-  auto result = enqueueBridge<ReturnType>(std::forward<Task>(task));
+  auto result = enqueueImpl<ReturnType>(std::forward<Task>(task));
   return result;
 }
 
@@ -269,7 +292,7 @@ template <typename ReturnType, typename Task> inline
 auto ThreadManager::enqueue(Task&& task, EnableIfInvocable<Task, uint>)
     -> UniqueResult<ReturnType>
 {
-  auto result = enqueueBridge<ReturnType>(std::forward<Task>(task));
+  auto result = enqueueImpl<ReturnType>(std::forward<Task>(task));
   return result;
 }
 
@@ -291,9 +314,9 @@ auto ThreadManager::enqueueLoop(Task&& task,
                                 EnableIfInvocable<Task, Iterator1>)
     -> UniqueResult<void>
 {
-  auto result = enqueueLoopBridge1(std::forward<Task>(task),
-                                   std::forward<Iterator1>(begin),
-                                   std::forward<Iterator2>(end));
+  auto result = enqueueLoopImpl(std::forward<Task>(task),
+                                std::forward<Iterator1>(begin),
+                                std::forward<Iterator2>(end));
   return result;
 }
 
@@ -315,9 +338,9 @@ auto ThreadManager::enqueueLoop(Task&& task,
                                 EnableIfInvocable<Task, uint, Iterator1>)
     -> UniqueResult<void>
 {
-  auto result = enqueueLoopBridge1(std::forward<Task>(task),
-                                   std::forward<Iterator1>(begin),
-                                   std::forward<Iterator2>(end));
+  auto result = enqueueLoopImpl(std::forward<Task>(task),
+                                std::forward<Iterator1>(begin),
+                                std::forward<Iterator2>(end));
   return result;
 }
 
@@ -436,28 +459,18 @@ void ThreadManager::createWorkers(const uint num_of_threads) noexcept
 /*!
   \details No detailed description
 
-  \return No description
-  */
-inline
-constexpr std::size_t ThreadManager::defaultTaskCapacity() noexcept
-{
-  const std::size_t cap = 1024;
-  return cap;
-}
-
-/*!
-  \details No detailed description
-
-  \tparam Iterator No description.
+  \tparam Iterator1 No description.
+  \tparam Iterator2 No description.
   \param [in] begin No description.
   \param [in] end No description.
   \return No description
   */
-template <typename Iterator> inline
-uint ThreadManager::distance(Iterator&& begin, Iterator&& end) noexcept
+template <typename Iterator1, typename Iterator2> inline
+uint ThreadManager::distance(Iterator1&& begin, Iterator2&& end) noexcept
 {
-  using IteratorType = std::remove_cv_t<std::remove_reference_t<Iterator>>;
-  if constexpr (std::is_arithmetic_v<IteratorType>) {
+  using CommonIterator = std::common_type_t<Iterator1, Iterator2>;
+  using Iterator = std::remove_cv_t<std::remove_reference_t<CommonIterator>>;
+  if constexpr (std::is_arithmetic_v<Iterator>) {
     ZISC_ASSERT(begin < end, "The end is ahead of the begin.");
     const auto d = cast<uint>(end - begin);
     return d;
@@ -478,66 +491,85 @@ uint ThreadManager::distance(Iterator&& begin, Iterator&& end) noexcept
   \return No description
   */
 template <typename ReturnType, typename Task> inline
-auto ThreadManager::enqueueBridge(Task&& task) -> UniqueResult<ReturnType>
-{
-  using TaskT = std::remove_cv_t<std::remove_reference_t<Task>>;
-  using ResultP = Result<ReturnType>*;
-
-  constexpr std::size_t size = sizeof(TaskT) + sizeof(ResultP);
-  constexpr std::size_t alignment = std::max(alignof(TaskT), alignof(ResultP));
-  constexpr std::size_t padding_size = ((size % alignment) != 0)
-      ? alignment - (size % alignment)
-      : 0;
-
-  if constexpr (0 < padding_size) {
-    class SingleTask : public WorkerTask
-    {
-     public:
-      SingleTask(Task&& t, ResultP result) noexcept :
-          task_{std::forward<Task>(t)},
-          result_{result} {static_cast<void>(padding_);}
-      void run(const uint thread_id) override
-      {
-        runSingleTask<ReturnType, TaskT>(task_, thread_id, result_);
-      }
-     private:
-      TaskT task_;
-      std::array<uint8b, padding_size> padding_;
-      ResultP result_;
-    };
-    return enqueueImpl<SingleTask, ReturnType>(std::forward<Task>(task));
-  }
-  else {
-    class SingleTask : public WorkerTask
-    {
-     public:
-      SingleTask(Task&& t, ResultP result) noexcept :
-          task_{std::forward<Task>(t)},
-          result_{result} {}
-      void run(const uint thread_id) override
-      {
-        runSingleTask<ReturnType, TaskT>(task_, thread_id, result_);
-      }
-     private:
-      TaskT task_;
-      ResultP result_;
-    };
-    return enqueueImpl<SingleTask, ReturnType>(std::forward<Task>(task));
-  }
-}
-
-/*!
-  \details No detailed description
-
-  \tparam SingleTask No description.
-  \tparam ReturnType No description.
-  \tparam Task No description.
-  \param [in] task No description.
-  \return No description
-  */
-template <typename SingleTask, typename ReturnType, typename Task> inline
 auto ThreadManager::enqueueImpl(Task&& task) -> UniqueResult<ReturnType>
 {
+  using TaskT = std::remove_cv_t<std::remove_reference_t<Task>>;
+  using ResultP = ResultPointer<ReturnType>;
+#if defined(Z_GCC) || defined(Z_CLANG)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpadded"
+#endif // Z_CLANG || Z_GCC
+  class SingleTask : public WorkerTask
+  {
+   public:
+    SingleTask(Task&& t, ResultP result) noexcept : task_{std::forward<Task>(t)},
+                                                    result_{result} {}
+    void run(const uint thread_id) override
+    {
+      runSingleTask<ReturnType, TaskT>(task_, thread_id, result_);
+    }
+
+    TaskT task_;
+    ResultP result_;
+  };
+
+  class SingleTaskOverflowError : public OverflowError
+  {
+   public:
+    SingleTaskOverflowError(const std::string_view what_arg,
+                            TaskT&& t,
+                            UniqueResult<ReturnType>&& result) :
+        OverflowError(what_arg),
+        task_{std::move(t)},
+        result_{std::move(result)} {}
+    ~SingleTaskOverflowError() override
+    {
+    }
+    void* begin() noexcept override
+    {
+      return nullptr;
+    }
+    const void* begin() const noexcept override
+    {
+      return nullptr;
+    }
+    void* end() noexcept override
+    {
+      return nullptr;
+    }
+    const void* end() const noexcept override
+    {
+      return nullptr;
+    }
+    bool hasIterator() const noexcept override
+    {
+      return false;
+    }
+    void* result() noexcept override
+    {
+      return result_.get();
+    }
+    const void* result() const noexcept override
+    {
+      return result_.get();
+    }
+    void* task() noexcept override
+    {
+      return std::addressof(task_);
+    }
+    const void* task() const noexcept override
+    {
+      return std::addressof(task_);
+    }
+
+   private:
+    TaskT task_;
+    UniqueResult<ReturnType> result_;
+  };
+#if defined(Z_GCC) || defined(Z_CLANG)
+#pragma GCC diagnostic pop
+#endif // Z_CLANG || Z_GCC
+
   // Create a result of loop tasks
   const uint thread_id = getThreadIndex();
   UniqueResult<ReturnType> result = (thread_id != invalidId())
@@ -546,11 +578,17 @@ auto ThreadManager::enqueueImpl(Task&& task) -> UniqueResult<ReturnType>
 
   // Enqueue a task maker
   {
-    UniqueTask worker_task = pmr::allocateUnique<SingleTask>(
-        resource(),
-        std::forward<Task>(task),
-        result.get());
-    task_queue_.enqueue(std::move(worker_task));
+    auto worker_task = pmr::allocateUnique<SingleTask>(resource(),
+                                                       std::forward<Task>(task),
+                                                       result.get());
+    try {
+      task_queue_.enqueue(std::move(worker_task));
+    }
+    catch (const LockFreeBoundedQueue<UniqueTask>::OverflowError& /* error */) {
+      throw SingleTaskOverflowError{"Task queue overflow happened.",
+                                    std::move(worker_task->task_),
+                                    std::move(result)};
+    }
   }
   condition_.notify_one();
 
@@ -569,192 +607,124 @@ auto ThreadManager::enqueueImpl(Task&& task) -> UniqueResult<ReturnType>
   \return No description
   */
 template <typename Task, typename Iterator1, typename Iterator2> inline
-auto ThreadManager::enqueueLoopBridge1(Task&& task,
-                                       Iterator1&& begin,
-                                       Iterator2&& end) -> UniqueResult<void>
-{
-  using TaskT = std::remove_cv_t<std::remove_reference_t<Task>>;
-  using ResultP = Result<void>*;
-  using MemoryP = std::pmr::memory_resource*;
-  using AtomicT = std::atomic_uint;
-  static_assert(alignof(ResultP) == alignof(MemoryP));
-  static_assert(alignof(AtomicT) == 4);
-
-  constexpr std::size_t size = sizeof(TaskT) +
-                               sizeof(ResultP) +
-                               sizeof(MemoryP) +
-                               sizeof(AtomicT);
-  constexpr std::size_t alignment = std::max({alignof(TaskT),
-                                              alignof(ResultP),
-                                              alignof(MemoryP),
-                                              alignof(AtomicT)});
-  constexpr std::size_t padding_size = (size % alignment != 0)
-      ? alignment - (size % alignment)
-      : 0;
-
-  if constexpr ((alignof(ResultP) <= alignof(TaskT)) && (0 < padding_size)) {
-    struct SharedTaskData
-    {
-      SharedTaskData(Task&& t, ResultP r, const uint c, MemoryP m) noexcept :
-          task_{std::forward<Task>(t)},
-          result_{r},
-          mem_resource_{m},
-          counter_{c} {static_cast<void>(padding_);}
-      TaskT task_;
-      ResultP result_;
-      MemoryP mem_resource_;
-      AtomicT counter_;
-      std::array<uint8b, padding_size> padding_;
-    };
-    return enqueueLoopBridge2<SharedTaskData>(std::forward<Task>(task),
-                                              std::forward<Iterator1>(begin),
-                                              std::forward<Iterator2>(end));
-  }
-  else if constexpr ((alignof(TaskT) < alignof(AtomicT)) && (0 < padding_size)) {
-    struct SharedTaskData
-    {
-      SharedTaskData(Task&& t, ResultP r, const uint c, MemoryP m) noexcept :
-          result_{r},
-          mem_resource_{m},
-          counter_{c},
-          task_{std::forward<Task>(t)} {static_cast<void>(padding_);}
-      ResultP result_;
-      MemoryP mem_resource_;
-      AtomicT counter_;
-      TaskT task_;
-      std::array<uint8b, padding_size> padding_;
-    };
-    return enqueueLoopBridge2<SharedTaskData>(std::forward<Task>(task),
-                                              std::forward<Iterator1>(begin),
-                                              std::forward<Iterator2>(end));
-  }
-  else {
-    struct SharedTaskData
-    {
-      SharedTaskData(Task&& t, ResultP r, const uint c, MemoryP m) noexcept :
-          result_{r},
-          mem_resource_{m},
-          task_{std::forward<Task>(t)},
-          counter_{c} {}
-      ResultP result_;
-      MemoryP mem_resource_;
-      TaskT task_;
-      AtomicT counter_;
-    };
-    return enqueueLoopBridge2<SharedTaskData>(std::forward<Task>(task),
-                                              std::forward<Iterator1>(begin),
-                                              std::forward<Iterator2>(end));
-  }
-}
-
-/*!
-  \details No detailed description
-
-  \tparam SharedTaskData No description.
-  \tparam Task No description.
-  \tparam Iterator1 No description.
-  \tparam Iterator2 No description.
-  \param [in] task No description.
-  \param [in] begin No description.
-  \param [in] end No description.
-  \return No description
-  */
-template <typename SharedTaskData,
-          typename Task, typename Iterator1, typename Iterator2 > inline
-auto ThreadManager::enqueueLoopBridge2(Task&& task,
-                                       Iterator1&& begin,
-                                       Iterator2&& end) -> UniqueResult<void>
-{
-  using Iterator = std::remove_cv_t<std::remove_reference_t<Iterator1>>;
-  using TaskT = std::remove_cv_t<std::remove_reference_t<Task>>;
-  using UniqueSharedData = pmr::unique_ptr<SharedTaskData>;
-
-  constexpr std::size_t size = sizeof(SharedTaskData*) + sizeof(Iterator);
-  constexpr std::size_t alignment = std::max(alignof(SharedTaskData*),
-                                             alignof(Iterator));
-  constexpr std::size_t padding_size = (size % alignment != 0)
-      ? alignment - (size % alignment)
-      : 0;
-
-  if constexpr (0 < padding_size) {
-    class LoopTask : public WorkerTask
-    {
-     public:
-      LoopTask(SharedTaskData* shared_data, Iterator ite) noexcept :
-          shared_data_{shared_data},
-          ite_{ite} {static_cast<void>(padding_);}
-      void run(const uint thread_id) override
-      {
-        runLoopTask<TaskT, Iterator>(shared_data_->task_, thread_id, ite_);
-        // A manager will be notified when all tasks have been completed
-        const uint c = --(shared_data_->counter_);
-        if (c == 0) {
-          std::pmr::polymorphic_allocator<SharedTaskData> alloc{
-              shared_data_->mem_resource_};
-          UniqueSharedData data{shared_data_, alloc};
-          data->result_->set(0);
-        }
-      }
-     private:
-      SharedTaskData* shared_data_;
-      std::array<uint8b, padding_size> padding_;
-      Iterator ite_;
-    };
-    return enqueueLoopImpl<SharedTaskData, LoopTask>(
-        std::forward<Task>(task),
-        std::forward<Iterator1>(begin),
-        std::forward<Iterator2>(end));
-  }
-  else {
-    class LoopTask : public WorkerTask
-    {
-     public:
-      LoopTask(SharedTaskData* shared_data, Iterator ite) noexcept :
-          shared_data_{shared_data},
-          ite_{ite} {}
-      void run(const uint thread_id) override
-      {
-        runLoopTask<TaskT, Iterator>(shared_data_->task_, thread_id, ite_);
-        // A manager will be notified when all tasks have been completed
-        const uint c = --(shared_data_->counter_);
-        if (c == 0) {
-          std::pmr::polymorphic_allocator<SharedTaskData> alloc{
-              shared_data_->mem_resource_};
-          UniqueSharedData data{shared_data_, alloc};
-          data->result_->set(0);
-        }
-      }
-     private:
-      SharedTaskData* shared_data_;
-      Iterator ite_;
-    };
-    return enqueueLoopImpl<SharedTaskData, LoopTask>(
-        std::forward<Task>(task),
-        std::forward<Iterator1>(begin),
-        std::forward<Iterator2>(end));
-  }
-}
-
-/*!
-  \details No detailed description
-
-  \tparam SharedTaskData No description.
-  \tparam LoopTask No description.
-  \tparam Task No description.
-  \tparam Iterator1 No description.
-  \tparam Iterator2 No description.
-  \param [in] task No description.
-  \param [in] begin No description.
-  \param [in] end No description.
-  \return No description
-  */
-template <typename SharedTaskData, typename LoopTask,
-          typename Task, typename Iterator1, typename Iterator2> inline
 auto ThreadManager::enqueueLoopImpl(Task&& task,
                                     Iterator1&& begin,
                                     Iterator2&& end) -> UniqueResult<void>
 {
-  auto mem_resource = resource();
+  using TaskT = std::remove_cv_t<std::remove_reference_t<Task>>;
+  using ResultP = ResultPointer<void>;
+  using MemoryP = std::pmr::memory_resource*;
+#if defined(Z_GCC) || defined(Z_CLANG)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpadded"
+#endif // Z_CLANG || Z_GCC
+  struct SharedTaskData
+  {
+    SharedTaskData(Task&& t, ResultP r, const uint c, MemoryP m) noexcept :
+        task_{std::forward<Task>(t)},
+        result_{r},
+        mem_resource_{m},
+        counter_{c} {}
+    TaskT task_;
+    ResultP result_;
+    MemoryP mem_resource_;
+    std::atomic_uint counter_;
+  };
+
+  using CommonIterator = std::common_type_t<Iterator1, Iterator2>;
+  using Iterator = std::remove_cv_t<std::remove_reference_t<CommonIterator>>;
+  using DataAllocator = std::pmr::polymorphic_allocator<SharedTaskData>;
+  class LoopTask : public WorkerTask
+  {
+   public:
+    LoopTask(SharedTaskData* shared_data, Iterator ite) noexcept :
+        shared_data_{shared_data},
+        ite_{ite} {}
+    void run(const uint thread_id) override
+    {
+      runLoopTask<TaskT, Iterator>(shared_data_->task_, thread_id, ite_);
+      // A manager will be notified when all tasks have been completed
+      const uint c = --(shared_data_->counter_);
+      if (c == 0) {
+        MemoryP mem = shared_data_->mem_resource_;
+        shared_data_->result_->set(0);
+        if (mem != nullptr) {
+          pmr::UniquePtrDeleter<SharedTaskData> deleter{DataAllocator{mem}};
+          deleter(shared_data_);
+        }
+      }
+    }
+
+    SharedTaskData* shared_data_;
+    Iterator ite_;
+  };
+
+  class LoopTaskOverflowError : public OverflowError
+  {
+   public:
+    LoopTaskOverflowError(const std::string_view what_arg,
+                          SharedTaskData* shared_data,
+                          UniqueResult<void>&& result,
+                          Iterator ite_begin,
+                          Iterator ite_end) :
+        OverflowError(what_arg),
+        shared_data_{shared_data, DataAllocator{shared_data->mem_resource_}},
+        result_{std::move(result)},
+        begin_{ite_begin},
+        end_{ite_end}
+    {
+      shared_data_->mem_resource_ = nullptr;
+    }
+    ~LoopTaskOverflowError() override
+    {
+    }
+    void* begin() noexcept override
+    {
+      return std::addressof(begin_);
+    }
+    const void* begin() const noexcept override
+    {
+      return std::addressof(begin_);
+    }
+    void* end() noexcept override
+    {
+      return std::addressof(end_);
+    }
+    const void* end() const noexcept override
+    {
+      return std::addressof(end_);
+    }
+    bool hasIterator() const noexcept override
+    {
+      return true;
+    }
+    void* result() noexcept override
+    {
+      return result_.get();
+    }
+    const void* result() const noexcept override
+    {
+      return result_.get();
+    }
+    void* task() noexcept override
+    {
+      return std::addressof(shared_data_->task_);
+    }
+    const void* task() const noexcept override
+    {
+      return std::addressof(shared_data_->task_);
+    }
+   private:
+    pmr::unique_ptr<SharedTaskData> shared_data_;
+    UniqueResult<void> result_;
+    Iterator begin_,
+             end_;
+  };
+#if defined(Z_GCC) || defined(Z_CLANG)
+#pragma GCC diagnostic pop
+#endif // Z_CLANG || Z_GCC
+
+  MemoryP mem_resource = resource();
 
   // Create a result of loop tasks
   const uint thread_id = getThreadIndex();
@@ -773,11 +743,22 @@ auto ThreadManager::enqueueLoopImpl(Task&& task,
 
   // Enqueue loop tasks
   {
-    for (auto ite = begin; ite != end; ++ite) {
-      UniqueTask worker_task = pmr::allocateUnique<LoopTask>(mem_resource,
-                                                             shared_data,
-                                                             ite);
-      task_queue_.enqueue(std::move(worker_task));
+    for (Iterator ite = begin; ite != end; ++ite) {
+      auto worker_task = pmr::allocateUnique<LoopTask>(mem_resource,
+                                                       shared_data,
+                                                       ite);
+      try {
+        task_queue_.enqueue(std::move(worker_task));
+      }
+      catch (const LockFreeBoundedQueue<UniqueTask>::OverflowError& /* error */) {
+        shared_data->counter_ -= distance(ite, end);
+        condition_.notify_all();
+        throw LoopTaskOverflowError{"Task queue overflow happened.",
+                                    shared_data,
+                                    std::move(result),
+                                    ite,
+                                    end};
+      }
     }
   }
   condition_.notify_all();
@@ -916,7 +897,7 @@ void ThreadManager::runLoopTask(Task& task,
 template <typename ReturnType, typename Task> inline
 void ThreadManager::runSingleTask(Task& task,
                                   const uint thread_id,
-                                  Result<ReturnType>* result)
+                                  ResultPointer<ReturnType> result)
 {
   if constexpr (std::is_invocable_v<Task, uint>) {
     if constexpr (std::is_void_v<ReturnType>) {

@@ -133,6 +133,42 @@ TEST(ThreadManagerTest, EnqueueTaskTest)
       << mem_resource.totalMemoryUsage() << " bytes isn't deallocated.";
 }
 
+TEST(ThreadManagerTest, EnqueueTaskExceptionTest)
+{
+  zisc::SimpleMemoryResource mem_resource;
+  {
+    zisc::ThreadManager thread_manager{1, &mem_resource};
+    // enqueueLoop()
+    {
+      auto task = [](const int /* index */) {};
+      constexpr int cap = zisc::cast<int>(thread_manager.defaultTaskCapacity());
+      constexpr int begin = 0;
+      constexpr int end = 2 * cap;
+      zisc::ThreadManager::UniqueResult<void> result;
+      try {
+        result = thread_manager.enqueueLoop(task, begin, end);
+        FAIL() << "This line must not be processed.";
+      }
+      catch (zisc::ThreadManager::OverflowError& error) {
+        const int b = *zisc::cast<int*>(error.begin());
+        const int e = *zisc::cast<int*>(error.end());
+        ASSERT_EQ(b, cap);
+        ASSERT_EQ(e, end);
+        auto r = zisc::cast<zisc::ThreadManager::Result<void>*>(error.result());
+        r->wait();
+      }
+      catch (...) {
+        FAIL() << "This line must not be processed.";
+      }
+      if (result) {
+        FAIL() << "This line must not be processed.";
+      }
+    }
+  }
+  ASSERT_FALSE(mem_resource.totalMemoryUsage())
+      << mem_resource.totalMemoryUsage() << " bytes isn't deallocated.";
+}
+
 TEST(ThreadManagerTest, ParallelTest)
 {
   zisc::SimpleMemoryResource mem_resource;

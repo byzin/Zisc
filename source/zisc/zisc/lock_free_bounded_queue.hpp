@@ -57,10 +57,10 @@ class LockFreeBoundedQueue : public NonCopyable<LockFreeBoundedQueue<Type>>
     using ConstReference = std::add_lvalue_reference_t<ConstType>;
 
 
-    //! Construct the lock fee queue error
+    //! Construct the lock free queue error
     OverflowError(const std::string_view what_arg, const Type& value);
 
-    //! Construct the lock fee queue error
+    //! Construct the lock free queue error
     OverflowError(const std::string_view what_arg, Type&& value);
 
     //!

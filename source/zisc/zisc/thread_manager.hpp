@@ -24,6 +24,7 @@
 #include <utility>
 #include <vector>
 // Zisc
+#include "error.hpp"
 #include "lock_free_bounded_queue.hpp"
 #include "non_copyable.hpp"
 #include "std_memory_resource.hpp"
@@ -40,6 +41,10 @@ namespace zisc {
 class ThreadManager : private NonCopyable<ThreadManager>
 {
  public:
+#if defined(Z_GCC) || defined(Z_CLANG)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpadded"
+#endif // Z_GCC || Z_CLANG
   //! Result type of tasks
   template <typename T>
   class Result : private NonCopyable<Result<T>>
@@ -76,8 +81,52 @@ class ThreadManager : private NonCopyable<ThreadManager>
     uint8b has_value_;
     uint16b thread_id_;
   };
+#if defined(Z_GCC) || defined(Z_CLANG)
+#pragma GCC diagnostic pop
+#endif // Z_GCC || Z_CLANG
   template <typename Type>
   using UniqueResult = pmr::unique_ptr<Result<Type>>;
+
+  /*!
+    \brief No brief description
+
+    No detailed description.
+    */
+  class OverflowError : public SystemError
+  {
+   public:
+    //! Construct the queue error of the thread manager 
+    OverflowError(const std::string_view what_arg);
+
+
+    //! Return an iterator to the beginning
+    virtual void* begin() noexcept = 0;
+
+    //! Return an iterator to the beginning
+    virtual const void* begin() const noexcept = 0;
+
+    //! Return an iterator to the end
+    virtual void* end() noexcept = 0;
+
+    //! Return an iterator to the end
+    virtual const void* end() const noexcept = 0;
+
+
+    //! Check if the exception has iterators
+    virtual bool hasIterator() const noexcept = 0;
+
+    //! Return the result of the tasks
+    virtual void* result() noexcept = 0;
+
+    //! Return the result of the tasks
+    virtual const void* result() const noexcept = 0;
+
+    //! Return the task 
+    virtual void* task() noexcept = 0;
+
+    //! Return the task
+    virtual const void* task() const noexcept = 0;
+  };
 
 
   //! Create threads as many CPU threads as
@@ -104,6 +153,9 @@ class ThreadManager : private NonCopyable<ThreadManager>
 
   //! Return the maximum possible number of tasks
   std::size_t capacity() const noexcept;
+
+  //! Return the default capacity of the task queue
+  static constexpr std::size_t defaultTaskCapacity() noexcept;
 
   //! Run the given task on a worker thread in the manager
   template <typename ReturnType, typename Task>
@@ -152,6 +204,8 @@ class ThreadManager : private NonCopyable<ThreadManager>
   int size() const noexcept;
 
  private:
+  template <typename Type>
+  using ResultPointer = std::add_pointer_t<Result<Type>>;
   //! Base class of worker task
   class WorkerTask
   {
@@ -166,37 +220,16 @@ class ThreadManager : private NonCopyable<ThreadManager>
   //! Create worker threads
   void createWorkers(const uint num_of_threads) noexcept;
 
-  //! Return the default capacity of the task queue
-  static constexpr std::size_t defaultTaskCapacity() noexcept;
-
   //! Return the distance of given two iterators
-  template <typename Iterator>
-  static uint distance(Iterator&& begin, Iterator&& end) noexcept;
+  template <typename Iterator1, typename Iterator2>
+  static uint distance(Iterator1&& begin, Iterator2&& end) noexcept;
 
   //! Run the given task on a worker thread in the manager
   template <typename ReturnType, typename Task>
-  UniqueResult<ReturnType> enqueueBridge(Task&& task);
-
-  //! Run the given task on a worker thread in the manager
-  template <typename SingleTask, typename ReturnType, typename Task>
   UniqueResult<ReturnType> enqueueImpl(Task&& task);
 
   //! Run tasks on the worker threads in the manager
   template <typename Task, typename Iterator1, typename Iterator2>
-  UniqueResult<void> enqueueLoopBridge1(Task&& task,
-                                        Iterator1&& begin,
-                                        Iterator2&& end);
-
-  //! Run tasks on the worker threads in the manager
-  template <typename SharedTaskData,
-            typename Task, typename Iterator1, typename Iterator2>
-  UniqueResult<void> enqueueLoopBridge2(Task&& task,
-                                        Iterator1&& begin,
-                                        Iterator2&& end);
-
-  //! Run tasks on the worker threads in the manager
-  template <typename SharedTaskData, typename LoopTask,
-            typename Task, typename Iterator1, typename Iterator2>
   UniqueResult<void> enqueueLoopImpl(Task&& task,
                                      Iterator1&& begin,
                                      Iterator2&& end);
@@ -230,7 +263,7 @@ class ThreadManager : private NonCopyable<ThreadManager>
   template <typename ReturnType, typename Task>
   static void runSingleTask(Task& task,
                             const uint thread_id,
-                            Result<ReturnType>* result);
+                            ResultPointer<ReturnType> result);
 
   //! Check if the workers (threads) are enable running
   bool workersAreEnabled() const noexcept;

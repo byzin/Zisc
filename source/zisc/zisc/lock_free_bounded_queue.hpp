@@ -18,6 +18,7 @@
 // Standard C++ library
 #include <atomic>
 #include <cstddef>
+#include <memory>
 #include <string_view>
 #include <tuple>
 #include <type_traits>
@@ -25,7 +26,6 @@
 // Zisc
 #include "error.hpp"
 #include "non_copyable.hpp"
-#include "padded_value.hpp"
 #include "std_memory_resource.hpp"
 #include "zisc_config.hpp"
 
@@ -58,10 +58,9 @@ class LockFreeBoundedQueue : public NonCopyable<LockFreeBoundedQueue<Type>>
 
 
     //! Construct the lock free queue error
-    OverflowError(const std::string_view what_arg, const Type& value);
-
-    //! Construct the lock free queue error
-    OverflowError(const std::string_view what_arg, Type&& value);
+    OverflowError(const std::string_view what_arg,
+                  std::pmr::memory_resource* mem_resource,
+                  Type&& value);
 
     //!
     ~OverflowError() override;
@@ -74,8 +73,7 @@ class LockFreeBoundedQueue : public NonCopyable<LockFreeBoundedQueue<Type>>
     ConstReference get() const noexcept;
 
    private:
-    static constexpr std::size_t kAlignment = std::alignment_of_v<SystemError>;
-    PaddedValue<Type, kAlignment> value_;
+    std::shared_ptr<Type> value_;
   };
 
   //! Create a queue
@@ -116,6 +114,9 @@ class LockFreeBoundedQueue : public NonCopyable<LockFreeBoundedQueue<Type>>
 
   //! Check whether the queue is empty
   bool isEmpty() const noexcept;
+
+  //! Return a pointer to the underlying memory resource
+  std::pmr::memory_resource* resource() const noexcept;
 
   //! Change the maximum possible number of elements. The queued data is cleared
   void setCapacity(const std::size_t cap) noexcept;

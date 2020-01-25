@@ -194,7 +194,7 @@ class ThreadManager : private NonCopyable<ThreadManager>
   //! Return the number of threads
   uint numOfThreads() const noexcept;
 
-  //! Return a pointer to the underling memory resource
+  //! Return a pointer to the underlying memory resource
   std::pmr::memory_resource* resource() const noexcept;
 
   //! Change the maximum possible number of tasks. The queued tasks are cleared

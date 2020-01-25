@@ -21,6 +21,7 @@
 #include <atomic>
 #include <cstddef>
 #include <limits>
+#include <memory>
 #include <string_view>
 #include <tuple>
 #include <utility>
@@ -43,24 +44,12 @@ namespace zisc {
 template <typename Type> inline
 LockFreeBoundedQueue<Type>::OverflowError::OverflowError(
     const std::string_view what_arg,
-    const Type& value) :
-        SystemError(ErrorCode::kLockFreeBoundedQueueOverflow, what_arg),
-        value_{value}
-{
-}
-
-/*!
-  \details No detailed description
-
-  \param [in] what_arg No description.
-  \param [in] value No description.
-  */
-template <typename Type> inline
-LockFreeBoundedQueue<Type>::OverflowError::OverflowError(
-    const std::string_view what_arg,
+    std::pmr::memory_resource* mem_resource,
     Type&& value) :
         SystemError(ErrorCode::kLockFreeBoundedQueueOverflow, what_arg),
-        value_{std::move(value)}
+        value_{std::allocate_shared<Type>(
+            std::pmr::polymorphic_allocator<Type>{mem_resource},
+            std::move(value))}
 {
 }
 
@@ -81,7 +70,7 @@ template <typename Type> inline
 auto LockFreeBoundedQueue<Type>::OverflowError::get() noexcept
     -> Reference
 {
-  return value_;
+  return *value_;
 }
 
 /*!
@@ -93,7 +82,7 @@ template <typename Type> inline
 auto LockFreeBoundedQueue<Type>::OverflowError::get() const noexcept
     -> ConstReference
 {
-  return value_;
+  return *value_;
 }
 
 /*!
@@ -240,19 +229,8 @@ std::tuple<bool, Type> LockFreeBoundedQueue<Type>::dequeue() noexcept
 template <typename Type> inline
 bool LockFreeBoundedQueue<Type>::enqueue(const Type& value)
 {
-  using UInt = typename RingBuffer::UInt;
-  const UInt index = free_elements_buffer_.dequeue(true); // Get an entry index
-
-  // Check overflow
-  if (index == RingBuffer::overflowIndex())
-    throw OverflowError{"Queue overflow happened.", value};
-
-  const bool result = index != RingBuffer::invalidIndex();
-  if (result) {
-    elements_[index] = value;
-    allocated_elements_buffer_.enqueue(index, false);
-    ++size_;
-  }
+  Type v{value};
+  const bool result = enqueue(std::move(value));
   return result;
 
 }
@@ -272,7 +250,7 @@ bool LockFreeBoundedQueue<Type>::enqueue(Type&& value)
 
   // Check overflow
   if (index == RingBuffer::overflowIndex())
-    throw OverflowError{"Queue overflow happened.", std::move(value)};
+    throw OverflowError{"Queue overflow happened.", resource(), std::move(value)};
 
   const bool result = index != RingBuffer::invalidIndex();
   if (result) {
@@ -294,6 +272,26 @@ bool LockFreeBoundedQueue<Type>::isEmpty() const noexcept
   const int s = size();
   const bool result = s == 0;
   return result;
+}
+
+/*!
+  \details No detailed description
+
+  \tparam t No description.
+  \param [in] x No description.
+  \param [in,out] y No description.
+  \param [out] z No description.
+  \return No description
+  \exception std::exception No description.
+
+  \note No notation.
+  \attention No attention.
+  */
+template <typename Type> inline
+std::pmr::memory_resource* LockFreeBoundedQueue<Type>::resource() const noexcept
+{
+  std::pmr::memory_resource* mem_resource = elements_.get_allocator().resource();
+  return mem_resource;
 }
 
 /*!

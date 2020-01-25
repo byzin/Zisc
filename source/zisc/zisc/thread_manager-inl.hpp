@@ -515,13 +515,19 @@ auto ThreadManager::enqueueImpl(Task&& task) -> UniqueResult<ReturnType>
 
   class SingleTaskOverflowError : public OverflowError
   {
+    using UniqueResultT = UniqueResult<ReturnType>;
    public:
     SingleTaskOverflowError(const std::string_view what_arg,
+                            std::pmr::memory_resource* mem_resource,
                             TaskT&& t,
-                            UniqueResult<ReturnType>&& result) :
+                            UniqueResultT&& result) :
         OverflowError(what_arg),
-        task_{std::move(t)},
-        result_{std::move(result)} {}
+        task_{std::allocate_shared<TaskT>(
+            std::pmr::polymorphic_allocator<TaskT>{mem_resource},
+            std::move(t))},
+        result_{std::allocate_shared<UniqueResultT>(
+            std::pmr::polymorphic_allocator<UniqueResultT>{mem_resource},
+            std::move(result))} {}
     ~SingleTaskOverflowError() override
     {
     }
@@ -547,24 +553,24 @@ auto ThreadManager::enqueueImpl(Task&& task) -> UniqueResult<ReturnType>
     }
     void* result() noexcept override
     {
-      return result_.get();
+      return (*result_).get();
     }
     const void* result() const noexcept override
     {
-      return result_.get();
+      return (*result_).get();
     }
     void* task() noexcept override
     {
-      return std::addressof(task_);
+      return task_.get();
     }
     const void* task() const noexcept override
     {
-      return std::addressof(task_);
+      return task_.get();
     }
 
    private:
-    TaskT task_;
-    UniqueResult<ReturnType> result_;
+    std::shared_ptr<TaskT> task_;
+    std::shared_ptr<UniqueResultT> result_;
   };
 #if defined(Z_GCC) || defined(Z_CLANG)
 #pragma GCC diagnostic pop
@@ -586,6 +592,7 @@ auto ThreadManager::enqueueImpl(Task&& task) -> UniqueResult<ReturnType>
     }
     catch (const LockFreeBoundedQueue<UniqueTask>::OverflowError& /* error */) {
       throw SingleTaskOverflowError{"Task queue overflow happened.",
+                                    resource(),
                                     std::move(worker_task->task_),
                                     std::move(result)};
     }
@@ -661,19 +668,26 @@ auto ThreadManager::enqueueLoopImpl(Task&& task,
 
   class LoopTaskOverflowError : public OverflowError
   {
+    using UniqueTaskData = pmr::unique_ptr<SharedTaskData>;
+    using UniqueResultT = UniqueResult<void>;
    public:
     LoopTaskOverflowError(const std::string_view what_arg,
+                          std::pmr::memory_resource* mem_resource,
                           SharedTaskData* shared_data,
-                          UniqueResult<void>&& result,
+                          UniqueResultT&& result,
                           Iterator ite_begin,
                           Iterator ite_end) :
         OverflowError(what_arg),
-        shared_data_{shared_data, DataAllocator{shared_data->mem_resource_}},
-        result_{std::move(result)},
+        shared_data_{std::allocate_shared<UniqueTaskData>(
+            std::pmr::polymorphic_allocator<UniqueTaskData>{mem_resource},
+            UniqueTaskData{shared_data, DataAllocator{shared_data->mem_resource_}})},
+        result_{std::allocate_shared<UniqueResultT>(
+            std::pmr::polymorphic_allocator<UniqueResultT>{mem_resource},
+            std::move(result))},
         begin_{ite_begin},
         end_{ite_end}
     {
-      shared_data_->mem_resource_ = nullptr;
+      (*shared_data_)->mem_resource_ = nullptr;
     }
     ~LoopTaskOverflowError() override
     {
@@ -708,15 +722,15 @@ auto ThreadManager::enqueueLoopImpl(Task&& task,
     }
     void* task() noexcept override
     {
-      return std::addressof(shared_data_->task_);
+      return std::addressof((*shared_data_)->task_);
     }
     const void* task() const noexcept override
     {
-      return std::addressof(shared_data_->task_);
+      return std::addressof((*shared_data_)->task_);
     }
    private:
-    pmr::unique_ptr<SharedTaskData> shared_data_;
-    UniqueResult<void> result_;
+    std::shared_ptr<UniqueTaskData> shared_data_;
+    std::shared_ptr<UniqueResultT> result_;
     Iterator begin_,
              end_;
   };
@@ -754,6 +768,7 @@ auto ThreadManager::enqueueLoopImpl(Task&& task,
         shared_data->counter_ -= distance(ite, end);
         condition_.notify_all();
         throw LoopTaskOverflowError{"Task queue overflow happened.",
+                                    mem_resource,
                                     shared_data,
                                     std::move(result),
                                     ite,

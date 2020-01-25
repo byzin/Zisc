@@ -50,27 +50,15 @@ class PaddedValue
   //! Create a value
   PaddedValue() noexcept;
 
-  //! Copy a data
-  PaddedValue(ConstReference other) noexcept;
-
   //! Move a data
   PaddedValue(RReference other) noexcept;
-
-  //! Copy a data
-  PaddedValue(const PaddedValue& other) noexcept;
 
   //! Move a data
   PaddedValue(PaddedValue&& other) noexcept;
 
 
-  //! Copy a data
-  PaddedValue& operator=(ConstReference other) noexcept;
-
   //! Move a data
   PaddedValue& operator=(RReference other) noexcept;
-
-  //! Copy a data
-  PaddedValue& operator=(const PaddedValue& other) noexcept;
 
   //! Move a data
   PaddedValue& operator=(PaddedValue&& other) noexcept;

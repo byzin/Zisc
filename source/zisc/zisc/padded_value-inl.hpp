@@ -81,30 +81,8 @@ PaddedValue<Type, kSize>::PaddedValue() noexcept
   \param [in] other No description.
   */
 template <typename Type, std::size_t kSize> inline
-PaddedValue<Type, kSize>::PaddedValue(ConstReference other) noexcept :
-    impl_{other}
-{
-}
-
-/*!
-  \details No detailed description
-
-  \param [in] other No description.
-  */
-template <typename Type, std::size_t kSize> inline
 PaddedValue<Type, kSize>::PaddedValue(RReference other) noexcept :
     impl_{std::move(other)}
-{
-}
-
-/*!
-  \details No detailed description
-
-  \param [in] other No description.
-  */
-template <typename Type, std::size_t kSize> inline
-PaddedValue<Type, kSize>::PaddedValue(const PaddedValue& other) noexcept :
-    impl_{other.impl_.value_}
 {
 }
 
@@ -126,38 +104,10 @@ PaddedValue<Type, kSize>::PaddedValue(PaddedValue&& other) noexcept :
   \return No description
   */
 template <typename Type, std::size_t kSize> inline
-auto PaddedValue<Type, kSize>::operator=(ConstReference other) noexcept
-    -> PaddedValue&
-{
-  impl_ = other;
-  return *this;
-}
-
-/*!
-  \details No detailed description
-
-  \param [in] other No description.
-  \return No description
-  */
-template <typename Type, std::size_t kSize> inline
 auto PaddedValue<Type, kSize>::operator=(RReference other) noexcept
     -> PaddedValue&
 {
   impl_ = std::move(other);
-  return *this;
-}
-
-/*!
-  \details No detailed description
-
-  \param [in] other No description.
-  \return No description
-  */
-template <typename Type, std::size_t kSize> inline
-auto PaddedValue<Type, kSize>::operator=(const PaddedValue& other) noexcept
-    -> PaddedValue&
-{
-  impl_ = other.impl_.value_;
   return *this;
 }
 

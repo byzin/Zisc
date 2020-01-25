@@ -38,12 +38,29 @@ namespace zisc {
   <a href="https://arxiv.org/abs/1908.04511">A Scalable, Portable, and Memory-Efficient Lock-Free FIFO Queue</a>. <br>
   Assume that the number of threads is less than or equal size().
 
-  \tparam Type No description.
+  \tparam T No description.
   */
-template <typename Type>
-class LockFreeBoundedQueue : public NonCopyable<LockFreeBoundedQueue<Type>>
+template <typename T>
+class LockFreeBoundedQueue : public NonCopyable<LockFreeBoundedQueue<T>>
 {
  public:
+  // Types
+  using Type = std::remove_cv_t<T>;
+  using ConstType = std::add_const_t<Type>;
+  using Reference = std::add_lvalue_reference_t<Type>;
+  using RReference = std::add_rvalue_reference_t<Type>;
+  using ConstReference = std::add_lvalue_reference_t<ConstType>;
+  using Pointer = std::add_pointer_t<Type>;
+  using ConstPointer = std::add_pointer_t<ConstType>;
+
+  // Type aliases for STL
+  using container_type = pmr::vector<Type>;
+  using value_type = typename container_type::value_type;
+  using size_type = std::size_t;
+  using reference = typename container_type::reference;
+  using const_reference = typename container_type::const_reference;
+
+
   /*!
     \brief No brief description
 
@@ -52,15 +69,10 @@ class LockFreeBoundedQueue : public NonCopyable<LockFreeBoundedQueue<Type>>
   class OverflowError : public SystemError
   {
    public:
-    using ConstType = std::add_const_t<Type>;
-    using Reference = std::add_lvalue_reference_t<Type>;
-    using ConstReference = std::add_lvalue_reference_t<ConstType>;
-
-
     //! Construct the lock free queue error
     OverflowError(const std::string_view what_arg,
                   std::pmr::memory_resource* mem_resource,
-                  Type&& value);
+                  RReference value);
 
     //!
     ~OverflowError() override;
@@ -80,7 +92,7 @@ class LockFreeBoundedQueue : public NonCopyable<LockFreeBoundedQueue<Type>>
   LockFreeBoundedQueue(std::pmr::memory_resource* mem_resource) noexcept;
 
   //! Create a queue
-  LockFreeBoundedQueue(const std::size_t cap,
+  LockFreeBoundedQueue(const size_type cap,
                        std::pmr::memory_resource* mem_resource) noexcept;
 
   //! Move a data
@@ -92,25 +104,25 @@ class LockFreeBoundedQueue : public NonCopyable<LockFreeBoundedQueue<Type>>
 
 
   //! Return the maximum possible number of elements
-  std::size_t capacity() const noexcept;
+  size_type capacity() const noexcept;
 
   //! Return the maximum possible capacity
-  static constexpr std::size_t capacityMax() noexcept;
+  static constexpr size_type capacityMax() noexcept;
 
   //! Clear the contents
   void clear() noexcept;
 
   //! Return the direct access to the underlying array
-  const pmr::vector<Type>& data() const noexcept;
+  const container_type& data() const noexcept;
 
   //! Take the first element of the queue
   std::tuple<bool, Type> dequeue() noexcept;
 
   //! Append the given element value to the end of the queue
-  bool enqueue(const Type& value);
+  bool enqueue(ConstReference value);
 
   //! Append the given element value to the end of the queue
-  bool enqueue(Type&& value);
+  bool enqueue(RReference value);
 
   //! Check whether the queue is empty
   bool isEmpty() const noexcept;
@@ -119,7 +131,7 @@ class LockFreeBoundedQueue : public NonCopyable<LockFreeBoundedQueue<Type>>
   std::pmr::memory_resource* resource() const noexcept;
 
   //! Change the maximum possible number of elements. The queued data is cleared
-  void setCapacity(const std::size_t cap) noexcept;
+  void setCapacity(const size_type cap) noexcept;
 
   //! Return the number of elements
   int size() const noexcept;
@@ -204,7 +216,7 @@ class LockFreeBoundedQueue : public NonCopyable<LockFreeBoundedQueue<Type>>
 
   RingBuffer free_elements_buffer_;
   RingBuffer allocated_elements_buffer_;
-  pmr::vector<Type> elements_;
+  container_type elements_;
   std::atomic_int size_;
   uint32b padding_ = 0;
 };

@@ -81,41 +81,6 @@ TEST(LockFreeBoundedQueueTest, ConstructorTest)
   ASSERT_EQ(cap, q->capacity()) << "Constructing of LockFreeBoundedQueue failed.";
 }
 
-TEST(LockFreeBoundedQueueTest, ExceptionSizeTest)
-{
-  constexpr std::size_t sys_size = sizeof(zisc::SystemError);
-  constexpr std::size_t sys_align = std::alignment_of_v<zisc::SystemError>;
-  std::cout << "sizeof(zisc::SystemError) = " << sys_size << std::endl;
-  std::cout << "alignof(zisc::SystemError) = " << sys_align << std::endl;
-  {
-    using Queue = zisc::LockFreeBoundedQueue<zisc::uint32b>;
-    const char* name = "zisc::LockFreeBoundedQueue<int>::OverflowError";
-    constexpr std::size_t size = sizeof(Queue::OverflowError);
-//    constexpr std::size_t align = std::alignment_of_v<Queue::OverflowError>;
-    std::cout << "sizeof(" << name << ") = " << size << std::endl;
-    ASSERT_EQ(size, sys_size + sys_align)
-        << "The size of " << name << " is wrong.";
-  }
-  {
-    using Queue = zisc::LockFreeBoundedQueue<zisc::uint64b>;
-    const char* name = "zisc::LockFreeBoundedQueue<long long>::OverflowError";
-    constexpr std::size_t size = sizeof(Queue::OverflowError);
-//    constexpr std::size_t align = std::alignment_of_v<Queue::OverflowError>;
-    std::cout << "sizeof(" << name << ") = " << size << std::endl;
-    ASSERT_EQ(size, sys_size + sizeof(zisc::uint64b))
-        << "The size of " << name << " is wrong.";
-  }
-  {
-    using Queue = zisc::LockFreeBoundedQueue<long double>;
-    const char* name = "zisc::LockFreeBoundedQueue<long double>::OverflowError";
-    constexpr std::size_t size = sizeof(Queue::OverflowError);
-//    constexpr std::size_t align = std::alignment_of_v<Queue::OverflowError>;
-    std::cout << "sizeof(" << name << ") = " << size << std::endl;
-    ASSERT_EQ(size, sys_size + sizeof(long double))
-        << "The size of " << name << " is wrong.";
-  }
-}
-
 TEST(LockFreeBoundedQueueTest, QueueTest)
 {
   using Queue = zisc::LockFreeBoundedQueue<int>;

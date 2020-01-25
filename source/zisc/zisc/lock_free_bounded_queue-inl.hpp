@@ -41,11 +41,11 @@ namespace zisc {
   \param [in] what_arg No description.
   \param [in] value No description.
   */
-template <typename Type> inline
-LockFreeBoundedQueue<Type>::OverflowError::OverflowError(
+template <typename T> inline
+LockFreeBoundedQueue<T>::OverflowError::OverflowError(
     const std::string_view what_arg,
     std::pmr::memory_resource* mem_resource,
-    Type&& value) :
+    RReference value) :
         SystemError(ErrorCode::kLockFreeBoundedQueueOverflow, what_arg),
         value_{std::allocate_shared<Type>(
             std::pmr::polymorphic_allocator<Type>{mem_resource},
@@ -56,8 +56,8 @@ LockFreeBoundedQueue<Type>::OverflowError::OverflowError(
 /*!
   \details No detailed description
   */
-template <typename Type> inline
-LockFreeBoundedQueue<Type>::OverflowError::~OverflowError()
+template <typename T> inline
+LockFreeBoundedQueue<T>::OverflowError::~OverflowError()
 {
 }
 
@@ -66,8 +66,8 @@ LockFreeBoundedQueue<Type>::OverflowError::~OverflowError()
 
   \return No description
   */
-template <typename Type> inline
-auto LockFreeBoundedQueue<Type>::OverflowError::get() noexcept
+template <typename T> inline
+auto LockFreeBoundedQueue<T>::OverflowError::get() noexcept
     -> Reference
 {
   return *value_;
@@ -78,8 +78,8 @@ auto LockFreeBoundedQueue<Type>::OverflowError::get() noexcept
 
   \return No description
   */
-template <typename Type> inline
-auto LockFreeBoundedQueue<Type>::OverflowError::get() const noexcept
+template <typename T> inline
+auto LockFreeBoundedQueue<T>::OverflowError::get() const noexcept
     -> ConstReference
 {
   return *value_;
@@ -90,8 +90,8 @@ auto LockFreeBoundedQueue<Type>::OverflowError::get() const noexcept
 
   \param [in,out] mem_resource No description.
   */
-template <typename Type> inline
-LockFreeBoundedQueue<Type>::LockFreeBoundedQueue(
+template <typename T> inline
+LockFreeBoundedQueue<T>::LockFreeBoundedQueue(
     std::pmr::memory_resource* mem_resource) noexcept :
         LockFreeBoundedQueue(1, mem_resource)
 {
@@ -103,9 +103,9 @@ LockFreeBoundedQueue<Type>::LockFreeBoundedQueue(
   \param [in] cap No description.
   \param [in,out] mem_resource No description.
   */
-template <typename Type> inline
-LockFreeBoundedQueue<Type>::LockFreeBoundedQueue(
-    const std::size_t cap,
+template <typename T> inline
+LockFreeBoundedQueue<T>::LockFreeBoundedQueue(
+    const size_type cap,
     std::pmr::memory_resource* mem_resource) noexcept :
         free_elements_buffer_{mem_resource},
         allocated_elements_buffer_{mem_resource},
@@ -120,8 +120,8 @@ LockFreeBoundedQueue<Type>::LockFreeBoundedQueue(
 
   \param [in] other No description.
   */
-template <typename Type> inline
-LockFreeBoundedQueue<Type>::LockFreeBoundedQueue(
+template <typename T> inline
+LockFreeBoundedQueue<T>::LockFreeBoundedQueue(
     LockFreeBoundedQueue&& other) noexcept :
         free_elements_buffer_{std::move(other.free_elements_buffer_)},
         allocated_elements_buffer_{std::move(other.allocated_elements_buffer_)},
@@ -136,8 +136,8 @@ LockFreeBoundedQueue<Type>::LockFreeBoundedQueue(
   \param [in] other No description.
   \return No description
   */
-template <typename Type> inline
-auto LockFreeBoundedQueue<Type>::operator=(LockFreeBoundedQueue&& other)
+template <typename T> inline
+auto LockFreeBoundedQueue<T>::operator=(LockFreeBoundedQueue&& other)
     noexcept -> LockFreeBoundedQueue&
 {
   free_elements_buffer_ = std::move(other.free_elements_buffer_);
@@ -151,10 +151,10 @@ auto LockFreeBoundedQueue<Type>::operator=(LockFreeBoundedQueue&& other)
 
   \return No description
   */
-template <typename Type> inline
-std::size_t LockFreeBoundedQueue<Type>::capacity() const noexcept
+template <typename T> inline
+auto LockFreeBoundedQueue<T>::capacity() const noexcept -> size_type
 {
-  const std::size_t cap = elements_.size();
+  const size_type cap = elements_.size();
   ZISC_ASSERT(Algorithm::isPowerOf2(cap),
               "The capacity isn't power of 2. capacity = ", cap);
   return cap;
@@ -165,19 +165,19 @@ std::size_t LockFreeBoundedQueue<Type>::capacity() const noexcept
 
   \return No description
   */
-template <typename Type> inline
-constexpr std::size_t LockFreeBoundedQueue<Type>::capacityMax() noexcept
+template <typename T> inline
+constexpr auto LockFreeBoundedQueue<T>::capacityMax() noexcept -> size_type
 {
   using Int = typename RingBuffer::Int;
-  const auto cap_max = cast<std::size_t>(std::numeric_limits<Int>::max() >> 1);
+  const auto cap_max = cast<size_type>(std::numeric_limits<Int>::max() >> 1);
   return cap_max;
 }
 
 /*!
   \details No detailed description
   */
-template <typename Type> inline
-void LockFreeBoundedQueue<Type>::clear() noexcept
+template <typename T> inline
+void LockFreeBoundedQueue<T>::clear() noexcept
 {
   using UInt = typename RingBuffer::UInt;
   allocated_elements_buffer_.clear();
@@ -192,8 +192,8 @@ void LockFreeBoundedQueue<Type>::clear() noexcept
 
   \return No description
   */
-template <typename Type> inline
-const pmr::vector<Type>& LockFreeBoundedQueue<Type>::data() const noexcept
+template <typename T> inline
+auto LockFreeBoundedQueue<T>::data() const noexcept -> const container_type&
 {
   return elements_;
 }
@@ -203,8 +203,8 @@ const pmr::vector<Type>& LockFreeBoundedQueue<Type>::data() const noexcept
 
   \return No description
   */
-template <typename Type> inline
-std::tuple<bool, Type> LockFreeBoundedQueue<Type>::dequeue() noexcept
+template <typename T> inline
+auto LockFreeBoundedQueue<T>::dequeue() noexcept -> std::tuple<bool, Type>
 {
   using UInt = typename RingBuffer::UInt;
   std::tuple<bool, Type> result;
@@ -226,11 +226,11 @@ std::tuple<bool, Type> LockFreeBoundedQueue<Type>::dequeue() noexcept
   \return No description
   \exception OverflowError No description.
   */
-template <typename Type> inline
-bool LockFreeBoundedQueue<Type>::enqueue(const Type& value)
+template <typename T> inline
+bool LockFreeBoundedQueue<T>::enqueue(ConstReference value)
 {
   Type v{value};
-  const bool result = enqueue(std::move(value));
+  const bool result = enqueue(std::move(v));
   return result;
 
 }
@@ -242,8 +242,8 @@ bool LockFreeBoundedQueue<Type>::enqueue(const Type& value)
   \return No description
   \exception OverflowError No description.
   */
-template <typename Type> inline
-bool LockFreeBoundedQueue<Type>::enqueue(Type&& value)
+template <typename T> inline
+bool LockFreeBoundedQueue<T>::enqueue(RReference value)
 {
   using UInt = typename RingBuffer::UInt;
   const UInt index = free_elements_buffer_.dequeue(true); // Get an entry index
@@ -266,8 +266,8 @@ bool LockFreeBoundedQueue<Type>::enqueue(Type&& value)
 
   \return No description
   */
-template <typename Type> inline
-bool LockFreeBoundedQueue<Type>::isEmpty() const noexcept
+template <typename T> inline
+bool LockFreeBoundedQueue<T>::isEmpty() const noexcept
 {
   const int s = size();
   const bool result = s == 0;
@@ -277,18 +277,10 @@ bool LockFreeBoundedQueue<Type>::isEmpty() const noexcept
 /*!
   \details No detailed description
 
-  \tparam t No description.
-  \param [in] x No description.
-  \param [in,out] y No description.
-  \param [out] z No description.
   \return No description
-  \exception std::exception No description.
-
-  \note No notation.
-  \attention No attention.
   */
-template <typename Type> inline
-std::pmr::memory_resource* LockFreeBoundedQueue<Type>::resource() const noexcept
+template <typename T> inline
+std::pmr::memory_resource* LockFreeBoundedQueue<T>::resource() const noexcept
 {
   std::pmr::memory_resource* mem_resource = elements_.get_allocator().resource();
   return mem_resource;
@@ -299,11 +291,11 @@ std::pmr::memory_resource* LockFreeBoundedQueue<Type>::resource() const noexcept
 
   \param [in] cap No description.
   */
-template <typename Type> inline
-void LockFreeBoundedQueue<Type>::setCapacity(const std::size_t cap) noexcept
+template <typename T> inline
+void LockFreeBoundedQueue<T>::setCapacity(const size_type cap) noexcept
 {
-  const std::size_t cap_power2 = zisc::Algorithm::roundUpToPowerOf2(cap);
-  constexpr std::size_t cap_max = capacityMax();
+  const size_type cap_power2 = zisc::Algorithm::roundUpToPowerOf2(cap);
+  constexpr size_type cap_max = capacityMax();
   if ((capacity() < cap_power2) && (cap_power2 <= cap_max) ) {
     elements_.resize(cap_power2);
     allocated_elements_buffer_.setSize(cap_power2 << 1);
@@ -317,8 +309,8 @@ void LockFreeBoundedQueue<Type>::setCapacity(const std::size_t cap) noexcept
 
   \return No description
   */
-template <typename Type> inline
-int LockFreeBoundedQueue<Type>::size() const noexcept
+template <typename T> inline
+int LockFreeBoundedQueue<T>::size() const noexcept
 {
   const int s = size_.load();
   return s;
@@ -329,8 +321,8 @@ int LockFreeBoundedQueue<Type>::size() const noexcept
 
   \param [in,out] mem_resource No description.
   */
-template <typename Type> inline
-LockFreeBoundedQueue<Type>::RingBuffer::RingBuffer(
+template <typename T> inline
+LockFreeBoundedQueue<T>::RingBuffer::RingBuffer(
     std::pmr::memory_resource* mem_resource) noexcept :
         indices_{typename pmr::vector<std::atomic<UInt>>::allocator_type{mem_resource}}
 {
@@ -341,8 +333,8 @@ LockFreeBoundedQueue<Type>::RingBuffer::RingBuffer(
 
   \param [in] other No description.
   */
-template <typename Type> inline
-LockFreeBoundedQueue<Type>::RingBuffer::RingBuffer(RingBuffer&& other) noexcept :
+template <typename T> inline
+LockFreeBoundedQueue<T>::RingBuffer::RingBuffer(RingBuffer&& other) noexcept :
     indices_{std::move(other.indices_)},
     head_{std::move(other.head_.load())},
     threshold_{std::move(other.threshold_.load())},
@@ -355,9 +347,9 @@ LockFreeBoundedQueue<Type>::RingBuffer::RingBuffer(RingBuffer&& other) noexcept 
 
   \param [in] other No description.
   */
-template <typename Type> inline
-auto LockFreeBoundedQueue<Type>::RingBuffer::operator=(RingBuffer&& other)
-    noexcept -> RingBuffer&
+template <typename T> inline
+auto LockFreeBoundedQueue<T>::RingBuffer::operator=(RingBuffer&& other) noexcept
+    -> RingBuffer&
 {
   indices_ = std::move(other.indices_);
   head_ = std::move(other.head_.load());
@@ -369,8 +361,8 @@ auto LockFreeBoundedQueue<Type>::RingBuffer::operator=(RingBuffer&& other)
 /*!
   \details No detailed description
   */
-template <typename Type> inline
-void LockFreeBoundedQueue<Type>::RingBuffer::clear() noexcept
+template <typename T> inline
+void LockFreeBoundedQueue<T>::RingBuffer::clear() noexcept
 {
   std::fill(indices_.begin(), indices_.end(), invalidIndex());
   head_ = 0;
@@ -383,8 +375,8 @@ void LockFreeBoundedQueue<Type>::RingBuffer::clear() noexcept
 
   \return No description
   */
-template <typename Type> inline
-constexpr auto LockFreeBoundedQueue<Type>::RingBuffer::overflowIndex() noexcept
+template <typename T> inline
+constexpr auto LockFreeBoundedQueue<T>::RingBuffer::overflowIndex() noexcept
     -> UInt
 {
   constexpr UInt index = std::numeric_limits<UInt>::max() - 1;
@@ -397,8 +389,8 @@ constexpr auto LockFreeBoundedQueue<Type>::RingBuffer::overflowIndex() noexcept
   \param [in] nonempty No description.
   \return No description
   */
-template <typename Type> inline
-auto LockFreeBoundedQueue<Type>::RingBuffer::dequeue(const bool nonempty) noexcept
+template <typename T> inline
+auto LockFreeBoundedQueue<T>::RingBuffer::dequeue(const bool nonempty) noexcept
     -> UInt
 {
   UInt index = invalidIndex();
@@ -474,10 +466,9 @@ auto LockFreeBoundedQueue<Type>::RingBuffer::dequeue(const bool nonempty) noexce
   \param [in] nonempty No description.
   \return No description
   */
-template <typename Type> inline
-bool LockFreeBoundedQueue<Type>::RingBuffer::enqueue(
-    const UInt index,
-    const bool nonempty) noexcept
+template <typename T> inline
+bool LockFreeBoundedQueue<T>::RingBuffer::enqueue(const UInt index,
+                                                  const bool nonempty) noexcept
 {
   UInt tail = 0;
   UInt tail_cycle = 0;
@@ -522,9 +513,9 @@ bool LockFreeBoundedQueue<Type>::RingBuffer::enqueue(
   \param [in] s No description.
   \param [in] e No description.
   */
-template <typename Type> inline
-void LockFreeBoundedQueue<Type>::RingBuffer::fill(const UInt s,
-                                                  const UInt e) noexcept
+template <typename T> inline
+void LockFreeBoundedQueue<T>::RingBuffer::fill(const UInt s,
+                                               const UInt e) noexcept
 {
   ZISC_ASSERT(e <= size(), "The e is greater than the number of elements.");
   ZISC_ASSERT(s <= e, "The s is greater than the e.");
@@ -548,8 +539,8 @@ void LockFreeBoundedQueue<Type>::RingBuffer::fill(const UInt s,
 
   \return No description
   */
-template <typename Type> inline
-constexpr auto LockFreeBoundedQueue<Type>::RingBuffer::invalidIndex() noexcept
+template <typename T> inline
+constexpr auto LockFreeBoundedQueue<T>::RingBuffer::invalidIndex() noexcept
     -> UInt
 {
   constexpr UInt index = std::numeric_limits<UInt>::max();
@@ -561,8 +552,8 @@ constexpr auto LockFreeBoundedQueue<Type>::RingBuffer::invalidIndex() noexcept
 
   \return No description
   */
-template <typename Type> inline
-std::size_t LockFreeBoundedQueue<Type>::RingBuffer::order() const noexcept
+template <typename T> inline
+std::size_t LockFreeBoundedQueue<T>::RingBuffer::order() const noexcept
 {
   std::size_t o = Algorithm::getExponent(size() >> 1);
   return o;
@@ -573,8 +564,8 @@ std::size_t LockFreeBoundedQueue<Type>::RingBuffer::order() const noexcept
 
   \param [in] s \a s must be a power of 2.
   */
-template <typename Type> inline
-void LockFreeBoundedQueue<Type>::RingBuffer::setSize(const std::size_t s) noexcept
+template <typename T> inline
+void LockFreeBoundedQueue<T>::RingBuffer::setSize(const std::size_t s) noexcept
 {
   ZISC_ASSERT(Algorithm::isPowerOf2(s), "The s isn't power of 2. s = ", s);
   decltype(indices_) vec{s, indices_.get_allocator()};
@@ -586,8 +577,8 @@ void LockFreeBoundedQueue<Type>::RingBuffer::setSize(const std::size_t s) noexce
 
   \return No description
   */
-template <typename Type> inline
-std::size_t LockFreeBoundedQueue<Type>::RingBuffer::size() const noexcept
+template <typename T> inline
+std::size_t LockFreeBoundedQueue<T>::RingBuffer::size() const noexcept
 {
   const std::size_t s = indices_.size();
   ZISC_ASSERT(Algorithm::isPowerOf2(s), "The s isn't power of 2. s = ", s);
@@ -599,8 +590,8 @@ std::size_t LockFreeBoundedQueue<Type>::RingBuffer::size() const noexcept
 
   \return No description
   */
-template <typename Type> inline
-constexpr std::size_t LockFreeBoundedQueue<Type>::RingBuffer::cacheBytes() noexcept
+template <typename T> inline
+constexpr std::size_t LockFreeBoundedQueue<T>::RingBuffer::cacheBytes() noexcept
 {
   constexpr std::size_t bytes = 0b1u << cacheShift();
   return bytes;
@@ -611,8 +602,8 @@ constexpr std::size_t LockFreeBoundedQueue<Type>::RingBuffer::cacheBytes() noexc
 
   \return No description
   */
-template <typename Type> inline
-constexpr std::size_t LockFreeBoundedQueue<Type>::RingBuffer::cacheShift() noexcept
+template <typename T> inline
+constexpr std::size_t LockFreeBoundedQueue<T>::RingBuffer::cacheShift() noexcept
 {
   const std::size_t bytes = sizeof(void*);
   constexpr std::size_t shift = (bytes == 4) ? 4 :
@@ -627,9 +618,9 @@ constexpr std::size_t LockFreeBoundedQueue<Type>::RingBuffer::cacheShift() noexc
   \param [in] tail No description.
   \param [in] head No description.
   */
-template <typename Type> inline
-void LockFreeBoundedQueue<Type>::RingBuffer::catchUp(UInt tail,
-                                                     UInt head) noexcept
+template <typename T> inline
+void LockFreeBoundedQueue<T>::RingBuffer::catchUp(UInt tail,
+                                                  UInt head) noexcept
 {
   while (!tail_.compare_exchange_weak(tail,
                                       head,
@@ -649,8 +640,8 @@ void LockFreeBoundedQueue<Type>::RingBuffer::catchUp(UInt tail,
   \param [in] rhs No description.
   \return No description
   */
-template <typename Type> inline
-auto LockFreeBoundedQueue<Type>::RingBuffer::diff(const UInt lhs, const UInt rhs)
+template <typename T> inline
+auto LockFreeBoundedQueue<T>::RingBuffer::diff(const UInt lhs, const UInt rhs)
     const noexcept -> Int
 {
   auto d = cast<Int>(lhs) - cast<Int>(rhs);
@@ -663,8 +654,8 @@ auto LockFreeBoundedQueue<Type>::RingBuffer::diff(const UInt lhs, const UInt rhs
   \param [in] half No description.
   \return No description
   */
-template <typename Type> inline
-auto LockFreeBoundedQueue<Type>::RingBuffer::getThreshold3(const UInt half)
+template <typename T> inline
+auto LockFreeBoundedQueue<T>::RingBuffer::getThreshold3(const UInt half)
     const noexcept -> Int
 {
   const UInt threshold = 3 * half - 1;
@@ -677,8 +668,8 @@ auto LockFreeBoundedQueue<Type>::RingBuffer::getThreshold3(const UInt half)
   \param [in] index No description.
   \return No description
   */
-template <typename Type> inline
-auto LockFreeBoundedQueue<Type>::RingBuffer::mapIndex(const UInt index)
+template <typename T> inline
+auto LockFreeBoundedQueue<T>::RingBuffer::mapIndex(const UInt index)
     const noexcept -> UInt
 {
   const UInt n = cast<UInt>(size());
@@ -696,8 +687,8 @@ auto LockFreeBoundedQueue<Type>::RingBuffer::mapIndex(const UInt index)
 
   \return No description
   */
-template <typename Type> inline
-constexpr auto LockFreeBoundedQueue<Type>::RingBuffer::ringMin() noexcept -> UInt
+template <typename T> inline
+constexpr auto LockFreeBoundedQueue<T>::RingBuffer::ringMin() noexcept -> UInt
 {
   const std::size_t e = Algorithm::getExponent(sizeof(void*));
   const std::size_t m = cacheShift() - e;

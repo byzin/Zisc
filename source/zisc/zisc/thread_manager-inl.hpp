@@ -513,9 +513,9 @@ auto ThreadManager::enqueueImpl(Task&& task) -> UniqueResult<ReturnType>
     ResultP result_;
   };
 
+  using UniqueResultT = UniqueResult<ReturnType>;
   class SingleTaskOverflowError : public OverflowError
   {
-    using UniqueResultT = UniqueResult<ReturnType>;
    public:
     SingleTaskOverflowError(const std::string_view what_arg,
                             std::pmr::memory_resource* mem_resource,
@@ -553,11 +553,11 @@ auto ThreadManager::enqueueImpl(Task&& task) -> UniqueResult<ReturnType>
     }
     void* result() noexcept override
     {
-      return (*result_).get();
+      return result_->get();
     }
     const void* result() const noexcept override
     {
-      return (*result_).get();
+      return result_->get();
     }
     void* task() noexcept override
     {
@@ -666,10 +666,10 @@ auto ThreadManager::enqueueLoopImpl(Task&& task,
     Iterator ite_;
   };
 
+  using UniqueTaskData = pmr::unique_ptr<SharedTaskData>;
+  using UniqueResultT = UniqueResult<void>;
   class LoopTaskOverflowError : public OverflowError
   {
-    using UniqueTaskData = pmr::unique_ptr<SharedTaskData>;
-    using UniqueResultT = UniqueResult<void>;
    public:
     LoopTaskOverflowError(const std::string_view what_arg,
                           std::pmr::memory_resource* mem_resource,
@@ -714,11 +714,11 @@ auto ThreadManager::enqueueLoopImpl(Task&& task,
     }
     void* result() noexcept override
     {
-      return result_.get();
+      return result_->get();
     }
     const void* result() const noexcept override
     {
-      return result_.get();
+      return result_->get();
     }
     void* task() noexcept override
     {

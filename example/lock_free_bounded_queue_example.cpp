@@ -95,7 +95,7 @@ int main()
               << num_of_works << " int elements." << std::endl;
     std::vector<int> results;
     results.resize(num_of_works, 0);
-    auto dequeue_job = [&q, works_per_thread, &results]()
+    auto dequeue_job = [&q, works_per_thread, &results]() noexcept
     {
       for (std::size_t i = 0; i < works_per_thread; ++i) {
         const auto result = q.dequeue();

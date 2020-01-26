@@ -115,7 +115,7 @@ TEST(FunctionReferenceTest, OperatorTest)
 
   // Lambda function1
   {
-    auto add_value = [](const int a, const int b)
+    auto add_value = [](const int a, const int b) noexcept
     {
       return a + b;
     };
@@ -127,7 +127,7 @@ TEST(FunctionReferenceTest, OperatorTest)
   // Lambda function2
   {
     int c = 1;
-    auto add_value = [&c](const int a, const int b)
+    auto add_value = [&c](const int a, const int b) noexcept
     {
       return a + b + c - 1;
     };

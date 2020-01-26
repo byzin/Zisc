@@ -294,7 +294,7 @@ TEST(LockFreeBoundedQueueTest, MultiThreadTest)
 
   // Test multiple consumer
   std::fill(results.begin(), results.end(), 0);
-  auto dequeue_job = [&q, works_per_thread, &results]()
+  auto dequeue_job = [&q, works_per_thread, &results]() noexcept
   {
     for (std::size_t i = 0; i < works_per_thread; ++i) {
       const auto result = q.dequeue();

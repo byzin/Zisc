@@ -17,6 +17,7 @@ if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE "Debug")
 endif()
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+include(InstallRequiredSystemLibraries)
 
 set(zisc_path ${PROJECT_SOURCE_DIR}/source/zisc)
 include(${zisc_path}/cmake/general.cmake)

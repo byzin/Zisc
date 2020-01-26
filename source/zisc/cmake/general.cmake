@@ -104,13 +104,13 @@ function(setVariablesOnCMake)
 endfunction(setVariablesOnCMake)
 
 
-function(getPrerequisites target_path exe_path dirs rpaths dependency_list)
+function(getPrerequisites target_path exclude_system exe_path dirs rpaths dependency_list)
   include(GetPrerequisites)
   # Check the given target path
   is_file_executable("${target_path}" is_executable)
   if(${is_executable})
     # Get dependency list
-    get_prerequisites("${target_path}" deps 0 1 "${exe_path}" "${dirs}" "${rpaths}")
+    get_prerequisites("${target_path}" deps ${exclude_system} 1 "${exe_path}" "${dirs}" "${rpaths}")
     set(dep_list "")
     foreach(dependency IN LISTS deps)
       gp_append_unique(dep_list ${dependency})
@@ -139,11 +139,11 @@ function(getResolvedPrerequisites dependency_list target_path exe_path dirs rpat
 endfunction(getResolvedPrerequisites)
 
 
-function(getPrerequisitesString target_path exe_path dirs rpaths dependency_list_string)
+function(getPrerequisitesString target_path exclude_system exe_path dirs rpaths dependency_list_string)
   include(GetPrerequisites)
 
   # Get dependency list
-  getPrerequisites(${target_path} "${exe_path}" "${dirs}" "${rpaths}" dependency_list)
+  getPrerequisites(${target_path} ${exclude_system} "${exe_path}" "${dirs}" "${rpaths}" dependency_list)
   getResolvedPrerequisites("${dependency_list}" ${target_path} "${exe_path}" "${dirs}" "${rpaths}" resolved_dep_list)
 
   #
@@ -180,9 +180,14 @@ function(savePrerequisites target output_dir exe_path dirs rpaths)
   # Generate a prerequisite script
   set(script "")
   set(prerequisite_file ${output_dir}/${prerequisite_target}.txt)
+  set(exclude_system 0)
+  if(Z_WINDOWS)
+    set(exclude_system 1)
+  endif()
   string(APPEND script
+      "include(InstallRequiredSystemLibraries)\n"
       "include(\"${__general_path__}\")\n"
-      "getPrerequisitesString(\${target_path} \"${exe_path}\" \"${dirs}\" \"${rpaths}\" text)\n"
+      "getPrerequisitesString(\${target_path} ${exclude_system} \"${exe_path}\" \"${dirs}\" \"${rpaths}\" text)\n"
       "file(WRITE \"${prerequisite_file}\" \${text})\n"
       )
 

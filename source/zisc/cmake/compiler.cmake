@@ -109,17 +109,19 @@ function(getSanitizerFlags compile_sanitizer_flags linker_sanitizer_flags)
                            integer-divide-by-zero
                            nonnull-attribute
                            null
-                           nullability-arg
-                           nullability-assign
-                           nullability-return
                            pointer-overflow
                            return
                            returns-nonnull-attribute
                            unreachable
-                           vla-bound)
-    if(NOT Z_WINDOWS)
-      list(APPEND check_list function
-                             vptr)
+                           vla-bound
+                           vptr
+                           )
+    if(NOT Z_GCC)
+      list(APPEND check_list nullability-arg
+                             nullability-assign
+                             nullability-return
+                             function
+                             )
     endif()
   endif()
   if(Z_ENABLE_SANITIZER_UNDEF_BEHAVIOR_FULL)

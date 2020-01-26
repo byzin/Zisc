@@ -139,6 +139,9 @@ target_compile_options(${PROJECT_NAME} PUBLIC ${cxx_compile_flags}
                                               ${zisc_compile_flags}
                                        PRIVATE ${cxx_compile_warning_flags})
 target_link_libraries(${PROJECT_NAME} PUBLIC Threads::Threads)
+if(Z_WINDOWS)
+  target_link_libraries(${PROJECT_NAME} PRIVATE Synchronization.lib)
+endif()
 target_link_options(${PROJECT_NAME} PUBLIC ${cxx_linker_flags}
                                            ${zisc_linker_flags})
 target_compile_definitions(${PROJECT_NAME} PUBLIC ${platform_definitions}

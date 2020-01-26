@@ -181,9 +181,9 @@ function(savePrerequisites target output_dir exe_path dirs rpaths)
   set(script "")
   set(prerequisite_file ${output_dir}/${prerequisite_target}.txt)
   string(APPEND script
-      "include(${__general_path__})\n"
+      "include(\"${__general_path__}\")\n"
       "getPrerequisitesString(\${target_path} \"${exe_path}\" \"${dirs}\" \"${rpaths}\" text)\n"
-      "file(WRITE ${prerequisite_file} \${text})\n"
+      "file(WRITE \"${prerequisite_file}\" \${text})\n"
       )
 
   # Save the script into a file

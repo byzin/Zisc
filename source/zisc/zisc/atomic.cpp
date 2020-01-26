@@ -18,13 +18,17 @@
 #include <limits>
 #include <memory>
 #include <mutex>
+// Zisc
+#include "utility.hpp"
 // Platform
-#if defined(Z_LINUX)
+#if defined(Z_WINDOWS)
+#include <Windows.h>
+#elif defined(Z_LINUX)
 #include <unistd.h>
 #include <linux/futex.h>
 #include <sys/syscall.h>
 #include <sys/time.h>
-#endif // Z_LINUX
+#endif
 
 namespace {
 
@@ -84,6 +88,12 @@ template <>
 void Atomic::wait<true>(AtomicWord<true>* word, const int old) noexcept
 {
 #if defined(Z_WINDOWS)
+  do {
+    PVOID addr = std::addressof(word->get());
+    PVOID comp = treatAs<PVOID>(const_cast<int*>(std::addressof(old)));
+    const auto result = WaitOnAddress(addr, comp, sizeof(old), INFINITE);
+    static_cast<void>(result);
+  } while (word->get() == old);
 #elif defined(Z_LINUX)
   do {
     int* addr = std::addressof(word->get());
@@ -116,6 +126,8 @@ template <>
 void Atomic::notifyOne<true>(AtomicWord<true>* word) noexcept
 {
 #if defined(Z_WINDOWS)
+  PVOID addr = std::addressof(word->get());
+  WakeByAddressSingle(addr);
 #elif defined(Z_LINUX)
   int* addr = std::addressof(word->get());
   constexpr int n = 1;
@@ -146,6 +158,8 @@ template <>
 void Atomic::notifyAll<true>(AtomicWord<true>* word) noexcept
 {
 #if defined(Z_WINDOWS)
+  PVOID addr = std::addressof(word->get());
+  WakeByAddressAll(addr);
 #elif defined(Z_LINUX)
   int* addr = std::addressof(word->get());
   constexpr int n = std::numeric_limits<int>::max();

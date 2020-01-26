@@ -30,7 +30,7 @@
 
 namespace zisc {
 
-#if defined(Z_LINUX)
+#if defined(Z_WINDOWS) || defined(Z_LINUX)
 
 /*!
   \brief No brief description
@@ -76,7 +76,7 @@ struct AtomicWord<true> : NonCopyable<AtomicWord<true>>
   int padding_ = 0;
 };
 
-#endif // Z_LINUX
+#endif // Z_WINDOWS || Z_LINUX
 
 /*!
   \brief No brief description

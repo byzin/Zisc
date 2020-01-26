@@ -772,7 +772,7 @@ auto ThreadManager::enqueueLoopImpl(Task&& task,
       }
       catch (const LockFreeBoundedQueue<UniqueTask>::OverflowError& /* error */) {
         const int rest = cast<int>(distance(ite, end));
-        shared_data->counter_ -= rest;
+        shared_data->counter_ -= (rest - 1);
         Atomic::sub(std::addressof(lock_.get()), rest);
         Atomic::notifyAll(std::addressof(lock_));
         throw LoopTaskOverflowError{"Task queue overflow happened.",

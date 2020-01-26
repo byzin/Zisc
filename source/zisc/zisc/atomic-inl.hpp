@@ -17,14 +17,125 @@
 
 #include "atomic.hpp"
 // Standard C++ library
+#include <condition_variable>
 #include <cstddef>
+#include <memory>
+#include <mutex>
 #include <type_traits>
 #include <utility>
 // Zisc
+#include "non_copyable.hpp"
 #include "utility.hpp"
 #include "zisc_config.hpp"
 
 namespace zisc {
+
+#if defined(Z_LINUX)
+
+/*!
+  \brief No brief description
+
+  No detailed description.
+  */
+template <>
+struct AtomicWord<true> : NonCopyable<AtomicWord<true>>
+{
+  //! Construct an atomic word
+  AtomicWord() : word_{0} {static_cast<void>(padding_);}
+
+  //! Construct an atomic word
+  AtomicWord(const int value) : word_{value} {}
+
+
+  //! Return the underlying word
+  int& get() noexcept
+  {
+    return word_;
+  }
+
+  //! Return the underlying word
+  const int& get() const noexcept
+  {
+    return word_;
+  }
+
+  //! Check if the atomic word is specialized
+  static constexpr bool isSpecialized() noexcept
+  {
+    return true;
+  }
+
+  //! Set a value to the underlying word atomically
+  void set(const int value) noexcept
+  {
+    Atomic::exchange(&word_, value);
+  }
+
+ private:
+  int word_;
+  int padding_ = 0;
+};
+
+#endif // Z_LINUX
+
+/*!
+  \brief No brief description
+
+  No detailed description.
+  */
+template <bool kOsSpecified>
+struct AtomicWord : NonCopyable<AtomicWord<kOsSpecified>>
+{
+  //! Construct an atomic word
+  AtomicWord() : word_{0} {static_cast<void>(padding_);}
+
+  //! Construct an atomic word
+  AtomicWord(const int value) : word_{value} {}
+
+
+  //! Return the underlying word
+  int& get() noexcept
+  {
+    return word_;
+  }
+
+  //! Return the underlying word
+  const int& get() const noexcept
+  {
+    return word_;
+  }
+
+  //! Check if the atomic word is specialized
+  static constexpr bool isSpecialized() noexcept
+  {
+    return false;
+  }
+
+  //! Set a value to the underlying word atomically
+  void set(const int value) noexcept
+  {
+    std::unique_lock<std::mutex> locker_{lock()};
+    word_ = value;
+  }
+
+  //! Return the underlying mutex
+  std::mutex& lock() noexcept
+  {
+    return lock_;
+  }
+
+  //! Return the underlying condition variable
+  std::condition_variable& condition() noexcept
+  {
+    return condition_;
+  }
+
+ private:
+  int word_;
+  int padding_ = 0;
+  std::mutex lock_;
+  std::condition_variable condition_;
+};
 
 /*!
   \details No detailed description
@@ -246,6 +357,20 @@ Integer Atomic::perform(Integer* ptr,
   } while (old != cmp);
   return old;
 }
+
+// template explicit instantiation
+template <>
+void Atomic::wait<false>(AtomicWord<false>* word, const int old) noexcept;
+template <>
+void Atomic::wait<true>(AtomicWord<true>* word, const int old) noexcept;
+template <>
+void Atomic::notifyOne<false>(AtomicWord<false>* word) noexcept;
+template <>
+void Atomic::notifyOne<true>(AtomicWord<true>* word) noexcept;
+template <>
+void Atomic::notifyAll<false>(AtomicWord<false>* word) noexcept;
+template <>
+void Atomic::notifyAll<true>(AtomicWord<true>* word) noexcept;
 
 /*!
   \details No detailed description

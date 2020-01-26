@@ -77,6 +77,9 @@ class Config
   // Algorithm config
   static constexpr bool isStlBinaryTreeUsed() noexcept;
 
+  // Atomic config
+  static constexpr bool isAtomicOsSpecifiedWaitUsed() noexcept;
+
   // Math config
 
   //! Check if STL math library is used

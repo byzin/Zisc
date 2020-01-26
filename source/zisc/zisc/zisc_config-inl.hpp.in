@@ -122,6 +122,22 @@ constexpr bool Config::isStlBinaryTreeUsed() noexcept
   \return No description
   */
 inline
+constexpr bool Config::isAtomicOsSpecifiedWaitUsed() noexcept
+{
+#if defined(ZISC_ATOMIC_OS_SPECIFIED_WAIT)
+  const bool flag = true;
+#else // ZISC_ATOMIC_OS_SPECIFIED_WAIT
+  const bool flag = false;
+#endif // ZISC_ATOMIC_OS_SPECIFIED_WAIT
+  return flag;
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+inline
 constexpr bool Config::isStlMathUsed() noexcept
 {
 #if defined(ZISC_MATH_STL)

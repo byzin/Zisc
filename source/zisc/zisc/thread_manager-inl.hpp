@@ -32,8 +32,8 @@
 #include <utility>
 #include <vector>
 // Zisc
+#include "atomic.hpp"
 #include "error.hpp"
-#include "non_copyable.hpp"
 #include "type_traits.hpp"
 #include "std_memory_resource.hpp"
 #include "utility.hpp"
@@ -98,15 +98,17 @@ auto ThreadManager::Result<T>::get() -> Type
 template <typename T> inline
 void ThreadManager::Result<T>::wait() const
 {
-  UniqueTask task{};
   while (!hasValue()) {
-    if (thread_manager_ != nullptr)
-      task = thread_manager_->fetchTask();
-    if (task) {
-      task->run(cast<uint>(thread_id_));
-      task.reset();
+    bool has_task = false;
+    if (thread_manager_ != nullptr) {
+      UniqueTask task = thread_manager_->fetchTask();
+      has_task = task != nullptr;
+      if (has_task) {
+        Atomic::decrement(std::addressof(thread_manager_->lock_.get()));
+        task->run(cast<uint>(thread_id_));
+      }
     }
-    else {
+    if (!has_task) {
       std::this_thread::yield();
     }
   }
@@ -180,8 +182,7 @@ ThreadManager::ThreadManager(const uint num_of_threads,
                              std::pmr::memory_resource* mem_resource) noexcept :
     task_queue_{defaultTaskCapacity(), mem_resource},
     workers_{pmr::vector<std::thread>::allocator_type{mem_resource}},
-    workers_are_enabled_{kTrue},
-    padding_{}
+    lock_{0}
 {
   initialize(num_of_threads);
 }
@@ -430,19 +431,17 @@ void ThreadManager::createWorkers(const uint num_of_threads) noexcept
     auto work = [this, thread_id, padding]()
     {
       static_cast<void>(padding);
-      UniqueTask task{};
       while (workersAreEnabled()) {
-        {
-          task = fetchTask();
-          if (!task) {
-            std::unique_lock<std::mutex> locker{lock_};
-            if (workersAreEnabled())
-              condition_.wait(locker);
-          }
-        }
+        UniqueTask task = fetchTask();
         if (task) {
+          Atomic::decrement(std::addressof(lock_.get()));
           task->run(thread_id);
-          task.reset();
+        }
+        else if (0 < lock_.get()) {
+          std::this_thread::yield();
+        }
+        else {
+          Atomic::wait(std::addressof(lock_), 0);
         }
       }
     };
@@ -587,17 +586,19 @@ auto ThreadManager::enqueueImpl(Task&& task) -> UniqueResult<ReturnType>
     auto worker_task = pmr::allocateUnique<SingleTask>(resource(),
                                                        std::forward<Task>(task),
                                                        result.get());
+    Atomic::increment(std::addressof(lock_.get()));
     try {
       task_queue_.enqueue(std::move(worker_task));
     }
     catch (const LockFreeBoundedQueue<UniqueTask>::OverflowError& /* error */) {
+      Atomic::decrement(std::addressof(lock_.get()));
       throw SingleTaskOverflowError{"Task queue overflow happened.",
                                     resource(),
                                     std::move(worker_task->task_),
                                     std::move(result)};
     }
   }
-  condition_.notify_one();
+  Atomic::notifyOne(std::addressof(lock_));
 
   return result;
 }
@@ -627,7 +628,7 @@ auto ThreadManager::enqueueLoopImpl(Task&& task,
 #endif // Z_CLANG || Z_GCC
   struct SharedTaskData
   {
-    SharedTaskData(Task&& t, ResultP r, const uint c, MemoryP m) noexcept :
+    SharedTaskData(Task&& t, ResultP r, const int c, MemoryP m) noexcept :
         task_{std::forward<Task>(t)},
         result_{r},
         mem_resource_{m},
@@ -635,7 +636,7 @@ auto ThreadManager::enqueueLoopImpl(Task&& task,
     TaskT task_;
     ResultP result_;
     MemoryP mem_resource_;
-    std::atomic_uint counter_;
+    std::atomic_int counter_;
   };
 
   using CommonIterator = std::common_type_t<Iterator1, Iterator2>;
@@ -647,11 +648,11 @@ auto ThreadManager::enqueueLoopImpl(Task&& task,
     LoopTask(SharedTaskData* shared_data, Iterator ite) noexcept :
         shared_data_{shared_data},
         ite_{ite} {}
-    void run(const uint thread_id) override
+    ~LoopTask() noexcept override
     {
-      runLoopTask<TaskT, Iterator>(shared_data_->task_, thread_id, ite_);
       // A manager will be notified when all tasks have been completed
-      const uint c = --(shared_data_->counter_);
+      const int c = --(shared_data_->counter_);
+      ZISC_ASSERT(0 <= c, "The shared task count has minus value: ", c);
       if (c == 0) {
         MemoryP mem = shared_data_->mem_resource_;
         shared_data_->result_->set(0);
@@ -660,6 +661,10 @@ auto ThreadManager::enqueueLoopImpl(Task&& task,
           deleter(shared_data_);
         }
       }
+    }
+    void run(const uint thread_id) override
+    {
+      runLoopTask<TaskT, Iterator>(shared_data_->task_, thread_id, ite_);
     }
 
     SharedTaskData* shared_data_;
@@ -747,7 +752,7 @@ auto ThreadManager::enqueueLoopImpl(Task&& task,
       : pmr::allocateUnique(resultAllocator<void>());
 
   // Create a shared data
-  const uint d = distance(begin, end);
+  const int d = cast<int>(distance(begin, end));
   auto shared_data = pmr::allocateUnique<SharedTaskData>(
       mem_resource,
       std::forward<Task>(task),
@@ -757,6 +762,7 @@ auto ThreadManager::enqueueLoopImpl(Task&& task,
 
   // Enqueue loop tasks
   {
+    Atomic::add(std::addressof(lock_.get()), d);
     for (Iterator ite = begin; ite != end; ++ite) {
       auto worker_task = pmr::allocateUnique<LoopTask>(mem_resource,
                                                        shared_data,
@@ -765,8 +771,10 @@ auto ThreadManager::enqueueLoopImpl(Task&& task,
         task_queue_.enqueue(std::move(worker_task));
       }
       catch (const LockFreeBoundedQueue<UniqueTask>::OverflowError& /* error */) {
-        shared_data->counter_ -= distance(ite, end);
-        condition_.notify_all();
+        const int rest = cast<int>(distance(ite, end));
+        shared_data->counter_ -= rest;
+        Atomic::sub(std::addressof(lock_.get()), rest);
+        Atomic::notifyAll(std::addressof(lock_));
         throw LoopTaskOverflowError{"Task queue overflow happened.",
                                     mem_resource,
                                     shared_data,
@@ -776,7 +784,7 @@ auto ThreadManager::enqueueLoopImpl(Task&& task,
       }
     }
   }
-  condition_.notify_all();
+  Atomic::notifyAll(std::addressof(lock_));
 
   return result;
 }
@@ -787,11 +795,8 @@ auto ThreadManager::enqueueLoopImpl(Task&& task,
 inline
 void ThreadManager::exitWorkersRunning() noexcept
 {
-  {
-    std::unique_lock<std::mutex> locker{lock_};
-    workers_are_enabled_ = kFalse;
-  }
-  condition_.notify_all();
+  lock_.set(-1);
+  Atomic::notifyAll(std::addressof(lock_));
   for (auto& worker : workers_)
     worker.join();
 }
@@ -842,13 +847,10 @@ void ThreadManager::initialize(const uint num_of_threads) noexcept
   createWorkers(num_of_threads);
 
   // Check the alignment of member variables
-  static_assert(alignof(pmr::vector<std::thread>) <=
-                alignof(LockFreeBoundedQueue<UniqueTask>));
-  static_assert(alignof(std::mutex) <= alignof(pmr::vector<std::thread>));
-  static_assert(alignof(std::condition_variable) <= alignof(std::mutex));
-  static_assert(alignof(uint8b) <= alignof(std::condition_variable));
-
-  static_cast<void>(padding_);
+  static_assert(std::alignment_of_v<decltype(workers_)> <=
+                std::alignment_of_v<decltype(task_queue_)>);
+  static_assert(std::alignment_of_v<decltype(lock_)> <=
+                std::alignment_of_v<decltype(workers_)>);
 }
 
 /*!
@@ -945,7 +947,7 @@ void ThreadManager::runSingleTask(Task& task,
 inline
 bool ThreadManager::workersAreEnabled() const noexcept
 {
-  const bool result = workers_are_enabled_ == kTrue;
+  const bool result = 0 <= lock_.get();
   return result;
 }
 

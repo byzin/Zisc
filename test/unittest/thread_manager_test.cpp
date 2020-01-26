@@ -140,13 +140,16 @@ TEST(ThreadManagerTest, EnqueueTaskExceptionTest)
     zisc::ThreadManager thread_manager{1, &mem_resource};
     // enqueueLoop()
     {
-      auto task = [](const int /* index */) {};
       constexpr int cap = zisc::cast<int>(thread_manager.defaultTaskCapacity());
+      ASSERT_EQ(thread_manager.capacity(), cap);
+
+      auto task = [](const int /* index */) {};
       constexpr int begin = 0;
       constexpr int end = 2 * cap;
       zisc::ThreadManager::UniqueResult<void> result;
       try {
         result = thread_manager.enqueueLoop(task, begin, end);
+        result->wait();
         FAIL() << "This line must not be processed.";
       }
       catch (zisc::ThreadManager::OverflowError& error) {

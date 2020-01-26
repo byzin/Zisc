@@ -14,6 +14,10 @@ function(initZiscOptions)
   set(option_description "Use STL binary tree algorithm.")
   setBooleanOption(ZISC_ALGORITHM_STL_BINARY_TREE OFF ${option_description})
 
+  # Atomic
+  set(option_description "Use OS specified atomic wait-notification.")
+  setBooleanOption(ZISC_ATOMIC_OS_SPECIFIED_WAIT ON ${option_description})
+
   # Math
   set(option_description "Use STL math funcs instead of the Zisc funcs.")
   setBooleanOption(ZISC_MATH_STL OFF ${option_description})
@@ -52,6 +56,9 @@ function(getZiscFlags zisc_compile_flags zisc_linker_flags zisc_definitions)
   # Options
   if(${ZISC_ALGORITHM_STL_BINARY_TREE})
     list(APPEND definitions ZISC_ALGORITHM_STL_BINARY_TREE)
+  endif()
+  if(${ZISC_ATOMIC_OS_SPECIFIED_WAIT})
+    list(APPEND definitions ZISC_ATOMIC_OS_SPECIFIED_WAIT)
   endif()
   if(${ZISC_MATH_STL})
     list(APPEND definitions ZISC_MATH_STL)

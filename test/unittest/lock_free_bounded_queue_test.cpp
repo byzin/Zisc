@@ -113,6 +113,8 @@ TEST(LockFreeBoundedQueueTest, QueueTest)
 
   q.clear();
 
+  for (std::size_t i = 0; i < 65536; ++i)
+    q.dequeue();
   ASSERT_TRUE(q.isEmpty()) << message;
   {
     const int v = 1;

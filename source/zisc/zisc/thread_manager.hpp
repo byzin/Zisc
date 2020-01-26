@@ -24,6 +24,7 @@
 #include <utility>
 #include <vector>
 // Zisc
+#include "atomic.hpp"
 #include "error.hpp"
 #include "lock_free_bounded_queue.hpp"
 #include "non_copyable.hpp"
@@ -204,6 +205,7 @@ class ThreadManager : private NonCopyable<ThreadManager>
   int size() const noexcept;
 
  private:
+  using Lock = AtomicWord<Config::isAtomicOsSpecifiedWaitUsed()>;
   template <typename Type>
   using ResultPointer = std::add_pointer_t<Result<Type>>;
   //! Base class of worker task
@@ -271,10 +273,7 @@ class ThreadManager : private NonCopyable<ThreadManager>
 
   LockFreeBoundedQueue<UniqueTask> task_queue_;
   pmr::vector<std::thread> workers_;
-  std::mutex lock_;
-  std::condition_variable condition_;
-  uint8b workers_are_enabled_;
-  std::array<uint8b, 7> padding_;
+  Lock lock_;
 };
 
 } // namespace zisc

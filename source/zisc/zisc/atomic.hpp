@@ -23,6 +23,10 @@
 
 namespace zisc {
 
+// Forward declaration
+template <bool kOsSpecified>
+struct AtomicWord; //!< It's possible an integer type
+
 /*!
   \brief Atomic functions
 
@@ -90,6 +94,20 @@ class Atomic
   static Integer perform(Integer* ptr,
                          Function&& expression,
                          Types&&... arguments) noexcept;
+
+  // Atomic wait-notification
+
+  //! Block the thread until notified and the word value changed
+  template <bool kOsSpecialization>
+  static void wait(AtomicWord<kOsSpecialization>* word, const int old) noexcept;
+
+  //! Notify a thread blocked in wait
+  template <bool kOsSpecialization>
+  static void notifyOne(AtomicWord<kOsSpecialization>* word) noexcept;
+
+  //! Notify all threads blocked in wait
+  template <bool kOsSpecialization>
+  static void notifyAll(AtomicWord<kOsSpecialization>* word) noexcept;
 
  private:
   //! Integer type for Windows atomic functions

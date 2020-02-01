@@ -18,7 +18,6 @@
 // Standard C++ library
 #include <array>
 #include <cstddef>
-#include <type_traits>
 // Zisc
 #include "non_copyable.hpp"
 #include "std_memory_resource.hpp"
@@ -34,19 +33,18 @@ namespace zisc {
 class SimpleMemoryResource : public std::pmr::memory_resource,
                              public NonCopyable<SimpleMemoryResource>
 {
-  static constexpr std::size_t kPadSize = std::alignment_of_v<std::max_align_t> -
-                                          sizeof(std::size_t);
-
  public:
   /*!
     \brief No brief description
 
     No detailed description.
     */
-  struct alignas(std::alignment_of_v<std::max_align_t>) Header
+  struct Header
   {
-    std::size_t size_;
-    std::array<uint8b, kPadSize> padding_;
+    void* pointer_ = nullptr; //!< The header pointer of the allocated memory
+    std::size_t size_ = 0; //!< The size of the allocated memory
+    std::size_t alignment_; //!< The alignment of the allocated memory
+    std::size_t padding_ = 0;
   };
 
 
@@ -61,7 +59,25 @@ class SimpleMemoryResource : public std::pmr::memory_resource,
   SimpleMemoryResource& operator=(SimpleMemoryResource&& other) noexcept;
 
 
-  // STL functions
+  //! Allocate memory
+  void* allocateMemory(const std::size_t size,
+                       const std::size_t alignment) noexcept;
+
+  //! Deallocate memory
+  void deallocateMemory(void* data,
+                        const std::size_t size,
+                        const std::size_t alignment) noexcept;
+
+  //! Return the header info of the memory allocation
+  const Header* getHeader(const void* data) const noexcept;
+
+  //! Return the total memory usage
+  std::size_t totalMemoryUsage() const noexcept;
+
+  //! Return the peak memory usage
+  std::size_t peakMemoryUsage() const noexcept;
+
+ private:
   //! Allocate memory
   void* do_allocate(std::size_t size,
                     std::size_t alignment) override;
@@ -74,23 +90,11 @@ class SimpleMemoryResource : public std::pmr::memory_resource,
   //! Compare for equality with another memory resource
   bool do_is_equal(const std::pmr::memory_resource& other) const noexcept override;
 
+  //! Return the header info of the memory allocation
+  Header* getHeader(void* data) noexcept;
 
-  //! Allocate memory
-  void* allocateMemory(const std::size_t size,
-                       const std::size_t alignment) noexcept;
 
-  //! Deallocate memory
-  void deallocateMemory(void* data,
-                        const std::size_t size,
-                        const std::size_t alignment) noexcept;
 
-  //! Return the total memory usage
-  std::size_t totalMemoryUsage() const noexcept;
-
-  //! Return the peak memory usage
-  std::size_t peakMemoryUsage() const noexcept;
-
- private:
   std::size_t total_memory_usage_ = 0;
   std::size_t peak_memory_usage_ = 0;
 };

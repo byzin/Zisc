@@ -78,6 +78,13 @@ class SimpleMemoryResource : public std::pmr::memory_resource,
   std::size_t peakMemoryUsage() const noexcept;
 
  private:
+  //! Allocate aligned memory
+  static void* alignedAlloc(const std::size_t size,
+                            const std::size_t alignment) noexcept;
+
+  //! Deallocate previously allocated memory
+  static void alignedFree(void* data) noexcept;
+
   //! Allocate memory
   void* do_allocate(std::size_t size,
                     std::size_t alignment) override;

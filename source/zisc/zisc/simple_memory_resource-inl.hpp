@@ -92,7 +92,7 @@ void* SimpleMemoryResource::allocateMemory(const std::size_t size,
               "The header size isn't an integral multiple of the alignment.");
 
   const std::size_t alloc_size = hsize + dsize;
-  void* ptr = std::aligned_alloc(alloc_alignment, alloc_size);
+  void* ptr = alignedAlloc(alloc_size, alloc_alignment);
 
   // Get the pointer to the data
   uint8b* data = zisc::cast<uint8b*>(ptr) + hsize;
@@ -122,7 +122,7 @@ void SimpleMemoryResource::deallocateMemory(void* data,
   static_assert(sizeof(uint8b) == 1);
   Header* header = getHeader(data);
   const std::size_t alloc_size = header->size_;
-  std::free(header->pointer_);
+  alignedFree(header->pointer_);
   Atomic::sub(&total_memory_usage_, alloc_size);
 }
 
@@ -188,6 +188,45 @@ inline
 std::size_t SimpleMemoryResource::peakMemoryUsage() const noexcept
 {
   return peak_memory_usage_;
+}
+
+/*!
+  \details No detailed description
+
+  \param [in] size No description.
+  \param [in] alignment No description.
+  \return No description
+  */
+inline
+void* SimpleMemoryResource::alignedAlloc(const std::size_t size,
+                                         const std::size_t alignment) noexcept
+{
+  void* data =
+#if defined(Z_WINDOWS)
+      _aligned_malloc(size, alignment);
+#elif defined(Z_APPLE_CLANG)
+      aligned_alloc(alignment, size);
+#else
+      std::aligned_alloc(alignment, size);
+#endif
+  return data;
+}
+
+/*!
+  \details No detailed description
+
+  \param [in,out] data No description.
+  */
+inline
+void SimpleMemoryResource::alignedFree(void* data) noexcept
+{
+#if defined(Z_WINDOWS)
+  _aligned_free(data);
+#elif defined(Z_APPLE_CLANG)
+  free(data);
+#else
+  std::free(data);
+#endif
 }
 
 /*!

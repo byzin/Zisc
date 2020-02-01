@@ -132,8 +132,16 @@ TEST(SimpleMemoryResourceTest, AlignmentTest)
 
   auto test_allocation = [&mem_resource](const std::size_t alignment)
   {
-    void* p = mem_resource.allocate(alignment, alignment);
-    mem_resource.deallocate(p, alignment, alignment);
+    std::size_t size = 3 * alignment;
+    void* ptr = mem_resource.allocate(size, alignment);
+    {
+      void* p = ptr;
+      ASSERT_EQ(std::align(alignment, size, p, size), ptr)
+          << "Allocation with " << alignment << " alignment is failed.";
+      ASSERT_EQ(p, ptr)
+          << "Allocation with " << alignment << " alignment is failed.";
+    }
+    mem_resource.deallocate(ptr, alignment, alignment);
     ASSERT_FALSE(mem_resource.totalMemoryUsage())
         << "Allocation with " << alignment << " alignment is failed.";
   };

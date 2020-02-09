@@ -99,6 +99,9 @@ class ThreadManager : private NonCopyable<ThreadManager>
     //! Construct the queue error of the thread manager 
     OverflowError(const std::string_view what_arg);
 
+    //! Finalize the queue error
+    ~OverflowError() noexcept override;
+
 
     //! Return an iterator to the beginning
     virtual void* begin() noexcept = 0;

@@ -162,6 +162,14 @@ ThreadManager::OverflowError::OverflowError(const std::string_view what_arg) :
 
 /*!
   \details No detailed description
+  */
+inline
+ThreadManager::OverflowError::~OverflowError() noexcept
+{
+}
+
+/*!
+  \details No detailed description
 
   \param [in,out] mem_resource No description.
   */
@@ -527,7 +535,7 @@ auto ThreadManager::enqueueImpl(Task&& task) -> UniqueResult<ReturnType>
         result_{std::allocate_shared<UniqueResultT>(
             pmr::polymorphic_allocator<UniqueResultT>{mem_resource},
             std::move(result))} {}
-    ~SingleTaskOverflowError() override
+    ~SingleTaskOverflowError() noexcept override
     {
     }
     void* begin() noexcept override
@@ -694,7 +702,7 @@ auto ThreadManager::enqueueLoopImpl(Task&& task,
     {
       (*shared_data_)->mem_resource_ = nullptr;
     }
-    ~LoopTaskOverflowError() override
+    ~LoopTaskOverflowError() noexcept override
     {
     }
     void* begin() noexcept override

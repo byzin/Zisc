@@ -38,9 +38,8 @@ namespace zisc {
   \param [in,out] mem_resource No description.
   */
 template <typename Float> inline
-LinearInterp<Float>::LinearInterp(std::pmr::memory_resource* mem_resource)
-    noexcept :
-        data_{typename pmr::vector<Pair>::allocator_type{mem_resource}}
+LinearInterp<Float>::LinearInterp(pmr::memory_resource* mem_resource) noexcept :
+    data_{typename pmr::vector<Pair>::allocator_type{mem_resource}}
 {
 }
 

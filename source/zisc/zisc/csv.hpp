@@ -52,7 +52,7 @@ class Csv : private NonCopyable<Csv<Type, Types...>>
 
 
   //! Initialize CSV
-  Csv(std::pmr::memory_resource* mem_resource) noexcept;
+  Csv(pmr::memory_resource* mem_resource) noexcept;
 
   //! Move data
   Csv(Csv&& other) noexcept;

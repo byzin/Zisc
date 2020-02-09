@@ -71,7 +71,7 @@ class LockFreeBoundedQueue : public NonCopyable<LockFreeBoundedQueue<T>>
    public:
     //! Construct the lock free queue error
     OverflowError(const std::string_view what_arg,
-                  std::pmr::memory_resource* mem_resource,
+                  pmr::memory_resource* mem_resource,
                   RReference value);
 
     //!
@@ -89,11 +89,11 @@ class LockFreeBoundedQueue : public NonCopyable<LockFreeBoundedQueue<T>>
   };
 
   //! Create a queue
-  LockFreeBoundedQueue(std::pmr::memory_resource* mem_resource) noexcept;
+  LockFreeBoundedQueue(pmr::memory_resource* mem_resource) noexcept;
 
   //! Create a queue
   LockFreeBoundedQueue(const size_type cap,
-                       std::pmr::memory_resource* mem_resource) noexcept;
+                       pmr::memory_resource* mem_resource) noexcept;
 
   //! Move a data
   LockFreeBoundedQueue(LockFreeBoundedQueue&& other) noexcept;
@@ -128,7 +128,7 @@ class LockFreeBoundedQueue : public NonCopyable<LockFreeBoundedQueue<T>>
   bool isEmpty() const noexcept;
 
   //! Return a pointer to the underlying memory resource
-  std::pmr::memory_resource* resource() const noexcept;
+  pmr::memory_resource* resource() const noexcept;
 
   //! Change the maximum possible number of elements. The queued data is cleared
   void setCapacity(const size_type cap) noexcept;
@@ -146,7 +146,7 @@ class LockFreeBoundedQueue : public NonCopyable<LockFreeBoundedQueue<T>>
 
 
     //! Create a ring buffer
-    RingBuffer(std::pmr::memory_resource* mem_resource) noexcept;
+    RingBuffer(pmr::memory_resource* mem_resource) noexcept;
 
     //! Move a data
     RingBuffer(RingBuffer&& other) noexcept;

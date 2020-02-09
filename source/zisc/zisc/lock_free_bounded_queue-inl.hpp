@@ -44,11 +44,11 @@ namespace zisc {
 template <typename T> inline
 LockFreeBoundedQueue<T>::OverflowError::OverflowError(
     const std::string_view what_arg,
-    std::pmr::memory_resource* mem_resource,
+    pmr::memory_resource* mem_resource,
     RReference value) :
         SystemError(ErrorCode::kLockFreeBoundedQueueOverflow, what_arg),
         value_{std::allocate_shared<Type>(
-            std::pmr::polymorphic_allocator<Type>{mem_resource},
+            pmr::polymorphic_allocator<Type>{mem_resource},
             std::move(value))}
 {
 }
@@ -91,8 +91,8 @@ auto LockFreeBoundedQueue<T>::OverflowError::get() const noexcept
   \param [in,out] mem_resource No description.
   */
 template <typename T> inline
-LockFreeBoundedQueue<T>::LockFreeBoundedQueue(
-    std::pmr::memory_resource* mem_resource) noexcept :
+LockFreeBoundedQueue<T>::LockFreeBoundedQueue(pmr::memory_resource* mem_resource)
+    noexcept :
         LockFreeBoundedQueue(1, mem_resource)
 {
 }
@@ -104,9 +104,9 @@ LockFreeBoundedQueue<T>::LockFreeBoundedQueue(
   \param [in,out] mem_resource No description.
   */
 template <typename T> inline
-LockFreeBoundedQueue<T>::LockFreeBoundedQueue(
-    const size_type cap,
-    std::pmr::memory_resource* mem_resource) noexcept :
+LockFreeBoundedQueue<T>::LockFreeBoundedQueue(const size_type cap,
+                                              pmr::memory_resource* mem_resource)
+    noexcept :
         free_elements_buffer_{mem_resource},
         allocated_elements_buffer_{mem_resource},
         elements_{typename pmr::vector<Type>::allocator_type{mem_resource}},
@@ -280,9 +280,9 @@ bool LockFreeBoundedQueue<T>::isEmpty() const noexcept
   \return No description
   */
 template <typename T> inline
-std::pmr::memory_resource* LockFreeBoundedQueue<T>::resource() const noexcept
+pmr::memory_resource* LockFreeBoundedQueue<T>::resource() const noexcept
 {
-  std::pmr::memory_resource* mem_resource = elements_.get_allocator().resource();
+  pmr::memory_resource* mem_resource = elements_.get_allocator().resource();
   return mem_resource;
 }
 
@@ -323,7 +323,7 @@ int LockFreeBoundedQueue<T>::size() const noexcept
   */
 template <typename T> inline
 LockFreeBoundedQueue<T>::RingBuffer::RingBuffer(
-    std::pmr::memory_resource* mem_resource) noexcept :
+    pmr::memory_resource* mem_resource) noexcept :
         indices_{typename pmr::vector<std::atomic<UInt>>::allocator_type{mem_resource}}
 {
 }

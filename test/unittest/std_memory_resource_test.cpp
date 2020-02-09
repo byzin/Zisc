@@ -53,7 +53,7 @@ TEST(StdMemoryResourceTest, UniquePtrDeletionTest)
   };
 
   zisc::SimpleMemoryResource mem_resource;
-  std::pmr::polymorphic_allocator<Test> alloc{&mem_resource};
+  zisc::pmr::polymorphic_allocator<Test> alloc{&mem_resource};
 
   // Empty data
   {

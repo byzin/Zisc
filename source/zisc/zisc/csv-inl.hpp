@@ -41,7 +41,7 @@ namespace zisc {
   \param [in,out] mem_resource No description.
   */
 template <typename Type, typename ...Types> inline
-Csv<Type, Types...>::Csv(std::pmr::memory_resource* mem_resource) noexcept : 
+Csv<Type, Types...>::Csv(pmr::memory_resource* mem_resource) noexcept : 
     data_{typename pmr::vector<RecordType>::allocator_type{mem_resource}},
     csv_pattern_{csvPattern().toCString(),
                  std::regex_constants::optimize|std::regex_constants::ECMAScript}

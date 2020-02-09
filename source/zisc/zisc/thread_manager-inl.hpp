@@ -166,7 +166,7 @@ ThreadManager::OverflowError::OverflowError(const std::string_view what_arg) :
   \param [in,out] mem_resource No description.
   */
 inline
-ThreadManager::ThreadManager(std::pmr::memory_resource* mem_resource) noexcept :
+ThreadManager::ThreadManager(pmr::memory_resource* mem_resource) noexcept :
     ThreadManager(logicalCores(), mem_resource)
 {
 }
@@ -179,7 +179,7 @@ ThreadManager::ThreadManager(std::pmr::memory_resource* mem_resource) noexcept :
   */
 inline
 ThreadManager::ThreadManager(const uint num_of_threads,
-                             std::pmr::memory_resource* mem_resource) noexcept :
+                             pmr::memory_resource* mem_resource) noexcept :
     task_queue_{defaultTaskCapacity(), mem_resource},
     workers_{pmr::vector<std::thread>::allocator_type{mem_resource}},
     lock_{0}
@@ -387,7 +387,7 @@ uint ThreadManager::numOfThreads() const noexcept
   \return No description
   */
 inline
-std::pmr::memory_resource* ThreadManager::resource() const noexcept
+pmr::memory_resource* ThreadManager::resource() const noexcept
 {
   auto mem_resource = workers_.get_allocator().resource();
   return mem_resource;
@@ -517,15 +517,15 @@ auto ThreadManager::enqueueImpl(Task&& task) -> UniqueResult<ReturnType>
   {
    public:
     SingleTaskOverflowError(const std::string_view what_arg,
-                            std::pmr::memory_resource* mem_resource,
+                            pmr::memory_resource* mem_resource,
                             TaskT&& t,
                             UniqueResultT&& result) :
         OverflowError(what_arg),
         task_{std::allocate_shared<TaskT>(
-            std::pmr::polymorphic_allocator<TaskT>{mem_resource},
+            pmr::polymorphic_allocator<TaskT>{mem_resource},
             std::move(t))},
         result_{std::allocate_shared<UniqueResultT>(
-            std::pmr::polymorphic_allocator<UniqueResultT>{mem_resource},
+            pmr::polymorphic_allocator<UniqueResultT>{mem_resource},
             std::move(result))} {}
     ~SingleTaskOverflowError() override
     {
@@ -621,7 +621,7 @@ auto ThreadManager::enqueueLoopImpl(Task&& task,
 {
   using TaskT = std::remove_cv_t<std::remove_reference_t<Task>>;
   using ResultP = ResultPointer<void>;
-  using MemoryP = std::pmr::memory_resource*;
+  using MemoryP = pmr::memory_resource*;
 #if defined(Z_GCC) || defined(Z_CLANG)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wpadded"
@@ -641,7 +641,7 @@ auto ThreadManager::enqueueLoopImpl(Task&& task,
 
   using CommonIterator = std::common_type_t<Iterator1, Iterator2>;
   using Iterator = std::remove_cv_t<std::remove_reference_t<CommonIterator>>;
-  using DataAllocator = std::pmr::polymorphic_allocator<SharedTaskData>;
+  using DataAllocator = pmr::polymorphic_allocator<SharedTaskData>;
   class LoopTask : public WorkerTask
   {
    public:
@@ -677,17 +677,17 @@ auto ThreadManager::enqueueLoopImpl(Task&& task,
   {
    public:
     LoopTaskOverflowError(const std::string_view what_arg,
-                          std::pmr::memory_resource* mem_resource,
+                          pmr::memory_resource* mem_resource,
                           SharedTaskData* shared_data,
                           UniqueResultT&& result,
                           Iterator ite_begin,
                           Iterator ite_end) :
         OverflowError(what_arg),
         shared_data_{std::allocate_shared<UniqueTaskData>(
-            std::pmr::polymorphic_allocator<UniqueTaskData>{mem_resource},
+            pmr::polymorphic_allocator<UniqueTaskData>{mem_resource},
             UniqueTaskData{shared_data, DataAllocator{shared_data->mem_resource_}})},
         result_{std::allocate_shared<UniqueResultT>(
-            std::pmr::polymorphic_allocator<UniqueResultT>{mem_resource},
+            pmr::polymorphic_allocator<UniqueResultT>{mem_resource},
             std::move(result))},
         begin_{ite_begin},
         end_{ite_end}
@@ -873,9 +873,9 @@ constexpr uint ThreadManager::invalidId() noexcept
   */
 template <typename Type> inline
 auto ThreadManager::resultAllocator() const noexcept
-    -> std::pmr::polymorphic_allocator<Result<Type>>
+    -> pmr::polymorphic_allocator<Result<Type>>
 {
-  std::pmr::polymorphic_allocator<Result<Type>> alloc{resource()};
+  pmr::polymorphic_allocator<Result<Type>> alloc{resource()};
   return alloc;
 }
 

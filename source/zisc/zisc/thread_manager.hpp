@@ -131,11 +131,11 @@ class ThreadManager : private NonCopyable<ThreadManager>
 
 
   //! Create threads as many CPU threads as
-  ThreadManager(std::pmr::memory_resource* mem_resource) noexcept;
+  ThreadManager(pmr::memory_resource* mem_resource) noexcept;
 
   //! Create threads
   ThreadManager(const uint num_of_threads,
-                std::pmr::memory_resource* mem_resource) noexcept;
+                pmr::memory_resource* mem_resource) noexcept;
 
   //! Terminate threads
   ~ThreadManager();
@@ -196,7 +196,7 @@ class ThreadManager : private NonCopyable<ThreadManager>
   uint numOfThreads() const noexcept;
 
   //! Return a pointer to the underlying memory resource
-  std::pmr::memory_resource* resource() const noexcept;
+  pmr::memory_resource* resource() const noexcept;
 
   //! Change the maximum possible number of tasks. The queued tasks are cleared
   void setCapacity(const std::size_t cap) noexcept;
@@ -253,7 +253,7 @@ class ThreadManager : private NonCopyable<ThreadManager>
 
   //! Return the allocator of the result type
   template <typename Type>
-  std::pmr::polymorphic_allocator<Result<Type>> resultAllocator() const noexcept;
+  pmr::polymorphic_allocator<Result<Type>> resultAllocator() const noexcept;
 
   //! Run single task
   template <typename Task, typename Iterator>

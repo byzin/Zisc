@@ -43,7 +43,7 @@ class LinearInterp : private NonCopyable<LinearInterp<Float>>
 
 
   //! Create an empty instance
-  LinearInterp(std::pmr::memory_resource* mem_resource) noexcept;
+  LinearInterp(pmr::memory_resource* mem_resource) noexcept;
 
   //! Move instance data
   LinearInterp(LinearInterp&& other) noexcept;

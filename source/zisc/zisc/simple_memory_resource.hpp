@@ -30,7 +30,7 @@ namespace zisc {
 
   No detailed description.
   */
-class SimpleMemoryResource : public std::pmr::memory_resource,
+class SimpleMemoryResource : public pmr::memory_resource,
                              public NonCopyable<SimpleMemoryResource>
 {
  public:
@@ -95,7 +95,7 @@ class SimpleMemoryResource : public std::pmr::memory_resource,
                      std::size_t alignment) override;
 
   //! Compare for equality with another memory resource
-  bool do_is_equal(const std::pmr::memory_resource& other) const noexcept override;
+  bool do_is_equal(const pmr::memory_resource& other) const noexcept override;
 
   //! Return the header info of the memory allocation
   Header* getHeader(void* data) noexcept;

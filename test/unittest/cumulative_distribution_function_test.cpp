@@ -78,8 +78,8 @@ TEST(CumulativeDistributionFunctionTest, ConstPmrVectorTest)
 {
   zisc::SimpleMemoryResource mem_resource;
 
-  std::pmr::polymorphic_allocator<int> alloc1{&mem_resource};
-  std::pmr::polymorphic_allocator<double> alloc2{&mem_resource};
+  zisc::pmr::polymorphic_allocator<int> alloc1{&mem_resource};
+  zisc::pmr::polymorphic_allocator<double> alloc2{&mem_resource};
 
   zisc::pmr::vector<int> x_list{{0, 1, 2, 3, 4}, alloc1};
   zisc::pmr::vector<double> y_list{{0.2, 0.3, 0.0, 0.3, 0.2}, alloc2};
@@ -95,8 +95,8 @@ TEST(CumulativeDistributionFunctionTest, PmrVectorTest)
 {
   zisc::SimpleMemoryResource mem_resource;
 
-  std::pmr::polymorphic_allocator<int> alloc1{&mem_resource};
-  std::pmr::polymorphic_allocator<double> alloc2{&mem_resource};
+  zisc::pmr::polymorphic_allocator<int> alloc1{&mem_resource};
+  zisc::pmr::polymorphic_allocator<double> alloc2{&mem_resource};
 
   zisc::pmr::vector<int> x_list{{0, 1, 2, 3, 4}, alloc1};
   zisc::pmr::vector<double> y_list{{0.2, 0.3, 0.0, 0.3, 0.2}, alloc2};

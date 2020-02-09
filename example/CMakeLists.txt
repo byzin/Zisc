@@ -20,7 +20,6 @@ function(getExampleWarningFlags example_warning_flags)
     if(Z_CLANG)
       list(APPEND warning_flags -Wno-float-equal
                                 -Wno-sign-conversion 
-                                -Wno-weak-vtables
                                 )
     elseif(Z_GCC)
       list(APPEND warning_flags -Wno-sign-conversion 

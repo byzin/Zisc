@@ -39,66 +39,67 @@ static_assert(false, "Compiler doesn't have 'memory_resource'.");
 // Zisc
 #include "type_traits.hpp"
 
-namespace std {
-
-namespace pmr {
-
-#if __has_include(<memory_resource>)
-#elif __has_include(<experimental/memory_resource>)
-
-using memory_resource = std::experimental::pmr::memory_resource;
-
-template <typename Type>
-using polymorphic_allocator = std::experimental::pmr::polymorphic_allocator<Type>;
-
-#endif
-
-} // namespace pmr
-
-} // namespace std
-
 namespace zisc {
 
 namespace pmr {
 
+// Memory resource
+
+using memory_resource =
+#if __has_include(<memory_resource>)
+    std::pmr::memory_resource;
+#elif __has_include(<experimental/memory_resource>)
+    std::experimental::pmr::memory_resource;
+#else
+    void*;
+    static_assert(false, "'std::pmr::memory_resource' not found.");
+#endif
+
+template <typename Type>
+using polymorphic_allocator =
+#if __has_include(<memory_resource>)
+    std::pmr::polymorphic_allocator<Type>;
+#elif __has_include(<experimental/memory_resource>)
+    std::experimental::pmr::polymorphic_allocator<Type>;
+#else
+    void*;
+    static_assert(false, "'std::pmr::polymorphic_allocator<Type>' not found.");
+#endif
+
+
 // Sequence containers 
 
 template <typename Type>
-using deque = std::deque<Type, std::pmr::polymorphic_allocator<Type>>;
+using deque = std::deque<Type, polymorphic_allocator<Type>>;
 
 template <typename Type>
-using forward_list = std::forward_list<Type,
-                                       std::pmr::polymorphic_allocator<Type>>;
+using forward_list = std::forward_list<Type, polymorphic_allocator<Type>>;
 
 template <typename Type>
-using list = std::list<Type, std::pmr::polymorphic_allocator<Type>>;
+using list = std::list<Type, polymorphic_allocator<Type>>;
 
 template <typename Type>
-using vector = std::vector<Type, std::pmr::polymorphic_allocator<Type>>;
+using vector = std::vector<Type, polymorphic_allocator<Type>>;
 
 // Associative containers
 
 template <typename Key, typename Compare = std::less<Key>>
-using set = std::set<Key,
-                     Compare,
-                     std::pmr::polymorphic_allocator<Key>>;
+using set = std::set<Key, Compare, polymorphic_allocator<Key>>;
 
 template <typename Key, typename T, typename Compare = std::less<Key>>
 using map = std::map<Key,
                      T,
                      Compare,
-                     std::pmr::polymorphic_allocator<std::pair<const Key, T>>>;
+                     polymorphic_allocator<std::pair<const Key, T>>>;
 
 template <typename Key, typename Compare = std::less<Key>>
-using multiset = std::multiset<Key,
-                               Compare,
-                               std::pmr::polymorphic_allocator<Key>>;
+using multiset = std::multiset<Key, Compare, polymorphic_allocator<Key>>;
 
 template <typename Key, typename T, typename Compare = std::less<Key>>
 using multimap = std::multimap<Key,
                                T,
                                Compare,
-                               std::pmr::polymorphic_allocator<std::pair<const Key, T>>>;
+                               polymorphic_allocator<std::pair<const Key, T>>>;
 
 // Unordered associative containers
 
@@ -108,7 +109,7 @@ template <typename Key,
 using unordered_set = std::unordered_set<Key,
                                          Hash,
                                          Pred,
-                                         std::pmr::polymorphic_allocator<Key>>;
+                                         polymorphic_allocator<Key>>;
 
 template <typename Key,
           typename T,
@@ -118,7 +119,7 @@ using unordered_map = std::unordered_map<Key,
                                          T,
                                          Hash,
                                          Pred,
-                                         std::pmr::polymorphic_allocator<std::pair<const Key, T>>>;
+                                         polymorphic_allocator<std::pair<const Key, T>>>;
 
 template <typename Key,
           typename Hash = std::hash<Key>,
@@ -126,7 +127,7 @@ template <typename Key,
 using unordered_multiset = std::unordered_multiset<Key,
                                                    Hash,
                                                    Pred,
-                                                   std::pmr::polymorphic_allocator<Key>>;
+                                                   polymorphic_allocator<Key>>;
 
 template <typename Key,
           typename T,
@@ -136,14 +137,14 @@ using unordered_multimap = std::unordered_multimap<Key,
                                                    T,
                                                    Hash,
                                                    Pred,
-                                                   std::pmr::polymorphic_allocator<std::pair<const Key, T>>>;
+                                                   polymorphic_allocator<std::pair<const Key, T>>>;
 
 // Strings
 
 template <typename CharType, class Traits = std::char_traits<CharType>>
 using basic_string = std::basic_string<CharType,
                                        Traits,
-                                       std::pmr::polymorphic_allocator<CharType>>;
+                                       polymorphic_allocator<CharType>>;
 using string = basic_string<char>;
 using wstring = basic_string<wchar_t>;
 using u16string = basic_string<char16_t>;
@@ -170,7 +171,7 @@ class UniquePtrDeleter
   UniquePtrDeleter() noexcept;
 
   //! Create a memory deleter
-  UniquePtrDeleter(const std::pmr::polymorphic_allocator<Type>& alloc) noexcept;
+  UniquePtrDeleter(const polymorphic_allocator<Type>& alloc) noexcept;
 
   //! Move a data
   UniquePtrDeleter(UniquePtrDeleter&& other) noexcept;
@@ -189,10 +190,10 @@ class UniquePtrDeleter
 
 
   //! Return the underlying memory resource
-  std::pmr::memory_resource* resource() noexcept;
+  memory_resource* resource() noexcept;
 
  private:
-  std::pmr::memory_resource* resource_ = nullptr;
+  memory_resource* resource_ = nullptr;
 };
 
 /*!
@@ -207,7 +208,7 @@ using unique_ptr = std::unique_ptr<Type, UniquePtrDeleter<Type>>;
 
 //! Create a unique pointer that manages a new object allocated using polymorphic_allocator
 template <typename Type, typename ...ArgumentTypes>
-unique_ptr<Type> allocateUnique(const std::pmr::polymorphic_allocator<Type> alloc,
+unique_ptr<Type> allocateUnique(const polymorphic_allocator<Type> alloc,
                                 ArgumentTypes&&... arguments);
 
 } // namespace pmr 

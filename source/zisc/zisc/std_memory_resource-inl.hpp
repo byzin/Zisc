@@ -44,7 +44,7 @@ UniquePtrDeleter<Type>::UniquePtrDeleter() noexcept
   */
 template <typename Type> inline
 UniquePtrDeleter<Type>::UniquePtrDeleter(
-    const std::pmr::polymorphic_allocator<Type>& alloc) noexcept :
+    const zisc::pmr::polymorphic_allocator<Type>& alloc) noexcept :
         resource_{alloc.resource()}
 {
 }
@@ -96,7 +96,7 @@ void UniquePtrDeleter<Type>::operator()(Pointer memory) noexcept
 {
   if (memory != nullptr) {
     std::destroy_at(memory);
-    std::pmr::polymorphic_allocator<Type> alloc{resource()};
+    zisc::pmr::polymorphic_allocator<Type> alloc{resource()};
     constexpr std::size_t n = 1;
     alloc.deallocate(memory, n);
   }
@@ -108,7 +108,7 @@ void UniquePtrDeleter<Type>::operator()(Pointer memory) noexcept
   \return No description
   */
 template <typename Type> inline
-std::pmr::memory_resource* UniquePtrDeleter<Type>::resource() noexcept
+zisc::pmr::memory_resource* UniquePtrDeleter<Type>::resource() noexcept
 {
   return resource_;
 }
@@ -123,12 +123,12 @@ std::pmr::memory_resource* UniquePtrDeleter<Type>::resource() noexcept
   \return No description
   */
 template <typename Type, typename ...ArgumentTypes> inline
-unique_ptr<Type> allocateUnique(const std::pmr::polymorphic_allocator<Type> alloc,
+unique_ptr<Type> allocateUnique(const zisc::pmr::polymorphic_allocator<Type> alloc,
                                 ArgumentTypes&&... arguments)
 {
   using Pointer = std::add_pointer_t<Type>;
   constexpr std::size_t n = 1;
-  std::pmr::polymorphic_allocator<Type> a = alloc;
+  zisc::pmr::polymorphic_allocator<Type> a = alloc;
   Pointer memory = a.allocate(n);
   a.construct(memory, std::forward<ArgumentTypes>(arguments)...);
 

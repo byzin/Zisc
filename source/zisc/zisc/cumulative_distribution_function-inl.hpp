@@ -31,9 +31,9 @@ namespace zisc {
   */
 template <typename X, typename Pdf> inline
 CumulativeDistributionFunction<X, Pdf>::CumulativeDistributionFunction(
-    std::pmr::memory_resource* mem_resource) noexcept :
-        x_list_{std::pmr::polymorphic_allocator<XType>{mem_resource}},
-        y_list_{std::pmr::polymorphic_allocator<PdfType>{mem_resource}}
+    zisc::pmr::memory_resource* mem_resource) noexcept :
+        x_list_{zisc::pmr::polymorphic_allocator<XType>{mem_resource}},
+        y_list_{zisc::pmr::polymorphic_allocator<PdfType>{mem_resource}}
 {
 }
 
@@ -43,9 +43,9 @@ template <typename X, typename Pdf> inline
 CumulativeDistributionFunction<X, Pdf>::CumulativeDistributionFunction(
     const std::vector<XType>& x_list,
     const std::vector<PdfType>& y_list,
-    std::pmr::memory_resource* mem_resource) noexcept :
-        x_list_{std::pmr::polymorphic_allocator<XType>{mem_resource}},
-        y_list_{std::pmr::polymorphic_allocator<PdfType>{mem_resource}}
+    zisc::pmr::memory_resource* mem_resource) noexcept :
+        x_list_{zisc::pmr::polymorphic_allocator<XType>{mem_resource}},
+        y_list_{zisc::pmr::polymorphic_allocator<PdfType>{mem_resource}}
 {
   set(x_list, y_list);
 }
@@ -56,7 +56,7 @@ template <typename X, typename Pdf> inline
 CumulativeDistributionFunction<X, Pdf>::CumulativeDistributionFunction(
     const pmr::vector<XType>& x_list,
     const pmr::vector<PdfType>& y_list,
-    std::pmr::memory_resource* mem_resource) noexcept :
+    zisc::pmr::memory_resource* mem_resource) noexcept :
         x_list_{x_list, mem_resource},
         y_list_{y_list, mem_resource}
 {

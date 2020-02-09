@@ -38,7 +38,6 @@ function(getTestWarningFlags test_warning_flags)
                                 -Wno-global-constructors
                                 -Wno-sign-conversion
                                 -Wno-used-but-marked-unused
-                                -Wno-weak-vtables
                                 )
     elseif(Z_GCC)
       list(APPEND warning_flags -Wno-sign-conversion

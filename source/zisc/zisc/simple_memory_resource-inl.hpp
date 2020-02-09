@@ -229,49 +229,6 @@ void SimpleMemoryResource::alignedFree(void* data) noexcept
 #endif
 }
 
-/*!
-  \details No detailed description
-
-  \param [in] size No description.
-  \param [in] alignment No description.
-  \return No description
-  */
-inline
-void* SimpleMemoryResource::do_allocate(std::size_t size, std::size_t alignment)
-{
-  void* data = allocateMemory(size, alignment);
-  return data;
-}
-
-/*!
-  \details No detailed description
-
-  \param [in,out] data No description.
-  \param [in] size data No description.
-  \param [in] alignment data No description.
-  */
-inline
-void SimpleMemoryResource::do_deallocate(void* data,
-                                         std::size_t size,
-                                         std::size_t alignment)
-{
-  deallocateMemory(data, size, alignment);
-}
-
-/*!
-  \details No detailed description
-
-  \param [in] other No description.
-  \return No description
-  */
-inline
-bool SimpleMemoryResource::do_is_equal(const std::pmr::memory_resource& other)
-    const noexcept
-{
-  const bool result = this == std::addressof(other);
-  return result;
-}
-
 } // namespace zisc
 
 #endif // ZISC_SIMPLE_MEMORY_RESOURCE_INL_HPP

@@ -104,20 +104,29 @@ function(setVariablesOnCMake)
 endfunction(setVariablesOnCMake)
 
 
-function(getPrerequisiteTreeImpl target_path exclude_system exe_path dirs rpaths level dependency_tree)
+function(getPrerequisiteTreeImpl target_path exclude_system exe_path dirs rpaths level dependency_list dependency_tree)
   include(GetPrerequisites)
 
   set(deps "")
   get_prerequisites("${target_path}" deps ${exclude_system} 0 "${exe_path}" "${dirs}" "${rpaths}")
+  set(new_list "")
   set(dep_tree "")
   math(EXPR next_level "${level} + 1")
   foreach(dependency IN LISTS deps)
+    list(FIND dep_list "${dependency}" result)
     list(APPEND dep_tree "${level} ${dependency}")
-    getPrerequisiteTreeImpl("${dependency}" ${exclude_system} "${exe_path}" "${dirs}" "${rpaths}" ${next_level} tree)
-    list(APPEND dep_tree ${tree})
+    if(${result} EQUAL -1)
+      list(APPEND dep_list "${dependency}")
+      list(APPEND new_list "${dependency}")
+      getPrerequisiteTreeImpl("${dependency}" ${exclude_system} "${exe_path}" "${dirs}" "${rpaths}" ${next_level} child_list child_tree)
+      list(APPEND dep_list ${child_list})
+      list(APPEND new_list ${child_list})
+      list(APPEND dep_tree ${child_tree})
+    endif()
   endforeach(dependency)
 
   # Output value
+  set(${dependency_list} "${new_list}" PARENT_SCOPE)
   set(${dependency_tree} "${dep_tree}" PARENT_SCOPE)
 endfunction(getPrerequisiteTreeImpl)
 
@@ -127,13 +136,14 @@ function(getPrerequisiteTree target_path exclude_system exe_path dirs rpaths dep
 
   is_file_executable("${target_path}" is_executable)
   if(${is_executable})
-    getPrerequisiteTreeImpl(${target_path} ${exclude_system} "${exe_path}" "${dirs}" "${rpaths}" 0 tree)
+    set(dep_list "")
+    getPrerequisiteTreeImpl(${target_path} ${exclude_system} "${exe_path}" "${dirs}" "${rpaths}" 0 dep_list dep_tree)
   else()
     message(WARNING "'${target_path}' isn't executable.")
   endif()
 
   # Output value
-  set(${dependency_tree} "${tree}" PARENT_SCOPE)
+  set(${dependency_tree} "${dep_tree}" PARENT_SCOPE)
 endfunction(getPrerequisiteTree)
 
 
@@ -171,7 +181,7 @@ function(getPrerequisiteTreeString target_path exclude_system exe_path dirs rpat
     endforeach(count)
 
     # Get dependency string
-    string(REPEAT "    " ${level} indent)
+    string(REPEAT "  " ${level} indent)
     string(APPEND text "[${indent}${dependency_type}] ${dependency}\n"
                        "${indent}        => ${resolved_dep}\n")
   endforeach(tree_item)

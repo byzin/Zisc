@@ -104,58 +104,104 @@ function(setVariablesOnCMake)
 endfunction(setVariablesOnCMake)
 
 
-function(getPrerequisites target_path exclude_system exe_path dirs rpaths dependency_list)
+function(getPrerequisiteTreeImpl target_path exclude_system exe_path dirs rpaths level dependency_tree)
   include(GetPrerequisites)
-  # Check the given target path
-  is_file_executable("${target_path}" is_executable)
-  if(${is_executable})
-    # Get dependency list
-    get_prerequisites("${target_path}" deps ${exclude_system} 1 "${exe_path}" "${dirs}" "${rpaths}")
-    set(dep_list "")
-    foreach(dependency IN LISTS deps)
-      gp_append_unique(dep_list ${dependency})
-    endforeach(dependency)
 
-    # Output value
-    set(${dependency_list} "${dep_list}" PARENT_SCOPE)
-  else()
-    message(WARNING "'${target_path}' isn't executable.")
-  endif()
-endfunction(getPrerequisites)
-
-
-function(getResolvedPrerequisites dependency_list target_path exe_path dirs rpaths resolved_dep_list)
-  include(GetPrerequisites)
-  # Get resolved dependency list
-  set(resolved_list "")
-  foreach(dependency IN LISTS dependency_list)
-    gp_resolve_item("${target_path}" ${dependency} "${exe_path}" "${dirs}" dependency "${rpaths}")
-    get_filename_component(dependency ${dependency} REALPATH)
-    list(APPEND resolved_list ${dependency})
+  set(deps "")
+  get_prerequisites("${target_path}" deps ${exclude_system} 0 "${exe_path}" "${dirs}" "${rpaths}")
+  set(dep_tree "")
+  math(EXPR next_level "${level} + 1")
+  foreach(dependency IN LISTS deps)
+    list(APPEND dep_tree "${level} ${dependency}")
+    getPrerequisiteTreeImpl("${dependency}" ${exclude_system} "${exe_path}" "${dirs}" "${rpaths}" ${next_level} tree)
+    list(APPEND dep_tree ${tree})
   endforeach(dependency)
 
   # Output value
-  set(${resolved_dep_list} ${resolved_list} PARENT_SCOPE)
-endfunction(getResolvedPrerequisites)
+  set(${dependency_tree} "${dep_tree}" PARENT_SCOPE)
+endfunction(getPrerequisiteTreeImpl)
+
+
+function(getPrerequisiteTree target_path exclude_system exe_path dirs rpaths dependency_tree)
+  include(GetPrerequisites)
+
+  is_file_executable("${target_path}" is_executable)
+  if(${is_executable})
+    getPrerequisiteTreeImpl(${target_path} ${exclude_system} "${exe_path}" "${dirs}" "${rpaths}" 0 tree)
+  else()
+    message(WARNING "'${target_path}' isn't executable.")
+  endif()
+
+  # Output value
+  set(${dependency_tree} "${tree}" PARENT_SCOPE)
+endfunction(getPrerequisiteTree)
+
+
+function(getResolvedPrerequisite dependency target_path exe_path dirs rpaths resolved_dependency)
+  include(GetPrerequisites)
+
+  # Get resolved dependency
+  gp_resolve_item("${target_path}" "${dependency}" "${exe_path}" "${dirs}" resolved_dep "${rpaths}")
+  get_filename_component(resolved_dep "${resolved_dep}" REALPATH)
+
+  # Output value
+  set(${resolved_dependency} "${resolved_dep}" PARENT_SCOPE)
+endfunction(getResolvedPrerequisite)
+
+
+function(getPrerequisiteTreeString target_path exclude_system exe_path dirs rpaths dependency_tree_string)
+  include(GetPrerequisites)
+
+  # Get dependency tree
+  getPrerequisiteTree(${target_path} ${exclude_system} "${exe_path}" "${dirs}" "${rpaths}" dependency_tree)
+
+  #
+  set(text "")
+  foreach(tree_item IN LISTS dependency_tree)
+    string(REGEX MATCH "([0-9]*) (.*)" result "${tree_item}")
+    set(level ${CMAKE_MATCH_1})
+    set(dependency ${CMAKE_MATCH_2})
+    getResolvedPrerequisite("${dependency}" ${target_path} "${exe_path}" "${dirs}" "${rpaths}" resolved_dep)
+
+    # Get type string
+    gp_file_type(${target_path} "${resolved_dep}" dependency_type)
+    string(LENGTH "${dependency_type}" type_length)
+    foreach(count RANGE ${type_length} 7)
+      string(APPEND dependency_type " ")
+    endforeach(count)
+
+    # Get dependency string
+    string(REPEAT "    " ${level} indent)
+    string(APPEND text "[${indent}${dependency_type}] ${dependency}\n"
+                       "${indent}        => ${resolved_dep}\n")
+  endforeach(tree_item)
+
+  # Output
+  set(${dependency_tree_string} ${text} PARENT_SCOPE)
+endfunction(getPrerequisiteTreeString)
 
 
 function(getPrerequisitesString target_path exclude_system exe_path dirs rpaths dependency_list_string)
   include(GetPrerequisites)
 
-  # Get dependency list
-  getPrerequisites(${target_path} ${exclude_system} "${exe_path}" "${dirs}" "${rpaths}" dependency_list)
-  getResolvedPrerequisites("${dependency_list}" ${target_path} "${exe_path}" "${dirs}" "${rpaths}" resolved_dep_list)
+  # Get dependency tree
+  getPrerequisiteTree(${target_path} ${exclude_system} "${exe_path}" "${dirs}" "${rpaths}" dependency_tree)
+
+  set(dependency_list "")
+  foreach(dependency IN LISTS dependency_tree)
+    string(REGEX MATCH "([0-9]*) (.*)" result "${dependency}")
+    set(level ${CMAKE_MATCH_1})
+    set(dependency ${CMAKE_MATCH_2})
+    gp_append_unique(dependency_list ${dependency})
+  endforeach(dependency)
 
   #
-  list(LENGTH dependency_list num_of_dependencies)
   set(text "")
-  foreach(index RANGE 1 ${num_of_dependencies})
-    math(EXPR index "${index} - 1")
-    list(GET dependency_list ${index} dependency)
-    list(GET resolved_dep_list ${index} resolved_dep)
+  foreach(dependency IN LISTS dependency_list)
+    getResolvedPrerequisite("${dependency}" ${target_path} "${exe_path}" "${dirs}" "${rpaths}" resolved_dep)
 
     # Get type string
-    gp_file_type(${target_path} ${resolved_dep} dependency_type)
+    gp_file_type(${target_path} "${resolved_dep}" dependency_type)
     string(LENGTH "${dependency_type}" type_length)
     foreach(count RANGE ${type_length} 7)
       string(APPEND dependency_type " ")
@@ -163,8 +209,10 @@ function(getPrerequisitesString target_path exclude_system exe_path dirs rpaths 
 
     # Get dependency string
     string(APPEND text "[${dependency_type}] ${dependency}\n"
-                       "        -> ${resolved_dep}\n")
-  endforeach(index)
+                       "        => ${resolved_dep}\n")
+  endforeach(dependency)
+
+  # Output
   set(${dependency_list_string} ${text} PARENT_SCOPE)
 endfunction(getPrerequisitesString)
 
@@ -180,15 +228,19 @@ function(savePrerequisites target output_dir exe_path dirs rpaths)
   # Generate a prerequisite script
   set(script "")
   set(prerequisite_file ${output_dir}/${prerequisite_target}.txt)
+  set(prerequisite_tree_file ${output_dir}/${prerequisite_target}_tree.txt)
   set(exclude_system 0)
   if(Z_WINDOWS)
     set(exclude_system 1)
   endif()
+  # is_file_executable("${target_path}" is_executable)
   string(APPEND script
       "include(InstallRequiredSystemLibraries)\n"
       "include(\"${__general_path__}\")\n"
       "getPrerequisitesString(\${target_path} ${exclude_system} \"${exe_path}\" \"${dirs}\" \"${rpaths}\" text)\n"
       "file(WRITE \"${prerequisite_file}\" \${text})\n"
+      "getPrerequisiteTreeString(\${target_path} ${exclude_system} \"${exe_path}\" \"${dirs}\" \"${rpaths}\" text)\n"
+      "file(WRITE \"${prerequisite_tree_file}\" \${text})\n"
       )
 
   # Save the script into a file

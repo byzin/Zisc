@@ -15,11 +15,8 @@ function(initCompilerOptions)
   set(description "The compiler treat all warnings as build errors (if supported).")
   setBooleanOption(Z_TREAT_COMPILER_WARNING_AS_ERROR OFF ${description})
 
-  set(description "Clang uses libc++ instead of libstdc++ (if compiler supports).")
-  setBooleanOption(Z_CLANG_USES_LIBCXX OFF ${description})
-
-  set(description "Statically link C++ library")
-  setBooleanOption(Z_STATIC_LINK_LIBCXX OFF ${description})
+  set(description "Clang uses LLVM's build tools and libraries instead of platform specific tools.")
+  setBooleanOption(Z_CLANG_USES_LLVM_TOOLS OFF ${description})
 
   set(description "Save intermediate compilation results.")
   setBooleanOption(Z_SAVE_INTERMEDIATE_COMPILATION_RESULTS OFF ${description})
@@ -169,15 +166,11 @@ function(getClangCompilerFlags cxx_compile_flags cxx_linker_flags cxx_definition
     list(APPEND compile_flags -save-temps=obj)
   endif()
 
-  if(Z_CLANG_USES_LIBCXX)
+  if(Z_CLANG_USES_LLVM_TOOLS)
     list(APPEND compile_flags -stdlib=libc++)
-    list(APPEND linker_flags -stdlib=libc++)
-  endif()
-  if(Z_STATIC_LINK_LIBCXX)
-    list(APPEND linker_flags -static-libstdc++)
-    if(Z_CLANG_USES_LIBCXX)
-      list(APPEND linker_flags c++abi)
-    endif()
+    list(APPEND linker_flags -stdlib=libc++ -rtlib=compiler-rt)
+    list(APPEND linker_flags -fuse-ld=lld)
+    list(APPEND definitions Z_CLANG_USES_LLVM_TOOLS=1)
   endif()
 
   # Sanitizer
@@ -207,10 +200,6 @@ function(getGccCompilerFlags cxx_compile_flags cxx_linker_flags cxx_definitions)
 
   if(Z_SAVE_INTERMEDIATE_COMPILATION_RESULTS)
     list(APPEND compile_flags -save-temps=obj)
-  endif()
-
-  if(Z_STATIC_LINK_LIBCXX)
-    list(APPEND linker_flags -static-libstdc++)
   endif()
 
   # Sanitizer

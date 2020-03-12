@@ -69,6 +69,38 @@ class Memory
     std::size_t available_virtual_memory_ = 0;
   };
 
+  /*!
+    \brief No brief description
+
+    No detailed description.
+    */
+  class Usage
+  {
+   public:
+    //! Add the given memory size to the usage
+    void add(const std::size_t size) noexcept;
+
+    //! Return the peak memory usage
+    std::size_t peak() const noexcept;
+
+    //! Release the size of memory from the usage
+    void release(const std::size_t size) noexcept;
+
+    //! Set the peak memory usage
+    void setPeak(const std::size_t p) noexcept;
+
+    //! Set the total memory usage
+    void setTotal(const std::size_t t) noexcept;
+
+    //! Return the total memory usage
+    std::size_t total() const noexcept;
+
+   private:
+    std::size_t total_ = 0;
+    std::size_t peak_ = 0;
+  };
+
+
   //! Retrieve the system memory statistics
   static SystemMemoryStats retrieveSystemStats() noexcept;
 

@@ -23,7 +23,6 @@
 #include <memory>
 #include <type_traits>
 // Zisc
-#include "atomic.hpp"
 #include "error.hpp"
 #include "memory.hpp"
 #include "std_memory_resource.hpp"
@@ -48,8 +47,7 @@ SimpleMemoryResource::SimpleMemoryResource() noexcept
 inline
 SimpleMemoryResource::SimpleMemoryResource(SimpleMemoryResource&& other) noexcept
 {
-  zisc::swap(total_memory_usage_, other.total_memory_usage_);
-  zisc::swap(peak_memory_usage_, other.peak_memory_usage_);
+  zisc::swap(memory_usage_, other.memory_usage_);
 }
 
 /*!
@@ -62,8 +60,7 @@ inline
 SimpleMemoryResource& SimpleMemoryResource::operator=(
     SimpleMemoryResource&& other) noexcept
 {
-  zisc::swap(total_memory_usage_, other.total_memory_usage_);
-  zisc::swap(peak_memory_usage_, other.peak_memory_usage_);
+  zisc::swap(memory_usage_, other.memory_usage_);
   return *this;
 }
 
@@ -103,8 +100,7 @@ void* SimpleMemoryResource::allocateMemory(const std::size_t size,
     header->pointer_ = ptr;
     header->size_ = alloc_size;
     header->alignment_ = alloc_alignment;
-    Atomic::add(&total_memory_usage_, alloc_size);
-    Atomic::max(&peak_memory_usage_, total_memory_usage_);
+    memory_usage_.add(alloc_size);
   }
   return data;
 }
@@ -123,7 +119,7 @@ void SimpleMemoryResource::deallocateMemory(void* data,
   Header* header = getHeader(data);
   const std::size_t alloc_size = header->size_;
   alignedFree(header->pointer_);
-  Atomic::sub(&total_memory_usage_, alloc_size);
+  memory_usage_.release(alloc_size);
 }
 
 /*!
@@ -174,9 +170,20 @@ auto SimpleMemoryResource::getHeader(const void* data) const noexcept
   \return No description
   */
 inline
+const Memory::Usage& SimpleMemoryResource::memoryUsage() const noexcept
+{
+  return memory_usage_;
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+inline
 std::size_t SimpleMemoryResource::totalMemoryUsage() const noexcept
 {
-  return total_memory_usage_;
+  return memoryUsage().total();
 }
 
 /*!
@@ -187,7 +194,7 @@ std::size_t SimpleMemoryResource::totalMemoryUsage() const noexcept
 inline
 std::size_t SimpleMemoryResource::peakMemoryUsage() const noexcept
 {
-  return peak_memory_usage_;
+  return memoryUsage().peak();
 }
 
 /*!

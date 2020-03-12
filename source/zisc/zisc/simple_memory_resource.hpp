@@ -19,6 +19,7 @@
 #include <array>
 #include <cstddef>
 // Zisc
+#include "memory.hpp"
 #include "non_copyable.hpp"
 #include "std_memory_resource.hpp"
 #include "zisc_config.hpp"
@@ -71,6 +72,9 @@ class SimpleMemoryResource : public pmr::memory_resource,
   //! Return the header info of the memory allocation
   const Header* getHeader(const void* data) const noexcept;
 
+  //! Return the memory usage
+  const Memory::Usage& memoryUsage() const noexcept;
+
   //! Return the total memory usage
   std::size_t totalMemoryUsage() const noexcept;
 
@@ -101,9 +105,7 @@ class SimpleMemoryResource : public pmr::memory_resource,
   Header* getHeader(void* data) noexcept;
 
 
-
-  std::size_t total_memory_usage_ = 0;
-  std::size_t peak_memory_usage_ = 0;
+  Memory::Usage memory_usage_;
 };
 
 } // namespace zisc

@@ -19,7 +19,9 @@
 // Standard C++ library
 #include <cstddef>
 #include <limits>
+#include <memory>
 // Zisc
+#include "atomic.hpp"
 #include "utility.hpp"
 #include "zisc_config.hpp"
 
@@ -111,6 +113,73 @@ inline
 void Memory::SystemMemoryStats::setTotalVirtualMemory(const std::size_t s) noexcept
 {
   total_virtual_memory_ = s;
+}
+
+/*!
+  \details No detailed description
+
+  \param [in] size No description.
+  */
+inline
+void Memory::Usage::add(const std::size_t size) noexcept
+{
+  Atomic::add(std::addressof(total_), size);
+  Atomic::max(std::addressof(peak_), total());
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+inline
+std::size_t Memory::Usage::peak() const noexcept
+{
+  return peak_;
+}
+
+/*!
+  \details No detailed description
+
+  \param [in] size No description.
+  */
+inline
+void Memory::Usage::release(const std::size_t size) noexcept
+{
+  Atomic::sub(std::addressof(total_), size);
+}
+
+/*!
+  \details No detailed description
+
+  \param [in] p No description.
+  */
+inline
+void Memory::Usage::setPeak(const std::size_t p) noexcept
+{
+  peak_ = p;
+}
+
+/*!
+  \details No detailed description
+
+  \param [in] t No description.
+  */
+inline
+void Memory::Usage::setTotal(const std::size_t t) noexcept
+{
+  total_ = t;
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+inline
+std::size_t Memory::Usage::total() const noexcept
+{
+  return total_;
 }
 
 /*!

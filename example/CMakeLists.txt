@@ -34,8 +34,8 @@ endfunction(getExampleWarningFlags)
 # Add an example
 function(addExample target save_prerequisites)
   set(example_source_files ${ARGN})
-  source_group(${PROJECT_NAME} FILES ${example_source_files})
   add_executable(${target} ${example_source_files})
+  source_group(${PROJECT_NAME} FILES ${example_source_files})
 
   #
   set_target_properties(${target} PROPERTIES

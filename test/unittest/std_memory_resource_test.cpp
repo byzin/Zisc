@@ -14,6 +14,8 @@
 
 // Standard C++ library
 #include <memory>
+#include <sstream>
+#include <string>
 #include <utility>
 // GoogleTest
 #include "gtest/gtest.h"
@@ -21,6 +23,21 @@
 #include "zisc/simple_memory_resource.hpp"
 #include "zisc/std_memory_resource.hpp"
 #include "zisc/zisc_config.hpp"
+
+TEST(StdMemoryResourceTest, StringStreamTest)
+{
+  zisc::SimpleMemoryResource mem_resource;
+
+  {
+    zisc::pmr::polymorphic_allocator<char> alloc{&mem_resource};
+    zisc::pmr::string init{alloc};
+    zisc::pmr::stringstream code{init};
+    code << "Zisc";
+    code << "String";
+    code << "Test";
+    ASSERT_STREQ(code.str().data(), "ZiscStringTest");
+  }
+}
 
 TEST(StdMemoryResourceTest, UniquePtrConstructionTest)
 {

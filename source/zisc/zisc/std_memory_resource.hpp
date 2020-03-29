@@ -30,6 +30,7 @@ static_assert(false, "Compiler doesn't have 'memory_resource'.");
 #include <map>
 #include <memory>
 #include <set>
+#include <sstream>
 #include <string>
 #include <type_traits>
 #include <unordered_map>
@@ -139,9 +140,39 @@ using unordered_multimap = std::unordered_multimap<Key,
                                                    Pred,
                                                    polymorphic_allocator<std::pair<const Key, T>>>;
 
+// StringStream
+
+template <typename CharType, typename Traits = std::char_traits<CharType>>
+using basic_stringbuf = std::basic_stringbuf<CharType,
+                                             Traits,
+                                             polymorphic_allocator<CharType>>;
+using stringbuf = basic_stringbuf<char>;
+using wstringbuf = basic_stringbuf<wchar_t>;
+
+template <typename CharType, typename Traits = std::char_traits<CharType>>
+using basic_istringstream = std::basic_istringstream<CharType,
+                                                     Traits,
+                                                     polymorphic_allocator<CharType>>;
+using istringstream = basic_istringstream<char>;
+using wistringstream = basic_istringstream<wchar_t>;
+
+template <typename CharType, typename Traits = std::char_traits<CharType>>
+using basic_ostringstream = std::basic_ostringstream<CharType,
+                                                     Traits,
+                                                     polymorphic_allocator<CharType>>;
+using ostringstream = basic_ostringstream<char>;
+using wostringstream = basic_ostringstream<wchar_t>;
+
+template <typename CharType, typename Traits = std::char_traits<CharType>>
+using basic_stringstream = std::basic_stringstream<CharType,
+                                                   Traits,
+                                                   polymorphic_allocator<CharType>>;
+using stringstream = basic_stringstream<char>;
+using wstringstream = basic_stringstream<wchar_t>;
+
 // Strings
 
-template <typename CharType, class Traits = std::char_traits<CharType>>
+template <typename CharType, typename  Traits = std::char_traits<CharType>>
 using basic_string = std::basic_string<CharType,
                                        Traits,
                                        polymorphic_allocator<CharType>>;

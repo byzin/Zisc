@@ -128,7 +128,6 @@ function(getSanitizerFlags compile_sanitizer_flags linker_sanitizer_flags)
     if(NOT Z_GCC)
       list(APPEND check_list implicit-unsigned-integer-truncation
                              implicit-signed-integer-truncation
-                             implicit-integer-sign-change
                              unsigned-integer-overflow
                              )
     endif()
@@ -174,7 +173,7 @@ function(getClangCompilerFlags cxx_compile_flags cxx_linker_flags cxx_definition
   if(Z_CLANG_USES_LLVM_TOOLS)
     list(APPEND compile_flags -stdlib=libc++)
     list(APPEND linker_flags -stdlib=libc++ -rtlib=compiler-rt)
-    if(NOT Z_APPLE_CLANG)
+    if(NOT Z_MAC)
       list(APPEND linker_flags -fuse-ld=lld)
     endif()
     list(APPEND definitions Z_CLANG_USES_LLVM_TOOLS=1)

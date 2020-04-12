@@ -211,7 +211,7 @@ void* SimpleMemoryResource::alignedAlloc(const std::size_t size,
   void* data =
 #if defined(Z_WINDOWS)
       _aligned_malloc(size, alignment);
-#elif defined(Z_APPLE_CLANG)
+#elif defined(Z_MAC) && defined(Z_CLANG)
       aligned_alloc(alignment, size);
 #else
       std::aligned_alloc(alignment, size);
@@ -229,7 +229,7 @@ void SimpleMemoryResource::alignedFree(void* data) noexcept
 {
 #if defined(Z_WINDOWS)
   _aligned_free(data);
-#elif defined(Z_APPLE_CLANG)
+#elif defined(Z_MAC) && defined(Z_CLANG)
   free(data);
 #else
   std::free(data);

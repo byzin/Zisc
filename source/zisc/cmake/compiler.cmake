@@ -122,11 +122,16 @@ function(getSanitizerFlags compile_sanitizer_flags linker_sanitizer_flags)
     endif()
   endif()
   if(Z_ENABLE_SANITIZER_UNDEF_BEHAVIOR_FULL)
-    list(APPEND check_list implicit-unsigned-integer-truncation
-                           implicit-signed-integer-truncation
-                           shift
+    list(APPEND check_list shift
                            signed-integer-overflow
-                           unsigned-integer-overflow)
+                           )
+    if(NOT Z_GCC)
+      list(APPEND check_list implicit-unsigned-integer-truncation
+                             implicit-signed-integer-truncation
+                             implicit-integer-sign-change
+                             unsigned-integer-overflow
+                             )
+    endif()
   endif()
   if(Z_ENABLE_SANITIZER_LEAK)
     list(APPEND check_list leak)

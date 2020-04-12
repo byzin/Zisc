@@ -1,6 +1,6 @@
 # Zisc #
 
-Zisc provides commonly used C++ classes and functions.
+Zisc provides utility C++ classes and functions which can be commonly used.
 
 **Z** in's m **isc** ellaneous C++ library
 
@@ -11,35 +11,30 @@ Version: 0.0.58
 ### Prerequisites ###
 
 * C++17 support compiler
-* [CMake](https://cmake.org/) (version 3.14 or later)
+* [CMake](https://cmake.org/) (version 3.16 or later)
 
 ### Importing ###
 
-Clone Zisc repository and include the cmake config files of Zisc,
+Clone the Zisc repository and include the cmake config files of Zisc,
 
 ```cmake
-  include(${zisc_root}/cmake/project.cmake)
-  initPlatform(platform_definitions)
+  # Determine a configuration type between "Debug", "RelWithDebInfo" or "Release"
+  set(CMAKE_CONFIGURATION_TYPES "Debug" "RelWithDebInfo" "Release")
+  if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE "Debug")
+  endif()
 
-  include(${zisc_root}/cmake/option.cmake)
-  initCommandOptions()
+  # Add the Zisc subdirectory
+  add_subdirectory("path-to-zisc-root" ${PROJECT_BINARY_DIR}/Zisc)
 
-  include(${zisc_root}/cmake/compiler.cmake)
-  initCompilerOptions()
-  getCxxCompilerFlags(cxx_compiler_flags
-                      cxx_linker_flags
-                      cxx_definitions)
+  # Create an executable of your project
+  add_executable("target-name" "source-files")
 
-  include(${zisc_root}/source/zisc/config.cmake)
-  loadZisc(zisc_header_files
-           zisc_include_dirs
-           zisc_compile_flags
-           zisc_linker_flags
-           zisc_definitions)
+  # Link the Zisc library.
+  # Note that compile features, options, definitions, link liraries, options
+  # and include directories properties will be populated
+  target_link_libraries("target-name" PRIVATE Zisc)
 ```
-
-`${zisc_root}` is the path to Zisc root directory.
-Then, add loaded properties `zisc_*` to your project.
 
 ## Acknowledgement ##
 

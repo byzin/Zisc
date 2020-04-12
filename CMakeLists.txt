@@ -29,7 +29,7 @@ initProjectOptions()
 restrictBuildDirectory(${PROJECT_SOURCE_DIR}/build)
 
 # Build Zisc
-add_subdirectory(${PROJECT_SOURCE_DIR}/source/zisc ${PROJECT_BINARY_DIR}/Zisc)
+add_subdirectory(${zisc_path} ${PROJECT_BINARY_DIR}/Zisc)
 
 # Build examples
 add_subdirectory(${PROJECT_SOURCE_DIR}/example ${PROJECT_BINARY_DIR}/Examples)

@@ -235,7 +235,7 @@ constexpr Integer Algorithm::getExponent(Integer x) noexcept
   Integer exponent = 0;
   if (zero < x) {
     constexpr std::size_t half_bits = sizeof(Integer) * 4;
-    for (Integer bits = half_bits; bits > 0; bits = bits >> 1) {
+    for (Integer bits = half_bits; 0 < bits; bits = bits >> 1) {
       const Integer upper_bits = x >> bits;
       exponent += (upper_bits != 0) ? bits : 0;
       x = (upper_bits != 0) ? upper_bits : x; 

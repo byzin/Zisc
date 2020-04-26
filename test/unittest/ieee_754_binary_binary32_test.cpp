@@ -739,18 +739,23 @@ TEST(Ieee754BinaryTest, FloatRelationalTest)
   };
 
   constexpr std::size_t n = 1'000'000'000;
+  std::size_t num_of_specials = 0;
   std::mt19937 engine{123'456'789};
   Generator generator{0u, std::numeric_limits<uint32b>::max()};
   static_assert(sizeof(Generator::result_type) == 4);
   for (std::size_t i = 0; i < n; ++i) {
     const uint32b ul = generator(engine);
     const float fl = *zisc::treatAs<const float*>(&ul);
-    if (!(zisc::isFinite(fl) || zisc::isInf(fl)))
+    if (!(zisc::isFinite(fl) || zisc::isInf(fl))) {
+      ++num_of_specials;
       continue;
+    }
     const uint32b ur = generator(engine);
     const float fr = *zisc::treatAs<const float*>(&ur);
-    if (!(zisc::isFinite(fr) || zisc::isInf(fr)))
+    if (!(zisc::isFinite(fr) || zisc::isInf(fr))) {
+      ++num_of_specials;
       continue;
+    }
 
     const Binary32 lhs = zisc::castBinary<Binary32>(fl);
     const Binary32 rhs = zisc::castBinary<Binary32>(fr);
@@ -783,4 +788,5 @@ TEST(Ieee754BinaryTest, FloatRelationalTest)
           << "rhs: " << fr << " (" << to_bitset32(fr) << ")" << std::endl;
     }
   }
+  std::cout << "special values: " << num_of_specials << "/" << n << std::endl;
 }

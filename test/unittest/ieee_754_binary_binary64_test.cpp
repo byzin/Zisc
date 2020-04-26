@@ -474,31 +474,31 @@ TEST(Ieee754BinaryTest, Double2FloatConstantTest)
   }
   {
     constexpr double d = DLimit::max();
-    constexpr float f = zisc::cast<float>(d);
-    constexpr Binary64 b64 = zisc::castBinary<Binary64>(d);
+    const float f = zisc::cast<float>(d);
+    const Binary64 b64 = zisc::castBinary<Binary64>(d);
     {
       const float data = f;
       const uint32b expected = *zisc::treatAs<const uint32b*>(&data);
-      constexpr Binary32 b32 = zisc::castBinary<Binary32>(b64);
+      const Binary32 b32 = zisc::castBinary<Binary32>(b64);
       ASSERT_EQ(expected, b32.bits());
     }
     {
-      constexpr float b32 = zisc::castBinary<float>(b64);
+      const float b32 = zisc::castBinary<float>(b64);
       ASSERT_FLOAT_EQ(f, b32);
     }
   }
   {
     constexpr double d = -DLimit::max();
-    constexpr float f = zisc::cast<float>(d);
-    constexpr Binary64 b64 = zisc::castBinary<Binary64>(d);
+    const float f = zisc::cast<float>(d);
+    const Binary64 b64 = zisc::castBinary<Binary64>(d);
     {
       const float data = f;
       const uint32b expected = *zisc::treatAs<const uint32b*>(&data);
-      constexpr Binary32 b32 = zisc::castBinary<Binary32>(b64);
+      const Binary32 b32 = zisc::castBinary<Binary32>(b64);
       ASSERT_EQ(expected, b32.bits());
     }
     {
-      constexpr float b32 = zisc::castBinary<float>(b64);
+      const float b32 = zisc::castBinary<float>(b64);
       ASSERT_FLOAT_EQ(f, b32);
     }
   }
@@ -858,18 +858,23 @@ TEST(Ieee754BinaryTest, DoubleRelationalTest)
   };
 
   constexpr std::size_t n = 1'000'000'000;
+  std::size_t num_of_specials = 0;
   std::mt19937_64 engine{123'456'789'0ull};
   Generator generator{0u, std::numeric_limits<uint64b>::max()};
   static_assert(sizeof(Generator::result_type) == 8);
   for (std::size_t i = 0; i < n; ++i) {
     const uint64b ul = generator(engine);
     const double fl = *zisc::treatAs<const double*>(&ul);
-    if (!(zisc::isFinite(fl) || zisc::isInf(fl)))
+    if (!(zisc::isFinite(fl) || zisc::isInf(fl))) {
+      ++num_of_specials;
       continue;
+    }
     const uint64b ur = generator(engine);
     const double fr = *zisc::treatAs<const double*>(&ur);
-    if (!(zisc::isFinite(fr) || zisc::isInf(fr)))
+    if (!(zisc::isFinite(fr) || zisc::isInf(fr))) {
+      ++num_of_specials;
       continue;
+    }
 
     const Binary64 lhs = zisc::castBinary<Binary64>(fl);
     const Binary64 rhs = zisc::castBinary<Binary64>(fr);
@@ -902,4 +907,5 @@ TEST(Ieee754BinaryTest, DoubleRelationalTest)
           << "rhs: " << fr << " (" << to_bitset64(fr) << ")" << std::endl;
     }
   }
+  std::cout << "special values: " << num_of_specials << "/" << n << std::endl;
 }

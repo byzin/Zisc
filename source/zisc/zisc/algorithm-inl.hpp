@@ -79,6 +79,20 @@ constexpr std::common_type_t<Type, LowerType, UpperType> Algorithm::clamp(
 /*!
   \details No detailed description
 
+  \tparam Integer No description.
+  \param [in] x No description.
+  \return No description
+  */
+template <typename Integer> inline
+Integer Algorithm::clz(const Integer x) noexcept
+{
+  const auto y = clzImpl<Config::implType()>(x);
+  return y;
+}
+
+/*!
+  \details No detailed description
+
   \tparam Float No description.
   \param [in] x No description.
   \return No description
@@ -234,8 +248,8 @@ constexpr Integer Algorithm::getExponent(Integer x) noexcept
   constexpr auto zero = cast<Integer>(0);
   Integer exponent = 0;
   if (zero < x) {
-    constexpr std::size_t half_bits = sizeof(Integer) * 4;
-    for (Integer bits = half_bits; 0 < bits; bits = bits >> 1) {
+    constexpr std::size_t half_bit_size = sizeof(Integer) * 4;
+    for (Integer bits = half_bit_size; 0 < bits; bits = bits >> 1) {
       const Integer upper_bits = x >> bits;
       exponent += (upper_bits != 0) ? bits : 0;
       x = (upper_bits != 0) ? upper_bits : x; 
@@ -396,6 +410,37 @@ void Algorithm::Stl::toBinaryTree(
 /*!
   \details No detailed description
 
+  \tparam Integer No description.
+  \param [in] x No description.
+  \return No description
+  */
+template <typename Integer> inline
+constexpr Integer Algorithm::Zisc::clz(const Integer x) noexcept
+{
+  constexpr Integer size = 8 * sizeof(Integer);
+  const Integer expt = Algorithm::getExponent(x);
+  const Integer y = (x == 0) ? size : (size - 1) - expt;
+  return y;
+}
+
+/*!
+  \details No detailed description
+
+  \tparam Integer No description.
+  \param [in] x No description.
+  \return No description
+  */
+template <typename Integer> inline
+constexpr Integer Algorithm::Zisc::popcount(const Integer x) noexcept
+{
+  static_assert(std::is_integral_v<Integer>, "Integer isn't integer type.");
+  const Integer y = popcountImpl<Integer, 0>(x);
+  return y;
+}
+
+/*!
+  \details No detailed description
+
   \tparam RandomAccessIterator No description.
   \tparam Type No description.
   \param [in] begin No description.
@@ -455,6 +500,50 @@ void Algorithm::Zisc::toBinaryTree(
 /*!
   \details No detailed description
 
+  \tparam Integer description.
+  \param [in] stage No description.
+  \return No description
+  */
+template <typename Integer> inline
+constexpr Integer Algorithm::Zisc::makePopcountMask(const std::size_t stage) noexcept
+{
+  static_assert(std::is_integral_v<Integer>, "Integer isn't integer type.");
+  constexpr std::size_t bit_size = 8 * sizeof(Integer);
+  Integer mask = cast<Integer>(0b1);
+  std::size_t i = 0;
+  for (; i < stage; ++i)
+    mask = cast<Integer>(mask << (1 << i)) | mask;
+  for (; cast<std::size_t>(2 << i) < bit_size; ++i)
+    mask = cast<Integer>(mask << (2 << i)) | mask;
+  return mask;
+}
+
+/*!
+  \details No detailed description
+
+  \tparam Integer No description.
+  \tparam kStage No description.
+  \param [in] x No description.
+  \return No description
+  */
+template <typename Integer, std::size_t kStage> inline
+constexpr Integer Algorithm::Zisc::popcountImpl(const Integer x) noexcept
+{
+  static_assert(std::is_integral_v<Integer>, "Integer isn't integer type.");
+  constexpr Integer l_mask = makePopcountMask<Integer>(kStage);
+  constexpr Integer h_mask = cast<Integer>(~l_mask);
+  const Integer l = x & l_mask;
+  const Integer h = x & h_mask;
+  Integer y = l + cast<Integer>(h >> (1 << kStage));
+  constexpr std::size_t bit_size = 8 * sizeof(Integer);
+  if constexpr ((2 << kStage) < bit_size)
+    y = popcountImpl<Integer, kStage + 1>(y);
+  return y;
+}
+
+/*!
+  \details No detailed description
+
   \tparam RandomAccessIterator No description.
   \tparam OutputIterator No description.
   \param [in] begin No description.
@@ -500,44 +589,84 @@ void Algorithm::Zisc::toBinaryTreeImpl(RandomAccessIterator begin,
 /*!
   \details No detailed description
 
-  \tparam Integer description.
-  \param [in] stage No description.
+  \tparam SrcInteger No description.
+  \tparam DstInteger No description.
   \return No description
   */
-template <typename Integer> inline
-constexpr Integer Algorithm::makePopcountMask(const std::size_t stage) noexcept
+template <typename SrcInteger, typename DstInteger> inline
+constexpr DstInteger Algorithm::makeClzMask() noexcept
 {
-  static_assert(std::is_integral_v<Integer>, "Integer isn't integer type.");
-  constexpr std::size_t bit_size = 8 * sizeof(Integer);
-  Integer mask = cast<Integer>(0b1);
-  std::size_t i = 0;
-  for (; i < stage; ++i)
-    mask = cast<Integer>(mask << (1 << i)) | mask;
-  for (; cast<std::size_t>(2 << i) < bit_size; ++i)
-    mask = cast<Integer>(mask << (2 << i)) | mask;
+  const std::size_t size = 8 * (sizeof(DstInteger) - sizeof(SrcInteger));
+  DstInteger mask = 0;
+  for (std::size_t i = 0; i < size; ++i) {
+    const DstInteger one = 0b01;
+    mask = (mask << 1) | one;
+  }
   return mask;
 }
 
 /*!
   \details No detailed description
 
-  \tparam kStage No description.
+  \tparam kImpl No description.
   \tparam Integer No description.
   \param [in] x No description.
   \return No description
   */
-template <std::size_t kStage, typename Integer> inline
-Integer Algorithm::popcountFallback(const Integer x) noexcept
+template <Config::ImplType kImpl, typename Integer> inline
+Integer Algorithm::clzImpl(const Integer x) noexcept
 {
   static_assert(std::is_integral_v<Integer>, "Integer isn't integer type.");
-  constexpr Integer l_mask = makePopcountMask<Integer>(kStage);
-  constexpr Integer h_mask = cast<Integer>(~l_mask);
-  const Integer l = x & l_mask;
-  const Integer h = x & h_mask;
-  Integer y = l + cast<Integer>(h >> (1 << kStage));
-  constexpr std::size_t bit_size = 8 * sizeof(Integer);
-  if constexpr ((2 << kStage) < bit_size)
-    y = popcountFallback<kStage + 1, Integer>(y);
+  constexpr std::size_t size = sizeof(Integer);
+  Integer y = cast<Integer>(0);
+  if constexpr ((kImpl == Config::ImplType::kClang) ||
+                (kImpl == Config::ImplType::kGcc)) {
+    if constexpr ((size == 8) && (sizeof(long) == 8)) {
+      constexpr bool is_uint = std::is_unsigned_v<Integer>;
+      using IType = std::conditional_t<is_uint, unsigned long, long>;
+      const IType v = cast<IType>(x);
+      y = cast<Integer>(__builtin_clzl(v));
+    }
+    else if constexpr ((size == 8) && (sizeof(long long) == 8)) {
+      constexpr bool is_uint = std::is_unsigned_v<Integer>;
+      using IType = std::conditional_t<is_uint, unsigned long long, long long>;
+      const IType v = cast<IType>(x);
+      y = cast<Integer>(__builtin_clzll(v));
+    }
+    else  {
+      constexpr bool is_uint = std::is_unsigned_v<Integer>;
+      using IType = std::conditional_t<is_uint, uint, int>;
+      constexpr IType mask = makeClzMask<Integer, IType>();
+      constexpr std::size_t size_diff = 8 * (sizeof(IType) - size);
+      const IType v = cast<IType>(x) << size_diff | mask;
+      y = cast<Integer>(__builtin_clz(v));
+    }
+  }
+  else if constexpr (kImpl == Config::ImplType::kMsvc) {
+    if constexpr (size == 2) {
+      constexpr bool is_uint = std::is_unsigned_v<Integer>;
+      using IType = std::conditional_t<is_uint, unsigned short, short>;
+      const IType v = cast<IType>(x);
+      y = cast<Integer>(clzMsvcImpl(v));
+    }
+    else if constexpr (size == 8) {
+      constexpr bool is_uint = std::is_unsigned_v<Integer>;
+      using IType = std::conditional_t<is_uint, unsigned long long, long long>;
+      const IType v = cast<IType>(x);
+      y = cast<Integer>(clzMsvcImpl(v));
+    }
+    else {
+      constexpr bool is_uint = std::is_unsigned_v<Integer>;
+      using IType = std::conditional_t<is_uint, unsigned int, int>;
+      constexpr IType mask = makeClzMask<Integer, IType>();
+      constexpr std::size_t size_diff = 8 * (sizeof(IType) - size);
+      const IType v = cast<IType>(x) << size_diff | mask;
+      y = cast<Integer>(clzMsvcImpl(v));
+    }
+  }
+  else {
+    y = Zisc::clz(x);
+  }
   return y;
 }
 
@@ -597,7 +726,7 @@ Integer Algorithm::popcountImpl(const Integer x) noexcept
     }
   }
   else {
-    y = popcountFallback<0>(x);
+    y = Zisc::popcount(x);
   }
   return y;
 }

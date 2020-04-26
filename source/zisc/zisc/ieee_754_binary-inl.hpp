@@ -230,9 +230,9 @@ constexpr Ieee754Binary<kDstFormat> Ieee754Binary<kFormat>::convertTo() const no
 {
   Ieee754Binary<kDstFormat> dst{};
   if constexpr (cast<std::size_t>(kDstFormat) < bitSize())
-    dst = scaleDown<kDstFormat, kRMode>();
+    dst = scaledDown<kDstFormat, kRMode>();
   else if constexpr (bitSize() < cast<std::size_t>(kDstFormat))
-    dst = scaleUp<kDstFormat, kRMode>();
+    dst = scaledUp<kDstFormat>();
   else
     dst = *this;
   return dst;
@@ -500,6 +500,17 @@ constexpr std::size_t Ieee754Binary<kFormat>::exponentBitSize() noexcept
 /*!
   \details No detailed description
 
+  \return No description
+  */
+template <Ieee754BinaryFormat kFormat> inline
+constexpr Ieee754BinaryFormat Ieee754Binary<kFormat>::format() noexcept
+{
+  return kFormat;
+}
+
+/*!
+  \details No detailed description
+
   \param [in] data No description.
   \return No description
   */
@@ -697,6 +708,31 @@ constexpr auto Ieee754Binary<kFormat>::makeSignificandBits(const FloatType value
 /*!
   \details No detailed description
 
+  \tparam UInt No description.
+  \tparam kMode No description.
+  \param [in] bits No description.
+  \param [in] trailing_bits No description.
+  \return No description
+  */
+template <Ieee754BinaryFormat kFormat>
+template <Ieee754RoundingMode kMode, typename UInt> inline
+constexpr auto Ieee754Binary<kFormat>::round(const BitType bits,
+                                             const UInt trailing_bits) noexcept
+    -> BitType
+{
+  static_assert(kIsUnsignedInteger<UInt>, "UInt isn't unsigned integer type.");
+  const UInt middle = cast<UInt>(UInt{0b1} << (8 * sizeof(UInt) - 1));
+  // Rounding to nearest
+  // tie-break rule is 'nearest even'
+  const bool is_rounded_up = ((trailing_bits == middle) && isOdd(bits)) ||
+                             (middle < trailing_bits);
+  const BitType result = is_rounded_up ? bits + 1 : bits;
+  return result;
+}
+
+/*!
+  \details No detailed description
+
   \param [in] data No description.
   */
 template <Ieee754BinaryFormat kFormat> inline
@@ -770,6 +806,155 @@ constexpr auto Ieee754Binary<kFormat>::calcExp2(const int expt) noexcept
 /*!
   \details No detailed description
 
+  \tparam kDstFormat No description.
+  \return No description
+  */
+template <Ieee754BinaryFormat kFormat> template <Ieee754BinaryFormat kDstFormat>
+inline
+constexpr Ieee754Binary<kDstFormat> Ieee754Binary<kFormat>::convertSpecialValue() const noexcept
+{
+  using DstBinary = Ieee754Binary<kDstFormat>;
+  const DstBinary dst = isNan() ? DstBinary::quietNan() :
+                        isInf() ? DstBinary::infinity()
+                                : DstBinary::zero();
+  return dst;
+}
+
+/*!
+  \details No detailed description
+
+  \tparam kDstFormat No description.
+  \return No description
+  */
+template <Ieee754BinaryFormat kFormat>
+template <Ieee754BinaryFormat kDstFormat, Ieee754RoundingMode kRMode> inline
+constexpr Ieee754Binary<kDstFormat> Ieee754Binary<kFormat>::scaledDown() const noexcept
+{
+  using DstBinary = Ieee754Binary<kDstFormat>;
+  using DstBitType = typename DstBinary::BitType;
+  DstBinary dst = convertSpecialValue<kDstFormat>();
+  if (isNormal() || isSubnormal()) {
+    constexpr std::size_t exp_bias = exponentBias();
+    constexpr std::size_t sig_size = significandBitSize();
+    constexpr std::size_t dst_exp_bias = DstBinary::exponentBias();
+    constexpr std::size_t dst_sig_size = DstBinary::significandBitSize();
+
+    constexpr BitType lower_bound = ((exp_bias + 1) - dst_exp_bias) << sig_size;
+    constexpr BitType upper_bound = ((exp_bias + 1) + dst_exp_bias) << sig_size;
+
+    const BitType exp_bits = getExponentBits(bits());
+    if (exp_bits < upper_bound) {
+      constexpr std::size_t sig_size_diff = sig_size - dst_sig_size;
+      constexpr BitType exp_bias_diff = (exp_bias - dst_exp_bias) << dst_sig_size;
+      // Finite values
+      const std::size_t shift_size = (exp_bits < lower_bound)
+          ? getBiasedExponent(lower_bound - exp_bits) // Subnormal case
+          : 0;                                        // Normal case
+      if (shift_size <= dst_sig_size) {
+        // Exponent bits
+        const DstBitType dst_exp_bits = cast<DstBitType>((0 < shift_size)
+            ? 0                                             // Subnormal case
+            : (exp_bits >> sig_size_diff) - exp_bias_diff); // Normal case
+        // Significand bits
+        const BitType sig_bits = getRealSignificandBits(bits());
+        const DstBitType dst_sig_bits = cast<DstBitType>(
+            getSignificandBits(sig_bits >> shift_size) >> sig_size_diff);
+        DstBitType dst_bits = cast<DstBitType>(dst_exp_bits | dst_sig_bits);
+        // Rounding
+        const std::size_t shift_diff = dst_sig_size - shift_size;
+        BitType trailing_bits = getSignificandBits(sig_bits << shift_diff);
+        trailing_bits = cast<BitType>(trailing_bits << (1 + exponentBitSize()));
+        dst_bits = DstBinary::template round<kRMode>(dst_bits, trailing_bits);
+        //
+        dst.setBits(dst_bits);
+      }
+      else { // Underflow
+        DstBitType dst_bits = 0;
+        // Rounding
+        const std::size_t shift_diff = shift_size - dst_sig_size;
+        if (shift_diff <= significandBitSize()) {
+          const BitType sig_bits = getRealSignificandBits(bits());
+          BitType trailing_bits = getSignificandBits(sig_bits >> shift_diff);
+          trailing_bits = cast<BitType>(trailing_bits << (1 + exponentBitSize()));
+          dst_bits = DstBinary::template round<kRMode>(dst_bits, trailing_bits);
+        }
+        //
+        dst.setBits(dst_bits);
+      }
+    }
+    else { // Overflow
+      dst = DstBinary::infinity();
+    }
+  }
+
+  // Sign bit
+  dst = (getSignBit(bits()) == 0) ? dst : -dst;
+
+  return dst;
+}
+
+/*!
+  \details No detailed description
+
+  \tparam kDstFormat No description.
+  \return No description
+  */
+template <Ieee754BinaryFormat kFormat>
+template <Ieee754BinaryFormat kDstFormat> inline
+constexpr Ieee754Binary<kDstFormat> Ieee754Binary<kFormat>::scaledUp() const noexcept
+{
+  using DstBinary = Ieee754Binary<kDstFormat>;
+  using DstBitType = typename DstBinary::BitType;
+  DstBinary dst = convertSpecialValue<kDstFormat>();
+  if (isNormal() || isSubnormal()) {
+    constexpr std::size_t exp_bias = exponentBias();
+    constexpr std::size_t sig_size = significandBitSize();
+    constexpr std::size_t dst_exp_bias = DstBinary::exponentBias();
+    constexpr std::size_t dst_sig_size = DstBinary::significandBitSize();
+
+    // Exponent bits
+    const std::size_t expt = getBiasedExponent(bits());
+    DstBitType dst_expt = cast<DstBitType>(expt + (dst_exp_bias - exp_bias));
+    // Significand bits
+    DstBitType dst_sig_bits = cast<DstBitType>(getSignificandBits(bits())) <<
+                              (dst_sig_size - sig_size);
+    const BitType exp_bits = getExponentBits(bits());
+    if (exp_bits == 0) { // Subnormal case
+      constexpr auto imp_expt = Algorithm::getExponent(DstBinary::implicitBit());
+      const auto bit_expt = Algorithm::getExponent(dst_sig_bits);
+      const DstBitType expt_diff = imp_expt - bit_expt;
+      dst_expt = (1 + dst_expt) - expt_diff;
+      dst_sig_bits = cast<DstBitType>(dst_sig_bits << expt_diff);
+      dst_sig_bits = DstBinary::getSignificandBits(dst_sig_bits);
+    }
+    const DstBitType dst_exp_bits = cast<DstBitType>(dst_expt << dst_sig_size);
+    const DstBitType dst_bits = cast<DstBitType>(dst_exp_bits | dst_sig_bits);
+    dst.setBits(dst_bits);
+  }
+
+  // Sign bit
+  dst = (getSignBit(bits()) == 0) ? dst : -dst;
+
+  return dst;
+}
+
+/*!
+  \details No detailed description
+
+  \param [in] data No description.
+  \return No description
+  */
+template <Ieee754BinaryFormat kFormat> inline
+constexpr auto Ieee754Binary<kFormat>::getRealSignificandBits(const BitType data) noexcept
+    -> BitType
+{
+  const BitType b = cast<BitType>(implicitBit() | (data & significandBitMask()));
+  return b;
+}
+
+/*!
+  \details No detailed description
+
   \param [in] value No description.
   \param [in] exp_bits No description.
   \return No description
@@ -797,11 +982,122 @@ constexpr auto Ieee754Binary<kFormat>::makeSignificandBits(
 /*!
   \details No detailed description
 
+  \tparam kFormat No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
+  */
+template <Ieee754BinaryFormat kFormat> inline
+constexpr bool operator==(const Ieee754Binary<kFormat>& lhs,
+                          const Ieee754Binary<kFormat>& rhs) noexcept
+{
+  const bool result = !(isNan(lhs) || isNan(rhs)) &&
+                      ((lhs.isZero() && rhs.isZero()) || (lhs.bits() == rhs.bits()));
+  return result;
+}
+
+/*!
+  \details No detailed description
+
+  \tparam kFormat No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
+  */
+template <Ieee754BinaryFormat kFormat> inline
+constexpr bool operator!=(const Ieee754Binary<kFormat>& lhs,
+                          const Ieee754Binary<kFormat>& rhs) noexcept
+{
+  const bool result = !(lhs == rhs);
+  return result;
+}
+
+/*!
+  \details No detailed description
+
+  \tparam kFormat No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
+  */
+template <Ieee754BinaryFormat kFormat> inline
+constexpr bool operator<(const Ieee754Binary<kFormat>& lhs,
+                         const Ieee754Binary<kFormat>& rhs) noexcept
+{
+  bool result = !(isNan(lhs) || isNan(rhs) || (lhs.isZero() && rhs.isZero()));
+  if (result) {
+    using Binary = Ieee754Binary<kFormat>;
+    using SType = std::make_signed_t<typename Binary::BitType>;
+    const auto get_signed = [](const auto u)
+    {
+      constexpr auto m = Binary::signBitMask();
+      SType s = cast<SType>(u & ~m);
+      s = ((u & m) == 0) ? s : -s;
+      return s;
+    };
+    const SType sl = get_signed(lhs.bits());
+    const SType sr = get_signed(rhs.bits());
+    result = sl < sr;
+  }
+  return result;
+}
+
+/*!
+  \details No detailed description
+
+  \tparam kFormat No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
+  */
+template <Ieee754BinaryFormat kFormat> inline
+constexpr bool operator<=(const Ieee754Binary<kFormat>& lhs,
+                          const Ieee754Binary<kFormat>& rhs) noexcept
+{
+  const bool result = (lhs == rhs) || (lhs < rhs);
+  return result;
+}
+
+/*!
+  \details No detailed description
+
+  \tparam kFormat No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
+  */
+template <Ieee754BinaryFormat kFormat> inline
+constexpr bool operator>(const Ieee754Binary<kFormat>& lhs,
+                         const Ieee754Binary<kFormat>& rhs) noexcept
+{
+  const bool result = (rhs < lhs);
+  return result;
+}
+
+/*!
+  \details No detailed description
+
+  \tparam kFormat No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
+  */
+template <Ieee754BinaryFormat kFormat> inline
+constexpr bool operator>=(const Ieee754Binary<kFormat>& lhs,
+                          const Ieee754Binary<kFormat>& rhs) noexcept
+{
+  const bool result = (rhs <= lhs);
+  return result;
+}
+
+/*!
+  \details No detailed description
+
   \param [in] value No description.
   \return No description
   */
 template <typename Type, Ieee754RoundingMode kRMode> inline
-Type castBinary(const float value) noexcept
+constexpr Type castBinary(const float value) noexcept
 {
   if constexpr (kIsFloat<Type>) {
     const Type result = cast<Type>(value);
@@ -826,7 +1122,7 @@ Type castBinary(const float value) noexcept
   \return No description
   */
 template <typename Type, Ieee754RoundingMode kRMode> inline
-Type castBinary(const double value) noexcept
+constexpr Type castBinary(const double value) noexcept
 {
   if constexpr (kIsFloat<Type>) {
     const Type result = cast<Type>(value);
@@ -851,7 +1147,7 @@ Type castBinary(const double value) noexcept
   \return No description
   */
 template <typename Type, Ieee754RoundingMode kRMode> inline
-Type castBinary(const long double value) noexcept
+constexpr Type castBinary(const long double value) noexcept
 {
   const double d = cast<double>(value);
   const Type result = castBinary<Type, kRMode>(d);
@@ -866,7 +1162,7 @@ Type castBinary(const long double value) noexcept
   */
 template <typename Type, Ieee754BinaryFormat kFormat, Ieee754RoundingMode kRMode>
 inline
-Type castBinary(const Ieee754Binary<kFormat>& value) noexcept
+constexpr Type castBinary(const Ieee754Binary<kFormat>& value) noexcept
 {
   if constexpr (kIsFloat<Type>) {
     const Type result = cast<Type>(value);

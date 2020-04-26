@@ -42,6 +42,10 @@ class Algorithm
       const LowerType lower, 
       const UpperType upper) noexcept;
 
+  //! Compute the number of leading zero bits in the given value 
+  template <typename Integer>
+  static Integer clz(const Integer x) noexcept;
+
   //! Return a inverse number of the given value
   template <typename Float>
   static constexpr Float invert(const Float x) noexcept;
@@ -141,6 +145,15 @@ class Algorithm
   class Zisc
   {
    public:
+    //! Compute the number of leading zero bits in the given value 
+    template <typename Integer>
+    static constexpr Integer clz(const Integer x) noexcept;
+
+    //! Return the number of non-zero bits in the given x
+    template <typename Integer>
+    static constexpr Integer popcount(const Integer x) noexcept;
+
+
     //! Return the iterator pointing that the element is greatest <= value
     template <typename RandomAccessIterator, typename Type>
     static RandomAccessIterator searchBinaryTree(
@@ -154,6 +167,15 @@ class Algorithm
                              RandomAccessIterator end) noexcept;
 
    private:
+    //! Return a mask of popcount
+    template <typename Integer>
+    static constexpr Integer makePopcountMask(const std::size_t stage) noexcept;
+
+    //! Return the number of non-zero bits in the given x
+    template <typename Integer, std::size_t kStage>
+    static constexpr Integer popcountImpl(const Integer x) noexcept;
+
+
     //! Transform a sorted unique array to a binary tree
     template <typename RandomAccessIterator, typename OutputIterator>
     static void toBinaryTreeImpl(RandomAccessIterator begin,
@@ -163,13 +185,31 @@ class Algorithm
   };
 
  private:
-  //! Return a mask of popcount
-  template <typename Integer>
-  static constexpr Integer makePopcountMask(const std::size_t stage) noexcept;
+  //!
+  template <typename SrcInteger, typename DstInteger>
+  static constexpr DstInteger makeClzMask() noexcept;
 
-  //! Return the number of non-zero bits in the given x
-  template <std::size_t kStage, typename Integer>
-  static Integer popcountFallback(const Integer x) noexcept;
+  //! Compute the number of leading zero bits in the given value 
+  template <Config::ImplType kImpl, typename Integer>
+  static Integer clzImpl(const Integer x) noexcept;
+
+  //! Compute the number of leading zero bits in the given value 
+  static short clzMsvcImpl(const short x) noexcept;
+
+  //! Compute the number of leading zero bits in the given value 
+  static unsigned short clzMsvcImpl(const unsigned short x) noexcept;
+
+  //! Compute the number of leading zero bits in the given value 
+  static int clzMsvcImpl(const int x) noexcept;
+
+  //! Compute the number of leading zero bits in the given value 
+  static unsigned int clzMsvcImpl(const unsigned int x) noexcept;
+
+  //! Compute the number of leading zero bits in the given value 
+  static long long clzMsvcImpl(const long long x) noexcept;
+
+  //! Compute the number of leading zero bits in the given value 
+  static unsigned long long clzMsvcImpl(const unsigned long long x) noexcept;
 
   //! Return the number of non-zero bits in the given x
   template <Config::ImplType kImpl, typename Integer>

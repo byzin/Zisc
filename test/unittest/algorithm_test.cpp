@@ -236,6 +236,381 @@ TEST(AlgorithmTest, RoundUpToPowerOf2Test)
   }
 }
 
+TEST(AlgorithmTest, ClzFallbackTest)
+{
+  using zisc::uint32b;
+  const auto get_expected = [](zisc::uint32b x)
+  {
+    constexpr std::size_t size = 8 * sizeof(x);
+    uint32b c = 0;
+    for (std::size_t index = 0; index < size; ++index) {
+      constexpr uint32b msb = zisc::cast<uint32b>(0b1u << (size - 1));
+      if (x & msb)
+        break;
+      x = x << 1;
+      ++c;
+    }
+    return c;
+  };
+
+  constexpr char error_message[] = "zisc clz is wrong.";
+  {
+    constexpr uint32b x = std::numeric_limits<uint32b>::min();
+    const uint32b expected = get_expected(x);
+    constexpr uint32b result = zisc::Algorithm::Zisc::clz(x);
+    ASSERT_EQ(expected, result) << error_message
+        << " x = " << x << ", expected = " << expected << ", result = " << result;
+  }
+  {
+    constexpr uint32b x = 0b0000'0000'0000'0000'0000'0000'0000'0001u;
+    const uint32b expected = get_expected(x);
+    constexpr uint32b result = zisc::Algorithm::Zisc::clz(x);
+    ASSERT_EQ(expected, result) << error_message
+        << " x = " << x << ", expected = " << expected << ", result = " << result;
+  }
+  {
+    constexpr uint32b x = std::numeric_limits<uint32b>::max();
+    const uint32b expected = get_expected(x);
+    constexpr uint32b result = zisc::Algorithm::Zisc::clz(x);
+    ASSERT_EQ(expected, result) << error_message
+        << " x = " << x << ", expected = " << expected << ", result = " << result;
+  }
+  {
+    constexpr uint32b x = 0b0011'0101'1100'0000'1001'1010'0100'0001u;
+    const uint32b expected = get_expected(x);
+    constexpr uint32b result = zisc::Algorithm::Zisc::clz(x);
+    ASSERT_EQ(expected, result) << error_message
+        << " x = " << x << ", expected = " << expected << ", result = " << result;
+  }
+  {
+    constexpr uint32b x = 0b0000'0000'0000'0000'1001'1010'0100'0001u;
+    const uint32b expected = get_expected(x);
+    constexpr uint32b result = zisc::Algorithm::Zisc::clz(x);
+    ASSERT_EQ(expected, result) << error_message
+        << " x = " << x << ", expected = " << expected << ", result = " << result;
+  }
+  {
+    constexpr uint32b x = 0b0000'0000'0000'0010'0000'0000'0000'0000u;
+    const uint32b expected = get_expected(x);
+    constexpr uint32b result = zisc::Algorithm::Zisc::clz(x);
+    ASSERT_EQ(expected, result) << error_message
+        << " x = " << x << ", expected = " << expected << ", result = " << result;
+  }
+}
+
+TEST(AlgorithmTest, Clz8Test)
+{
+  std::mt19937 rng;
+  rng.seed(123'456'789u);
+  using ResultT =  std::mt19937::result_type;
+  static_assert(std::is_unsigned_v<ResultT>, "The result type isn't unsigned.");
+  static_assert(std::mt19937::max() == std::numeric_limits<zisc::uint32b>::max());
+  static_assert(std::mt19937::min() == std::numeric_limits<zisc::uint32b>::min());
+
+  using UInt = zisc::uint8b;
+  const auto get_expected = [](UInt x)
+  {
+    constexpr std::size_t size = 8 * sizeof(x);
+    UInt c = 0;
+    for (std::size_t index = 0; index < size; ++index) {
+      constexpr UInt msb = zisc::cast<UInt>(0b1u << (size - 1));
+      if (x & msb)
+        break;
+      x = zisc::cast<UInt>(x << 1);
+      ++c;
+    }
+    return c;
+  };
+
+  constexpr std::size_t n = 100'000'000;
+  constexpr char error_message[] = "zisc clz is wrong.";
+  for (std::size_t i = 0; i < n; ++i) {
+    const UInt x = zisc::cast<UInt>(rng() & 0b1111'1111u);
+    const UInt expected = get_expected(x);
+    const UInt result = zisc::Algorithm::clz(x);
+    ASSERT_EQ(expected, result) << error_message
+        << " x = " << x << ", expected = " << expected << ", result = " << result;
+  }
+}
+
+TEST(AlgorithmTest, Clz8FallbackTest)
+{
+  std::mt19937 rng;
+  rng.seed(123'456'789u);
+  using ResultT =  std::mt19937::result_type;
+  static_assert(std::is_unsigned_v<ResultT>, "The result type isn't unsigned.");
+  static_assert(std::mt19937::max() == std::numeric_limits<zisc::uint32b>::max());
+  static_assert(std::mt19937::min() == std::numeric_limits<zisc::uint32b>::min());
+
+  using UInt = zisc::uint8b;
+  const auto get_expected = [](UInt x)
+  {
+    constexpr std::size_t size = 8 * sizeof(x);
+    UInt c = 0;
+    for (std::size_t index = 0; index < size; ++index) {
+      constexpr UInt msb = zisc::cast<UInt>(0b1u << (size - 1));
+      if (x & msb)
+        break;
+      x = zisc::cast<UInt>(x << 1);
+      ++c;
+    }
+    return c;
+  };
+
+  constexpr std::size_t n = 100'000'000;
+  constexpr char error_message[] = "zisc clz is wrong.";
+  for (std::size_t i = 0; i < n; ++i) {
+    const UInt x = zisc::cast<UInt>(rng() & 0b1111'1111u);
+    const UInt expected = get_expected(x);
+    const UInt result = zisc::Algorithm::Zisc::clz(x);
+    ASSERT_EQ(expected, result) << error_message
+        << " x = " << x << ", expected = " << expected << ", result = " << result;
+  }
+}
+
+TEST(AlgorithmTest, Clz16Test)
+{
+  std::mt19937 rng;
+  rng.seed(123'456'789u);
+  using ResultT =  std::mt19937::result_type;
+  static_assert(std::is_unsigned_v<ResultT>, "The result type isn't unsigned.");
+  static_assert(std::mt19937::max() == std::numeric_limits<zisc::uint32b>::max());
+  static_assert(std::mt19937::min() == std::numeric_limits<zisc::uint32b>::min());
+
+  using UInt = zisc::uint16b;
+  const auto get_expected = [](UInt x)
+  {
+    constexpr std::size_t size = 8 * sizeof(x);
+    UInt c = 0;
+    for (std::size_t index = 0; index < size; ++index) {
+      constexpr UInt msb = zisc::cast<UInt>(0b1u << (size - 1));
+      if (x & msb)
+        break;
+      x = zisc::cast<UInt>(x << 1);
+      ++c;
+    }
+    return c;
+  };
+
+  constexpr std::size_t n = 100'000'000;
+  constexpr char error_message[] = "zisc popcount is wrong.";
+  for (std::size_t i = 0; i < n; ++i) {
+    const UInt x = zisc::cast<UInt>(rng() & 0b1111'1111'1111'1111u);
+    const UInt expected = get_expected(x);
+    const UInt result = zisc::Algorithm::clz(x);
+    ASSERT_EQ(expected, result) << error_message
+        << " x = " << x << ", expected = " << expected << ", result = " << result;
+  }
+}
+
+TEST(AlgorithmTest, Clz16FallbackTest)
+{
+  std::mt19937 rng;
+  rng.seed(123'456'789u);
+  using ResultT =  std::mt19937::result_type;
+  static_assert(std::is_unsigned_v<ResultT>, "The result type isn't unsigned.");
+  static_assert(std::mt19937::max() == std::numeric_limits<zisc::uint32b>::max());
+  static_assert(std::mt19937::min() == std::numeric_limits<zisc::uint32b>::min());
+
+  using UInt = zisc::uint16b;
+  const auto get_expected = [](UInt x)
+  {
+    constexpr std::size_t size = 8 * sizeof(x);
+    UInt c = 0;
+    for (std::size_t index = 0; index < size; ++index) {
+      constexpr UInt msb = zisc::cast<UInt>(0b1u << (size - 1));
+      if (x & msb)
+        break;
+      x = zisc::cast<UInt>(x << 1);
+      ++c;
+    }
+    return c;
+  };
+
+  constexpr std::size_t n = 100'000'000;
+  constexpr char error_message[] = "zisc popcount is wrong.";
+  for (std::size_t i = 0; i < n; ++i) {
+    const UInt x = zisc::cast<UInt>(rng() & 0b1111'1111'1111'1111u);
+    const UInt expected = get_expected(x);
+    const UInt result = zisc::Algorithm::Zisc::clz(x);
+    ASSERT_EQ(expected, result) << error_message
+        << " x = " << x << ", expected = " << expected << ", result = " << result;
+  }
+}
+
+TEST(AlgorithmTest, Clz32Test)
+{
+  std::mt19937 rng;
+  rng.seed(123'456'789u);
+  using ResultT =  std::mt19937::result_type;
+  static_assert(std::is_unsigned_v<ResultT>, "The result type isn't unsigned.");
+  static_assert(std::mt19937::max() == std::numeric_limits<zisc::uint32b>::max());
+  static_assert(std::mt19937::min() == std::numeric_limits<zisc::uint32b>::min());
+
+  using UInt = zisc::uint32b;
+  const auto get_expected = [](UInt x)
+  {
+    constexpr std::size_t size = 8 * sizeof(x);
+    UInt c = 0;
+    for (std::size_t index = 0; index < size; ++index) {
+      constexpr UInt msb = zisc::cast<UInt>(0b1u << (size - 1));
+      if (x & msb)
+        break;
+      x = zisc::cast<UInt>(x << 1);
+      ++c;
+    }
+    return c;
+  };
+
+  constexpr std::size_t n = 100'000'000;
+  constexpr char error_message[] = "zisc popcount is wrong.";
+  for (std::size_t i = 0; i < n; ++i) {
+    const UInt x = zisc::cast<UInt>(rng());
+    const UInt expected = get_expected(x);
+    const UInt result = zisc::Algorithm::clz(x);
+    ASSERT_EQ(expected, result) << error_message
+        << " x = " << x << ", expected = " << expected << ", result = " << result;
+  }
+}
+
+TEST(AlgorithmTest, Clz32FallbackTest)
+{
+  std::mt19937 rng;
+  rng.seed(123'456'789u);
+  using ResultT =  std::mt19937::result_type;
+  static_assert(std::is_unsigned_v<ResultT>, "The result type isn't unsigned.");
+  static_assert(std::mt19937::max() == std::numeric_limits<zisc::uint32b>::max());
+  static_assert(std::mt19937::min() == std::numeric_limits<zisc::uint32b>::min());
+
+  using UInt = zisc::uint32b;
+  const auto get_expected = [](UInt x)
+  {
+    constexpr std::size_t size = 8 * sizeof(x);
+    UInt c = 0;
+    for (std::size_t index = 0; index < size; ++index) {
+      constexpr UInt msb = zisc::cast<UInt>(0b1u << (size - 1));
+      if (x & msb)
+        break;
+      x = zisc::cast<UInt>(x << 1);
+      ++c;
+    }
+    return c;
+  };
+
+  constexpr std::size_t n = 100'000'000;
+  constexpr char error_message[] = "zisc popcount is wrong.";
+  for (std::size_t i = 0; i < n; ++i) {
+    const UInt x = zisc::cast<UInt>(rng());
+    const UInt expected = get_expected(x);
+    const UInt result = zisc::Algorithm::Zisc::clz(x);
+    ASSERT_EQ(expected, result) << error_message
+        << " x = " << x << ", expected = " << expected << ", result = " << result;
+  }
+}
+
+TEST(AlgorithmTest, Clz64Test)
+{
+  std::mt19937_64 rng;
+  rng.seed(123'456'789u);
+  using ResultT =  std::mt19937_64::result_type;
+  static_assert(std::is_unsigned_v<ResultT>, "The result type isn't unsigned.");
+  static_assert(std::mt19937_64::max() == std::numeric_limits<zisc::uint64b>::max());
+  static_assert(std::mt19937_64::min() == std::numeric_limits<zisc::uint64b>::min());
+
+  using UInt = zisc::uint64b;
+  const auto get_expected = [](UInt x)
+  {
+    constexpr std::size_t size = 8 * sizeof(x);
+    UInt c = 0;
+    for (std::size_t index = 0; index < size; ++index) {
+      constexpr UInt msb = zisc::cast<UInt>(0b1ull << (size - 1));
+      if (x & msb)
+        break;
+      x = zisc::cast<UInt>(x << 1);
+      ++c;
+    }
+    return c;
+  };
+
+  constexpr std::size_t n = 100'000'000;
+  constexpr char error_message[] = "zisc popcount is wrong.";
+  for (std::size_t i = 0; i < n; ++i) {
+    const UInt x = zisc::cast<UInt>(rng());
+    const UInt expected = get_expected(x);
+    const UInt result = zisc::Algorithm::clz(x);
+    ASSERT_EQ(expected, result) << error_message
+        << " x = " << x << ", expected = " << expected << ", result = " << result;
+  }
+}
+
+TEST(AlgorithmTest, Clz64FallbackTest)
+{
+  std::mt19937_64 rng;
+  rng.seed(123'456'789u);
+  using ResultT =  std::mt19937_64::result_type;
+  static_assert(std::is_unsigned_v<ResultT>, "The result type isn't unsigned.");
+  static_assert(std::mt19937_64::max() == std::numeric_limits<zisc::uint64b>::max());
+  static_assert(std::mt19937_64::min() == std::numeric_limits<zisc::uint64b>::min());
+
+  using UInt = zisc::uint64b;
+  const auto get_expected = [](UInt x)
+  {
+    constexpr std::size_t size = 8 * sizeof(x);
+    UInt c = 0;
+    for (std::size_t index = 0; index < size; ++index) {
+      constexpr UInt msb = zisc::cast<UInt>(0b1ull << (size - 1));
+      if (x & msb)
+        break;
+      x = zisc::cast<UInt>(x << 1);
+      ++c;
+    }
+    return c;
+  };
+
+  constexpr std::size_t n = 100'000'000;
+  constexpr char error_message[] = "zisc popcount is wrong.";
+  for (std::size_t i = 0; i < n; ++i) {
+    const UInt x = zisc::cast<UInt>(rng());
+    const UInt expected = get_expected(x);
+    const UInt result = zisc::Algorithm::Zisc::clz(x);
+    ASSERT_EQ(expected, result) << error_message
+        << " x = " << x << ", expected = " << expected << ", result = " << result;
+  }
+}
+
+TEST(AlgorithmTest, PopcountFallbackTest)
+{
+  const auto get_expected = [](const zisc::uint32b x)
+  {
+    std::bitset<32> bits{x};
+    return zisc::cast<zisc::uint32b>(bits.count());
+  };
+
+  using zisc::uint32b;
+  constexpr char error_message[] = "zisc popcount is wrong.";
+  {
+    constexpr uint32b x = std::numeric_limits<uint32b>::min();
+    const uint32b expected = get_expected(x);
+    constexpr uint32b result = zisc::Algorithm::Zisc::popcount(x);
+    ASSERT_EQ(expected, result) << error_message
+        << " x = " << x << ", expected = " << expected << ", result = " << result;
+  }
+  {
+    constexpr uint32b x = std::numeric_limits<uint32b>::max();
+    const uint32b expected = get_expected(x);
+    constexpr uint32b result = zisc::Algorithm::Zisc::popcount(x);
+    ASSERT_EQ(expected, result) << error_message
+        << " x = " << x << ", expected = " << expected << ", result = " << result;
+  }
+  {
+    constexpr uint32b x = 0b0011'0101'1100'0000'1001'1010'0100'0001u;
+    const uint32b expected = get_expected(x);
+    constexpr uint32b result = zisc::Algorithm::Zisc::popcount(x);
+    ASSERT_EQ(expected, result) << error_message
+        << " x = " << x << ", expected = " << expected << ", result = " << result;
+  }
+}
+
 TEST(AlgorithmTest, Popcount8Test)
 {
   std::mt19937 rng;
@@ -257,6 +632,32 @@ TEST(AlgorithmTest, Popcount8Test)
     const auto x = zisc::cast<zisc::uint8b>(rng() & 0b1111'1111u);
     const auto expected = get_expected(x);
     const auto result = zisc::Algorithm::popcount(x);
+    ASSERT_EQ(expected, result) << error_message
+        << " x = " << x << ", expected = " << expected << ", result = " << result;
+  }
+}
+
+TEST(AlgorithmTest, Popcount8FallbackTest)
+{
+  std::mt19937 rng;
+  rng.seed(123'456'789u);
+  using UInt =  std::mt19937::result_type;
+  static_assert(std::is_unsigned_v<UInt>, "The result type isn't unsigned.");
+  static_assert(std::mt19937::max() == std::numeric_limits<zisc::uint32b>::max());
+  static_assert(std::mt19937::min() == std::numeric_limits<zisc::uint32b>::min());
+
+  const auto get_expected = [](const zisc::uint8b x)
+  {
+    std::bitset<8> bits{x};
+    return zisc::cast<zisc::uint8b>(bits.count());
+  };
+
+  constexpr std::size_t n = 100'000'000;
+  constexpr char error_message[] = "zisc popcount is wrong.";
+  for (std::size_t i = 0; i < n; ++i) {
+    const auto x = zisc::cast<zisc::uint8b>(rng() & 0b1111'1111u);
+    const auto expected = get_expected(x);
+    const auto result = zisc::Algorithm::Zisc::popcount(x);
     ASSERT_EQ(expected, result) << error_message
         << " x = " << x << ", expected = " << expected << ", result = " << result;
   }
@@ -288,6 +689,32 @@ TEST(AlgorithmTest, Popcount16Test)
   }
 }
 
+TEST(AlgorithmTest, Popcount16FallbackTest)
+{
+  std::mt19937 rng;
+  rng.seed(123'456'789u);
+  using UInt =  std::mt19937::result_type;
+  static_assert(std::is_unsigned_v<UInt>, "The result type isn't unsigned.");
+  static_assert(std::mt19937::max() == std::numeric_limits<zisc::uint32b>::max());
+  static_assert(std::mt19937::min() == std::numeric_limits<zisc::uint32b>::min());
+
+  const auto get_expected = [](const zisc::uint16b x)
+  {
+    std::bitset<16> bits{x};
+    return zisc::cast<zisc::uint16b>(bits.count());
+  };
+
+  constexpr std::size_t n = 100'000'000;
+  constexpr char error_message[] = "zisc popcount is wrong.";
+  for (std::size_t i = 0; i < n; ++i) {
+    const auto x = zisc::cast<zisc::uint16b>(rng() & 0b1111'1111'1111'1111u);
+    const auto expected = get_expected(x);
+    const auto result = zisc::Algorithm::Zisc::popcount(x);
+    ASSERT_EQ(expected, result) << error_message
+        << " x = " << x << ", expected = " << expected << ", result = " << result;
+  }
+}
+
 TEST(AlgorithmTest, Popcount32Test)
 {
   std::mt19937 rng;
@@ -314,6 +741,32 @@ TEST(AlgorithmTest, Popcount32Test)
   }
 }
 
+TEST(AlgorithmTest, Popcount32FallbackTest)
+{
+  std::mt19937 rng;
+  rng.seed(123'456'789u);
+  using UInt =  std::mt19937::result_type;
+  static_assert(std::is_unsigned_v<UInt>, "The result type isn't unsigned.");
+  static_assert(std::mt19937::max() == std::numeric_limits<zisc::uint32b>::max());
+  static_assert(std::mt19937::min() == std::numeric_limits<zisc::uint32b>::min());
+
+  const auto get_expected = [](const zisc::uint32b x)
+  {
+    std::bitset<32> bits{x};
+    return zisc::cast<zisc::uint32b>(bits.count());
+  };
+
+  constexpr std::size_t n = 100'000'000;
+  constexpr char error_message[] = "zisc popcount is wrong.";
+  for (std::size_t i = 0; i < n; ++i) {
+    const auto x = zisc::cast<zisc::uint32b>(rng());
+    const auto expected = get_expected(x);
+    const auto result = zisc::Algorithm::Zisc::popcount(x);
+    ASSERT_EQ(expected, result) << error_message
+        << " x = " << x << ", expected = " << expected << ", result = " << result;
+  }
+}
+
 TEST(AlgorithmTest, Popcount64Test)
 {
   std::mt19937_64 rng;
@@ -335,6 +788,32 @@ TEST(AlgorithmTest, Popcount64Test)
     const auto x = zisc::cast<zisc::uint64b>(rng());
     const auto expected = get_expected(x);
     const auto result = zisc::Algorithm::popcount(x);
+    ASSERT_EQ(expected, result) << error_message
+        << " x = " << x << ", expected = " << expected << ", result = " << result;
+  }
+}
+
+TEST(AlgorithmTest, Popcount64FallbackTest)
+{
+  std::mt19937_64 rng;
+  rng.seed(123'456'789u);
+  using UInt =  std::mt19937_64::result_type;
+  static_assert(std::is_unsigned_v<UInt>, "The result type isn't unsigned.");
+  static_assert(std::mt19937_64::max() == std::numeric_limits<zisc::uint64b>::max());
+  static_assert(std::mt19937_64::min() == std::numeric_limits<zisc::uint64b>::min());
+
+  const auto get_expected = [](const zisc::uint64b x)
+  {
+    std::bitset<64> bits{x};
+    return zisc::cast<zisc::uint64b>(bits.count());
+  };
+
+  constexpr std::size_t n = 100'000'000;
+  constexpr char error_message[] = "zisc popcount is wrong.";
+  for (std::size_t i = 0; i < n; ++i) {
+    const auto x = zisc::cast<zisc::uint64b>(rng());
+    const auto expected = get_expected(x);
+    const auto result = zisc::Algorithm::Zisc::popcount(x);
     ASSERT_EQ(expected, result) << error_message
         << " x = " << x << ", expected = " << expected << ", result = " << result;
   }

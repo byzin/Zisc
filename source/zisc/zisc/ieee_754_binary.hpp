@@ -202,6 +202,11 @@ class Ieee754Binary
   //! Make significand bits from the given floating point
   static constexpr BitType makeSignificandBits(const FloatType value) noexcept;
 
+  //! Round the given value with the trailing bits
+  template <Ieee754RoundingMode kMode, typename UInt>
+  static constexpr BitType round(const BitType bits,
+                                 const UInt trailing_bits) noexcept;
+
   //! Set the data to the given bits
   constexpr void setBits(const BitType data) noexcept;
 
@@ -222,15 +227,22 @@ class Ieee754Binary
   //! Calculate the power of two with the given integer as the exponent
   static constexpr FloatType calcExp2(const int expt) noexcept;
 
+  //! Convert a special value to the dst format
+  template <Ieee754BinaryFormat kDstFormat>
+  constexpr Ieee754Binary<kDstFormat> convertSpecialValue() const noexcept;
+
   //! Scale down floating point precision
   template <Ieee754BinaryFormat kDstFormat, Ieee754RoundingMode kRMode>
-  Ieee754Binary<kDstFormat> scaleDown() const noexcept;
+  constexpr Ieee754Binary<kDstFormat> scaledDown() const noexcept;
 
   //! Scale up floating point precision
-  template <Ieee754BinaryFormat kDstFormat, Ieee754RoundingMode kRMode>
-  Ieee754Binary<kDstFormat> scaleUp() const noexcept;
+  template <Ieee754BinaryFormat kDstFormat>
+  constexpr Ieee754Binary<kDstFormat> scaledUp() const noexcept;
 
   // Bit manipulation
+
+  //! Return the significand bits with implicit bit from the given bits
+  static constexpr BitType getRealSignificandBits(const BitType data) noexcept;
 
   //! Make significand bits from the given floating point
   static constexpr BitType makeSignificandBits(const FloatType value,
@@ -239,6 +251,36 @@ class Ieee754Binary
 
   BitType data_;
 };
+
+//! Check if two values are equal
+template <Ieee754BinaryFormat kFormat>
+constexpr bool operator==(const Ieee754Binary<kFormat>& lhs,
+                          const Ieee754Binary<kFormat>& rhs) noexcept;
+
+//! Check if two values aren't equal
+template <Ieee754BinaryFormat kFormat>
+constexpr bool operator!=(const Ieee754Binary<kFormat>& lhs,
+                          const Ieee754Binary<kFormat>& rhs) noexcept;
+
+//!
+template <Ieee754BinaryFormat kFormat>
+constexpr bool operator<(const Ieee754Binary<kFormat>& lhs,
+                         const Ieee754Binary<kFormat>& rhs) noexcept;
+
+//!
+template <Ieee754BinaryFormat kFormat>
+constexpr bool operator<=(const Ieee754Binary<kFormat>& lhs,
+                          const Ieee754Binary<kFormat>& rhs) noexcept;
+
+//!
+template <Ieee754BinaryFormat kFormat>
+constexpr bool operator>(const Ieee754Binary<kFormat>& lhs,
+                         const Ieee754Binary<kFormat>& rhs) noexcept;
+
+//!
+template <Ieee754BinaryFormat kFormat>
+constexpr bool operator>=(const Ieee754Binary<kFormat>& lhs,
+                          const Ieee754Binary<kFormat>& rhs) noexcept;
 
 // Type aliases
 using Binary16 = Ieee754Binary<Ieee754BinaryFormat::kHalf>;
@@ -250,23 +292,23 @@ using BinaryFromBytes = Ieee754Binary<cast<Ieee754BinaryFormat>(8 * kBytes)>;
 //! Convert the given floating point to the 'Type' binary or floating point
 template <typename Type,
           Ieee754RoundingMode kRMode = kDefaultIeee754RoundingMode>
-Type castBinary(const float value) noexcept;
+constexpr Type castBinary(const float value) noexcept;
 
 //! Convert the given floating point to the 'Type' binary or floating point
 template <typename Type,
           Ieee754RoundingMode kRMode = kDefaultIeee754RoundingMode>
-Type castBinary(const double value) noexcept;
+constexpr Type castBinary(const double value) noexcept;
 
 //! Convert the given floating point to the 'Type' binary or floating point
 template <typename Type,
           Ieee754RoundingMode kRMode = kDefaultIeee754RoundingMode>
-Type castBinary(const long double value) noexcept;
+constexpr Type castBinary(const long double value) noexcept;
 
 //! Convert the given binary to the 'Type' binary or floating point
 template <typename Type,
           Ieee754BinaryFormat kFormat,
           Ieee754RoundingMode kRMode = kDefaultIeee754RoundingMode>
-Type castBinary(const Ieee754Binary<kFormat>& value) noexcept;
+constexpr Type castBinary(const Ieee754Binary<kFormat>& value) noexcept;
 
 // Classification and comparison
 

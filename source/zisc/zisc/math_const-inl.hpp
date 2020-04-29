@@ -25,7 +25,7 @@
 // Zisc
 #include "algorithm.hpp"
 #include "error.hpp"
-#include "floating_point.hpp"
+#include "ieee_754_binary.hpp"
 #include "utility.hpp"
 #include "type_traits.hpp"
 #include "zisc_config.hpp"
@@ -545,15 +545,15 @@ template <typename Float> inline
 constexpr Float Math::frexp(const Float x, int* e) noexcept
 {
   static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-  using FType = FloatingPointFromBytes<sizeof(Float)>;
+  using Binary = BinaryFromBytes<sizeof(Float)>;
   Float y = x;
   constexpr Float zero = cast<Float>(0.0);
   if ((x == zero) || isInf(x) || isNan(x)) {
     *e = 0;
   }
   else {
-    *e = cast<int>(FType::makeExponentBits(x) >> FType::significandBitSize()) -
-         cast<int>(FType::exponentBias() - 1);
+    *e = cast<int>(Binary::makeExponentBits(x) >> Binary::significandBitSize()) -
+         cast<int>(Binary::exponentBias() - 1);
     constexpr Float base = cast<Float>(0.5);
     const Float normalizer = power(base, *e);
     y = normalizer * x;

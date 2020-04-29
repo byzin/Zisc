@@ -13,7 +13,7 @@
 // Standard C++ library
 #include <limits>
 // Zisc
-#include "zisc/floating_point.hpp"
+#include "zisc/ieee_754_binary.hpp"
 #include "zisc/math.hpp"
 #include "zisc/fnv_1a_hash_engine.hpp"
 #include "zisc/utility.hpp"
@@ -27,16 +27,16 @@ template <typename Float> inline
 constexpr Float makeNormal(const Float x) noexcept
 {
   using zisc::cast;
-  using FloatBit = zisc::FloatingPointFromBytes<sizeof(Float)>;
+  using Binary = zisc::BinaryFromBytes<sizeof(Float)>;
 
-  constexpr int bias = cast<int>(FloatBit::exponentBias());
+  constexpr int bias = cast<int>(Binary::exponentBias());
 
   const Float k = cast<Float>(2.0) * zisc::abs(x) - cast<Float>(1.0);
   const Float sign = zisc::isNegative(x) ? cast<Float>(-1.0) : cast<Float>(1.0);
   const int exponent = zisc::clamp(cast<int>(k * cast<Float>(bias)), -bias+1, bias);
 
   const auto h = zisc::Fnv1aHash32::hash(cast<zisc::uint32b>(zisc::abs(exponent)));
-  const Float s = cast<Float>(zisc::SingleFloat::mapTo01(h));
+  const Float s = Binary::mapTo01(h);
 
   Float normal = s * zisc::power(cast<Float>(2.0), exponent);
   normal = sign * zisc::clamp(normal,

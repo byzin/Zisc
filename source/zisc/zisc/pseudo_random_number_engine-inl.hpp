@@ -21,7 +21,7 @@
 #include <type_traits>
 // Zisc
 #include "error.hpp"
-#include "floating_point.hpp"
+#include "ieee_754_binary.hpp"
 #include "type_traits.hpp"
 #include "utility.hpp"
 #include "zisc_config.hpp"
@@ -109,9 +109,9 @@ Float PseudoRandomNumberEngine<GeneratorClass, Seed, Result>::generate01Float()
   // Generate a integer random number
   const ResultType x = generate();
   // Map to a [0, 1) float
-  using FloatType = FloatingPointFromBytes<sizeof(Float)>;
-  const Float result = FloatType::mapTo01(x);
-  return result;
+  using Binary = BinaryFromBytes<sizeof(Float)>;
+  const auto y = Binary::mapTo01(x);
+  return y;
 }
 
 /*!

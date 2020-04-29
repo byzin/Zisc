@@ -149,6 +149,12 @@ class Ieee754Binary
   //! Return the positive zero
   static constexpr Ieee754Binary zero() noexcept;
 
+  // Utility
+
+  //! Map an integer value into a [0, 1) floating point value
+  template <typename UInt>
+  static constexpr FloatType mapTo01(const UInt x) noexcept;
+
   // Bit manipulation
 
   //! Return the bits in which a floating point is encoded
@@ -240,6 +246,10 @@ class Ieee754Binary
   constexpr Ieee754Binary<kDstFormat> scaledUp() const noexcept;
 
   // Bit manipulation
+
+  //! Expand the given bits to the bit length of the internal data type
+  template <typename UInt>
+  static constexpr BitType expandBits(const UInt x) noexcept;
 
   //! Return the significand bits with implicit bit from the given bits
   static constexpr BitType getRealSignificandBits(const BitType data) noexcept;

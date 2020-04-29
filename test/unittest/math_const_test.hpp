@@ -25,8 +25,8 @@
 // GoogleTest
 #include "gtest/gtest.h"
 // Zisc
+#include "zisc/ieee_754_binary.hpp"
 #include "zisc/math_const.hpp"
-#include "zisc/floating_point.hpp"
 #include "zisc/utility.hpp"
 #include "zisc/zisc_config.hpp"
 // Test
@@ -35,15 +35,15 @@
 template <typename Float>
 void printFloat(const char* message, const Float x)
 {
-  using FloatData = zisc::FloatingPointFromBytes<sizeof(Float)>;
+  using Binary = zisc::BinaryFromBytes<sizeof(Float)>;
   std::cout << std::setfill(' ') << std::setw(24) << message << ": "
             << std::scientific
             << std::setprecision(std::numeric_limits<Float>::max_digits10)
             << x;
-  if (sizeof(FloatData) == 4)
+  if (sizeof(Binary) == 4)
     std::cout << "f";
   std::cout << std::endl;
-  const auto data = FloatData::fromFloat(x);
+  const Binary data = zisc::castBinary<Binary>(x);
   std::cout << "                     hex: " << std::hex << data.bits() << std::endl;
   std::cout << std::dec;
 }

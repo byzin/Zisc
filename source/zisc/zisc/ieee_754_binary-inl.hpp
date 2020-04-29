@@ -435,6 +435,26 @@ constexpr auto Ieee754Binary<kFormat>::zero() noexcept -> Ieee754Binary
 /*!
   \details No detailed description
 
+  \tparam UInt No description.
+  \param [in] x No description.
+  \return No description
+  */
+template <Ieee754BinaryFormat kFormat> template <typename UInt> inline
+constexpr auto Ieee754Binary<kFormat>::mapTo01(const UInt x) noexcept
+    -> FloatType
+{
+  static_assert(kIsUnsignedInteger<UInt>, "UInt isn't unsigned integer.");
+  constexpr FloatType k =
+      cast<FloatType>(1) /
+      cast<FloatType>(cast<BitType>(0b1u) << (significandBitSize() + 1));
+  const BitType r = cast<BitType>(expandBits(x) >> exponentBitSize());
+  const FloatType y = k * cast<FloatType>(r);
+  return y;
+}
+
+/*!
+  \details No detailed description
+
   \return No description
   */
 template <Ieee754BinaryFormat kFormat> inline
@@ -936,6 +956,34 @@ constexpr Ieee754Binary<kDstFormat> Ieee754Binary<kFormat>::scaledUp() const noe
   dst = (getSignBit(bits()) == 0) ? dst : -dst;
 
   return dst;
+}
+
+/*!
+  \details No detailed description
+
+  \tparam UInt No description.
+  \param [in] x No description.
+  \return No description
+  */
+template <Ieee754BinaryFormat kFormat> template <typename UInt> inline
+constexpr auto Ieee754Binary<kFormat>::expandBits(const UInt x) noexcept -> BitType
+{
+  static_assert(kIsUnsignedInteger<UInt>, "UInt isn't unsigned integer.");
+  constexpr std::size_t x_size = 8 * sizeof(UInt);
+  constexpr std::size_t bit_size = 8 * sizeof(BitType);
+  BitType result = 0;
+  if constexpr (x_size == bit_size) {
+    result = x;
+  }
+  else if constexpr (x_size < bit_size) {
+    constexpr std::size_t diff = bit_size - x_size;
+    result = cast<BitType>(cast<BitType>(x) << diff);
+  }
+  else {
+    constexpr std::size_t diff = x_size - bit_size;
+    result = cast<BitType>(x >> diff);
+  }
+  return result;
 }
 
 /*!

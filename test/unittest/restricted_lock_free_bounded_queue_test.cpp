@@ -1,5 +1,5 @@
 /*!
-  \file lock_free_bounded_queue_test.cpp
+  \file restricted_lock_free_bounded_queue_test.cpp
   \author Sho Ikeda
   \brief No brief description
 
@@ -28,7 +28,7 @@
 #include "gtest/gtest.h"
 // Zisc
 #include "zisc/error.hpp"
-#include "zisc/lock_free_bounded_queue.hpp"
+#include "zisc/restricted_lock_free_bounded_queue.hpp"
 #include "zisc/non_copyable.hpp"
 #include "zisc/simple_memory_resource.hpp"
 #include "zisc/stopwatch.hpp"
@@ -37,29 +37,10 @@
 // Test
 #include "lock_free_bounded_queue_test.hpp"
 
-TEST(LockFreeBoundedQueueTest, LockFreeTest)
-{
-  {
-    std::atomic<zisc::int32b> v;
-    EXPECT_TRUE(v.is_always_lock_free) << "std::atomic<int32_t> isn't lock free.";
-  }
-  {
-    std::atomic<zisc::uint32b> v;
-    EXPECT_TRUE(v.is_always_lock_free) << "std::atomic<uint32_t> isn't lock free.";
-  }
-  {
-    std::atomic<zisc::int64b> v;
-    EXPECT_TRUE(v.is_always_lock_free) << "std::atomic<int64_t> isn't lock free.";
-  }
-  {
-    std::atomic<zisc::uint64b> v;
-    EXPECT_TRUE(v.is_always_lock_free) << "std::atomic<uint64_t> isn't lock free.";
-  }
-}
 
-TEST(LockFreeBoundedQueueTest, ConstructorTest)
+TEST(RestrictedLockFreeBoundedQueueTest, ConstructorTest)
 {
-  using Queue = zisc::LockFreeBoundedQueue<int>;
+  using Queue = zisc::RestrictedLockFreeBoundedQueue<int>;
 
   zisc::SimpleMemoryResource mem_resource;
   std::unique_ptr<Queue> q;
@@ -88,9 +69,9 @@ TEST(LockFreeBoundedQueueTest, ConstructorTest)
   ASSERT_EQ(cap, q->capacity()) << "Constructing of LockFreeBoundedQueue failed.";
 }
 
-TEST(LockFreeBoundedQueueTest, QueueTest)
+TEST(RestrictedLockFreeBoundedQueueTest, QueueTest)
 {
-  using Queue = zisc::LockFreeBoundedQueue<int>;
+  using Queue = zisc::RestrictedLockFreeBoundedQueue<int>;
 
   zisc::SimpleMemoryResource mem_resource;
   Queue q{8, &mem_resource};
@@ -190,9 +171,9 @@ class Movable : public zisc::NonCopyable<Movable>
 
 }
 
-TEST(LockFreeBoundedQueueTest, QueueMovableValueTest)
+TEST(RestrictedLockFreeBoundedQueueTest, QueueMovableValueTest)
 {
-  using Queue = zisc::LockFreeBoundedQueue<::Movable>;
+  using Queue = zisc::RestrictedLockFreeBoundedQueue<::Movable>;
 
   zisc::SimpleMemoryResource mem_resource;
   Queue q{8, &mem_resource};
@@ -244,9 +225,9 @@ TEST(LockFreeBoundedQueueTest, QueueMovableValueTest)
   ASSERT_TRUE(q.isEmpty()) << message;
 }
 
-TEST(LockFreeBoundedQueueTest, MultiThreadTest)
+TEST(RestrictedLockFreeBoundedQueueTest, MultiThreadTest)
 {
-  using Queue = zisc::LockFreeBoundedQueue<std::size_t>;
+  using Queue = zisc::RestrictedLockFreeBoundedQueue<std::size_t>;
 
   constexpr std::size_t num_of_threads = 1 << 5;
   constexpr std::size_t works_per_thread = 1 << 19; 
@@ -328,14 +309,14 @@ TEST(LockFreeBoundedQueueTest, MultiThreadTest)
     ASSERT_TRUE(results[i]) << "Multiple consumer test failed.";
 }
 
-TEST(LockFreeBoundedQueueTest, ConcurrencyTest)
+TEST(RestrictedLockFreeBoundedQueueTest, ConcurrencyTest)
 {
   constexpr std::size_t num_of_threads = 64;
   constexpr std::size_t num_of_thread_tasks = 0b1u << 21;
   constexpr std::size_t num_of_tasks = num_of_threads * num_of_thread_tasks;
   using zisc::uint64b;
   using zisc::uint32b;
-  using Queue = zisc::LockFreeBoundedQueue<uint64b>;
+  using Queue = zisc::RestrictedLockFreeBoundedQueue<uint64b>;
   using Test = LockFreeBoundedQueueTest<Queue, num_of_threads, num_of_thread_tasks>;
   static_assert(num_of_tasks <= Queue::capacityMax());
 
@@ -372,14 +353,14 @@ TEST(LockFreeBoundedQueueTest, ConcurrencyTest)
   }
 }
 
-TEST(LockFreeBoundedQueueTest, ConcurrencyLoopTest)
+TEST(RestrictedLockFreeBoundedQueueTest, ConcurrencyLoopTest)
 {
   constexpr std::size_t num_of_threads = 64;
   constexpr std::size_t num_of_thread_tasks = 0b1u << 21;
   constexpr std::size_t num_of_tasks = num_of_threads * num_of_thread_tasks;
   using zisc::uint64b;
   using zisc::uint32b;
-  using Queue = zisc::LockFreeBoundedQueue<uint64b>;
+  using Queue = zisc::RestrictedLockFreeBoundedQueue<uint64b>;
   using Test = LockFreeBoundedQueueTest<Queue, num_of_threads, num_of_thread_tasks>;
   static_assert(num_of_tasks <= Queue::capacityMax());
 
@@ -419,14 +400,14 @@ TEST(LockFreeBoundedQueueTest, ConcurrencyLoopTest)
   }
 }
 
-TEST(LockFreeBoundedQueueTest, ConcurrencyTest2)
+TEST(RestrictedLockFreeBoundedQueueTest, ConcurrencyTest2)
 {
   constexpr std::size_t num_of_threads = 64;
   constexpr std::size_t num_of_thread_tasks = 0b1u << 20;
   constexpr std::size_t num_of_tasks = num_of_threads * num_of_thread_tasks;
   using zisc::uint64b;
   using zisc::uint32b;
-  using Queue = zisc::LockFreeBoundedQueue<uint64b>;
+  using Queue = zisc::RestrictedLockFreeBoundedQueue<uint64b>;
   using Test = LockFreeBoundedQueueTest<Queue, num_of_threads, num_of_thread_tasks>;
   static_assert(num_of_tasks <= Queue::capacityMax());
 
@@ -485,14 +466,14 @@ TEST(LockFreeBoundedQueueTest, ConcurrencyTest2)
   }
 }
 
-TEST(LockFreeBoundedQueueTest, ConcurrencyLoopTest2)
+TEST(RestrictedLockFreeBoundedQueueTest, ConcurrencyLoopTest2)
 {
   constexpr std::size_t num_of_threads = 64;
   constexpr std::size_t num_of_thread_tasks = 0b1u << 20;
   constexpr std::size_t num_of_tasks = num_of_threads * num_of_thread_tasks;
   using zisc::uint64b;
   using zisc::uint32b;
-  using Queue = zisc::LockFreeBoundedQueue<uint64b>;
+  using Queue = zisc::RestrictedLockFreeBoundedQueue<uint64b>;
   using Test = LockFreeBoundedQueueTest<Queue, num_of_threads, num_of_thread_tasks>;
   static_assert(num_of_tasks <= Queue::capacityMax());
 

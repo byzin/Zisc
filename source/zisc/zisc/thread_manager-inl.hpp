@@ -34,8 +34,9 @@
 // Zisc
 #include "atomic.hpp"
 #include "error.hpp"
-#include "type_traits.hpp"
+#include "scalable_circular_queue.hpp"
 #include "std_memory_resource.hpp"
+#include "type_traits.hpp"
 #include "utility.hpp"
 #include "zisc_config.hpp"
 
@@ -418,9 +419,9 @@ void ThreadManager::setCapacity(const std::size_t cap) noexcept
   \return No description
   */
 inline
-int ThreadManager::size() const noexcept
+std::size_t ThreadManager::size() const noexcept
 {
-  const int s = task_queue_.size();
+  const std::size_t s = task_queue_.size();
   return s;
 }
 
@@ -598,7 +599,7 @@ auto ThreadManager::enqueueImpl(Task&& task) -> UniqueResult<ReturnType>
     try {
       task_queue_.enqueue(std::move(worker_task));
     }
-    catch (const LockFreeBoundedQueue<UniqueTask>::OverflowError& /* error */) {
+    catch (const Queue::OverflowError& /* error */) {
       Atomic::decrement(std::addressof(lock_.get()));
       throw SingleTaskOverflowError{"Task queue overflow happened.",
                                     resource(),
@@ -778,7 +779,7 @@ auto ThreadManager::enqueueLoopImpl(Task&& task,
       try {
         task_queue_.enqueue(std::move(worker_task));
       }
-      catch (const LockFreeBoundedQueue<UniqueTask>::OverflowError& /* error */) {
+      catch (const Queue::OverflowError& /* error */) {
         const int rest = cast<int>(distance(ite, end));
         shared_data->counter_ -= (rest - 1);
         Atomic::sub(std::addressof(lock_.get()), rest);

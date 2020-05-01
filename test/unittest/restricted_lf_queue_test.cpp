@@ -1,5 +1,5 @@
 /*!
-  \file restricted_lock_free_bounded_queue_test.cpp
+  \file restricted_lf_queue_test.cpp
   \author Sho Ikeda
   \brief No brief description
 
@@ -28,7 +28,7 @@
 #include "gtest/gtest.h"
 // Zisc
 #include "zisc/error.hpp"
-#include "zisc/restricted_lock_free_bounded_queue.hpp"
+#include "zisc/restricted_lf_queue.hpp"
 #include "zisc/non_copyable.hpp"
 #include "zisc/simple_memory_resource.hpp"
 #include "zisc/stopwatch.hpp"
@@ -38,9 +38,9 @@
 #include "lock_free_bounded_queue_test.hpp"
 
 
-TEST(RestrictedLockFreeBoundedQueueTest, ConstructorTest)
+TEST(RestrictedLFQueueTest, ConstructorTest)
 {
-  using Queue = zisc::RestrictedLockFreeBoundedQueue<int>;
+  using Queue = zisc::RestrictedLFQueue<int>;
 
   zisc::SimpleMemoryResource mem_resource;
   std::unique_ptr<Queue> q;
@@ -69,9 +69,9 @@ TEST(RestrictedLockFreeBoundedQueueTest, ConstructorTest)
   ASSERT_EQ(cap, q->capacity()) << "Constructing of LockFreeBoundedQueue failed.";
 }
 
-TEST(RestrictedLockFreeBoundedQueueTest, QueueTest)
+TEST(RestrictedLFQueueTest, QueueTest)
 {
-  using Queue = zisc::RestrictedLockFreeBoundedQueue<int>;
+  using Queue = zisc::RestrictedLFQueue<int>;
 
   zisc::SimpleMemoryResource mem_resource;
   Queue q{8, &mem_resource};
@@ -171,9 +171,9 @@ class Movable : public zisc::NonCopyable<Movable>
 
 }
 
-TEST(RestrictedLockFreeBoundedQueueTest, QueueMovableValueTest)
+TEST(RestrictedLFQueueTest, QueueMovableValueTest)
 {
-  using Queue = zisc::RestrictedLockFreeBoundedQueue<::Movable>;
+  using Queue = zisc::RestrictedLFQueue<::Movable>;
 
   zisc::SimpleMemoryResource mem_resource;
   Queue q{8, &mem_resource};
@@ -225,9 +225,9 @@ TEST(RestrictedLockFreeBoundedQueueTest, QueueMovableValueTest)
   ASSERT_TRUE(q.isEmpty()) << message;
 }
 
-TEST(RestrictedLockFreeBoundedQueueTest, MultiThreadTest)
+TEST(RestrictedLFQueueTest, MultiThreadTest)
 {
-  using Queue = zisc::RestrictedLockFreeBoundedQueue<std::size_t>;
+  using Queue = zisc::RestrictedLFQueue<std::size_t>;
 
   constexpr std::size_t num_of_threads = 1 << 5;
   constexpr std::size_t works_per_thread = 1 << 19; 
@@ -309,14 +309,14 @@ TEST(RestrictedLockFreeBoundedQueueTest, MultiThreadTest)
     ASSERT_TRUE(results[i]) << "Multiple consumer test failed.";
 }
 
-TEST(RestrictedLockFreeBoundedQueueTest, ConcurrencyTest)
+TEST(RestrictedLFQueueTest, ConcurrencyTest)
 {
   constexpr std::size_t num_of_threads = 64;
   constexpr std::size_t num_of_thread_tasks = 0b1u << 21;
   constexpr std::size_t num_of_tasks = num_of_threads * num_of_thread_tasks;
   using zisc::uint64b;
   using zisc::uint32b;
-  using Queue = zisc::RestrictedLockFreeBoundedQueue<uint64b>;
+  using Queue = zisc::RestrictedLFQueue<uint64b>;
   using Test = LockFreeBoundedQueueTest<Queue, num_of_threads, num_of_thread_tasks>;
   static_assert(num_of_tasks <= Queue::capacityMax());
 
@@ -327,6 +327,7 @@ TEST(RestrictedLockFreeBoundedQueueTest, ConcurrencyTest)
   uint64b elapsed_time = 0;
   bool result = Test::testEnqueue(q, elapsed_time);
   ASSERT_TRUE(result) << "The enqueue operation in multi-thread failed.";
+  ASSERT_EQ(num_of_tasks, q.size());
   std::cout << "Multiple producer time: " << elapsed_time << " ms" << std::endl;
 
   {
@@ -347,20 +348,21 @@ TEST(RestrictedLockFreeBoundedQueueTest, ConcurrencyTest)
   data.resize(num_of_tasks, 0);
   result = Test::testDequeue(q, data, elapsed_time);
   ASSERT_TRUE(result) << "The dequeue operation in multi-thread failed.";
+  ASSERT_EQ(0, q.size());
   std::cout << "Multiple consumer time: " << elapsed_time << " ms" << std::endl;
   for (auto flag : data) {
     ASSERT_TRUE(flag) << "Dequeue concurrency test failed.";
   }
 }
 
-TEST(RestrictedLockFreeBoundedQueueTest, ConcurrencyLoopTest)
+TEST(RestrictedLFQueueTest, ConcurrencyLoopTest)
 {
   constexpr std::size_t num_of_threads = 64;
   constexpr std::size_t num_of_thread_tasks = 0b1u << 21;
   constexpr std::size_t num_of_tasks = num_of_threads * num_of_thread_tasks;
   using zisc::uint64b;
   using zisc::uint32b;
-  using Queue = zisc::RestrictedLockFreeBoundedQueue<uint64b>;
+  using Queue = zisc::RestrictedLFQueue<uint64b>;
   using Test = LockFreeBoundedQueueTest<Queue, num_of_threads, num_of_thread_tasks>;
   static_assert(num_of_tasks <= Queue::capacityMax());
 
@@ -373,6 +375,7 @@ TEST(RestrictedLockFreeBoundedQueueTest, ConcurrencyLoopTest)
     uint64b elapsed_time = 0;
     bool result = Test::testEnqueue(q, elapsed_time);
     ASSERT_TRUE(result) << "The enqueue operation in multi-thread failed.";
+    ASSERT_EQ(num_of_tasks, q.size());
     std::cout << "    Multiple producer time: " << elapsed_time << " ms" << std::endl;
 
     {
@@ -393,6 +396,7 @@ TEST(RestrictedLockFreeBoundedQueueTest, ConcurrencyLoopTest)
     data.resize(num_of_tasks, 0);
     result = Test::testDequeue(q, data, elapsed_time);
     ASSERT_TRUE(result) << "The dequeue operation in multi-thread failed.";
+    ASSERT_EQ(0, q.size());
     std::cout << "    Multiple consumer time: " << elapsed_time << " ms" << std::endl;
     for (auto flag : data) {
       ASSERT_TRUE(flag) << "Dequeue concurrency test failed.";
@@ -400,14 +404,14 @@ TEST(RestrictedLockFreeBoundedQueueTest, ConcurrencyLoopTest)
   }
 }
 
-TEST(RestrictedLockFreeBoundedQueueTest, ConcurrencyTest2)
+TEST(RestrictedLFQueueTest, ConcurrencyTest2)
 {
   constexpr std::size_t num_of_threads = 64;
   constexpr std::size_t num_of_thread_tasks = 0b1u << 20;
   constexpr std::size_t num_of_tasks = num_of_threads * num_of_thread_tasks;
   using zisc::uint64b;
   using zisc::uint32b;
-  using Queue = zisc::RestrictedLockFreeBoundedQueue<uint64b>;
+  using Queue = zisc::RestrictedLFQueue<uint64b>;
   using Test = LockFreeBoundedQueueTest<Queue, num_of_threads, num_of_thread_tasks>;
   static_assert(num_of_tasks <= Queue::capacityMax());
 
@@ -418,6 +422,7 @@ TEST(RestrictedLockFreeBoundedQueueTest, ConcurrencyTest2)
   uint64b elapsed_time = 0;
   bool result = Test::testEnqueue(q, elapsed_time);
   ASSERT_TRUE(result) << "The enqueue operation in multi-thread failed.";
+  ASSERT_EQ(num_of_tasks, q.size());
   std::cout << "Multiple producer time: " << elapsed_time << " ms" << std::endl;
 
   {
@@ -438,6 +443,7 @@ TEST(RestrictedLockFreeBoundedQueueTest, ConcurrencyTest2)
   data.resize(num_of_tasks, 0);
   result = Test::testEnqueueDequeue(q, data, elapsed_time);
   ASSERT_TRUE(result) << "The enqueue dequeue operations in multi-thread failed.";
+  ASSERT_EQ(num_of_tasks, q.size());
   std::cout << "Multiple prodcons time: " << elapsed_time << " ms" << std::endl;
   for (auto flag : data) {
     ASSERT_TRUE(flag) << "Dequeue concurrency test failed.";
@@ -460,20 +466,21 @@ TEST(RestrictedLockFreeBoundedQueueTest, ConcurrencyTest2)
   std::fill(data.begin(), data.end(), 0);
   result = Test::testDequeue(q, data, elapsed_time);
   ASSERT_TRUE(result) << "The dequeue operation in multi-thread failed.";
+  ASSERT_EQ(0, q.size());
   std::cout << "Multiple consumer time: " << elapsed_time << " ms" << std::endl;
   for (auto flag : data) {
     ASSERT_TRUE(flag) << "Dequeue concurrency test failed.";
   }
 }
 
-TEST(RestrictedLockFreeBoundedQueueTest, ConcurrencyLoopTest2)
+TEST(RestrictedLFQueueTest, ConcurrencyLoopTest2)
 {
   constexpr std::size_t num_of_threads = 64;
   constexpr std::size_t num_of_thread_tasks = 0b1u << 20;
   constexpr std::size_t num_of_tasks = num_of_threads * num_of_thread_tasks;
   using zisc::uint64b;
   using zisc::uint32b;
-  using Queue = zisc::RestrictedLockFreeBoundedQueue<uint64b>;
+  using Queue = zisc::RestrictedLFQueue<uint64b>;
   using Test = LockFreeBoundedQueueTest<Queue, num_of_threads, num_of_thread_tasks>;
   static_assert(num_of_tasks <= Queue::capacityMax());
 
@@ -486,6 +493,7 @@ TEST(RestrictedLockFreeBoundedQueueTest, ConcurrencyLoopTest2)
     uint64b elapsed_time = 0;
     bool result = Test::testEnqueue(q, elapsed_time);
     ASSERT_TRUE(result) << "The enqueue operation in multi-thread failed.";
+    ASSERT_EQ(num_of_tasks, q.size());
     std::cout << "    Multiple producer time: " << elapsed_time << " ms" << std::endl;
 
     {
@@ -506,6 +514,7 @@ TEST(RestrictedLockFreeBoundedQueueTest, ConcurrencyLoopTest2)
     data.resize(num_of_tasks, 0);
     result = Test::testEnqueueDequeue(q, data, elapsed_time);
     ASSERT_TRUE(result) << "The enqueue dequeue operations in multi-thread failed.";
+    ASSERT_EQ(num_of_tasks, q.size());
     std::cout << "    Multiple prodcons time: " << elapsed_time << " ms" << std::endl;
     for (auto flag : data) {
       ASSERT_TRUE(flag) << "Dequeue concurrency test failed.";
@@ -528,6 +537,7 @@ TEST(RestrictedLockFreeBoundedQueueTest, ConcurrencyLoopTest2)
     std::fill(data.begin(), data.end(), 0);
     result = Test::testDequeue(q, data, elapsed_time);
     ASSERT_TRUE(result) << "The dequeue operation in multi-thread failed.";
+    ASSERT_EQ(0, q.size());
     std::cout << "    Multiple consumer time: " << elapsed_time << " ms" << std::endl;
     for (auto flag : data) {
       ASSERT_TRUE(flag) << "Dequeue concurrency test failed.";

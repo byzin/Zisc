@@ -49,6 +49,9 @@ function(initZiscOptions)
   else()
     setBooleanOption(ZISC_ENABLE_ASSERTION OFF ${option_description})
   endif()
+
+  set(option_description "L1 cache line size")
+  setStringOption(ZISC_L1_CACHE_LINE_SIZE "128" ${option_description})
 endfunction(initZiscOptions)
 
 

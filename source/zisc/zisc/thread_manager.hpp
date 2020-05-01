@@ -26,7 +26,7 @@
 // Zisc
 #include "atomic.hpp"
 #include "error.hpp"
-#include "lock_free_bounded_queue.hpp"
+#include "scalable_circular_queue.hpp"
 #include "non_copyable.hpp"
 #include "std_memory_resource.hpp"
 #include "type_traits.hpp"
@@ -205,7 +205,7 @@ class ThreadManager : private NonCopyable<ThreadManager>
   void setCapacity(const std::size_t cap) noexcept;
 
   //! Return the number of queued tasks
-  int size() const noexcept;
+  std::size_t size() const noexcept;
 
  private:
   using Lock = AtomicWord<Config::isAtomicOsSpecifiedWaitUsed()>;
@@ -220,6 +220,7 @@ class ThreadManager : private NonCopyable<ThreadManager>
     virtual void run(const uint thread_id) = 0;
   };
   using UniqueTask = pmr::unique_ptr<WorkerTask>;
+  using Queue = ScalableCircularQueue<UniqueTask>;
 
 
   //! Create worker threads
@@ -274,7 +275,7 @@ class ThreadManager : private NonCopyable<ThreadManager>
   bool workersAreEnabled() const noexcept;
 
 
-  LockFreeBoundedQueue<UniqueTask> task_queue_;
+  Queue task_queue_;
   pmr::vector<std::thread> workers_;
   Lock lock_;
 };

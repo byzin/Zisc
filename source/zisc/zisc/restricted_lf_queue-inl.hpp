@@ -1,5 +1,5 @@
 /*!
-  \file restricted_lock_free_bounded_queue-inl.hpp
+  \file restricted_lf_queue-inl.hpp
   \author Sho Ikeda
   \brief No brief description
 
@@ -12,10 +12,10 @@
   http://opensource.org/licenses/mit-license.php
   */
 
-#ifndef ZISC_RESTRICTED_LOCK_FREE_BOUNDED_QUEUE_INL_HPP
-#define ZISC_RESTRICTED_LOCK_FREE_BOUNDED_QUEUE_INL_HPP
+#ifndef ZISC_RESTRICTED_LF_QUEUE_INL_HPP
+#define ZISC_RESTRICTED_LF_QUEUE_INL_HPP
 
-#include "restricted_lock_free_bounded_queue.hpp"
+#include "restricted_lf_queue.hpp"
 // Standard C++ library
 #include <algorithm>
 #include <limits>
@@ -38,80 +38,12 @@ namespace zisc {
 /*!
   \details No detailed description
 
-  \param [in] what_arg No description.
-  \param [in] value No description.
-  */
-template <typename T> inline
-RestrictedLockFreeBoundedQueue<T>::OverflowError::OverflowError(
-    const std::string_view what_arg,
-    pmr::memory_resource* mem_resource,
-    ConstReference value) :
-        SystemError(ErrorCode::kLockFreeBoundedQueueOverflow, what_arg),
-        value_{std::allocate_shared<Type>(
-            pmr::polymorphic_allocator<Type>{mem_resource},
-            value)}
-{
-}
-
-/*!
-  \details No detailed description
-
-  \param [in] what_arg No description.
-  \param [in] value No description.
-  */
-template <typename T> inline
-RestrictedLockFreeBoundedQueue<T>::OverflowError::OverflowError(
-    const std::string_view what_arg,
-    pmr::memory_resource* mem_resource,
-    RReference value) :
-        SystemError(ErrorCode::kLockFreeBoundedQueueOverflow, what_arg),
-        value_{std::allocate_shared<Type>(
-            pmr::polymorphic_allocator<Type>{mem_resource},
-            std::move(value))}
-{
-}
-
-/*!
-  \details No detailed description
-  */
-template <typename T> inline
-RestrictedLockFreeBoundedQueue<T>::OverflowError::~OverflowError()
-{
-}
-
-/*!
-  \details No detailed description
-
-  \return No description
-  */
-template <typename T> inline
-auto RestrictedLockFreeBoundedQueue<T>::OverflowError::get() noexcept
-    -> Reference
-{
-  return *value_;
-}
-
-/*!
-  \details No detailed description
-
-  \return No description
-  */
-template <typename T> inline
-auto RestrictedLockFreeBoundedQueue<T>::OverflowError::get() const noexcept
-    -> ConstReference
-{
-  return *value_;
-}
-
-/*!
-  \details No detailed description
-
   \param [in,out] mem_resource No description.
   */
 template <typename T> inline
-RestrictedLockFreeBoundedQueue<T>::RestrictedLockFreeBoundedQueue(
+RestrictedLFQueue<T>::RestrictedLFQueue(
     pmr::memory_resource* mem_resource) noexcept :
-        RestrictedLockFreeBoundedQueue(1, mem_resource)
+        RestrictedLFQueue(1, mem_resource)
 {
 }
 
@@ -122,9 +54,10 @@ RestrictedLockFreeBoundedQueue<T>::RestrictedLockFreeBoundedQueue(
   \param [in,out] mem_resource No description.
   */
 template <typename T> inline
-RestrictedLockFreeBoundedQueue<T>::RestrictedLockFreeBoundedQueue(
+RestrictedLFQueue<T>::RestrictedLFQueue(
     const size_type cap,
     pmr::memory_resource* mem_resource) noexcept :
+        BaseQueueType(),
         elements_{typename container_type::allocator_type{mem_resource}},
         indices_{typename pmr::vector<uint64b>::allocator_type{mem_resource}},
         status_{typename pmr::vector<uint8b>::allocator_type{mem_resource}},
@@ -140,8 +73,9 @@ RestrictedLockFreeBoundedQueue<T>::RestrictedLockFreeBoundedQueue(
   \param [in] other No description.
   */
 template <typename T> inline
-RestrictedLockFreeBoundedQueue<T>::RestrictedLockFreeBoundedQueue(
-    RestrictedLockFreeBoundedQueue&& other) noexcept :
+RestrictedLFQueue<T>::RestrictedLFQueue(
+    RestrictedLFQueue&& other) noexcept :
+        BaseQueueType(other),
         elements_{std::move(other.elements_)},
         indices_{std::move(other.indices_)},
         status_{std::move(other.status_)},
@@ -156,10 +90,11 @@ RestrictedLockFreeBoundedQueue<T>::RestrictedLockFreeBoundedQueue(
   \param [in] other No description.
   */
 template <typename T> inline
-auto RestrictedLockFreeBoundedQueue<T>::operator=(
-    RestrictedLockFreeBoundedQueue&& other) noexcept
-        -> RestrictedLockFreeBoundedQueue&
+auto RestrictedLFQueue<T>::operator=(
+    RestrictedLFQueue&& other) noexcept
+        -> RestrictedLFQueue&
 {
+  //! \todo Base type operator=
   elements_ = std::move(other.elements_);
   indices_ = std::move(other.indices_);
   status_ = std::move(other.status_);
@@ -174,7 +109,7 @@ auto RestrictedLockFreeBoundedQueue<T>::operator=(
   \return No description
   */
 template <typename T> inline
-auto RestrictedLockFreeBoundedQueue<T>::capacity() const noexcept -> size_type
+auto RestrictedLFQueue<T>::capacity() const noexcept -> size_type
 {
   const size_type cap = elements_.size();
   return cap;
@@ -186,7 +121,7 @@ auto RestrictedLockFreeBoundedQueue<T>::capacity() const noexcept -> size_type
   \return No description
   */
 template <typename T> inline
-constexpr auto RestrictedLockFreeBoundedQueue<T>::capacityMax() noexcept -> size_type
+constexpr auto RestrictedLFQueue<T>::capacityMax() noexcept -> size_type
 {
   const size_type cap = std::numeric_limits<uint64b>::max() >> 1;
   return cap;
@@ -196,7 +131,7 @@ constexpr auto RestrictedLockFreeBoundedQueue<T>::capacityMax() noexcept -> size
   \details No detailed description
   */
 template <typename T> inline
-void RestrictedLockFreeBoundedQueue<T>::clear() noexcept
+void RestrictedLFQueue<T>::clear() noexcept
 {
   constexpr uint64b null = getNull(0);
   std::fill(indices_.begin(), indices_.end(), null);
@@ -211,7 +146,7 @@ void RestrictedLockFreeBoundedQueue<T>::clear() noexcept
   \return No description
   */
 template <typename T> inline
-auto RestrictedLockFreeBoundedQueue<T>::data() const noexcept -> const container_type&
+auto RestrictedLFQueue<T>::data() const noexcept -> const container_type&
 {
   return elements_;
 }
@@ -222,7 +157,7 @@ auto RestrictedLockFreeBoundedQueue<T>::data() const noexcept -> const container
   \return No description
   */
 template <typename T> inline
-auto RestrictedLockFreeBoundedQueue<T>::dequeue() noexcept -> std::tuple<bool, Type>
+auto RestrictedLFQueue<T>::dequeue() noexcept -> std::tuple<bool, Type>
 {
   std::tuple<bool, Type> result;
   const size_type index = dequeueImpl();
@@ -245,13 +180,14 @@ auto RestrictedLockFreeBoundedQueue<T>::dequeue() noexcept -> std::tuple<bool, T
   \exception OverflowError No description.
   */
 template <typename T> inline
-bool RestrictedLockFreeBoundedQueue<T>::enqueue(ConstReference value)
+bool RestrictedLFQueue<T>::enqueue(ConstReference value)
 {
   const size_type index = enqueueImpl();
   // Check overflow
+  using OverflowError = typename BaseQueueType::OverflowError;
   const bool result = index != invalidIndex();
   if (!result)
-    throw OverflowError{"Queue overflow happened.", resource(), std::move(value)};
+    throw OverflowError{"Queue overflow happened.", resource(), value};
 
   while (status_[index])
     std::this_thread::yield();
@@ -268,10 +204,11 @@ bool RestrictedLockFreeBoundedQueue<T>::enqueue(ConstReference value)
   \exception OverflowError No description.
   */
 template <typename T> inline
-bool RestrictedLockFreeBoundedQueue<T>::enqueue(RReference value)
+bool RestrictedLFQueue<T>::enqueue(RReference value)
 {
   const size_type index = enqueueImpl();
   // Check overflow
+  using OverflowError = typename BaseQueueType::OverflowError;
   const bool result = index != invalidIndex();
   if (!result)
     throw OverflowError{"Queue overflow happened.", resource(), std::move(value)};
@@ -289,7 +226,7 @@ bool RestrictedLockFreeBoundedQueue<T>::enqueue(RReference value)
   \return No description
   */
 template <typename T> inline
-bool RestrictedLockFreeBoundedQueue<T>::isEmpty() const noexcept
+bool RestrictedLFQueue<T>::isEmpty() const noexcept
 {
   const size_type s = size();
   const bool result = s == 0;
@@ -302,7 +239,7 @@ bool RestrictedLockFreeBoundedQueue<T>::isEmpty() const noexcept
   \return No description
   */
 template <typename T> inline
-pmr::memory_resource* RestrictedLockFreeBoundedQueue<T>::resource() const noexcept
+pmr::memory_resource* RestrictedLFQueue<T>::resource() const noexcept
 {
   pmr::memory_resource* mem_resource = elements_.get_allocator().resource();
   return mem_resource;
@@ -314,9 +251,9 @@ pmr::memory_resource* RestrictedLockFreeBoundedQueue<T>::resource() const noexce
   \param [in] cap No description.
   */
 template <typename T> inline
-void RestrictedLockFreeBoundedQueue<T>::setCapacity(const size_type cap) noexcept
+void RestrictedLFQueue<T>::setCapacity(const size_type cap) noexcept
 {
-  const size_type cap_power2 = Algorithm::roundUpToPowerOf2(cap);
+  const size_type cap_power2 = Algorithm::roundUpToPowOf2(cap);
   constexpr size_type cap_max = capacityMax();
   if ((capacity() < cap_power2) && (cap_power2 <= cap_max)) {
     elements_.resize(cap_power2);
@@ -332,7 +269,7 @@ void RestrictedLockFreeBoundedQueue<T>::setCapacity(const size_type cap) noexcep
   \return No description
   */
 template <typename T> inline
-auto RestrictedLockFreeBoundedQueue<T>::size() const noexcept -> size_type
+auto RestrictedLFQueue<T>::size() const noexcept -> size_type
 {
   const size_type s = (head_ > tail_) ? head_ - tail_ : 0;
   return s;
@@ -344,7 +281,7 @@ auto RestrictedLockFreeBoundedQueue<T>::size() const noexcept -> size_type
   \return No description
   */
 template <typename T> inline
-auto RestrictedLockFreeBoundedQueue<T>::dequeueImpl() noexcept -> size_type
+auto RestrictedLFQueue<T>::dequeueImpl() noexcept -> size_type
 {
   size_type result = invalidIndex();
   while (result == invalidIndex()) {
@@ -380,7 +317,7 @@ auto RestrictedLockFreeBoundedQueue<T>::dequeueImpl() noexcept -> size_type
   \return No description
   */
 template <typename T> inline
-auto RestrictedLockFreeBoundedQueue<T>::enqueueImpl() noexcept -> size_type
+auto RestrictedLFQueue<T>::enqueueImpl() noexcept -> size_type
 {
   size_type result = invalidIndex();
   while (result == invalidIndex()) {
@@ -414,7 +351,7 @@ auto RestrictedLockFreeBoundedQueue<T>::enqueueImpl() noexcept -> size_type
   \return No description
   */
 template <typename T> inline
-constexpr uint64b RestrictedLockFreeBoundedQueue<T>::getNull(const uint64b cycle) noexcept
+constexpr uint64b RestrictedLFQueue<T>::getNull(const uint64b cycle) noexcept
 {
   constexpr size_type s = 8 * sizeof(uint64b);
   constexpr uint64b null_flag = cast<uint64b>(uint64b{0b1u} << (s - 1));
@@ -428,7 +365,7 @@ constexpr uint64b RestrictedLockFreeBoundedQueue<T>::getNull(const uint64b cycle
   \return No description
   */
 template <typename T> inline
-constexpr auto RestrictedLockFreeBoundedQueue<T>::invalidIndex() noexcept -> size_type
+constexpr auto RestrictedLFQueue<T>::invalidIndex() noexcept -> size_type
 {
   const size_type index = std::numeric_limits<size_type>::max();
   return index;
@@ -441,7 +378,7 @@ constexpr auto RestrictedLockFreeBoundedQueue<T>::invalidIndex() noexcept -> siz
   \return No description
   */
 template <typename T> inline
-auto RestrictedLockFreeBoundedQueue<T>::permuteIndex(const uint64b index) const noexcept
+auto RestrictedLFQueue<T>::permuteIndex(const uint64b index) const noexcept
     -> size_type
 {
   return index;
@@ -453,11 +390,11 @@ auto RestrictedLockFreeBoundedQueue<T>::permuteIndex(const uint64b index) const 
   \return No description
   */
 template <typename T> inline
-constexpr uint64b RestrictedLockFreeBoundedQueue<T>::occupiedFlag() noexcept
+constexpr uint64b RestrictedLFQueue<T>::occupiedFlag() noexcept
 {
   return 0;
 }
 
 } // namespace zisc
 
-#endif // ZISC_RESTRICTED_LOCK_FREE_BOUNDED_QUEUE_INL_HPP
+#endif // ZISC_RESTRICTED_LF_QUEUE_INL_HPP

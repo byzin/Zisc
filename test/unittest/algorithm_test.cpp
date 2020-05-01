@@ -206,31 +206,31 @@ TEST(AlgorithmTest, RoundUpToPowerOf2Test)
 {
   {
     constexpr zisc::uint64b v = 1;
-    constexpr auto result = zisc::Algorithm::roundUpToPowerOf2(v);
+    constexpr auto result = zisc::Algorithm::roundUpToPowOf2(v);
     constexpr zisc::uint64b expected = 1;
     ASSERT_EQ(expected, result);
   }
   {
     constexpr int v = 3;
-    constexpr auto result = zisc::Algorithm::roundUpToPowerOf2(v);
+    constexpr auto result = zisc::Algorithm::roundUpToPowOf2(v);
     constexpr int expected = 4;
     ASSERT_EQ(expected, result);
   }
   {
     constexpr zisc::uint16b v = 100;
-    constexpr auto result = zisc::Algorithm::roundUpToPowerOf2(v);
+    constexpr auto result = zisc::Algorithm::roundUpToPowOf2(v);
     constexpr zisc::uint16b expected = 128;
     ASSERT_EQ(expected, result);
   }
   {
     constexpr zisc::uint v = 1000;
-    constexpr auto result = zisc::Algorithm::roundUpToPowerOf2(v);
+    constexpr auto result = zisc::Algorithm::roundUpToPowOf2(v);
     constexpr zisc::uint expected = 1024;
     ASSERT_EQ(expected, result);
   }
   {
     constexpr zisc::uint64b v = 30'000;
-    constexpr auto result = zisc::Algorithm::roundUpToPowerOf2(v);
+    constexpr auto result = zisc::Algorithm::roundUpToPowOf2(v);
     constexpr zisc::uint64b expected = 32'768;
     ASSERT_EQ(expected, result);
   }

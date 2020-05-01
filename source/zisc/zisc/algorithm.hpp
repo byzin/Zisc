@@ -108,7 +108,7 @@ class Algorithm
 
   //! Compute the smallest power of 2 that is greater or equal to the given value
   template <typename Integer>
-  static constexpr Integer roundUpToPowerOf2(const Integer x) noexcept;
+  static constexpr Integer roundUpToPowOf2(const Integer x) noexcept;
 
   // Binary search operations
 

@@ -313,18 +313,11 @@ Integer Algorithm::popcount(const Integer x) noexcept
           if \a x is positive, otherwize \a x
   */
 template <typename Integer> inline
-constexpr Integer Algorithm::roundUpToPowerOf2(const Integer x) noexcept
+constexpr Integer Algorithm::roundUpToPowOf2(const Integer x) noexcept
 {
   static_assert(std::is_integral_v<Integer>, "Integer isn't integer type.");
-  constexpr auto zero = cast<Integer>(0);
-  Integer y = x;
-  if (zero < x) {
-    --y;
-    constexpr int bits = sizeof(Integer) * 8;
-    for (int shift = 1; shift < bits; shift = shift << 1)
-      y = y | (y >> shift);
-    ++y;
-  }
+  const auto e = getExponent(x) + (isPowerOf2(x) ? 0 : 1);
+  const Integer y = cast<Integer>(Integer{0b1} << e);
   return y;
 }
 

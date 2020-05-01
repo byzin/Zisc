@@ -18,6 +18,7 @@
 #include <vector>
 // Zisc
 #include "zisc/lock_free_bounded_queue.hpp"
+#include "zisc/scalable_circular_queue.hpp"
 #include "zisc/zisc_config.hpp"
 
 template <typename Type>
@@ -39,7 +40,7 @@ int main()
   showAtomicProperties<zisc::int64b>("int64_t");
   showAtomicProperties<zisc::uint64b>("uint64_t");
 
-  using Queue = zisc::LockFreeBoundedQueue<int>;
+  using Queue = zisc::ScalableCircularQueue<int>;
   zisc::SimpleMemoryResource mem_resource;
   Queue q{&mem_resource};
 

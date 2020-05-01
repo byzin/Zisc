@@ -80,6 +80,9 @@ class Config
   // Atomic config
   static constexpr bool isAtomicOsSpecifiedWaitUsed() noexcept;
 
+  //! Return the L1 cache line size in bytes
+  static constexpr std::size_t l1CacheLineSize() noexcept;
+
   // Math config
 
   //! Check if STL math library is used

@@ -138,6 +138,20 @@ constexpr bool Config::isAtomicOsSpecifiedWaitUsed() noexcept
   \return No description
   */
 inline
+constexpr std::size_t Config::l1CacheLineSize() noexcept
+{
+  const std::size_t s = @ZISC_L1_CACHE_LINE_SIZE@;
+  const bool is_power_of_2 = (s & (s - 1)) == 0;
+  static_assert(is_power_of_2, "The cache line size isn't power of 2.");
+  return s;
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+inline
 constexpr bool Config::isStlMathUsed() noexcept
 {
 #if defined(ZISC_MATH_STL)

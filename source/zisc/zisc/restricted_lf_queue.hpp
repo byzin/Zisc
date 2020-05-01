@@ -1,5 +1,5 @@
 /*!
-  \file restricted_lock_free_bounded_queue.hpp
+  \file restricted_lf_queue.hpp
   \author Sho Ikeda
   \brief No brief description
 
@@ -12,8 +12,8 @@
   http://opensource.org/licenses/mit-license.php
   */
 
-#ifndef ZISC_RESTRICTED_LOCK_FREE_BOUNDED_QUEUE_HPP
-#define ZISC_RESTRICTED_LOCK_FREE_BOUNDED_QUEUE_HPP
+#ifndef ZISC_RESTRICTED_LF_QUEUE_HPP
+#define ZISC_RESTRICTED_LF_QUEUE_HPP
 
 // Standard C++ library
 #include <atomic>
@@ -22,6 +22,7 @@
 #include <vector>
 // Zisc
 #include "error.hpp"
+#include "lock_free_bounded_queue.hpp"
 #include "non_copyable.hpp"
 #include "std_memory_resource.hpp"
 #include "zisc_config.hpp"
@@ -37,72 +38,40 @@ namespace zisc {
   \tparam T No description.
   */
 template <typename T>
-class RestrictedLockFreeBoundedQueue : public NonCopyable<RestrictedLockFreeBoundedQueue<T>>
+class RestrictedLFQueue : public LockFreeBoundedQueue<RestrictedLFQueue<T>, T>
 {
  public:
   // Types
-  using Type = std::remove_cv_t<T>;
-  using ConstType = std::add_const_t<Type>;
-  using Reference = std::add_lvalue_reference_t<Type>;
-  using RReference = std::add_rvalue_reference_t<Type>;
-  using ConstReference = std::add_lvalue_reference_t<ConstType>;
-  using Pointer = std::add_pointer_t<Type>;
-  using ConstPointer = std::add_pointer_t<ConstType>;
+  using BaseQueueType = LockFreeBoundedQueue<RestrictedLFQueue<T>, T>;
+  using Type = typename BaseQueueType::Type;
+  using ConstType = typename BaseQueueType::ConstType;
+  using Reference = typename BaseQueueType::Reference;
+  using RReference = typename BaseQueueType::RReference;
+  using ConstReference = typename BaseQueueType::ConstReference;
+  using Pointer = typename BaseQueueType::Pointer;
+  using ConstPointer = typename BaseQueueType::ConstPointer;
 
   // Type aliases for STL
   using container_type = pmr::vector<Type>;
-  using value_type = typename container_type::value_type;
-  using size_type = std::size_t;
-  using reference = typename container_type::reference;
-  using const_reference = typename container_type::const_reference;
-
-
-  /*!
-    \brief No brief description
-
-    No detailed description.
-    */
-  class OverflowError : public SystemError
-  {
-   public:
-    //! Construct the lock free queue error
-    OverflowError(const std::string_view what_arg,
-                  pmr::memory_resource* mem_resource,
-                  ConstReference value);
-
-    //! Construct the lock free queue error
-    OverflowError(const std::string_view what_arg,
-                  pmr::memory_resource* mem_resource,
-                  RReference value);
-
-    //!
-    ~OverflowError() override;
-
-
-    //! Return the overflowing value
-    Reference get() noexcept;
-
-    //! Return the overflowing value
-    ConstReference get() const noexcept;
-
-   private:
-    std::shared_ptr<Type> value_;
-  };
+  using value_type = typename BaseQueueType::value_type;
+  using size_type = typename BaseQueueType::size_type;
+  using reference = typename BaseQueueType::reference;
+  using const_reference = typename BaseQueueType::const_reference;
 
 
   //! Create a queue
-  RestrictedLockFreeBoundedQueue(pmr::memory_resource* mem_resource) noexcept;
+  RestrictedLFQueue(pmr::memory_resource* mem_resource) noexcept;
 
   //! Create a queue
-  RestrictedLockFreeBoundedQueue(const size_type cap,
-                                 pmr::memory_resource* mem_resource) noexcept;
+  RestrictedLFQueue(const size_type cap,
+                    pmr::memory_resource* mem_resource) noexcept;
 
   //! Move a data
-  RestrictedLockFreeBoundedQueue(RestrictedLockFreeBoundedQueue&& other) noexcept;
+  RestrictedLFQueue(RestrictedLFQueue&& other) noexcept;
 
 
   //! Move a queue
-  RestrictedLockFreeBoundedQueue& operator=(RestrictedLockFreeBoundedQueue&& other) noexcept;
+  RestrictedLFQueue& operator=(RestrictedLFQueue&& other) noexcept;
 
 
   //! Return the maximum possible number of elements
@@ -166,6 +135,6 @@ class RestrictedLockFreeBoundedQueue : public NonCopyable<RestrictedLockFreeBoun
 
 } // namespace zisc
 
-#include "restricted_lock_free_bounded_queue-inl.hpp"
+#include "restricted_lf_queue-inl.hpp"
 
-#endif // ZISC_RESTRICTED_LOCK_FREE_BOUNDED_QUEUE_HPP
+#endif // ZISC_RESTRICTED_LF_QUEUE_HPP

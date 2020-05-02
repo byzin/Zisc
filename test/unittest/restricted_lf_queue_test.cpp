@@ -355,54 +355,54 @@ TEST(RestrictedLFQueueTest, ConcurrencyTest)
   }
 }
 
-TEST(RestrictedLFQueueTest, ConcurrencyLoopTest)
-{
-  constexpr std::size_t num_of_threads = 64;
-  constexpr std::size_t num_of_thread_tasks = 0b1u << 21;
-  constexpr std::size_t num_of_tasks = num_of_threads * num_of_thread_tasks;
-  using zisc::uint64b;
-  using zisc::uint32b;
-  using Queue = zisc::RestrictedLFQueue<uint64b>;
-  using Test = LockFreeBoundedQueueTest<Queue, num_of_threads, num_of_thread_tasks>;
-  static_assert(num_of_tasks <= Queue::capacityMax());
-
-  zisc::SimpleMemoryResource mem_resource;
-  Queue q{&mem_resource};
-  q.setCapacity(num_of_tasks);
-
-  for (std::size_t loop = 0; loop < 4; ++loop) {
-    std::cout << "Loop[" << (loop + 1) << "]" << std::endl;
-    uint64b elapsed_time = 0;
-    bool result = Test::testEnqueue(q, elapsed_time);
-    ASSERT_TRUE(result) << "The enqueue operation in multi-thread failed.";
-    ASSERT_EQ(num_of_tasks, q.size());
-    std::cout << "    Multiple producer time: " << elapsed_time << " ms" << std::endl;
-
-    {
-      const auto& elems = q.data();
-      std::vector<uint64b> indices;
-      indices.resize(elems.size(), 0);
-      std::copy(elems.begin(), elems.end(), indices.begin());
-      std::sort(indices.begin(), indices.end());
-      std::unique(indices.begin(), indices.end());
-      auto ite = indices.begin();
-      for (std::size_t index = 0; index < num_of_tasks; ++index) {
-        ASSERT_EQ(index, *ite) << "Enqueue concurrency test failed.";
-        ++ite;
-      }
-    }
-
-    std::vector<uint32b> data;
-    data.resize(num_of_tasks, 0);
-    result = Test::testDequeue(q, data, elapsed_time);
-    ASSERT_TRUE(result) << "The dequeue operation in multi-thread failed.";
-    ASSERT_EQ(0, q.size());
-    std::cout << "    Multiple consumer time: " << elapsed_time << " ms" << std::endl;
-    for (auto flag : data) {
-      ASSERT_TRUE(flag) << "Dequeue concurrency test failed.";
-    }
-  }
-}
+//TEST(RestrictedLFQueueTest, ConcurrencyLoopTest)
+//{
+//  constexpr std::size_t num_of_threads = 64;
+//  constexpr std::size_t num_of_thread_tasks = 0b1u << 21;
+//  constexpr std::size_t num_of_tasks = num_of_threads * num_of_thread_tasks;
+//  using zisc::uint64b;
+//  using zisc::uint32b;
+//  using Queue = zisc::RestrictedLFQueue<uint64b>;
+//  using Test = LockFreeBoundedQueueTest<Queue, num_of_threads, num_of_thread_tasks>;
+//  static_assert(num_of_tasks <= Queue::capacityMax());
+//
+//  zisc::SimpleMemoryResource mem_resource;
+//  Queue q{&mem_resource};
+//  q.setCapacity(num_of_tasks);
+//
+//  for (std::size_t loop = 0; loop < 4; ++loop) {
+//    std::cout << "Loop[" << (loop + 1) << "]" << std::endl;
+//    uint64b elapsed_time = 0;
+//    bool result = Test::testEnqueue(q, elapsed_time);
+//    ASSERT_TRUE(result) << "The enqueue operation in multi-thread failed.";
+//    ASSERT_EQ(num_of_tasks, q.size());
+//    std::cout << "    Multiple producer time: " << elapsed_time << " ms" << std::endl;
+//
+//    {
+//      const auto& elems = q.data();
+//      std::vector<uint64b> indices;
+//      indices.resize(elems.size(), 0);
+//      std::copy(elems.begin(), elems.end(), indices.begin());
+//      std::sort(indices.begin(), indices.end());
+//      std::unique(indices.begin(), indices.end());
+//      auto ite = indices.begin();
+//      for (std::size_t index = 0; index < num_of_tasks; ++index) {
+//        ASSERT_EQ(index, *ite) << "Enqueue concurrency test failed.";
+//        ++ite;
+//      }
+//    }
+//
+//    std::vector<uint32b> data;
+//    data.resize(num_of_tasks, 0);
+//    result = Test::testDequeue(q, data, elapsed_time);
+//    ASSERT_TRUE(result) << "The dequeue operation in multi-thread failed.";
+//    ASSERT_EQ(0, q.size());
+//    std::cout << "    Multiple consumer time: " << elapsed_time << " ms" << std::endl;
+//    for (auto flag : data) {
+//      ASSERT_TRUE(flag) << "Dequeue concurrency test failed.";
+//    }
+//  }
+//}
 
 TEST(RestrictedLFQueueTest, ConcurrencyTest2)
 {
@@ -473,74 +473,74 @@ TEST(RestrictedLFQueueTest, ConcurrencyTest2)
   }
 }
 
-TEST(RestrictedLFQueueTest, ConcurrencyLoopTest2)
-{
-  constexpr std::size_t num_of_threads = 64;
-  constexpr std::size_t num_of_thread_tasks = 0b1u << 20;
-  constexpr std::size_t num_of_tasks = num_of_threads * num_of_thread_tasks;
-  using zisc::uint64b;
-  using zisc::uint32b;
-  using Queue = zisc::RestrictedLFQueue<uint64b>;
-  using Test = LockFreeBoundedQueueTest<Queue, num_of_threads, num_of_thread_tasks>;
-  static_assert(num_of_tasks <= Queue::capacityMax());
-
-  zisc::SimpleMemoryResource mem_resource;
-  Queue q{&mem_resource};
-  q.setCapacity(2 * num_of_tasks);
-
-  for (std::size_t loop = 0; loop < 4; ++loop) {
-    std::cout << "Loop[" << (loop + 1) << "]" << std::endl;
-    uint64b elapsed_time = 0;
-    bool result = Test::testEnqueue(q, elapsed_time);
-    ASSERT_TRUE(result) << "The enqueue operation in multi-thread failed.";
-    ASSERT_EQ(num_of_tasks, q.size());
-    std::cout << "    Multiple producer time: " << elapsed_time << " ms" << std::endl;
-
-    {
-      const auto& elems = q.data();
-      std::vector<uint64b> indices;
-      indices.resize(elems.size(), 0);
-      std::copy(elems.begin(), elems.end(), indices.begin());
-      std::sort(indices.begin(), indices.end());
-      std::unique(indices.begin(), indices.end());
-      auto ite = indices.begin();
-      for (std::size_t index = 0; index < num_of_tasks; ++index) {
-        ASSERT_EQ(index, *ite) << "Enqueue concurrency test failed.";
-        ++ite;
-      }
-    }
-
-    std::vector<uint32b> data;
-    data.resize(num_of_tasks, 0);
-    result = Test::testEnqueueDequeue(q, data, elapsed_time);
-    ASSERT_TRUE(result) << "The enqueue dequeue operations in multi-thread failed.";
-    ASSERT_EQ(num_of_tasks, q.size());
-    std::cout << "    Multiple prodcons time: " << elapsed_time << " ms" << std::endl;
-    for (auto flag : data) {
-      ASSERT_TRUE(flag) << "Dequeue concurrency test failed.";
-    }
-
-    {
-      const auto& elems = q.data();
-      std::vector<uint64b> indices;
-      indices.resize(elems.size(), 0);
-      std::copy(elems.begin(), elems.end(), indices.begin());
-      std::sort(indices.begin(), indices.end());
-      std::unique(indices.begin(), indices.end());
-      auto ite = indices.begin();
-      for (std::size_t index = 0; index < num_of_tasks; ++index) {
-        ASSERT_EQ(index, *ite) << "Enqueue concurrency test failed.";
-        ++ite;
-      }
-    }
-
-    std::fill(data.begin(), data.end(), 0);
-    result = Test::testDequeue(q, data, elapsed_time);
-    ASSERT_TRUE(result) << "The dequeue operation in multi-thread failed.";
-    ASSERT_EQ(0, q.size());
-    std::cout << "    Multiple consumer time: " << elapsed_time << " ms" << std::endl;
-    for (auto flag : data) {
-      ASSERT_TRUE(flag) << "Dequeue concurrency test failed.";
-    }
-  }
-}
+//TEST(RestrictedLFQueueTest, ConcurrencyLoopTest2)
+//{
+//  constexpr std::size_t num_of_threads = 64;
+//  constexpr std::size_t num_of_thread_tasks = 0b1u << 20;
+//  constexpr std::size_t num_of_tasks = num_of_threads * num_of_thread_tasks;
+//  using zisc::uint64b;
+//  using zisc::uint32b;
+//  using Queue = zisc::RestrictedLFQueue<uint64b>;
+//  using Test = LockFreeBoundedQueueTest<Queue, num_of_threads, num_of_thread_tasks>;
+//  static_assert(num_of_tasks <= Queue::capacityMax());
+//
+//  zisc::SimpleMemoryResource mem_resource;
+//  Queue q{&mem_resource};
+//  q.setCapacity(2 * num_of_tasks);
+//
+//  for (std::size_t loop = 0; loop < 4; ++loop) {
+//    std::cout << "Loop[" << (loop + 1) << "]" << std::endl;
+//    uint64b elapsed_time = 0;
+//    bool result = Test::testEnqueue(q, elapsed_time);
+//    ASSERT_TRUE(result) << "The enqueue operation in multi-thread failed.";
+//    ASSERT_EQ(num_of_tasks, q.size());
+//    std::cout << "    Multiple producer time: " << elapsed_time << " ms" << std::endl;
+//
+//    {
+//      const auto& elems = q.data();
+//      std::vector<uint64b> indices;
+//      indices.resize(elems.size(), 0);
+//      std::copy(elems.begin(), elems.end(), indices.begin());
+//      std::sort(indices.begin(), indices.end());
+//      std::unique(indices.begin(), indices.end());
+//      auto ite = indices.begin();
+//      for (std::size_t index = 0; index < num_of_tasks; ++index) {
+//        ASSERT_EQ(index, *ite) << "Enqueue concurrency test failed.";
+//        ++ite;
+//      }
+//    }
+//
+//    std::vector<uint32b> data;
+//    data.resize(num_of_tasks, 0);
+//    result = Test::testEnqueueDequeue(q, data, elapsed_time);
+//    ASSERT_TRUE(result) << "The enqueue dequeue operations in multi-thread failed.";
+//    ASSERT_EQ(num_of_tasks, q.size());
+//    std::cout << "    Multiple prodcons time: " << elapsed_time << " ms" << std::endl;
+//    for (auto flag : data) {
+//      ASSERT_TRUE(flag) << "Dequeue concurrency test failed.";
+//    }
+//
+//    {
+//      const auto& elems = q.data();
+//      std::vector<uint64b> indices;
+//      indices.resize(elems.size(), 0);
+//      std::copy(elems.begin(), elems.end(), indices.begin());
+//      std::sort(indices.begin(), indices.end());
+//      std::unique(indices.begin(), indices.end());
+//      auto ite = indices.begin();
+//      for (std::size_t index = 0; index < num_of_tasks; ++index) {
+//        ASSERT_EQ(index, *ite) << "Enqueue concurrency test failed.";
+//        ++ite;
+//      }
+//    }
+//
+//    std::fill(data.begin(), data.end(), 0);
+//    result = Test::testDequeue(q, data, elapsed_time);
+//    ASSERT_TRUE(result) << "The dequeue operation in multi-thread failed.";
+//    ASSERT_EQ(0, q.size());
+//    std::cout << "    Multiple consumer time: " << elapsed_time << " ms" << std::endl;
+//    for (auto flag : data) {
+//      ASSERT_TRUE(flag) << "Dequeue concurrency test failed.";
+//    }
+//  }
+//}

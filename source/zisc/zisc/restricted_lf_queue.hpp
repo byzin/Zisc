@@ -120,7 +120,7 @@ class RestrictedLFQueue : public LockFreeBoundedQueue<RestrictedLFQueue<T>, T>
   //! Return the invalid index
   static constexpr size_type invalidIndex() noexcept;
 
-  //! Remap index
+  //! Remap index in order to avoid false sharing
   size_type permuteIndex(const uint64b index) const noexcept;
 
   //! Return the occupied flag

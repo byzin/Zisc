@@ -25,6 +25,7 @@
 // Zisc
 #include "error.hpp"
 #include "std_memory_resource.hpp"
+#include "utility.hpp"
 #include "zisc_config.hpp"
 
 namespace zisc {
@@ -105,7 +106,8 @@ auto LockFreeBoundedQueue<QueueClass, T>::OverflowError::get() const noexcept
 template <typename QueueClass, typename T> inline
 auto LockFreeBoundedQueue<QueueClass, T>::capacity() const noexcept -> size_type
 {
-  const size_type cap = QueueClass::capacity();
+  const auto q = cast<ConstQueuePtr>(this);
+  const size_type cap = q->capacity();
   return cap;
 }
 
@@ -127,7 +129,8 @@ constexpr auto LockFreeBoundedQueue<QueueClass, T>::capacityMax() noexcept -> si
 template <typename QueueClass, typename T> inline
 void LockFreeBoundedQueue<QueueClass, T>::clear() noexcept
 {
-  QueueClass::clear();
+  auto q = cast<QueuePtr>(this);
+  q->clear();
 }
 
 /*!
@@ -138,7 +141,8 @@ void LockFreeBoundedQueue<QueueClass, T>::clear() noexcept
 template <typename QueueClass, typename T> inline
 auto LockFreeBoundedQueue<QueueClass, T>::dequeue() noexcept -> std::tuple<bool, Type>
 {
-  const auto result = QueueClass::dequeue();
+  auto q = cast<QueuePtr>(this);
+  const auto result = q->dequeue();
   return result;
 }
 
@@ -152,7 +156,8 @@ auto LockFreeBoundedQueue<QueueClass, T>::dequeue() noexcept -> std::tuple<bool,
 template <typename QueueClass, typename T> inline
 bool LockFreeBoundedQueue<QueueClass, T>::enqueue(ConstReference value)
 {
-  const bool result = QueueClass::enqueue(value);
+  auto q = cast<QueuePtr>(this);
+  const bool result = q->enqueue(value);
   return result;
 }
 
@@ -166,7 +171,8 @@ bool LockFreeBoundedQueue<QueueClass, T>::enqueue(ConstReference value)
 template <typename QueueClass, typename T> inline
 bool LockFreeBoundedQueue<QueueClass, T>::enqueue(RReference value)
 {
-  const bool result = QueueClass::enqueue(std::move(value));
+  auto q = cast<QueuePtr>(this);
+  const bool result = q->enqueue(std::move(value));
   return result;
 }
 
@@ -178,7 +184,8 @@ bool LockFreeBoundedQueue<QueueClass, T>::enqueue(RReference value)
 template <typename QueueClass, typename T> inline
 bool LockFreeBoundedQueue<QueueClass, T>::isEmpty() const noexcept
 {
-  const bool result = QueueClass::isEmpty();
+  const auto q = cast<ConstQueuePtr>(this);
+  const bool result = q->isEmpty();
   return result;
 }
 
@@ -190,7 +197,8 @@ bool LockFreeBoundedQueue<QueueClass, T>::isEmpty() const noexcept
 template <typename QueueClass, typename T> inline
 void LockFreeBoundedQueue<QueueClass, T>::setCapacity(const size_type cap) noexcept
 {
-  QueueClass::setCapacity(cap);
+  auto q = cast<QueuePtr>(this);
+  q->setCapacity(cap);
 }
 
 /*!
@@ -201,7 +209,8 @@ void LockFreeBoundedQueue<QueueClass, T>::setCapacity(const size_type cap) noexc
 template <typename QueueClass, typename T> inline
 auto LockFreeBoundedQueue<QueueClass, T>::size() const noexcept -> size_type
 {
-  const size_type s = QueueClass::size();
+  const auto q = cast<ConstQueuePtr>(this);
+  const size_type s = q->size();
   return s;
 }
 

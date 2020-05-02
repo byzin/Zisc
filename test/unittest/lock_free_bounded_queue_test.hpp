@@ -23,6 +23,7 @@
 #include <thread>
 #include <vector>
 // Zisc
+#include "zisc/lock_free_bounded_queue.hpp"
 #include "zisc/stopwatch.hpp"
 #include "zisc/utility.hpp"
 #include "zisc/zisc_config.hpp"
@@ -34,8 +35,15 @@ class LockFreeBoundedQueueTest
   using uint64b = zisc::uint64b;
 
  public:
-  static bool testEnqueue(Queue& q, uint64b& elapsed_time) noexcept
+  template <typename QueueClass, typename T>
+  static bool testEnqueue(zisc::LockFreeBoundedQueue<QueueClass, T>& q,
+                          uint64b& elapsed_time) noexcept
   {
+    std::cout << "    Capacity   : " << q.capacity() << std::endl;
+    std::cout << "    CapacityMax: " << q.capacityMax() << std::endl;
+    std::cout << "    Size       : " << q.size() << std::endl;
+    std::cout << "    Empty      : " << q.isEmpty() << std::endl;
+
     bool result = true;
     std::mutex m;
     std::condition_variable cv;
@@ -79,7 +87,10 @@ class LockFreeBoundedQueueTest
     return result;
   }
 
-  static bool testEnqueueDequeue(Queue& q, std::vector<uint32b>& data, uint64b& elapsed_time) noexcept
+  template <typename QueueClass, typename T>
+  static bool testEnqueueDequeue(zisc::LockFreeBoundedQueue<QueueClass, T>& q,
+                                 std::vector<uint32b>& data,
+                                 uint64b& elapsed_time) noexcept
   {
     bool result = true;
     std::mutex m;
@@ -142,8 +153,16 @@ class LockFreeBoundedQueueTest
     return result;
   }
 
-  static bool testDequeue(Queue& q, std::vector<uint32b>& data, uint64b& elapsed_time) noexcept
+  template <typename QueueClass, typename T>
+  static bool testDequeue(zisc::LockFreeBoundedQueue<QueueClass, T>& q,
+                          std::vector<uint32b>& data,
+                          uint64b& elapsed_time) noexcept
   {
+    std::cout << "    Capacity   : " << q.capacity() << std::endl;
+    std::cout << "    CapacityMax: " << q.capacityMax() << std::endl;
+    std::cout << "    Size       : " << q.size() << std::endl;
+    std::cout << "    Empty      : " << q.isEmpty() << std::endl;
+
     bool result = true;
     std::mutex m;
     std::condition_variable cv;

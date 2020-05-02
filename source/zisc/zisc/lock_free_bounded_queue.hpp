@@ -118,6 +118,11 @@ class LockFreeBoundedQueue : public NonCopyable<LockFreeBoundedQueue<QueueClass,
   size_type size() const noexcept;
 
  protected:
+  // Types
+  using QueuePtr = std::add_pointer_t<QueueClass>;
+  using ConstQueuePtr = std::add_pointer_t<std::add_const_t<QueueClass>>;
+
+
   //! Create a queue
   LockFreeBoundedQueue() noexcept;
 

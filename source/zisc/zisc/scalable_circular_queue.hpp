@@ -32,6 +32,11 @@
 
 namespace zisc {
 
+#if defined(Z_GCC) || defined(Z_CLANG)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpadded"
+#endif // Z_GCC || Z_CLANG
+
 /*!
   \brief Scalable Circular Queue (SCQ)
 
@@ -186,6 +191,10 @@ class ScalableCircularQueue : public LockFreeBoundedQueue<ScalableCircularQueue<
   RingBuffer allocated_elements_;
   container_type elements_;
 };
+
+#if defined(Z_GCC) || defined(Z_CLANG)
+#pragma GCC diagnostic pop
+#endif // Z_GCC || Z_CLANG
 
 } // namespace zisc
 

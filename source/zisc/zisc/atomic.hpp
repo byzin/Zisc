@@ -23,6 +23,9 @@
 
 namespace zisc {
 
+// Word
+using WordType = int;
+
 // Forward declaration
 template <bool kOsSpecified>
 struct AtomicWord; //!< It's possible an integer type
@@ -99,7 +102,7 @@ class Atomic
 
   //! Block the thread until notified and the word value changed
   template <bool kOsSpecialization>
-  static void wait(AtomicWord<kOsSpecialization>* word, const int old) noexcept;
+  static void wait(AtomicWord<kOsSpecialization>* word, const WordType old) noexcept;
 
   //! Notify a thread blocked in wait
   template <bool kOsSpecialization>

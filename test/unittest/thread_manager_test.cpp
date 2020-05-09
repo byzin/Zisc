@@ -96,10 +96,10 @@ TEST(ThreadManagerTest, EnqueueTaskTest)
       {
         return 3;
       };
-      auto result2 = thread_manager.enqueue<int>(task2);
+      auto result2 = thread_manager.enqueue<int>(std::move(task2));
 
       std::function<int ()> task3{task1};
-      auto result3 = thread_manager.enqueue<int>(std::move(task3));
+      auto result3 = thread_manager.enqueue<int>(task3);
 
       std::function<int (zisc::uint)> task4{task2};
       auto result4 = thread_manager.enqueue<int>(std::move(task4));
@@ -115,10 +115,10 @@ TEST(ThreadManagerTest, EnqueueTaskTest)
       auto result1 = thread_manager.enqueueLoop(task1, 0, 10);
 
       auto task2 = [](const zisc::uint /* thread_number */, const int /* index */) {};
-      auto result2 = thread_manager.enqueueLoop(task2, 0, 10);
+      auto result2 = thread_manager.enqueueLoop(std::move(task2), 0, 10);
 
       std::function<void (int)> task3{task1};
-      auto result3 = thread_manager.enqueueLoop(std::move(task3), 0, 10);
+      auto result3 = thread_manager.enqueueLoop(task3, 0, 10);
 
       std::function<void (zisc::uint, int)> task4{task2};
       auto result4 = thread_manager.enqueueLoop(std::move(task4), 0, 10);
@@ -140,8 +140,8 @@ TEST(ThreadManagerTest, EnqueueTaskExceptionTest)
     zisc::ThreadManager thread_manager{1, &mem_resource};
     // enqueueLoop()
     {
-      constexpr int cap = zisc::cast<int>(thread_manager.defaultTaskCapacity());
-      ASSERT_EQ(thread_manager.capacity(), cap);
+      constexpr int cap = zisc::cast<int>(thread_manager.defaultItemCapacity());
+      ASSERT_EQ(thread_manager.itemCapacity(), cap);
 
       auto task = [](const int /* index */) {};
       constexpr int begin = 0;
@@ -153,12 +153,12 @@ TEST(ThreadManagerTest, EnqueueTaskExceptionTest)
         FAIL() << "This line must not be processed.";
       }
       catch (zisc::ThreadManager::OverflowError& error) {
-        const int b = *zisc::cast<int*>(error.begin());
-        const int e = *zisc::cast<int*>(error.end());
-        ASSERT_EQ(b, cap);
-        ASSERT_EQ(e, end);
-        auto r = zisc::cast<zisc::ThreadManager::Result<void>*>(error.result());
-        r->wait();
+        const int b = zisc::cast<int>(error.beginOffset());
+        const int e = zisc::cast<int>(error.numOfIterations());
+        ASSERT_EQ(cap, b);
+        ASSERT_EQ(end, e);
+        auto& r = error.result<void>();
+        r.wait();
       }
       catch (...) {
         FAIL() << "This line must not be processed.";
@@ -178,7 +178,7 @@ TEST(ThreadManagerTest, ParallelTest)
   {
     constexpr zisc::uint num_of_threads = 16;
     zisc::ThreadManager thread_manager{num_of_threads, &mem_resource};
-    thread_manager.setCapacity(1024);
+    thread_manager.setItemCapacity(1024);
 
     ASSERT_EQ(num_of_threads, thread_manager.numOfThreads())
         << "Worker creation failed.";
@@ -307,7 +307,8 @@ TEST(ThreadManagerTest, ExitWorkerRunningTest)
     results.reserve(num_of_works);
     {
       zisc::ThreadManager thread_manager{24, &mem_resource};
-      thread_manager.setCapacity(num_of_works);
+      thread_manager.setIdCapacity(num_of_works);
+      thread_manager.setItemCapacity(num_of_works);
       for (zisc::uint number = 0; number < num_of_works; ++number) {
         auto task = [/* number */](const zisc::uint)
         {
@@ -327,7 +328,9 @@ TEST(ThreadManagerTest, NestedThreadPoolTest)
   zisc::SimpleMemoryResource mem_resource;
   {
     zisc::ThreadManager thread_manager{16, &mem_resource};
-    thread_manager.setCapacity(128 * 128 * 128);
+    constexpr std::size_t num_of_works = 128 * 128 * 128;
+    thread_manager.setIdCapacity(num_of_works);
+    thread_manager.setItemCapacity(num_of_works);
     constexpr int max_level = 3;
     ::testThreadPoolNest(thread_manager, max_level, 0);
   }
@@ -365,7 +368,8 @@ TEST(ThreadManagerTest, TaskStressTest)
     result_list.resize(num_of_tasks);
 
     zisc::ThreadManager thread_manager{num_of_threads, &mem_resource};
-    thread_manager.setCapacity(num_of_tasks);
+    thread_manager.setIdCapacity(num_of_tasks);
+    thread_manager.setItemCapacity(num_of_tasks);
     for (zisc::uint number = 0; number < num_of_tasks; ++number) {
       auto task = [number](const zisc::uint)
       {
@@ -396,7 +400,8 @@ TEST(ThreadManagerTest, TaskStressPerformanceTest)
     result_list.resize(num_of_tasks);
 
     zisc::ThreadManager thread_manager{num_of_threads, &mem_resource};
-    thread_manager.setCapacity(num_of_tasks);
+    thread_manager.setIdCapacity(num_of_tasks);
+    thread_manager.setItemCapacity(num_of_tasks);
     for (zisc::uint number = 0; number < num_of_tasks; ++number) {
       auto task = [number](const zisc::uint)
       {
@@ -430,7 +435,7 @@ TEST(ThreadManagerTest, LoopTaskStressTest)
     constexpr zisc::uint num_of_tasks = 4'000'000;
 
     zisc::ThreadManager thread_manager{num_of_threads, &mem_resource};
-    thread_manager.setCapacity(num_of_tasks);
+    thread_manager.setItemCapacity(num_of_tasks);
     auto task = [](const zisc::uint, const zisc::uint number)
     {
       zisc::PcgLcgRxsMXs32 sampler{number};
@@ -461,7 +466,7 @@ TEST(ThreadManagerTest, LoopTaskStressPerformanceTest)
     constexpr zisc::uint num_of_tasks = 4'000'000;
 
     zisc::ThreadManager thread_manager{num_of_threads, &mem_resource};
-    thread_manager.setCapacity(num_of_tasks);
+    thread_manager.setItemCapacity(num_of_tasks);
     auto task = [](const zisc::uint, const zisc::uint number)
     {
       zisc::PcgLcgRxsMXs32 sampler{number};
@@ -509,7 +514,7 @@ TEST(ThreadManagerTest, LoopTaskStressPerformanceTest2)
     };
     std::cout << "sizeof(task)  = " << sizeof(decltype(task)) << std::endl;
     std::cout << "alignof(task) = " << std::alignment_of_v<decltype(task)> << std::endl;
-    thread_manager.setCapacity(num_of_tasks);
+    thread_manager.setItemCapacity(num_of_tasks);
     constexpr zisc::uint begin = 0;
     constexpr zisc::uint end = num_of_tasks;
     auto result = thread_manager.enqueueLoop(task, begin, end);

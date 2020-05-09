@@ -38,7 +38,7 @@ namespace zisc {
   \tparam T No description.
   */
 template <typename QueueClass, typename T>
-class LockFreeBoundedQueue : public NonCopyable<LockFreeBoundedQueue<QueueClass, T>>
+class LockFreeBoundedQueue : private NonCopyable<LockFreeBoundedQueue<QueueClass, T>>
 {
  public:
   // Types

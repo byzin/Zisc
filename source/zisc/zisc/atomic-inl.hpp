@@ -44,17 +44,17 @@ struct AtomicWord<true> : NonCopyable<AtomicWord<true>>
   AtomicWord() : word_{0} {static_cast<void>(padding_);}
 
   //! Construct an atomic word
-  AtomicWord(const int value) : word_{value} {}
+  AtomicWord(const WordType value) : word_{value} {}
 
 
   //! Return the underlying word
-  int& get() noexcept
+  WordType& get() noexcept
   {
     return word_;
   }
 
   //! Return the underlying word
-  const int& get() const noexcept
+  const WordType& get() const noexcept
   {
     return word_;
   }
@@ -66,13 +66,13 @@ struct AtomicWord<true> : NonCopyable<AtomicWord<true>>
   }
 
   //! Set a value to the underlying word atomically
-  void set(const int value) noexcept
+  void set(const WordType value) noexcept
   {
     Atomic::exchange(&word_, value);
   }
 
  private:
-  int word_;
+  WordType word_;
   int padding_ = 0;
 };
 
@@ -90,17 +90,17 @@ struct AtomicWord : NonCopyable<AtomicWord<kOsSpecified>>
   AtomicWord() : word_{0} {static_cast<void>(padding_);}
 
   //! Construct an atomic word
-  AtomicWord(const int value) : word_{value} {}
+  AtomicWord(const WordType value) : word_{value} {}
 
 
   //! Return the underlying word
-  int& get() noexcept
+  WordType& get() noexcept
   {
     return word_;
   }
 
   //! Return the underlying word
-  const int& get() const noexcept
+  const WordType& get() const noexcept
   {
     return word_;
   }
@@ -112,7 +112,7 @@ struct AtomicWord : NonCopyable<AtomicWord<kOsSpecified>>
   }
 
   //! Set a value to the underlying word atomically
-  void set(const int value) noexcept
+  void set(const WordType value) noexcept
   {
     std::unique_lock<std::mutex> locker_{lock()};
     word_ = value;
@@ -131,7 +131,7 @@ struct AtomicWord : NonCopyable<AtomicWord<kOsSpecified>>
   }
 
  private:
-  int word_;
+  WordType word_;
   int padding_ = 0;
   std::mutex lock_;
   std::condition_variable condition_;
@@ -360,9 +360,9 @@ Integer Atomic::perform(Integer* ptr,
 
 // template explicit instantiation
 template <>
-void Atomic::wait<false>(AtomicWord<false>* word, const int old) noexcept;
+void Atomic::wait<false>(AtomicWord<false>* word, const WordType old) noexcept;
 template <>
-void Atomic::wait<true>(AtomicWord<true>* word, const int old) noexcept;
+void Atomic::wait<true>(AtomicWord<true>* word, const WordType old) noexcept;
 template <>
 void Atomic::notifyOne<false>(AtomicWord<false>* word) noexcept;
 template <>

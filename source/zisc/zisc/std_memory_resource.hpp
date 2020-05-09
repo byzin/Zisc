@@ -197,6 +197,9 @@ class UniquePtrDeleter
   //! Pointer type of the Type
   using Pointer = std::add_pointer_t<Type>;
 
+  // std compatible
+  using pointer = Pointer;
+
 
   //! Create an empty
   UniquePtrDeleter() noexcept;

@@ -38,7 +38,7 @@ void testAtomicAddition()
 
   zisc::SimpleMemoryResource mem_resource;
   zisc::ThreadManager thread_manager{100, &mem_resource};
-  thread_manager.setCapacity(resolution);
+  thread_manager.setItemCapacity(resolution);
 
   Type value = zisc::cast<Type>(0);
   std::vector<int> table;
@@ -73,7 +73,7 @@ void testAtomicSubtraction()
 
   zisc::SimpleMemoryResource mem_resource;
   zisc::ThreadManager thread_manager{100, &mem_resource};
-  thread_manager.setCapacity(resolution);
+  thread_manager.setItemCapacity(resolution);
 
   Type value = zisc::cast<Type>(0);
   std::vector<int> table;
@@ -108,7 +108,7 @@ void testAtomicExchange()
 
   zisc::SimpleMemoryResource mem_resource;
   zisc::ThreadManager thread_manager{100, &mem_resource};
-  thread_manager.setCapacity(resolution);
+  thread_manager.setItemCapacity(resolution);
 
   Type value = zisc::cast<Type>(0);
   std::vector<int> table;
@@ -144,7 +144,7 @@ void testAtomicIncrement()
 
   zisc::SimpleMemoryResource mem_resource;
   zisc::ThreadManager thread_manager{100, &mem_resource};
-  thread_manager.setCapacity(resolution);
+  thread_manager.setItemCapacity(resolution);
 
   Type value = zisc::cast<Type>(0);
   std::vector<int> table;
@@ -178,7 +178,7 @@ void testAtomicDecrement()
 
   zisc::SimpleMemoryResource mem_resource;
   zisc::ThreadManager thread_manager{100, &mem_resource};
-  thread_manager.setCapacity(resolution);
+  thread_manager.setItemCapacity(resolution);
 
   Type value = zisc::cast<Type>(0);
   std::vector<int> table;
@@ -212,7 +212,7 @@ void testAtomicMin()
 
   zisc::SimpleMemoryResource mem_resource;
   zisc::ThreadManager thread_manager{100, &mem_resource};
-  thread_manager.setCapacity(resolution);
+  thread_manager.setItemCapacity(resolution);
 
   Type value = zisc::cast<Type>(0);
 
@@ -241,7 +241,7 @@ void testAtomicMax()
 
   zisc::SimpleMemoryResource mem_resource;
   zisc::ThreadManager thread_manager{100, &mem_resource};
-  thread_manager.setCapacity(resolution);
+  thread_manager.setItemCapacity(resolution);
 
   Type value = zisc::cast<Type>(0);
 
@@ -270,7 +270,7 @@ void testAtomicCmpxchg()
 
   zisc::SimpleMemoryResource mem_resource;
   zisc::ThreadManager thread_manager{100, &mem_resource};
-  thread_manager.setCapacity(resolution);
+  thread_manager.setItemCapacity(resolution);
 
   Type value = zisc::cast<Type>(0);
   std::vector<int> table;

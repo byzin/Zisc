@@ -32,7 +32,7 @@ namespace zisc {
   No detailed description.
   */
 class SimpleMemoryResource : public pmr::memory_resource,
-                             public NonCopyable<SimpleMemoryResource>
+                             private NonCopyable<SimpleMemoryResource>
 {
  public:
   /*!

@@ -13,6 +13,7 @@
   */
 
 // Standard C++ library
+#include <array>
 #include <bitset>
 #include <cmath>
 #include <cstdint>
@@ -154,8 +155,9 @@ TEST(Ieee754BinaryTest, Binary32LimitsTest)
 
   auto print_float_bits = [](const std::string_view name, const float f) noexcept
   {
+    std::array<float, 2> f2{{f, 0.0f}};
     std::cout << "    " << std::setw(16) << std::setfill(' ') << name << ": "
-              << std::bitset<32>{*zisc::treatAs<const zisc::uint64b*>(&f)}
+              << std::bitset<32>{*zisc::treatAs<const zisc::uint64b*>(f2.data())}
               << std::endl;
   };
 

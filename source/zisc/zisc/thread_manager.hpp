@@ -41,6 +41,8 @@ namespace zisc {
 #if defined(Z_GCC) || defined(Z_CLANG)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wpadded"
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wweak-vtables"
 #endif // Z_GCC || Z_CLANG
 
 /*!
@@ -213,6 +215,8 @@ class ThreadManager : private NonCopyable<ThreadManager>
 
   template <typename Type>
   using UniqueResult = pmr::unique_ptr<Result<Type>>;
+  template <typename Func, typename ...ArgTypes>
+  using InvokeResult = std::remove_volatile_t<std::remove_reference_t<std::invoke_result_t<Func, ArgTypes...>>>;
   template <typename Iterator1, typename Iterator2>
   using CommonIterator = std::common_type_t<std::remove_reference_t<Iterator1>,
                                             std::remove_reference_t<Iterator2>>;
@@ -251,6 +255,7 @@ class ThreadManager : private NonCopyable<ThreadManager>
   std::size_t itemCapacity() const noexcept;
 
   //! Clear the thread manager state
+  template <bool kIsSynchronized = true>
   void clear() noexcept;
 
   //! Return the default value of task ID max
@@ -260,15 +265,15 @@ class ThreadManager : private NonCopyable<ThreadManager>
   static constexpr std::size_t defaultItemCapacity() noexcept;
 
   //! Run the given task on a worker thread in the manager
-  template <typename ReturnType, typename Func>
-  UniqueResult<ReturnType> enqueue(
+  template <typename Func>
+  UniqueResult<InvokeResult<Func>> enqueue(
       Func&& task,
       const int64b parent_task_id = kNoParentId,
       EnableIfInvocable<Func> = kEnabler);
 
   //! Run the given task on a worker thread in the manager
-  template <typename ReturnType, typename Func>
-  UniqueResult<ReturnType> enqueue(
+  template <typename Func>
+  UniqueResult<InvokeResult<Func, int64b>> enqueue(
       Func&& task,
       const int64b parent_task_id = kNoParentId,
       EnableIfInvocable<Func, int64b> = kEnabler);
@@ -349,8 +354,8 @@ class ThreadManager : private NonCopyable<ThreadManager>
     void done() noexcept;
 
 
-    TaskPointer task_;
-    DiffType it_offset_;
+    TaskPointer task_ = nullptr;
+    DiffType it_offset_ = 0;
   };
 
   using Queue = ScalableCircularQueue<WorkerTask>;
@@ -411,6 +416,7 @@ class ThreadManager : private NonCopyable<ThreadManager>
 };
 
 #if defined(Z_GCC) || defined(Z_CLANG)
+#pragma GCC diagnostic pop
 #pragma GCC diagnostic pop
 #endif // Z_GCC || Z_CLANG
 

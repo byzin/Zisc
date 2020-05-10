@@ -29,7 +29,7 @@ int main()
   zisc::SimpleMemoryResource mem_resource;
   zisc::ThreadManager thread_manager{4, &mem_resource};
   thread_manager.setItemCapacity(8);
-  auto task = [](const zisc::uint thread_id)
+  auto task = [](const zisc::int64b thread_id)
   {
     const std::chrono::seconds wait_time{1 + thread_id * 2};
     std::this_thread::sleep_for(wait_time);
@@ -37,19 +37,20 @@ int main()
   };
   // Task parallel example
   std::cout << "Task parallel example" << std::endl;
-  auto task1_result = thread_manager.enqueue<void>(task);
-  auto task2_result = thread_manager.enqueue<void>(task);
+  auto task1_result = thread_manager.enqueue(task);
+  auto task2_result = thread_manager.enqueue(task);
   task1_result.get();
   task2_result.get();
   // Loop parallel
   std::cout << "Loop parallel example" << std::endl;
-  auto loop_task = [](const zisc::uint thread_id, const int index)
+  auto loop_task = [](const zisc::int64b thread_id, const int index)
   {
     const std::chrono::seconds wait_time{index + 1};
     std::this_thread::sleep_for(wait_time);
     std::cout << "  Task" << index << " processed at thread " << thread_id << std::endl;
   };
-  auto task_result = thread_manager.enqueueLoop(std::function<void (int,int)>{loop_task}, 0, 8);
+  using Func = std::function<void (zisc::int64b, int)>;
+  auto task_result = thread_manager.enqueueLoop(Func{loop_task}, 0, 8);
   task_result.get();
 
   return 0;

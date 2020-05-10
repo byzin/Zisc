@@ -33,19 +33,19 @@ template <typename> class FunctionReference;
   No detailed description.
 
   \tparam ReturnT No description.
-  \tparam ArgumentTypes No description.
+  \tparam ArgTypes No description.
   */
-template <typename ReturnT, typename ...ArgumentTypes>
-class FunctionReference<ReturnT (ArgumentTypes...)>
+template <typename ReturnT, typename ...ArgTypes>
+class FunctionReference<ReturnT (ArgTypes...)>
 {
  public:
   using ReturnType = ReturnT;
-  using FunctionPointer = ReturnType (*)(ArgumentTypes...);
+  using FunctionPointer = ReturnType (*)(ArgTypes...);
 
 
   template <typename Function>
   static constexpr bool kIsInvocableRaw =
-      std::is_invocable_v<Function, ArgumentTypes...> &&
+      std::is_invocable_v<Function, ArgTypes...> &&
       !std::is_same_v<FunctionReference,
                       std::remove_cv_t<std::remove_reference_t<Function>>>;
 
@@ -55,14 +55,13 @@ class FunctionReference<ReturnT (ArgumentTypes...)>
 
   //! Create a reference to a function
   template <typename Function>
-  FunctionReference(
-      Function&& func,
-      EnableIf<kIsInvocableRaw<Function>> = kEnabler) noexcept;
+  FunctionReference(Function&& func,
+                    EnableIf<kIsInvocableRaw<Function>> = kEnabler) noexcept;
 
 
   //! Invoke a referenced callable object
-  template <typename ...ArgTypes>
-  ReturnType operator()(ArgTypes&&... arguments) const;
+  template <typename ...Args>
+  ReturnType operator()(Args&&... arguments) const;
 
   //! Check whether this refers a callable object 
   explicit operator bool() const noexcept
@@ -84,21 +83,21 @@ class FunctionReference<ReturnT (ArgumentTypes...)>
   void clear() noexcept;
 
   //! Invoke a referenced callable object
-  template <typename ...ArgTypes>
-  ReturnType invoke(ArgTypes&&... arguments) const;
+  template <typename ...Args>
+  ReturnType invoke(Args&&... arguments) const;
 
   //! Exchange referenced callable objects of this and other
   void swap(FunctionReference& other) noexcept;
 
 
-  static constexpr std::size_t kNumOfArgs = sizeof...(ArgumentTypes);
+  static constexpr std::size_t kNumOfArgs = sizeof...(ArgTypes);
 
  private:
   static constexpr std::size_t kStorageSize = zisc::max(
       sizeof(void*),
       sizeof(FunctionPointer));
   using Memory = std::aligned_union_t<kStorageSize, void*, FunctionPointer>;
-  using CallbackPointer = ReturnType (*)(const void*, ArgumentTypes...);
+  using CallbackPointer = ReturnType (*)(const void*, ArgTypes...);
 
 
   //! Initialize with a function
@@ -108,12 +107,12 @@ class FunctionReference<ReturnT (ArgumentTypes...)>
   //! Invoke a referenced callable object 
   template <typename FuncPointer>
   static ReturnType invokeFunctionPointer(const void* function_ptr,
-                                          ArgumentTypes... argments);
+                                          ArgTypes... argments);
 
   //! Invoke a referenced callable object
   template <typename Functor>
   static ReturnType invokeFunctor(const void* function_memory,
-                                  ArgumentTypes... argments);
+                                  ArgTypes... argments);
 
   //! Return the memory of the function reference
   void* memory() noexcept;
@@ -127,9 +126,9 @@ class FunctionReference<ReturnT (ArgumentTypes...)>
 };
 
 //! Swap memories in the given instances
-template <typename ReturnT, typename ...ArgumentTypes>
-void swap(FunctionReference<ReturnT (ArgumentTypes...)>& lhs,
-          FunctionReference<ReturnT (ArgumentTypes...)>& rhs) noexcept;
+template <typename ReturnT, typename ...ArgTypes>
+void swap(FunctionReference<ReturnT (ArgTypes...)>& lhs,
+          FunctionReference<ReturnT (ArgTypes...)>& rhs) noexcept;
 
 } // namespace zisc
 

@@ -117,20 +117,20 @@ zisc::pmr::memory_resource* UniquePtrDeleter<Type>::resource() noexcept
   \details No detailed description
 
   \tparam Type No description.
-  \tparam ArgumentTypes No description.
+  \tparam ArgTypes No description.
   \param [in,out] alloc No description.
   \param [in,out] arguments No description.
   \return No description
   */
-template <typename Type, typename ...ArgumentTypes> inline
+template <typename Type, typename ...ArgTypes> inline
 unique_ptr<Type> allocateUnique(const zisc::pmr::polymorphic_allocator<Type> alloc,
-                                ArgumentTypes&&... arguments)
+                                ArgTypes&&... arguments)
 {
   using Pointer = std::add_pointer_t<Type>;
   constexpr std::size_t n = 1;
   zisc::pmr::polymorphic_allocator<Type> a = alloc;
   Pointer memory = a.allocate(n);
-  a.construct(memory, std::forward<ArgumentTypes>(arguments)...);
+  a.construct(memory, std::forward<ArgTypes>(arguments)...);
 
   unique_ptr<Type> p{memory, alloc};
   return p;

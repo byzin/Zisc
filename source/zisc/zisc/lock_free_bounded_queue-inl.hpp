@@ -229,8 +229,9 @@ LockFreeBoundedQueue<QueueClass, T>::LockFreeBoundedQueue() noexcept
   */
 template <typename QueueClass, typename T> inline
 LockFreeBoundedQueue<QueueClass, T>::LockFreeBoundedQueue(
-    const LockFreeBoundedQueue& /* other */) noexcept
+    const LockFreeBoundedQueue& other) noexcept
 {
+  static_cast<void>(other);
 }
 
 /*!
@@ -241,8 +242,9 @@ LockFreeBoundedQueue<QueueClass, T>::LockFreeBoundedQueue(
   */
 template <typename QueueClass, typename T> inline
 auto LockFreeBoundedQueue<QueueClass, T>::operator=(
-    const LockFreeBoundedQueue& /* other */) noexcept -> LockFreeBoundedQueue&
+    const LockFreeBoundedQueue& other) noexcept -> LockFreeBoundedQueue&
 {
+  static_cast<void>(other);
   return *this;
 }
 

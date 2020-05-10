@@ -386,6 +386,7 @@ inline
 ThreadManager::~ThreadManager()
 {
   exitWorkersRunning();
+  clear<false>();
 }
 
 /*!
@@ -460,10 +461,14 @@ std::size_t ThreadManager::itemCapacity() const noexcept
 
 /*!
   \details No detailed description
+
+  \tparam kIsSynchronized No description.
   */
-inline
+template <bool kIsSynchronized> inline
 void ThreadManager::clear() noexcept
 {
+  if constexpr (kIsSynchronized)
+    waitForCompletion();
   task_queue_.clear();
   task_state_set_.reset();
   total_tasks_.store(0);
@@ -497,24 +502,24 @@ constexpr std::size_t ThreadManager::defaultItemCapacity() noexcept
 /*!
   \details No detailed description
 
-  \tparam ReturnType No description.
   \tparam Func No description.
   \param [in] task No description.
   \param [in] parent_task_id No description.
   \return No description
   */
-template <typename ReturnType, typename Func> inline
+template <typename Func> inline
 auto ThreadManager::enqueue(Func&& task,
                             const int64b parent_task_id,
                             EnableIfInvocable<Func>)
-    -> UniqueResult<ReturnType>
+    -> UniqueResult<InvokeResult<Func>>
 {
-  using ResultP = typename UniqueResult<ReturnType>::pointer;
+  using ReturnT = InvokeResult<Func>;
+  using ResultP = typename UniqueResult<ReturnT>::pointer;
   using Iterator = int;
   auto t = [task_impl = std::forward<Func>(task)]
   (const int64b /* thread_id */, const Iterator /* it */, ResultP result)
   {
-    if constexpr (std::is_void_v<ReturnType>) {
+    if constexpr (std::is_void_v<ReturnT>) {
       task_impl();
       result->set(0);
     }
@@ -523,31 +528,31 @@ auto ThreadManager::enqueue(Func&& task,
       result->set(std::move(value));
     }
   };
-  auto result = enqueueImpl<false, ReturnType>(std::move(t), 0, 1, parent_task_id);
+  auto result = enqueueImpl<false, ReturnT>(std::move(t), 0, 1, parent_task_id);
   return result;
 }
 
 /*!
   \details No detailed description
 
-  \tparam ReturnType No description.
   \tparam Func No description.
   \param [in] task No description.
   \param [in] parent_task_id No description.
   \return No description
   */
-template <typename ReturnType, typename Func> inline
+template <typename Func> inline
 auto ThreadManager::enqueue(Func&& task,
                             const int64b parent_task_id,
                             EnableIfInvocable<Func, int64b>)
-    -> UniqueResult<ReturnType>
+    -> UniqueResult<InvokeResult<Func, int64b>>
 {
-  using ResultP = typename UniqueResult<ReturnType>::pointer;
+  using ReturnT = InvokeResult<Func, int64b>;
+  using ResultP = typename UniqueResult<ReturnT>::pointer;
   using Iterator = int;
   auto t = [task_impl = std::forward<Func>(task)]
   (const int64b thread_id, const Iterator /* it */, ResultP result)
   {
-    if constexpr (std::is_void_v<ReturnType>) {
+    if constexpr (std::is_void_v<ReturnT>) {
       task_impl(thread_id);
       result->set(0);
     }
@@ -556,7 +561,7 @@ auto ThreadManager::enqueue(Func&& task,
       result->set(std::move(value));
     }
   };
-  auto result = enqueueImpl<false, ReturnType>(std::move(t), 0, 1, parent_task_id);
+  auto result = enqueueImpl<false, ReturnT>(std::move(t), 0, 1, parent_task_id);
   return result;
 }
 
@@ -686,6 +691,7 @@ inline
 void ThreadManager::setIdCapacity(const std::size_t cap) noexcept
 {
   task_state_set_.setSize(cap);
+  clear();
 }
 
 /*!
@@ -697,6 +703,7 @@ inline
 void ThreadManager::setItemCapacity(const std::size_t cap) noexcept
 {
   task_queue_.setCapacity(cap);
+  clear();
 }
 
 /*!
@@ -726,9 +733,7 @@ void ThreadManager::waitForCompletion() noexcept
   \details No detailed description
   */
 inline
-ThreadManager::WorkerTask::WorkerTask() noexcept :
-    task_{nullptr},
-    it_offset_{0}
+ThreadManager::WorkerTask::WorkerTask() noexcept
 {
 }
 
@@ -1158,14 +1163,19 @@ int64b ThreadManager::getCurrentThreadId() const noexcept
 inline
 void ThreadManager::initialize(const int64b num_of_threads) noexcept
 {
-  clear();
+  clear<false>();
   createWorkers(num_of_threads);
+  clear();
 
   // Check the alignment of member variables
   static_assert(std::alignment_of_v<decltype(workers_)> <=
                 std::alignment_of_v<decltype(task_queue_)>);
-  static_assert(std::alignment_of_v<decltype(lock_)> <=
+  static_assert(std::alignment_of_v<decltype(worker_state_set_)> <=
                 std::alignment_of_v<decltype(workers_)>);
+  static_assert(std::alignment_of_v<decltype(total_tasks_)> <=
+                std::alignment_of_v<decltype(worker_state_set_)>);
+  static_assert(std::alignment_of_v<decltype(lock_)> <=
+                std::alignment_of_v<decltype(total_tasks_)>);
 }
 
 /*!

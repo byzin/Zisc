@@ -131,9 +131,16 @@ template <typename T> inline
 void ScalableCircularQueue<T>::clear() noexcept
 {
   allocated_elements_.clear();
-  const uint64b s = 0;
-  const uint64b e = cast<uint64b>(uint64b{0b1} << free_elements_.order());
-  free_elements_.fill(s, e);
+  {
+    const uint64b s = 0;
+    const uint64b e = cast<uint64b>(uint64b{0b1} << free_elements_.order());
+    free_elements_.fill(s, e);
+  }
+  {
+    const std::size_t s = capacity();
+    elements_.clear();
+    elements_.resize(s);
+  }
 }
 
 /*!

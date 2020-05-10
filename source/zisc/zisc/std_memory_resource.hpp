@@ -241,9 +241,9 @@ template <typename Type>
 using unique_ptr = std::unique_ptr<Type, UniquePtrDeleter<Type>>;
 
 //! Create a unique pointer that manages a new object allocated using polymorphic_allocator
-template <typename Type, typename ...ArgumentTypes>
+template <typename Type, typename ...ArgTypes>
 unique_ptr<Type> allocateUnique(const polymorphic_allocator<Type> alloc,
-                                ArgumentTypes&&... arguments);
+                                ArgTypes&&... arguments);
 
 } // namespace pmr 
 

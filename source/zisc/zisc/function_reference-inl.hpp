@@ -28,8 +28,8 @@ namespace zisc {
 /*!
   \details No detailed description
   */
-template <typename ReturnT, typename ...ArgumentTypes> inline
-FunctionReference<ReturnT (ArgumentTypes...)>::FunctionReference() noexcept
+template <typename ReturnT, typename ...ArgTypes> inline
+FunctionReference<ReturnT (ArgTypes...)>::FunctionReference() noexcept
 {
 }
 
@@ -39,9 +39,9 @@ FunctionReference<ReturnT (ArgumentTypes...)>::FunctionReference() noexcept
   \tparam Function No description.
   \param [in] func No description.
   */
-template <typename ReturnT, typename ...ArgumentTypes>
+template <typename ReturnT, typename ...ArgTypes>
 template <typename Function> inline
-FunctionReference<ReturnT (ArgumentTypes...)>::FunctionReference(
+FunctionReference<ReturnT (ArgTypes...)>::FunctionReference(
     Function&& func,
     EnableIf<kIsInvocableRaw<Function>>) noexcept
 {
@@ -51,20 +51,20 @@ FunctionReference<ReturnT (ArgumentTypes...)>::FunctionReference(
 /*!
   \details No detailed description
 
-  \tparam ArgTypes No description.
+  \tparam Args No description.
   \param [in] arguments No description.
   \return No description
   */
 
-template <typename ReturnT, typename ...ArgumentTypes>
-template <typename ...ArgTypes> inline
-auto FunctionReference<ReturnT (ArgumentTypes...)>::operator()(
-    ArgTypes&&... arguments) const -> ReturnType
+template <typename ReturnT, typename ...ArgTypes>
+template <typename ...Args> inline
+auto FunctionReference<ReturnT (ArgTypes...)>::operator()(
+    Args&&... arguments) const -> ReturnType
 {
   if constexpr (std::is_void_v<ReturnType>)
-    invoke(std::forward<ArgTypes>(arguments)...);
+    invoke(std::forward<Args>(arguments)...);
   else
-    return invoke(std::forward<ArgTypes>(arguments)...);
+    return invoke(std::forward<Args>(arguments)...);
 }
 
 /*!
@@ -73,8 +73,8 @@ auto FunctionReference<ReturnT (ArgumentTypes...)>::operator()(
   \param [in] other No description.
   \return No description
   */
-template <typename ReturnT, typename ...ArgumentTypes> inline
-auto FunctionReference<ReturnT (ArgumentTypes...)>::assign(
+template <typename ReturnT, typename ...ArgTypes> inline
+auto FunctionReference<ReturnT (ArgTypes...)>::assign(
     const FunctionReference& other) noexcept -> FunctionReference&
 {
   memory_ = other.memory_;
@@ -89,9 +89,9 @@ auto FunctionReference<ReturnT (ArgumentTypes...)>::assign(
   \param [in] func No description.
   \return No description
   */
-template <typename ReturnT, typename ...ArgumentTypes>
+template <typename ReturnT, typename ...ArgTypes>
 template <typename Function> inline
-auto FunctionReference<ReturnT (ArgumentTypes...)>::assign(
+auto FunctionReference<ReturnT (ArgTypes...)>::assign(
     Function&& func,
     EnableIf<kIsInvocableRaw<Function>>) noexcept -> FunctionReference&
 {
@@ -102,8 +102,8 @@ auto FunctionReference<ReturnT (ArgumentTypes...)>::assign(
 /*!
   \details No detailed description
   */
-template <typename ReturnT, typename ...ArgumentTypes> inline
-void FunctionReference<ReturnT (ArgumentTypes...)>::clear() noexcept
+template <typename ReturnT, typename ...ArgTypes> inline
+void FunctionReference<ReturnT (ArgTypes...)>::clear() noexcept
 {
   callback_ = nullptr;
 }
@@ -111,20 +111,20 @@ void FunctionReference<ReturnT (ArgumentTypes...)>::clear() noexcept
 /*!
   \details No detailed description
 
-  \tparam ArgTypes No description.
+  \tparam Args No description.
   \param [in] arguments No description.
   \return No description
   */
-template <typename ReturnT, typename ...ArgumentTypes>
-template <typename ...ArgTypes> inline
-auto FunctionReference<ReturnT (ArgumentTypes...)>::invoke(
-    ArgTypes&&... arguments) const -> ReturnType
+template <typename ReturnT, typename ...ArgTypes>
+template <typename ...Args> inline
+auto FunctionReference<ReturnT (ArgTypes...)>::invoke(
+    Args&&... arguments) const -> ReturnType
 {
   ZISC_ASSERT(cast<bool>(*this), "This function reference is invalid.");
   if constexpr (std::is_void_v<ReturnType>)
-    callback_(memory(), std::forward<ArgTypes>(arguments)...);
+    callback_(memory(), std::forward<Args>(arguments)...);
   else
-    return callback_(memory(), std::forward<ArgTypes>(arguments)...);
+    return callback_(memory(), std::forward<Args>(arguments)...);
 }
 
 /*!
@@ -132,8 +132,8 @@ auto FunctionReference<ReturnT (ArgumentTypes...)>::invoke(
 
   \param [in,out] other No description.
   */
-template <typename ReturnT, typename ...ArgumentTypes> inline
-void FunctionReference<ReturnT (ArgumentTypes...)>::swap(
+template <typename ReturnT, typename ...ArgTypes> inline
+void FunctionReference<ReturnT (ArgTypes...)>::swap(
     FunctionReference& other) noexcept
 {
   zisc::swap(memory_, other.memory_);
@@ -146,9 +146,9 @@ void FunctionReference<ReturnT (ArgumentTypes...)>::swap(
   \tparam Function No description.
   \param [in] func No description.
   */
-template <typename ReturnT, typename ...ArgumentTypes>
+template <typename ReturnT, typename ...ArgTypes>
 template <typename Function> inline
-void FunctionReference<ReturnT (ArgumentTypes...)>::initialize(
+void FunctionReference<ReturnT (ArgTypes...)>::initialize(
     Function&& func) noexcept
 {
   using Func = std::remove_volatile_t<std::remove_reference_t<Function>>;
@@ -179,11 +179,11 @@ void FunctionReference<ReturnT (ArgumentTypes...)>::initialize(
   \param [in] arguments No description.
   \return No description
   */
-template <typename ReturnT, typename ...ArgumentTypes>
+template <typename ReturnT, typename ...ArgTypes>
 template <typename FuncPointer> inline
-auto FunctionReference<ReturnT (ArgumentTypes...)>::invokeFunctionPointer(
+auto FunctionReference<ReturnT (ArgTypes...)>::invokeFunctionPointer(
     const void* function_ptr,
-    ArgumentTypes... arguments) -> ReturnType
+    ArgTypes... arguments) -> ReturnType
 {
   const auto ptr = cast<const FuncPointer*>(function_ptr);
   if constexpr (std::is_void_v<ReturnType>)
@@ -200,11 +200,11 @@ auto FunctionReference<ReturnT (ArgumentTypes...)>::invokeFunctionPointer(
   \param [in] arguments No description.
   \return No description
   */
-template <typename ReturnT, typename ...ArgumentTypes>
+template <typename ReturnT, typename ...ArgTypes>
 template <typename Functor> inline
-auto FunctionReference<ReturnT (ArgumentTypes...)>::invokeFunctor(
+auto FunctionReference<ReturnT (ArgTypes...)>::invokeFunctor(
     const void* functor,
-    ArgumentTypes... arguments) -> ReturnType
+    ArgTypes... arguments) -> ReturnType
 {
   const auto ptr = cast<const Functor* const*>(functor);
   if constexpr (std::is_void_v<ReturnType>)
@@ -218,8 +218,8 @@ auto FunctionReference<ReturnT (ArgumentTypes...)>::invokeFunctor(
 
   \return No description
   */
-template <typename ReturnT, typename ...ArgumentTypes> inline
-void* FunctionReference<ReturnT (ArgumentTypes...)>::memory() noexcept
+template <typename ReturnT, typename ...ArgTypes> inline
+void* FunctionReference<ReturnT (ArgTypes...)>::memory() noexcept
 {
   return &memory_;
 }
@@ -229,8 +229,8 @@ void* FunctionReference<ReturnT (ArgumentTypes...)>::memory() noexcept
 
   \return No description
   */
-template <typename ReturnT, typename ...ArgumentTypes> inline
-const void* FunctionReference<ReturnT (ArgumentTypes...)>::memory() const noexcept
+template <typename ReturnT, typename ...ArgTypes> inline
+const void* FunctionReference<ReturnT (ArgTypes...)>::memory() const noexcept
 {
   return &memory_;
 }
@@ -239,13 +239,13 @@ const void* FunctionReference<ReturnT (ArgumentTypes...)>::memory() const noexce
   \details No detailed description
 
   \tparam ReturnT No description.
-  \tparam ArgumentTypes No description.
+  \tparam ArgTypes No description.
   \param [in] lhs No description.
   \param [in] rhs No description.
   */
-template <typename ReturnT, typename ...ArgumentTypes> inline
-void swap(FunctionReference<ReturnT (ArgumentTypes...)>& lhs,
-          FunctionReference<ReturnT (ArgumentTypes...)>& rhs) noexcept
+template <typename ReturnT, typename ...ArgTypes> inline
+void swap(FunctionReference<ReturnT (ArgTypes...)>& lhs,
+          FunctionReference<ReturnT (ArgTypes...)>& rhs) noexcept
 {
   lhs.swap(rhs);
 }

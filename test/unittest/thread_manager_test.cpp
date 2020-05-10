@@ -36,28 +36,33 @@
 
 namespace {
 
+template <std::size_t kBase, std::size_t kMaxLevel, std::size_t kLevel>
 void testThreadPoolNest(zisc::ThreadManager& thread_manager,
-                        const int max_level,
-                        const int level)
+                        std::vector<double>& results,
+                        const std::size_t index) noexcept
 {
-  if (level < max_level) {
-    auto task1 = [&thread_manager, max_level, level]()
+  static_assert(1 < kBase);
+  if constexpr (kLevel < kMaxLevel) {
+    auto task1 = [&thread_manager, &results, index]() noexcept
     {
-      const int next_level = level + 1;
-      testThreadPoolNest(thread_manager, max_level, next_level);
+      constexpr std::size_t level = kLevel + 1;
+      const std::size_t child_i = kBase * index + 1;
+      testThreadPoolNest<kBase, kMaxLevel, level>(thread_manager, results, child_i);
     };
 
-    auto task2 = [&thread_manager, max_level, level](const zisc::uint)
+    auto task2 = [&thread_manager, &results, index](const std::size_t i) noexcept
     {
-      const int next_level = level + 1;
-      testThreadPoolNest(thread_manager, max_level, next_level);
+      constexpr std::size_t level = kLevel + 1;
+      const std::size_t child_i = kBase * index + (i + 1);
+      testThreadPoolNest<kBase, kMaxLevel, level>(thread_manager, results, child_i);
     };
 
+    constexpr std::size_t start = 1;
+    const std::size_t end = kBase;
     auto result1 = thread_manager.enqueue(task1);
-    constexpr zisc::uint start = 0;
-    const zisc::uint end = zisc::cast<zisc::uint>(thread_manager.numOfThreads());
     auto result2 = thread_manager.enqueueLoop(task2, start, end);
-    if (zisc::isOdd(level)) {
+
+    if (zisc::isOdd(kLevel)) {
       result1->wait();
       result2->wait();
     }
@@ -66,9 +71,13 @@ void testThreadPoolNest(zisc::ThreadManager& thread_manager,
       result1->wait();
     }
   }
-
-  const std::chrono::milliseconds wait_time{150};
-  std::this_thread::sleep_for(wait_time);
+  // Process
+  constexpr std::size_t num_of_loops = 1'000'000;
+  using Cmj = zisc::CmjN16;
+  for (std::size_t i = 0; i < num_of_loops; ++i) {
+    results[index] += Cmj::generate1D<double>(zisc::cast<zisc::uint32b>(i),
+                                              zisc::cast<zisc::uint32b>(index));
+  }
 }
 
 struct TestValue : private zisc::NonCopyable<TestValue>
@@ -156,7 +165,13 @@ TEST(ThreadManagerTest, EnqueueTaskExceptionTest)
       constexpr std::size_t cap = thread_manager.defaultItemCapacity();
       ASSERT_EQ(cap, thread_manager.itemCapacity());
 
-      auto task = [](const int /* index */) {};
+      auto task = [&thread_manager](const zisc::int64b /* id */, const int index)
+      {
+        if (index < thread_manager.numOfThreads()) {
+          const std::chrono::milliseconds wait_time{256};
+          std::this_thread::sleep_for(wait_time);
+        }
+      };
       constexpr int begin = 0;
       constexpr int end = zisc::cast<int>(2 * cap);
       zisc::ThreadManager::SharedResult<void> result;
@@ -168,12 +183,12 @@ TEST(ThreadManagerTest, EnqueueTaskExceptionTest)
       catch (zisc::ThreadManager::OverflowError& error) {
         const int b = zisc::cast<int>(error.beginOffset());
         const int e = zisc::cast<int>(error.numOfIterations());
-        ASSERT_EQ(zisc::cast<int>(cap), b);
+        ASSERT_LE(zisc::cast<int>(cap), b);
         ASSERT_EQ(end, e);
         auto& task1 = error.task();
         task1.getResult(std::addressof(result));
         for (auto it = error.beginOffset(); it < error.numOfIterations(); ++it)
-          task1.run(thread_manager.unmanagedThreadId(), it);
+          task1.run(zisc::ThreadManager::unmanagedThreadId(), it);
       }
       catch (...) {
         FAIL() << "This line must not be processed.";
@@ -428,12 +443,23 @@ TEST(ThreadManagerTest, NestedThreadPoolTest)
 {
   zisc::SimpleMemoryResource mem_resource;
   {
-    zisc::ThreadManager thread_manager{16, &mem_resource};
-    constexpr std::size_t num_of_works = 128 * 128 * 128;
-    thread_manager.setIdCapacity(num_of_works);
-    thread_manager.setItemCapacity(num_of_works);
-    constexpr int max_level = 3;
-    ::testThreadPoolNest(thread_manager, max_level, 0);
+    zisc::ThreadManager thread_manager{&mem_resource};
+    constexpr std::size_t base = 4;
+    constexpr std::size_t max_level = 8;
+    std::size_t n = 0;
+    for (std::size_t i = 1; i < max_level; ++i) {
+      n = base * (n + 1);
+    }
+    ++n;
+    thread_manager.setIdCapacity(n);
+    thread_manager.setItemCapacity(n);
+    std::vector<double> results;
+    results.resize(n, 0.0);
+    ::testThreadPoolNest<base, max_level, 1>(thread_manager, results, 0);
+    thread_manager.waitForCompletion();
+    for (std::size_t i = 0; i < results.size(); ++i) {
+      ASSERT_TRUE(0.0 < results[i]) << "[" << i << "] is 0.0.";
+    }
   }
   ASSERT_FALSE(mem_resource.totalMemoryUsage())
       << mem_resource.totalMemoryUsage() << " bytes isn't deallocated.";

@@ -355,6 +355,9 @@ class ThreadManager : private NonCopyable<ThreadManager>
   //! Return the thread ID of the thread in which this method is called
   int64b getCurrentThreadId() const noexcept;
 
+  //! Return the number of inactive threads
+  DiffType getNumOfInactiveThreads() const noexcept;
+
   //! Initialize this thread manager
   void initialize(const int64b num_of_threads) noexcept;
 

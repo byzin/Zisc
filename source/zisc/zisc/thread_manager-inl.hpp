@@ -850,9 +850,9 @@ auto ThreadManager::enqueueImpl(
   using SharedResultT = SharedResult<ReturnT>;
   using Iterator = std::remove_cv_t<CommonIterator<Iterator1, Iterator2>>;
 
-  constexpr bool is_single = std::is_invocable_v<FuncT, int64b>;
-  constexpr bool is_loop = std::is_invocable_v<FuncT, int64b, Iterator>;
-  static_assert(is_single || is_loop, "The Func isn't invocable.");
+  using IsSingle = std::is_invocable<FuncT, int64b>;
+  using IsLoop = std::is_invocable<FuncT, int64b, Iterator>;
+  static_assert(IsSingle::value || IsLoop::value, "The Func isn't invocable.");
 
 #if defined(Z_GCC) || defined(Z_CLANG)
 #pragma GCC diagnostic push
@@ -870,7 +870,7 @@ auto ThreadManager::enqueueImpl(
     }
     ~TaskImpl() noexcept override
     {
-      if constexpr (is_loop) {
+      if constexpr (IsLoop::value) {
         result_->set(0);
       }
     }
@@ -883,7 +883,7 @@ auto ThreadManager::enqueueImpl(
       auto th_manager = result_->manager();
       th_manager->waitForParent(taskId(), parentTaskId());
 
-      if constexpr (is_loop) { // Loop task
+      if constexpr (IsLoop::value) { // Loop task
         if constexpr (std::is_arithmetic_v<Iterator>) {
           using ItType = std::common_type_t<Iterator, DiffType>;
           auto ite = cast<Iterator>(cast<ItType>(begin_) + cast<ItType>(it_offset));
@@ -943,9 +943,19 @@ auto ThreadManager::enqueueImpl(
 
   // Enqueue loop tasks
   {
+    DiffType padd = 0;
+    auto notify_thread = [this, inactive_threads = getNumOfInactiveThreads(), padd]
+    (const DiffType index) noexcept
+    {
+      if (IsLoop::value && (index < inactive_threads))
+        Atomic::notifyOne(std::addressof(lock_));
+      static_cast<void>(padd);
+    };
+
     auto notify_threads = [this](const DiffType num_of_queued_tasks) noexcept
     {
-      if (is_loop && numOfThreads() <= num_of_queued_tasks) {
+      const auto inactive_threads = getNumOfInactiveThreads();
+      if (IsLoop::value && (inactive_threads <= num_of_queued_tasks)) {
         Atomic::notifyAll(std::addressof(lock_));
       }
       else {
@@ -966,6 +976,7 @@ auto ThreadManager::enqueueImpl(
         notify_threads(i);
         throw_exception(shared_task, result, i, d);
       }
+      notify_thread(i);
     }
     notify_threads(d);
   }
@@ -1045,6 +1056,18 @@ int64b ThreadManager::getCurrentThreadId() const noexcept
   const int64b thread_id = result ? std::distance(workers_.begin(), t)
                                   : unmanagedThreadId();
   return thread_id;
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+inline
+auto ThreadManager::getNumOfInactiveThreads() const noexcept -> DiffType
+{
+  const auto n = worker_state_set_.size() - worker_state_set_.count();
+  return cast<DiffType>(n);
 }
 
 /*!

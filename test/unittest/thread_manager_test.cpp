@@ -159,7 +159,7 @@ TEST(ThreadManagerTest, EnqueueTaskExceptionTest)
       auto task = [](const int /* index */) {};
       constexpr int begin = 0;
       constexpr int end = zisc::cast<int>(2 * cap);
-      zisc::ThreadManager::UniqueResult<void> result;
+      zisc::ThreadManager::SharedResult<void> result;
       try {
         result = thread_manager.enqueueLoop(task, begin, end);
         result->wait();
@@ -170,15 +170,16 @@ TEST(ThreadManagerTest, EnqueueTaskExceptionTest)
         const int e = zisc::cast<int>(error.numOfIterations());
         ASSERT_EQ(zisc::cast<int>(cap), b);
         ASSERT_EQ(end, e);
-        auto& r = error.result<void>();
-        r.wait();
+        auto& task1 = error.task();
+        task1.getResult(std::addressof(result));
+        for (auto it = error.beginOffset(); it < error.numOfIterations(); ++it)
+          task1.run(thread_manager.unmanagedThreadId(), it);
       }
       catch (...) {
         FAIL() << "This line must not be processed.";
       }
-      if (result) {
-        FAIL() << "This line must not be processed.";
-      }
+      ASSERT_EQ(0, result->taskId());
+      result->wait();
     }
   }
   ASSERT_FALSE(mem_resource.totalMemoryUsage())
@@ -401,7 +402,7 @@ TEST(ThreadManagerTest, ExitWorkerRunningTest)
   zisc::SimpleMemoryResource mem_resource;
   {
     constexpr zisc::uint num_of_works = 1024;
-    std::vector<typename zisc::ThreadManager::UniqueResult<void>> results;
+    std::vector<typename zisc::ThreadManager::SharedResult<void>> results;
     results.reserve(num_of_works);
     {
       zisc::ThreadManager thread_manager{24, &mem_resource};
@@ -464,7 +465,7 @@ TEST(ThreadManagerTest, TaskStressTest)
     constexpr zisc::uint num_of_threads = 1024u;
     constexpr zisc::uint num_of_tasks = 4'000'000;
 
-    std::vector<typename zisc::ThreadManager::UniqueResult<void>> result_list;
+    std::vector<typename zisc::ThreadManager::SharedResult<void>> result_list;
     result_list.resize(num_of_tasks);
 
     zisc::ThreadManager thread_manager{num_of_threads, &mem_resource};
@@ -499,7 +500,7 @@ TEST(ThreadManagerTest, TaskStressPerformanceTest)
     constexpr zisc::uint num_of_threads = 0u;
     constexpr zisc::uint num_of_tasks = 4'000'000;
 
-    std::vector<typename zisc::ThreadManager::UniqueResult<void>> result_list;
+    std::vector<typename zisc::ThreadManager::SharedResult<void>> result_list;
     result_list.resize(num_of_tasks);
 
     zisc::ThreadManager thread_manager{num_of_threads, &mem_resource};

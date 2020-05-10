@@ -52,15 +52,13 @@ namespace zisc {
   */
 class ThreadManager : private NonCopyable<ThreadManager>
 {
-  // Forward declaration
-  class WorkerTask;
-
  public:
   //! Result type of tasks
   template <typename T>
   class Result : private NonCopyable<Result<T>>
   {
    public:
+    static_assert(!std::is_reference_v<T>, "Reference result isn't supported.");
     using Type = std::remove_volatile_t<T>;
 
     //! Create a result of a task
@@ -83,6 +81,7 @@ class ThreadManager : private NonCopyable<ThreadManager>
     using ResultT = std::conditional_t<std::is_void_v<Type>, uint8b, Type>;
     using ResultData = std::aligned_storage_t<sizeof(ResultT), alignof(ResultT)>;
     using ResultReference = std::add_lvalue_reference_t<ResultT>;
+    using ResultRReference = std::add_rvalue_reference_t<ResultT>;
 
     //! Check if a result has a value
     bool hasValue() const noexcept;
@@ -94,7 +93,7 @@ class ThreadManager : private NonCopyable<ThreadManager>
     bool runAnotherTask() const;
 
     //! Set a result value
-    void set(ResultT&& result) noexcept;
+    void set(ResultRReference result) noexcept;
 
     //! Return a data as a value
     ResultReference value() noexcept;
@@ -107,7 +106,6 @@ class ThreadManager : private NonCopyable<ThreadManager>
   };
 
   using DiffType = WordType;
-  class OverflowError;
 
   /*!
     \brief No brief description
@@ -123,17 +121,11 @@ class ThreadManager : private NonCopyable<ThreadManager>
     //! Destroy a task data
     virtual ~Task() noexcept;
 
-    //! Perform post-process of the task data
-    virtual bool done() noexcept = 0;
+    //! Retrieve the result of the underlying task
+    virtual void getResult(void* result) noexcept = 0;
 
     //! Return the parent task ID
     int64b parentTaskId() const noexcept;
-
-    //! Return the result of the underlying task
-    virtual void* result() noexcept = 0;
-
-    //! Return the result of the underlying task
-    virtual const void* result() const noexcept = 0;
 
     //! Run a task
     virtual void run(const int64b thread_id, const DiffType it_offset) = 0;
@@ -141,23 +133,14 @@ class ThreadManager : private NonCopyable<ThreadManager>
     //! Return the task ID
     int64b taskId() const noexcept;
 
-   protected:
-    friend OverflowError;
-    friend WorkerTask;
-
-
-    //! Destroy the task and the underlying result
-    virtual void deleteInException(pmr::memory_resource* mem_resource) noexcept = 0;
-
-    //! Return the underlying thread manager
-    virtual ThreadManager* manager() noexcept = 0;
-
    private:
     int64b task_id_;
     int64b parent_task_id_;
   };
 
-  using TaskPointer = std::add_pointer_t<Task>;
+  template <typename Type>
+  using SharedResult = std::shared_ptr<Result<Type>>;
+  using SharedTask = std::shared_ptr<Task>;
 
   /*!
     \brief No brief description
@@ -169,8 +152,7 @@ class ThreadManager : private NonCopyable<ThreadManager>
    public:
     //! Construct the queue error of the thread manager 
     OverflowError(const std::string_view what_arg,
-                  pmr::memory_resource* mem_resource,
-                  TaskPointer t,
+                  SharedTask&& t,
                   const DiffType begin_offset,
                   const DiffType num_of_iterations);
 
@@ -184,14 +166,6 @@ class ThreadManager : private NonCopyable<ThreadManager>
     //! Return the number of iterations
     DiffType numOfIterations() const noexcept;
 
-    //! Return the result of the underlying task
-    template <typename ReturnType>
-    Result<ReturnType>& result() noexcept;
-
-    //! Return the result of the underlying task
-    template <typename ReturnType>
-    const Result<ReturnType>& result() const noexcept;
-
     //! Return the underlying task
     Task& task() noexcept;
 
@@ -199,22 +173,11 @@ class ThreadManager : private NonCopyable<ThreadManager>
     const Task& task() const noexcept;
 
    private:
-    struct TaskData : private NonCopyable<TaskData>
-    {
-      TaskData(pmr::memory_resource* mem_resource, TaskPointer t) noexcept;
-      ~TaskData() noexcept;
-      pmr::memory_resource* mem_resource_;
-      TaskPointer task_;
-    };
-
-
-    std::shared_ptr<TaskData> task_data_;
+    SharedTask task_;
     DiffType begin_offset_;
     DiffType num_of_iterations_;
   };
 
-  template <typename Type>
-  using UniqueResult = pmr::unique_ptr<Result<Type>>;
   template <typename Func, typename ...ArgTypes>
   using InvokeResult = std::remove_volatile_t<std::remove_reference_t<std::invoke_result_t<Func, ArgTypes...>>>;
   template <typename Iterator1, typename Iterator2>
@@ -266,21 +229,21 @@ class ThreadManager : private NonCopyable<ThreadManager>
 
   //! Run the given task on a worker thread in the manager
   template <typename Func>
-  UniqueResult<InvokeResult<Func>> enqueue(
+  SharedResult<InvokeResult<Func>> enqueue(
       Func&& task,
       const int64b parent_task_id = kNoParentId,
       EnableIfInvocable<Func> = kEnabler);
 
   //! Run the given task on a worker thread in the manager
   template <typename Func>
-  UniqueResult<InvokeResult<Func, int64b>> enqueue(
+  SharedResult<InvokeResult<Func, int64b>> enqueue(
       Func&& task,
       const int64b parent_task_id = kNoParentId,
       EnableIfInvocable<Func, int64b> = kEnabler);
 
   //! Run tasks on the worker threads in the manager
   template <typename Func, typename Iterator1, typename Iterator2>
-  UniqueResult<void> enqueueLoop(
+  SharedResult<void> enqueueLoop(
       Func&& task,
       Iterator1&& begin,
       Iterator2&& end,
@@ -289,7 +252,7 @@ class ThreadManager : private NonCopyable<ThreadManager>
 
   //! Run tasks on the worker threads in the manager
   template <typename Func, typename Iterator1, typename Iterator2>
-  UniqueResult<void> enqueueLoop(
+  SharedResult<void> enqueueLoop(
       Func&& task,
       Iterator1&& begin,
       Iterator2&& end,
@@ -317,6 +280,9 @@ class ThreadManager : private NonCopyable<ThreadManager>
   //! Return the number of queued tasks
   std::size_t size() const noexcept;
 
+  //! Return the unmanaged thread ID
+  static constexpr int64b unmanagedThreadId() noexcept;
+
   //! Wait current thread until all tasks in the queue are completed
   void waitForCompletion() noexcept;
 
@@ -333,7 +299,8 @@ class ThreadManager : private NonCopyable<ThreadManager>
     WorkerTask() noexcept;
 
     //! Create a task
-    WorkerTask(TaskPointer task, const DiffType it_offset) noexcept;
+    template <typename TaskImpl>
+    WorkerTask(std::shared_ptr<TaskImpl>& task, const DiffType it_offset) noexcept;
 
     //! Move data
     WorkerTask(WorkerTask&& other) noexcept;
@@ -351,10 +318,7 @@ class ThreadManager : private NonCopyable<ThreadManager>
     void run(const int64b thread_id);
 
    private:
-    void done() noexcept;
-
-
-    TaskPointer task_ = nullptr;
+    SharedTask task_;
     DiffType it_offset_ = 0;
   };
 
@@ -370,11 +334,11 @@ class ThreadManager : private NonCopyable<ThreadManager>
   static DiffType distance(Iterator1&& begin, Iterator2&& end) noexcept;
 
   //! Run tasks on the worker threads in the manager
-  template <bool kIsLoopTask, typename ReturnType, typename Func, typename Iterator1, typename Iterator2>
-  UniqueResult<ReturnType> enqueueImpl(Func&& task,
-                                       Iterator1&& begin,
-                                       Iterator2&& end,
-                                       const int64b parent_task_id);
+  template <typename ReturnT, typename Func, typename Iterator1, typename Iterator2>
+  SharedResult<ReturnT> enqueueImpl(Func&& task,
+                                    Iterator1&& begin,
+                                    Iterator2&& end,
+                                    const int64b parent_task_id);
 
   //! Exit workers running
   void exitWorkersRunning() noexcept;
@@ -396,9 +360,6 @@ class ThreadManager : private NonCopyable<ThreadManager>
 
   //! Issue a task ID
   int64b issueTaskId() noexcept;
-
-  //! Return the unmanaged thread ID
-  static constexpr int64b unmanagedThreadId() noexcept;
 
   //! Wait current thread for parent task complesion
   void waitForParent(const int64b task_id, const int64b parent_task_id) const noexcept;

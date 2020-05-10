@@ -147,11 +147,13 @@ bool ThreadManager::Result<T>::runAnotherTask() const
   \param [in] result No description.
   */
 template <typename T> inline
-void ThreadManager::Result<T>::set(ResultT&& result) noexcept
+void ThreadManager::Result<T>::set(ResultRReference result) noexcept
 {
   ZISC_ASSERT(!hasValue(), "The result already has a value.");
   new (&data_) ResultT{std::move(result)};
   has_value_ = kTrue;
+  auto th_manager = manager();
+  th_manager->finishTask(taskId());
 }
 
 /*!
@@ -223,22 +225,17 @@ int64b ThreadManager::Task::taskId() const noexcept
   \details No detailed description
 
   \param [in] what_arg No description.
-  \param [in,out] mem_resource No description.
   \param [in] t No description.
   \param [in] begin_offset No description.
   \param [in] num_of_iterations No description.
   */
 inline
 ThreadManager::OverflowError::OverflowError(const std::string_view what_arg,
-                                            pmr::memory_resource* mem_resource,
-                                            TaskPointer t,
+                                            SharedTask&& t,
                                             const DiffType begin_offset,
                                             const DiffType num_of_iterations) :
     SystemError(ErrorCode::kThreadManagerQueueOverflow, what_arg),
-    task_data_{std::allocate_shared<TaskData>(
-        pmr::polymorphic_allocator<TaskData>{mem_resource},
-        mem_resource,
-        t)},
+    task_{std::move(t)},
     begin_offset_{begin_offset},
     num_of_iterations_{num_of_iterations}
 {
@@ -277,42 +274,12 @@ auto ThreadManager::OverflowError::numOfIterations() const noexcept -> DiffType
 /*!
   \details No detailed description
 
-  \tparam ReturnType No description.
-  \return No description
-  */
-template <typename ReturnType> inline
-auto ThreadManager::OverflowError::result() noexcept -> Result<ReturnType>&
-{
-  using ResultT = Result<ReturnType>;
-  Task& t = task();
-  ResultT& r = *cast<ResultT*>(t.result());
-  return r;
-}
-
-/*!
-  \details No detailed description
-
-  \tparam ReturnType No description.
-  \return No description
-  */
-template <typename ReturnType> inline
-auto ThreadManager::OverflowError::result() const noexcept -> const Result<ReturnType>&
-{
-  using ResultT = Result<ReturnType>;
-  const Task& t = task();
-  const ResultT& r = *cast<const ResultT*>(t.result());
-  return r;
-}
-
-/*!
-  \details No detailed description
-
   \return No description
   */
 inline
 auto ThreadManager::OverflowError::task() noexcept -> Task&
 {
-  return *task_data_->task_;
+  return *task_;
 }
 
 /*!
@@ -323,30 +290,7 @@ auto ThreadManager::OverflowError::task() noexcept -> Task&
 inline
 auto ThreadManager::OverflowError::task() const noexcept -> const Task&
 {
-  return *task_data_->task_;
-}
-
-/*!
-  \details No detailed description
-
-  \param [in] mem_resource No description.
-  \param [in] t No description.
-  */
-inline
-ThreadManager::OverflowError::TaskData::TaskData(pmr::memory_resource* mem_resource,
-                                                 TaskPointer t) noexcept
-    : mem_resource_{mem_resource},
-      task_{t}
-{
-}
-
-/*!
-  \details No detailed description
-  */
-inline
-ThreadManager::OverflowError::TaskData::~TaskData() noexcept
-{
-  task_->deleteInException(mem_resource_);
+  return *task_;
 }
 
 /*!
@@ -511,24 +455,17 @@ template <typename Func> inline
 auto ThreadManager::enqueue(Func&& task,
                             const int64b parent_task_id,
                             EnableIfInvocable<Func>)
-    -> UniqueResult<InvokeResult<Func>>
+    -> SharedResult<InvokeResult<Func>>
 {
   using ReturnT = InvokeResult<Func>;
-  using ResultP = typename UniqueResult<ReturnT>::pointer;
-  using Iterator = int;
-  auto t = [task_impl = std::forward<Func>(task)]
-  (const int64b /* thread_id */, const Iterator /* it */, ResultP result)
+  auto t = [task_impl = std::forward<Func>(task)](const int64b /* thread_id */)
   {
-    if constexpr (std::is_void_v<ReturnT>) {
+    if constexpr (std::is_void_v<ReturnT>)
       task_impl();
-      result->set(0);
-    }
-    else {
-      auto value = task_impl();
-      result->set(std::move(value));
-    }
+    else
+      return task_impl();
   };
-  auto result = enqueueImpl<false, ReturnT>(std::move(t), 0, 1, parent_task_id);
+  auto result = enqueueImpl<ReturnT>(std::move(t), 0, 1, parent_task_id);
   return result;
 }
 
@@ -544,24 +481,17 @@ template <typename Func> inline
 auto ThreadManager::enqueue(Func&& task,
                             const int64b parent_task_id,
                             EnableIfInvocable<Func, int64b>)
-    -> UniqueResult<InvokeResult<Func, int64b>>
+    -> SharedResult<InvokeResult<Func, int64b>>
 {
   using ReturnT = InvokeResult<Func, int64b>;
-  using ResultP = typename UniqueResult<ReturnT>::pointer;
-  using Iterator = int;
-  auto t = [task_impl = std::forward<Func>(task)]
-  (const int64b thread_id, const Iterator /* it */, ResultP result)
+  auto t = [task_impl = std::forward<Func>(task)](const int64b thread_id)
   {
-    if constexpr (std::is_void_v<ReturnT>) {
+    if constexpr (std::is_void_v<ReturnT>)
       task_impl(thread_id);
-      result->set(0);
-    }
-    else {
-      auto value = task_impl(thread_id);
-      result->set(std::move(value));
-    }
+    else
+      return task_impl(thread_id);
   };
-  auto result = enqueueImpl<false, ReturnT>(std::move(t), 0, 1, parent_task_id);
+  auto result = enqueueImpl<ReturnT>(std::move(t), 0, 1, parent_task_id);
   return result;
 }
 
@@ -583,19 +513,18 @@ auto ThreadManager::enqueueLoop(
     Iterator2&& end,
     const int64b parent_task_id,
     EnableIfInvocable<Func, CommonIterator<Iterator1, Iterator2>>)
-        -> UniqueResult<void>
+        -> SharedResult<void>
 {
-  using ResultP = typename UniqueResult<void>::pointer;
   using Iterator = CommonIterator<Iterator1, Iterator2>;
   auto t = [task_impl = std::forward<Func>(task)]
-  (const int64b /* thread_id */, const Iterator it, ResultP /* result */)
+  (const int64b /* thread_id */, const Iterator it)
   {
     task_impl(it);
   };
-  auto result = enqueueImpl<true, void>(std::move(t),
-                                        std::forward<Iterator1>(begin),
-                                        std::forward<Iterator2>(end),
-                                        parent_task_id);
+  auto result = enqueueImpl<void>(std::move(t),
+                                  std::forward<Iterator1>(begin),
+                                  std::forward<Iterator2>(end),
+                                  parent_task_id);
   return result;
 }
 
@@ -617,19 +546,18 @@ auto ThreadManager::enqueueLoop(
     Iterator2&& end,
     const int64b parent_task_id,
     EnableIfInvocable<Func, int64b, CommonIterator<Iterator1, Iterator2>>)
-        -> UniqueResult<void>
+        -> SharedResult<void>
 {
-  using ResultP = typename UniqueResult<void>::pointer;
   using Iterator = CommonIterator<Iterator1, Iterator2>;
   auto t = [task_impl = std::forward<Func>(task)]
-  (const int64b thread_id, const Iterator it, ResultP /* result */)
+  (const int64b thread_id, const Iterator it)
   {
     task_impl(thread_id, it);
   };
-  auto result = enqueueImpl<true, void>(std::move(t),
-                                        std::forward<Iterator1>(begin),
-                                        std::forward<Iterator2>(end),
-                                        parent_task_id);
+  auto result = enqueueImpl<void>(std::move(t),
+                                  std::forward<Iterator1>(begin),
+                                  std::forward<Iterator2>(end),
+                                  parent_task_id);
   return result;
 }
 
@@ -720,6 +648,18 @@ std::size_t ThreadManager::size() const noexcept
 
 /*!
   \details No detailed description
+
+  \return No description
+  */
+inline
+constexpr int64b ThreadManager::unmanagedThreadId() noexcept
+{
+  const int64b id = std::numeric_limits<int64b>::min();
+  return id;
+}
+
+/*!
+  \details No detailed description
   */
 inline
 void ThreadManager::waitForCompletion() noexcept
@@ -740,11 +680,12 @@ ThreadManager::WorkerTask::WorkerTask() noexcept
 /*!
   \details No detailed description
 
+  \tparam TaskImpl No description.
   \param [in] task No description.
   \param [in] it_offset No description.
   */
-inline
-ThreadManager::WorkerTask::WorkerTask(TaskPointer task,
+template <typename TaskImpl> inline
+ThreadManager::WorkerTask::WorkerTask(std::shared_ptr<TaskImpl>& task,
                                       const DiffType it_offset) noexcept :
     task_{task},
     it_offset_{it_offset}
@@ -758,11 +699,9 @@ ThreadManager::WorkerTask::WorkerTask(TaskPointer task,
   */
 inline
 ThreadManager::WorkerTask::WorkerTask(WorkerTask&& other) noexcept :
-    task_{other.task_},
+    task_{std::move(other.task_)},
     it_offset_{other.it_offset_}
 {
-  other.task_ = nullptr;
-  other.it_offset_ = 0;
 }
 
 /*!
@@ -771,8 +710,6 @@ ThreadManager::WorkerTask::WorkerTask(WorkerTask&& other) noexcept :
 inline
 ThreadManager::WorkerTask::~WorkerTask() noexcept
 {
-  if (hasTask())
-    done();
 }
 
 /*!
@@ -784,8 +721,8 @@ inline
 auto ThreadManager::WorkerTask::operator=(WorkerTask&& other) noexcept
     -> WorkerTask&
 {
-  std::swap(task_, other.task_);
-  std::swap(it_offset_, other.it_offset_);
+  task_ = std::move(other.task_);
+  it_offset_ = other.it_offset_;
   return *this;
 }
 
@@ -797,7 +734,7 @@ auto ThreadManager::WorkerTask::operator=(WorkerTask&& other) noexcept
 inline
 bool ThreadManager::WorkerTask::hasTask() const noexcept
 {
-  const bool result = task_ != nullptr;
+  const bool result = cast<bool>(task_);
   return result;
 }
 
@@ -809,27 +746,7 @@ bool ThreadManager::WorkerTask::hasTask() const noexcept
 inline
 void ThreadManager::WorkerTask::run(const int64b thread_id)
 {
-  auto th_manager = task_->manager();
-  th_manager->waitForParent(task_->taskId(), task_->parentTaskId());
   task_->run(thread_id, it_offset_);
-}
-
-/*!
-  \details No detailed description
-  */
-inline
-void ThreadManager::WorkerTask::done() noexcept
-{
-  auto th_manager = task_->manager();
-  const std::size_t id = cast<std::size_t>(task_->taskId());
-  const bool is_last = task_->done();
-  if (is_last && !th_manager->task_state_set_[id]) { // Delete 
-    th_manager->finishTask(task_->taskId());
-    using UniqueTaskT = pmr::unique_ptr<Task>;
-    using Deleter = typename UniqueTaskT::deleter_type;
-    Deleter deleter{th_manager->resource()};
-    deleter(task_);
-  }
 }
 
 /*!
@@ -910,7 +827,7 @@ auto ThreadManager::distance(Iterator1&& begin, Iterator2&& end) noexcept
 /*!
   \details No detailed description
 
-  \tparam ReturnType No description.
+  \tparam ReturnT No description.
   \tparam Func No description.
   \tparam Iterator1 No description.
   \tparam Iterator2 No description.
@@ -921,100 +838,78 @@ auto ThreadManager::distance(Iterator1&& begin, Iterator2&& end) noexcept
   \return No description
   \exception OverflowError No description.
   */
-template <bool kIsLoopTask, typename ReturnType, typename Func, typename Iterator1, typename Iterator2>
+template <typename ReturnT, typename Func, typename Iterator1, typename Iterator2>
 inline
 auto ThreadManager::enqueueImpl(
     Func&& task,
     Iterator1&& begin,
     Iterator2&& end,
-    const int64b parent_task_id) -> UniqueResult<ReturnType>
+    const int64b parent_task_id) -> SharedResult<ReturnT>
 {
   using FuncT = std::remove_cv_t<std::remove_reference_t<Func>>;
-  using UniqueResultT = UniqueResult<ReturnType>;
-  using ResultP = typename UniqueResultT::pointer;
+  using SharedResultT = SharedResult<ReturnT>;
   using Iterator = std::remove_cv_t<CommonIterator<Iterator1, Iterator2>>;
-  static_assert(std::is_invocable_v<FuncT, int64b, Iterator, ResultP>,
-                "The FuncT isn't invocable.");
+
+  constexpr bool is_single = std::is_invocable_v<FuncT, int64b>;
+  constexpr bool is_loop = std::is_invocable_v<FuncT, int64b, Iterator>;
+  static_assert(is_single || is_loop, "The Func isn't invocable.");
+
 #if defined(Z_GCC) || defined(Z_CLANG)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wpadded"
 #endif // Z_CLANG || Z_GCC
-  class SharedTask : public Task
+  class TaskImpl : public Task
   {
    public:
-    SharedTask(Func&& t, ResultP r, const int64b p, const int64b c, Iterator1&& b)
-        noexcept : Task(r->taskId(), p),
-                   task_{std::forward<Func>(t)},
-                   result_{r},
-                   counter_{c},
-                   begin_{std::forward<Iterator1>(b)}
+    TaskImpl(Func&& t, SharedResultT& r, Iterator1&& b, const int64b p) noexcept
+        : Task(r->taskId(), p),
+          task_{std::forward<Func>(t)},
+          result_{r},
+          begin_{std::forward<Iterator1>(b)}
     {
     }
-    ~SharedTask() noexcept override
+    ~TaskImpl() noexcept override
     {
-    }
-    std::atomic<int64b>& counter() noexcept
-    {
-      return counter_;
-    }
-    bool done() noexcept override
-    {
-      if constexpr (kIsLoopTask) {
-        const int64b c = --counter_;
-        const bool flag = c == 0;
-        if (flag)
-          result_->set(0);
-        return flag;
-      }
-      else {
-        return true;
+      if constexpr (is_loop) {
+        result_->set(0);
       }
     }
-    void* result() noexcept override
+    void getResult(void* result) noexcept override
     {
-      return result_;
-    }
-    const void* result() const noexcept override
-    {
-      return result_;
+      *cast<SharedResultT*>(result) = result_;
     }
     void run(const int64b thread_id, const DiffType it_offset) override
     {
-      if constexpr (std::is_arithmetic_v<Iterator>) {
-        using ItType = std::common_type_t<Iterator, DiffType>;
-        auto ite = cast<Iterator>(cast<ItType>(begin_) + cast<ItType>(it_offset));
-        task_(thread_id, ite, result_);
+      auto th_manager = result_->manager();
+      th_manager->waitForParent(taskId(), parentTaskId());
+
+      if constexpr (is_loop) { // Loop task
+        if constexpr (std::is_arithmetic_v<Iterator>) {
+          using ItType = std::common_type_t<Iterator, DiffType>;
+          auto ite = cast<Iterator>(cast<ItType>(begin_) + cast<ItType>(it_offset));
+          task_(thread_id, ite);
+        }
+        else {
+          auto ite = begin_;
+          std::advance(ite, it_offset);
+          task_(thread_id, ite);
+        }
       }
-      else {
-        auto ite = begin_;
-        std::advance(ite, it_offset);
-        task_(thread_id, ite, result_);
+      else { // Single task
+        if constexpr (std::is_void_v<ReturnT>) {
+          task_(thread_id);
+          result_->set(0);
+        }
+        else {
+          auto value = task_(thread_id);
+          result_->set(std::move(value));
+        }
       }
-    }
-   protected:
-    void deleteInException(pmr::memory_resource* mem_resource) noexcept override
-    {
-      {
-        using Deleter = typename UniqueResultT::deleter_type;
-        Deleter deleter{mem_resource};
-        deleter(result_);
-      }
-      {
-        using UniqueTaskT = pmr::unique_ptr<SharedTask>;
-        using Deleter = typename UniqueTaskT::deleter_type;
-        Deleter deleter{mem_resource};
-        deleter(this);
-      }
-    }
-    ThreadManager* manager() noexcept override
-    {
-      return result_->manager();
     }
 
    private:
     FuncT task_;
-    ResultP result_;
-    std::atomic<int64b> counter_;
+    SharedResultT result_;
     Iterator begin_;
   };
 #if defined(Z_GCC) || defined(Z_CLANG)
@@ -1023,27 +918,25 @@ auto ThreadManager::enqueueImpl(
   auto mem_resource = resource();
 
   // Create a result of the given task
-  using ResultT = typename UniqueResultT::element_type;
+  using ResultT = typename SharedResultT::element_type;
   pmr::polymorphic_allocator<ResultT> result_alloc{mem_resource};
   const int64b task_id = issueTaskId();
-  auto result = pmr::allocateUnique(result_alloc, task_id, this);
+  auto result = std::allocate_shared<ResultT>(result_alloc, task_id, this);
 
   // Create a shared task
   const DiffType d = distance(begin, end);
-  auto shared_task = pmr::allocateUnique<SharedTask>(mem_resource,
-                                                     std::forward<Func>(task),
-                                                     result.get(),
-                                                     parent_task_id,
-                                                     d,
-                                                     std::forward<Iterator1>(begin)
-                                                     ).release();
+  pmr::polymorphic_allocator<TaskImpl> task_alloc{mem_resource};
+  auto shared_task = std::allocate_shared<TaskImpl>(task_alloc,
+                                                    std::forward<Func>(task),
+                                                    result,
+                                                    std::forward<Iterator1>(begin),
+                                                    parent_task_id);
 
-  auto throw_exception = [this](auto t, auto& r, auto b, auto e)
+  auto throw_exception = [](auto& t, auto& r, auto b, auto e)
   {
-    finishTask(r->taskId());
-    r.release();
+    r.reset();
     const char* message = "Task queue overflow happened.";
-    throw OverflowError{message, resource(), t, b, e};
+    throw OverflowError{message, std::move(t), b, e};
   };
   if (idCapacity() <= cast<std::size_t>(task_id))
     throw_exception(shared_task, result, 0, d);
@@ -1052,7 +945,7 @@ auto ThreadManager::enqueueImpl(
   {
     auto notify_threads = [this](const DiffType num_of_queued_tasks) noexcept
     {
-      if (kIsLoopTask && numOfThreads() <= num_of_queued_tasks) {
+      if (is_loop && numOfThreads() <= num_of_queued_tasks) {
         Atomic::notifyAll(std::addressof(lock_));
       }
       else {
@@ -1069,7 +962,6 @@ auto ThreadManager::enqueueImpl(
       }
       catch (const Queue::OverflowError& /* error */) {
         const DiffType rest = d - i;
-        shared_task->counter() -= rest;
         Atomic::sub(std::addressof(lock_.get()), rest);
         notify_threads(i);
         throw_exception(shared_task, result, i, d);
@@ -1187,18 +1079,6 @@ inline
 int64b ThreadManager::issueTaskId() noexcept
 {
   const int64b id = total_tasks_++;
-  return id;
-}
-
-/*!
-  \details No detailed description
-
-  \return No description
-  */
-inline
-constexpr int64b ThreadManager::unmanagedThreadId() noexcept
-{
-  const int64b id = std::numeric_limits<int64b>::min();
   return id;
 }
 

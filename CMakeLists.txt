@@ -6,7 +6,7 @@
 # http://opensource.org/licenses/mit-license.php
 #
 
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.17)
 
 
 project(ZiscProject VERSION 0.0.1 LANGUAGES CXX)
@@ -22,11 +22,11 @@ include(InstallRequiredSystemLibraries)
 set(zisc_path ${PROJECT_SOURCE_DIR}/source/zisc)
 include(${zisc_path}/cmake/general.cmake)
 message(STATUS "System information:")
-printSystemInfo("  + ")
+Zisc_printSystemInfo("  + ")
 ## Project options
 include(${PROJECT_SOURCE_DIR}/cmake/option.cmake)
 initProjectOptions()
-restrictBuildDirectory(${PROJECT_SOURCE_DIR}/build)
+Zisc_restrictBuildDirectory(${PROJECT_SOURCE_DIR}/build)
 
 # Build Zisc
 add_subdirectory(${zisc_path} ${PROJECT_BINARY_DIR}/Zisc)

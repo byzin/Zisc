@@ -8,49 +8,51 @@
 
 
 #
-function(initCompilerOptions)
-  set(description "Enable compiler full warning (if supported).")
-  setBooleanOption(Z_ENABLE_COMPILER_WARNING ON ${description})
+function(Zisc_initCompilerOptions)
+  include(${CMAKE_CURRENT_FUNCTION_LIST_DIR}/general.cmake)
 
-  set(description "The compiler treat all warnings as build errors (if supported).")
-  setBooleanOption(Z_TREAT_COMPILER_WARNING_AS_ERROR OFF ${description})
+  set(description "Enable compiler full warning (if supported).")
+  Zisc_setBooleanOption(Z_ENABLE_COMPILER_WARNING ON ${description})
+
+  set(description "Make compiler warnings into errors (if supported).")
+  Zisc_setBooleanOption(Z_MAKE_WARNING_INTO_ERROR OFF ${description})
 
   set(description "Clang uses LLVM's build tools and libraries instead of platform specific tools.")
-  setBooleanOption(Z_CLANG_USES_LLVM_TOOLS OFF ${description})
+  Zisc_setBooleanOption(Z_CLANG_USES_LLVM_TOOLS OFF ${description})
 
-  set(description "Save intermediate compilation results.")
-  setBooleanOption(Z_SAVE_INTERMEDIATE_COMPILATION_RESULTS OFF ${description})
-
-  set(description "Enable some hardware features (Intel haswell or later, AMD zen or later).")
-  setBooleanOption(Z_ENABLE_HARDWARE_FEATURES OFF ${description})
+  set(description "Enable SIMD extensions (AVX2 and FMA on X64).")
+  Zisc_setBooleanOption(Z_ENABLE_HARDWARE_FEATURE_SIMD OFF ${description})
 
   set(description "Enable C++ address sanitizer (if compiler supports).")
-  setBooleanOption(Z_ENABLE_SANITIZER_ADDRESS OFF ${description})
+  Zisc_setBooleanOption(Z_ENABLE_SANITIZER_ADDRESS OFF ${description})
 
   set(description "Enable C++ thread sanitizer (if compiler supports).")
-  setBooleanOption(Z_ENABLE_SANITIZER_THREAD OFF ${description})
+  Zisc_setBooleanOption(Z_ENABLE_SANITIZER_THREAD OFF ${description})
 
   set(description "Enable C++ memory sanitizer (if compiler supports).")
-  setBooleanOption(Z_ENABLE_SANITIZER_MEMORY OFF ${description})
+  Zisc_setBooleanOption(Z_ENABLE_SANITIZER_MEMORY OFF ${description})
 
   set(description "Enable C++ undefined sanitizer (if compiler supports).")
-  setBooleanOption(Z_ENABLE_SANITIZER_UNDEF_BEHAVIOR OFF ${description})
+  Zisc_setBooleanOption(Z_ENABLE_SANITIZER_UNDEF_BEHAVIOR OFF ${description})
 
   set(description "Enable C++ undefined sanitizer (if compiler supports).")
-  setBooleanOption(Z_ENABLE_SANITIZER_UNDEF_BEHAVIOR_FULL OFF ${description})
+  Zisc_setBooleanOption(Z_ENABLE_SANITIZER_UNDEF_BEHAVIOR_FULL OFF ${description})
 
   set(description "Enable C++ leak sanitizer (if compiler supports).")
-  setBooleanOption(Z_ENABLE_SANITIZER_LEAK OFF ${description})
+  Zisc_setBooleanOption(Z_ENABLE_SANITIZER_LEAK OFF ${description})
 
   set(description "Enable clang-tidy analyzer.")
-  setBooleanOption(Z_ENABLE_STATIC_ANALYZER_CLANG_TIDY OFF ${description})
+  Zisc_setBooleanOption(Z_ENABLE_STATIC_ANALYZER_CLANG_TIDY OFF ${description})
 
   set(description "Enable link-what-you-use analyzer.")
-  setBooleanOption(Z_ENABLE_STATIC_ANALYZER_LWYU OFF ${description})
-endfunction(initCompilerOptions)
+  Zisc_setBooleanOption(Z_ENABLE_STATIC_ANALYZER_LWYU OFF ${description})
+
+  set(description "Save assembly files.")
+  Zisc_setBooleanOption(Z_ENABLE_STATIC_ANALYZER_ASSEMBLY OFF ${description})
+endfunction(Zisc_initCompilerOptions)
 
 
-function(getMsvcCompilerFlags cxx_compile_flags cxx_linker_flags cxx_definitions)
+function(Zisc_getMsvcCompilerFlags cxx_compile_flags cxx_linker_flags cxx_definitions)
   set(compile_flags "")
   set(linker_flags "")
   set(definitions "")
@@ -59,14 +61,18 @@ function(getMsvcCompilerFlags cxx_compile_flags cxx_linker_flags cxx_definitions
                             /constexpr:backtrace${constexpr_backtrace}
                             /constexpr:steps${constexpr_steps})
 
+  if(Z_ENABLE_HARDWARE_FEATURE_SIMD)
+    list(APPEND compile_flags /arch:AVX2)
+  endif()
+
   # Output variables
   set(${cxx_compile_flags} ${compile_flags} PARENT_SCOPE)
   set(${cxx_linker_flags} ${linker_flags} PARENT_SCOPE)
   set(${cxx_definitions} ${definitions} PARENT_SCOPE)
-endfunction(getMsvcCompilerFlags)
+endfunction(Zisc_getMsvcCompilerFlags)
 
 
-function(appendClangFlags cxx_compile_flags)
+function(Zisc_appendClangFlags cxx_compile_flags)
   set(compile_flags ${${cxx_compile_flags}})
   foreach(compile_flag IN LISTS ARGN)
     if(Z_VISUAL_STUDIO)
@@ -79,10 +85,10 @@ function(appendClangFlags cxx_compile_flags)
     endif()
   endforeach(compile_flag)
   set(${cxx_compile_flags} ${compile_flags} PARENT_SCOPE)
-endfunction(appendClangFlags)
+endfunction(Zisc_appendClangFlags)
 
 
-function(getSanitizerFlags compile_sanitizer_flags linker_sanitizer_flags)
+function(Zisc_getSanitizerFlags compile_sanitizer_flags linker_sanitizer_flags)
   set(check_list "")
 
   # Collect sanitizer checks
@@ -148,26 +154,27 @@ function(getSanitizerFlags compile_sanitizer_flags linker_sanitizer_flags)
     set(${compile_sanitizer_flags} ${compile_flags} PARENT_SCOPE)
     set(${linker_sanitizer_flags} ${linker_flags} PARENT_SCOPE)
   endif()
-endfunction(getSanitizerFlags)
+endfunction(Zisc_getSanitizerFlags)
 
 
-function(getClangCompilerFlags cxx_compile_flags cxx_linker_flags cxx_definitions)
+function(Zisc_getClangCompilerFlags cxx_compile_flags cxx_linker_flags cxx_definitions)
   set(compile_flags "")
   set(linker_flags "")
   set(definitions "")
 
-  appendClangFlags(compile_flags
+  Zisc_appendClangFlags(compile_flags
       -fconstexpr-depth=${constexpr_depth}
       -fconstexpr-backtrace-limit=${constexpr_backtrace}
       -fconstexpr-steps=${constexpr_steps}
       -ftemplate-depth=${recursive_template_depth})
 
-  if(Z_ENABLE_HARDWARE_FEATURES)
-    list(APPEND compile_flags -mfma)
+  if(Z_ENABLE_HARDWARE_FEATURE_SIMD)
+    list(APPEND compile_flags -fno-math-errno -mavx2 -mfma)
   endif()
 
-  if(Z_SAVE_INTERMEDIATE_COMPILATION_RESULTS)
-    list(APPEND compile_flags -save-temps=obj)
+  if(Z_ENABLE_STATIC_ANALYZER_ASSEMBLY)
+    list(APPEND compile_flags -save-temps=obj
+                              -fverbose-asm)
   endif()
 
   if(Z_CLANG_USES_LLVM_TOOLS)
@@ -180,7 +187,7 @@ function(getClangCompilerFlags cxx_compile_flags cxx_linker_flags cxx_definition
   endif()
 
   # Sanitizer
-  getSanitizerFlags(compile_sanitizer_flags linker_sanitizer_flags)
+  Zisc_getSanitizerFlags(compile_sanitizer_flags linker_sanitizer_flags)
   list(APPEND compile_flags ${compile_sanitizer_flags})
   list(APPEND linker_flags ${linker_sanitizer_flags})
 
@@ -188,10 +195,10 @@ function(getClangCompilerFlags cxx_compile_flags cxx_linker_flags cxx_definition
   set(${cxx_compile_flags} ${compile_flags} PARENT_SCOPE)
   set(${cxx_linker_flags} ${linker_flags} PARENT_SCOPE)
   set(${cxx_definitions} ${definitions} PARENT_SCOPE)
-endfunction(getClangCompilerFlags)
+endfunction(Zisc_getClangCompilerFlags)
 
 
-function(getGccCompilerFlags cxx_compile_flags cxx_linker_flags cxx_definitions)
+function(Zisc_getGccCompilerFlags cxx_compile_flags cxx_linker_flags cxx_definitions)
   set(compile_flags "")
   set(linker_flags "")
   set(definitions "")
@@ -200,16 +207,17 @@ function(getGccCompilerFlags cxx_compile_flags cxx_linker_flags cxx_definitions)
                             -fconstexpr-loop-limit=${constexpr_steps}
                             -ftemplate-depth=${recursive_template_depth})
 
-  if(Z_ENABLE_HARDWARE_FEATURES)
-    list(APPEND compile_flags -mfma)
+  if(Z_ENABLE_HARDWARE_FEATURE_SIMD)
+    list(APPEND compile_flags -mavx2 -mfma)
   endif()
 
-  if(Z_SAVE_INTERMEDIATE_COMPILATION_RESULTS)
-    list(APPEND compile_flags -save-temps=obj)
+  if(Z_ENABLE_STATIC_ANALYZER_ASSEMBLY)
+    list(APPEND compile_flags -save-temps=obj
+                              -fverbose-asm)
   endif()
 
   # Sanitizer
-  getSanitizerFlags(compile_sanitizer_flags linker_sanitizer_flags)
+  Zisc_getSanitizerFlags(compile_sanitizer_flags linker_sanitizer_flags)
   list(APPEND compile_flags ${compile_sanitizer_flags})
   list(APPEND linker_flags ${linker_sanitizer_flags})
 
@@ -217,35 +225,35 @@ function(getGccCompilerFlags cxx_compile_flags cxx_linker_flags cxx_definitions)
   set(${cxx_compile_flags} ${compile_flags} PARENT_SCOPE)
   set(${cxx_linker_flags} ${linker_flags} PARENT_SCOPE)
   set(${cxx_definitions} ${definitions} PARENT_SCOPE)
-endfunction(getGccCompilerFlags)
+endfunction(Zisc_getGccCompilerFlags)
 
 
-function(getMsvcWarningFlags compile_warning_flags)
+function(Zisc_getMsvcWarningFlags compile_warning_flags)
   set(warning_flags "")
   list(APPEND warning_flags /W4)
-  if(Z_TREAT_COMPILER_WARNING_AS_ERROR)
+  if(Z_MAKE_WARNING_INTO_ERROR)
     list(APPEND warning_flags /WX)
   endif()
   # Output variables
   set(${compile_warning_flags} ${warning_flags} PARENT_SCOPE)
-endfunction(getMsvcWarningFlags)
+endfunction(Zisc_getMsvcWarningFlags)
 
 
-function(getClangWarningFlags compile_warning_flags)
+function(Zisc_getClangWarningFlags compile_warning_flags)
   set(warning_flags "")
   list(APPEND warning_flags -Weverything
                             -Wno-c++98-compat
                             -Wno-c++98-compat-pedantic
                             )
-  if(Z_TREAT_COMPILER_WARNING_AS_ERROR)
+  if(Z_MAKE_WARNING_INTO_ERROR)
     list(APPEND warning_flags -Werror)
   endif()
   # Output variables
   set(${compile_warning_flags} ${warning_flags} PARENT_SCOPE)
-endfunction(getClangWarningFlags)
+endfunction(Zisc_getClangWarningFlags)
 
 
-function(getGccWarningFlags compile_warning_flags)
+function(Zisc_getGccWarningFlags compile_warning_flags)
   set(warning_flags "")
   list(APPEND warning_flags -pedantic
                             -Wall
@@ -271,17 +279,17 @@ function(getGccWarningFlags compile_warning_flags)
                             -Wswitch-default
                             -Wundef
                             )
-  if(Z_TREAT_COMPILER_WARNING_AS_ERROR)
+  if(Z_MAKE_WARNING_INTO_ERROR)
     list(APPEND warning_flags -Werror)
   endif()
   # Output variables
   set(${compile_warning_flags} ${warning_flags} PARENT_SCOPE)
-endfunction(getGccWarningFlags)
+endfunction(Zisc_getGccWarningFlags)
 
 
 # Output functions
 # Get compile options
-function(getCxxCompilerFlags cxx_compile_flags cxx_linker_flags cxx_definitions)
+function(Zisc_getCxxCompilerFlags cxx_compile_flags cxx_linker_flags cxx_definitions)
 
   set(constexpr_depth 512)
   set(constexpr_backtrace 16)
@@ -289,43 +297,43 @@ function(getCxxCompilerFlags cxx_compile_flags cxx_linker_flags cxx_definitions)
   set(recursive_template_depth 2048)
 
   if(Z_GCC)
-    getGccCompilerFlags(compile_flags linker_flags definitions)
+    Zisc_getGccCompilerFlags(compile_flags linker_flags definitions)
   elseif(Z_CLANG)
-    getClangCompilerFlags(compile_flags linker_flags definitions)
+    Zisc_getClangCompilerFlags(compile_flags linker_flags definitions)
   elseif(Z_MSVC)
-    getMsvcCompilerFlags(compile_flags linker_flags definitions)
+    Zisc_getMsvcCompilerFlags(compile_flags linker_flags definitions)
   endif()
   # Output variables
   set(${cxx_compile_flags} ${compile_flags} PARENT_SCOPE)
   set(${cxx_linker_flags} ${linker_flags} PARENT_SCOPE)
   set(${cxx_definitions} ${definitions} PARENT_SCOPE)
-endfunction(getCxxCompilerFlags)
+endfunction(Zisc_getCxxCompilerFlags)
 
 
 #
-function(getCxxWarningFlags compile_warning_flags)
+function(Zisc_getCxxWarningFlags compile_warning_flags)
   set(compiler_version ${CMAKE_CXX_COMPILER_VERSION})
   set(environment "${CMAKE_SYSTEM_NAME} ${CMAKE_CXX_COMPILER_ID} ${compiler_version}")
 
   set(warning_flags "")
   if(Z_ENABLE_COMPILER_WARNING)
     if(Z_GCC)
-      getGccWarningFlags(warning_flags)
+      Zisc_getGccWarningFlags(warning_flags)
     elseif(Z_CLANG)
-      getClangWarningFlags(warning_flags)
+      Zisc_getClangWarningFlags(warning_flags)
     elseif(Z_MSVC)
-      getMsvcWarningFlags(warning_flags)
+      Zisc_getMsvcWarningFlags(warning_flags)
     else()
       message(WARNING "${environment}: Warning option isn't supported.")
     endif()
   endif()
   # Output variables
   set(${compile_warning_flags} ${warning_flags} PARENT_SCOPE)
-endfunction(getCxxWarningFlags)
+endfunction(Zisc_getCxxWarningFlags)
 
 
 #
-function(setStaticAnalyzer target)
+function(Zisc_setStaticAnalyzer target)
   set(static_analyzer_list "")
 
   # clang-tidy
@@ -364,11 +372,57 @@ function(setStaticAnalyzer target)
     list(APPEND static_analyzer_list "link-what-you-use")
   endif()
 
+  # Assembly
+  if(Z_ENABLE_STATIC_ANALYZER_ASSEMBLY)
+    get_target_property(binary_dir ${target} BINARY_DIR)
+    set(assembly_target ${target}_assembly)
+
+    # Generate a script
+    set(assembly_dir ${binary_dir}/assembly/${target})
+    set(temp_dir ${binary_dir}/CMakeFiles/${target}.dir)
+    set(script "include(\"${CMAKE_CURRENT_FUNCTION_LIST_FILE}\")\n"
+               "file(MAKE_DIRECTORY \"${assembly_dir}\")\n")
+    if(Z_CLANG)
+      # Search bitcode files
+      string(APPEND script
+          "file(GLOB_RECURSE files LIST_DIRECTORIES false \"${temp_dir}/*.bc\")\n"
+          "Zisc_createSymlinkOfFiles(\"${assembly_dir}\" \${files})\n")
+    endif()
+    # Search assembly files
+    string(APPEND script
+        "file(GLOB_RECURSE files LIST_DIRECTORIES false \"${temp_dir}/*.s\")\n"
+        "Zisc_createSymlinkOfFiles(${assembly_dir} \${files})\n")
+
+    # Save the script
+    set(script_dir ${binary_dir}/scripts)
+    file(MAKE_DIRECTORY ${script_dir})
+    set(script_file ${script_dir}/${assembly_target}.cmake)
+    file(WRITE ${script_file} ${script})
+
+    add_custom_target(
+        ${assembly_target} ALL
+        ${CMAKE_COMMAND} -P ${script_file}
+        DEPENDS ${target}
+        WORKING_DIRECTORY "${binary_dir}"
+        COMMENT "Create links to the assembly of '${target}' into '${assembly_dir}'."
+        SOURCES ${script_file})
+
+    list(APPEND static_analyzer_list "assembly")
+  endif()
+
   message(STATUS "[${target}] Static analyzer: ${static_analyzer_list}")
-endfunction(setStaticAnalyzer)
+endfunction(Zisc_setStaticAnalyzer)
 
 
-function(getCxxFeatureList cxx_feature_list)
+function(Zisc_createSymlinkOfFiles output_dir)
+  foreach(file IN LISTS ARGN)
+    get_filename_component(name ${file} NAME)
+    file(CREATE_LINK ${file} "${output_dir}/${name}" COPY_ON_ERROR SYMBOLIC)
+  endforeach(file)
+endfunction(Zisc_createSymlinkOfFiles)
+
+
+function(Zisc_getCxxFeatureList cxx_feature_list)
   set(feature_list "")
   list(APPEND feature_list
     cxx_aggregate_default_initializers
@@ -430,16 +484,17 @@ function(getCxxFeatureList cxx_feature_list)
     cxx_template_template_parameters
     )
   set(${cxx_feature_list} ${feature_list} PARENT_SCOPE)
-endfunction(getCxxFeatureList)
+endfunction(Zisc_getCxxFeatureList)
 
 
-function(enableIpo target)
+function(Zisc_enableIpo target)
   include(CheckIPOSupported)
   check_ipo_supported(RESULT result OUTPUT output LANGUAGES CXX)
-  if(ipo_result)
+  if(result OR (Z_LINUX AND Z_CLANG AND Z_CLANG_USES_LLVM_TOOLS))
+    message(STATUS "[${target}] Enable IPO/LTO.")
     set_target_properties(${target} PROPERTIES INTERPROCEDURAL_OPTIMIZATION TRUE)
   else()
     # message(WARNING "[${target}] IPO is not supported: ${output}")
-    message(WARNING "[${target}] IPO is not supported.")
+    message(WARNING "[${target}] IPO/LTO isn't supported.")
   endif()
-endfunction(enableIpo)
+endfunction(Zisc_enableIpo)

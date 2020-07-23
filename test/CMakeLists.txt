@@ -6,7 +6,7 @@
 # http://opensource.org/licenses/mit-license.php
 #
 
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.17)
 
 
 set(__zisc_dir__ ${CMAKE_SOURCE_DIR}/source/zisc)
@@ -60,15 +60,16 @@ project(UnitTest VERSION 0.0.1 DESCRIPTION ${project_description} LANGUAGES CXX)
 # Initialize platform info
 include(${__zisc_dir__}/cmake/general.cmake)
 include(${__zisc_dir__}/cmake/platform.cmake)
-getPlatformFlags(platform_definitions)
-setVariablesOnCMake(${platform_definitions})
+Zisc_getPlatformFlags(platform_definitions)
+Zisc_setVariablesOnCMake(${platform_definitions})
 
 # Check dependencies
-checkTarget(Zisc)
-checkTarget(gtest_main)
+Zisc_checkTarget(Zisc)
+Zisc_checkTarget(gtest_main)
 
-# Copy resources
-file(COPY ${PROJECT_SOURCE_DIR}/resources DESTINATION ${PROJECT_BINARY_DIR})
+# Create a symlink to the test resources
+file(CREATE_LINK ${PROJECT_SOURCE_DIR}/resources ${PROJECT_BINARY_DIR}/resources
+     COPY_ON_ERROR SYMBOLIC)
 
 # Create a unit test
 file(GLOB unittest_source_files ${PROJECT_SOURCE_DIR}/unittest/*.cpp
@@ -85,7 +86,7 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY_RELEASE ${PROJECT_BINARY_DIR})
 
 include(${__zisc_dir__}/cmake/compiler.cmake)
-getCxxWarningFlags(cxx_compile_warning_flags)
+Zisc_getCxxWarningFlags(cxx_compile_warning_flags)
 getTestCompileFlags(test_compile_flags test_linker_flags test_definitions)
 getTestWarningFlags(test_warning_flags)
 target_compile_options(${PROJECT_NAME} PRIVATE ${test_compile_flags}
@@ -95,9 +96,10 @@ target_link_libraries(${PROJECT_NAME} PRIVATE gtest_main
                                               Zisc
                                               ${test_linker_flags})
 target_compile_definitions(${PROJECT_NAME} PRIVATE ${test_definitions})
+Zisc_enableIpo(${PROJECT_NAME})
 
 #
-setStaticAnalyzer(${PROJECT_NAME})
+Zisc_setStaticAnalyzer(${PROJECT_NAME})
 
 # Save the dependency list
-savePrerequisites(${PROJECT_NAME} ${PROJECT_BINARY_DIR} "" "" "")
+Zisc_savePrerequisites(${PROJECT_NAME} "" "" "")

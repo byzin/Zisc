@@ -11,7 +11,7 @@ Version: 0.0.59
 ### Prerequisites ###
 
 * C++17 support compiler
-* [CMake](https://cmake.org/) (version 3.16 or later)
+* [CMake](https://cmake.org/) (version 3.17 or later)
 
 ### Importing ###
 

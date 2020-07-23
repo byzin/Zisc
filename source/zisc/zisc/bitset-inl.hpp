@@ -303,8 +303,7 @@ inline
 void Bitset::setSize(const std::size_t s) noexcept
 {
   constexpr std::size_t bits = blockBitSize();
-  constexpr std::size_t bitmask = bits - 1;
-  const std::size_t s64 = ((s & bitmask) == 0) ? s / bits : s / bits + 1;
+  const std::size_t s64 = (s + (bits - 1)) / bits;
   block_list_.resize(s64);
   size_ = s;
   reset();

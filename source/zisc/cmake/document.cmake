@@ -8,7 +8,7 @@
 
 
 #
-function(addDoxygenDoc target destination)
+function(Zisc_addDoxygenDoc target destination)
   set(options "")
   set(one_value_args "")
   set(multi_value_args SOURCE_FILES_OR_DIRS)
@@ -59,4 +59,4 @@ function(addDoxygenDoc target destination)
     ${ZDOXYGEN_SOURCE_FILES_OR_DIRS}
     WORKING_DIRECTORY ${dest_dir}
     COMMENT "Building document '${target_debug}'")
-endfunction(addDoxygenDoc)
+endfunction(Zisc_addDoxygenDoc)

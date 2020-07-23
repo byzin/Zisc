@@ -6,7 +6,7 @@
 # http://opensource.org/licenses/mit-license.php
 # 
 
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.17)
 
 
 set(__zisc_dir__ ${CMAKE_SOURCE_DIR}/source/zisc)
@@ -47,18 +47,19 @@ function(addExample target save_prerequisites)
       RUNTIME_OUTPUT_DIRECTORY_RELEASE ${PROJECT_BINARY_DIR})
 
   include(${__zisc_dir__}/cmake/compiler.cmake)
-  getCxxWarningFlags(cxx_compile_warning_flags)
+  Zisc_getCxxWarningFlags(cxx_compile_warning_flags)
   getExampleWarningFlags(example_warning_flags)
   target_compile_options(${target} PRIVATE ${cxx_compile_warning_flags}
                                            ${example_warning_flags})
   target_link_libraries(${target} PRIVATE Zisc)
+  Zisc_enableIpo(${target})
 
   #
-  setStaticAnalyzer(${target})
+  Zisc_setStaticAnalyzer(${target})
 
   # Save the dependency list
   if(save_prerequisites)
-    savePrerequisites(${target} ${PROJECT_BINARY_DIR} "" "" "")
+    Zisc_savePrerequisites(${target} "" "" "")
   endif()
 endfunction(addExample)
 
@@ -70,11 +71,11 @@ project(Examples VERSION 0.0.1 DESCRIPTION "${project_description}" LANGUAGES  C
 # Initialize platform info
 include(${__zisc_dir__}/cmake/general.cmake)
 include(${__zisc_dir__}/cmake/platform.cmake)
-getPlatformFlags(platform_definitions)
-setVariablesOnCMake(${platform_definitions})
+Zisc_getPlatformFlags(platform_definitions)
+Zisc_setVariablesOnCMake(${platform_definitions})
 
 # Check dependencies
-checkTarget(Zisc)
+Zisc_checkTarget(Zisc)
 
 # Build examples
 addExample(AlgorithmExample ON

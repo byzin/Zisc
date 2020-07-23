@@ -8,7 +8,7 @@
 
 
 # Check development environment
-function(getPlatformFlags platform_definitions)
+function(Zisc_getPlatformFlags platform_definitions)
   set(definitions "")
 
   # Detect Platform
@@ -80,4 +80,4 @@ function(getPlatformFlags platform_definitions)
 
   # Output variable
   set(${platform_definitions} ${definitions} PARENT_SCOPE)
-endfunction(getPlatformFlags)
+endfunction(Zisc_getPlatformFlags)

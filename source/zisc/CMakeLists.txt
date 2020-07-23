@@ -6,56 +6,56 @@
 # http://opensource.org/licenses/mit-license.php
 # 
 
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.17)
 
 
-function(initZiscOptions)
+function(Zisc_initZiscOptions)
   # Algorithm
   set(option_description "Use STL binary tree algorithm.")
-  setBooleanOption(ZISC_ALGORITHM_STL_BINARY_TREE OFF ${option_description})
+  Zisc_setBooleanOption(ZISC_ALGORITHM_STL_BINARY_TREE OFF ${option_description})
 
   # Atomic
   set(option_description "Use OS specified atomic wait-notification.")
-  setBooleanOption(ZISC_ATOMIC_OS_SPECIFIED_WAIT ON ${option_description})
+  Zisc_setBooleanOption(ZISC_ATOMIC_OS_SPECIFIED_WAIT ON ${option_description})
 
   # Math
   set(option_description "Use STL math funcs instead of the Zisc funcs.")
-  setBooleanOption(ZISC_MATH_STL OFF ${option_description})
+  Zisc_setBooleanOption(ZISC_MATH_STL OFF ${option_description})
 
   set(option_description "Use STL 'exp' instead of the Zisc func.")
-  setBooleanOption(ZISC_MATH_STL_EXP ON ${option_description})
+  Zisc_setBooleanOption(ZISC_MATH_STL_EXP ON ${option_description})
 
   set(option_description "Use STL 'log', 'log2' funcs instead of the Zisc funcs.")
-  setBooleanOption(ZISC_MATH_STL_LOG ON ${option_description})
+  Zisc_setBooleanOption(ZISC_MATH_STL_LOG ON ${option_description})
 
   set(option_description "Use STL 'pow' func instead of the Zisc func")
-  setBooleanOption(ZISC_MATH_STL_POW ON ${option_description})
+  Zisc_setBooleanOption(ZISC_MATH_STL_POW ON ${option_description})
 
   set(option_description "Use STL 'sqrt' func instead of the Zisc func")
-  setBooleanOption(ZISC_MATH_STL_SQRT ON ${option_description})
+  Zisc_setBooleanOption(ZISC_MATH_STL_SQRT ON ${option_description})
 
   set(option_description "Use STL 'cbrt' func instead of the Zisc func")
-  setBooleanOption(ZISC_MATH_STL_CBRT ON ${option_description})
+  Zisc_setBooleanOption(ZISC_MATH_STL_CBRT ON ${option_description})
 
   set(option_description "Use STL 'sin', 'cos' and 'tan' funcs instead of the Zisc funcs")
-  setBooleanOption(ZISC_MATH_STL_TRIGONOMETRIC ON ${option_description})
+  Zisc_setBooleanOption(ZISC_MATH_STL_TRIGONOMETRIC ON ${option_description})
 
   set(option_description "Use STL 'asin', 'acos' and 'atan' funcs instead of the Zisc funcs")
-  setBooleanOption(ZISC_MATH_STL_INV_TRIGONOMETRIC ON ${option_description})
+  Zisc_setBooleanOption(ZISC_MATH_STL_INV_TRIGONOMETRIC ON ${option_description})
 
   set(option_description "Enable zisc assertion.")
   if(Z_DEBUG_MODE)
-    setBooleanOption(ZISC_ENABLE_ASSERTION ON ${option_description})
+    Zisc_setBooleanOption(ZISC_ENABLE_ASSERTION ON ${option_description})
   else()
-    setBooleanOption(ZISC_ENABLE_ASSERTION OFF ${option_description})
+    Zisc_setBooleanOption(ZISC_ENABLE_ASSERTION OFF ${option_description})
   endif()
 
   set(option_description "L1 cache line size")
-  setStringOption(ZISC_L1_CACHE_LINE_SIZE "128" ${option_description})
-endfunction(initZiscOptions)
+  Zisc_setStringOption(ZISC_L1_CACHE_LINE_SIZE "128" ${option_description})
+endfunction(Zisc_initZiscOptions)
 
 
-function(getZiscFlags zisc_compile_flags zisc_linker_flags zisc_definitions)
+function(Zisc_getZiscFlags zisc_compile_flags zisc_linker_flags zisc_definitions)
   # Options
   if(${ZISC_ALGORITHM_STL_BINARY_TREE})
     list(APPEND definitions ZISC_ALGORITHM_STL_BINARY_TREE=1)
@@ -94,7 +94,7 @@ function(getZiscFlags zisc_compile_flags zisc_linker_flags zisc_definitions)
 
   # Output variables
   set(${zisc_definitions} ${definitions} PARENT_SCOPE)
-endfunction(getZiscFlags)
+endfunction(Zisc_getZiscFlags)
 
 
 #
@@ -104,9 +104,9 @@ message(STATUS "${PROJECT_NAME} version: ${PROJECT_VERSION}")
 
 include(${PROJECT_SOURCE_DIR}/cmake/general.cmake)
 include(${PROJECT_SOURCE_DIR}/cmake/platform.cmake)
-getPlatformFlags(platform_definitions)
-setVariablesOnCMake(${platform_definitions})
-initZiscOptions()
+Zisc_getPlatformFlags(platform_definitions)
+Zisc_setVariablesOnCMake(${platform_definitions})
+Zisc_initZiscOptions()
 
 # Make zisc configuration header file
 set(zisc_config_dir ${PROJECT_BINARY_DIR}/include/zisc)
@@ -128,16 +128,16 @@ find_package(Threads REQUIRED)
 
 # Compiler flags
 include(${PROJECT_SOURCE_DIR}/cmake/compiler.cmake)
-initCompilerOptions()
+Zisc_initCompilerOptions()
 set_target_properties(${PROJECT_NAME} PROPERTIES CXX_STANDARD 17
                                                  CXX_STANDARD_REQUIRED ON)
 
-getCxxFeatureList(cxx_feature_list)
+Zisc_getCxxFeatureList(cxx_feature_list)
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17 ${cxx_feature_list})
 
-getCxxCompilerFlags(cxx_compile_flags cxx_linker_flags cxx_definitions)
-getCxxWarningFlags(cxx_compile_warning_flags)
-getZiscFlags(zisc_compile_flags zisc_linker_flags zisc_definitions)
+Zisc_getCxxCompilerFlags(cxx_compile_flags cxx_linker_flags cxx_definitions)
+Zisc_getCxxWarningFlags(cxx_compile_warning_flags)
+Zisc_getZiscFlags(zisc_compile_flags zisc_linker_flags zisc_definitions)
 target_compile_options(${PROJECT_NAME} PUBLIC ${cxx_compile_flags}
                                               ${zisc_compile_flags}
                                        PRIVATE ${cxx_compile_warning_flags})
@@ -152,6 +152,7 @@ target_compile_definitions(${PROJECT_NAME} PUBLIC ${platform_definitions}
                                                   ${zisc_definitions})
 target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}
                                                   ${PROJECT_BINARY_DIR}/include)
+Zisc_enableIpo(${PROJECT_NAME})
 
 #
-setStaticAnalyzer(${PROJECT_NAME})
+Zisc_setStaticAnalyzer(${PROJECT_NAME})

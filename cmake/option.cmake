@@ -8,9 +8,11 @@
 
 
 function(initProjectOptions)
+  include(${PROJECT_SOURCE_DIR}/source/zisc/cmake/general.cmake)
+
   set(option_description "Build unit tests.")
-  setBooleanOption(ZISC_BUILD_TESTS OFF ${option_description})
+  Zisc_setBooleanOption(ZISC_BUILD_TESTS OFF ${option_description})
 
   set(option_description "Suppress excessive warnings.")
-  setBooleanOption(ZISC_SUPPRESS_EXCESSIVE_WARNING ON ${option_description})
+  Zisc_setBooleanOption(ZISC_SUPPRESS_EXCESSIVE_WARNING ON ${option_description})
 endfunction(initProjectOptions)

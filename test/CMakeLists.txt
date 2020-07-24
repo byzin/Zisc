@@ -39,6 +39,13 @@ function(getTestWarningFlags test_warning_flags)
                                 -Wno-sign-conversion
                                 -Wno-used-but-marked-unused
                                 )
+      if(Z_VISUAL_STUDIO)
+        list(APPEND warning_flags -Wno-language-extension-token
+                                  -Wno-shift-sign-overflow
+                                  -Wno-sign-compare
+                                  -Wno-undef
+                                  )
+      endif()
     elseif(Z_GCC)
       list(APPEND warning_flags -Wno-sign-conversion
                                 -Wno-strict-overflow
@@ -68,8 +75,7 @@ Zisc_checkTarget(Zisc)
 Zisc_checkTarget(gtest_main)
 
 # Create a symlink to the test resources
-file(CREATE_LINK ${PROJECT_SOURCE_DIR}/resources ${PROJECT_BINARY_DIR}/resources
-     COPY_ON_ERROR SYMBOLIC)
+file(COPY ${PROJECT_SOURCE_DIR}/resources DESTINATION ${PROJECT_BINARY_DIR})
 
 # Create a unit test
 file(GLOB unittest_source_files ${PROJECT_SOURCE_DIR}/unittest/*.cpp
@@ -77,13 +83,8 @@ file(GLOB unittest_source_files ${PROJECT_SOURCE_DIR}/unittest/*.cpp
 add_executable(${PROJECT_NAME} ${unittest_source_files})
 source_group(${PROJECT_NAME} FILES ${unittest_source_files})
 
-set_target_properties(${PROJECT_NAME} PROPERTIES
-    CXX_STANDARD 17
-    CXX_STANDARD_REQUIRED ON
-    RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}
-    RUNTIME_OUTPUT_DIRECTORY_DEBUG ${PROJECT_BINARY_DIR}
-    RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO ${PROJECT_BINARY_DIR}
-    RUNTIME_OUTPUT_DIRECTORY_RELEASE ${PROJECT_BINARY_DIR})
+set_target_properties(${PROJECT_NAME} PROPERTIES CXX_STANDARD 17
+                                                 CXX_STANDARD_REQUIRED ON)
 
 include(${__zisc_dir__}/cmake/compiler.cmake)
 Zisc_getCxxWarningFlags(cxx_compile_warning_flags)
@@ -100,6 +101,7 @@ Zisc_enableIpo(${PROJECT_NAME})
 
 #
 Zisc_setStaticAnalyzer(${PROJECT_NAME})
+Zisc_createLinkToTarget(${PROJECT_NAME} ${PROJECT_BINARY_DIR})
 
 # Save the dependency list
 Zisc_savePrerequisites(${PROJECT_NAME} "" "" "")

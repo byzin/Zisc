@@ -38,13 +38,8 @@ function(addExample target save_prerequisites)
   source_group(${PROJECT_NAME} FILES ${example_source_files})
 
   #
-  set_target_properties(${target} PROPERTIES
-      CXX_STANDARD 17
-      CXX_STANDARD_REQUIRED ON
-      RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}
-      RUNTIME_OUTPUT_DIRECTORY_DEBUG ${PROJECT_BINARY_DIR}
-      RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO ${PROJECT_BINARY_DIR}
-      RUNTIME_OUTPUT_DIRECTORY_RELEASE ${PROJECT_BINARY_DIR})
+  set_target_properties(${target} PROPERTIES CXX_STANDARD 17
+                                             CXX_STANDARD_REQUIRED ON)
 
   include(${__zisc_dir__}/cmake/compiler.cmake)
   Zisc_getCxxWarningFlags(cxx_compile_warning_flags)
@@ -56,6 +51,7 @@ function(addExample target save_prerequisites)
 
   #
   Zisc_setStaticAnalyzer(${target})
+  Zisc_createLinkToTarget(${target} ${PROJECT_BINARY_DIR})
 
   # Save the dependency list
   if(save_prerequisites)

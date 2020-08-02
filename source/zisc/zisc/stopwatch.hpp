@@ -52,15 +52,15 @@ class Stopwatch : private NonCopyable<Stopwatch>
   Clock::duration elapsedTime() const noexcept;
 
   //! Check if stopwatch is idle state
-  bool isIdleState() const noexcept;
+  bool isIdle() const noexcept;
 
   //! Check if stopwatch is pause state
-  bool isPauseState() const noexcept;
+  bool isPausing() const noexcept;
 
   //! Check if stopwatch is run state
-  bool isRunState() const noexcept;
+  bool isRunning() const noexcept;
 
-  //! Pause time measurement and return the elapsed time
+  //! Pause time measurement and return the elapsed time of this running
   Clock::duration pause() noexcept;
 
   //! Start to measure the time
@@ -76,6 +76,10 @@ class Stopwatch : private NonCopyable<Stopwatch>
     Run,
     Pause
   };
+
+
+  //! Return the elapsed time of this running
+  Clock::duration elapsedRunningTime() const noexcept;
 
 
   Clock::time_point start_time_;

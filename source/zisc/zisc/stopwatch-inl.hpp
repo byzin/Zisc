@@ -72,10 +72,8 @@ inline
 auto Stopwatch::elapsedTime() const noexcept -> Clock::duration
 {
   auto time = elapsed_time_;
-  if (state_ == State::Run) {
-    const auto current_time = Clock::now();
-    time += current_time - start_time_;
-  }
+  if (isRunning())
+    time += elapsedRunningTime();
   return time;
 }
 
@@ -85,7 +83,7 @@ auto Stopwatch::elapsedTime() const noexcept -> Clock::duration
   \return No description
   */
 inline
-bool Stopwatch::isIdleState() const noexcept
+bool Stopwatch::isIdle() const noexcept
 {
   return state_ == State::Idle;
 }
@@ -96,7 +94,7 @@ bool Stopwatch::isIdleState() const noexcept
   \return No description
   */
 inline
-bool Stopwatch::isPauseState() const noexcept
+bool Stopwatch::isPausing() const noexcept
 {
   return state_ == State::Pause;
 }
@@ -107,7 +105,7 @@ bool Stopwatch::isPauseState() const noexcept
   \return No description
   */
 inline
-bool Stopwatch::isRunState() const noexcept
+bool Stopwatch::isRunning() const noexcept
 {
   return state_ == State::Run;
 }
@@ -121,9 +119,8 @@ inline
 auto Stopwatch::pause() noexcept -> Clock::duration
 {
   auto time = Clock::duration::zero();
-  if (state_ == State::Run) {
-    const auto current_time = Clock::now();
-    time = current_time - start_time_;
+  if (isRunning()) {
+    time = elapsedRunningTime();
     elapsed_time_ += time;
     state_ = State::Pause;
   }
@@ -148,6 +145,19 @@ void Stopwatch::stop() noexcept
 {
   elapsed_time_ = Clock::duration::zero();
   state_ = State::Idle;
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+inline
+auto Stopwatch::elapsedRunningTime() const noexcept -> Clock::duration
+{
+  const auto current_time = Clock::now();
+  const auto time = current_time - start_time_;
+  return time;
 }
 
 } // namespace zisc

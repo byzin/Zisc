@@ -1,10 +1,10 @@
 # Zisc #
 
-Zisc provides utility C++ classes and functions which can be commonly used.
+Zisc provides C++ utility classes and functions which can be commonly used.
 
-**Z** in's m **isc** ellaneous C++ library
+**Z**in's m**isc**ellaneous C++ library
 
-Version: 0.0.59
+Version: 0.0.60
 
 ## Import instructions ##
 
@@ -25,15 +25,15 @@ Clone the Zisc repository and include the cmake config files of Zisc,
   endif()
 
   # Add the Zisc subdirectory
-  add_subdirectory("path-to-zisc-root" ${PROJECT_BINARY_DIR}/Zisc)
+  add_subdirectory({"path-to-zisc-root"}/source/zisc ${PROJECT_BINARY_DIR}/Zisc)
 
   # Create an executable of your project
-  add_executable("target-name" "source-files")
+  add_executable({"target-name"} {"source-files"})
 
   # Link the Zisc library.
-  # Note that compile features, options, definitions, link liraries, options
-  # and include directories properties will be populated
-  target_link_libraries("target-name" PRIVATE Zisc)
+  # Note that compile features, options, definitions, link liraries, options and
+  # include directories properties will be populated
+  target_link_libraries({"target-name"} PRIVATE Zisc)
 ```
 
 ## Acknowledgement ##

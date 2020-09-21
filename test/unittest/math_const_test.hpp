@@ -167,11 +167,11 @@ struct ConstexprTest<Float, end, end>
       constexpr Float n = zisc::cast<Float>(0.0);
 
       constexpr auto result = run_frexp(n);
-      constexpr Float result_m = result.first;
       constexpr int result_e = result.second;
       int expected_e = 0;
+      constexpr Float result_m = result.first;
       const Float expected_m = std::frexp(n, &expected_e);
-      expectFloatEq(expected_e, result_e, "frexp(" << n << ") is wrong.")
+      EXPECT_EQ(expected_e, result_e) << "frexp(" << n << ") is wrong.";
       expectFloatEq(expected_m, result_m, "frexp(" << n << ") is wrong.")
 
       constexpr Float result_f = zisc::constant::ldexp(result_m, result_e);

@@ -78,7 +78,7 @@ int main()
     workers.reserve(num_of_threads);
 
     std::atomic_size_t counter = 0;
-    auto enqueue_job = [&q, &counter, works_per_thread]()
+    auto enqueue_job = [&q, &counter]()
     {
       const std::size_t id = counter++;
       for (std::size_t i = 0; i < works_per_thread; ++i) {
@@ -96,7 +96,7 @@ int main()
               << num_of_works << " int elements." << std::endl;
     std::vector<int> results;
     results.resize(num_of_works, 0);
-    auto dequeue_job = [&q, works_per_thread, &results]() noexcept
+    auto dequeue_job = [&q, &results]() noexcept
     {
       for (std::size_t i = 0; i < works_per_thread; ++i) {
         const auto result = q.dequeue();

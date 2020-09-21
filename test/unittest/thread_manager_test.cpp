@@ -637,7 +637,7 @@ TEST(ThreadManagerTest, LoopTaskStressPerformanceTest2)
     std::vector<std::array<double, 2>> results;
     results.resize(thread_manager.numOfThreads() * tasks_per_thread);
     auto task =
-    [tasks_per_thread, &results](const zisc::int64b id, const zisc::uint number)
+    [&results](const zisc::int64b id, const zisc::uint number)
     {
       using Cmj = zisc::CmjN16;
       for (zisc::uint i = 0; i < tasks_per_thread; ++i) {

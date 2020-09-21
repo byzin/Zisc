@@ -266,7 +266,7 @@ TEST(ScalableCircularQueueTest, MultiThreadTest)
   // Test multiple producer
   zisc::Stopwatch stopwatch;
   std::atomic_size_t counter = 0;
-  auto enqueue_job = [&q, &counter, works_per_thread]()
+  auto enqueue_job = [&q, &counter]()
   {
     const std::size_t id = counter++;
     for (std::size_t i = 0; i < works_per_thread; ++i) {
@@ -301,7 +301,7 @@ TEST(ScalableCircularQueueTest, MultiThreadTest)
 
   // Test multiple consumer
   std::fill(results.begin(), results.end(), 0);
-  auto dequeue_job = [&q, works_per_thread, &results]() noexcept
+  auto dequeue_job = [&q, &results]() noexcept
   {
     for (std::size_t i = 0; i < works_per_thread; ++i) {
       const auto result = q.dequeue();

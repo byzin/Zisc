@@ -61,6 +61,10 @@ TEST(BitsetTest, BitManipulationTest)
   ASSERT_FALSE(bits[98]);
   ASSERT_EQ(0, bits.count());
 
+  ASSERT_TRUE(bits.isNone(0, 0));
+  ASSERT_FALSE(bits.isAny(0, 0));
+  ASSERT_FALSE(bits.isAll(0, 0));
+
   bits.set(5, true);
   bits.set(98, true);
   ASSERT_FALSE(bits.isNone());
@@ -101,6 +105,15 @@ TEST(BitsetTest, BitManipulationTest)
     ASSERT_EQ(e - b + 1, bits.count(b - 2, e));
     ASSERT_EQ(e - b + 3, bits.count());
 
+    ASSERT_TRUE(bits.isNone(b, b));
+    ASSERT_FALSE(bits.isAny(b, b));
+    ASSERT_FALSE(bits.isAll(b, b));
+    ASSERT_TRUE(bits.isNone(e, e));
+    ASSERT_FALSE(bits.isAny(e, e));
+    ASSERT_FALSE(bits.isAll(e, e));
+    ASSERT_FALSE(bits.count(b, b));
+    ASSERT_FALSE(bits.count(e, e));
+
     bits.reset(b, e);
     ASSERT_FALSE(bits.isNone());
     ASSERT_TRUE(bits.isAny());
@@ -128,6 +141,8 @@ TEST(BitsetTest, BitManipulationTest)
     ASSERT_EQ(e - b, bits.count(b, e));
     ASSERT_EQ(e - b + 3, bits.count());
   }
+
+  ASSERT_FALSE(bits.count(0, 0));
 
   bits.reset();
   ASSERT_TRUE(bits.isNone());

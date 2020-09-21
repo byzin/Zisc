@@ -176,7 +176,7 @@ bool Bitset::isAll(const std::size_t begin, const std::size_t end) const noexcep
     result = flag ? 1 : 0;
     return result;
   };
-  const bool result = iterate(begin, end, func);
+  const bool result = (begin < end) && iterate(begin, end, func);
   return result;
 }
 
@@ -234,7 +234,7 @@ bool Bitset::isNone(const std::size_t begin, const std::size_t end) const noexce
     result = flag ? 1 : 0;
     return result;
   };
-  const bool result = iterate(begin, end, func);
+  const bool result = (end <= begin) || iterate(begin, end, func);
   return result;
 }
 

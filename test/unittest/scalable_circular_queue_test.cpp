@@ -248,9 +248,9 @@ TEST(ScalableCircularQueueTest, MultiThreadTest)
 {
   using Queue = zisc::ScalableCircularQueue<std::size_t>;
 
-  constexpr std::size_t num_of_threads = 1 << 5;
-  constexpr std::size_t works_per_thread = 1 << 19; 
-  constexpr std::size_t num_of_works = num_of_threads * works_per_thread;
+  static constexpr std::size_t num_of_threads = 1 << 5;
+  static constexpr std::size_t works_per_thread = 1 << 19; 
+  static constexpr std::size_t num_of_works = num_of_threads * works_per_thread;
   std::cout << "Num of threads: " << num_of_threads << std::endl;
   std::cout << "Num of elements: " << num_of_works << std::endl;
 

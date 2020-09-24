@@ -66,9 +66,9 @@ int main()
   }
 
   {
-    constexpr std::size_t num_of_threads = 16;
-    constexpr std::size_t works_per_thread = 262144;
-    constexpr std::size_t num_of_works = num_of_threads * works_per_thread;
+    static constexpr std::size_t num_of_threads = 16;
+    static constexpr std::size_t works_per_thread = 262144;
+    static constexpr std::size_t num_of_works = num_of_threads * works_per_thread;
 
     std::cout << "Multiple producer: " << num_of_threads << " threads, "
               << num_of_works << " int elements." << std::endl;

@@ -626,9 +626,9 @@ TEST(ThreadManagerTest, LoopTaskStressPerformanceTest2)
 {
   zisc::SimpleMemoryResource mem_resource;
   {
-    constexpr zisc::uint num_of_threads = 0u;
-    constexpr zisc::uint tasks_per_thread = 1u << 4u;
-    constexpr zisc::uint num_of_tasks = 1u << 25u;
+    static constexpr zisc::uint num_of_threads = 0u;
+    static constexpr zisc::uint tasks_per_thread = 1u << 4u;
+    static constexpr zisc::uint num_of_tasks = 1u << 25u;
     std::cout << "Tasks per thread: " << tasks_per_thread << std::endl;
     std::cout << "Num of tasks: " << num_of_tasks << std::endl;
 

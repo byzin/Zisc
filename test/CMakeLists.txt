@@ -83,7 +83,7 @@ file(GLOB unittest_source_files ${PROJECT_SOURCE_DIR}/unittest/*.cpp
 add_executable(${PROJECT_NAME} ${unittest_source_files})
 source_group(${PROJECT_NAME} FILES ${unittest_source_files})
 
-set_target_properties(${PROJECT_NAME} PROPERTIES CXX_STANDARD 17
+set_target_properties(${PROJECT_NAME} PROPERTIES CXX_STANDARD 20 
                                                  CXX_STANDARD_REQUIRED ON)
 
 include(${__zisc_dir__}/cmake/compiler.cmake)

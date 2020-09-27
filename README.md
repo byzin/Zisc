@@ -10,7 +10,7 @@ Version: 0.0.60
 
 ### Prerequisites ###
 
-* C++17 support compiler
+* C++20 support compiler
 * [CMake](https://cmake.org/) (version 3.17 or later)
 
 ### Importing ###

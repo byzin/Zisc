@@ -38,7 +38,7 @@ function(addExample target save_prerequisites)
   source_group(${PROJECT_NAME} FILES ${example_source_files})
 
   #
-  set_target_properties(${target} PROPERTIES CXX_STANDARD 17
+  set_target_properties(${target} PROPERTIES CXX_STANDARD 20
                                              CXX_STANDARD_REQUIRED ON)
 
   include(${__zisc_dir__}/cmake/compiler.cmake)

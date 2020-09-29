@@ -33,6 +33,151 @@ TEST(CppTest, StdBitFeatureTest)
 
 namespace {
 
+template <zisc::UnsignedInteger Integer, zisc::FloatingPoint Float>
+void testCastBit()
+{
+  static_assert(sizeof(Integer) == sizeof(Float));
+  union Data
+  {
+    Data(const Integer v) : u_{v} {}
+    Data(const Float v) : f_{v} {}
+    Integer u_;
+    Float f_;
+  };
+
+  auto reinterpu = [](const Float f) noexcept
+  {
+    const Data b{f};
+    return b.u_;
+  };
+
+  using FLimits = std::numeric_limits<Float>;
+  {
+    constexpr Float f = FLimits::min();
+    constexpr Integer u = zisc::bit_cast<Integer>(f);
+    const Integer expected = reinterpu(f);
+    ASSERT_EQ(expected, u) << "zisc::bit_cast(" << f << ") failed.";
+  }
+  {
+    constexpr Float f = FLimits::lowest();
+    constexpr Integer u = zisc::bit_cast<Integer>(f);
+    const Integer expected = reinterpu(f);
+    ASSERT_EQ(expected, u) << "zisc::bit_cast(" << f << ") failed.";
+  }
+  {
+    constexpr Float f = FLimits::max();
+    constexpr Integer u = zisc::bit_cast<Integer>(f);
+    const Integer expected = reinterpu(f);
+    ASSERT_EQ(expected, u) << "zisc::bit_cast(" << f << ") failed.";
+  }
+  {
+    constexpr Float f = FLimits::epsilon();
+    constexpr Integer u = zisc::bit_cast<Integer>(f);
+    const Integer expected = reinterpu(f);
+    ASSERT_EQ(expected, u) << "zisc::bit_cast(" << f << ") failed.";
+  }
+  {
+    constexpr Float f = FLimits::round_error();
+    constexpr Integer u = zisc::bit_cast<Integer>(f);
+    const Integer expected = reinterpu(f);
+    ASSERT_EQ(expected, u) << "zisc::bit_cast(" << f << ") failed.";
+  }
+  {
+    constexpr Float f = FLimits::infinity();
+    constexpr Integer u = zisc::bit_cast<Integer>(f);
+    const Integer expected = reinterpu(f);
+    ASSERT_EQ(expected, u) << "zisc::bit_cast(" << f << ") failed.";
+  }
+  {
+    constexpr Float f = -FLimits::infinity();
+    constexpr Integer u = zisc::bit_cast<Integer>(f);
+    const Integer expected = reinterpu(f);
+    ASSERT_EQ(expected, u) << "zisc::bit_cast(" << f << ") failed.";
+  }
+  {
+    const Float f = FLimits::quiet_NaN();
+    const Integer u = zisc::bit_cast<Integer>(f);
+    const Integer expected = reinterpu(f);
+    ASSERT_EQ(expected, u) << "zisc::bit_cast(" << f << ") failed.";
+  }
+  {
+    const Float f = FLimits::signaling_NaN();
+    const Integer u = zisc::bit_cast<Integer>(f);
+    const Integer expected = reinterpu(f);
+    ASSERT_EQ(expected, u) << "zisc::bit_cast(" << f << ") failed.";
+  }
+  {
+    constexpr Float f = FLimits::denorm_min();
+    constexpr Integer u = zisc::bit_cast<Integer>(f);
+    const Integer expected = reinterpu(f);
+    ASSERT_EQ(expected, u) << "zisc::bit_cast(" << f << ") failed.";
+  }
+  {
+    constexpr Float f = FLimits::min() - FLimits::denorm_min(); // denorm_max
+    static_assert(f != FLimits::min());
+    constexpr Integer u = zisc::bit_cast<Integer>(f);
+    const Integer expected = reinterpu(f);
+    ASSERT_EQ(expected, u) << "zisc::bit_cast(" << f << ") failed.";
+  }
+  {
+    constexpr Float f = static_cast<Float>(0.0);
+    constexpr Integer u = zisc::bit_cast<Integer>(f);
+    const Integer expected = reinterpu(f);
+    ASSERT_EQ(expected, u) << "zisc::bit_cast(" << f << ") failed.";
+  }
+  {
+    constexpr Float f = static_cast<Float>(1.0);
+    constexpr Integer u = zisc::bit_cast<Integer>(f);
+    const Integer expected = reinterpu(f);
+    ASSERT_EQ(expected, u) << "zisc::bit_cast(" << f << ") failed.";
+  }
+  {
+    constexpr Float f = static_cast<Float>(123456.0);
+    constexpr Integer u = zisc::bit_cast<Integer>(f);
+    const Integer expected = reinterpu(f);
+    ASSERT_EQ(expected, u) << "zisc::bit_cast(" << f << ") failed.";
+  }
+
+  auto reinterpf = [](const Integer u) noexcept
+  {
+    const Data b{u};
+    return b.f_;
+  };
+
+  {
+    constexpr Integer u = static_cast<Integer>(0);
+    constexpr Float f = zisc::bit_cast<Float>(u);
+    const Float expected = reinterpf(u);
+    ASSERT_EQ(expected, f) << "zisc::bit_cast(" << u << ") failed.";
+  }
+  {
+    constexpr Integer u = static_cast<Integer>(1);
+    constexpr Float f = zisc::bit_cast<Float>(u);
+    const Float expected = reinterpf(u);
+    ASSERT_EQ(expected, f) << "zisc::bit_cast(" << u << ") failed.";
+  }
+  {
+    constexpr Integer u = static_cast<Integer>(123456);
+    constexpr Float f = zisc::bit_cast<Float>(u);
+    const Float expected = reinterpf(u);
+    ASSERT_EQ(expected, f) << "zisc::bit_cast(" << u << ") failed.";
+  }
+}
+
+} // namespace
+
+TEST(BitTest, CastBitFloatTest)
+{
+  ::testCastBit<zisc::uint32b, float>();
+}
+
+TEST(BitTest, CastBitDoubleTest)
+{
+  ::testCastBit<zisc::uint64b, double>();
+}
+
+namespace {
+
 template <zisc::UnsignedInteger Integer>
 void testCountlZero()
 {

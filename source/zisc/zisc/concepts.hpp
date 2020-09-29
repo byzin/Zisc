@@ -45,6 +45,26 @@ concept UnsignedInteger = inner::UnsignedInteger<Type>;
 template <typename Type>
 concept FloatingPoint = inner::FloatingPoint<Type>;
 
+//! Specify a type is a pointer
+template <typename Type>
+concept Pointer = inner::Pointer<Type>;
+
+//! Specify a type is arithmetic
+template <typename Type>
+concept Arithmetic = inner::Arithmetic<Type>;
+
+//! Specify a type is scalar
+template <typename Type>
+concept Scalar = inner::Scalar<Type>;
+
+//! Specify a type is trivial
+template <typename Type>
+concept Trivial = inner::Trivial<Type>;
+
+//! Specify a type is trivially copyable
+template <typename Type>
+concept TriviallyCopyable = inner::TriviallyCopyable<Type>;
+
 // Callable concepts
 
 //! Specify a callable type can be invoked with a given set of argument

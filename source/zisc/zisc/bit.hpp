@@ -43,6 +43,9 @@ constexpr bool hasStdPowerOf2Operations() noexcept;
 class Bit
 {
  public:
+  //! Reinterpret the object representation of one type as that of another
+  template <TriviallyCopyable To, TriviallyCopyable From>
+  static constexpr To castBit(const From& from) noexcept;
 
   // Bit operations
 
@@ -89,6 +92,10 @@ class Bit
   class Std
   {
    public:
+    //! Reinterpret the object representation of one type as that of another
+    template <TriviallyCopyable To, TriviallyCopyable From>
+    static constexpr To castBit(const From& from) noexcept;
+
     // Bit operations
 
     //! Count the number of consecutive 0 bits, starting from the msb
@@ -134,6 +141,10 @@ class Bit
   class Zisc
   {
    public:
+    //! Reinterpret the object representation of one type as that of another
+    template <TriviallyCopyable To, TriviallyCopyable From>
+    static constexpr To castBit(const From& from) noexcept;
+
     // Power-of-2 operations
 
     //! Find the smallest integral power of two not less than the given value
@@ -155,6 +166,10 @@ class Bit
 };
 
 // STL style function aliases
+
+//! Reinterpret the object representation of one type as that of another
+template <TriviallyCopyable To, TriviallyCopyable From>
+constexpr To bit_cast(const From& from) noexcept;
 
 // Bit operations
 

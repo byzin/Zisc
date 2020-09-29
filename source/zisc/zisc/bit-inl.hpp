@@ -35,7 +35,9 @@ namespace zisc {
 template <Config::ImplType kImpl> inline
 constexpr bool hasStdBitCast() noexcept
 {
-  const bool result = true;
+  const bool result = (kImpl == Config::ImplType::kGcc) ? false :
+                      (kImpl == Config::ImplType::kClang) ? false
+                                                          : true;
   return result;
 }
 
@@ -62,6 +64,27 @@ constexpr bool hasStdPowerOf2Operations() noexcept
   const bool result = (kImpl == Config::ImplType::kClang) ? false
                                                           : true;
   return result;
+}
+
+/*!
+  \details No detailed description
+
+  \tparam To No description.
+  \tparam From No description.
+  \param [in] from No description.
+  \return No description
+  */
+template <TriviallyCopyable To, TriviallyCopyable From> inline
+constexpr To Bit::castBit(const From& from) noexcept
+{
+  if constexpr (hasStdBitCast()) {
+    const To to = Std::castBit<To, From>(from);
+    return to;
+  }
+  else {
+    const To to = Zisc::castBit<To, From>(from);
+    return to;
+  }
 }
 
 /*!
@@ -227,6 +250,25 @@ constexpr bool Bit::isPowerOf2(const Integer x) noexcept
   return result;
 }
 
+#if !(defined(Z_GCC) || defined(Z_CLANG))
+
+/*!
+  \details No detailed description
+
+  \tparam To No description.
+  \tparam From No description.
+  \param [in] from No description.
+  \return No description
+  */
+template <TriviallyCopyable To, TriviallyCopyable From> inline
+constexpr To Bit::Std::castBit(const From& from) noexcept
+{
+  const To to = std::bit_cast<To, From>(from);
+  return to;
+}
+
+#endif
+
 /*!
   \details No detailed description
 
@@ -361,6 +403,26 @@ constexpr bool Bit::Std::isPowerOf2(const Integer x) noexcept
 /*!
   \details No detailed description
 
+  \tparam To No description.
+  \tparam From No description.
+  \param [in] from No description.
+  \return No description
+  */
+template <TriviallyCopyable To, TriviallyCopyable From> inline
+constexpr To Bit::Zisc::castBit(const From& from) noexcept
+{
+  const To to =
+#if defined(Z_CLANG)
+    __builtin_bit_cast(To, from);
+#else // Z_CLANG
+    0;
+#endif // Z_CLANG
+  return to;
+}
+
+/*!
+  \details No detailed description
+
   \tparam Integer No description.
   \param [in] x No description.
   \return No description
@@ -429,6 +491,21 @@ constexpr bool Bit::Zisc::isPowerOf2(const Integer x) noexcept
 }
 
 // STL style function aliases
+
+/*!
+  \details No detailed description
+
+  \tparam To No description.
+  \tparam From No description.
+  \param [in] from No description.
+  \return No description
+  */
+template <TriviallyCopyable To, TriviallyCopyable From> inline
+constexpr To bit_cast(const From& from) noexcept
+{
+  const To to = Bit::castBit<To, From>(from);
+  return to;
+}
 
 /*!
   \details No detailed description

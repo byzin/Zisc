@@ -55,6 +55,26 @@ concept UnsignedInteger = Integer<Type> && std::is_unsigned_v<Type>;
 template <typename Type>
 concept FloatingPoint = std::is_floating_point_v<Type>;
 
+//! Specify a type is a pointer
+template <typename Type>
+concept Pointer = std::is_pointer_v<Type>;
+
+//! Specify a type is arithmetic
+template <typename Type>
+concept Arithmetic = std::is_arithmetic_v<Type>;
+
+//! Specify a type is scalar
+template <typename Type>
+concept Scalar = std::is_scalar_v<Type>;
+
+//! Specify a type is trivial
+template <typename Type>
+concept Trivial = std::is_trivial_v<Type>;
+
+//! Specify a type is trivially copyable
+template <typename Type>
+concept TriviallyCopyable = std::is_trivially_copyable_v<Type>;
+
 // Callable concepts
 
 //! Specify a callable type can be invoked with a given set of argument

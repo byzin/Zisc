@@ -21,6 +21,7 @@
 #include <limits>
 #include <type_traits>
 // Zisc
+#include "bit_cast_gcc.hpp"
 #include "concepts.hpp"
 #include "utility.hpp"
 #include "zisc_config.hpp"
@@ -411,13 +412,24 @@ constexpr bool Bit::Std::isPowerOf2(const Integer x) noexcept
 template <TriviallyCopyable To, TriviallyCopyable From> inline
 constexpr To Bit::Zisc::castBit(const From& from) noexcept
 {
-  const To to =
 #if defined(Z_CLANG)
-    __builtin_bit_cast(To, from);
-#else // Z_CLANG
-    0;
-#endif // Z_CLANG
+  const To to = __builtin_bit_cast(To, from);
   return to;
+#else // Z_CLANG
+  static_assert(sizeof(From) == sizeof(To));
+  using Binary = gcc::BinaryFromBytes<sizeof(From)>;
+  if constexpr (FloatingPoint<From> && UnsignedInteger<To>) {
+    const To to = Binary::makeBits(from);
+    return to;
+  }
+  else if constexpr (UnsignedInteger<From> && FloatingPoint<To>) {
+    const To to = Binary::makeFloat(from);
+    return to;
+  }
+  else {
+    static_assert(sizeof(From) == 0, "Not implemented yet.");
+  }
+#endif // Z_CLANG
 }
 
 /*!

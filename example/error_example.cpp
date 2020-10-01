@@ -38,11 +38,6 @@ int main()
                        zisc::Config::versionMinor, ".",
                        zisc::Config::versionPatch);
   }
-  // Static assert example
-  {
-    constexpr int value = 10;
-    ZISC_STATIC_ASSERT(value == 10, "The value isn't 10.");
-  }
 
   return 0;
 }

@@ -20,8 +20,6 @@
 #include <chrono>
 #include <cstdint>
 #include <utility>
-// Zisc
-#include "utility.hpp"
 
 namespace zisc {
 

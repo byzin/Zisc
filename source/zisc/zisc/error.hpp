@@ -49,24 +49,6 @@
   #define ZISC_ASSERT(condition, ...) static_cast<void>(condition)
 #endif // ZISC_ASSERTION
 
-/*!
-  \def ZISC_STATIC_ASSERT(condition, message)
-  \brief If condition is false, a compile-time error is issued, and assert outputs message
-
-  No detailed description.
-
-  \param [in] condition No description.
-  \param [in] message No description.
-  */
-#ifdef ZISC_ASSERTION
-  #define ZISC_STATIC_ASSERT(condition, message) \
-      static_assert(condition, message)
-#else // ZISC_ASSERTION
-  #define ZISC_STATIC_ASSERT(condition, message) \
-      static_cast<void>(condition); \
-      static_cast<void>(message)
-#endif // ZISC_ASSERTION
-
 namespace zisc {
 
 /*!

@@ -14,11 +14,12 @@
 
 // Standard C++ library
 #include <cstdint>
+#include <string_view>
 // GoogleTest
 #include "gtest/gtest.h"
 // Zisc
-#include "zisc/fnv_1a_hash_engine.hpp"
 #include "zisc/zisc_config.hpp"
+#include "zisc/hash/fnv_1a_hash_engine.hpp"
 
 TEST(Fnv1aHashEngineTest, 32BitHashTest)
 {
@@ -39,9 +40,14 @@ TEST(Fnv1aHashEngineTest, 32BitHashTest)
     ASSERT_EQ(0xe70c2de5, result) << "32bit hash test failed.";
   }
   {
-    const char seed[] = "foobar";
-    const zisc::uint32b result = Fnv1aHash::hash(seed);
+    constexpr char seed[] = "foobar";
+    constexpr zisc::uint32b result = Fnv1aHash::hash(seed);
     ASSERT_EQ(0xbf9cf968, result) << "32bit hash test failed.";
+  }
+  {
+    constexpr std::string_view seed{"FNV Hash Test"};
+    constexpr zisc::uint32b result = Fnv1aHash::hash(seed);
+    ASSERT_EQ(0xf38b3db9, result) << "32bit hash test failed.";
   }
 }
 
@@ -64,8 +70,8 @@ TEST(Fnv1aHashEngineTest, 64BitHashTest)
     ASSERT_EQ(0xaf63df4c8601f1a5, result) << "64bit hash test failed.";
   }
   {
-    const char seed[] = "foobar";
-    const zisc::uint64b result = Fnv1aHash::hash(seed);
+    constexpr char seed[] = "foobar";
+    constexpr zisc::uint64b result = Fnv1aHash::hash(seed);
     ASSERT_EQ(0x85944171f73967e8, result) << "64bit hash test failed.";
   }
 }

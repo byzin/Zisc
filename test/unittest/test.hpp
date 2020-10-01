@@ -15,9 +15,9 @@
 // Zisc
 #include "zisc/ieee_754_binary.hpp"
 #include "zisc/math.hpp"
-#include "zisc/fnv_1a_hash_engine.hpp"
 #include "zisc/utility.hpp"
 #include "zisc/zisc_config.hpp"
+#include "zisc/hash/fnv_1a_hash_engine.hpp"
 
 namespace {
 

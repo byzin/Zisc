@@ -19,7 +19,6 @@
 #include <limits>
 #include <string_view>
 // Zisc
-#include "zisc/sip_hash_engine.hpp"
 #include "zisc/pcg_engine.hpp"
 #include "zisc/pseudo_random_number_engine.hpp"
 #include "zisc/utility.hpp"

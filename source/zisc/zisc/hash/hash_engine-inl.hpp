@@ -23,10 +23,9 @@
 #include <string_view>
 #include <type_traits>
 // Zisc
-#include "string.hpp"
-#include "type_traits.hpp"
-#include "utility.hpp"
-#include "zisc_config.hpp"
+#include "zisc/concepts.hpp"
+#include "zisc/utility.hpp"
+#include "zisc/zisc_config.hpp"
 
 namespace zisc {
 
@@ -36,13 +35,13 @@ namespace zisc {
   \param [in] seed No description.
   \return No description
   */
-template <typename HashClass, typename ResultType> inline
-constexpr ResultType HashEngine<HashClass, ResultType>::hash(
+template <typename HashClass, HashValue ValueType> inline
+constexpr ValueType HashEngine<HashClass, ValueType>::hash(
     const char* seed) noexcept
 {
-  const std::size_t n = getSize(seed);
-  const ResultType h = hashValue(seed, n);
-  return h;
+  const std::string_view s{seed};
+  const ValueType result = hash(s);
+  return result;
 }
 
 /*!
@@ -51,12 +50,12 @@ constexpr ResultType HashEngine<HashClass, ResultType>::hash(
   \param [in] seed No description.
   \return No description
   */
-template <typename HashClass, typename ResultType> inline
-constexpr ResultType HashEngine<HashClass, ResultType>::hash(
+template <typename HashClass, HashValue ValueType> inline
+constexpr ValueType HashEngine<HashClass, ValueType>::hash(
     const std::string_view seed) noexcept
 {
-  const ResultType h = hashValue(seed.data(), seed.size());
-  return h;
+  const ValueType result = hash(seed.data(), seed.size());
+  return result;
 }
 
 /*!
@@ -66,36 +65,35 @@ constexpr ResultType HashEngine<HashClass, ResultType>::hash(
   \param [in] n No description.
   \return No description
   */
-template <typename HashClass, typename ResultType> inline
-constexpr ResultType HashEngine<HashClass, ResultType>::hash(
-    const uint8b* seed,
+template <typename HashClass, HashValue ValueType>
+template <HashKeyElement Int8> inline
+constexpr ValueType HashEngine<HashClass, ValueType>::hash(
+    const Int8* seed,
     const std::size_t n) noexcept
 {
-  const ResultType h = hashValue(seed, n);
-  return h;
+  const ValueType result = hashValue(seed, n);
+  return result;
 }
 
 /*!
   \details No detailed description
 
-  \tparam UnsignedInteger No description.
+  \tparam Integer No description.
   \param [in] seed No description.
   \return No description
   */
-template <typename HashClass, typename ResultType>
-template <typename UnsignedInteger> inline
-constexpr ResultType HashEngine<HashClass, ResultType>::hash(
-    const UnsignedInteger seed) noexcept
+template <typename HashClass, HashValue ValueType>
+template <UnsignedInteger Integer> inline
+constexpr ValueType HashEngine<HashClass, ValueType>::hash(
+    const Integer seed) noexcept
 {
-  static_assert(kIsUnsignedInteger<UnsignedInteger>,
-                "UnsignedInteger isn't unsigned integer type.");
   // Make a seed array
-  std::array<uint8b, sizeof(UnsignedInteger)> seed_array{};
+  std::array<uint8b, sizeof(Integer)> seed_array{};
   for (std::size_t i = 0; i < seed_array.size(); ++i)
     seed_array[i] = cast<uint8b>(seed >> (8 * i));
   // Hash the seed
-  const ResultType h = hash(seed_array.data(), seed_array.size());
-  return h;
+  const ValueType result = hash(seed_array.data(), seed_array.size());
+  return result;
 }
 
 /*!
@@ -106,13 +104,14 @@ constexpr ResultType HashEngine<HashClass, ResultType>::hash(
   \param [in] n No description.
   \return No description
   */
-template <typename HashClass, typename ResultType> template <typename Int8> inline
-constexpr ResultType HashEngine<HashClass, ResultType>::hashValue(
+template <typename HashClass, HashValue ValueType>
+template <HashKeyElement Int8> inline
+constexpr ValueType HashEngine<HashClass, ValueType>::hashValue(
     const Int8* seed,
     const std::size_t n) noexcept
 {
-  const ResultType h = HashClass::hashValue(seed, n);
-  return h;
+  const ValueType result = HashClass::hashValue(seed, n);
+  return result;
 }
 
 } // namespace zisc

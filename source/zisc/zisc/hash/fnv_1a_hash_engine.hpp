@@ -16,13 +16,11 @@
 #define ZISC_FNV_1A_HASH_ENGINE_HPP
 
 // Standard C++ library
-#include <array>
 #include <cstdint>
 #include <cstddef>
-#include <type_traits>
 // Zisc
 #include "hash_engine.hpp"
-#include "zisc_config.hpp"
+#include "zisc/zisc_config.hpp"
 
 namespace zisc {
 
@@ -31,24 +29,26 @@ namespace zisc {
 
   No detailed description.
 
-  \tparam ResultType No description.
+  \tparam ValueType No description.
   */
-template <typename ResultType>
-class Fnv1aHashEngine : public HashEngine<Fnv1aHashEngine<ResultType>, ResultType>
+template <HashValue ValueType>
+class Fnv1aHashEngine : public HashEngine<Fnv1aHashEngine<ValueType>, ValueType>
 {
- private:
-  template <typename, typename> friend class HashEngine;
+ public:
   //! Implementation of the hash function
-  template <typename Int8>
-  static constexpr ResultType hashValue(const Int8* seed,
-                                        const std::size_t n) noexcept;
+  template <HashKeyElement Int8>
+  static constexpr ValueType hashValue(const Int8* seed,
+                                       const std::size_t n) noexcept;
+ private:
 
   //!
-  static constexpr ResultType prime() noexcept;
+  static constexpr ValueType prime() noexcept;
 
   //!
-  static constexpr ResultType offset() noexcept;
+  static constexpr ValueType offset() noexcept;
 };
+
+// Type aliases
 
 using Fnv1aHash32 = Fnv1aHashEngine<uint32b>;
 using Fnv1aHash64 = Fnv1aHashEngine<uint64b>;

@@ -33,6 +33,8 @@
 !/source/zisc/zisc/*.hpp
 !/source/zisc/zisc/*.cpp
 !/source/zisc/zisc/*.hpp.in
+!/source/zisc/zisc/hash/
+!/source/zisc/zisc/hash/*.hpp
 # Zisc cmake file
 !source/zisc/cmake/
 !source/zisc/cmake/*.cmake

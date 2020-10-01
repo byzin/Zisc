@@ -19,9 +19,9 @@
 #include "gtest/gtest.h"
 // Zisc
 #include "zisc/correlated_multi_jittered_engine.hpp"
-#include "zisc/fnv_1a_hash_engine.hpp"
 #include "zisc/utility.hpp"
 #include "zisc/zisc_config.hpp"
+#include "zisc/hash/fnv_1a_hash_engine.hpp"
 
 template <typename CmjEngine>
 void testCmjEngine(const std::string& reference_file_path)

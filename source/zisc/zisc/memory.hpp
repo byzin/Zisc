@@ -101,16 +101,26 @@ class Memory
   };
 
 
-  //! Retrieve the system memory statistics
-  static SystemMemoryStats retrieveSystemStats() noexcept;
+  //! Inform the compiler that a pointer is aligned
+  template <std::size_t kN, typename Type>
+  [[nodiscard]]
+  static constexpr Type* assumeAligned(Type* ptr);
 
   //! Check if an address of the \a data is aligned at the \a alignment bytes
   static bool isAligned(const void* data, const std::size_t alignment) noexcept;
+
+  //! Retrieve the system memory statistics
+  static SystemMemoryStats retrieveSystemStats() noexcept;
 
  private:
   //! Retrieve the system memory statistics
   static SystemMemoryStats retrieveSystemStatsImpl() noexcept;
 };
+
+//! Inform the compiler that a pointer is aligned
+template <std::size_t kN, typename Type>
+[[nodiscard]]
+constexpr Type* assume_aligned(Type* ptr);
 
 } // namespace zisc
 

@@ -21,10 +21,10 @@
 #include <cstddef>
 #include <cstdint>
 // Zisc
-#include "math.hpp"
-#include "type_traits.hpp"
-#include "utility.hpp"
-#include "zisc_config.hpp"
+#include "zisc/math.hpp"
+#include "zisc/type_traits.hpp"
+#include "zisc/utility.hpp"
+#include "zisc/zisc_config.hpp"
 
 namespace zisc {
 

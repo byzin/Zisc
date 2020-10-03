@@ -27,12 +27,12 @@
 // GoogleTest
 #include "gtest/gtest.h"
 // Zisc
-#include "zisc/correlated_multi_jittered_engine.hpp"
 #include "zisc/math.hpp"
 #include "zisc/non_copyable.hpp"
-#include "zisc/pcg_engine.hpp"
 #include "zisc/simple_memory_resource.hpp"
 #include "zisc/thread_manager.hpp"
+#include "zisc/random/correlated_multi_jittered_engine.hpp"
+#include "zisc/random/pcg_engine.hpp"
 
 namespace {
 

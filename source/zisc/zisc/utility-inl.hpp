@@ -18,8 +18,13 @@
 #include "utility.hpp"
 // Standard C++ library
 #include <cstdint>
+#include <cstddef>
+#include <limits>
 #include <type_traits>
 #include <utility>
+// Zisc
+#include "concepts.hpp"
+#include "zisc_config.hpp"
 
 namespace zisc {
 
@@ -38,6 +43,36 @@ constexpr Type cast(T&& value) noexcept
     return value;
   else
     return static_cast<Type>(value);
+}
+
+/*!
+  \details Please read "Generating uniform doubles in the unit interval" section
+  in the following link:
+  <a href="http://prng.di.unimi.it/">xoshiro / xoroshiro generators and the PRNG shootout</a> for more details.
+
+  \tparam Float No description.
+  \tparam Integer No description.
+  \param [in] x No description.
+  \return No description
+  */
+template <FloatingPoint Float, UnsignedInteger Integer> inline
+constexpr Float mapTo01(const Integer x) noexcept
+{
+  constexpr std::size_t int_digits = std::numeric_limits<Integer>::digits;
+  constexpr std::size_t mant_digits = std::numeric_limits<Float>::digits;
+  using ValueType = std::conditional_t<sizeof(Float) == 4, uint32b, uint64b>;
+  ValueType v = 0;
+  if constexpr (mant_digits < int_digits) {
+    constexpr std::size_t offset = int_digits - mant_digits;
+    v = cast<ValueType>(x) >> offset;
+  }
+  else {
+    constexpr std::size_t offset = mant_digits - int_digits;
+    v = cast<ValueType>(x) << offset;
+  }
+  constexpr Float norm = cast<Float>(1.0) / cast<Float>(1ull << mant_digits);
+  const Float y = cast<Float>(v) * norm;
+  return y;
 }
 
 /*!
@@ -75,6 +110,23 @@ Type treatAs(T* object) noexcept
     return object;
   else
     return reinterpret_cast<Type>(object);
+}
+
+/*!
+  \details No detailed description
+
+  \tparam NewType No description.
+  \tparam Type No description.
+  \param [in] object No description.
+  \return No description
+  */
+template <typename NewType, typename Type> inline
+NewType reinterp(Type object) noexcept
+{
+  if constexpr (std::is_same_v<Type, NewType>)
+    return object;
+  else
+    return reinterpret_cast<NewType>(object);
 }
 
 } // namespace zisc

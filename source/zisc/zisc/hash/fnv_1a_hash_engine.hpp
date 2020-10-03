@@ -29,12 +29,16 @@ namespace zisc {
 
   No detailed description.
 
-  \tparam ValueType No description.
+  \tparam ValueT No description.
   */
-template <HashValue ValueType>
-class Fnv1aHashEngine : public HashEngine<Fnv1aHashEngine<ValueType>, ValueType>
+template <HashValue ValueT>
+class Fnv1aHashEngine : public HashEngine<Fnv1aHashEngine<ValueT>, ValueT>
 {
  public:
+  using BaseEngine = HashEngine<Fnv1aHashEngine, ValueT>;
+  using ValueType = typename BaseEngine::ValueType;
+
+
   //! Implementation of the hash function
   template <HashKeyElement Int8>
   static constexpr ValueType hashValue(const Int8* seed,

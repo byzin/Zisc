@@ -20,9 +20,8 @@
 #include <type_traits>
 // Zisc
 #include "pseudo_random_number_engine.hpp"
-#include "type_traits.hpp"
-#include "utility.hpp"
-#include "zisc_config.hpp"
+#include "zisc/concepts.hpp"
+#include "zisc/zisc_config.hpp"
 
 namespace zisc {
 
@@ -56,19 +55,17 @@ enum class PcgMethod : int
 
   \tparam Base No description.
   \tparam Method No description.
-  \tparam Seed No description.
-  \tparam Result No description.
+  \tparam SeedT No description.
+  \tparam ResultT No description.
   */
-template <PcgBase Base, PcgMethod Method, typename Seed, typename Result>
+template <PcgBase Base, PcgMethod Method, UnsignedInteger SeedT, UnsignedInteger ResultT>
 class PcgEngine : public PseudoRandomNumberEngine<
-    PcgEngine<Base, Method, Seed, Result>, Seed, Result>
+    PcgEngine<Base, Method, SeedT, ResultT>, SeedT, ResultT>
 {
-  static_assert(kIsUnsignedInteger<Seed>, "Seed isn't unsigned integer type.");
-  static_assert(kIsUnsignedInteger<Result>, "Result isn't unsigned integer type.");
-
  public:
-  using SeedType = Seed;
-  using ResultType = Result;
+  using BaseEngine = PseudoRandomNumberEngine<PcgEngine, SeedT, ResultT>;
+  using SeedType = typename BaseEngine::SeedType;
+  using ResultType = typename BaseEngine::ResultType;
 
 
   //! Initialize
@@ -85,8 +82,8 @@ class PcgEngine : public PseudoRandomNumberEngine<
   static constexpr std::size_t getPeriodPow2() noexcept;
 
   //! Check if a specified sample (0 base count) is the end of period
-  template <typename UInteger>
-  static constexpr bool isEndOfPeriod(const UInteger sample) noexcept;
+  template <UnsignedInteger Integer>
+  static constexpr bool isEndOfPeriod(const Integer sample) noexcept;
 
   //! Set seed
   void setSeed(const SeedType seed) noexcept;

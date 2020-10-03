@@ -27,10 +27,10 @@
 // Zisc
 #include "zisc/algorithm.hpp"
 #include "zisc/arith_array.hpp"
-#include "zisc/pcg_engine.hpp"
 #include "zisc/stopwatch.hpp"
 #include "zisc/utility.hpp"
 #include "zisc/zisc_config.hpp"
+#include "zisc/random/pcg_engine.hpp"
 
 namespace {
 

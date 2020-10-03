@@ -36,10 +36,10 @@ namespace zisc {
   \param [in] n No description.
   \return No description
   */
-template <HashValue ValueType> template <HashKeyElement Int8> inline
-constexpr ValueType Fnv1aHashEngine<ValueType>::hashValue(
+template <HashValue ValueT> template <HashKeyElement Int8> inline
+constexpr auto Fnv1aHashEngine<ValueT>::hashValue(
     const Int8* seed,
-    const std::size_t n) noexcept
+    const std::size_t n) noexcept -> ValueType
 {
   ValueType x = offset();
   for (std::size_t i = 0; i < n; ++i)
@@ -52,8 +52,8 @@ constexpr ValueType Fnv1aHashEngine<ValueType>::hashValue(
 
   \return No description
   */
-template <HashValue ValueType> inline
-constexpr auto Fnv1aHashEngine<ValueType>::prime() noexcept -> ValueType
+template <HashValue ValueT> inline
+constexpr auto Fnv1aHashEngine<ValueT>::prime() noexcept -> ValueType
 {
   ValueType p = 0;
   if constexpr (sizeof(ValueType) == 4)
@@ -68,8 +68,8 @@ constexpr auto Fnv1aHashEngine<ValueType>::prime() noexcept -> ValueType
 
   \return No description
   */
-template <HashValue ValueType> inline
-constexpr auto Fnv1aHashEngine<ValueType>::offset() noexcept -> ValueType
+template <HashValue ValueT> inline
+constexpr auto Fnv1aHashEngine<ValueT>::offset() noexcept -> ValueType
 {
   ValueType p = 0;
   if constexpr (sizeof(ValueType) == 4)

@@ -21,18 +21,18 @@
 #include <limits>
 #include <type_traits>
 // Zisc
-#include "error.hpp"
-#include "type_traits.hpp"
-#include "utility.hpp"
-#include "zisc_config.hpp"
+#include "zisc/concepts.hpp"
+#include "zisc/utility.hpp"
+#include "zisc/zisc_config.hpp"
 
 namespace zisc {
 
 /*!
   \details No detailed description
   */
-template <PcgBase Base, PcgMethod Method, typename Seed, typename Result> inline
-PcgEngine<Base, Method, Seed, Result>::PcgEngine() noexcept
+template <PcgBase Base, PcgMethod Method, UnsignedInteger SeedT, UnsignedInteger ResultT>
+inline
+PcgEngine<Base, Method, SeedT, ResultT>::PcgEngine() noexcept
 {
   constexpr SeedType seed = cast<SeedType>(0xcafef00dd15ea5e5ull);
   setSeed(seed);
@@ -43,8 +43,8 @@ PcgEngine<Base, Method, Seed, Result>::PcgEngine() noexcept
 
   \param [in] seed No description.
   */
-template <PcgBase Base, PcgMethod Method, typename Seed, typename Result> inline
-PcgEngine<Base, Method, Seed, Result>::PcgEngine(const SeedType seed) noexcept
+template <PcgBase Base, PcgMethod Method, UnsignedInteger SeedT, UnsignedInteger ResultT> inline
+PcgEngine<Base, Method, SeedT, ResultT>::PcgEngine(const SeedType seed) noexcept
 {
   setSeed(seed);
 }
@@ -181,8 +181,8 @@ struct PcgMixin<PcgMethod::RxsMXs, SeedType, ResultType, BitCountType>
 
   \return No description
   */
-template <PcgBase Base, PcgMethod Method, typename Seed, typename Result> inline
-auto PcgEngine<Base, Method, Seed, Result>::generate() noexcept -> ResultType
+template <PcgBase Base, PcgMethod Method, UnsignedInteger SeedT, UnsignedInteger ResultT> inline
+auto PcgEngine<Base, Method, SeedT, ResultT>::generate() noexcept -> ResultType
 {
   const auto base = generateBase();
   const auto random =
@@ -195,8 +195,8 @@ auto PcgEngine<Base, Method, Seed, Result>::generate() noexcept -> ResultType
 
   \return No description
   */
-template <PcgBase Base, PcgMethod Method, typename Seed, typename Result> inline
-constexpr std::size_t PcgEngine<Base, Method, Seed, Result>::getPeriodPow2() noexcept
+template <PcgBase Base, PcgMethod Method, UnsignedInteger SeedT, UnsignedInteger ResultT> inline
+constexpr std::size_t PcgEngine<Base, Method, SeedT, ResultT>::getPeriodPow2() noexcept
 {
   constexpr bool is_mcg = (Base == PcgBase::Mcg);
   constexpr std::size_t period_pow2 = sizeof(SeedType) * 8 - (is_mcg ? 2 : 0);
@@ -206,26 +206,24 @@ constexpr std::size_t PcgEngine<Base, Method, Seed, Result>::getPeriodPow2() noe
 /*!
   \details No detailed description
 
-  \tparam UInteger No description.
+  \tparam Integer No description.
   \param [in] sample No description.
   \return No description
   */
-template <PcgBase Base, PcgMethod Method, typename Seed, typename Result>
-template <typename UInteger> inline
-constexpr bool PcgEngine<Base, Method, Seed, Result>::isEndOfPeriod(
-    const UInteger sample) noexcept
+template <PcgBase Base, PcgMethod Method, UnsignedInteger SeedT, UnsignedInteger ResultT>
+template <UnsignedInteger Integer> inline
+constexpr bool PcgEngine<Base, Method, SeedT, ResultT>::isEndOfPeriod(
+    const Integer sample) noexcept
 {
-  static_assert(kIsUnsignedInteger<UInteger>,
-                "UInteger isn't unsigned integer type.");
-  constexpr std::size_t sample_bit_size = sizeof(UInteger) * 8;
+  constexpr std::size_t sample_bit_size = sizeof(Integer) * 8;
   constexpr std::size_t period_pow2 = getPeriodPow2();
   if constexpr (sample_bit_size <= period_pow2) {
     // Workaround
-    constexpr UInteger end_of_period = std::numeric_limits<UInteger>::max();
+    constexpr Integer end_of_period = std::numeric_limits<Integer>::max();
     return sample == end_of_period;
   }
   else {
-    constexpr UInteger end_of_period = (cast<UInteger>(1u) << period_pow2) - 1;
+    constexpr Integer end_of_period = (cast<Integer>(1u) << period_pow2) - 1;
     return sample == end_of_period;
   }
 }
@@ -235,8 +233,8 @@ constexpr bool PcgEngine<Base, Method, Seed, Result>::isEndOfPeriod(
 
   \param [in] seed No description.
   */
-template <PcgBase Base, PcgMethod Method, typename Seed, typename Result> inline
-void PcgEngine<Base, Method, Seed, Result>::setSeed(const SeedType seed) noexcept
+template <PcgBase Base, PcgMethod Method, UnsignedInteger SeedT, UnsignedInteger ResultT> inline
+void PcgEngine<Base, Method, SeedT, ResultT>::setSeed(const SeedType seed) noexcept
 {
   constexpr bool is_mcg = (Base == PcgBase::Mcg);
   state_ = is_mcg ? (seed | cast<SeedType>(3u)) : bump(seed + increment());
@@ -248,8 +246,8 @@ void PcgEngine<Base, Method, Seed, Result>::setSeed(const SeedType seed) noexcep
   \param [in] state No description.
   \return No description
   */
-template <PcgBase Base, PcgMethod Method, typename Seed, typename Result> inline
-auto PcgEngine<Base, Method, Seed, Result>::bump(const SeedType state)
+template <PcgBase Base, PcgMethod Method, UnsignedInteger SeedT, UnsignedInteger ResultT> inline
+auto PcgEngine<Base, Method, SeedT, ResultT>::bump(const SeedType state)
     const noexcept -> SeedType
 {
   const SeedType result = state * multiplier() + increment();
@@ -261,8 +259,8 @@ auto PcgEngine<Base, Method, Seed, Result>::bump(const SeedType state)
 
   \return No description
   */
-template <PcgBase Base, PcgMethod Method, typename Seed, typename Result> inline
-auto PcgEngine<Base, Method, Seed, Result>::generateBase() noexcept -> SeedType
+template <PcgBase Base, PcgMethod Method, UnsignedInteger SeedT, UnsignedInteger ResultT> inline
+auto PcgEngine<Base, Method, SeedT, ResultT>::generateBase() noexcept -> SeedType
 {
   if constexpr (kOutputPrevious) {
     const SeedType old_state = state_;
@@ -280,8 +278,8 @@ auto PcgEngine<Base, Method, Seed, Result>::generateBase() noexcept -> SeedType
 
   \return No description
   */
-template <PcgBase Base, PcgMethod Method, typename Seed, typename Result> inline
-constexpr auto PcgEngine<Base, Method, Seed, Result>::increment() noexcept
+template <PcgBase Base, PcgMethod Method, UnsignedInteger SeedT, UnsignedInteger ResultT> inline
+constexpr auto PcgEngine<Base, Method, SeedT, ResultT>::increment() noexcept
     -> SeedType
 {
   using SType = std::remove_cv_t<SeedType>;
@@ -305,8 +303,8 @@ constexpr auto PcgEngine<Base, Method, Seed, Result>::increment() noexcept
 
   \return No description
   */
-template <PcgBase Base, PcgMethod Method, typename Seed, typename Result> inline
-constexpr auto PcgEngine<Base, Method, Seed, Result>::multiplier() noexcept
+template <PcgBase Base, PcgMethod Method, UnsignedInteger SeedT, UnsignedInteger ResultT> inline
+constexpr auto PcgEngine<Base, Method, SeedT, ResultT>::multiplier() noexcept
     -> SeedType
 {
   using SType = std::remove_cv_t<SeedType>;

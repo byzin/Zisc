@@ -40,12 +40,16 @@ concept HashValue = UnsignedInteger<Type> && (sizeof(Type) == 4 || sizeof(Type) 
   No detailed description.
 
   \tparam HashClass No description.
-  \tparam ValueType No description.
+  \tparam ValueT No description.
   */
-template <typename HashClass, HashValue ValueType>
+template <typename HashClass, HashValue ValueT>
 class HashEngine
 {
  public:
+  using HashType = HashClass;
+  using ValueType = ValueT;
+
+
   //! Compute a hash value
   static constexpr ValueType hash(const char* seed) noexcept;
 

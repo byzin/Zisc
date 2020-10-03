@@ -18,8 +18,8 @@
 // Standard C++ library
 #include <cstdint>
 // Zisc
-#include "type_traits.hpp"
-#include "zisc_config.hpp"
+#include "zisc/concepts.hpp"
+#include "zisc/zisc_config.hpp"
 
 namespace zisc {
 
@@ -29,26 +29,23 @@ namespace zisc {
   No detailed description.
 
   \tparam GeneratorClass No description.
-  \tparam Seed No description.
-  \tparam Result No description.
+  \tparam SeedT No description.
+  \tparam ResultT No description.
   */
-template <typename GeneratorClass, typename Seed, typename Result>
+template <typename GeneratorClass, UnsignedInteger SeedT, UnsignedInteger ResultT>
 class PseudoRandomNumberEngine
 {
-  static_assert(kIsUnsignedInteger<Seed>, "Seed isn't unsigned integer type.");
-  static_assert(kIsUnsignedInteger<Result>, "Result isn't unsigned integer type.");
-
  public:
   using GeneratorType = GeneratorClass;
-  using SeedType = Seed;
-  using ResultType = Result;
+  using SeedType = SeedT;
+  using ResultType = ResultT;
 
 
   //! Generate a random number
   ResultType operator()() noexcept;
 
   //! Generate a float random number x satisfying [lower, upper)
-  template <typename Float>
+  template <FloatingPoint Float>
   Float operator()(const Float lower, const Float upper) noexcept;
 
 
@@ -56,16 +53,16 @@ class PseudoRandomNumberEngine
   ResultType generate() noexcept;
 
   //! Generate a float random number x satisfying [lower, upper)
-  template <typename Float>
+  template <FloatingPoint Float>
   Float generateFloat(const Float lower, const Float upper) noexcept;
 
   //! Generate a [0, 1) float random number
-  template <typename Float>
+  template <FloatingPoint Float>
   Float generate01Float() noexcept;
 
   //! Check if a specified sample (0 base count) is the end of period
-  template <typename UInteger>
-  static constexpr bool isEndOfPeriod(const UInteger sample) noexcept;
+  template <UnsignedInteger Integer>
+  static constexpr bool isEndOfPeriod(const Integer sample) noexcept;
 
   //! Set a random seed
   void setSeed(const SeedType seed) noexcept;
@@ -80,12 +77,6 @@ class PseudoRandomNumberEngine
   // Delete function
   PseudoRandomNumberEngine& operator=(const PseudoRandomNumberEngine&) = delete;
 };
-
-template <typename GeneratorClass>
-using RandomNumberEngine = PseudoRandomNumberEngine<
-                               GeneratorClass,
-                               typename GeneratorClass::SeedType,
-                               typename GeneratorClass::ResultType>;
 
 } // namespace zisc
 

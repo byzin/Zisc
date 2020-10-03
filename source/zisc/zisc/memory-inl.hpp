@@ -185,13 +185,21 @@ std::size_t Memory::Usage::total() const noexcept
 /*!
   \details No detailed description
 
+  \tparam kN No description.
+  \tparam Type No description.
+  \param [in] ptr No description.
   \return No description
   */
-inline
-Memory::SystemMemoryStats Memory::retrieveSystemStats() noexcept
+template <std::size_t kN, typename Type> inline
+constexpr Type* Memory::assumeAligned(Type* ptr)
 {
-  SystemMemoryStats stats = retrieveSystemStatsImpl();
-  return stats;
+  Type* result =
+#if defined(Z_CLANG)
+      cast<Type*>(__builtin_assume_aligned(ptr, kN));
+#else // Z_CLANG
+      std::assume_aligned<kN>(ptr);
+#endif // Z_CLANG
+  return result;
 }
 
 /*!
@@ -204,8 +212,35 @@ Memory::SystemMemoryStats Memory::retrieveSystemStats() noexcept
 inline
 bool Memory::isAligned(const void* data, const std::size_t alignment) noexcept
 {
-  const std::size_t address = treatAs<std::size_t>(data);
+  const std::size_t address = reinterp<std::size_t>(data);
   const bool result = (address & (alignment - 1)) == 0;
+  return result;
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+inline
+Memory::SystemMemoryStats Memory::retrieveSystemStats() noexcept
+{
+  SystemMemoryStats stats = retrieveSystemStatsImpl();
+  return stats;
+}
+
+/*!
+  \details No detailed description
+
+  \tparam kN No description.
+  \tparam Type No description.
+  \param [in] ptr No description.
+  \return No description
+  */
+template <std::size_t kN, typename Type> inline
+constexpr Type* assume_aligned(Type* ptr)
+{
+  Type* result = Memory::assumeAligned<kN>(ptr);
   return result;
 }
 

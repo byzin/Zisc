@@ -20,8 +20,8 @@
 // GoogleTest
 #include "gtest/gtest.h"
 // Zisc
-#include "zisc/pcg_engine.hpp"
 #include "zisc/zisc_config.hpp"
+#include "zisc/random/pcg_engine.hpp"
 
 template <typename PcgEngine>
 void testPcgEngine(const std::string& reference_file_path)

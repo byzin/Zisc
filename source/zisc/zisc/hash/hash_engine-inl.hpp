@@ -35,9 +35,9 @@ namespace zisc {
   \param [in] seed No description.
   \return No description
   */
-template <typename HashClass, HashValue ValueType> inline
-constexpr ValueType HashEngine<HashClass, ValueType>::hash(
-    const char* seed) noexcept
+template <typename HashClass, HashValue ValueT> inline
+constexpr auto HashEngine<HashClass, ValueT>::hash(
+    const char* seed) noexcept -> ValueType
 {
   const std::string_view s{seed};
   const ValueType result = hash(s);
@@ -50,9 +50,9 @@ constexpr ValueType HashEngine<HashClass, ValueType>::hash(
   \param [in] seed No description.
   \return No description
   */
-template <typename HashClass, HashValue ValueType> inline
-constexpr ValueType HashEngine<HashClass, ValueType>::hash(
-    const std::string_view seed) noexcept
+template <typename HashClass, HashValue ValueT> inline
+constexpr auto HashEngine<HashClass, ValueT>::hash(
+    const std::string_view seed) noexcept -> ValueType
 {
   const ValueType result = hash(seed.data(), seed.size());
   return result;
@@ -65,11 +65,11 @@ constexpr ValueType HashEngine<HashClass, ValueType>::hash(
   \param [in] n No description.
   \return No description
   */
-template <typename HashClass, HashValue ValueType>
+template <typename HashClass, HashValue ValueT>
 template <HashKeyElement Int8> inline
-constexpr ValueType HashEngine<HashClass, ValueType>::hash(
+constexpr auto HashEngine<HashClass, ValueT>::hash(
     const Int8* seed,
-    const std::size_t n) noexcept
+    const std::size_t n) noexcept -> ValueType
 {
   const ValueType result = hashValue(seed, n);
   return result;
@@ -82,10 +82,10 @@ constexpr ValueType HashEngine<HashClass, ValueType>::hash(
   \param [in] seed No description.
   \return No description
   */
-template <typename HashClass, HashValue ValueType>
+template <typename HashClass, HashValue ValueT>
 template <UnsignedInteger Integer> inline
-constexpr ValueType HashEngine<HashClass, ValueType>::hash(
-    const Integer seed) noexcept
+constexpr auto HashEngine<HashClass, ValueT>::hash(
+    const Integer seed) noexcept -> ValueType
 {
   // Make a seed array
   std::array<uint8b, sizeof(Integer)> seed_array{};
@@ -104,13 +104,13 @@ constexpr ValueType HashEngine<HashClass, ValueType>::hash(
   \param [in] n No description.
   \return No description
   */
-template <typename HashClass, HashValue ValueType>
+template <typename HashClass, HashValue ValueT>
 template <HashKeyElement Int8> inline
-constexpr ValueType HashEngine<HashClass, ValueType>::hashValue(
+constexpr auto HashEngine<HashClass, ValueT>::hashValue(
     const Int8* seed,
-    const std::size_t n) noexcept
+    const std::size_t n) noexcept -> ValueType
 {
-  const ValueType result = HashClass::hashValue(seed, n);
+  const ValueType result = HashType::hashValue(seed, n);
   return result;
 }
 

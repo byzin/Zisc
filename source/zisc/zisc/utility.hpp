@@ -17,12 +17,18 @@
 
 // Standard C++ library
 #include <type_traits>
+// Zisc
+#include "concepts.hpp"
 
 namespace zisc {
 
 //! Convert type from T to Type
 template <typename Type, typename T>
 constexpr Type cast(T&& value) noexcept;
+
+//! Map an integer value into a [0, 1) floating point value
+template <FloatingPoint Float, UnsignedInteger Integer>
+constexpr Float mapTo01(const Integer x) noexcept;
 
 //! Swap the values
 template <typename Type1, typename Type2>
@@ -31,6 +37,10 @@ constexpr void swap(Type1& a, Type2& b) noexcept;
 //! Treat T* as Type*
 template <typename Type, typename T>
 Type treatAs(T* object) noexcept;
+
+//! Convert between types by reinterpreting the underlying bit pattern
+template <typename NewType, typename Type>
+NewType reinterp(Type object) noexcept;
 
 } // namespace zisc
 

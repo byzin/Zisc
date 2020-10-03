@@ -19,12 +19,12 @@
 #include <limits>
 #include <string_view>
 // Zisc
-#include "zisc/pcg_engine.hpp"
-#include "zisc/pseudo_random_number_engine.hpp"
+#include "zisc/algorithm.hpp"
 #include "zisc/utility.hpp"
-#include "zisc/xorshift_star_engine.hpp"
-#include "zisc/xoshiro_2star_engine.hpp"
 #include "zisc/zisc_config.hpp"
+#include "zisc/random/pcg_engine.hpp"
+#include "zisc/random/pseudo_random_number_engine.hpp"
+#include "zisc/random/xoshiro_engine.hpp"
 
 namespace {
 
@@ -83,11 +83,8 @@ int main(int argc, char** argv)
   const std::string_view pcg16_name{"pcg16"};
   const std::string_view pcg32_name{"pcg32"};
   const std::string_view pcg64_name{"pcg64"};
-  const std::string_view xorshift_star8_name{"xorshift*8"};
-  const std::string_view xorshift_star16_name{"xorshift*16"};
-  const std::string_view xorshift_star32_name{"xorshift*32"};
-  const std::string_view xoshiro_2star32_name{"xoshiro**32"};
-  const std::string_view xoshiro_2star64_name{"xoshiro**64"};
+  const std::string_view xoshiro_2star128_name{"xoshiro**128"};
+  const std::string_view xoshiro_2star256_name{"xoshiro**256"};
 
   if (engine_name == pcg8_name)
     runRngTest<zisc::PcgLcgRxsMXs8>(pcg8_name);
@@ -97,27 +94,18 @@ int main(int argc, char** argv)
     runRngTest<zisc::PcgLcgRxsMXs32>(pcg32_name);
   else if (engine_name == pcg64_name)
     runRngTest<zisc::PcgLcgRxsMXs64>(pcg64_name);
-  else if (engine_name == xorshift_star8_name)
-    runRngTest<zisc::XorshiftStar8>(xorshift_star8_name);
-  else if (engine_name == xorshift_star16_name)
-    runRngTest<zisc::XorshiftStar16>(xorshift_star16_name);
-  else if (engine_name == xorshift_star32_name)
-    runRngTest<zisc::XorshiftStar32>(xorshift_star32_name);
-  else if (engine_name == xoshiro_2star32_name)
-    runRngTest<zisc::Xoshiro2Star32>(xoshiro_2star32_name);
-  else if (engine_name == xoshiro_2star64_name)
-    runRngTest<zisc::Xoshiro2Star64>(xoshiro_2star64_name);
+  else if (engine_name == xoshiro_2star128_name)
+    runRngTest<zisc::Xoshiro2Star128>(xoshiro_2star128_name);
+  else if (engine_name == xoshiro_2star256_name)
+    runRngTest<zisc::Xoshiro2Star256>(xoshiro_2star256_name);
   else {
     std::cerr << "Please select a PRN engine ["
         << pcg8_name << ", "
         << pcg16_name << ", "
         << pcg32_name << ", "
         << pcg64_name << ", "
-        << xorshift_star8_name << ", "
-        << xorshift_star16_name << ", "
-        << xorshift_star32_name << ", "
-        << xoshiro_2star32_name << ", "
-        << xoshiro_2star64_name << "]." << std::endl;
+        << xoshiro_2star128_name << ", "
+        << xoshiro_2star256_name << "]." << std::endl;
   }
 
   return 0;

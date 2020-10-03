@@ -13,9 +13,12 @@
   */
 
 // Standard C++ library
+#include <array>
+#include <cstddef>
 #include <iostream>
 #include <iomanip>
 #include <limits>
+#include <memory>
 // Googletest
 #include "gtest/gtest.h"
 // Zisc
@@ -61,5 +64,19 @@ TEST(MemoryTest, SystemMemoryStatsTest)
     const auto mb = bytes.representedAs<zisc::MebiUnit::exponent()>();
     std::cout << "## Free  virtual memory size: " << mb.value().toFloat<double>()
               << " MB" << std::endl;
+  }
+}
+
+TEST(MemoryTest, AlignmentTest)
+{
+  alignas(16) std::array<float, 4> storage{{0.0f, 1.0f, 2.0f, 3.0f}};
+  {
+    ASSERT_TRUE(zisc::Memory::isAligned(&storage, 16)) << "zisc::isAligned() failed.";
+    ASSERT_FALSE(zisc::Memory::isAligned(&storage[1], 16)) << "zisc::isAligned() failed.";
+  }
+  {
+    const auto ptr1 = &storage[0];
+    const auto ptr2 = zisc::assume_aligned<16>(ptr1);
+    ASSERT_EQ(ptr1, ptr2) << "zisc::assume_aligned() failed.";
   }
 }

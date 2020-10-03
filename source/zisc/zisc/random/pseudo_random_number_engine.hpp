@@ -29,28 +29,29 @@ namespace zisc {
   No detailed description.
 
   \tparam GeneratorClass No description.
-  \tparam SeedT No description.
-  \tparam ResultT No description.
+  \tparam ValueT No description.
   */
-template <typename GeneratorClass, UnsignedInteger SeedT, UnsignedInteger ResultT>
+template <typename GeneratorClass, UnsignedInteger ValueT>
 class PseudoRandomNumberEngine
 {
  public:
   using GeneratorType = GeneratorClass;
-  using SeedType = SeedT;
-  using ResultType = ResultT;
+  using ValueType = ValueT;
 
 
   //! Generate a random number
-  ResultType operator()() noexcept;
+  ValueType operator()() noexcept;
 
   //! Generate a float random number x satisfying [lower, upper)
   template <FloatingPoint Float>
   Float operator()(const Float lower, const Float upper) noexcept;
 
 
+  //! Return the default seed
+  static constexpr ValueType defaultSeed() noexcept;
+
   //! Generate a random number
-  ResultType generate() noexcept;
+  ValueType generate() noexcept;
 
   //! Generate a float random number x satisfying [lower, upper)
   template <FloatingPoint Float>
@@ -65,7 +66,7 @@ class PseudoRandomNumberEngine
   static constexpr bool isEndOfPeriod(const Integer sample) noexcept;
 
   //! Set a random seed
-  void setSeed(const SeedType seed) noexcept;
+  void setSeed(const ValueType seed) noexcept;
 
  protected:
   //! Initialize the PRNE

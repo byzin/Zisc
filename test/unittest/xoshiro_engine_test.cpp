@@ -13,7 +13,6 @@
   */
 
 // Standard C++ library
-#include <cstddef>
 #include <fstream>
 #include <string_view>
 // GoogleTest
@@ -29,10 +28,11 @@ void testXoshiroEngine(const std::string_view reference_path)
   std::ifstream reference_file;
   reference_file.open(reference_path);
 
+  using ValueType = typename XoshiroEngine::ValueType;
   XoshiroEngine sampler{};
-  constexpr std::size_t n = 1024;
-  for (std::size_t i = 0; i < n; ++i) {
-    using ValueType = typename XoshiroEngine::SeedType;
+
+  constexpr int n = 1024;
+  for (int i = 0; i < n; ++i) {
     ValueType expected = 0;
     reference_file >> expected;
     const ValueType r = sampler();

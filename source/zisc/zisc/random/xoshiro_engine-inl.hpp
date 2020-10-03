@@ -32,10 +32,10 @@ namespace zisc {
 /*!
   \details No detailed description
   */
-template <UnsignedInteger SeedT, UnsignedInteger ResultT, XoshiroMethod kMethod> inline
-XoshiroEngine<SeedT, ResultT, kMethod>::XoshiroEngine() noexcept
+template <UnsignedInteger ValueT, XoshiroMethod kMethod> inline
+XoshiroEngine<ValueT, kMethod>::XoshiroEngine() noexcept
 {
-  setSeed(defaultSeed());
+  setSeed(BaseEngine::defaultSeed());
 }
 
 /*!
@@ -43,8 +43,8 @@ XoshiroEngine<SeedT, ResultT, kMethod>::XoshiroEngine() noexcept
 
   \param [in] seed No description.
   */
-template <UnsignedInteger SeedT, UnsignedInteger ResultT, XoshiroMethod kMethod> inline
-XoshiroEngine<SeedT, ResultT, kMethod>::XoshiroEngine(const SeedType seed) noexcept
+template <UnsignedInteger ValueT, XoshiroMethod kMethod> inline
+XoshiroEngine<ValueT, kMethod>::XoshiroEngine(const ValueType seed) noexcept
 {
   setSeed(seed);
 }
@@ -54,27 +54,10 @@ XoshiroEngine<SeedT, ResultT, kMethod>::XoshiroEngine(const SeedType seed) noexc
 
   \return No description
   */
-template <UnsignedInteger SeedT, UnsignedInteger ResultT, XoshiroMethod kMethod> inline
-constexpr auto XoshiroEngine<SeedT, ResultT, kMethod>::defaultSeed() noexcept
-    -> SeedType
+template <UnsignedInteger ValueT, XoshiroMethod kMethod> inline
+auto XoshiroEngine<ValueT, kMethod>::generate() noexcept -> ValueType
 {
-  SeedType seed = 0;
-  if constexpr (sizeof(SeedType) == 4)
-    seed = 0xa01755e8u;
-  else if constexpr (sizeof(SeedType) == 8)
-    seed = 0x698d965fcddf1a9dull;
-  return seed;
-}
-
-/*!
-  \details No detailed description
-
-  \return No description
-  */
-template <UnsignedInteger SeedT, UnsignedInteger ResultT, XoshiroMethod kMethod> inline
-auto XoshiroEngine<SeedT, ResultT, kMethod>::generate() noexcept -> ResultType
-{
-  const ResultType result = generateRandom();
+  const ValueType result = generateRandom();
   nextState();
   return result;
 }
@@ -84,10 +67,10 @@ auto XoshiroEngine<SeedT, ResultT, kMethod>::generate() noexcept -> ResultType
 
   \return No description
   */
-template <UnsignedInteger SeedT, UnsignedInteger ResultT, XoshiroMethod kMethod> inline
-constexpr std::size_t XoshiroEngine<SeedT, ResultT, kMethod>::getPeriodPow2() noexcept
+template <UnsignedInteger ValueT, XoshiroMethod kMethod> inline
+constexpr std::size_t XoshiroEngine<ValueT, kMethod>::getPeriodPow2() noexcept
 {
-  constexpr std::size_t period_pow2 = 4 * std::numeric_limits<SeedType>::digits;
+  constexpr std::size_t period_pow2 = 4 * std::numeric_limits<ValueType>::digits;
   return period_pow2;
 }
 
@@ -98,9 +81,9 @@ constexpr std::size_t XoshiroEngine<SeedT, ResultT, kMethod>::getPeriodPow2() no
   \param [in] sample No description.
   \return No description
   */
-template <UnsignedInteger SeedT, UnsignedInteger ResultT, XoshiroMethod kMethod>
+template <UnsignedInteger ValueT, XoshiroMethod kMethod>
 template <UnsignedInteger Integer> inline
-constexpr bool XoshiroEngine<SeedT, ResultT, kMethod>::isEndOfPeriod(
+constexpr bool XoshiroEngine<ValueT, kMethod>::isEndOfPeriod(
     const Integer sample) noexcept
 {
   constexpr std::size_t sample_bit_size = sizeof(Integer) * 8;
@@ -123,8 +106,8 @@ constexpr bool XoshiroEngine<SeedT, ResultT, kMethod>::isEndOfPeriod(
 
   \param [in] seed No description.
   */
-template <UnsignedInteger SeedT, UnsignedInteger ResultT, XoshiroMethod kMethod> inline
-void XoshiroEngine<SeedT, ResultT, kMethod>::setSeed(const SeedType seed) noexcept
+template <UnsignedInteger ValueT, XoshiroMethod kMethod> inline
+void XoshiroEngine<ValueT, kMethod>::setSeed(const ValueType seed) noexcept
 {
   state_.fill(seed);
 }
@@ -134,13 +117,13 @@ void XoshiroEngine<SeedT, ResultT, kMethod>::setSeed(const SeedType seed) noexce
 
   \return No description
   */
-template <UnsignedInteger SeedT, UnsignedInteger ResultT, XoshiroMethod kMethod> inline
-constexpr auto XoshiroEngine<SeedT, ResultT, kMethod>::a() noexcept -> SeedType
+template <UnsignedInteger ValueT, XoshiroMethod kMethod> inline
+constexpr auto XoshiroEngine<ValueT, kMethod>::a() noexcept -> ValueType
 {
-  SeedType value = 0;
-  if constexpr (sizeof(SeedType) == 4)
+  ValueType value = 0;
+  if constexpr (sizeof(ValueType) == 4)
     value = 7;
-  else if constexpr (sizeof(SeedType) == 8)
+  else if constexpr (sizeof(ValueType) == 8)
     value = 23;
   return value;
 }
@@ -150,13 +133,13 @@ constexpr auto XoshiroEngine<SeedT, ResultT, kMethod>::a() noexcept -> SeedType
 
   \return No description
   */
-template <UnsignedInteger SeedT, UnsignedInteger ResultT, XoshiroMethod kMethod> inline
-constexpr auto XoshiroEngine<SeedT, ResultT, kMethod>::b() noexcept -> SeedType
+template <UnsignedInteger ValueT, XoshiroMethod kMethod> inline
+constexpr auto XoshiroEngine<ValueT, kMethod>::b() noexcept -> ValueType
 {
-  SeedType value = 0;
-  if constexpr (sizeof(SeedType) == 4)
+  ValueType value = 0;
+  if constexpr (sizeof(ValueType) == 4)
     value = 9;
-  else if constexpr (sizeof(SeedType) == 8)
+  else if constexpr (sizeof(ValueType) == 8)
     value = 17;
   return value;
 }
@@ -166,13 +149,13 @@ constexpr auto XoshiroEngine<SeedT, ResultT, kMethod>::b() noexcept -> SeedType
 
   \return No description
   */
-template <UnsignedInteger SeedT, UnsignedInteger ResultT, XoshiroMethod kMethod> inline
-constexpr auto XoshiroEngine<SeedT, ResultT, kMethod>::c() noexcept -> SeedType
+template <UnsignedInteger ValueT, XoshiroMethod kMethod> inline
+constexpr auto XoshiroEngine<ValueT, kMethod>::c() noexcept -> ValueType
 {
-  SeedType value = 0;
-  if constexpr (sizeof(SeedType) == 4)
+  ValueType value = 0;
+  if constexpr (sizeof(ValueType) == 4)
     value = 11;
-  else if constexpr (sizeof(SeedType) == 8)
+  else if constexpr (sizeof(ValueType) == 8)
     value = 45;
   return value;
 }
@@ -182,10 +165,10 @@ constexpr auto XoshiroEngine<SeedT, ResultT, kMethod>::c() noexcept -> SeedType
 
   \return No description
   */
-template <UnsignedInteger SeedT, UnsignedInteger ResultT, XoshiroMethod kMethod> inline
-auto XoshiroEngine<SeedT, ResultT, kMethod>::generateRandom() noexcept -> ResultType
+template <UnsignedInteger ValueT, XoshiroMethod kMethod> inline
+auto XoshiroEngine<ValueT, kMethod>::generateRandom() noexcept -> ValueType
 {
-  ResultType result = 0;
+  ValueType result = 0;
   if constexpr (kMethod == XoshiroMethod::Plus)
     result = state_[0] + state_[3];
   else if constexpr (kMethod == XoshiroMethod::PlusPlus)
@@ -198,10 +181,10 @@ auto XoshiroEngine<SeedT, ResultT, kMethod>::generateRandom() noexcept -> Result
 /*!
   \details No detailed description
   */
-template <UnsignedInteger SeedT, UnsignedInteger ResultT, XoshiroMethod kMethod> inline
-void XoshiroEngine<SeedT, ResultT, kMethod>::nextState() noexcept
+template <UnsignedInteger ValueT, XoshiroMethod kMethod> inline
+void XoshiroEngine<ValueT, kMethod>::nextState() noexcept
 {
-  const SeedType t = state_[1] << b();
+  const ValueType t = state_[1] << b();
   state_[2] ^= state_[0];
   state_[3] ^= state_[1];
   state_[1] ^= state_[2];
@@ -217,13 +200,13 @@ void XoshiroEngine<SeedT, ResultT, kMethod>::nextState() noexcept
   \param [in] x No description.
   \return No description
   */
-template <UnsignedInteger SeedT, UnsignedInteger ResultT, XoshiroMethod kMethod>
-template <SeedT k> inline
-auto XoshiroEngine<SeedT, ResultT, kMethod>::rotateLeft(const SeedType x) noexcept
-    -> ResultType
+template <UnsignedInteger ValueT, XoshiroMethod kMethod>
+template <ValueT k> inline
+auto XoshiroEngine<ValueT, kMethod>::rotateLeft(const ValueType x) noexcept
+    -> ValueType
 {
-  constexpr SeedType bit_size = std::numeric_limits<SeedType>::digits;
-  const ResultType result = cast<ResultType>((x << k) | (x >> (bit_size - k)));
+  constexpr ValueType bit_size = std::numeric_limits<ValueType>::digits;
+  const ValueType result = cast<ValueType>((x << k) | (x >> (bit_size - k)));
   return result;
 }
 

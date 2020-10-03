@@ -30,12 +30,10 @@ namespace zisc {
 /*!
   \details No detailed description
   */
-template <PcgBase Base, PcgMethod Method, UnsignedInteger SeedT, UnsignedInteger ResultT>
-inline
-PcgEngine<Base, Method, SeedT, ResultT>::PcgEngine() noexcept
+template <UnsignedInteger ValueT, PcgBase kBase> inline
+PcgEngine<ValueT, kBase>::PcgEngine() noexcept
 {
-  constexpr SeedType seed = cast<SeedType>(0xcafef00dd15ea5e5ull);
-  setSeed(seed);
+  setSeed(BaseEngine::defaultSeed());
 }
 
 /*!
@@ -43,151 +41,23 @@ PcgEngine<Base, Method, SeedT, ResultT>::PcgEngine() noexcept
 
   \param [in] seed No description.
   */
-template <PcgBase Base, PcgMethod Method, UnsignedInteger SeedT, UnsignedInteger ResultT> inline
-PcgEngine<Base, Method, SeedT, ResultT>::PcgEngine(const SeedType seed) noexcept
+template <UnsignedInteger ValueT, PcgBase kBase> inline
+PcgEngine<ValueT, kBase>::PcgEngine(const ValueType seed) noexcept
 {
   setSeed(seed);
 }
 
-namespace inner {
-
-template <PcgMethod, typename SeedType, typename ResultType, typename BitCountType>
-struct PcgMixin;
-
-/*!
-  */
-template <typename SeedType, typename ResultType, typename BitCountType>
-struct PcgMixin<PcgMethod::XshRs, SeedType, ResultType, BitCountType>
-{
-  static ResultType output(SeedType internal) noexcept
-  {
-    // Constant values
-    constexpr BitCountType bits = cast<BitCountType>(sizeof(SeedType) * 8);
-    constexpr BitCountType xtypebits = cast<BitCountType>(sizeof(ResultType) * 8);
-    constexpr BitCountType sparebits = bits - xtypebits;
-    constexpr BitCountType opbits = (64 <= sparebits - 5) ? 5 :
-                                    (32 <= sparebits - 4) ? 4 :
-                                    (16 <= sparebits - 3) ? 3 :
-                                    ( 4 <= sparebits - 2) ? 2 :
-                                    ( 1 <= sparebits - 1) ? 1
-                                                          : 0;
-    constexpr BitCountType mask = (1 << opbits) - 1;
-    constexpr BitCountType maxrandshift = mask;
-    constexpr BitCountType topspare = opbits;
-    constexpr BitCountType bottomspare = sparebits - topspare;
-    constexpr BitCountType xshift = topspare + (xtypebits + maxrandshift) / 2;
-
-    const BitCountType rshift = opbits
-        ? cast<BitCountType>(internal >> (bits - opbits)) & mask
-        : 0;
-    internal ^= internal >> xshift;
-    const ResultType result =
-        cast<ResultType>(internal >> (bottomspare - maxrandshift + rshift));
-    return result;
-  }
-};
-
-/*!
-  */
-template <typename SeedType, typename ResultType, typename BitCountType>
-struct PcgMixin<PcgMethod::XshRr, SeedType, ResultType, BitCountType>
-{
-  static ResultType rotateRightPcg(const ResultType value,
-                                   const BitCountType rot) noexcept
-  {
-    constexpr BitCountType bits = cast<BitCountType>(sizeof(ResultType) * 8);
-    constexpr BitCountType mask = bits - 1;
-    return cast<ResultType>(value >> rot) | cast<ResultType>(value << ((-rot) & mask));
-  }
-
-  static ResultType output(SeedType internal) noexcept
-  {
-    // Constant values
-    constexpr BitCountType bits = cast<BitCountType>(sizeof(SeedType) * 8);
-    constexpr BitCountType xtypebits = cast<BitCountType>(sizeof(ResultType) * 8);
-    constexpr BitCountType sparebits = bits - xtypebits;
-    constexpr BitCountType wantedopbits = (128 <= xtypebits) ? 7 :
-                                          ( 64 <= xtypebits) ? 6 :
-                                          ( 32 <= xtypebits) ? 5 :
-                                          ( 16 <= xtypebits) ? 4 :
-                                                               3;
-    constexpr BitCountType opbits = (wantedopbits <= sparebits) ? wantedopbits
-                                                                : sparebits;
-    constexpr BitCountType amplifier = wantedopbits - opbits;
-    constexpr BitCountType mask = (1 << opbits) - 1;
-    constexpr BitCountType topspare = opbits;
-    constexpr BitCountType bottomspare = sparebits - topspare;
-    constexpr BitCountType xshift = (topspare + xtypebits) / 2;
-
-    const BitCountType rot = opbits
-        ? cast<BitCountType>(internal >> (bits - opbits)) & mask
-        : 0;
-    const BitCountType amprot = (rot << amplifier) & mask;
-    internal ^= internal >> xshift;
-    ResultType result = cast<ResultType>(internal >> bottomspare);
-    result = rotateRightPcg(result, amprot);
-    return result;
-  }
-};
-
-/*!
-  */
-template <typename SeedType, typename ResultType, typename BitCountType>
-struct PcgMixin<PcgMethod::RxsMXs, SeedType, ResultType, BitCountType>
-{
-  static constexpr SeedType mcgMultiplierPcg() noexcept
-  {
-    SeedType m = 0;
-    if constexpr (std::is_same_v<uint8b, SeedType>)
-      m = 217u;
-    else if constexpr (std::is_same_v<uint16b, SeedType>)
-      m = 62169u;
-    else if constexpr (std::is_same_v<uint32b, SeedType>)
-      m = 277803737u;
-    else if constexpr (std::is_same_v<uint64b, SeedType>)
-      m = 12605985483714917081ull;
-    return m;
-  }
-
-  static ResultType output(SeedType internal) noexcept
-  {
-    // Constant values
-    constexpr BitCountType xtypebits = cast<BitCountType>(sizeof(ResultType) * 8);
-    constexpr BitCountType bits = cast<BitCountType>(sizeof(SeedType) * 8);
-    constexpr BitCountType opbits = (128 <= xtypebits) ? 6 :
-                                    ( 64 <= xtypebits) ? 5 :
-                                    ( 32 <= xtypebits) ? 4 :
-                                    ( 16 <= xtypebits) ? 3 :
-                                                         2;
-    constexpr BitCountType shift = bits - xtypebits;
-    constexpr BitCountType mask = (1 << opbits) - 1;
-    constexpr BitCountType xshift = (2u * xtypebits + 2u) / 3u;
-
-    const BitCountType rshift = opbits
-        ? cast<BitCountType>(internal >> (bits - opbits)) & mask
-        : 0;
-    internal ^= internal >> (opbits + rshift);
-    internal *= mcgMultiplierPcg();
-    ResultType result = internal >> shift;
-    result ^= result >> xshift;
-    return result;
-  }
-};
-
-} // namespace inner 
-
 /*!
   \details No detailed description
 
   \return No description
   */
-template <PcgBase Base, PcgMethod Method, UnsignedInteger SeedT, UnsignedInteger ResultT> inline
-auto PcgEngine<Base, Method, SeedT, ResultT>::generate() noexcept -> ResultType
+template <UnsignedInteger ValueT, PcgBase kBase> inline
+auto PcgEngine<ValueT, kBase>::generate() noexcept -> ValueType
 {
-  const auto base = generateBase();
-  const auto random =
-      inner::PcgMixin<Method, SeedType, ResultType, BitCountType>::output(base);
-  return random;
+  const ValueType base = generateBase();
+  const ValueType result = output(base);
+  return result;
 }
 
 /*!
@@ -195,11 +65,11 @@ auto PcgEngine<Base, Method, SeedT, ResultT>::generate() noexcept -> ResultType
 
   \return No description
   */
-template <PcgBase Base, PcgMethod Method, UnsignedInteger SeedT, UnsignedInteger ResultT> inline
-constexpr std::size_t PcgEngine<Base, Method, SeedT, ResultT>::getPeriodPow2() noexcept
+template <UnsignedInteger ValueT, PcgBase kBase> inline
+constexpr std::size_t PcgEngine<ValueT, kBase>::getPeriodPow2() noexcept
 {
-  constexpr bool is_mcg = (Base == PcgBase::Mcg);
-  constexpr std::size_t period_pow2 = sizeof(SeedType) * 8 - (is_mcg ? 2 : 0);
+  constexpr bool is_mcg = kBase == PcgBase::Mcg;
+  constexpr std::size_t period_pow2 = 8 * sizeof(ValueType) - (is_mcg ? 2 : 0);
   return period_pow2;
 }
 
@@ -210,9 +80,9 @@ constexpr std::size_t PcgEngine<Base, Method, SeedT, ResultT>::getPeriodPow2() n
   \param [in] sample No description.
   \return No description
   */
-template <PcgBase Base, PcgMethod Method, UnsignedInteger SeedT, UnsignedInteger ResultT>
+template <UnsignedInteger ValueT, PcgBase kBase>
 template <UnsignedInteger Integer> inline
-constexpr bool PcgEngine<Base, Method, SeedT, ResultT>::isEndOfPeriod(
+constexpr bool PcgEngine<ValueT, kBase>::isEndOfPeriod(
     const Integer sample) noexcept
 {
   constexpr std::size_t sample_bit_size = sizeof(Integer) * 8;
@@ -233,11 +103,11 @@ constexpr bool PcgEngine<Base, Method, SeedT, ResultT>::isEndOfPeriod(
 
   \param [in] seed No description.
   */
-template <PcgBase Base, PcgMethod Method, UnsignedInteger SeedT, UnsignedInteger ResultT> inline
-void PcgEngine<Base, Method, SeedT, ResultT>::setSeed(const SeedType seed) noexcept
+template <UnsignedInteger ValueT, PcgBase kBase> inline
+void PcgEngine<ValueT, kBase>::setSeed(const ValueType seed) noexcept
 {
-  constexpr bool is_mcg = (Base == PcgBase::Mcg);
-  state_ = is_mcg ? (seed | cast<SeedType>(3u)) : bump(seed + increment());
+  constexpr bool is_mcg = (kBase == PcgBase::Mcg);
+  state_ = is_mcg ? (seed | cast<ValueType>(3)) : bump(seed + increment());
 }
 
 /*!
@@ -246,11 +116,10 @@ void PcgEngine<Base, Method, SeedT, ResultT>::setSeed(const SeedType seed) noexc
   \param [in] state No description.
   \return No description
   */
-template <PcgBase Base, PcgMethod Method, UnsignedInteger SeedT, UnsignedInteger ResultT> inline
-auto PcgEngine<Base, Method, SeedT, ResultT>::bump(const SeedType state)
-    const noexcept -> SeedType
+template <UnsignedInteger ValueT, PcgBase kBase> inline
+auto PcgEngine<ValueT, kBase>::bump(const ValueType state) const noexcept -> ValueType
 {
-  const SeedType result = state * multiplier() + increment();
+  const ValueType result = state * multiplier() + increment();
   return result;
 }
 
@@ -259,11 +128,11 @@ auto PcgEngine<Base, Method, SeedT, ResultT>::bump(const SeedType state)
 
   \return No description
   */
-template <PcgBase Base, PcgMethod Method, UnsignedInteger SeedT, UnsignedInteger ResultT> inline
-auto PcgEngine<Base, Method, SeedT, ResultT>::generateBase() noexcept -> SeedType
+template <UnsignedInteger ValueT, PcgBase kBase> inline
+auto PcgEngine<ValueT, kBase>::generateBase() noexcept -> ValueType
 {
   if constexpr (kOutputPrevious) {
-    const SeedType old_state = state_;
+    const ValueType old_state = state_;
     state_ = bump(state_);
     return old_state;
   }
@@ -278,21 +147,19 @@ auto PcgEngine<Base, Method, SeedT, ResultT>::generateBase() noexcept -> SeedTyp
 
   \return No description
   */
-template <PcgBase Base, PcgMethod Method, UnsignedInteger SeedT, UnsignedInteger ResultT> inline
-constexpr auto PcgEngine<Base, Method, SeedT, ResultT>::increment() noexcept
-    -> SeedType
+template <UnsignedInteger ValueT, PcgBase kBase> inline
+constexpr auto PcgEngine<ValueT, kBase>::increment() noexcept -> ValueType
 {
-  using SType = std::remove_cv_t<SeedType>;
-  SType i = 0;
-  constexpr bool is_mcg = (Base == PcgBase::Mcg);
+  ValueType i = 0;
+  constexpr bool is_mcg = kBase == PcgBase::Mcg;
   if constexpr (!is_mcg) {
-    if constexpr (std::is_same_v<uint8b, SType>)
+    if constexpr (sizeof(ValueType) == 1)
       i = 77u;
-    else if constexpr (std::is_same_v<uint16b, SType>)
+    else if constexpr (sizeof(ValueType) == 2)
       i = 47989u;
-    else if constexpr (std::is_same_v<uint32b, SType>)
+    else if constexpr (sizeof(ValueType) == 4)
       i = 2891336453u;
-    else if constexpr (std::is_same_v<uint64b, SType>)
+    else if constexpr (sizeof(ValueType) == 8)
       i = 1442695040888963407ull;
   }
   return i;
@@ -303,21 +170,70 @@ constexpr auto PcgEngine<Base, Method, SeedT, ResultT>::increment() noexcept
 
   \return No description
   */
-template <PcgBase Base, PcgMethod Method, UnsignedInteger SeedT, UnsignedInteger ResultT> inline
-constexpr auto PcgEngine<Base, Method, SeedT, ResultT>::multiplier() noexcept
-    -> SeedType
+template <UnsignedInteger ValueT, PcgBase kBase> inline
+constexpr auto PcgEngine<ValueT, kBase>::mcgMultiplier() noexcept -> ValueType
 {
-  using SType = std::remove_cv_t<SeedType>;
-  SType m = 0;
-  if constexpr (std::is_same_v<uint8b, SType>)
+  ValueType m = 0;
+  if constexpr (sizeof(ValueType) == 1)
+    m = 217u;
+  else if constexpr (sizeof(ValueType) == 2)
+    m = 62169u;
+  else if constexpr (sizeof(ValueType) == 4)
+    m = 277803737u;
+  else if constexpr (sizeof(ValueType) == 8)
+    m = 12605985483714917081ull;
+  return m;
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+template <UnsignedInteger ValueT, PcgBase kBase> inline
+constexpr auto PcgEngine<ValueT, kBase>::multiplier() noexcept -> ValueType
+{
+  ValueType m = 0;
+  if constexpr (sizeof(ValueType) == 1)
     m = 141u;
-  else if constexpr (std::is_same_v<uint16b, SType>)
+  else if constexpr (sizeof(ValueType) == 2)
     m = 12829u;
-  else if constexpr (std::is_same_v<uint32b, SType>)
+  else if constexpr (sizeof(ValueType) == 4)
     m = 747796405u;
-  else if constexpr (std::is_same_v<uint64b, SType>)
+  else if constexpr (sizeof(ValueType) == 8)
     m = 6364136223846793005ull;
   return m;
+}
+
+/*!
+  \details No detailed description
+
+  \param [in] internal No description.
+  \return No description
+  */
+template <UnsignedInteger ValueT, PcgBase kBase> inline
+auto PcgEngine<ValueT, kBase>::output(ValueType internal) noexcept -> ValueType
+{
+  // Constant values
+  constexpr BitCountType xtypebits = cast<BitCountType>(8 * sizeof(ValueType));
+  constexpr BitCountType bits = cast<BitCountType>(8 * sizeof(ValueType));
+  constexpr BitCountType opbits = (128 <= xtypebits) ? 6 :
+                                  ( 64 <= xtypebits) ? 5 :
+                                  ( 32 <= xtypebits) ? 4 :
+                                  ( 16 <= xtypebits) ? 3 :
+                                                       2;
+  constexpr BitCountType shift = bits - xtypebits;
+  constexpr BitCountType mask = (1 << opbits) - 1;
+  constexpr BitCountType xshift = (2u * xtypebits + 2u) / 3u;
+
+  const BitCountType rshift = opbits
+      ? cast<BitCountType>(internal >> (bits - opbits)) & mask
+      : 0;
+  internal ^= internal >> (opbits + rshift);
+  internal *= mcgMultiplier();
+  ValueType result = internal >> shift;
+  result ^= result >> xshift;
+  return result;
 }
 
 } // namespace zisc

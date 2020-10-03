@@ -37,32 +37,26 @@ enum class XoshiroMethod : int
 
   No detailed description.
 
-  \tparam SeedT No description.
-  \tparam ResultT No description.
+  \tparam ValueT No description.
   \tparam kMethod No description.
   */
-template <UnsignedInteger SeedT, UnsignedInteger ResultT, XoshiroMethod kMethod>
-class XoshiroEngine : public PseudoRandomNumberEngine<
-    XoshiroEngine<SeedT, ResultT, kMethod>, SeedT, ResultT>
+template <UnsignedInteger ValueT, XoshiroMethod kMethod>
+class XoshiroEngine : public PseudoRandomNumberEngine<XoshiroEngine<ValueT, kMethod>, ValueT>
 {
  public:
-  using BaseEngine = PseudoRandomNumberEngine<XoshiroEngine, SeedT, ResultT>;
-  using SeedType = typename BaseEngine::SeedType;
-  using ResultType = typename BaseEngine::ResultType;
+  using BaseEngine = PseudoRandomNumberEngine<XoshiroEngine, ValueT>;
+  using ValueType = typename BaseEngine::ValueType;
 
 
   //! Initialize
   XoshiroEngine() noexcept;
 
   //! Initialize
-  XoshiroEngine(const SeedType seed) noexcept;
+  XoshiroEngine(const ValueType seed) noexcept;
 
-
-  //! Return the default seed
-  static constexpr SeedType defaultSeed() noexcept;
 
   //! Generate a random number
-  ResultType generate() noexcept;
+  ValueType generate() noexcept;
 
   //! Return the n which of the period 2^n-1
   static constexpr std::size_t getPeriodPow2() noexcept;
@@ -72,39 +66,39 @@ class XoshiroEngine : public PseudoRandomNumberEngine<
   static constexpr bool isEndOfPeriod(const Integer sample) noexcept;
 
   //! Set a seed
-  void setSeed(const SeedType seed) noexcept;
+  void setSeed(const ValueType seed) noexcept;
 
  private:
   //!
-  static constexpr SeedType a() noexcept;
+  static constexpr ValueType a() noexcept;
 
   //!
-  static constexpr SeedType b() noexcept;
+  static constexpr ValueType b() noexcept;
 
   //!
-  static constexpr SeedType c() noexcept;
+  static constexpr ValueType c() noexcept;
 
   //! Generate a random number
-  ResultType generateRandom() noexcept;
+  ValueType generateRandom() noexcept;
 
   //! Next seed state
   void nextState() noexcept;
 
   //!
-  template <SeedT k>
-  static ResultType rotateLeft(const SeedType x) noexcept;
+  template <ValueT k>
+  static ValueType rotateLeft(const ValueType x) noexcept;
 
 
-  alignas(4 * sizeof(SeedType)) std::array<SeedType, 4> state_;
+  alignas(4 * sizeof(ValueType)) std::array<ValueType, 4> state_;
 };
 
 // Predefined Xoshiro** type
-using XoshiroPlus128 = XoshiroEngine<uint32b, uint32b, XoshiroMethod::Plus>;
-using XoshiroPlus256 = XoshiroEngine<uint64b, uint64b, XoshiroMethod::Plus>;
-using Xoshiro2Plus128 = XoshiroEngine<uint32b, uint32b, XoshiroMethod::PlusPlus>;
-using Xoshiro2Plus256 = XoshiroEngine<uint64b, uint64b, XoshiroMethod::PlusPlus>;
-using Xoshiro2Star128 = XoshiroEngine<uint32b, uint32b, XoshiroMethod::StarStar>;
-using Xoshiro2Star256 = XoshiroEngine<uint64b, uint64b, XoshiroMethod::StarStar>;
+using XoshiroPlus128 = XoshiroEngine<uint32b, XoshiroMethod::Plus>;
+using XoshiroPlus256 = XoshiroEngine<uint64b, XoshiroMethod::Plus>;
+using Xoshiro2Plus128 = XoshiroEngine<uint32b, XoshiroMethod::PlusPlus>;
+using Xoshiro2Plus256 = XoshiroEngine<uint64b, XoshiroMethod::PlusPlus>;
+using Xoshiro2Star128 = XoshiroEngine<uint32b, XoshiroMethod::StarStar>;
+using Xoshiro2Star256 = XoshiroEngine<uint64b, XoshiroMethod::StarStar>;
 
 } // namespace zisc
 

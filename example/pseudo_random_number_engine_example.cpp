@@ -28,18 +28,18 @@
 
 namespace {
 
-template <typename GeneratorClass, typename Seed, typename Result>
-using PrnEngine = zisc::PseudoRandomNumberEngine<GeneratorClass, Seed, Result>;
+template <typename GeneratorClass, typename ValueT>
+using PrnEngine = zisc::PseudoRandomNumberEngine<GeneratorClass, ValueT>;
 
 template <typename Type> constexpr Type getSeed() {return 123456789;}
 template <> constexpr zisc::uint8b getSeed<zisc::uint8b>() {return 12u;}
 template <> constexpr zisc::uint16b getSeed<zisc::uint16b>() {return 12345u;}
 
-template <typename GeneratorClass, typename Seed, typename Result>
-void generateRandomNumbers(PrnEngine<GeneratorClass, Seed, Result>* engine)
+template <typename GeneratorClass, typename ValueT>
+void generateRandomNumbers(PrnEngine<GeneratorClass, ValueT>* engine)
 {
-  using SeedType = typename GeneratorClass::SeedType;
-  auto seed = getSeed<SeedType>();
+  using ValueType = typename GeneratorClass::ValueType;
+  auto seed = getSeed<ValueType>();
   auto update_engine = [engine, &seed](std::uint32_t& s)
   {
     if (engine->isEndOfPeriod(s++)) {
@@ -67,8 +67,8 @@ void generateRandomNumbers(PrnEngine<GeneratorClass, Seed, Result>* engine)
 template <typename GeneratorClass>
 void runRngTest(const std::string_view&)
 {
-  using SeedType = typename GeneratorClass::SeedType;
-  constexpr auto seed = getSeed<SeedType>();
+  using ValueType = typename GeneratorClass::ValueType;
+  constexpr auto seed = getSeed<ValueType>();
   GeneratorClass engine{seed};
   generateRandomNumbers(&engine);
 }

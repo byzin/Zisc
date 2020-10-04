@@ -30,11 +30,11 @@
 #include "atomic.hpp"
 #include "bitset.hpp"
 #include "error.hpp"
-#include "scalable_circular_queue.hpp"
 #include "non_copyable.hpp"
 #include "std_memory_resource.hpp"
 #include "type_traits.hpp"
 #include "zisc_config.hpp"
+#include "queue/scalable_circular_queue.hpp"
 
 namespace zisc {
 

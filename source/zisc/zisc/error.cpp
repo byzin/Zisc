@@ -43,7 +43,7 @@ std::string getErrorCodeString(const ErrorCode code) noexcept
   using namespace std::string_literals;
   std::string code_string;
   switch (code) {
-    ERROR_CODE_STRING_CASE(LockFreeBoundedQueueOverflow, code_string)
+    ERROR_CODE_STRING_CASE(BoundedQueueOverflow, code_string)
     ERROR_CODE_STRING_CASE(ThreadManagerQueueOverflow, code_string)
   }
   return code_string;

@@ -28,11 +28,11 @@
 #include <utility>
 #include <vector>
 // Zisc
-#include "algorithm.hpp"
-#include "error.hpp"
-#include "std_memory_resource.hpp"
-#include "utility.hpp"
-#include "zisc_config.hpp"
+#include "zisc/bit.hpp"
+#include "zisc/error.hpp"
+#include "zisc/std_memory_resource.hpp"
+#include "zisc/utility.hpp"
+#include "zisc/zisc_config.hpp"
 
 namespace zisc {
 
@@ -41,7 +41,7 @@ namespace zisc {
 
   \param [in,out] mem_resource No description.
   */
-template <typename T> inline
+template <Queueable T> inline
 ScalableCircularQueue<T>::ScalableCircularQueue(pmr::memory_resource* mem_resource)
     noexcept :
         ScalableCircularQueue(1, mem_resource)
@@ -54,14 +54,13 @@ ScalableCircularQueue<T>::ScalableCircularQueue(pmr::memory_resource* mem_resour
   \param [in] cap No description.
   \param [in,out] mem_resource No description.
   */
-template <typename T> inline
+template <Queueable T> inline
 ScalableCircularQueue<T>::ScalableCircularQueue(const size_type cap,
-                                                pmr::memory_resource* mem_resource)
-    noexcept :
-        BaseQueueType(),
-        free_elements_{mem_resource},
-        allocated_elements_{mem_resource},
-        elements_{typename pmr::vector<Type>::allocator_type{mem_resource}}
+                                                pmr::memory_resource* mem_resource) noexcept
+    : BaseQueueType(),
+      free_elements_{mem_resource},
+      allocated_elements_{mem_resource},
+      elements_{typename pmr::vector<Type>::allocator_type{mem_resource}}
 {
   setCapacity(cap);
 }
@@ -71,13 +70,12 @@ ScalableCircularQueue<T>::ScalableCircularQueue(const size_type cap,
 
   \param [in] other No description.
   */
-template <typename T> inline
-ScalableCircularQueue<T>::ScalableCircularQueue(ScalableCircularQueue&& other)
-    noexcept :
-        BaseQueueType(other),
-        free_elements_{std::move(other.free_elements_)},
-        allocated_elements_{std::move(other.allocated_elements_)},
-        elements_{std::move(other.elements_)}
+template <Queueable T> inline
+ScalableCircularQueue<T>::ScalableCircularQueue(ScalableCircularQueue&& other) noexcept
+    : BaseQueueType(other),
+      free_elements_{std::move(other.free_elements_)},
+      allocated_elements_{std::move(other.allocated_elements_)},
+      elements_{std::move(other.elements_)}
 {
 }
 
@@ -87,11 +85,11 @@ ScalableCircularQueue<T>::ScalableCircularQueue(ScalableCircularQueue&& other)
   \param [in] other No description.
   \return No description
   */
-template <typename T> inline
-auto ScalableCircularQueue<T>::operator=(ScalableCircularQueue&& other)
-    noexcept -> ScalableCircularQueue&
+template <Queueable T> inline
+auto ScalableCircularQueue<T>::operator=(ScalableCircularQueue&& other) noexcept
+    -> ScalableCircularQueue&
 {
-  //! \todo Base type operator=
+  BaseQueueType::operator=(std::move(other));
   free_elements_ = std::move(other.free_elements_);
   allocated_elements_ = std::move(other.allocated_elements_);
   elements_ = std::move(other.elements_);
@@ -103,11 +101,11 @@ auto ScalableCircularQueue<T>::operator=(ScalableCircularQueue&& other)
 
   \return No description
   */
-template <typename T> inline
+template <Queueable T> inline
 auto ScalableCircularQueue<T>::capacity() const noexcept -> size_type
 {
   const size_type cap = elements_.size();
-  ZISC_ASSERT(Algorithm::isPowerOf2(cap),
+  ZISC_ASSERT((cap == 0) || has_single_bit(cap),
               "The capacity isn't power of 2. capacity = ", cap);
   return cap;
 }
@@ -117,17 +115,17 @@ auto ScalableCircularQueue<T>::capacity() const noexcept -> size_type
 
   \return No description
   */
-template <typename T> inline
+template <Queueable T> inline
 constexpr auto ScalableCircularQueue<T>::capacityMax() noexcept -> size_type
 {
-  const uint64b cap = uint64b{0b1u} << (8 * sizeof(uint64b) - 2);
+  const uint64b cap = uint64b{0b1u} << (std::numeric_limits<uint64b>::digits - 2);
   return cap;
 }
 
 /*!
   \details No detailed description
   */
-template <typename T> inline
+template <Queueable T> inline
 void ScalableCircularQueue<T>::clear() noexcept
 {
   allocated_elements_.clear();
@@ -148,7 +146,7 @@ void ScalableCircularQueue<T>::clear() noexcept
 
   \return No description
   */
-template <typename T> inline
+template <Queueable T> inline
 auto ScalableCircularQueue<T>::data() const noexcept -> const container_type&
 {
   return elements_;
@@ -159,7 +157,7 @@ auto ScalableCircularQueue<T>::data() const noexcept -> const container_type&
 
   \return No description
   */
-template <typename T> inline
+template <Queueable T> inline
 auto ScalableCircularQueue<T>::dequeue() noexcept -> std::tuple<bool, Type>
 {
   std::tuple<bool, Type> result;
@@ -180,7 +178,7 @@ auto ScalableCircularQueue<T>::dequeue() noexcept -> std::tuple<bool, Type>
   \return No description
   \exception OverflowError No description.
   */
-template <typename T> inline
+template <Queueable T> inline
 bool ScalableCircularQueue<T>::enqueue(ConstReference value)
 {
   const uint64b index = free_elements_.dequeue(true); // Get an entry index
@@ -205,7 +203,7 @@ bool ScalableCircularQueue<T>::enqueue(ConstReference value)
   \return No description
   \exception OverflowError No description.
   */
-template <typename T> inline
+template <Queueable T> inline
 bool ScalableCircularQueue<T>::enqueue(RReference value)
 {
   const uint64b index = free_elements_.dequeue(true); // Get an entry index
@@ -228,7 +226,7 @@ bool ScalableCircularQueue<T>::enqueue(RReference value)
 
   \return No description
   */
-template <typename T> inline
+template <Queueable T> inline
 bool ScalableCircularQueue<T>::isEmpty() const noexcept
 {
   const size_type s = size();
@@ -241,7 +239,7 @@ bool ScalableCircularQueue<T>::isEmpty() const noexcept
 
   \return No description
   */
-template <typename T> inline
+template <Queueable T> inline
 pmr::memory_resource* ScalableCircularQueue<T>::resource() const noexcept
 {
   pmr::memory_resource* mem_resource = elements_.get_allocator().resource();
@@ -253,12 +251,12 @@ pmr::memory_resource* ScalableCircularQueue<T>::resource() const noexcept
 
   \param [in] cap No description.
   */
-template <typename T> inline
+template <Queueable T> inline
 void ScalableCircularQueue<T>::setCapacity(const size_type cap) noexcept
 {
-  const size_type cap_pow2 = zisc::Algorithm::roundUpToPowOf2(cap);
+  const size_type cap_pow2 = bit_ceil(cap);
   constexpr size_type cap_max = capacityMax();
-  if ((capacity() < cap_pow2) && (cap_pow2 <= cap_max) ) {
+  if ((capacity() < cap_pow2) && (cap_pow2 <= cap_max)) {
     elements_.resize(cap_pow2);
     allocated_elements_.setSize(cap_pow2 << 1);
     free_elements_.setSize(cap_pow2 << 1);
@@ -271,7 +269,7 @@ void ScalableCircularQueue<T>::setCapacity(const size_type cap) noexcept
 
   \return No description
   */
-template <typename T> inline
+template <Queueable T> inline
 auto ScalableCircularQueue<T>::size() const noexcept -> size_type
 {
   const std::size_t s = allocated_elements_.distance();
@@ -283,7 +281,7 @@ auto ScalableCircularQueue<T>::size() const noexcept -> size_type
 
   \param [in,out] mem_resource No description.
   */
-template <typename T> inline
+template <Queueable T> inline
 ScalableCircularQueue<T>::RingBuffer::RingBuffer(
     pmr::memory_resource* mem_resource) noexcept :
         indices_{typename pmr::vector<std::atomic<uint64b>>::allocator_type{mem_resource}}
@@ -295,7 +293,7 @@ ScalableCircularQueue<T>::RingBuffer::RingBuffer(
 
   \param [in] other No description.
   */
-template <typename T> inline
+template <Queueable T> inline
 ScalableCircularQueue<T>::RingBuffer::RingBuffer(RingBuffer&& other) noexcept :
     head_{std::move(other.head_.load())},
     threshold_{std::move(other.threshold_.load())},
@@ -310,7 +308,7 @@ ScalableCircularQueue<T>::RingBuffer::RingBuffer(RingBuffer&& other) noexcept :
 
   \param [in] other No description.
   */
-template <typename T> inline
+template <Queueable T> inline
 auto ScalableCircularQueue<T>::RingBuffer::operator=(RingBuffer&& other) noexcept
     -> RingBuffer&
 {
@@ -325,7 +323,7 @@ auto ScalableCircularQueue<T>::RingBuffer::operator=(RingBuffer&& other) noexcep
 /*!
   \details No detailed description
   */
-template <typename T> inline
+template <Queueable T> inline
 void ScalableCircularQueue<T>::RingBuffer::clear() noexcept
 {
   std::fill(indices_.begin(), indices_.end(), invalidIndex());
@@ -339,7 +337,7 @@ void ScalableCircularQueue<T>::RingBuffer::clear() noexcept
 
   \return No description
   */
-template <typename T> inline
+template <Queueable T> inline
 constexpr uint64b ScalableCircularQueue<T>::RingBuffer::overflowIndex() noexcept
 {
   constexpr uint64b index = std::numeric_limits<uint64b>::max() - 1;
@@ -352,7 +350,7 @@ constexpr uint64b ScalableCircularQueue<T>::RingBuffer::overflowIndex() noexcept
   \param [in] nonempty No description.
   \return No description
   */
-template <typename T> inline
+template <Queueable T> inline
 uint64b ScalableCircularQueue<T>::RingBuffer::dequeue(const bool nonempty) noexcept
 {
   uint64b index = invalidIndex();
@@ -426,7 +424,7 @@ uint64b ScalableCircularQueue<T>::RingBuffer::dequeue(const bool nonempty) noexc
 
   \return No description
   */
-template <typename T> inline
+template <Queueable T> inline
 std::size_t ScalableCircularQueue<T>::RingBuffer::distance() const noexcept
 {
   const auto head = head_.load(std::memory_order_relaxed);
@@ -442,7 +440,7 @@ std::size_t ScalableCircularQueue<T>::RingBuffer::distance() const noexcept
   \param [in] nonempty No description.
   \return No description
   */
-template <typename T> inline
+template <Queueable T> inline
 bool ScalableCircularQueue<T>::RingBuffer::enqueue(const uint64b index,
                                                    const bool nonempty) noexcept
 {
@@ -489,7 +487,7 @@ bool ScalableCircularQueue<T>::RingBuffer::enqueue(const uint64b index,
   \param [in] s No description.
   \param [in] e No description.
   */
-template <typename T> inline
+template <Queueable T> inline
 void ScalableCircularQueue<T>::RingBuffer::fill(const uint64b s,
                                                 const uint64b e) noexcept
 {
@@ -515,7 +513,7 @@ void ScalableCircularQueue<T>::RingBuffer::fill(const uint64b s,
 
   \return No description
   */
-template <typename T> inline
+template <Queueable T> inline
 constexpr uint64b ScalableCircularQueue<T>::RingBuffer::invalidIndex() noexcept
 {
   constexpr uint64b index = std::numeric_limits<uint64b>::max();
@@ -527,7 +525,7 @@ constexpr uint64b ScalableCircularQueue<T>::RingBuffer::invalidIndex() noexcept
 
   \return No description
   */
-template <typename T> inline
+template <Queueable T> inline
 uint64b ScalableCircularQueue<T>::RingBuffer::order() const noexcept
 {
   return order_;
@@ -538,14 +536,15 @@ uint64b ScalableCircularQueue<T>::RingBuffer::order() const noexcept
 
   \param [in] s \a s must be a power of 2.
   */
-template <typename T> inline
+template <Queueable T> inline
 void ScalableCircularQueue<T>::RingBuffer::setSize(const std::size_t s) noexcept
 {
-  ZISC_ASSERT(Algorithm::isPowerOf2(s), "The s isn't power of 2. s = ", s);
+  ZISC_ASSERT(has_single_bit(s), "The s isn't power of 2. s = ", s);
   decltype(indices_) vec{s, indices_.get_allocator()};
   std::swap(indices_, vec);
   // Set order
-  order_ = cast<uint64b>(Algorithm::getExponent(size() >> 1));
+  order_ = cast<uint64b>(bit_width(size() >> 1));
+  order_ = (0 < order_) ? order_ - 1 : 0;
 }
 
 /*!
@@ -553,11 +552,11 @@ void ScalableCircularQueue<T>::RingBuffer::setSize(const std::size_t s) noexcept
 
   \return No description
   */
-template <typename T> inline
+template <Queueable T> inline
 std::size_t ScalableCircularQueue<T>::RingBuffer::size() const noexcept
 {
   const std::size_t s = indices_.size();
-  ZISC_ASSERT(Algorithm::isPowerOf2(s), "The s isn't power of 2. s = ", s);
+  ZISC_ASSERT(has_single_bit(s), "The s isn't power of 2. s = ", s);
   return s;
 }
 
@@ -567,7 +566,7 @@ std::size_t ScalableCircularQueue<T>::RingBuffer::size() const noexcept
   \param [in] tail No description.
   \param [in] head No description.
   */
-template <typename T> inline
+template <Queueable T> inline
 void ScalableCircularQueue<T>::RingBuffer::catchUp(uint64b tail,
                                                    uint64b head) noexcept
 {
@@ -589,7 +588,7 @@ void ScalableCircularQueue<T>::RingBuffer::catchUp(uint64b tail,
   \param [in] rhs No description.
   \return No description
   */
-template <typename T> inline
+template <Queueable T> inline
 int64b ScalableCircularQueue<T>::RingBuffer::diff(const uint64b lhs,
                                                   const uint64b rhs) const noexcept
 {
@@ -603,7 +602,7 @@ int64b ScalableCircularQueue<T>::RingBuffer::diff(const uint64b lhs,
   \param [in] half No description.
   \return No description
   */
-template <typename T> inline
+template <Queueable T> inline
 int64b ScalableCircularQueue<T>::RingBuffer::getThreshold3(const uint64b half) const noexcept
 {
   const uint64b threshold = 3 * half - 1;
@@ -616,14 +615,14 @@ int64b ScalableCircularQueue<T>::RingBuffer::getThreshold3(const uint64b half) c
   \param [in] index No description.
   \return No description
   */
-template <typename T> inline
+template <Queueable T> inline
 uint64b ScalableCircularQueue<T>::RingBuffer::permuteIndex(const uint64b index) const noexcept
 {
   using ValueType = typename decltype(indices_)::value_type;
   constexpr uint64b cache_line_size = Config::l1CacheLineSize();
   constexpr uint64b data_size = sizeof(ValueType);
   constexpr uint64b shift = (data_size < cache_line_size)
-      ? Algorithm::getExponent(cache_line_size) - Algorithm::getExponent(data_size)
+      ? bit_width(cache_line_size) - bit_width(data_size)
       : 0;
   const uint64b e = order() + 1;
   uint64b i = index;

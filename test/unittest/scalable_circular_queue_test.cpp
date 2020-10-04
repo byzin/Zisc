@@ -29,11 +29,11 @@
 // Zisc
 #include "zisc/error.hpp"
 #include "zisc/non_copyable.hpp"
-#include "zisc/scalable_circular_queue.hpp"
 #include "zisc/simple_memory_resource.hpp"
 #include "zisc/stopwatch.hpp"
 #include "zisc/utility.hpp"
 #include "zisc/zisc_config.hpp"
+#include "zisc/queue/scalable_circular_queue.hpp"
 // Test
 #include "lock_free_bounded_queue_test.hpp"
 

@@ -1,5 +1,5 @@
 /*!
-  \file lock_free_bounded_queue.hpp
+  \file bounded_queue.hpp
   \author Sho Ikeda
   \brief No brief description
 
@@ -12,8 +12,8 @@
   http://opensource.org/licenses/mit-license.php
   */
 
-#ifndef ZISC_LOCK_FREE_BOUNDED_QUEUE_HPP
-#define ZISC_LOCK_FREE_BOUNDED_QUEUE_HPP
+#ifndef ZISC_BOUNDED_QUEUE_HPP
+#define ZISC_BOUNDED_QUEUE_HPP
 
 // Standard C++ library
 #include <cstddef>
@@ -22,12 +22,17 @@
 #include <tuple>
 #include <type_traits>
 // Zisc
-#include "error.hpp"
-#include "non_copyable.hpp"
-#include "std_memory_resource.hpp"
-#include "zisc_config.hpp"
+#include "zisc/concepts.hpp"
+#include "zisc/error.hpp"
+#include "zisc/non_copyable.hpp"
+#include "zisc/std_memory_resource.hpp"
+#include "zisc/zisc_config.hpp"
 
 namespace zisc {
+
+//! Specify a type is queueable
+template <typename Type>
+concept Queueable = DefaultConstructible<Type> && MoveConstructible<Type> && MoveAssignable<Type>;
 
 /*!
   \brief No brief description
@@ -37,8 +42,8 @@ namespace zisc {
   \tparam QueueClass No description.
   \tparam T No description.
   */
-template <typename QueueClass, typename T>
-class LockFreeBoundedQueue : private NonCopyable<LockFreeBoundedQueue<QueueClass, T>>
+template <typename QueueClass, Queueable T>
+class BoundedQueue : private NonCopyable<BoundedQueue<QueueClass, T>>
 {
  public:
   // Types
@@ -124,14 +129,14 @@ class LockFreeBoundedQueue : private NonCopyable<LockFreeBoundedQueue<QueueClass
 
 
   //! Create a queue
-  LockFreeBoundedQueue() noexcept;
+  BoundedQueue() noexcept;
 
   //! Move a data
-  LockFreeBoundedQueue(const LockFreeBoundedQueue& other) noexcept;
+  BoundedQueue(const BoundedQueue& other) noexcept;
 
 
   //! Move a queue
-  LockFreeBoundedQueue& operator=(const LockFreeBoundedQueue& other) noexcept;
+  BoundedQueue& operator=(const BoundedQueue& other) noexcept;
 };
 
 } // namespace zisc
@@ -139,9 +144,9 @@ class LockFreeBoundedQueue : private NonCopyable<LockFreeBoundedQueue<QueueClass
 /*!
   \example lock_free_bounded_queue_example.cpp
 
-  This is an example of how to use zisc::LockFreeBoundedQueue.
+  This is an example of how to use zisc::BoundedQueue.
   */
 
-#include "lock_free_bounded_queue-inl.hpp"
+#include "bounded_queue-inl.hpp"
 
-#endif // ZISC_LOCK_FREE_BOUNDED_QUEUE_HPP
+#endif // ZISC_BOUNDED_QUEUE_HPP

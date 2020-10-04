@@ -37,6 +37,8 @@
 !/source/zisc/zisc/hash/*.hpp
 !/source/zisc/zisc/random/
 !/source/zisc/zisc/random/*.hpp
+!/source/zisc/zisc/queue/
+!/source/zisc/zisc/queue/*.hpp
 # Zisc cmake file
 !source/zisc/cmake/
 !source/zisc/cmake/*.cmake
@@ -50,8 +52,6 @@
 !/test/unittest/*.hpp
 !/test/unittest/*.cpp
 !/test/resources/
-!/test/resources/cmj*
-!/test/resources/pcg*
 !/test/resources/*.txt
 
 # Example

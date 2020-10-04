@@ -34,11 +34,11 @@
 // Zisc
 #include "atomic.hpp"
 #include "error.hpp"
-#include "scalable_circular_queue.hpp"
 #include "std_memory_resource.hpp"
 #include "type_traits.hpp"
 #include "utility.hpp"
 #include "zisc_config.hpp"
+#include "queue/scalable_circular_queue.hpp"
 
 namespace zisc {
 

@@ -24,11 +24,10 @@
 #include <type_traits>
 #include <vector>
 // Zisc
-#include "error.hpp"
-#include "lock_free_bounded_queue.hpp"
-#include "non_copyable.hpp"
-#include "std_memory_resource.hpp"
-#include "zisc_config.hpp"
+#include "bounded_queue.hpp"
+#include "zisc/error.hpp"
+#include "zisc/std_memory_resource.hpp"
+#include "zisc/zisc_config.hpp"
 
 namespace zisc {
 
@@ -46,12 +45,12 @@ namespace zisc {
 
   \tparam T No description.
   */
-template <typename T>
-class ScalableCircularQueue : public LockFreeBoundedQueue<ScalableCircularQueue<T>, T>
+template <Queueable T>
+class ScalableCircularQueue : public BoundedQueue<ScalableCircularQueue<T>, T>
 {
  public:
   // Types
-  using BaseQueueType = LockFreeBoundedQueue<ScalableCircularQueue<T>, T>;
+  using BaseQueueType = BoundedQueue<ScalableCircularQueue<T>, T>;
   using Type = typename BaseQueueType::Type;
   using ConstType = typename BaseQueueType::ConstType;
   using Reference = typename BaseQueueType::Reference;

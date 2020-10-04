@@ -73,6 +73,26 @@ concept Trivial = std::is_trivial_v<Type>;
 template <typename Type>
 concept TriviallyCopyable = std::is_trivially_copyable_v<Type>;
 
+//! Specify a type is default constructible
+template <typename Type>
+concept DefaultConstructible = std::is_default_constructible_v<Type>;
+
+//! Specify a type is copy constructible
+template <typename Type>
+concept CopyConstructible = std::is_copy_constructible_v<Type>;
+
+//! Specify a type is move constructible
+template <typename Type>
+concept MoveConstructible = std::is_move_constructible_v<Type>;
+
+//! Specify a type is copy assignable 
+template <typename Type>
+concept CopyAssignable = std::is_copy_assignable_v<Type>;
+
+//! Specify a type is move assignable 
+template <typename Type>
+concept MoveAssignable = std::is_move_assignable_v<Type>;
+
 // Callable concepts
 
 //! Specify a callable type can be invoked with a given set of argument

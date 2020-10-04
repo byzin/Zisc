@@ -58,7 +58,7 @@ namespace zisc {
   */
 enum class ErrorCode : int
 {
-  kLockFreeBoundedQueueOverflow,
+  kBoundedQueueOverflow,
   kThreadManagerQueueOverflow
 };
 

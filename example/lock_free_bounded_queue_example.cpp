@@ -11,15 +11,17 @@
 #include <atomic>
 #include <cstddef>
 #include <iostream>
+#include <memory>
 #include <string_view>
 #include <thread>
 #include <tuple>
 #include <type_traits>
 #include <vector>
 // Zisc
-#include "zisc/lock_free_bounded_queue.hpp"
-#include "zisc/scalable_circular_queue.hpp"
+#include "zisc/simple_memory_resource.hpp"
 #include "zisc/zisc_config.hpp"
+#include "zisc/queue/bounded_queue.hpp"
+#include "zisc/queue/scalable_circular_queue.hpp"
 
 template <typename Type>
 void showAtomicProperties(const std::string_view type_name) noexcept

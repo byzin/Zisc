@@ -86,8 +86,6 @@ addExample(CumulativeDistributionFunctionExample OFF
            ${PROJECT_SOURCE_DIR}/cumulative_distribution_function_example.cpp)
 addExample(ErrorExample OFF
            ${PROJECT_SOURCE_DIR}/error_example.cpp)
-addExample(LinearAlgebraExample OFF
-           ${PROJECT_SOURCE_DIR}/linear_algebra_example.cpp) 
 addExample(LockFreeBoundedQueueExample OFF
            ${PROJECT_SOURCE_DIR}/lock_free_bounded_queue_example.cpp)
 addExample(PseudoRandomNumberEngineExample OFF

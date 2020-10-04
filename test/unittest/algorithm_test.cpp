@@ -26,7 +26,6 @@
 #include "gtest/gtest.h"
 // Zisc
 #include "zisc/algorithm.hpp"
-#include "zisc/arith_array.hpp"
 #include "zisc/stopwatch.hpp"
 #include "zisc/utility.hpp"
 #include "zisc/zisc_config.hpp"
@@ -817,50 +816,6 @@ TEST(AlgorithmTest, Popcount64FallbackTest)
     ASSERT_EQ(expected, result) << error_message
         << " x = " << x << ", expected = " << expected << ", result = " << result;
   }
-}
-
-TEST(AlgorithmTest, BinaryTreeTest)
-{
-  using zisc::cast;
-
-  constexpr zisc::uint n = 10;
-  zisc::ArithArray<double, n> array;
-  for (zisc::uint i = 0; i < n; ++i)
-    array[i] = cast<double>(i);
-  zisc::Algorithm::toBinaryTree(array.begin(), array.end());
-
-  auto position = zisc::Algorithm::searchBinaryTree(array.begin(), array.end(), 0.5);
-  EXPECT_DOUBLE_EQ(0.0, *position);
-
-  position = zisc::Algorithm::searchBinaryTree(array.begin(), array.end(), 1.5);
-  EXPECT_DOUBLE_EQ(1.0, *position);
-
-  position = zisc::Algorithm::searchBinaryTree(array.begin(), array.end(), 2.5);
-  EXPECT_DOUBLE_EQ(2.0, *position);
-
-  position = zisc::Algorithm::searchBinaryTree(array.begin(), array.end(), 6.5);
-  EXPECT_DOUBLE_EQ(6.0, *position);
-  
-  position = zisc::Algorithm::searchBinaryTree(array.begin(), array.end(), 5.5);
-  EXPECT_DOUBLE_EQ(5.0, *position);
-
-  position = zisc::Algorithm::searchBinaryTree(array.begin(), array.end(), cast<double>(n));
-  EXPECT_DOUBLE_EQ(cast<double>(n - 1), *position);
-
-  position = zisc::Algorithm::searchBinaryTree(array.begin(), array.end(), 7.0);
-  EXPECT_DOUBLE_EQ(7.0, *position);
-
-  position = zisc::Algorithm::searchBinaryTree(array.begin(), array.end(), 9.0);
-  EXPECT_DOUBLE_EQ(9.0, *position);
-
-  position = zisc::Algorithm::searchBinaryTree(array.begin(), array.end(), 2.0);
-  EXPECT_DOUBLE_EQ(2.0, *position);
-
-  position = zisc::Algorithm::searchBinaryTree(array.begin(), array.end(), 3.0);
-  EXPECT_DOUBLE_EQ(3.0, *position);
-
-  position = zisc::Algorithm::searchBinaryTree(array.begin(), array.end(), 6.0);
-  EXPECT_DOUBLE_EQ(6.0, *position);
 }
 
 TEST(AlgorithmTest, BinaryTreeSearchTest)

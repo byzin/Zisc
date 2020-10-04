@@ -43,12 +43,12 @@ void testCmjEngine(const std::string& reference_file_path)
     const std::uint32_t p = zisc::Fnv1aHash32::hash(seed);
 
     // Generate a 1D random number
-    const auto d = CmjEngine::template generate1D<double>(s, p);
+    const auto d = CmjEngine::template generate1d<double>(s, p);
     ASSERT_LE(0.0, d);
     ASSERT_LT(d, 1.0);
 
     // Generate a 2D random number
-    const auto xy = CmjEngine::template generate2D<double>(s, p);
+    const auto xy = CmjEngine::template generate2d<double>(s, p);
     ASSERT_LE(0.0, xy[0]);
     ASSERT_LT(xy[0], 1.0);
     ASSERT_LE(0.0, xy[1]);
@@ -57,9 +57,9 @@ void testCmjEngine(const std::string& reference_file_path)
     update_engine(s);
 
     static_assert(sizeof(double) == 8);
-    const std::uint64_t d_value = *zisc::treatAs<const std::uint64_t*>(&d);
-    const std::uint64_t x_value = *zisc::treatAs<const std::uint64_t*>(&xy[0]);
-    const std::uint64_t y_value = *zisc::treatAs<const std::uint64_t*>(&xy[1]);
+    const std::uint64_t d_value = *zisc::reinterp<const std::uint64_t*>(&d);
+    const std::uint64_t x_value = *zisc::reinterp<const std::uint64_t*>(&xy[0]);
+    const std::uint64_t y_value = *zisc::reinterp<const std::uint64_t*>(&xy[1]);
 
     std::uint64_t reference;
     reference_file >> reference;
@@ -72,10 +72,10 @@ void testCmjEngine(const std::string& reference_file_path)
 }
 
 #define CMJ_TEST(engine_type, reference_path) \
-    TEST(CmjEngineTest, engine_type ## Test) \
+    TEST(RandomNumberEngine, engine_type ## Test) \
     { \
         testCmjEngine<zisc:: engine_type >(reference_path); \
     }
 
-CMJ_TEST(CmjN64, "resources/cmj_n64_reference")
-CMJ_TEST(CmjN81, "resources/cmj_n81_reference")
+CMJ_TEST(CmjN64, "resources/cmj_n64_reference.txt")
+CMJ_TEST(CmjN81, "resources/cmj_n81_reference.txt")

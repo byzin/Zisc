@@ -20,6 +20,7 @@
 #include <cstddef>
 #include <cstdint>
 // Zisc
+#include "zisc/concepts.hpp"
 #include "zisc/zisc_config.hpp"
 
 namespace zisc {
@@ -36,39 +37,38 @@ template <uint32b kRootN>
 class CorrelatedMultiJitteredEngine
 {
  public:
+  using ValueType = uint32b;
+
+
   //! Generate a [0, 1) float random number
-  template <typename Float>
-  static Float generate1D(const uint32b s, const uint32b p) noexcept;
+  template <FloatingPoint Float>
+  static Float generate1d(const ValueType s, const ValueType p) noexcept;
 
   //! Generate two [0, 1) float random numbers
-  template <typename Float>
-  static std::array<Float, 2> generate2D(uint32b s, const uint32b p) noexcept;
+  template <FloatingPoint Float>
+  static std::array<Float, 2> generate2d(ValueType s, const ValueType p) noexcept;
 
   //! Return the period
   static constexpr std::size_t getPeriod() noexcept;
 
   //! Check if a specified sample (0 base count) is the end of period
-  template <typename UnsignedInteger>
-  static constexpr bool isEndOfPeriod(const UnsignedInteger sample) noexcept;
+  template <UnsignedInteger Integer>
+  static constexpr bool isEndOfPeriod(const Integer sample) noexcept;
 
  private:
   //! Hash the i value
-  static uint32b hashInteger(uint32b i, const uint32b p) noexcept;
+  static ValueType hashInteger(ValueType i, const ValueType p) noexcept;
 
   //! Make a w mask
-  static constexpr uint32b makeWMask(const uint32b w) noexcept;
-
-  //! Map an integer value to a [0, 1) floating point value 
-  template <typename Float>
-  static Float mapTo01Float(const uint32b x) noexcept;
+  static constexpr ValueType makeWMask(const ValueType w) noexcept;
 
   //!
   template <uint32b l>
-  static uint32b permute(uint32b i, const uint32b p) noexcept;
+  static ValueType permute(ValueType i, const ValueType p) noexcept;
 
   //! The implementation of permutation
   template <uint32b w>
-  static uint32b permuteImpl(uint32b i, const uint32b p) noexcept;
+  static ValueType permuteImpl(ValueType i, const ValueType p) noexcept;
 };
 
 // Type aliases

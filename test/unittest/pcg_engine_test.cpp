@@ -40,7 +40,7 @@ void testPcgEngine(const std::string& reference_path)
 }
 
 #define PCG_TEST(engine_type, reference_path) \
-    TEST(PseudoRandomNumberEngine, engine_type ## Test) \
+    TEST(RandomNumberEngine, engine_type ## Test) \
     { \
       ::testPcgEngine<zisc:: engine_type >(reference_path); \
     }

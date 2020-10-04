@@ -43,7 +43,7 @@ void testXoshiroEngine(const std::string_view reference_path)
 } // namespace
 
 #define XOSHIRO_TEST(engine_type, reference_path) \
-    TEST(PseudoRandomNumberEngine, engine_type ## Test) \
+    TEST(RandomNumberEngine, engine_type ## Test) \
     { \
       ::testXoshiroEngine<zisc:: engine_type >(reference_path); \
     }

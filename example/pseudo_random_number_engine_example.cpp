@@ -50,9 +50,9 @@ void generateRandomNumbers(PrnEngine<GeneratorClass, ValueT>* engine)
   };
 
   for (std::uint32_t sample = 0, s = 0; sample < 1024; ++sample) {
-    const float x = engine->template generateFloat<float>(0.0f, 1.0f);
+    const float x = engine->template generate<float>(0.0f, 1.0f);
     update_engine(s);
-    const float y = engine->template generateFloat<float>(0.0f, 1.0f);
+    const float y = engine->template generate<float>(0.0f, 1.0f);
     update_engine(s);
     if (!zisc::isInBounds(x, 0.0f, 1.0f))
       std::cerr << "sample[" << sample << "] x(" << x << ") is out of range [0, 1)";

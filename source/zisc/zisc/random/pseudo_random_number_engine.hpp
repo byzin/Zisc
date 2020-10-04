@@ -55,11 +55,11 @@ class PseudoRandomNumberEngine
 
   //! Generate a float random number x satisfying [lower, upper)
   template <FloatingPoint Float>
-  Float generateFloat(const Float lower, const Float upper) noexcept;
+  Float generate(const Float lower, const Float upper) noexcept;
 
   //! Generate a [0, 1) float random number
   template <FloatingPoint Float>
-  Float generate01Float() noexcept;
+  Float generate01() noexcept;
 
   //! Check if a specified sample (0 base count) is the end of period
   template <UnsignedInteger Integer>

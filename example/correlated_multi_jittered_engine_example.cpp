@@ -42,7 +42,7 @@ void generateRandomNumbers(const std::string_view& seed_key)
 
   for (std::uint32_t sample = 0, s = 0; sample < 1024; ++sample) {
     const std::uint32_t p = zisc::Fnv1aHash32::hash(seed);
-    const auto xy = CmjEngine::template generate2D<double>(s, p);
+    const auto xy = CmjEngine::template generate2d<double>(s, p);
     update_engine(s);
     if (!zisc::isInBounds(xy[0], 0.0, 1.0))
       std::cerr << "sample[" << sample << "] x(" << xy[0] << ") is out of range [0, 1)";

@@ -75,7 +75,7 @@ void testThreadPoolNest(zisc::ThreadManager& thread_manager,
   constexpr std::size_t num_of_loops = 1'000'000;
   using Cmj = zisc::CmjN16;
   for (std::size_t i = 0; i < num_of_loops; ++i) {
-    results[index] += Cmj::generate1D<double>(zisc::cast<zisc::uint32b>(i),
+    results[index] += Cmj::generate1d<double>(zisc::cast<zisc::uint32b>(i),
                                               zisc::cast<zisc::uint32b>(index));
   }
 }
@@ -642,7 +642,7 @@ TEST(ThreadManagerTest, LoopTaskStressPerformanceTest2)
       using Cmj = zisc::CmjN16;
       for (zisc::uint i = 0; i < tasks_per_thread; ++i) {
         const zisc::uint index = zisc::cast<zisc::uint>(id) * tasks_per_thread + i;
-        results[index] = Cmj::generate2D<double>(i, number);
+        results[index] = Cmj::generate2d<double>(i, number);
       }
     };
     std::cout << "sizeof(task)  = " << sizeof(decltype(task)) << std::endl;

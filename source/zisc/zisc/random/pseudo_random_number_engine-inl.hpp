@@ -53,7 +53,7 @@ Float PseudoRandomNumberEngine<GeneratorClass, ValueT>::operator()(
     const Float lower,
     const Float upper) noexcept
 {
-  const Float result = generateFloat(lower, upper);
+  const Float result = generate(lower, upper);
   return result;
 }
 
@@ -97,11 +97,11 @@ auto PseudoRandomNumberEngine<GeneratorClass, ValueT>::generate() noexcept
   */
 template <typename GeneratorClass, UnsignedInteger ValueT>
 template <FloatingPoint Float> inline
-Float PseudoRandomNumberEngine<GeneratorClass, ValueT>::generateFloat(
+Float PseudoRandomNumberEngine<GeneratorClass, ValueT>::generate(
     const Float lower,
     const Float upper) noexcept
 {
-  const Float u = generate01Float<Float>();
+  const Float u = generate01<Float>();
   const Float result = lower + (upper - lower) * u;
   return result;
 }
@@ -114,7 +114,7 @@ Float PseudoRandomNumberEngine<GeneratorClass, ValueT>::generateFloat(
   */
 template <typename GeneratorClass, UnsignedInteger ValueT>
 template <FloatingPoint Float> inline
-Float PseudoRandomNumberEngine<GeneratorClass, ValueT>::generate01Float() noexcept
+Float PseudoRandomNumberEngine<GeneratorClass, ValueT>::generate01() noexcept
 {
   // Generate a integer random number
   const ValueType x = generate();

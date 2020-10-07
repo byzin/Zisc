@@ -18,8 +18,8 @@
 #include <type_traits>
 #include <vector>
 // Zisc
-#include "zisc/simple_memory_resource.hpp"
 #include "zisc/zisc_config.hpp"
+#include "zisc/memory/simple_memory_resource.hpp"
 #include "zisc/queue/bounded_queue.hpp"
 #include "zisc/queue/scalable_circular_queue.hpp"
 

@@ -29,8 +29,8 @@
 // Zisc
 #include "zisc/math.hpp"
 #include "zisc/non_copyable.hpp"
-#include "zisc/simple_memory_resource.hpp"
 #include "zisc/thread_manager.hpp"
+#include "zisc/memory/simple_memory_resource.hpp"
 #include "zisc/random/correlated_multi_jittered_engine.hpp"
 #include "zisc/random/pcg_engine.hpp"
 

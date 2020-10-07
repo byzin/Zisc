@@ -33,6 +33,9 @@
 !/source/zisc/zisc/*.hpp
 !/source/zisc/zisc/*.cpp
 !/source/zisc/zisc/*.hpp.in
+!/source/zisc/zisc/memory/
+!/source/zisc/zisc/memory/*.hpp
+!/source/zisc/zisc/memory/*.cpp
 !/source/zisc/zisc/hash/
 !/source/zisc/zisc/hash/*.hpp
 !/source/zisc/zisc/random/

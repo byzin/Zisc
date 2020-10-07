@@ -27,8 +27,8 @@
 // Zisc
 #include "algorithm.hpp"
 #include "error.hpp"
-#include "std_memory_resource.hpp"
 #include "utility.hpp"
+#include "memory/std_memory_resource.hpp"
 
 namespace zisc {
 

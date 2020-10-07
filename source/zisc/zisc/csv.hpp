@@ -24,9 +24,9 @@
 #include <vector>
 // Zisc
 #include "non_copyable.hpp"
-#include "std_memory_resource.hpp"
 #include "string.hpp"
 #include "zisc_config.hpp"
+#include "memory/std_memory_resource.hpp"
 
 namespace zisc {
 

@@ -22,9 +22,9 @@
 #include "gtest/gtest.h"
 // Zisc
 #include "zisc/atomic.hpp"
-#include "zisc/simple_memory_resource.hpp"
 #include "zisc/thread_manager.hpp"
 #include "zisc/zisc_config.hpp"
+#include "zisc/memory/simple_memory_resource.hpp"
 
 namespace  {
 

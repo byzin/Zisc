@@ -17,7 +17,7 @@
 #include <cstddef>
 #include <memory>
 // Zisc
-#include "zisc_config.hpp"
+#include "zisc/zisc_config.hpp"
 
 namespace zisc {
 

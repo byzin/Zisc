@@ -18,12 +18,13 @@
 #include "memory.hpp"
 // Standard C++ library
 #include <cstddef>
+#include <cstdlib>
 #include <limits>
 #include <memory>
 // Zisc
-#include "atomic.hpp"
-#include "utility.hpp"
-#include "zisc_config.hpp"
+#include "zisc/atomic.hpp"
+#include "zisc/utility.hpp"
+#include "zisc/zisc_config.hpp"
 
 namespace zisc {
 
@@ -185,6 +186,25 @@ std::size_t Memory::Usage::total() const noexcept
 /*!
   \details No detailed description
 
+  \param [in] alignment No description.
+  \param [in] size No description.
+  \return No description
+  */
+inline
+void* Memory::allocate(const std::size_t alignment, const std::size_t size)
+{
+  void* ptr = std::aligned_alloc(alignment, size);
+  return ptr;
+//#if defined(Z_WINDOWS)
+//      _aligned_malloc(size, alignment);
+//#elif defined(Z_MAC) && defined(Z_CLANG)
+//      aligned_alloc(alignment, size);
+//#else
+}
+
+/*!
+  \details No detailed description
+
   \tparam kN No description.
   \tparam Type No description.
   \param [in] ptr No description.
@@ -200,6 +220,22 @@ constexpr Type* Memory::assumeAligned(Type* ptr)
       std::assume_aligned<kN>(ptr);
 #endif // Z_CLANG
   return result;
+}
+
+/*!
+  \details No detailed description
+
+  \param [in,out] ptr No description.
+  */
+inline
+void Memory::free(void* ptr)
+{
+  std::free(ptr);
+//#if defined(Z_WINDOWS)
+//  _aligned_free(data);
+//#elif defined(Z_MAC) && defined(Z_CLANG)
+//  free(data);
+//#else
 }
 
 /*!
@@ -232,6 +268,20 @@ Memory::SystemMemoryStats Memory::retrieveSystemStats() noexcept
 /*!
   \details No detailed description
 
+  \param [in] alignment No description.
+  \param [in] size No description.
+  \return No description
+  */
+inline
+void* aligned_alloc(const std::size_t alignment, const std::size_t size)
+{
+  void* ptr = Memory::allocate(alignment, size);
+  return ptr;
+}
+
+/*!
+  \details No detailed description
+
   \tparam kN No description.
   \tparam Type No description.
   \param [in] ptr No description.
@@ -242,6 +292,17 @@ constexpr Type* assume_aligned(Type* ptr)
 {
   Type* result = Memory::assumeAligned<kN>(ptr);
   return result;
+}
+
+/*!
+  \details No detailed description
+
+  \param [in,out] ptr No description.
+  */
+inline
+void free(void* ptr)
+{
+  Memory::free(ptr);
 }
 
 } // namespace zisc

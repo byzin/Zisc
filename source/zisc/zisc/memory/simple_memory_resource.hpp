@@ -16,13 +16,14 @@
 #define ZISC_SIMPLE_MEMORY_RESOURCE_HPP
 
 // Standard C++ library
-#include <array>
 #include <cstddef>
+#include <memory>
 // Zisc
 #include "memory.hpp"
-#include "non_copyable.hpp"
 #include "std_memory_resource.hpp"
-#include "zisc_config.hpp"
+#include "zisc/concepts.hpp"
+#include "zisc/non_copyable.hpp"
+#include "zisc/zisc_config.hpp"
 
 namespace zisc {
 
@@ -82,13 +83,6 @@ class SimpleMemoryResource : public pmr::memory_resource,
   std::size_t peakMemoryUsage() const noexcept;
 
  private:
-  //! Allocate aligned memory
-  static void* alignedAlloc(const std::size_t size,
-                            const std::size_t alignment) noexcept;
-
-  //! Deallocate previously allocated memory
-  static void alignedFree(void* data) noexcept;
-
   //! Allocate memory
   void* do_allocate(std::size_t size,
                     std::size_t alignment) override;
@@ -103,6 +97,10 @@ class SimpleMemoryResource : public pmr::memory_resource,
 
   //! Return the header info of the memory allocation
   Header* getHeader(void* data) noexcept;
+
+  //! Return the header info of the memory allocation
+  template <Pointer HeaderPtr, Pointer Type>
+  static HeaderPtr getHeaderImpl(Type data) noexcept;
 
 
   Memory::Usage memory_usage_;

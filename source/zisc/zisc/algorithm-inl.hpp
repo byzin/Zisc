@@ -27,7 +27,7 @@
 #include <utility>
 // Zisc
 #include "error.hpp"
-#include "std_memory_resource.hpp"
+#include "memory/std_memory_resource.hpp"
 #include "type_traits.hpp"
 #include "utility.hpp"
 #include "zisc_config.hpp"

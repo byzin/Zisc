@@ -24,8 +24,8 @@
 // Zisc
 #include "algorithm.hpp"
 #include "atomic.hpp"
-#include "std_memory_resource.hpp"
-#include "zisc/zisc_config.hpp"
+#include "zisc_config.hpp"
+#include "memory/std_memory_resource.hpp"
 
 namespace zisc {
 

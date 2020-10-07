@@ -38,7 +38,7 @@ static_assert(false, "Compiler doesn't have 'memory_resource'.");
 #include <utility>
 #include <vector>
 // Zisc
-#include "type_traits.hpp"
+#include "zisc/concepts.hpp"
 
 namespace zisc {
 
@@ -178,6 +178,7 @@ using basic_string = std::basic_string<CharType,
                                        polymorphic_allocator<CharType>>;
 using string = basic_string<char>;
 using wstring = basic_string<wchar_t>;
+using u8string = basic_string<char8_t>;
 using u16string = basic_string<char16_t>;
 using u32string = basic_string<char32_t>;
 
@@ -211,9 +212,8 @@ class UniquePtrDeleter
   UniquePtrDeleter(UniquePtrDeleter&& other) noexcept;
 
   //! Move a data from a super class
-  template <typename Super>
-  UniquePtrDeleter(UniquePtrDeleter<Super>&& other,
-                   EnableIfBaseOf<Type, Super> = kEnabler) noexcept;
+  template <DerivedFrom<Type> Derived>
+  UniquePtrDeleter(UniquePtrDeleter<Derived>&& other) noexcept;
 
 
   //! Move a data

@@ -21,7 +21,7 @@
 #include "gtest/gtest.h"
 // Zisc
 #include "zisc/bitset.hpp"
-#include "zisc/std_memory_resource.hpp"
+#include "zisc/memory/std_memory_resource.hpp"
 
 TEST(BitsetTest, ConstructionTest)
 {

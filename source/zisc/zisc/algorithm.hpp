@@ -16,8 +16,8 @@
 #define ZISC_ALGORITHM_HPP
 
 // Zisc
-#include "simple_memory_resource.hpp"
-#include "std_memory_resource.hpp"
+#include "memory/simple_memory_resource.hpp"
+#include "memory/std_memory_resource.hpp"
 #include "type_traits.hpp"
 #include "zisc_config.hpp"
 

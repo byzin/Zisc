@@ -16,8 +16,8 @@
 #include "gtest/gtest.h"
 // Zisc
 #include "zisc/linear_interp.hpp"
-#include "zisc/simple_memory_resource.hpp"
 #include "zisc/utility.hpp"
+#include "zisc/memory/simple_memory_resource.hpp"
 
 TEST(LinearInterpTest, InterpolateTest)
 {

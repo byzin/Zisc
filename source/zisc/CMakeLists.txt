@@ -116,8 +116,8 @@ configure_file(${PROJECT_SOURCE_DIR}/zisc/zisc_config-inl.hpp.in
                @ONLY)
 
 # Create Zisc library
-file(GLOB zisc_source_files ${PROJECT_SOURCE_DIR}/zisc/*.cpp
-                            ${PROJECT_SOURCE_DIR}/zisc/*.hpp)
+file(GLOB_RECURSE zisc_source_files ${PROJECT_SOURCE_DIR}/zisc/*.cpp
+                                    ${PROJECT_SOURCE_DIR}/zisc/*.hpp)
 list(APPEND zisc_source_files ${zisc_config_dir}/zisc_config-inl.hpp)
 add_library(${PROJECT_NAME} STATIC ${zisc_source_files})
 source_group(${PROJECT_NAME} FILES ${zisc_source_files})

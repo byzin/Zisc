@@ -18,9 +18,9 @@
 #include <cstddef>
 #include <limits>
 // Zisc
-#include "error.hpp"
-#include "utility.hpp"
-#include "zisc_config.hpp"
+#include "zisc/error.hpp"
+#include "zisc/utility.hpp"
+#include "zisc/zisc_config.hpp"
 // Platform
 #if defined(Z_WINDOWS)
 #define NOMINMAX

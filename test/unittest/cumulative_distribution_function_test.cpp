@@ -16,9 +16,9 @@
 #include "gtest/gtest.h"
 // Zisc
 #include "zisc/cumulative_distribution_function.hpp"
-#include "zisc/simple_memory_resource.hpp"
-#include "zisc/std_memory_resource.hpp"
 #include "zisc/utility.hpp"
+#include "zisc/memory/simple_memory_resource.hpp"
+#include "zisc/memory/std_memory_resource.hpp"
 
 namespace {
 

@@ -18,7 +18,7 @@
 #include <string>
 // Zisc
 #include "zisc/csv.hpp"
-#include "zisc/simple_memory_resource.hpp"
+#include "zisc/memory/simple_memory_resource.hpp"
 
 int main()
 {

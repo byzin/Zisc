@@ -101,10 +101,17 @@ class Memory
   };
 
 
+  //! Allocate aligned memory
+  [[nodiscard]]
+  static void* allocate(const std::size_t alignment, const std::size_t size);
+
   //! Inform the compiler that a pointer is aligned
   template <std::size_t kN, typename Type>
   [[nodiscard]]
   static constexpr Type* assumeAligned(Type* ptr);
+
+  //! Deallocate previously allocated memory
+  static void free(void* ptr);
 
   //! Check if an address of the \a data is aligned at the \a alignment bytes
   static bool isAligned(const void* data, const std::size_t alignment) noexcept;
@@ -117,10 +124,19 @@ class Memory
   static SystemMemoryStats retrieveSystemStatsImpl() noexcept;
 };
 
+// STL style function aliases
+
+//! Allocate aligned memory
+[[nodiscard]]
+void* aligned_alloc(const std::size_t alignment, const std::size_t size);
+
 //! Inform the compiler that a pointer is aligned
 template <std::size_t kN, typename Type>
 [[nodiscard]]
 constexpr Type* assume_aligned(Type* ptr);
+
+//! Deallocate previously allocated memory
+void free(void* ptr);
 
 } // namespace zisc
 

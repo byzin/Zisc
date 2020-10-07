@@ -22,7 +22,7 @@
 #include <vector>
 // Zisc
 #include "non_copyable.hpp"
-#include "std_memory_resource.hpp"
+#include "memory/std_memory_resource.hpp"
 
 namespace zisc {
 

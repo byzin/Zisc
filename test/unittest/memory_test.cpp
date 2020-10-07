@@ -22,9 +22,9 @@
 // Googletest
 #include "gtest/gtest.h"
 // Zisc
-#include "zisc/memory.hpp"
 #include "zisc/unit_multiple.hpp"
 #include "zisc/zisc_config.hpp"
+#include "zisc/memory/memory.hpp"
 
 TEST(MemoryTest, SystemMemoryStatsTest)
 {

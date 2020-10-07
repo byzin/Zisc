@@ -22,8 +22,7 @@
 #include <type_traits>
 #include <utility>
 // Zisc
-#include "error.hpp"
-#include "type_traits.hpp"
+#include "zisc/concepts.hpp"
 
 namespace zisc {
 
@@ -63,12 +62,11 @@ UniquePtrDeleter<Type>::UniquePtrDeleter(UniquePtrDeleter&& other) noexcept:
 /*!
   \details No detailed description
 
-  \tparam Super No description.
+  \tparam Derived No description.
   \param [in] other No description.
   */
-template <typename Type> template <typename Super> inline
-UniquePtrDeleter<Type>::UniquePtrDeleter(UniquePtrDeleter<Super>&& other,
-                                         EnableIfBaseOf<Type, Super>) noexcept
+template <typename Type> template <DerivedFrom<Type> Derived> inline
+UniquePtrDeleter<Type>::UniquePtrDeleter(UniquePtrDeleter<Derived>&& other) noexcept
     : resource_{other.resource()}
 {
 }

@@ -56,6 +56,11 @@ TEST(SimpleMemoryResourceTest, MemoryAllocationTest)
   peak = total;
   ASSERT_GE(mem_resource.totalMemoryUsage(), total);
   ASSERT_GE(mem_resource.peakMemoryUsage(), peak);
+  {
+    const auto header = mem_resource.getHeader(p1);
+    ASSERT_TRUE(header->size_) << "Header initialization failed.";
+    ASSERT_TRUE(header->alignment_) << "Header initialization failed.";
+  }
 
   auto p2 = mem_resource.allocate(sizeof(uint16b), std::alignment_of_v<uint16b>);
   total += sizeof(uint16b) + header_s;

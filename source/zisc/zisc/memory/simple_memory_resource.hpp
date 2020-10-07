@@ -96,9 +96,6 @@ class SimpleMemoryResource : public pmr::memory_resource,
   bool do_is_equal(const pmr::memory_resource& other) const noexcept override;
 
   //! Return the header info of the memory allocation
-  Header* getHeader(void* data) noexcept;
-
-  //! Return the header info of the memory allocation
   template <Pointer HeaderPtr, Pointer Type>
   static HeaderPtr getHeaderImpl(Type data) noexcept;
 

@@ -80,3 +80,22 @@ TEST(MemoryTest, AlignmentTest)
     ASSERT_EQ(ptr1, ptr2) << "zisc::assume_aligned() failed.";
   }
 }
+
+TEST(MemoryTest, AllocateTest)
+{
+  auto test_alloc = [](const std::size_t s)
+  {
+    void* mem = zisc::aligned_alloc(s, s);
+    ASSERT_TRUE(mem != nullptr)
+        << "zisc::aligned_alloc(" << s << "," << s << ") failed.";
+    ASSERT_TRUE(zisc::Memory::isAligned(mem, s))
+        << "zisc::aligned_alloc(" << s << "," << s << ") failed.";
+    zisc::free(mem);
+  };
+  test_alloc(1);
+  test_alloc(4);
+  test_alloc(16);
+  test_alloc(64);
+  test_alloc(1024);
+  test_alloc(4096);
+}

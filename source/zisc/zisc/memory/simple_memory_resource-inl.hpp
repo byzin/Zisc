@@ -93,7 +93,7 @@ void* SimpleMemoryResource::allocateMemory(const std::size_t size,
   ZISC_ASSERT(Memory::isAligned(data, alignment), "The data isn't aligned.");
   // Initialize header
   {
-    Header* header = getHeader(data);
+    Header* header = getHeaderImpl<Header*>(data);
     header->pointer_ = ptr;
     header->size_ = alloc_size;
     header->alignment_ = alloc_alignment;
@@ -112,7 +112,7 @@ void SimpleMemoryResource::deallocateMemory(void* data,
                                             const std::size_t /* size */,
                                             const std::size_t /* alignment */) noexcept
 {
-  Header* header = getHeader(data);
+  Header* header = getHeaderImpl<Header*>(cast<uint8b*>(data));
   const std::size_t alloc_size = header->size_;
   free(header->pointer_);
   memory_usage_.release(alloc_size);
@@ -162,19 +162,6 @@ inline
 std::size_t SimpleMemoryResource::peakMemoryUsage() const noexcept
 {
   return memoryUsage().peak();
-}
-
-/*!
-  \details No detailed description
-
-  \param [in] data No description.
-  \return No description
-  */
-inline
-auto SimpleMemoryResource::getHeader(void* data) noexcept -> Header*
-{
-  Header* header = getHeaderImpl<Header*>(cast<uint8b*>(data));
-  return header;
 }
 
 /*!

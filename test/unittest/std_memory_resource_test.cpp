@@ -30,13 +30,16 @@ TEST(StdMemoryResourceTest, StringStreamTest)
 
   {
     zisc::pmr::polymorphic_allocator<char> alloc{&mem_resource};
-    zisc::pmr::string init{alloc};
+    zisc::pmr::string init{zisc::pmr::string::allocator_type{alloc}};
     zisc::pmr::stringstream code{init};
     code << "Zisc";
     code << "String";
     code << "Test";
     ASSERT_STREQ(code.str().data(), "ZiscStringTest");
   }
+
+  std::cout << "total: " << mem_resource.totalMemoryUsage() << " bytes" << std::endl;
+  std::cout << "peak : " << mem_resource.peakMemoryUsage() << " bytes" << std::endl;
 }
 
 TEST(StdMemoryResourceTest, UniquePtrConstructionTest)
@@ -57,6 +60,28 @@ TEST(StdMemoryResourceTest, UniquePtrConstructionTest)
   }
   ASSERT_FALSE(mem_resource.totalMemoryUsage())
       << "Memory deallocation using the memory resource failed.";
+
+  // Derivation test
+  {
+    struct Base
+    {
+      virtual ~Base() {}
+      virtual int getValue()
+      {
+        return 0;
+      }
+    };
+    struct Test : public Base
+    {
+      int getValue() override
+      {
+        return 1;
+      }
+    };
+    using UniqueBase = zisc::pmr::unique_ptr<Base>;
+    UniqueBase ptr = zisc::pmr::allocateUnique<Test>(&mem_resource);
+    ASSERT_TRUE(ptr->getValue());
+  }
 }
 
 TEST(StdMemoryResourceTest, UniquePtrDeletionTest)

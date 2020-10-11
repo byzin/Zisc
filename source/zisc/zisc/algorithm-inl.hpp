@@ -103,7 +103,7 @@ constexpr Float Algorithm::invert(const Float x) noexcept
   static_assert(kIsFloat<Float>, "Float isn't floating point.");
   constexpr Float zero = cast<Float>(0.0);
   constexpr Float one = cast<Float>(1.0);
-  constexpr Float m = std::numeric_limits<Float>::max();
+  constexpr Float m = (std::numeric_limits<Float>::max)();
   const auto y = (x != zero) ? one / x : m;
   return y;
 }

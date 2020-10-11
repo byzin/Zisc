@@ -21,7 +21,8 @@
 #include <type_traits>
 // Zisc
 #include "algorithm.hpp"
-#include "type_traits.hpp"
+#include "bit.hpp"
+#include "concepts.hpp"
 #include "utility.hpp"
 #include "zisc_config.hpp"
 
@@ -34,16 +35,15 @@ namespace zisc {
   \param [in] x No description.
   \return No description
   */
-template <typename Float> inline
+template <ZFloatingPoint Float> inline
 constexpr bool isFinite(const Float& x) noexcept
 {
   if constexpr (kIsIeee754Binary<Float>) {
     return x.isFinite();
   }
   else {
-    static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-    const bool result = (-std::numeric_limits<Float>::max() <= x) &&
-                        (x <= std::numeric_limits<Float>::max());
+    using FLimit = std::numeric_limits<Float>;
+    const bool result = (FLimit::lowest() <= x) && (x <= (FLimit::max)());
     return result;
   }
 }
@@ -55,16 +55,15 @@ constexpr bool isFinite(const Float& x) noexcept
   \param [in] x No description.
   \return No description
   */
-template <typename Float> inline
+template <ZFloatingPoint Float> inline
 constexpr bool isInf(const Float& x) noexcept
 {
   if constexpr (kIsIeee754Binary<Float>) {
     return x.isInf();
   }
   else {
-    static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-    const bool result = (x == std::numeric_limits<Float>::infinity()) ||
-                        (x == -std::numeric_limits<Float>::infinity());
+    using FLimit = std::numeric_limits<Float>;
+    const bool result = (x == -FLimit::infinity()) || (x == FLimit::infinity());
     return result;
   }
 }
@@ -76,14 +75,13 @@ constexpr bool isInf(const Float& x) noexcept
   \param [in] x No description.
   \return No description
   */
-template <typename Float> inline
+template <ZFloatingPoint Float> inline
 constexpr bool isNan(const Float& x) noexcept
 {
   if constexpr (kIsIeee754Binary<Float>) {
     return x.isNan();
   }
   else {
-    static_assert(kIsFloat<Float>, "Float isn't floating point type.");
     const bool result = !(isFinite(x) || isInf(x));
     return result;
   }
@@ -96,17 +94,16 @@ constexpr bool isNan(const Float& x) noexcept
   \param [in] x No description.
   \return No description
   */
-template <typename Float> inline
+template <ZFloatingPoint Float> inline
 constexpr bool isNormal(const Float& x) noexcept
 {
   if constexpr (kIsIeee754Binary<Float>) {
     return x.isNormal();
   }
   else {
-    static_assert(kIsFloat<Float>, "Float isn't floating point type.");
+    using FLimit = std::numeric_limits<Float>;
     const Float d = abs(x);
-    const bool result = ((std::numeric_limits<Float>::min)() <= d) &&
-                        (d <= (std::numeric_limits<Float>::max)());
+    const bool result = ((FLimit::min)() <= d) && (d <= (FLimit::max)());
     return result;
   }
 }
@@ -118,17 +115,17 @@ constexpr bool isNormal(const Float& x) noexcept
   \param [in] x No description.
   \return No description
   */
-template <typename Float> inline
+template <ZFloatingPoint Float> inline
 constexpr bool isSubnormal(const Float& x) noexcept
 {
   if constexpr (kIsIeee754Binary<Float>) {
     return x.isSubnormal();
   }
   else {
-    static_assert(kIsFloat<Float>, "Float isn't floating point type.");
+    using FLimit = std::numeric_limits<Float>;
     constexpr Float zero = cast<Float>(0);
     const Float d = abs(x);
-    const bool result = (zero < d) && (d < (std::numeric_limits<Float>::min)());
+    const bool result = (zero < d) && (d < (FLimit::min)());
     return result;
   }
 }
@@ -138,7 +135,19 @@ constexpr bool isSubnormal(const Float& x) noexcept
   */
 template <Ieee754BinaryFormat kFormat> inline
 constexpr Ieee754Binary<kFormat>::Ieee754Binary() noexcept :
-    data_{0} {
+    data_{0}
+{
+}
+
+/*!
+  \details No detailed description
+
+  \param [in] value No description.
+  */
+template <Ieee754BinaryFormat kFormat> template <FloatingPoint Float> inline
+constexpr Ieee754Binary<kFormat>::Ieee754Binary(const Float value) noexcept :
+    Ieee754Binary(bit_cast<BitType>(cast<FloatType>(value)))
+{
 }
 
 /*!
@@ -184,10 +193,46 @@ constexpr auto Ieee754Binary<kFormat>::operator-() const noexcept
   \return No description
   */
 template <Ieee754BinaryFormat kFormat> inline
+constexpr Ieee754Binary<kFormat>::operator Binary16() const noexcept
+{
+  const auto result = convertTo<Ieee754BinaryFormat::kHalf>();
+  return result;
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+template <Ieee754BinaryFormat kFormat> inline
+constexpr Ieee754Binary<kFormat>::operator Binary32() const noexcept
+{
+  const auto result = convertTo<Ieee754BinaryFormat::kSingle>();
+  return result;
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+template <Ieee754BinaryFormat kFormat> inline
+constexpr Ieee754Binary<kFormat>::operator Binary64() const noexcept
+{
+  const auto result = convertTo<Ieee754BinaryFormat::kDouble>();
+  return result;
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+template <Ieee754BinaryFormat kFormat> inline
 constexpr Ieee754Binary<kFormat>::operator float() const noexcept
 {
-  auto dst = convertTo<Ieee754BinaryFormat::kSingle>();
-  const float result = dst.makeFloat(dst.bits());
+  const auto dst = cast<Binary32>(*this);
+  const float result = bit_cast<float>(dst.bits());
   return result;
 }
 
@@ -199,8 +244,8 @@ constexpr Ieee754Binary<kFormat>::operator float() const noexcept
 template <Ieee754BinaryFormat kFormat> inline
 constexpr Ieee754Binary<kFormat>::operator double() const noexcept
 {
-  auto dst = convertTo<Ieee754BinaryFormat::kDouble>();
-  const double result = dst.makeFloat(dst.bits());
+  const auto dst = cast<Binary64>(*this);
+  const double result = bit_cast<double>(dst.bits());
   return result;
 }
 
@@ -435,26 +480,6 @@ constexpr auto Ieee754Binary<kFormat>::zero() noexcept -> Ieee754Binary
 /*!
   \details No detailed description
 
-  \tparam UInt No description.
-  \param [in] x No description.
-  \return No description
-  */
-template <Ieee754BinaryFormat kFormat> template <typename UInt> inline
-constexpr auto Ieee754Binary<kFormat>::mapTo01(const UInt x) noexcept
-    -> FloatType
-{
-  static_assert(kIsUnsignedInteger<UInt>, "UInt isn't unsigned integer.");
-  constexpr FloatType k =
-      cast<FloatType>(1) /
-      cast<FloatType>(cast<BitType>(0b1u) << (significandBitSize() + 1));
-  const BitType r = cast<BitType>(expandBits(x) >> exponentBitSize());
-  const FloatType y = k * cast<FloatType>(r);
-  return y;
-}
-
-/*!
-  \details No detailed description
-
   \return No description
   */
 template <Ieee754BinaryFormat kFormat> inline
@@ -614,134 +639,19 @@ constexpr auto Ieee754Binary<kFormat>::implicitBit() noexcept -> BitType
 /*!
   \details No detailed description
 
-  \param [in] value No description.
-  \return No description
-  */
-template <Ieee754BinaryFormat kFormat> inline
-constexpr auto Ieee754Binary<kFormat>::makeBits(const FloatType value) noexcept
-    -> BitType
-{
-  const auto exp_bits = makeExponentBits(value);
-  const auto sig_bits = makeSignificandBits(value, exp_bits);
-  const BitType b = cast<BitType>(makeSignBit(value) | exp_bits | sig_bits);
-  return b;
-}
-
-/*!
-  \details No detailed description
-
-  \param [in] value No description.
-  \return No description
-  */
-template <Ieee754BinaryFormat kFormat> inline
-constexpr auto Ieee754Binary<kFormat>::makeExponentBits(const FloatType value) noexcept
-    -> BitType
-{
-  BitType b = zisc::isFinite(value) ? BitType{0b0u} : exponentBitMask();
-  if (zisc::isNormal(value)) {
-    constexpr std::size_t size = 8 * sizeof(uint64b);
-    constexpr FloatType o = cast<FloatType>(1);
-    constexpr FloatType p = calcExp2(cast<int>(size));
-    constexpr FloatType n = o / p;
-    FloatType v = abs(value);
-    std::size_t expt = exponentBias();
-    for (; p <= v; v = n * v)
-      expt = expt + size;
-    for (; v < o; v = p * v)
-      expt = expt - size;
-    const uint64b rest_value = cast<uint64b>(v);
-    expt = expt + Algorithm::getExponent(rest_value);
-    b = cast<BitType>(expt << significandBitSize());
-  }
-  return b;
-}
-
-/*!
-  \details No detailed description
-
-  \param [in] data No description.
-  \return No description
-  */
-template <Ieee754BinaryFormat kFormat> inline
-constexpr auto Ieee754Binary<kFormat>::makeFloat(const BitType data) noexcept
-    -> FloatType
-{
-  const BitType exp_bits = getExponentBits(data);
-  const BitType sig_bits = getSignificandBits(data);
-  FloatType value = cast<FloatType>(0);
-  if (exp_bits == exponentBitMask()) {
-    // Special value case
-    value = (sig_bits == 0)
-        ? std::numeric_limits<FloatType>::infinity()
-        : std::numeric_limits<FloatType>::quiet_NaN();
-  }
-  else if (exp_bits == 0) {
-    // Subnormal value case
-    constexpr auto unit = std::numeric_limits<FloatType>::denorm_min();
-    const FloatType sig_v = cast<FloatType>(sig_bits);
-    value = sig_v * unit;
-  }
-  else {
-    // Normal value case
-    constexpr auto unit = calcExp2(-cast<int>(significandBitSize()));
-    const FloatType sig_v = cast<FloatType>(implicitBit() | sig_bits);
-    const FloatType exp_v = calcExp2(getExponent(exp_bits));
-    value = exp_v * (sig_v * unit);
-  }
-
-  // Align sign
-  const BitType sign_bit = getSignBit(data);
-  value = (sign_bit == 0) ? value : -value;
-
-  return value;
-}
-
-/*!
-  \details No detailed description
-
-  \param [in] value No description.
-  \return No description
-  */
-template <Ieee754BinaryFormat kFormat> inline
-constexpr auto Ieee754Binary<kFormat>::makeSignBit(const FloatType value) noexcept
-    -> BitType
-{
-  const BitType b = isNegative(value) ? signBitMask() : BitType{0b0u};
-  return b;
-}
-
-/*!
-  \details No detailed description
-
-  \param [in] value No description.
-  \return No description
-  */
-template <Ieee754BinaryFormat kFormat> inline
-constexpr auto Ieee754Binary<kFormat>::makeSignificandBits(const FloatType value) noexcept
-    -> BitType
-{
-  const auto exp_bits = makeExponentBits(value);
-  const auto b = makeSignificandBits(value, exp_bits);
-  return b;
-}
-
-/*!
-  \details No detailed description
-
-  \tparam UInt No description.
+  \tparam Integer No description.
   \tparam kMode No description.
   \param [in] bits No description.
   \param [in] trailing_bits No description.
   \return No description
   */
 template <Ieee754BinaryFormat kFormat>
-template <Ieee754RoundingMode kMode, typename UInt> inline
+template <Ieee754RoundingMode kMode, UnsignedInteger Integer> inline
 constexpr auto Ieee754Binary<kFormat>::round(const BitType bits,
-                                             const UInt trailing_bits) noexcept
+                                             const Integer trailing_bits) noexcept
     -> BitType
 {
-  static_assert(kIsUnsignedInteger<UInt>, "UInt isn't unsigned integer type.");
-  const UInt middle = cast<UInt>(UInt{0b1} << (8 * sizeof(UInt) - 1));
+  const auto middle = cast<Integer>(Integer{0b1} << (8 * sizeof(Integer) - 1));
   // Rounding to nearest
   // tie-break rule is 'nearest even'
   const bool is_rounded_up = ((trailing_bits == middle) && isOdd(bits)) ||
@@ -800,27 +710,6 @@ constexpr std::size_t Ieee754Binary<kFormat>::significandBitSize() noexcept
   const std::size_t s = (kFormat == Ieee754BinaryFormat::kHalf) ? 10 :
                         (kFormat == Ieee754BinaryFormat::kSingle) ? 23 : 52;
   return s;
-}
-
-/*!
-  \details No detailed description
-
-  \param [in] expt No description.
-  \return No description
-  */
-template <Ieee754BinaryFormat kFormat> inline
-constexpr auto Ieee754Binary<kFormat>::calcExp2(const int expt) noexcept
-    -> FloatType
-{
-  FloatType base = isNegative(expt) ? cast<FloatType>(0.5) : cast<FloatType>(2.0);
-  FloatType x = cast<FloatType>(1);
-  for (int e = abs(expt); 0 < e; e = e >> 1) {
-    if (isOdd(e))
-      x = x * base;
-    if (1 < e)
-      base = base * base;
-  }
-  return x;
 }
 
 /*!
@@ -940,8 +829,8 @@ constexpr Ieee754Binary<kDstFormat> Ieee754Binary<kFormat>::scaledUp() const noe
                               (dst_sig_size - sig_size);
     const BitType exp_bits = getExponentBits(bits());
     if (exp_bits == 0) { // Subnormal case
-      constexpr auto imp_expt = Algorithm::getExponent(DstBinary::implicitBit());
-      const auto bit_expt = Algorithm::getExponent(dst_sig_bits);
+      constexpr auto imp_expt = bit_width(DstBinary::implicitBit());
+      const auto bit_expt = bit_width(dst_sig_bits);
       const DstBitType expt_diff = imp_expt - bit_expt;
       dst_expt = (1 + dst_expt) - expt_diff;
       dst_sig_bits = cast<DstBitType>(dst_sig_bits << expt_diff);
@@ -961,34 +850,6 @@ constexpr Ieee754Binary<kDstFormat> Ieee754Binary<kFormat>::scaledUp() const noe
 /*!
   \details No detailed description
 
-  \tparam UInt No description.
-  \param [in] x No description.
-  \return No description
-  */
-template <Ieee754BinaryFormat kFormat> template <typename UInt> inline
-constexpr auto Ieee754Binary<kFormat>::expandBits(const UInt x) noexcept -> BitType
-{
-  static_assert(kIsUnsignedInteger<UInt>, "UInt isn't unsigned integer.");
-  constexpr std::size_t x_size = 8 * sizeof(UInt);
-  constexpr std::size_t bit_size = 8 * sizeof(BitType);
-  BitType result = 0;
-  if constexpr (x_size == bit_size) {
-    result = x;
-  }
-  else if constexpr (x_size < bit_size) {
-    constexpr std::size_t diff = bit_size - x_size;
-    result = cast<BitType>(cast<BitType>(x) << diff);
-  }
-  else {
-    constexpr std::size_t diff = x_size - bit_size;
-    result = cast<BitType>(x >> diff);
-  }
-  return result;
-}
-
-/*!
-  \details No detailed description
-
   \param [in] data No description.
   \return No description
   */
@@ -997,33 +858,6 @@ constexpr auto Ieee754Binary<kFormat>::getRealSignificandBits(const BitType data
     -> BitType
 {
   const BitType b = cast<BitType>(implicitBit() | (data & significandBitMask()));
-  return b;
-}
-
-/*!
-  \details No detailed description
-
-  \param [in] value No description.
-  \param [in] exp_bits No description.
-  \return No description
-  */
-template <Ieee754BinaryFormat kFormat> inline
-constexpr auto Ieee754Binary<kFormat>::makeSignificandBits(
-    const FloatType value,
-    const BitType exp_bits) noexcept -> BitType
-{
-  BitType b = zisc::isNan(value) ? quietNan().bits() : BitType{0b0u};
-  if (zisc::isSubnormal(value)) {
-    constexpr auto denorm = std::numeric_limits<FloatType>::denorm_min();
-    b = cast<BitType>(abs(value) / denorm);
-  }
-  else if (zisc::isNormal(value)) {
-    constexpr FloatType denorm = calcExp2(cast<int>(significandBitSize()));
-    const int expt = getExponent(exp_bits);
-    const FloatType inv_exp_v = calcExp2(-expt);
-    b = cast<BitType>(denorm * (inv_exp_v * abs(value)));
-  }
-  b = cast<BitType>(b & significandBitMask());
   return b;
 }
 
@@ -1136,95 +970,6 @@ constexpr bool operator>=(const Ieee754Binary<kFormat>& lhs,
 {
   const bool result = (rhs <= lhs);
   return result;
-}
-
-/*!
-  \details No detailed description
-
-  \param [in] value No description.
-  \return No description
-  */
-template <typename Type, Ieee754RoundingMode kRMode> inline
-constexpr Type castBinary(const float value) noexcept
-{
-  if constexpr (kIsFloat<Type>) {
-    const Type result = cast<Type>(value);
-    return result;
-  }
-  else if constexpr (kIsIeee754Binary<Type>) {
-    const auto b = Binary32::makeBits(value);
-    Binary32 b32{b};
-    const Type result = castBinary<Type, Binary32::format(), kRMode>(b32);
-    return result;
-  }
-  else {
-    static_assert(std::is_void_v<Type>, "Invalid cast type is specified.");
-    return Type{};
-  }
-}
-
-/*!
-  \details No detailed description
-
-  \param [in] value No description.
-  \return No description
-  */
-template <typename Type, Ieee754RoundingMode kRMode> inline
-constexpr Type castBinary(const double value) noexcept
-{
-  if constexpr (kIsFloat<Type>) {
-    const Type result = cast<Type>(value);
-    return result;
-  }
-  else if constexpr (kIsIeee754Binary<Type>) {
-    const auto b = Binary64::makeBits(value);
-    Binary64 b64{b};
-    const Type result = castBinary<Type, Binary64::format(), kRMode>(b64);
-    return result;
-  }
-  else {
-    static_assert(std::is_void_v<Type>, "Invalid cast type is specified.");
-    return Type{};
-  }
-}
-
-/*!
-  \details No detailed description
-
-  \param [in] value No description.
-  \return No description
-  */
-template <typename Type, Ieee754RoundingMode kRMode> inline
-constexpr Type castBinary(const long double value) noexcept
-{
-  const double d = cast<double>(value);
-  const Type result = castBinary<Type, kRMode>(d);
-  return result;
-}
-
-/*!
-  \details No detailed description
-
-  \param [in] value No description.
-  \return No description
-  */
-template <typename Type, Ieee754BinaryFormat kFormat, Ieee754RoundingMode kRMode>
-inline
-constexpr Type castBinary(const Ieee754Binary<kFormat>& value) noexcept
-{
-  if constexpr (kIsFloat<Type>) {
-    const Type result = cast<Type>(value);
-    return result;
-  }
-  else if constexpr (kIsIeee754Binary<Type>) {
-    constexpr auto dst_format = Type::format();
-    const Type result = value.template convertTo<dst_format, kRMode>();
-    return result;
-  }
-  else {
-    static_assert(std::is_void_v<Type>, "Invalid cast type is specified.");
-    return Type{};
-  }
 }
 
 } // namespace zisc

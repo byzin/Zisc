@@ -19,6 +19,7 @@
 #include <cstddef>
 #include <type_traits>
 // Zisc
+#include "concepts.hpp"
 #include "utility.hpp"
 #include "zisc_config.hpp"
 
@@ -53,6 +54,12 @@ enum class Ieee754RoundingMode : int
 constexpr Ieee754RoundingMode kDefaultIeee754RoundingMode = Ieee754RoundingMode::kToNearest;
 
 
+// Type aliases
+template <Ieee754BinaryFormat kFormat> class Ieee754Binary;
+using Binary16 = Ieee754Binary<Ieee754BinaryFormat::kHalf>;
+using Binary32 = Ieee754Binary<Ieee754BinaryFormat::kSingle>;
+using Binary64 = Ieee754Binary<Ieee754BinaryFormat::kDouble>;
+
 /*!
   \brief The software implementation of IEEE 754 binary interchange format
 
@@ -79,6 +86,10 @@ class Ieee754Binary
   //! Initialize a value with 0
   constexpr Ieee754Binary() noexcept;
 
+  //! Initialize a value with a floating point value
+  template <FloatingPoint Float>
+  constexpr Ieee754Binary(const Float value) noexcept;
+
   //! Initialize a value with the given bits
   constexpr Ieee754Binary(const BitType data) noexcept;
 
@@ -88,6 +99,15 @@ class Ieee754Binary
 
   //! Return the negated value
   constexpr Ieee754Binary operator-() const noexcept;
+
+  //! Convert to binary16
+  explicit constexpr operator Binary16() const noexcept;
+
+  //! Convert to binary32
+  explicit constexpr operator Binary32() const noexcept;
+
+  //! Convert to binary64
+  explicit constexpr operator Binary64() const noexcept;
 
   //! Conver to a float
   explicit constexpr operator float() const noexcept;
@@ -149,12 +169,6 @@ class Ieee754Binary
   //! Return the positive zero
   static constexpr Ieee754Binary zero() noexcept;
 
-  // Utility
-
-  //! Map an integer value into a [0, 1) floating point value
-  template <typename UInt>
-  static constexpr FloatType mapTo01(const UInt x) noexcept;
-
   // Bit manipulation
 
   //! Return the bits in which a floating point is encoded
@@ -193,25 +207,10 @@ class Ieee754Binary
   //! Return the hidden bit of normal values
   static constexpr BitType implicitBit() noexcept;
 
-  //! Make bits from the given floating point
-  static constexpr BitType makeBits(const FloatType value) noexcept;
-
-  //! Make exponent bits from the given floating point
-  static constexpr BitType makeExponentBits(const FloatType value) noexcept;
-
-  //! Make a floating point from the given bits
-  static constexpr FloatType makeFloat(const BitType data) noexcept;
-
-  //! Make a sign bit from the given floating point
-  static constexpr BitType makeSignBit(const FloatType value) noexcept;
-
-  //! Make significand bits from the given floating point
-  static constexpr BitType makeSignificandBits(const FloatType value) noexcept;
-
   //! Round the given value with the trailing bits
-  template <Ieee754RoundingMode kMode, typename UInt>
+  template <Ieee754RoundingMode kMode, UnsignedInteger Integer>
   static constexpr BitType round(const BitType bits,
-                                 const UInt trailing_bits) noexcept;
+                                 const Integer trailing_bits) noexcept;
 
   //! Set the data to the given bits
   constexpr void setBits(const BitType data) noexcept;
@@ -230,9 +229,6 @@ class Ieee754Binary
   static_assert(kBitSize == 8 * sizeof(FloatType));
 
 
-  //! Calculate the power of two with the given integer as the exponent
-  static constexpr FloatType calcExp2(const int expt) noexcept;
-
   //! Convert a special value to the dst format
   template <Ieee754BinaryFormat kDstFormat>
   constexpr Ieee754Binary<kDstFormat> convertSpecialValue() const noexcept;
@@ -247,16 +243,8 @@ class Ieee754Binary
 
   // Bit manipulation
 
-  //! Expand the given bits to the bit length of the internal data type
-  template <typename UInt>
-  static constexpr BitType expandBits(const UInt x) noexcept;
-
   //! Return the significand bits with implicit bit from the given bits
   static constexpr BitType getRealSignificandBits(const BitType data) noexcept;
-
-  //! Make significand bits from the given floating point
-  static constexpr BitType makeSignificandBits(const FloatType value,
-                                               const BitType exp_bits) noexcept;
 
 
   BitType data_;
@@ -293,32 +281,8 @@ constexpr bool operator>=(const Ieee754Binary<kFormat>& lhs,
                           const Ieee754Binary<kFormat>& rhs) noexcept;
 
 // Type aliases
-using Binary16 = Ieee754Binary<Ieee754BinaryFormat::kHalf>;
-using Binary32 = Ieee754Binary<Ieee754BinaryFormat::kSingle>;
-using Binary64 = Ieee754Binary<Ieee754BinaryFormat::kDouble>;
 template <std::size_t kBytes>
 using BinaryFromBytes = Ieee754Binary<cast<Ieee754BinaryFormat>(8 * kBytes)>;
-
-//! Convert the given floating point to the 'Type' binary or floating point
-template <typename Type,
-          Ieee754RoundingMode kRMode = kDefaultIeee754RoundingMode>
-constexpr Type castBinary(const float value) noexcept;
-
-//! Convert the given floating point to the 'Type' binary or floating point
-template <typename Type,
-          Ieee754RoundingMode kRMode = kDefaultIeee754RoundingMode>
-constexpr Type castBinary(const double value) noexcept;
-
-//! Convert the given floating point to the 'Type' binary or floating point
-template <typename Type,
-          Ieee754RoundingMode kRMode = kDefaultIeee754RoundingMode>
-constexpr Type castBinary(const long double value) noexcept;
-
-//! Convert the given binary to the 'Type' binary or floating point
-template <typename Type,
-          Ieee754BinaryFormat kFormat,
-          Ieee754RoundingMode kRMode = kDefaultIeee754RoundingMode>
-constexpr Type castBinary(const Ieee754Binary<kFormat>& value) noexcept;
 
 // Classification and comparison
 
@@ -328,24 +292,28 @@ constexpr bool kIsIeee754Binary = std::is_same_v<Binary16, Type> ||
                                   std::is_same_v<Binary32, Type> ||
                                   std::is_same_v<Binary64, Type>;
 
+//! Specify a type is floating point type or an instance of Ieee754Binary type
+template <typename Type>
+concept ZFloatingPoint = std::is_floating_point_v<Type> || kIsIeee754Binary<Type>;
+
 //! Check if the given value is finite value
-template <typename Float>
+template <ZFloatingPoint Float>
 constexpr bool isFinite(const Float& x) noexcept;
 
 //! Check if the given value is infinite
-template <typename Float>
+template <ZFloatingPoint Float>
 constexpr bool isInf(const Float& x) noexcept;
 
 //! Check if the given value is NaN
-template <typename Float>
+template <ZFloatingPoint Float>
 constexpr bool isNan(const Float& x) noexcept;
 
 //! Check if the given value is normal
-template <typename Float>
+template <ZFloatingPoint Float>
 constexpr bool isNormal(const Float& x) noexcept;
 
 //! Check if the given value is subnormal
-template <typename Float>
+template <ZFloatingPoint Float>
 constexpr bool isSubnormal(const Float& x) noexcept;
 
 } // namespace zisc

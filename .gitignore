@@ -42,6 +42,8 @@
 !/source/zisc/zisc/random/*.hpp
 !/source/zisc/zisc/queue/
 !/source/zisc/zisc/queue/*.hpp
+!/source/zisc/zisc/thread/
+!/source/zisc/zisc/thread/*.hpp
 # Zisc cmake file
 !source/zisc/cmake/
 !source/zisc/cmake/*.cmake

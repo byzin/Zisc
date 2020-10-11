@@ -24,6 +24,7 @@
 #include <type_traits>
 // Zisc
 #include "algorithm.hpp"
+#include "bit.hpp"
 #include "error.hpp"
 #include "ieee_754_binary.hpp"
 #include "utility.hpp"
@@ -552,8 +553,8 @@ constexpr Float Math::frexp(const Float x, int* e) noexcept
     *e = 0;
   }
   else {
-    *e = cast<int>(Binary::makeExponentBits(x) >> Binary::significandBitSize()) -
-         cast<int>(Binary::exponentBias() - 1);
+    const auto exp_bits = Binary::getExponentBits(bit_cast<typename Binary::BitType>(x));
+    *e = cast<int>(exp_bits >> Binary::significandBitSize()) - cast<int>(Binary::exponentBias() - 1);
     constexpr Float base = cast<Float>(0.5);
     const Float normalizer = power(base, *e);
     y = normalizer * x;

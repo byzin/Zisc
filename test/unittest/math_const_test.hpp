@@ -43,7 +43,7 @@ void printFloat(const char* message, const Float x)
   if (sizeof(Binary) == 4)
     std::cout << "f";
   std::cout << std::endl;
-  const Binary data = zisc::castBinary<Binary>(x);
+  const Binary data{x};
   std::cout << "                     hex: " << std::hex << data.bits() << std::endl;
   std::cout << std::dec;
 }

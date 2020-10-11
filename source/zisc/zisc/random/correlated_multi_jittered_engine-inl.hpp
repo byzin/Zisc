@@ -21,6 +21,7 @@
 #include <cstddef>
 #include <cstdint>
 // Zisc
+#include "zisc/algorithm.hpp"
 #include "zisc/bit.hpp"
 #include "zisc/concepts.hpp"
 #include "zisc/utility.hpp"
@@ -47,7 +48,7 @@ Float CorrelatedMultiJitteredEngine<kRootN>::generate1d(
   Float x = mapTo01<Float>(u);
 
   // Random jitter
-  constexpr Float inv_n = cast<Float>(1) / cast<Float>(n);
+  constexpr Float inv_n = invert(cast<Float>(n));
   const ValueType sx = permute<n>(s, p * 0x68bc21eb);
   x = inv_n * (cast<Float>(sx) + x);
 
@@ -77,8 +78,8 @@ std::array<Float, 2> CorrelatedMultiJitteredEngine<kRootN>::generate2d(
   Float y = mapTo01<Float>(u2);
 
   // Random jitter
-  constexpr Float inv_n = cast<Float>(1) / cast<Float>(n);
-  constexpr Float inv_root_n = cast<Float>(1) / cast<Float>(kRootN);
+  constexpr Float inv_n = invert(cast<Float>(n));
+  constexpr Float inv_root_n = invert(cast<Float>(kRootN));
   const ValueType s_div = s / kRootN;
   const ValueType s_mod = s  - s_div * kRootN;
   const ValueType sx = permute<kRootN>(s_mod, p * 0x68bc21eb);

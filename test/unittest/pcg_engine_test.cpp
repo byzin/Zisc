@@ -21,10 +21,10 @@
 #include "zisc/random/pcg_engine.hpp"
 
 template <typename PcgEngine>
-void testPcgEngine(const std::string& reference_path)
+void testPcgEngine(const std::string_view reference_path)
 {
   std::ifstream reference_file;
-  reference_file.open(reference_path);
+  reference_file.open(reference_path.data());
 
   using ValueType = typename PcgEngine::ValueType;
   constexpr ValueType seed = 42;

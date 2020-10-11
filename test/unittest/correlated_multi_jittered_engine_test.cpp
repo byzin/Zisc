@@ -15,6 +15,7 @@
 // Standard C++ library
 #include <cstdint>
 #include <fstream>
+#include <string_view>
 // GoogleTest
 #include "gtest/gtest.h"
 // Zisc
@@ -23,11 +24,13 @@
 #include "zisc/hash/fnv_1a_hash_engine.hpp"
 #include "zisc/random/correlated_multi_jittered_engine.hpp"
 
+namespace {
+
 template <typename CmjEngine>
-void testCmjEngine(const std::string& reference_file_path)
+void testCmjEngine(const std::string_view reference_file_path)
 {
   std::ifstream reference_file;
-  reference_file.open(reference_file_path);
+  reference_file.open(reference_file_path.data());
 
   std::uint32_t seed = 42;
   auto update_engine = [&seed](std::uint32_t& s)
@@ -71,10 +74,12 @@ void testCmjEngine(const std::string& reference_file_path)
   }
 }
 
+} // namespace 
+
 #define CMJ_TEST(engine_type, reference_path) \
     TEST(RandomNumberEngine, engine_type ## Test) \
     { \
-        testCmjEngine<zisc:: engine_type >(reference_path); \
+        ::testCmjEngine<zisc:: engine_type >(reference_path); \
     }
 
 CMJ_TEST(CmjN64, "resources/cmj_n64_reference.txt")

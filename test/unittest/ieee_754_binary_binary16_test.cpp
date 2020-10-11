@@ -17,6 +17,7 @@
 #include <cmath>
 #include <cstdint>
 #include <cstddef>
+#include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <limits>
@@ -187,4 +188,126 @@ TEST(Ieee754BinaryTest, Binary16LimitsTest)
     constexpr Binary16 denorm_min_b = Limits::denorm_min();
     ASSERT_EQ(denorm_min_ref, denorm_min_b.bits());
   }
+}
+
+TEST(Ieee754BinaryTest, Half2FloatConstantTest)
+{
+  using zisc::uint16b;
+  using zisc::uint32b;
+  using zisc::Binary16;
+  using Limits = std::numeric_limits<Binary16>;
+
+  union Float
+  {
+    Float(const uint32b v) : u_{v} {}
+    float f_;
+    uint32b u_;
+  };
+
+  auto to_float = [](const uint32b u) noexcept
+  {
+    const Float f{u};
+    return f.f_;
+  };
+
+  {
+    constexpr Binary16 min_b = (Limits::min)();
+    constexpr float result = zisc::cast<float>(min_b);
+    const float expected = to_float(0x38800000u);
+    ASSERT_FLOAT_EQ(expected, result);
+  }
+  {
+    constexpr Binary16 low_b = Limits::lowest();
+    constexpr float result = zisc::cast<float>(low_b);
+    const float expected = to_float(0xc77fe000u);
+    ASSERT_FLOAT_EQ(expected, result);
+  }
+  {
+    constexpr Binary16 max_b = (Limits::max)();
+    constexpr float result = zisc::cast<float>(max_b);
+    const float expected = to_float(0x477fe000u);
+    ASSERT_FLOAT_EQ(expected, result);
+  }
+  {
+    constexpr Binary16 zero_b = Binary16::zero();
+    constexpr float result = zisc::cast<float>(zero_b);
+    const float expected = to_float(0x0u);
+    ASSERT_FLOAT_EQ(expected, result);
+  }
+  {
+    constexpr Binary16 one_b = Binary16::one();
+    constexpr float result = zisc::cast<float>(one_b);
+    const float expected = to_float(0x3f800000u);
+    ASSERT_FLOAT_EQ(expected, result);
+  }
+  {
+    constexpr Binary16 infinity_b = Limits::infinity();
+    constexpr float result = zisc::cast<float>(infinity_b);
+    const float expected = to_float(0x7f800000u);
+    ASSERT_FLOAT_EQ(expected, result);
+  }
+  {
+    constexpr Binary16 infinity_b = -Limits::infinity();
+    constexpr float result = zisc::cast<float>(infinity_b);
+    const float expected = to_float(0xff800000u);
+    ASSERT_FLOAT_EQ(expected, result);
+  }
+  {
+    constexpr Binary16 denorm_min_b = Limits::denorm_min();
+    constexpr float result = zisc::cast<float>(denorm_min_b);
+    const float expected = to_float(0x33800000u);
+    ASSERT_FLOAT_EQ(expected, result);
+  }
+}
+
+namespace {
+
+template <int n>
+void testHalf2Float(const std::string_view reference_file_path)
+{
+  using zisc::uint16b;
+  using zisc::uint32b;
+  using zisc::Binary16;
+  using zisc::Binary32;
+
+  union Float
+  {
+    Float() : u_{0} {}
+    float f_;
+    uint32b u_;
+  };
+
+  std::ifstream reference_file{reference_file_path.data()};
+  for (int i = 0; i < n; ++i) {
+    Float v;
+    reference_file >> std::hex >> v.u_;
+
+    const Binary32 f{v.u_};
+    const Binary16 h = zisc::cast<Binary16>(f);
+    uint16b expected1 = 0;
+    reference_file >> std::hex >> expected1;
+    ASSERT_EQ(expected1, h.bits());
+
+    const float f2 = zisc::cast<float>(h);
+    Float expected2;
+    reference_file >> std::hex >> expected2.u_;
+    ASSERT_FLOAT_EQ(expected2.f_, f2);
+  }
+}
+
+} // namespace 
+
+TEST(Ieee754BinaryTest, Half2FloatTest)
+{
+  ::testHalf2Float<4096>("resources/half_float_reference.txt");
+}
+
+TEST(Ieee754BinaryTest, Half2FloatNegativeTest)
+{
+  ::testHalf2Float<4096>("resources/half_float_negative_reference.txt");
+}
+
+TEST(Ieee754BinaryTest, Half2FloatSubnormalTest)
+{
+  ::testHalf2Float<1024>("resources/half_float_subnormal_reference.txt");
 }

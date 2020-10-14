@@ -17,15 +17,17 @@
 
 // Standard C++ library
 #include <cstddef>
+// Zisc
+#include "concepts.hpp"
 
 namespace zisc {
 
 //! Convert degree to radian
-template <typename Float>
+template <FloatingPoint Float>
 constexpr Float toRadian(const Float angle) noexcept;
 
 //! Convert radian to degree
-template <typename Float>
+template <FloatingPoint Float>
 constexpr Float toAngle(const Float radian) noexcept;
 
 } // namespace zisc

@@ -33,6 +33,8 @@
 !/source/zisc/zisc/*.hpp
 !/source/zisc/zisc/*.cpp
 !/source/zisc/zisc/*.hpp.in
+!/source/zisc/zisc/math/
+!/source/zisc/zisc/math/*.hpp
 !/source/zisc/zisc/memory/
 !/source/zisc/zisc/memory/*.hpp
 !/source/zisc/zisc/memory/*.cpp

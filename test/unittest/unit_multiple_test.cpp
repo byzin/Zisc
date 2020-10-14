@@ -18,8 +18,8 @@
 #include "gtest/gtest.h"
 // Zisc
 #include "zisc/fraction.hpp"
-#include "zisc/math.hpp"
 #include "zisc/unit_multiple.hpp"
+#include "zisc/math/math.hpp"
 
 TEST(UnitMultipleTest, ConstructorTest)
 {
@@ -202,25 +202,25 @@ TEST(UnitMultipleTest, MetricPrefixTest)
   {
     constexpr Kilo kilo{1};
     constexpr Milli milli{kilo};
-    ASSERT_EQ(zisc::power<6>(10), milli.value().numerator());
+    ASSERT_EQ(zisc::pow(10, 6), milli.value().numerator());
     ASSERT_EQ(1, milli.value().denominator());
   }
   {
     constexpr Milli milli{1};
     constexpr Kilo kilo{milli};
     ASSERT_EQ(1, kilo.value().numerator());
-    ASSERT_EQ(zisc::power<6>(10), kilo.value().denominator());
+    ASSERT_EQ(zisc::pow(10, 6), kilo.value().denominator());
   }
   {
     constexpr Milli milli{1};
     constexpr Nano nano{milli};
-    ASSERT_EQ(zisc::power<6>(10), nano.value().numerator());
+    ASSERT_EQ(zisc::pow(10, 6), nano.value().numerator());
     ASSERT_EQ(1, nano.value().denominator());
   }
   {
     constexpr Nano nano{1};
     constexpr Milli milli{nano};
     ASSERT_EQ(1, milli.value().numerator());
-    ASSERT_EQ(zisc::power<6>(10), milli.value().denominator());
+    ASSERT_EQ(zisc::pow(10, 6), milli.value().denominator());
   }
 }

@@ -100,7 +100,6 @@ Integer Algorithm::clz(const Integer x) noexcept
 template <typename Float> inline
 constexpr Float Algorithm::invert(const Float x) noexcept
 {
-  static_assert(kIsFloat<Float>, "Float isn't floating point.");
   constexpr Float zero = cast<Float>(0.0);
   constexpr Float one = cast<Float>(1.0);
   constexpr Float m = (std::numeric_limits<Float>::max)();
@@ -772,7 +771,6 @@ constexpr std::common_type_t<Type, LowerType, UpperType> clamp(
 template <typename Float> inline
 constexpr Float invert(const Float x) noexcept
 {
-  static_assert(kIsFloat<Float>, "Float isn't floating point.");
   const auto y = Algorithm::invert(x);
   return y;
 }

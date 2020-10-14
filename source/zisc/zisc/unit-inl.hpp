@@ -18,11 +18,10 @@
 #include "unit.hpp"
 // Standard C++ library
 #include <cstddef>
-#include <type_traits>
 // Zisc
-#include "math.hpp"
-#include "type_traits.hpp"
+#include "concepts.hpp"
 #include "utility.hpp"
+#include "math/math.hpp"
 
 namespace zisc {
 
@@ -33,12 +32,12 @@ namespace zisc {
   \param [in] angle No description.
   \return Radian
   */
-template <typename Float> inline
+template <FloatingPoint Float> inline
 constexpr Float toRadian(const Float angle) noexcept
 {
-  static_assert(kIsFloat<Float>, "Float isn't floating point type.");
   constexpr Float k = kPi<Float> / cast<Float>(180.0);
-  return k * angle;
+  const Float radian = k * angle;
+  return radian;
 }
 
 /*!
@@ -48,12 +47,12 @@ constexpr Float toRadian(const Float angle) noexcept
   \param [in] radian No description.
   \return Degree
   */
-template <typename Float> inline
+template <FloatingPoint Float> inline
 constexpr Float toAngle(const Float radian) noexcept
 {
-  static_assert(kIsFloat<Float>, "Float isn't floating point type.");
   constexpr Float k = cast<Float>(180.0) / kPi<Float>;
-  return k * radian;
+  const Float angle = k * radian;
+  return angle;
 }
 
 } // namespace zisc

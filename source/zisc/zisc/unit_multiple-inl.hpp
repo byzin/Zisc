@@ -20,10 +20,10 @@
 #include <cstdint>
 // Zisc
 #include "fraction.hpp"
-#include "math.hpp"
 #include "type_traits.hpp"
 #include "utility.hpp"
 #include "zisc_config.hpp"
+#include "math/math.hpp"
 
 namespace zisc {
 
@@ -150,8 +150,8 @@ constexpr UnitMultiple<kBase, kToExponent> UnitMultiple<kBase, kExponent>::
   constexpr auto exponent_diff = kToExponent - exponent();
   if constexpr (exponent_diff != 0) {
     constexpr auto k = (0 < exponent_diff)
-        ? FractionType{1, zisc::power<exponent_diff>(base())}
-        : FractionType{zisc::power<-exponent_diff>(base()), 1};
+        ? FractionType{1, zisc::pow(base(), exponent_diff)}
+        : FractionType{zisc::pow(base(), -exponent_diff), 1};
     v = k * v;
   }
   return UnitMultiple<kBase, kToExponent>{v};

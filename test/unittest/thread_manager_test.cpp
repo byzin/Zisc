@@ -27,9 +27,9 @@
 // GoogleTest
 #include "gtest/gtest.h"
 // Zisc
-#include "zisc/math.hpp"
 #include "zisc/non_copyable.hpp"
 #include "zisc/thread_manager.hpp"
+#include "zisc/math/math.hpp"
 #include "zisc/memory/simple_memory_resource.hpp"
 #include "zisc/random/correlated_multi_jittered_engine.hpp"
 #include "zisc/random/pcg_engine.hpp"
@@ -501,7 +501,7 @@ TEST(ThreadManagerTest, TaskStressTest)
       auto task = [number](const zisc::int64b)
       {
         zisc::PcgLcgRxsMXs32 sampler{number};
-        const auto loop = static_cast<int>(sampler(0.0, 1.0) * zisc::power<2>(1024.0));
+        const auto loop = static_cast<int>(sampler(0.0, 1.0) * zisc::pow(1024.0, 2));
         volatile int value = 0;
         for (int i = 0; i < loop; ++i) {
           value = i;
@@ -536,7 +536,7 @@ TEST(ThreadManagerTest, TaskStressPerformanceTest)
       auto task = [number](const zisc::int64b)
       {
         zisc::PcgLcgRxsMXs32 sampler{number};
-        const auto loop = static_cast<int>(sampler(0.0, 1.0) * zisc::power<2>(1024.0));
+        const auto loop = static_cast<int>(sampler(0.0, 1.0) * zisc::pow(1024.0, 2));
         volatile int value = 0;
         for (int i = 0; i < loop; ++i) {
           value = i;
@@ -572,7 +572,7 @@ TEST(ThreadManagerTest, LoopTaskStressTest)
     auto task = [](const zisc::int64b, const zisc::uint number)
     {
       zisc::PcgLcgRxsMXs32 sampler{number};
-      const auto loop = static_cast<int>(sampler(0.0, 1.0) * zisc::power<2>(1024.0));
+      const auto loop = static_cast<int>(sampler(0.0, 1.0) * zisc::pow(1024.0, 2));
       volatile int value = 0;
       for (int i = 0; i < loop; ++i) {
         value = i;
@@ -603,7 +603,7 @@ TEST(ThreadManagerTest, LoopTaskStressPerformanceTest)
     auto task = [](const zisc::int64b, const zisc::uint number)
     {
       zisc::PcgLcgRxsMXs32 sampler{number};
-      const auto loop = static_cast<int>(sampler(0.0, 1.0) * zisc::power<2>(1024.0));
+      const auto loop = static_cast<int>(sampler(0.0, 1.0) * zisc::pow(1024.0, 2));
       volatile int value = 0;
       for (int i = 0; i < loop; ++i) {
         value = i;

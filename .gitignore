@@ -54,7 +54,9 @@
 # Test
 !/test/
 !/test/CMakeLists.txt
-!/test/googletest
+!/test/dependencies/
+!/test/dependencies/googletest
+!/test/dependencies/mpreal
 !/test/unittest/
 !/test/unittest/*.hpp
 !/test/unittest/*.cpp

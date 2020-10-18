@@ -9,7 +9,7 @@
 
 function(addZiscGoogleTest)
   include(${PROJECT_SOURCE_DIR}/source/zisc/cmake/general.cmake)
-  Zisc_addGoogleTest(${PROJECT_SOURCE_DIR}/test/googletest
+  Zisc_addGoogleTest(${PROJECT_SOURCE_DIR}/test/dependencies/googletest
                      ${PROJECT_BINARY_DIR}/GoogleTest)
   Zisc_checkTarget(Zisc)
   set(THREADS_PREFER_PTHREAD_FLAG ON)

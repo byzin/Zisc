@@ -1,6 +1,9 @@
 [submodule "test/googletest"]
-	path = test/googletest
+	path = test/dependencies/googletest
 	url = https://github.com/google/googletest.git
 [submodule "document/doxygen_dark_theme"]
 	path = document/doxygen_dark_theme
 	url = https://github.com/MaJerle/doxygen_dark_theme
+[submodule "test/dependencies/mpreal"]
+	path = test/dependencies/mpreal
+	url = https://github.com/advanpix/mpreal

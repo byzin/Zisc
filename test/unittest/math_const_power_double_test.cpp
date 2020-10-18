@@ -1,24 +1,31 @@
-///*!
-//  \file math_const_power_double_test.cpp
-//  \author Sho Ikeda
-//  \brief No brief description
-//
-//  \details
-//  No detailed description.
-//
-//  \copyright
-//  Copyright (c) 2015-2020 Sho Ikeda
-//  This software is released under the MIT License.
-//  http://opensource.org/licenses/mit-license.php
-//  */
-//
-//// GoogleTest
-//#include "gtest/gtest.h"
-//// Zisc
-//#include "math_const_test.hpp"
-//#include "zisc/math_const.hpp"
-//#include "zisc/zisc_config.hpp"
-//
+/*!
+  \file math_const_power_double_test.cpp
+  \author Sho Ikeda
+  \brief No brief description
+
+  \details
+  No detailed description.
+
+  \copyright
+  Copyright (c) 2015-2020 Sho Ikeda
+  This software is released under the MIT License.
+  http://opensource.org/licenses/mit-license.php
+  */
+
+// GoogleTest
+#include "gtest/gtest.h"
+// Zisc
+#include "math_const_test.hpp"
+#include "zisc/zisc_config.hpp"
+#include "zisc/math/math.hpp"
+
+TEST(MathTest, ConstantPowIntTest)
+{
+  constexpr int start = -12;
+  constexpr int end = 32;
+  PowerTest<start, end>::testPowInt();
+}
+
 //TEST(ConstMathTest, SqrtTestD)
 //{
 //  constexpr int start = 0;

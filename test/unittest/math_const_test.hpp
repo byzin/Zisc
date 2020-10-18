@@ -1,37 +1,103 @@
-///*!
-//  \file math_const_test.hpp
-//  \author Sho Ikeda
-//  \brief No brief description
-//
-//  \details
-//  No detailed description.
-//
-//  \copyright
-//  Copyright (c) 2015-2020 Sho Ikeda
-//  This software is released under the MIT License.
-//  http://opensource.org/licenses/mit-license.php
-//  */
-//
-//#ifndef ZISC_MATH_CONST_TEST_HPP
-//#define ZISC_MATH_CONST_TEST_HPP
-//
-//// Standard C++ library
-//#include <cmath>
+/*!
+  \file math_const_test.hpp
+  \author Sho Ikeda
+  \brief No brief description
+
+  \details
+  No detailed description.
+
+  \copyright
+  Copyright (c) 2015-2020 Sho Ikeda
+  This software is released under the MIT License.
+  http://opensource.org/licenses/mit-license.php
+  */
+
+#ifndef ZISC_MATH_CONST_TEST_HPP
+#define ZISC_MATH_CONST_TEST_HPP
+
+// Standard C++ library
+#include <cmath>
 //#include <iostream>
 //#include <iomanip>
 //#include <limits>
 //#include <tuple>
+#include <type_traits>
 //#include <utility>
-//// GoogleTest
-//#include "gtest/gtest.h"
-//// Zisc
+// GoogleTest
+#include "gtest/gtest.h"
+// Zisc
 //#include "zisc/ieee_754_binary.hpp"
-//#include "zisc/math_const.hpp"
-//#include "zisc/utility.hpp"
-//#include "zisc/zisc_config.hpp"
+#include "zisc/concepts.hpp"
+#include "zisc/utility.hpp"
+#include "zisc/zisc_config.hpp"
+#include "zisc/math/math.hpp"
 //// Test
 //#include "test.hpp"
-//
+
+template <int i, int end>
+struct PowerTest
+{
+  static void testPowIntF()
+  {
+    {
+      constexpr float b = 0.0f;
+      constexpr float result = zisc::pow(b, i);
+      const float expected = std::powf(b, i);
+      EXPECT_FLOAT_EQ(expected, result) << "pow(" << b << "," << i << ") failed.";
+    }
+    {
+      constexpr float b = zisc::kPi<float> / 2.0f;
+      constexpr float result = zisc::pow(b, i);
+      const float expected = std::powf(b, i);
+      EXPECT_FLOAT_EQ(expected, result) << "pow(" << b << "," << i << ") failed.";
+    }
+    {
+      constexpr float b = zisc::kPi<float> / 4.0f;
+      constexpr float result = zisc::pow(b, i);
+      const float expected = std::powf(b, i);
+      EXPECT_FLOAT_EQ(expected, result) << "pow(" << b << "," << i << ") failed.";
+    }
+    {
+      constexpr float b = -zisc::kPi<float> / 2.0f;
+      constexpr float result = zisc::pow(b, i);
+      const float expected = std::powf(b, i);
+      EXPECT_FLOAT_EQ(expected, result) << "pow(" << b << "," << i << ") failed.";
+    }
+    if constexpr (i < end)
+      PowerTest<i + 1, end>::testPowIntF();
+  }
+
+  static void testPowInt()
+  {
+    {
+      constexpr double b = 0.0;
+      constexpr double result = zisc::pow(b, i);
+      const double expected = std::pow(b, i);
+      EXPECT_DOUBLE_EQ(expected, result) << "pow(" << b << "," << i << ") failed.";
+    }
+    {
+      constexpr double b = zisc::kPi<double> / 2.0;
+      constexpr double result = zisc::pow(b, i);
+      const double expected = std::pow(b, i);
+      EXPECT_DOUBLE_EQ(expected, result) << "pow(" << b << "," << i << ") failed.";
+    }
+    {
+      constexpr double b = zisc::kPi<double> / 4.0;
+      constexpr double result = zisc::pow(b, i);
+      const double expected = std::pow(b, i);
+      EXPECT_DOUBLE_EQ(expected, result) << "pow(" << b << "," << i << ") failed.";
+    }
+    {
+      constexpr double b = -zisc::kPi<double> / 2.0;
+      constexpr double result = zisc::pow(b, i);
+      const double expected = std::pow(b, i);
+      EXPECT_DOUBLE_EQ(expected, result) << "pow(" << b << "," << i << ") failed.";
+    }
+    if constexpr (i < end)
+      PowerTest<i + 1, end>::testPowInt();
+  }
+};
+
 //template <typename Float>
 //void printFloat(const char* message, const Float x)
 //{
@@ -550,5 +616,5 @@
 //    }
 //  }
 //};
-//
-//#endif // ZISC_MATH_CONST_TEST_HPP
+
+#endif // ZISC_MATH_CONST_TEST_HPP

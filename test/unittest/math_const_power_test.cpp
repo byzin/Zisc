@@ -12,6 +12,8 @@
   http://opensource.org/licenses/mit-license.php
   */
 
+// Standard C++ library
+#include <cmath>
 // GoogleTest
 #include "gtest/gtest.h"
 // Zisc
@@ -28,28 +30,29 @@ struct PowerTest
 {
   static void testPowInt()
   {
+    using zisc::cast;
     {
       constexpr float b = 0.0f;
       constexpr float result = zisc::pow(b, i);
-      const float expected = std::powf(b, i);
+      const float expected = std::pow(b, cast<float>(i));
       EXPECT_FLOAT_EQ(expected, result) << "pow(" << b << "," << i << ") failed.";
     }
     {
       constexpr float b = zisc::kPi<float> / 2.0f;
       constexpr float result = zisc::pow(b, i);
-      const float expected = std::powf(b, i);
+      const float expected = std::pow(b, cast<float>(i));
       EXPECT_FLOAT_EQ(expected, result) << "pow(" << b << "," << i << ") failed.";
     }
     {
       constexpr float b = zisc::kPi<float> / 4.0f;
       constexpr float result = zisc::pow(b, i);
-      const float expected = std::powf(b, i);
+      const float expected = std::pow(b, cast<float>(i));
       EXPECT_FLOAT_EQ(expected, result) << "pow(" << b << "," << i << ") failed.";
     }
     {
       constexpr float b = -zisc::kPi<float> / 2.0f;
       constexpr float result = zisc::pow(b, i);
-      const float expected = std::powf(b, i);
+      const float expected = std::pow(b, cast<float>(i));
       EXPECT_FLOAT_EQ(expected, result) << "pow(" << b << "," << i << ") failed.";
     }
     if constexpr (i < end)
@@ -97,12 +100,12 @@ TEST(MathTest, ConstantPowIntFTest)
   ::PowerTest<start, end>::testPowInt();
 }
 
-TEST(MathTest, ConstantPowFTest)
-{
-  constexpr int start = -256;
-  constexpr int end = 256;
-  ::PowerTest<start, end>::testPow();
-}
+//TEST(MathTest, ConstantPowFTest)
+//{
+//  constexpr int start = -256;
+//  constexpr int end = 256;
+//  ::PowerTest<start, end>::testPow();
+//}
 
 //TEST(ConstMathTest, PowTest)
 //{

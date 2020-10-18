@@ -24,13 +24,6 @@
 #include "zisc/utility.hpp"
 #include "zisc/zisc_config.hpp"
 
-TEST(CppTest, StdBitFeatureTest)
-{
-  std::cout << "std::bit_cast      : " << zisc::hasStdBitCast() << std::endl;
-  std::cout << "bit operations     : " << zisc::hasStdBitOperations() << std::endl;
-  std::cout << "pow-of-2 operations: " << zisc::hasStdPowerOf2Operations() << std::endl;
-}
-
 namespace {
 
 template <zisc::UnsignedInteger Integer, zisc::FloatingPoint Float>

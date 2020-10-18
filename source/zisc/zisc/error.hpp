@@ -38,7 +38,7 @@
   \param [in] condition No description.
   \param [in] ... No description.
   */
-#ifdef ZISC_ASSERTION
+#if defined(ZISC_ASSERTION)
   #define ZISC_ASSERT(condition, ...) \
       zisc::assertIfFalse(condition, \
                           "AssertError in " ZISC_GET_FILE_NAME " at ", \

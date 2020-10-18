@@ -15,6 +15,7 @@
 // Standard C++ library
 #include <cmath>
 #include <limits>
+#include <numbers>
 // GoogleTest
 #include "gtest/gtest.h"
 // Zisc
@@ -160,22 +161,26 @@
 //  printFloat("double ld2f 1/sqrt(3)", cast<double>(1.0l / std::sqrt(3.0l)));
 //}
 
-TEST(ConstMathTest, PiTest)
+TEST(MathTest, MathConstantsTest)
 {
+  // Pi
   // Float
   {
     constexpr float pi = zisc::kPi<float>;
-    EXPECT_FLOAT_EQ(3.141592741f, pi);
+    constexpr float expected = std::numbers::pi_v<float>;
+    EXPECT_EQ(expected, pi);
   }
   // Double
   {
     constexpr double pi = zisc::kPi<double>;
-    EXPECT_DOUBLE_EQ(3.14159265358979312, pi);
+    constexpr double expected = std::numbers::pi_v<double>;
+    EXPECT_EQ(expected, pi);
   }
   // Long double
   {
     constexpr long double pi = zisc::kPi<long double>;
-    EXPECT_EQ(3.141592653589793238513l, pi);
+    constexpr long double expected = std::numbers::pi_v<long double>;
+    EXPECT_DOUBLE_EQ(expected, pi);
   }
 }
 

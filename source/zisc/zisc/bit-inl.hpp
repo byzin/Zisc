@@ -31,45 +31,6 @@ namespace zisc {
 /*!
   \details No detailed description
 
-  \return No description
-  */
-template <Config::ImplType kImpl> inline
-constexpr bool hasStdBitCast() noexcept
-{
-  const bool result = (kImpl == Config::ImplType::kGcc) ? false :
-                      (kImpl == Config::ImplType::kClang) ? false
-                                                          : true;
-  return result;
-}
-
-/*!
-  \details No detailed description
-
-  \return No description
-  */
-template <Config::ImplType kImpl> inline
-constexpr bool hasStdBitOperations() noexcept
-{
-  const bool result = true;
-  return result;
-}
-
-/*!
-  \details No detailed description
-
-  \return No description
-  */
-template <Config::ImplType kImpl> inline
-constexpr bool hasStdPowerOf2Operations() noexcept
-{
-  const bool result = (kImpl == Config::ImplType::kClang) ? false
-                                                          : true;
-  return result;
-}
-
-/*!
-  \details No detailed description
-
   \tparam To No description.
   \tparam From No description.
   \param [in] from No description.
@@ -78,14 +39,13 @@ constexpr bool hasStdPowerOf2Operations() noexcept
 template <TriviallyCopyable To, TriviallyCopyable From> inline
 constexpr To Bit::castBit(const From& from) noexcept
 {
-  if constexpr (hasStdBitCast()) {
-    const To to = Std::castBit<To, From>(from);
-    return to;
-  }
-  else {
-    const To to = Zisc::castBit<To, From>(from);
-    return to;
-  }
+  const To to =
+#if defined(Z_GCC) || defined(Z_CLANG)
+      Zisc::castBit<To, From>(from);
+#else
+      std::bit_cast<To, From>(from);
+#endif
+  return to;
 }
 
 /*!
@@ -98,13 +58,8 @@ constexpr To Bit::castBit(const From& from) noexcept
 template <UnsignedInteger Integer> inline
 constexpr int Bit::countLZero(const Integer x) noexcept
 {
-  int result = 0;
-  if constexpr (hasStdBitOperations())
-    result = Std::countLZero(x);
-  else
-    static_assert(sizeof(Integer) == 0, "Not implemented yet.");
+  const int result = std::countl_zero(x);
   return result;
-
 }
 
 /*!
@@ -116,184 +71,6 @@ constexpr int Bit::countLZero(const Integer x) noexcept
   */
 template <UnsignedInteger Integer> inline
 constexpr int Bit::countLOne(const Integer x) noexcept
-{
-  int result = 0;
-  if constexpr (hasStdBitOperations())
-    result = Std::countLOne(x);
-  else
-    static_assert(sizeof(Integer) == 0, "Not implemented yet.");
-  return result;
-}
-
-/*!
-  \details No detailed description
-
-  \tparam Integer No description.
-  \param [in] x No description.
-  \return No description
-  */
-template <UnsignedInteger Integer> inline
-constexpr int Bit::countPop(const Integer x) noexcept
-{
-  int result = 0;
-  if constexpr (hasStdBitOperations())
-    result = Std::countPop(x);
-  else
-    static_assert(sizeof(Integer) == 0, "Not implemented yet.");
-  return result;
-}
-
-/*!
-  \details No detailed description
-
-  \tparam Integer No description.
-  \param [in] x No description.
-  \return No description
-  */
-template <UnsignedInteger Integer> inline
-constexpr int Bit::countRZero(const Integer x) noexcept
-{
-  int result = 0;
-  if constexpr (hasStdBitOperations())
-    result = Std::countRZero(x);
-  else
-    static_assert(sizeof(Integer) == 0, "Not implemented yet.");
-  return result;
-}
-
-/*!
-  \details No detailed description
-
-  \tparam Integer No description.
-  \param [in] x No description.
-  \return No description
-  */
-template <UnsignedInteger Integer> inline
-constexpr int Bit::countROne(const Integer x) noexcept
-{
-  int result = 0;
-  if constexpr (hasStdBitOperations())
-    result = Std::countROne(x);
-  else
-    static_assert(sizeof(Integer) == 0, "Not implemented yet.");
-  return result;
-}
-
-/*!
-  \details No detailed description
-
-  \tparam Integer No description.
-  \param [in] x No description.
-  \return No description
-  */
-template <UnsignedInteger Integer> inline
-constexpr Integer Bit::ceil(const Integer x) noexcept
-{
-  Integer result = 0;
-  if constexpr (hasStdPowerOf2Operations())
-    result = Std::ceil(x);
-  else
-    result = Zisc::ceil(x);
-  return result;
-}
-
-/*!
-  \details No detailed description
-
-  \tparam Integer No description.
-  \param [in] x No description.
-  \return No description
-  */
-template <UnsignedInteger Integer> inline
-constexpr Integer Bit::floor(const Integer x) noexcept
-{
-  Integer result = 0;
-  if constexpr (hasStdPowerOf2Operations())
-    result = Std::floor(x);
-  else
-    result = Zisc::floor(x);
-  return result;
-}
-
-/*!
-  \details No detailed description
-
-  \tparam Integer No description.
-  \param [in] x No description.
-  \return No description
-  */
-template <UnsignedInteger Integer> inline
-constexpr Integer Bit::getWidth(const Integer x) noexcept
-{
-  Integer result = 0;
-  if constexpr (hasStdPowerOf2Operations())
-    result = Std::getWidth(x);
-  else
-    result = Zisc::getWidth(x);
-  return result;
-}
-
-/*!
-  \details No detailed description
-
-  \tparam Integer No description.
-  \param [in] x No description.
-  \return No description
-  */
-template <UnsignedInteger Integer> inline
-constexpr bool Bit::isPowerOf2(const Integer x) noexcept
-{
-  bool result = false;
-  if constexpr (hasStdPowerOf2Operations())
-    result = Std::isPowerOf2(x);
-  else
-    result = Zisc::isPowerOf2(x);
-  return result;
-}
-
-#if !(defined(Z_GCC) || defined(Z_CLANG))
-
-/*!
-  \details No detailed description
-
-  \tparam To No description.
-  \tparam From No description.
-  \param [in] from No description.
-  \return No description
-  */
-template <TriviallyCopyable To, TriviallyCopyable From> inline
-constexpr To Bit::Std::castBit(const From& from) noexcept
-{
-  const To to = std::bit_cast<To, From>(from);
-  return to;
-}
-
-#endif
-
-/*!
-  \details No detailed description
-
-  \tparam Integer No description.
-  \param [in] x No description.
-  \return No description
-  */
-template <UnsignedInteger Integer> inline
-constexpr int Bit::Std::countLZero(const Integer x) noexcept
-{
-  const int result = std::countl_zero(x);
-  return result;
-
-}
-
-/*!
-  \details No detailed description
-
-  \tparam Integer No description.
-  \param [in] x No description.
-  \return No description
-  */
-template <UnsignedInteger Integer> inline
-constexpr int Bit::Std::countLOne(const Integer x) noexcept
 {
   const int result = std::countl_one(x);
   return result;
@@ -307,7 +84,7 @@ constexpr int Bit::Std::countLOne(const Integer x) noexcept
   \return No description
   */
 template <UnsignedInteger Integer> inline
-constexpr int Bit::Std::countPop(const Integer x) noexcept
+constexpr int Bit::countPop(const Integer x) noexcept
 {
   const int result = std::popcount(x);
   return result;
@@ -321,7 +98,7 @@ constexpr int Bit::Std::countPop(const Integer x) noexcept
   \return No description
   */
 template <UnsignedInteger Integer> inline
-constexpr int Bit::Std::countRZero(const Integer x) noexcept
+constexpr int Bit::countRZero(const Integer x) noexcept
 {
   const int result = std::countr_zero(x);
   return result;
@@ -335,14 +112,12 @@ constexpr int Bit::Std::countRZero(const Integer x) noexcept
   \return No description
   */
 template <UnsignedInteger Integer> inline
-constexpr int Bit::Std::countROne(const Integer x) noexcept
+constexpr int Bit::countROne(const Integer x) noexcept
 {
   const int result = std::countr_one(x);
   return result;
 }
 
-#if !defined(Z_CLANG)
-
 /*!
   \details No detailed description
 
@@ -351,55 +126,73 @@ constexpr int Bit::Std::countROne(const Integer x) noexcept
   \return No description
   */
 template <UnsignedInteger Integer> inline
-constexpr Integer Bit::Std::ceil(const Integer x) noexcept
+constexpr Integer Bit::ceil(const Integer x) noexcept
 {
-  const Integer result = std::bit_ceil(x);
-  return result;
-}
-
-/*!
-  \details No detailed description
-
-  \tparam Integer No description.
-  \param [in] x No description.
-  \return No description
-  */
-template <UnsignedInteger Integer> inline
-constexpr Integer Bit::Std::floor(const Integer x) noexcept
-{
-  const Integer result = std::bit_floor(x);
-  return result;
-}
-
-/*!
-  \details No detailed description
-
-  \tparam Integer No description.
-  \param [in] x No description.
-  \return No description
-  */
-template <UnsignedInteger Integer> inline
-constexpr Integer Bit::Std::getWidth(const Integer x) noexcept
-{
-  const Integer result = std::bit_width(x);
-  return result;
-}
-
-/*!
-  \details No detailed description
-
-  \tparam Integer No description.
-  \param [in] x No description.
-  \return No description
-  */
-template <UnsignedInteger Integer> inline
-constexpr bool Bit::Std::isPowerOf2(const Integer x) noexcept
-{
-  const bool result = std::has_single_bit(x);
-  return result;
-}
-
+  const Integer result =
+#if defined(Z_CLANG)
+      Zisc::ceil(x);
+#else // Z_CLANG
+      std::bit_ceil(x);
 #endif // Z_CLANG
+  return result;
+}
+
+/*!
+  \details No detailed description
+
+  \tparam Integer No description.
+  \param [in] x No description.
+  \return No description
+  */
+template <UnsignedInteger Integer> inline
+constexpr Integer Bit::floor(const Integer x) noexcept
+{
+  const Integer result =
+#if defined(Z_CLANG)
+      Zisc::floor(x);
+#else // Z_CLANG
+      std::bit_floor(x);
+#endif // Z_CLANG
+  return result;
+}
+
+/*!
+  \details No detailed description
+
+  \tparam Integer No description.
+  \param [in] x No description.
+  \return No description
+  */
+template <UnsignedInteger Integer> inline
+constexpr Integer Bit::getWidth(const Integer x) noexcept
+{
+  const Integer result =
+#if defined(Z_CLANG)
+      Zisc::getWidth(x);
+#else // Z_CLANG
+      std::bit_width(x);
+#endif // Z_CLANG
+  return result;
+}
+
+/*!
+  \details No detailed description
+
+  \tparam Integer No description.
+  \param [in] x No description.
+  \return No description
+  */
+template <UnsignedInteger Integer> inline
+constexpr bool Bit::isPowerOf2(const Integer x) noexcept
+{
+  const bool result =
+#if defined(Z_CLANG)
+      Zisc::isPowerOf2(x);
+#else // Z_CLANG
+      std::has_single_bit(x);
+#endif // Z_CLANG
+  return result;
+}
 
 /*!
   \details No detailed description
@@ -418,12 +211,13 @@ constexpr To Bit::Zisc::castBit(const From& from) noexcept
 #else // Z_CLANG
   static_assert(sizeof(From) == sizeof(To));
   using Binary = gcc::BinaryFromBytes<sizeof(From)>;
-  if constexpr (FloatingPoint<From> && UnsignedInteger<To>) {
-    const To to = Binary::makeBits(from);
+  using BitType = typename Binary::BitType;
+  if constexpr (FloatingPoint<From> && Integer<To>) {
+    const To to = cast<To>(Binary::makeBits(from));
     return to;
   }
-  else if constexpr (UnsignedInteger<From> && FloatingPoint<To>) {
-    const To to = Binary::makeFloat(from);
+  else if constexpr (Integer<From> && FloatingPoint<To>) {
+    const To to = Binary::makeFloat(cast<BitType>(from));
     return to;
   }
   else {

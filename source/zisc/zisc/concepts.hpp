@@ -97,9 +97,11 @@ concept MoveAssignable = std::is_move_assignable_v<Type>;
 
 //! Specify a callable type can be invoked with a given set of argument
 template <typename Func, typename ...Args>
-concept Invocable = requires(Func&& func, Args&&... args) {
-  std::invoke(std::forward<Func>(func), std::forward<Args>(args)...);
-};
+concept Invocable = std::is_invocable_v<Func, Args...>;
+
+//! Specify a callable type can be invoked with a given set of argument
+template <typename Func, typename Return, typename ...Args>
+concept InvocableR = std::is_invocable_r_v<Return, Func, Args...>;
 
 } // namespace zisc
 

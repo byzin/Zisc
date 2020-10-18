@@ -21,10 +21,10 @@
 #include <type_traits>
 #include <vector>
 // Zisc
-#include "atomic.hpp"
 #include "non_copyable.hpp"
 #include "zisc_config.hpp"
 #include "memory/std_memory_resource.hpp"
+#include "thread/atomic.hpp"
 
 namespace zisc {
 

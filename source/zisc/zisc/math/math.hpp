@@ -354,8 +354,8 @@ class Math
     static constexpr F2<Float> scale(const F2<Float> x, const Float y) noexcept;
 
     //!
-    template <typename ReturnType, FloatingPoint Float>
-    static constexpr ReturnType squ(const F2<Float> x) noexcept;
+    template <typename Return, FloatingPoint Float>
+    static constexpr Return squ(const F2<Float> x) noexcept;
 
     // Constants
 

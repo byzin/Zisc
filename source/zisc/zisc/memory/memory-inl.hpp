@@ -22,9 +22,9 @@
 #include <limits>
 #include <memory>
 // Zisc
-#include "zisc/atomic.hpp"
 #include "zisc/utility.hpp"
 #include "zisc/zisc_config.hpp"
+#include "zisc/thread/atomic.hpp"
 
 namespace zisc {
 
@@ -193,13 +193,13 @@ std::size_t Memory::Usage::total() const noexcept
 inline
 void* Memory::allocate(const std::size_t alignment, const std::size_t size)
 {
-  void* ptr = std::aligned_alloc(alignment, size);
+  void* ptr =
+#if defined(Z_WINDOWS)
+      _aligned_malloc(size, alignment);
+#else // Z_WINDOWS
+      std::aligned_alloc(alignment, size);
+#endif // Z_WINDOWS
   return ptr;
-//#if defined(Z_WINDOWS)
-//      _aligned_malloc(size, alignment);
-//#elif defined(Z_MAC) && defined(Z_CLANG)
-//      aligned_alloc(alignment, size);
-//#else
 }
 
 /*!
@@ -214,7 +214,9 @@ template <std::size_t kN, typename Type> inline
 constexpr Type* Memory::assumeAligned(Type* ptr)
 {
   Type* result =
-#if defined(Z_CLANG)
+#if defined(Z_MSVC)
+      ptr; //!< \todo Fix me
+#elif defined(Z_CLANG)
       cast<Type*>(__builtin_assume_aligned(ptr, kN));
 #else // Z_CLANG
       std::assume_aligned<kN>(ptr);
@@ -230,12 +232,11 @@ constexpr Type* Memory::assumeAligned(Type* ptr)
 inline
 void Memory::free(void* ptr)
 {
+#if defined(Z_WINDOWS)
+  _aligned_free(ptr);
+#else // Z_WINDOWS
   std::free(ptr);
-//#if defined(Z_WINDOWS)
-//  _aligned_free(data);
-//#elif defined(Z_MAC) && defined(Z_CLANG)
-//  free(data);
-//#else
+#endif // Z_WINDOWS
 }
 
 /*!

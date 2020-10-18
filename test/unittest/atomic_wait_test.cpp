@@ -25,8 +25,8 @@
 // GoogleTest
 #include "gtest/gtest.h"
 // Zisc
-#include "zisc/atomic.hpp"
 #include "zisc/zisc_config.hpp"
+#include "zisc/thread/atomic.hpp"
 
 namespace {
 

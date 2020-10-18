@@ -19,7 +19,7 @@
 #include <memory>
 #include <mutex>
 // Zisc
-#include "utility.hpp"
+#include "zisc/utility.hpp"
 // Platform
 #if defined(Z_WINDOWS)
 #include <Windows.h>
@@ -94,7 +94,7 @@ void Atomic::wait<true>(AtomicWord<true>* word, const WordType old) noexcept
 #if defined(Z_WINDOWS)
   do {
     PVOID addr = std::addressof(word->get());
-    PVOID comp = treatAs<PVOID>(const_cast<WordType*>(std::addressof(old)));
+    PVOID comp = reinterp<PVOID>(const_cast<WordType*>(std::addressof(old)));
     const auto result = WaitOnAddress(addr, comp, sizeof(old), INFINITE);
     static_cast<void>(result);
   } while (word->get() == old);
@@ -166,7 +166,7 @@ void Atomic::notifyAll<true>(AtomicWord<true>* word) noexcept
   WakeByAddressAll(addr);
 #elif defined(Z_LINUX)
   WordType* addr = std::addressof(word->get());
-  constexpr WordType n = std::numeric_limits<WordType>::max();
+  constexpr WordType n = (std::numeric_limits<WordType>::max)();
   const auto result = ::futex(addr, FUTEX_WAKE_PRIVATE, n);
   static_cast<void>(result);
 #else

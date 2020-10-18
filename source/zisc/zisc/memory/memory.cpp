@@ -118,7 +118,7 @@ Memory::SystemMemoryStats Memory::retrieveSystemStatsImpl() noexcept
   }
 #else
   {
-    constexpr std::size_t m = std::numeric_limits<std::size_t>::max();
+    constexpr std::size_t m = (std::numeric_limits<std::size_t>::max)();
     stats.setTotalPhysicalMemory(m);
     stats.setAvailablePhysicalMemory(m);
     stats.setTotalVirtualMemory(m);

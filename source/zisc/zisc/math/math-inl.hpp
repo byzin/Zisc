@@ -1218,13 +1218,13 @@ constexpr auto Math::Impl::scale(const F2<Float> x, const Float s) noexcept
   \param [in] x No description.
   \return No description
   */
-template <typename ReturnType, FloatingPoint Float> inline
-constexpr ReturnType Math::Impl::squ(const F2<Float> x) noexcept
+template <typename Return, FloatingPoint Float> inline
+constexpr Return Math::Impl::squ(const F2<Float> x) noexcept
 {
   const Float xh = upper(x.x_);
   const Float xl = x.x_ - xh;
-  ReturnType y;
-  if constexpr (std::is_scalar_v<ReturnType>) {
+  Return y;
+  if constexpr (std::is_scalar_v<Return>) {
     y = xh * x.y_ + xh * x.y_ + xl * xl + (xh * xl + xh * xl) + xh * xh;
   }
   else {

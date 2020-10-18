@@ -37,36 +37,6 @@
 template <int i, int end>
 struct PowerTest
 {
-  static void testPowIntF()
-  {
-    {
-      constexpr float b = 0.0f;
-      constexpr float result = zisc::pow(b, i);
-      const float expected = std::powf(b, i);
-      EXPECT_FLOAT_EQ(expected, result) << "pow(" << b << "," << i << ") failed.";
-    }
-    {
-      constexpr float b = zisc::kPi<float> / 2.0f;
-      constexpr float result = zisc::pow(b, i);
-      const float expected = std::powf(b, i);
-      EXPECT_FLOAT_EQ(expected, result) << "pow(" << b << "," << i << ") failed.";
-    }
-    {
-      constexpr float b = zisc::kPi<float> / 4.0f;
-      constexpr float result = zisc::pow(b, i);
-      const float expected = std::powf(b, i);
-      EXPECT_FLOAT_EQ(expected, result) << "pow(" << b << "," << i << ") failed.";
-    }
-    {
-      constexpr float b = -zisc::kPi<float> / 2.0f;
-      constexpr float result = zisc::pow(b, i);
-      const float expected = std::powf(b, i);
-      EXPECT_FLOAT_EQ(expected, result) << "pow(" << b << "," << i << ") failed.";
-    }
-    if constexpr (i < end)
-      PowerTest<i + 1, end>::testPowIntF();
-  }
-
   static void testPowInt()
   {
     {

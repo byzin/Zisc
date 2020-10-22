@@ -160,39 +160,8 @@ class Atomic
   static void notifyAll(AtomicWord<kOsSpecialization>* word) noexcept;
 
  private:
-  //! Integer type for Windows atomic functions
-  template <std::size_t size>
-  using InterlockedType = std::conditional_t<size == 1, char,
-                          std::conditional_t<size == 2, short,
-                          std::conditional_t<size == 4, long,
-                          std::conditional_t<size == 8, long long, void>>>>;
-
   //! Convert the memory order type
   static auto castMemOrder(const std::memory_order order) noexcept;
-
-  //! Perform atomic addition
-  template <Integer Int>
-  static Int addImpl(Int* ptr,
-                     const Int value,
-                     const std::memory_order order) noexcept;
-
-  //! Perform atomic addition
-  template <FloatingPoint Float>
-  static Float addImpl(Float* ptr,
-                       const Float value,
-                       const std::memory_order order) noexcept;
-
-  //! Perform atomic subtraction
-  template <Integer Int>
-  static Int subImpl(Int* ptr,
-                     const Int value,
-                     const std::memory_order order) noexcept;
-
-  //! Perform atomic subtraction
-  template <FloatingPoint Float>
-  static Float subImpl(Float* ptr,
-                       const Float value,
-                       const std::memory_order order) noexcept;
 
   //! Indicate that the type is always lock-free
   template <typename Type, Config::ImplType kImpl>

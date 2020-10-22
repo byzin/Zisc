@@ -152,7 +152,7 @@ Type Atomic::add(Type* ptr,
 {
   const Type old =
 #if defined(Z_CLANG)
-      addImpl(ptr, value, order);
+      __atomic_fetch_add(ptr, value, castMemOrder(order));
 #else // Z_CLANG
       std::atomic_ref<Type>{*ptr}.fetch_add(value, order);
 #endif // Z_CLANG
@@ -175,7 +175,7 @@ Type Atomic::sub(Type* ptr,
 {
   const Type old =
 #if defined(Z_CLANG)
-      subImpl(ptr, value, order);
+      __atomic_fetch_sub(ptr, value, castMemOrder(order));
 #else // Z_CLANG
       std::atomic_ref<Type>{*ptr}.fetch_sub(value, order);
 #endif // Z_CLANG
@@ -442,98 +442,6 @@ template <>
 void Atomic::notifyAll<false>(AtomicWord<false>* word) noexcept;
 template <>
 void Atomic::notifyAll<true>(AtomicWord<true>* word) noexcept;
-
-/*!
-  \details No detailed description
-
-  \tparam Int No description.
-  \param [in,out] ptr No description.
-  \param [in] value No description.
-  \param [in] order No description.
-  \return No description
-  */
-template <Integer Int> inline
-Int Atomic::addImpl(Int* ptr,
-                    const Int value,
-                    const std::memory_order order) noexcept
-{
-  const Int old =
-#if defined(Z_CLANG)
-      __atomic_fetch_add(ptr, value, castMemOrder(order));
-#else // Z_CLANG
-      value;
-#endif // Z_CLANG
-  return old;
-}
-
-/*!
-  \details No detailed description
-
-  \tparam Float No description.
-  \param [in,out] ptr No description.
-  \param [in] value No description.
-  \param [in] order No description.
-  \return No description
-  */
-template <FloatingPoint Float> inline
-Float Atomic::addImpl(Float* ptr,
-                      const Float value,
-                      const std::memory_order order) noexcept
-{
-  const Float old =
-#if defined(Z_CLANG)
-      __atomic_fetch_add(ptr, value, castMemOrder(order));
-#else // Z_CLANG
-      value;
-#endif // Z_CLANG
-  return old;
-}
-
-/*!
-  \details No detailed description
-
-  \tparam Int No description.
-  \param [in,out] ptr No description.
-  \param [in] value No description.
-  \param [in] order No description.
-  \return No description
-  */
-template <Integer Int> inline
-Int Atomic::subImpl(Int* ptr,
-                    const Int value,
-                    const std::memory_order order) noexcept
-{
-  const Int old =
-#if defined(Z_CLANG)
-      __atomic_fetch_sub(ptr, value, castMemOrder(order));
-#else // Z_CLANG
-      value;
-#endif // Z_CLANG
-  return old;
-}
-
-/*!
-  \details No detailed description
-
-  \tparam Float No description.
-  \param [in,out] ptr No description.
-  \param [in] value No description.
-  \param [in] order No description.
-  \return No description
-  */
-template <FloatingPoint Float> inline
-Float Atomic::subImpl(Float* ptr,
-                      const Float value,
-                      const std::memory_order order) noexcept
-{
-  const Float old =
-#if defined(Z_CLANG)
-      __atomic_fetch_sub(ptr, value, castMemOrder(order));
-#else // Z_CLANG
-      value;
-#endif // Z_CLANG
-  return old;
-}
 
 /*!
   \details No detailed description

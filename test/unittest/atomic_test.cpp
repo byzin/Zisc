@@ -605,11 +605,13 @@ TEST(AtomicTest, IncrementUInt64Test)
   ::testAtomicIncrement<zisc::uint64b, resolution>();
 }
 
+/*
 TEST(AtomicTest, DecrementInt8Test)
 {
   constexpr std::size_t resolution = 100;
   ::testAtomicDecrement<zisc::int8b, resolution>();
 }
+*/
 
 TEST(AtomicTest, DecrementInt16Test)
 {

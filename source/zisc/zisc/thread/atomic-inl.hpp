@@ -18,287 +18,322 @@
 #include "atomic.hpp"
 // Standard C++ library
 #include <condition_variable>
+#include <atomic>
 #include <cstddef>
-#include <memory>
 #include <mutex>
 #include <utility>
 // Zisc
+#include "zisc/concepts.hpp"
 #include "zisc/non_copyable.hpp"
 #include "zisc/utility.hpp"
 #include "zisc/zisc_config.hpp"
 
 namespace zisc {
 
-#if defined(Z_WINDOWS) || defined(Z_LINUX)
-
 /*!
-  \brief No brief description
+  \details No detailed description
 
-  No detailed description.
+  \param [in] order No description.
+  \return No description
   */
-template <>
-struct AtomicWord<true> : NonCopyable<AtomicWord<true>>
+inline
+auto Atomic::castMemOrder(const std::memory_order order) noexcept
 {
-  //! Construct an atomic word
-  AtomicWord() : word_{0} {static_cast<void>(padding_);}
-
-  //! Construct an atomic word
-  AtomicWord(const WordType value) : word_{value} {}
-
-
-  //! Return the underlying word
-  WordType& get() noexcept
-  {
-    return word_;
-  }
-
-  //! Return the underlying word
-  const WordType& get() const noexcept
-  {
-    return word_;
-  }
-
-  //! Check if the atomic word is specialized
-  static constexpr bool isSpecialized() noexcept
-  {
-    return true;
-  }
-
-  //! Set a value to the underlying word atomically
-  void set(const WordType value) noexcept
-  {
-    Atomic::exchange(&word_, value);
-  }
-
- private:
-  WordType word_;
-  int padding_ = 0;
-};
-
-#endif // Z_WINDOWS || Z_LINUX
-
-/*!
-  \brief No brief description
-
-  No detailed description.
-  */
-template <bool kOsSpecified>
-struct AtomicWord : NonCopyable<AtomicWord<kOsSpecified>>
-{
-  //! Construct an atomic word
-  AtomicWord() : word_{0} {static_cast<void>(padding_);}
-
-  //! Construct an atomic word
-  AtomicWord(const WordType value) : word_{value} {}
-
-
-  //! Return the underlying word
-  WordType& get() noexcept
-  {
-    return word_;
-  }
-
-  //! Return the underlying word
-  const WordType& get() const noexcept
-  {
-    return word_;
-  }
-
-  //! Check if the atomic word is specialized
-  static constexpr bool isSpecialized() noexcept
-  {
-    return false;
-  }
-
-  //! Set a value to the underlying word atomically
-  void set(const WordType value) noexcept
-  {
-    std::unique_lock<std::mutex> locker_{lock()};
-    word_ = value;
-  }
-
-  //! Return the underlying mutex
-  std::mutex& lock() noexcept
-  {
-    return lock_;
-  }
-
-  //! Return the underlying condition variable
-  std::condition_variable& condition() noexcept
-  {
-    return condition_;
-  }
-
- private:
-  WordType word_;
-  int padding_ = 0;
-  std::mutex lock_;
-  std::condition_variable condition_;
-};
+#if defined(Z_CLANG)
+  using OrderType = decltype(__ATOMIC_SEQ_CST);
+  return cast<OrderType>(order);
+#else // Z_CLANG
+  return order;
+#endif // Z_CLANG
+}
 
 /*!
   \details No detailed description
 
-  \tparam Integer No description.
+  \tparam Type No description.
+  \param [out] ptr No description.
+  \param [in] value No description.
+  \param [in] order No description.
+  */
+template <TriviallyCopyable Type> inline
+void Atomic::store(Type* ptr,
+                   Type value,
+                   const std::memory_order order) noexcept
+{
+#if defined(Z_CLANG)
+  __atomic_store(ptr, &value, castMemOrder(order));
+#else // Z_CLANG
+  std::atomic_ref<Type>{*ptr}.store(value, order);
+#endif // Z_CLANG
+}
+
+/*!
+  \details No detailed description
+
+  \tparam Type No description.
+  \param [in] ptr No description.
+  \param [in] order No description.
+  \return No description
+  */
+template <TriviallyCopyable Type> inline
+Type Atomic::load(Type* ptr, const std::memory_order order) noexcept
+{
+  Type result = cast<Type>(0);
+#if defined(Z_CLANG)
+  __atomic_load(ptr, &result, castMemOrder(order));
+#else // Z_CLANG
+  result = std::atomic_ref<Type>{*ptr}.load(order);
+#endif // Z_CLANG
+  return result;
+}
+
+/*!
+  \details No detailed description
+
+  \tparam Type No description.
   \param [in,out] ptr No description.
   \param [in] value No description.
+  \param [in] order No description.
   \return No description
   */
-template <typename Integer> inline
-Integer Atomic::add(Integer* ptr, const Integer value) noexcept
+template <TriviallyCopyable Type> inline
+Type Atomic::exchange(Type* ptr,
+                      Type value,
+                      const std::memory_order order) noexcept
 {
-  const auto old = addImpl<Integer, Config::implType()>(ptr, value);
+  Type old = cast<Type>(0);
+#if defined(Z_CLANG)
+  __atomic_exchange(ptr, &value, &old, castMemOrder(order));
+#else // Z_CLANG
+  old = std::atomic_ref<Type>{*ptr}.exchange(value, order);
+#endif // Z_CLANG
   return old;
 }
 
 /*!
   \details No detailed description
 
-  \tparam Integer No description.
-  \param [in,out] ptr No description.
-  \param [in] value No description.
-  \return No description
-  */
-template <typename Integer> inline
-Integer Atomic::sub(Integer* ptr, const Integer value) noexcept
-{
-  const auto old = subImpl<Integer, Config::implType()>(ptr, value);
-  return old;
-}
-
-/*!
-  \details No detailed description
-
-  \tparam Integer No description.
-  \param [in,out] ptr No description.
-  \param [in] value No description.
-  \return No description
-  */
-template <typename Integer> inline
-Integer Atomic::exchange(Integer* ptr, const Integer value) noexcept
-{
-  const auto old = exchangeImpl<Integer, Config::implType()>(ptr, value);
-  return old;
-}
-
-/*!
-  \details No detailed description
-
-  \tparam Integer No description.
-  \param [in,out] ptr No description.
-  \return No description
-  */
-template <typename Integer> inline
-Integer Atomic::increment(Integer* ptr) noexcept
-{
-  const auto old = incrementImpl<Integer, Config::implType()>(ptr);
-  return old;
-}
-
-/*!
-  \details No detailed description
-
-  \tparam Integer No description.
-  \param [in,out] ptr No description.
-  \return No description
-  */
-template <typename Integer> inline
-Integer Atomic::decrement(Integer* ptr) noexcept
-{
-  const auto old = decrementImpl<Integer, Config::implType()>(ptr);
-  return old;
-}
-
-/*!
-  \details No detailed description
-
-  \tparam Integer No description.
+  \tparam Type No description.
   \param [in,out] ptr No description.
   \param [in] cmp No description.
   \param [in] value No description.
+  \param [in] success_order No description.
+  \param [in] failure_order No description.
   \return No description
   */
-template <typename Integer> inline
-Integer Atomic::compareAndExchange(Integer* ptr,
-                                   const Integer cmp,
-                                   const Integer value) noexcept
+template <TriviallyCopyable Type> inline
+Type Atomic::compareAndExchange(Type* ptr,
+                                Type cmp,
+                                Type value,
+                                const std::memory_order success_order,
+                                const std::memory_order failure_order) noexcept
 {
-  const auto old = compareAndExchangeImpl<Integer, Config::implType()>(ptr, cmp, value);
+#if defined(Z_CLANG)
+  __atomic_compare_exchange(ptr, &cmp, &value, false, castMemOrder(success_order), castMemOrder(failure_order));
+#else // Z_CLANG
+  std::atomic_ref<Type>{*ptr}.compare_exchange_strong(cmp, value, success_order, failure_order);
+#endif // Z_CLANG
+  return cmp;
+}
+
+/*!
+  \details No detailed description
+
+  \tparam Type No description.
+  \param [in,out] ptr No description.
+  \param [in] value No description.
+  \param [in] order No description.
+  \return No description
+  */
+template <TriviallyCopyable Type> inline
+Type Atomic::add(Type* ptr,
+                 const Type value,
+                 const std::memory_order order) noexcept
+{
+  const Type old =
+#if defined(Z_CLANG)
+      addImpl(ptr, value, order);
+#else // Z_CLANG
+      std::atomic_ref<Type>{*ptr}.fetch_add(value, order);
+#endif // Z_CLANG
   return old;
 }
 
 /*!
   \details No detailed description
 
-  \tparam Integer No description.
+  \tparam Type No description.
   \param [in,out] ptr No description.
   \param [in] value No description.
+  \param [in] order No description.
   \return No description
   */
-template <typename Integer> inline
-Integer Atomic::min(Integer* ptr, const Integer value) noexcept
+template <TriviallyCopyable Type> inline
+Type Atomic::sub(Type* ptr,
+                 const Type value,
+                 const std::memory_order order) noexcept
 {
-  const auto old = minImpl<Integer, Config::implType()>(ptr, value);
+  const Type old =
+#if defined(Z_CLANG)
+      subImpl(ptr, value, order);
+#else // Z_CLANG
+      std::atomic_ref<Type>{*ptr}.fetch_sub(value, order);
+#endif // Z_CLANG
   return old;
 }
 
 /*!
   \details No detailed description
 
-  \tparam Integer No description.
+  \tparam Type No description.
   \param [in,out] ptr No description.
-  \param [in] value No description.
+  \param [in] order No description.
   \return No description
   */
-template <typename Integer> inline
-Integer Atomic::max(Integer* ptr, const Integer value) noexcept
+template <TriviallyCopyable Type> inline
+Type Atomic::increment(Type* ptr, const std::memory_order order) noexcept
 {
-  const auto old = maxImpl<Integer, Config::implType()>(ptr, value);
+  [[maybe_unused]] constexpr Type one = cast<Type>(1);
+  const Type old =
+#if defined(Z_CLANG)
+      add(ptr, one, order);
+#else // Z_CLANG
+      std::atomic_ref<Type>{*ptr}++;
+#endif // Z_CLANG
   return old;
 }
 
 /*!
   \details No detailed description
 
-  \tparam Integer No description.
+  \tparam Type No description.
   \param [in,out] ptr No description.
-  \param [in] value No description.
+  \param [in] order No description.
   \return No description
   */
-template <typename Integer> inline
-Integer Atomic::andBit(Integer* ptr, const Integer value) noexcept
+template <TriviallyCopyable Type> inline
+Type Atomic::decrement(Type* ptr, const std::memory_order order) noexcept
 {
-  const auto old = andBitImpl<Integer, Config::implType()>(ptr, value);
+  [[maybe_unused]] constexpr Type one = cast<Type>(1);
+  const auto old =
+#if defined(Z_CLANG)
+      sub(ptr, one, order);
+#else // Z_CLANG
+      std::atomic_ref<Type>{*ptr}--;
+#endif // Z_CLANG
   return old;
 }
 
 /*!
   \details No detailed description
 
-  \tparam Integer No description.
+  \tparam Type No description.
   \param [in,out] ptr No description.
   \param [in] value No description.
   \return No description
   */
-template <typename Integer> inline
-Integer Atomic::orBit(Integer* ptr, const Integer value) noexcept
+template <TriviallyCopyable Type> inline
+Type Atomic::min(Type* ptr, const Type value, const std::memory_order order) noexcept
 {
-  const auto old = orBitImpl<Integer, Config::implType()>(ptr, value);
+  const auto func = [](const Type lhs, const Type rhs)
+  {
+    return (lhs < rhs) ? lhs : rhs;
+  };
+  Type old = cast<Type>(0);
+#if defined(Z_CLANG)
+  if constexpr (Integer<Type>)
+    old = __atomic_fetch_min(ptr, value, castMemOrder(order));
+  else
+#endif // Z_CLANG
+    old = perform(ptr, order, func, value);
   return old;
 }
 
 /*!
   \details No detailed description
 
-  \tparam Integer No description.
+  \tparam Type No description.
   \param [in,out] ptr No description.
   \param [in] value No description.
   \return No description
   */
-template <typename Integer> inline
-Integer Atomic::xorBit(Integer* ptr, const Integer value) noexcept
+template <TriviallyCopyable Type> inline
+Type Atomic::max(Type* ptr, const Type value, const std::memory_order order) noexcept
 {
-  const auto old = xorBitImpl<Integer, Config::implType()>(ptr, value);
+  const auto func = [](const Type lhs, const Type rhs)
+  {
+    return (lhs < rhs) ? rhs : lhs;
+  };
+  Type old = cast<Type>(0);
+#if defined(Z_CLANG)
+  if constexpr (Integer<Type>)
+    old = __atomic_fetch_max(ptr, value, castMemOrder(order));
+  else
+#endif // Z_CLANG
+    old = perform(ptr, order, func, value);
+  return old;
+
+}
+
+/*!
+  \details No detailed description
+
+  \tparam Int No description.
+  \param [in,out] ptr No description.
+  \param [in] value No description.
+  \param [in] order No description.
+  \return No description
+  */
+template <Integer Int> inline
+Int Atomic::bitAnd(Int* ptr, const Int value, const std::memory_order order) noexcept
+{
+  const Int old =
+#if defined(Z_CLANG)
+      __atomic_fetch_and(ptr, value, castMemOrder(order));
+#else // Z_CLANG
+      std::atomic_ref<Int>{*ptr}.fetch_and(value, order);
+#endif // Z_CLANG
+  return old;
+}
+
+/*!
+  \details No detailed description
+
+  \tparam Int No description.
+  \param [in,out] ptr No description.
+  \param [in] value No description.
+  \param [in] order No description.
+  \return No description
+  */
+template <Integer Int> inline
+Int Atomic::bitOr(Int* ptr, const Int value, const std::memory_order order) noexcept
+{
+  const Int old =
+#if defined(Z_CLANG)
+      __atomic_fetch_or(ptr, value, castMemOrder(order));
+#else // Z_CLANG
+      std::atomic_ref<Int>{*ptr}.fetch_or(value, order);
+#endif // Z_CLANG
+  return old;
+}
+
+/*!
+  \details No detailed description
+
+  \tparam Int No description.
+  \param [in,out] ptr No description.
+  \param [in] value No description.
+  \return No description
+  */
+template <Integer Int> inline
+Int Atomic::bitXor(Int* ptr, const Int value, const std::memory_order order) noexcept
+{
+  const Int old =
+#if defined(Z_CLANG)
+      __atomic_fetch_xor(ptr, value, castMemOrder(order));
+#else // Z_CLANG
+      std::atomic_ref<Int>{*ptr}.fetch_xor(value, order);
+#endif // Z_CLANG
   return old;
 }
 
@@ -308,11 +343,17 @@ Integer Atomic::xorBit(Integer* ptr, const Integer value) noexcept
   \tparam Type No description.
   \return No description
   */
-template <typename Type> inline
+template <TriviallyCopyable Type> inline
 constexpr bool Atomic::isAlwaysLockFree() noexcept
 {
-  const bool flag = isAlwaysLockFreeImpl<Type, Config::implType()>();
-  return flag;
+  [[maybe_unused]] constexpr std::size_t size = sizeof(Type);
+  const bool result =
+#if defined(Z_CLANG)
+      __atomic_always_lock_free(size, nullptr);
+#else // Z_CLANG
+      std::atomic_ref<Type>::is_always_lock_free;
+#endif // Z_CLANG
+  return result;
 }
 
 /*!
@@ -321,17 +362,54 @@ constexpr bool Atomic::isAlwaysLockFree() noexcept
   \tparam Type No description.
   \return No description
   */
-template <typename Type> inline
+template <TriviallyCopyable Type> inline
 bool Atomic::isLockFree() noexcept
 {
-  const bool flag = isLockFreeImpl<Type, Config::implType()>();
-  return flag;
+  [[maybe_unused]] constexpr std::size_t size = sizeof(Type);
+  [[maybe_unused]] Type value = cast<Type>(0);
+  const bool result =
+#if defined(Z_CLANG)
+      __atomic_is_lock_free(size, nullptr);
+#else // Z_CLANG
+      std::atomic_ref<Type>{value}.is_lock_free();
+#endif // Z_CLANG
+  return result;
 }
 
 /*!
   \details No detailed description
 
-  \tparam Integer No description.
+  \tparam Type No description.
+  \tparam Function No description.
+  \tparam Types No description.
+  \param [in,out] ptr No description.
+  \param [in] order No description.
+  \param [in] expression No description.
+  \param [in] arguments No description.
+  \return No description
+  */
+template <TriviallyCopyable Type, typename Function, typename ...Types> inline
+Type Atomic::perform(Type* ptr,
+                     const std::memory_order order,
+                     Function&& expression,
+                     Types&&... arguments) noexcept
+{
+  static_assert(InvocableR<Function, Type, Type, Types...>,
+                "The Function isn't invocable.");
+  Type old = *ptr;
+  Type cmp = cast<Type>(0);
+  do {
+    cmp = old;
+    const Type value = expression(cmp, std::forward<Types>(arguments)...);
+    old = compareAndExchange(ptr, cmp, value, order);
+  } while (old != cmp);
+  return old;
+}
+
+/*!
+  \details No detailed description
+
+  \tparam Type No description.
   \tparam Function No description.
   \tparam Types No description.
   \param [in,out] ptr No description.
@@ -339,29 +417,23 @@ bool Atomic::isLockFree() noexcept
   \param [in] arguments No description.
   \return No description
   */
-template <typename Integer, typename Function, typename ...Types> inline
-Integer Atomic::perform(Integer* ptr,
-                        Function&& expression,
-                        Types&&... arguments) noexcept
+template <TriviallyCopyable Type, typename Function, typename ...Types> inline
+Type Atomic::perform(Type* ptr,
+                     Function&& expression,
+                     Types&&... arguments) noexcept
 {
-  static_assert(std::is_integral_v<Integer>, "The Integer isn't integer type.");
-  static_assert(std::is_invocable_r_v<Integer, Function, Integer, Types...>,
-                "The Function isn't invocable.");
-  auto old = *ptr;
-  auto cmp = cast<Integer>(0);
-  do {
-    cmp = old;
-    const auto value = expression(cmp, std::forward<Types>(arguments)...);
-    old = compareAndExchange<Integer>(ptr, cmp, value);
-  } while (old != cmp);
+  const Type old = perform(ptr,
+                           defaultMemOrder(),
+                           std::forward<Function>(expression),
+                           std::forward<Types>(arguments)...);
   return old;
 }
 
 // template explicit instantiation
 template <>
-void Atomic::wait<false>(AtomicWord<false>* word, const WordType old) noexcept;
+void Atomic::wait<false>(AtomicWord<false>* word, const AtomicWordType old) noexcept;
 template <>
-void Atomic::wait<true>(AtomicWord<true>* word, const WordType old) noexcept;
+void Atomic::wait<true>(AtomicWord<true>* word, const AtomicWordType old) noexcept;
 template <>
 void Atomic::notifyOne<false>(AtomicWord<false>* word) noexcept;
 template <>
@@ -374,410 +446,285 @@ void Atomic::notifyAll<true>(AtomicWord<true>* word) noexcept;
 /*!
   \details No detailed description
 
-  \tparam Integer No description.
-  \tparam kImpl No description.
+  \tparam Int No description.
   \param [in,out] ptr No description.
   \param [in] value No description.
+  \param [in] order No description.
   \return No description
   */
-template <typename Integer, Config::ImplType kImpl> inline
-Integer Atomic::addImpl(Integer* ptr, const Integer value) noexcept
+template <Integer Int> inline
+Int Atomic::addImpl(Int* ptr,
+                    const Int value,
+                    const std::memory_order order) noexcept
 {
-  static_assert(std::is_integral_v<Integer>, "The Integer isn't integer type.");
-  Integer old = cast<Integer>(0);
-  if constexpr ((kImpl == Config::ImplType::kGcc) ||
-                (kImpl == Config::ImplType::kClang)) {
-    old = __atomic_fetch_add(ptr, value, __ATOMIC_SEQ_CST);
-  }
-  else if constexpr (kImpl == Config::ImplType::kMsvc) {
-    constexpr std::size_t size = sizeof(Integer);
-    auto p = treatAs<InterlockedType<size>*>(ptr);
-    auto o = treatAs<InterlockedType<size>*>(&old);
-    auto v = treatAs<const InterlockedType<size>*>(&value);
-    if constexpr (size == 1) {
-      *o = _InterlockedExchangeAdd8(p, *v);
-    }
-    else if constexpr (size == 2) {
-      *o = _InterlockedExchangeAdd16(p, *v);
-    }
-    else if constexpr (size == 4) {
-      *o = _InterlockedExchangeAdd(p, *v);
-    }
-    else if constexpr (size == 8) {
-      *o = _InterlockedExchangeAdd64(p, *v);
-    }
-  }
+  const Int old =
+#if defined(Z_CLANG)
+      __atomic_fetch_add(ptr, value, castMemOrder(order));
+#else // Z_CLANG
+      value;
+#endif // Z_CLANG
   return old;
 }
 
 /*!
   \details No detailed description
 
-  \tparam Integer No description.
-  \tparam kImpl No description.
+  \tparam Float No description.
   \param [in,out] ptr No description.
   \param [in] value No description.
+  \param [in] order No description.
   \return No description
   */
-template <typename Integer, Config::ImplType kImpl> inline
-Integer Atomic::subImpl(Integer* ptr, const Integer value) noexcept
+template <FloatingPoint Float> inline
+Float Atomic::addImpl(Float* ptr,
+                      const Float value,
+                      const std::memory_order order) noexcept
 {
-  static_assert(std::is_integral_v<Integer>, "The Integer isn't integer type.");
-  Integer old = cast<Integer>(0);
-  if constexpr ((kImpl == Config::ImplType::kGcc) ||
-                (kImpl == Config::ImplType::kClang)) {
-    old = __atomic_fetch_sub(ptr, value, __ATOMIC_SEQ_CST);
-  }
-  else if constexpr (kImpl == Config::ImplType::kMsvc) {
-    constexpr std::size_t size = sizeof(Integer);
-    auto p = treatAs<InterlockedType<size>*>(ptr);
-    auto o = treatAs<InterlockedType<size>*>(&old);
-    auto v = treatAs<const InterlockedType<size>*>(&value);
-    if constexpr (size == 1) {
-      *o = _InterlockedExchangeAdd8(p, -*v);
-    }
-    else if constexpr (size == 2) {
-      *o = _InterlockedExchangeAdd16(p, -*v);
-    }
-    else if constexpr (size == 4) {
-      *o = _InterlockedExchangeAdd(p, -*v);
-    }
-    else if constexpr (size == 8) {
-      *o = _InterlockedExchangeAdd64(p, -*v);
-    }
-  }
+  const Float old =
+#if defined(Z_CLANG)
+      __atomic_fetch_add(ptr, value, castMemOrder(order));
+#else // Z_CLANG
+      value;
+#endif // Z_CLANG
   return old;
 }
 
 /*!
   \details No detailed description
 
-  \tparam Integer No description.
-  \tparam kImpl No description.
+  \tparam Int No description.
   \param [in,out] ptr No description.
   \param [in] value No description.
+  \param [in] order No description.
   \return No description
   */
-template <typename Integer, Config::ImplType kImpl> inline
-Integer Atomic::exchangeImpl(Integer* ptr, Integer value) noexcept
+template <Integer Int> inline
+Int Atomic::subImpl(Int* ptr,
+                    const Int value,
+                    const std::memory_order order) noexcept
 {
-  static_assert(std::is_integral_v<Integer>, "The Integer isn't integer type.");
-  Integer old = cast<Integer>(0);
-  if constexpr ((kImpl == Config::ImplType::kGcc) ||
-                (kImpl == Config::ImplType::kClang)) {
-    __atomic_exchange(ptr, &value, &old, __ATOMIC_SEQ_CST);
-  }
-  else if constexpr (kImpl == Config::ImplType::kMsvc) {
-    constexpr std::size_t size = sizeof(Integer);
-    auto p = treatAs<InterlockedType<size>*>(ptr);
-    auto o = treatAs<InterlockedType<size>*>(&old);
-    auto v = treatAs<const InterlockedType<size>*>(&value);
-    if constexpr (size == 1) {
-      *o = _InterlockedExchange8(p, *v);
-    }
-    else if constexpr (size == 2) {
-      *o = _InterlockedExchange16(p, *v);
-    }
-    else if constexpr (size == 4) {
-      *o = _InterlockedExchange(p, *v);
-    }
-    else if constexpr (size == 8) {
-      *o = _InterlockedExchange64(p, *v);
-    }
-  }
+  const Int old =
+#if defined(Z_CLANG)
+      __atomic_fetch_sub(ptr, value, castMemOrder(order));
+#else // Z_CLANG
+      value;
+#endif // Z_CLANG
   return old;
 }
 
 /*!
   \details No detailed description
 
-  \tparam Integer No description.
-  \tparam kImpl No description.
+  \tparam Float No description.
   \param [in,out] ptr No description.
+  \param [in] value No description.
+  \param [in] order No description.
   \return No description
   */
-template <typename Integer, Config::ImplType kImpl> inline
-Integer Atomic::incrementImpl(Integer* ptr) noexcept
+template <FloatingPoint Float> inline
+Float Atomic::subImpl(Float* ptr,
+                      const Float value,
+                      const std::memory_order order) noexcept
 {
-  static_assert(std::is_integral_v<Integer>, "The Integer isn't integer type.");
-  Integer old = cast<Integer>(0);
-  if constexpr ((kImpl == Config::ImplType::kGcc) ||
-                (kImpl == Config::ImplType::kClang)) {
-    constexpr Integer v = cast<Integer>(1);
-    old = addImpl<Integer, kImpl>(ptr, v);
-  }
-  else if constexpr (kImpl == Config::ImplType::kMsvc) {
-    constexpr std::size_t size = sizeof(Integer);
-    auto p = treatAs<InterlockedType<size>*>(ptr);
-    auto o = treatAs<InterlockedType<size>*>(&old);
-    constexpr auto v = cast<InterlockedType<size>>(1);
-    if constexpr (size == 1) {
-      *o = _InterlockedExchangeAdd8(p, v);
-    }
-    else if constexpr (size == 2) {
-      *o = _InterlockedExchangeAdd16(p, v);
-    }
-    else if constexpr (size == 4) {
-      *o = _InterlockedExchangeAdd(p, v);
-    }
-    else if constexpr (size == 8) {
-      *o = _InterlockedExchangeAdd64(p, v);
-    }
-  }
+  const Float old =
+#if defined(Z_CLANG)
+      __atomic_fetch_sub(ptr, value, castMemOrder(order));
+#else // Z_CLANG
+      value;
+#endif // Z_CLANG
   return old;
 }
 
 /*!
   \details No detailed description
+  */
+template <bool kOsSpecified> inline
+AtomicWord<kOsSpecified>::AtomicWord() noexcept
+{
+}
 
-  \tparam Integer No description.
-  \tparam kImpl No description.
+/*!
+  \details No detailed description
+
+  \param [in] value No description.
+  */
+template <bool kOsSpecified> inline
+AtomicWord<kOsSpecified>::AtomicWord(const AtomicWordType value) noexcept
+    : word_{value}
+{
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+template <bool kOsSpecified> inline
+AtomicWordExtra<kOsSpecified>& AtomicWord<kOsSpecified>::extra() noexcept
+{
+  return extra_;
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+template <bool kOsSpecified> inline
+auto AtomicWord<kOsSpecified>::get() noexcept -> AtomicWordType&
+{
+  return word_;
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+template <bool kOsSpecified> inline
+auto AtomicWord<kOsSpecified>::get() const noexcept -> const AtomicWordType&
+{
+  return word_;
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+template <bool kOsSpecified> inline
+constexpr bool AtomicWord<kOsSpecified>::isSpecialized() noexcept
+{
+  const bool flag =
+#if defined(Z_WINDOWS) || defined(Z_LINUX)
+      kOsSpecified;
+#else
+      false;
+#endif
+  return flag;
+}
+
+/*!
+  \details No detailed description
+
+  \param [in] value No description.
+  \param [in] order No description.
+  */
+template <bool kOsSpecified> inline
+void AtomicWord<kOsSpecified>::set(const AtomicWordType value,
+                                   const std::memory_order order) noexcept
+{
+  Atomic::store(&word_, value, order);
+}
+
+#if defined(Z_WINDOWS) || defined(Z_LINUX)
+
+/*!
+  \brief No brief description
+
+  No detailed description.
+  */
+template <>
+class AtomicWordExtra<true> : private NonCopyable<AtomicWordExtra<false>>
+{
+};
+
+#endif // Z_WINDOWS || Z_LINUX
+
+/*!
+  \brief No brief description
+
+  No detailed description.
+  */
+template <bool kOsSpecified>
+class AtomicWordExtra : private NonCopyable<AtomicWordExtra<kOsSpecified>>
+{
+ public:
+  //! Return the underlying mutex
+  std::mutex& lock() noexcept
+  {
+    return lock_;
+  }
+
+  //! Return the underlyling condition variable
+  std::condition_variable& condition() noexcept
+  {
+    return condition_;
+  }
+
+ private:
+  std::mutex lock_;
+  std::condition_variable condition_;
+};
+
+/*!
+  \details No detailed description
+
+  \tparam Type No description.
+  \param [out] ptr No description.
+  \param [in] value No description.
+  \param [in] order No description.
+  */
+template <TriviallyCopyable Type> inline
+void atomic_store(Type* ptr,
+                  const Type value,
+                  const std::memory_order order) noexcept
+{
+  Atomic::store(ptr, value, order);
+}
+
+/*!
+  \details No detailed description
+
+  \tparam Type No description.
+  \param [in] ptr No description.
+  \param [in] order No description.
+  \return No description
+  */
+template <TriviallyCopyable Type> inline
+Type atomic_load(Type* ptr, const std::memory_order order) noexcept
+{
+  const Type result = Atomic::load(ptr, order);
+  return result;
+}
+
+/*!
+  \details No detailed description
+
+  \tparam Type No description.
   \param [in,out] ptr No description.
+  \param [in] value No description.
+  \param [in] order No description.
   \return No description
   */
-template <typename Integer, Config::ImplType kImpl> inline
-Integer Atomic::decrementImpl(Integer* ptr) noexcept
+template <TriviallyCopyable Type> inline
+Type atomic_exchange(Type* ptr,
+                     const Type value,
+                     const std::memory_order order) noexcept
 {
-  static_assert(std::is_integral_v<Integer>, "The Integer isn't integer type.");
-  Integer old = cast<Integer>(0);
-  if constexpr ((kImpl == Config::ImplType::kGcc) ||
-                (kImpl == Config::ImplType::kClang)) {
-    constexpr Integer v = cast<Integer>(1);
-    old = subImpl<Integer, kImpl>(ptr, v);
-  }
-  else if constexpr (kImpl == Config::ImplType::kMsvc) {
-    constexpr std::size_t size = sizeof(Integer);
-    auto p = treatAs<InterlockedType<size>*>(ptr);
-    auto o = treatAs<InterlockedType<size>*>(&old);
-    constexpr auto v = cast<InterlockedType<size>>(-1);
-    if constexpr (size == 1) {
-      *o = _InterlockedExchangeAdd8(p, v);
-    }
-    else if constexpr (size == 2) {
-      *o = _InterlockedExchangeAdd16(p, v);
-    }
-    else if constexpr (size == 4) {
-      *o = _InterlockedExchangeAdd(p, v);
-    }
-    else if constexpr (size == 8) {
-      *o = _InterlockedExchangeAdd64(p, v);
-    }
-  }
+  const Type old = Atomic::exchange(ptr, value, order);
   return old;
 }
 
 /*!
   \details No detailed description
 
-  \tparam Integer No description.
-  \tparam kImpl No description.
+  \tparam Type No description.
   \param [in,out] ptr No description.
   \param [in] cmp No description.
   \param [in] value No description.
+  \param [in] success_order No description.
+  \param [in] failure_order No description.
   \return No description
   */
-template <typename Integer, Config::ImplType kImpl> inline
-Integer Atomic::compareAndExchangeImpl(Integer* ptr,
-                                       Integer cmp,
-                                       Integer value) noexcept
+template <TriviallyCopyable Type> inline
+Type atomic_compare_exchange(Type* ptr,
+                             const Type cmp,
+                             const Type value,
+                             const std::memory_order success_order,
+                             const std::memory_order failure_order) noexcept
 {
-  static_assert(std::is_integral_v<Integer>, "The Integer isn't integer type.");
-  if constexpr ((kImpl == Config::ImplType::kGcc) ||
-                (kImpl == Config::ImplType::kClang)) {
-    constexpr auto mem_order = __ATOMIC_SEQ_CST;
-    __atomic_compare_exchange(ptr, &cmp, &value, false, mem_order, mem_order);
-  }
-  else if constexpr (kImpl == Config::ImplType::kMsvc) {
-    constexpr std::size_t size = sizeof(Integer);
-    auto p = treatAs<InterlockedType<size>*>(ptr);
-    auto c = treatAs<InterlockedType<size>*>(&cmp);
-    auto v = treatAs<const InterlockedType<size>*>(&value);
-    if constexpr (size == 1) {
-      *c = _InterlockedCompareExchange8(p, *v, *c);
-    }
-    else if constexpr (size == 2) {
-      *c = _InterlockedCompareExchange16(p, *v, *c);
-    }
-    else if constexpr (size == 4) {
-      *c = _InterlockedCompareExchange(p, *v, *c);
-    }
-    else if constexpr (size == 8) {
-      *c = _InterlockedCompareExchange64(p, *v, *c);
-    }
-  }
-  return cmp;
-}
-
-/*!
-  \details No detailed description
-
-  \tparam Integer No description.
-  \tparam kImpl No description.
-  \param [in,out] ptr No description.
-  \param [in] value No description.
-  \return No description
-  */
-template <typename Integer, Config::ImplType kImpl> inline
-Integer Atomic::minImpl(Integer* ptr, const Integer value) noexcept
-{
-  static_assert(std::is_integral_v<Integer>, "The Integer isn't integer type.");
-  Integer old = cast<Integer>(0);
-  constexpr std::size_t size = sizeof(Integer);
-  if constexpr ((kImpl == Config::ImplType::kClang) && (size == 4)) {
-    old = __atomic_fetch_min(ptr, value, __ATOMIC_SEQ_CST);
-  }
-  else {
-    const auto min_impl = [](const Integer lhs, const Integer rhs)
-    {
-      return (lhs < rhs) ? lhs : rhs;
-    };
-    old = perform(ptr, min_impl, value);
-  }
-  return old;
-}
-
-/*!
-  \details No detailed description
-
-  \tparam Integer No description.
-  \tparam kImpl No description.
-  \param [in,out] ptr No description.
-  \param [in] value No description.
-  \return No description
-  */
-template <typename Integer, Config::ImplType kImpl> inline
-Integer Atomic::maxImpl(Integer* ptr, const Integer value) noexcept
-{
-  static_assert(std::is_integral_v<Integer>, "The Integer isn't integer type.");
-  Integer old = cast<Integer>(0);
-  constexpr std::size_t size = sizeof(Integer);
-  if constexpr ((kImpl == Config::ImplType::kClang) && (size == 4)) {
-    old = __atomic_fetch_max(ptr, value, __ATOMIC_SEQ_CST);
-  }
-  else {
-    const auto max_impl = [](const Integer lhs, const Integer rhs)
-    {
-      return (lhs < rhs) ? rhs : lhs;
-    };
-    old = perform(ptr, max_impl, value);
-  }
-  return old;
-}
-
-/*!
-  \details No detailed description
-
-  \tparam Integer No description.
-  \tparam kImpl No description.
-  \param [in,out] ptr No description.
-  \param [in] value No description.
-  \return No description
-  */
-template <typename Integer, Config::ImplType kImpl> inline
-Integer Atomic::andBitImpl(Integer* ptr, const Integer value) noexcept
-{
-  static_assert(std::is_integral_v<Integer>, "The Integer isn't integer type.");
-  Integer old = cast<Integer>(0);
-  if constexpr ((kImpl == Config::ImplType::kGcc) ||
-                (kImpl == Config::ImplType::kClang)) {
-    old = __atomic_fetch_and(ptr, value, __ATOMIC_SEQ_CST);
-  }
-  else if constexpr (kImpl == Config::ImplType::kMsvc) {
-    constexpr std::size_t size = sizeof(Integer);
-    auto p = treatAs<InterlockedType<size>*>(ptr);
-    auto o = treatAs<InterlockedType<size>*>(&old);
-    auto v = treatAs<const InterlockedType<size>*>(&value);
-    if constexpr (size == 1) {
-      *o = _InterlockedAnd8(p, *v);
-    }
-    else if constexpr (size == 2) {
-      *o = _InterlockedAnd16(p, *v);
-    }
-    else if constexpr (size == 4) {
-      *o = _InterlockedAnd(p, *v);
-    }
-    else if constexpr (size == 8) {
-      *o = _InterlockedAnd64(p, *v);
-    }
-  }
-  return old;
-}
-
-/*!
-  \details No detailed description
-
-  \tparam Integer No description.
-  \tparam kImpl No description.
-  \param [in,out] ptr No description.
-  \param [in] value No description.
-  \return No description
-  */
-template <typename Integer, Config::ImplType kImpl> inline
-Integer Atomic::orBitImpl(Integer* ptr, const Integer value) noexcept
-{
-  static_assert(std::is_integral_v<Integer>, "The Integer isn't integer type.");
-  Integer old = cast<Integer>(0);
-  if constexpr ((kImpl == Config::ImplType::kGcc) ||
-                (kImpl == Config::ImplType::kClang)) {
-    old = __atomic_fetch_or(ptr, value, __ATOMIC_SEQ_CST);
-  }
-  else if constexpr (kImpl == Config::ImplType::kMsvc) {
-    constexpr std::size_t size = sizeof(Integer);
-    auto p = treatAs<InterlockedType<size>*>(ptr);
-    auto o = treatAs<InterlockedType<size>*>(&old);
-    auto v = treatAs<const InterlockedType<size>*>(&value);
-    if constexpr (size == 1) {
-      *o = _InterlockedOr8(p, *v);
-    }
-    else if constexpr (size == 2) {
-      *o = _InterlockedOr16(p, *v);
-    }
-    else if constexpr (size == 4) {
-      *o = _InterlockedOr(p, *v);
-    }
-    else if constexpr (size == 8) {
-      *o = _InterlockedOr64(p, *v);
-    }
-  }
-  return old;
-}
-
-/*!
-  \details No detailed description
-
-  \tparam Integer No description.
-  \tparam kImpl No description.
-  \param [in,out] ptr No description.
-  \param [in] value No description.
-  \return No description
-  */
-template <typename Integer, Config::ImplType kImpl> inline
-Integer Atomic::xorBitImpl(Integer* ptr, const Integer value) noexcept
-{
-  static_assert(std::is_integral_v<Integer>, "The Integer isn't integer type.");
-  Integer old = cast<Integer>(0);
-  if constexpr ((kImpl == Config::ImplType::kGcc) ||
-                (kImpl == Config::ImplType::kClang)) {
-    old = __atomic_fetch_xor(ptr, value, __ATOMIC_SEQ_CST);
-  }
-  else if constexpr (kImpl == Config::ImplType::kMsvc) {
-    constexpr std::size_t size = sizeof(Integer);
-    auto p = treatAs<InterlockedType<size>*>(ptr);
-    auto o = treatAs<InterlockedType<size>*>(&old);
-    auto v = treatAs<const InterlockedType<size>*>(&value);
-    if constexpr (size == 1) {
-      *o = _InterlockedXor8(p, *v);
-    }
-    else if constexpr (size == 2) {
-      *o = _InterlockedXor16(p, *v);
-    }
-    else if constexpr (size == 4) {
-      *o = _InterlockedXor(p, *v);
-    }
-    else if constexpr (size == 8) {
-      *o = _InterlockedXor64(p, *v);
-    }
-  }
+  const Type old = Atomic::compareAndExchange(ptr, cmp, value, success_order, failure_order);
   return old;
 }
 
@@ -785,46 +732,196 @@ Integer Atomic::xorBitImpl(Integer* ptr, const Integer value) noexcept
   \details No detailed description
 
   \tparam Type No description.
-  \tparam kImpl No description.
+  \param [in,out] ptr No description.
+  \param [in] value No description.
+  \param [in] order No description.
   \return No description
   */
-template <typename Type, Config::ImplType kImpl> inline
-constexpr bool Atomic::isAlwaysLockFreeImpl() noexcept
+template <TriviallyCopyable Type> inline
+Type atomic_fetch_add(Type* ptr,
+                      const Type value,
+                      const std::memory_order order) noexcept
 {
-  bool flag = false;
-  if constexpr ((kImpl == Config::ImplType::kGcc) ||
-                (kImpl == Config::ImplType::kClang)) {
-    constexpr std::size_t size = sizeof(Type);
-    flag = __atomic_always_lock_free(size, nullptr);
-  }
-  else if constexpr (kImpl == Config::ImplType::kMsvc) {
-    //! \todo Confirm if is it lock free
-    flag = true;
-  }
-  return flag;
+  const Type old = Atomic::add(ptr, value, order);
+  return old;
 }
 
 /*!
   \details No detailed description
 
   \tparam Type No description.
-  \tparam kImpl No description.
+  \param [in,out] ptr No description.
+  \param [in] value No description.
+  \param [in] order No description.
   \return No description
   */
-template <typename Type, Config::ImplType kImpl> inline
-bool Atomic::isLockFreeImpl() noexcept
+template <TriviallyCopyable Type> inline
+Type atomic_fetch_sub(Type* ptr,
+                      const Type value,
+                      const std::memory_order order) noexcept
 {
-  bool flag = false;
-  if constexpr ((kImpl == Config::ImplType::kGcc) ||
-                (kImpl == Config::ImplType::kClang)) {
-    constexpr std::size_t size = sizeof(Type);
-    flag = __atomic_is_lock_free(size, nullptr);
-  }
-  else if constexpr (kImpl == Config::ImplType::kMsvc) {
-    //! \todo Confirm if is it lock free
-    flag = true;
-  }
-  return flag;
+  const Type old = Atomic::sub(ptr, value, order);
+  return old;
+}
+
+/*!
+  \details No detailed description
+
+  \tparam Type No description.
+  \param [in,out] ptr No description.
+  \param [in] order No description.
+  \return No description
+  */
+template <TriviallyCopyable Type> inline
+Type atomic_fetch_inc(Type* ptr,
+                      const std::memory_order order) noexcept
+{
+  const Type old = Atomic::increment(ptr, order);
+  return old;
+}
+
+/*!
+  \details No detailed description
+
+  \tparam Type No description.
+  \param [in,out] ptr No description.
+  \param [in] order No description.
+  \return No description
+  */
+template <TriviallyCopyable Type> inline
+Type atomic_fetch_dec(Type* ptr,
+                      const std::memory_order order) noexcept
+{
+  const Type old = Atomic::decrement(ptr, order);
+  return old;
+}
+
+/*!
+  \details No detailed description
+
+  \tparam Type No description.
+  \param [in,out] ptr No description.
+  \param [in] value No description.
+  \param [in] order No description.
+  \return No description
+  */
+template <TriviallyCopyable Type> inline
+Type atomic_fetch_min(Type* ptr,
+                      const Type value,
+                      const std::memory_order order) noexcept
+{
+  const Type old = Atomic::min(ptr, value, order);
+  return old;
+}
+
+/*!
+  \details No detailed description
+
+  \tparam Type No description.
+  \param [in,out] ptr No description.
+  \param [in] value No description.
+  \param [in] order No description.
+  \return No description
+  */
+template <TriviallyCopyable Type> inline
+Type atomic_fetch_max(Type* ptr,
+                      const Type value,
+                      const std::memory_order order) noexcept
+{
+  const Type old = Atomic::max(ptr, value, order);
+  return old;
+}
+
+/*!
+  \details No detailed description
+
+  \tparam Int No description.
+  \param [in,out] ptr No description.
+  \param [in] value No description.
+  \param [in] order No description.
+  \return No description
+  */
+template <Integer Int> inline
+Int atomic_fetch_and(Int* ptr,
+                     const Int value,
+                     const std::memory_order order) noexcept
+{
+  const Int old = Atomic::bitAnd(ptr, value, order);
+  return old;
+}
+
+/*!
+  \details No detailed description
+
+  \tparam Int No description.
+  \param [in,out] ptr No description.
+  \param [in] value No description.
+  \param [in] order No description.
+  \return No description
+  */
+template <Integer Int> inline
+Int atomic_fetch_or(Int* ptr,
+                    const Int value,
+                    const std::memory_order order) noexcept
+{
+  const Int old = Atomic::bitOr(ptr, value, order);
+  return old;
+}
+
+/*!
+  \details No detailed description
+
+  \tparam Int No description.
+  \param [in,out] ptr No description.
+  \param [in] value No description.
+  \param [in] order No description.
+  \return No description
+  */
+template <Integer Int> inline
+Int atomic_fetch_xor(Int* ptr,
+                     const Int value,
+                     const std::memory_order order) noexcept
+{
+  const Int old = Atomic::bitXor(ptr, value, order);
+  return old;
+}
+
+/*!
+  \details No detailed description
+
+  \tparam kOsSpecialization No description.
+  \param [in] word No description.
+  \param [in] old No description.
+  */
+template <bool kOsSpecialization> inline
+void atomic_wait(AtomicWord<kOsSpecialization>* word,
+                 const AtomicWordType old) noexcept
+{
+  Atomic::wait(word, old);
+}
+
+/*!
+  \details No detailed description
+
+  \tparam kOsSpecialization No description.
+  \param [in] word No description.
+  */
+template <bool kOsSpecialization> inline
+void atomic_notify_one(AtomicWord<kOsSpecialization>* word) noexcept
+{
+  Atomic::notifyOne(word);
+}
+
+/*!
+  \details No detailed description
+
+  \tparam kOsSpecialization No description.
+  \param [in] word No description.
+  */
+template <bool kOsSpecialization> inline
+void atomic_notify_all(AtomicWord<kOsSpecialization>* word) noexcept
+{
+  Atomic::notifyAll(word);
 }
 
 } // namespace zisc

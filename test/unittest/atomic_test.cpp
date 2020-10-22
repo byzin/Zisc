@@ -13,6 +13,7 @@
   */
 
 // Standard C++ library
+#include <atomic>
 #include <cstddef>
 #include <cstdint>
 #include <iostream>
@@ -47,7 +48,7 @@ void testAtomicAddition()
   auto test = [&value, &table](const zisc::int64b, const std::size_t)
   {
     constexpr Type v = zisc::cast<Type>(1);
-    auto old = zisc::Atomic::add(&value, v);
+    auto old = zisc::atomic_fetch_add(&value, v);
     table[old] = 1;
   };
 
@@ -56,7 +57,7 @@ void testAtomicAddition()
   auto result = thread_manager.enqueueLoop(test, s, e);
   result->wait();
 
-  const char* error_message = "Atomic addition failed: ";
+  const char* error_message = "zisc::atomic_fetch_add() failed. value=";
   for (const auto flag : table)
     ASSERT_TRUE(flag) << error_message << value;
   constexpr Type expected = zisc::cast<Type>(resolution);
@@ -82,7 +83,7 @@ void testAtomicSubtraction()
   auto test = [&value, &table](const zisc::int64b, const std::size_t)
   {
     constexpr Type v = zisc::cast<Type>(1);
-    auto old = -zisc::Atomic::sub(&value, v);
+    auto old = -zisc::atomic_fetch_sub(&value, v);
     table[old] = 1;
   };
 
@@ -91,7 +92,7 @@ void testAtomicSubtraction()
   auto result = thread_manager.enqueueLoop(test, s, e);
   result->wait();
 
-  const char* error_message = "Atomic subtraction failed: ";
+  const char* error_message = "zisc::atomic_fetch_sub() failed. value=";
   for (const auto flag : table)
     ASSERT_TRUE(flag) << error_message << value;
   constexpr Type expected = -zisc::cast<Type>(resolution);
@@ -116,7 +117,7 @@ void testAtomicExchange()
 
   auto test = [&value, &table](const zisc::int64b, const Type v)
   {
-    auto old = zisc::Atomic::exchange(&value, v);
+    auto old = zisc::atomic_exchange(&value, v);
     table[old] = 1;
   };
 
@@ -125,7 +126,7 @@ void testAtomicExchange()
   auto result = thread_manager.enqueueLoop(test, s, e);
   result->wait();
 
-  const char* error_message = "Atomic exchange failed: ";
+  const char* error_message = "zisc::atomic_exchange() failed. value=";
   std::size_t num_of_failure = 0;
   for (const auto flag : table) {
     if (!flag)
@@ -152,7 +153,7 @@ void testAtomicIncrement()
 
   auto test = [&value, &table](const zisc::int64b, const std::size_t)
   {
-    auto old = zisc::Atomic::increment(&value);
+    auto old = zisc::atomic_fetch_inc(&value);
     table[old] = 1;
   };
 
@@ -161,7 +162,7 @@ void testAtomicIncrement()
   auto result = thread_manager.enqueueLoop(test, s, e);
   result->wait();
 
-  const char* error_message = "Atomic increment failed: ";
+  const char* error_message = "zisc::atomic_fetch_inc() failed. value=";
   for (const auto flag : table)
     ASSERT_TRUE(flag) << error_message << value;
   constexpr Type expected = zisc::cast<Type>(resolution);
@@ -186,7 +187,7 @@ void testAtomicDecrement()
 
   auto test = [&value, &table](const zisc::int64b, const std::size_t)
   {
-    auto old = -zisc::Atomic::decrement(&value);
+    auto old = -zisc::atomic_fetch_dec(&value);
     table[old] = 1;
   };
 
@@ -195,7 +196,7 @@ void testAtomicDecrement()
   auto result = thread_manager.enqueueLoop(test, s, e);
   result->wait();
 
-  const char* error_message = "Atomic decrement failed: ";
+  const char* error_message = "zisc::atomic_fetch_dec() failed. value=";
   for (const auto flag : table)
     ASSERT_TRUE(flag) << error_message << value;
   constexpr Type expected = -zisc::cast<Type>(resolution);
@@ -218,7 +219,7 @@ void testAtomicMin()
 
   auto test = [&value](const zisc::int64b, const Type v)
   {
-    zisc::Atomic::min(&value, zisc::cast<Type>(-v));
+    zisc::atomic_fetch_min(&value, zisc::cast<Type>(-v));
   };
 
   constexpr Type s = zisc::cast<Type>(0);
@@ -226,7 +227,7 @@ void testAtomicMin()
   auto result = thread_manager.enqueueLoop(test, s, e);
   result->wait();
 
-  const char* error_message = "Atomic min failed: ";
+  const char* error_message = "zisc::atomic_fetch_min() failed. value=";
   constexpr Type expected = -zisc::cast<Type>(resolution - 1);
   ASSERT_EQ(expected, value) << error_message << value;
 }
@@ -247,7 +248,7 @@ void testAtomicMax()
 
   auto test = [&value](const zisc::int64b, const Type v)
   {
-    zisc::Atomic::max(&value, v);
+    zisc::atomic_fetch_max(&value, v);
   };
 
   constexpr Type s = zisc::cast<Type>(0);
@@ -255,7 +256,7 @@ void testAtomicMax()
   auto result = thread_manager.enqueueLoop(test, s, e);
   result->wait();
 
-  const char* error_message = "Atomic min failed: ";
+  const char* error_message = "zisc::atomic_fetch_max() failed. value=";
   constexpr Type expected = zisc::cast<Type>(resolution - 1);
   ASSERT_EQ(expected, value) << error_message << value;
 }
@@ -292,7 +293,7 @@ void testAtomicCmpxchg()
   auto result = thread_manager.enqueueLoop(test, s, e);
   result->wait();
 
-  const char* error_message = "Atomic cmpxchg failed: ";
+  const char* error_message = "zisc::atomic_compare_exchange() failed. value=";
   for (const auto flag : table)
     ASSERT_TRUE(flag) << error_message << value;
   constexpr Type expected = zisc::cast<Type>(resolution);
@@ -315,7 +316,7 @@ void testAtomicAnd()
   auto test = [&value](const zisc::int64b, const std::size_t i)
   {
     const Type v = ~zisc::cast<Type>(zisc::cast<Type>(1) << i);
-    zisc::Atomic::andBit(&value, v);
+    zisc::atomic_fetch_and(&value, v);
   };
 
   constexpr std::size_t s = 0;
@@ -323,7 +324,7 @@ void testAtomicAnd()
   auto result = thread_manager.enqueueLoop(test, s, e);
   result->wait();
 
-  const char* error_message = "Atomic and failed: ";
+  const char* error_message = "zisc::atomic_fetch_and() failed. value=";
   ASSERT_FALSE(value) << error_message << value;
 }
 
@@ -343,7 +344,7 @@ void testAtomicOr()
   auto test = [&value](const zisc::int64b, const std::size_t i)
   {
     const Type v = zisc::cast<Type>(zisc::cast<Type>(1) << i);
-    zisc::Atomic::orBit(&value, v);
+    zisc::atomic_fetch_or(&value, v);
   };
 
   constexpr std::size_t s = 0;
@@ -351,7 +352,7 @@ void testAtomicOr()
   auto result = thread_manager.enqueueLoop(test, s, e);
   result->wait();
 
-  const char* error_message = "Atomic or failed: ";
+  const char* error_message = "zisc::atomic_fetch_or() failed. value=";
   constexpr Type expected = ~zisc::cast<Type>(0);
   ASSERT_EQ(expected, value) << error_message << value;
 }
@@ -367,14 +368,74 @@ void testAtomicXor()
   constexpr Type v = std::numeric_limits<Type>::max();
   Type value = v;
 
-  const auto old = zisc::Atomic::xorBit(&value, v);
+  const auto old = zisc::atomic_fetch_xor(&value, v);
 
-  const char* error_message = "Atomic xor failed: ";
+  const char* error_message = "zisc::atomic_fetch_xor() failed. value=";
   ASSERT_EQ(v, old) << error_message << old;
   ASSERT_FALSE(value) << error_message << v;
 }
 
 } // namespace 
+
+TEST(AtomicTest, LoadStoreInt8Test)
+{
+  using zisc::uint8b;
+  uint8b value = 0;
+  constexpr uint8b expected = 0b0110'1001;
+  {
+    zisc::atomic_store(&value, expected);
+    ASSERT_EQ(expected, value) << "zisc::atomic_store() failed.";
+  }
+  {
+    const uint8b result = zisc::atomic_load(&value);
+    ASSERT_EQ(expected, result) << "zisc::atomic_load() failed.";
+  }
+}
+
+TEST(AtomicTest, LoadStoreInt16Test)
+{
+  using zisc::uint16b;
+  uint16b value = 0;
+  constexpr uint16b expected = 0b1010'0101'1111'0011;
+  {
+    zisc::atomic_store(&value, expected);
+    ASSERT_EQ(expected, value) << "zisc::atomic_store() failed.";
+  }
+  {
+    const uint16b result = zisc::atomic_load(&value);
+    ASSERT_EQ(expected, result) << "zisc::atomic_load() failed.";
+  }
+}
+
+TEST(AtomicTest, LoadStoreInt32Test)
+{
+  using zisc::uint32b;
+  uint32b value = 0;
+  constexpr uint32b expected = 0xcb8a0146;
+  {
+    zisc::atomic_store(&value, expected);
+    ASSERT_EQ(expected, value) << "zisc::atomic_store() failed.";
+  }
+  {
+    const uint32b result = zisc::atomic_load(&value);
+    ASSERT_EQ(expected, result) << "zisc::atomic_load() failed.";
+  }
+}
+
+TEST(AtomicTest, LoadStoreInt64Test)
+{
+  using zisc::uint64b;
+  uint64b value = 0;
+  constexpr uint64b expected = 0x0ad58011'cb8a0146;
+  {
+    zisc::atomic_store(&value, expected);
+    ASSERT_EQ(expected, value) << "zisc::atomic_store() failed.";
+  }
+  {
+    const uint64b result = zisc::atomic_load(&value);
+    ASSERT_EQ(expected, result) << "zisc::atomic_load() failed.";
+  }
+}
 
 TEST(AtomicTest, AdditionInt8Test)
 {

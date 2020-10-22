@@ -86,7 +86,7 @@ void* SimpleMemoryResource::allocateMemory(const std::size_t size,
               "The header size isn't an integral multiple of the alignment.");
 
   const std::size_t alloc_size = hsize + dsize;
-  void* ptr = aligned_alloc(alloc_size, alloc_alignment);
+  void* ptr = aligned_alloc(alloc_alignment, alloc_size);
 
   // Get the pointer to the data
   uint8b* data = zisc::cast<uint8b*>(ptr) + hsize;

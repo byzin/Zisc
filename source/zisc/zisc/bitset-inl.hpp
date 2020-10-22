@@ -286,11 +286,11 @@ void Bitset::set(const std::size_t pos, const bool value) noexcept
   const ValueType mask = makeMask(pos);
   if (value) {
     const ValueType v = mask;
-    Atomic::orBit(std::addressof(block), v);
+    Atomic::bitOr(std::addressof(block), v);
   }
   else {
     const ValueType v = ~mask;
-    Atomic::andBit(std::addressof(block), v);
+    Atomic::bitAnd(std::addressof(block), v);
   }
 }
 

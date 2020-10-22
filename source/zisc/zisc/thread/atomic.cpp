@@ -35,7 +35,7 @@ namespace {
 //! Block the thread until notified and the word value changed
 template <bool kOsSpecified> inline
 void waitFallback(zisc::AtomicWord<kOsSpecified>* word,
-                  const zisc::WordType old) noexcept
+                  const zisc::AtomicWordType old) noexcept
 {
   int padding = 0;
   const auto pred = [word, old, padding]() noexcept
@@ -44,8 +44,9 @@ void waitFallback(zisc::AtomicWord<kOsSpecified>* word,
     const bool result = word->get() != old;
     return result;
   };
-  auto& condition = word->condition();
-  std::unique_lock<std::mutex> locker{word->lock()};
+  auto& extra = word->extra();
+  auto& condition = extra.condition();
+  std::unique_lock<std::mutex> locker{extra.lock()};
   condition.wait(locker, pred);
 }
 
@@ -53,7 +54,8 @@ void waitFallback(zisc::AtomicWord<kOsSpecified>* word,
 template <bool kOsSpecified> inline
 void notifyOneFallback(zisc::AtomicWord<kOsSpecified>* word) noexcept
 {
-  auto& condition = word->condition();
+  auto& extra = word->extra();
+  auto& condition = extra.condition();
   condition.notify_one();
 }
 
@@ -61,18 +63,19 @@ void notifyOneFallback(zisc::AtomicWord<kOsSpecified>* word) noexcept
 template <bool kOsSpecified> inline
 void notifyAllFallback(zisc::AtomicWord<kOsSpecified>* word) noexcept
 {
-  auto& condition = word->condition();
+  auto& extra = word->extra();
+  auto& condition = extra.condition();
   condition.notify_all();
 }
 
 #if defined(Z_LINUX)
 inline
-auto futex(zisc::WordType* addr,
-           const zisc::WordType futex_op,
-           const zisc::WordType val)
+auto futex(zisc::AtomicWordType* addr,
+           const zisc::AtomicWordType futex_op,
+           const zisc::AtomicWordType val)
 {
-  static_assert(sizeof(zisc::WordType) == 4,
-                "'zisc::WordType' must be 4 bytes length and aligned.");
+  static_assert(sizeof(zisc::AtomicWordType) == 4,
+                "'zisc::AtomicWordType' must be 4 bytes length and aligned.");
   auto result = syscall(SYS_futex, addr, futex_op, val, nullptr, nullptr, 0);
   return result;
 }
@@ -89,20 +92,18 @@ namespace zisc {
   \param [in] old No description.
   */
 template <>
-void Atomic::wait<true>(AtomicWord<true>* word, const WordType old) noexcept
+void Atomic::wait<true>(AtomicWord<true>* word, const AtomicWordType old) noexcept
 {
 #if defined(Z_WINDOWS)
   do {
     PVOID addr = std::addressof(word->get());
-    PVOID comp = reinterp<PVOID>(const_cast<WordType*>(std::addressof(old)));
-    const auto result = WaitOnAddress(addr, comp, sizeof(old), INFINITE);
-    static_cast<void>(result);
+    PVOID comp = reinterp<PVOID>(const_cast<AtomicWordType*>(std::addressof(old)));
+    [[maybe_unused]] auto result = WaitOnAddress(addr, comp, sizeof(old), INFINITE);
   } while (word->get() == old);
 #elif defined(Z_LINUX)
   do {
-    WordType* addr = std::addressof(word->get());
-    const auto result = ::futex(addr, FUTEX_WAIT_PRIVATE, old);
-    static_cast<void>(result);
+    AtomicWordType* addr = std::addressof(word->get());
+    [[maybe_unused]] const auto result = ::futex(addr, FUTEX_WAIT_PRIVATE, old);
   } while (word->get() == old);
 #else
   ::waitFallback(word, old);
@@ -116,7 +117,7 @@ void Atomic::wait<true>(AtomicWord<true>* word, const WordType old) noexcept
   \param [in] old No description.
   */
 template <>
-void Atomic::wait<false>(AtomicWord<false>* word, const WordType old) noexcept
+void Atomic::wait<false>(AtomicWord<false>* word, const AtomicWordType old) noexcept
 {
   ::waitFallback(word, old);
 }
@@ -133,10 +134,9 @@ void Atomic::notifyOne<true>(AtomicWord<true>* word) noexcept
   PVOID addr = std::addressof(word->get());
   WakeByAddressSingle(addr);
 #elif defined(Z_LINUX)
-  WordType* addr = std::addressof(word->get());
-  constexpr WordType n = 1;
-  const auto result = ::futex(addr, FUTEX_WAKE_PRIVATE, n);
-  static_cast<void>(result);
+  AtomicWordType* addr = std::addressof(word->get());
+  constexpr AtomicWordType n = 1;
+  [[maybe_unused]] const auto result = ::futex(addr, FUTEX_WAKE_PRIVATE, n);
 #else
   ::notifyOneFallback(word);
 #endif
@@ -165,10 +165,9 @@ void Atomic::notifyAll<true>(AtomicWord<true>* word) noexcept
   PVOID addr = std::addressof(word->get());
   WakeByAddressAll(addr);
 #elif defined(Z_LINUX)
-  WordType* addr = std::addressof(word->get());
-  constexpr WordType n = (std::numeric_limits<WordType>::max)();
-  const auto result = ::futex(addr, FUTEX_WAKE_PRIVATE, n);
-  static_cast<void>(result);
+  AtomicWordType* addr = std::addressof(word->get());
+  constexpr AtomicWordType n = (std::numeric_limits<AtomicWordType>::max)();
+  [[maybe_unused]] const auto result = ::futex(addr, FUTEX_WAKE_PRIVATE, n);
 #else
   ::notifyAllFallback(word);
 #endif

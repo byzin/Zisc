@@ -44,12 +44,12 @@ void testWaitNotification(zisc::AtomicWord<specialization>* word)
       return std::chrono::duration_cast<std::chrono::milliseconds>(t).count();
     };
     auto start_time = Clock::now();
-    zisc::Atomic::wait(word, 0);
+    zisc::atomic_wait(word, 0);
     auto current_time = Clock::now();
     auto elapsed_time = to_millisec(current_time - start_time);
     std::cout << "Elapsed time: " << elapsed_time << " ms" << std::endl;
     ASSERT_GT(elapsed_time, 1200);
-    zisc::Atomic::wait(word, 1);
+    zisc::atomic_wait(word, 1);
     current_time = Clock::now();
     elapsed_time = to_millisec(current_time - start_time);
     std::cout << "Elapsed time: " << elapsed_time << " ms" << std::endl;
@@ -60,15 +60,15 @@ void testWaitNotification(zisc::AtomicWord<specialization>* word)
   const std::chrono::milliseconds one_sec{1000};
   const std::chrono::milliseconds h{250};
   std::this_thread::sleep_for(one_sec);
-  zisc::Atomic::notifyOne(word);
+  zisc::atomic_notify_one(word);
   std::this_thread::sleep_for(h);
   word->set(1);
-  zisc::Atomic::notifyOne(word);
+  zisc::atomic_notify_one(word);
   std::this_thread::sleep_for(one_sec);
-  zisc::Atomic::notifyAll(word);
+  zisc::atomic_notify_all(word);
   std::this_thread::sleep_for(h);
   word->set(2);
-  zisc::Atomic::notifyAll(word);
+  zisc::atomic_notify_all(word);
 
   job_thread.join();
 }
@@ -79,6 +79,10 @@ TEST(AtomicTest, WaitNotificationTest)
 {
   zisc::AtomicWord<false> word{};
   std::cout << "OS specialized: " << word.isSpecialized() << std::endl;
+  std::cout << "AtomicWord alignment: "
+            << std::alignment_of_v<zisc::AtomicWord<false>> << std::endl;
+  std::cout << "AtomicWord size     : "
+            << sizeof(zisc::AtomicWord<false>) << std::endl;
   ::testWaitNotification(std::addressof(word));
 }
 
@@ -86,5 +90,9 @@ TEST(AtomicTest, WaitNotificationOsTest)
 {
   zisc::AtomicWord<true> word{};
   std::cout << "OS specialized: " << word.isSpecialized() << std::endl;
+  std::cout << "AtomicWord alignment: "
+            << std::alignment_of_v<zisc::AtomicWord<true>> << std::endl;
+  std::cout << "AtomicWord size     : "
+            << sizeof(zisc::AtomicWord<true>) << std::endl;
   ::testWaitNotification(std::addressof(word));
 }

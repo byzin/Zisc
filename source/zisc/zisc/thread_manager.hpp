@@ -105,7 +105,7 @@ class ThreadManager : private NonCopyable<ThreadManager>
     uint8b has_value_;
   };
 
-  using DiffType = WordType;
+  using DiffType = AtomicWordType;
 
   /*!
     \brief No brief description

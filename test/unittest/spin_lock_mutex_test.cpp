@@ -17,10 +17,10 @@
 // GoogleTest
 #include "gtest/gtest.h"
 // Zisc
-#include "zisc/spin_lock_mutex.hpp"
 #include "zisc/thread_manager.hpp"
 #include "zisc/zisc_config.hpp"
 #include "zisc/memory/simple_memory_resource.hpp"
+#include "zisc/thread/spin_lock_mutex.hpp"
 
 TEST(SpinLockMutexTest, LockTest)
 {

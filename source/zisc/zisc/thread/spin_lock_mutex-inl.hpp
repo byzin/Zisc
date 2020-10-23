@@ -19,8 +19,6 @@
 // Standard C++ library
 #include <atomic>
 #include <thread>
-// Zisc
-#include "error.hpp"
 
 namespace zisc {
 

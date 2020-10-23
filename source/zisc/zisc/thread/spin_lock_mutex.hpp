@@ -18,7 +18,7 @@
 // Standard C++ library
 #include <atomic>
 // Zisc
-#include "non_copyable.hpp"
+#include "zisc/non_copyable.hpp"
 
 namespace zisc {
 

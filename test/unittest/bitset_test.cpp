@@ -20,8 +20,8 @@
 // GoogleTest
 #include "gtest/gtest.h"
 // Zisc
-#include "zisc/bitset.hpp"
 #include "zisc/memory/std_memory_resource.hpp"
+#include "zisc/thread/bitset.hpp"
 
 TEST(BitsetTest, ConstructionTest)
 {

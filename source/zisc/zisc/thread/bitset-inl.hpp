@@ -18,14 +18,16 @@
 #include "bitset.hpp"
 // Standard C++ library
 #include <cstddef>
+#include <limits>
 #include <memory>
 #include <utility>
 #include <vector>
 // Zisc
-#include "algorithm.hpp"
-#include "zisc_config.hpp"
-#include "memory/std_memory_resource.hpp"
-#include "thread/atomic.hpp"
+#include "atomic.hpp"
+#include "zisc/algorithm.hpp"
+#include "zisc/bit.hpp"
+#include "zisc/zisc_config.hpp"
+#include "zisc/memory/std_memory_resource.hpp"
 
 namespace zisc {
 
@@ -100,7 +102,7 @@ bool Bitset::operator[](const std::size_t pos) const noexcept
 inline
 constexpr std::size_t Bitset::blockBitSize() noexcept
 {
-  const std::size_t s = 8 * sizeof(ValueType);
+  const std::size_t s = std::numeric_limits<ValueType>::digits;
   return s;
 }
 
@@ -126,10 +128,11 @@ std::size_t Bitset::count() const noexcept
 inline
 std::size_t Bitset::count(const std::size_t begin, const std::size_t end) const noexcept
 {
-  auto func = [](ConstType mask, ConstType block, Reference result) noexcept
+  auto func = [](ConstType mask, ConstReference block, Reference result) noexcept
   {
-    const ValueType v = block & mask;
-    result += Algorithm::popcount(v);
+    ConstType b = atomic_load(std::addressof(block));
+    const ValueType v = b & mask;
+    result += cast<ValueType>(popcount(v));
     return 1;
   };
   const std::size_t result = iterate(begin, end, func);
@@ -170,9 +173,10 @@ bool Bitset::isAll() const noexcept
 inline
 bool Bitset::isAll(const std::size_t begin, const std::size_t end) const noexcept
 {
-  auto func = [](ConstType mask, ConstType block, Reference result) noexcept
+  auto func = [](ConstType mask, ConstReference block, Reference result) noexcept
   {
-    const bool flag = (block & mask) == mask;
+    ConstType b = atomic_load(std::addressof(block));
+    const bool flag = (b & mask) == mask;
     result = flag ? 1 : 0;
     return result;
   };
@@ -228,9 +232,10 @@ bool Bitset::isNone() const noexcept
 inline
 bool Bitset::isNone(const std::size_t begin, const std::size_t end) const noexcept
 {
-  auto func = [](ConstType mask, ConstType block, Reference result) noexcept
+  auto func = [](ConstType mask, ConstReference block, Reference result) noexcept
   {
-    const bool flag = (block & mask) == 0;
+    ConstType b = atomic_load(std::addressof(block));
+    const bool flag = (b & mask) == 0;
     result = flag ? 1 : 0;
     return result;
   };
@@ -257,15 +262,15 @@ void Bitset::reset(const bool value) noexcept
 inline
 void Bitset::reset(const std::size_t begin, const std::size_t end, const bool value) noexcept
 {
-  auto func = [value](ConstType mask, ConstReference block, Reference /* result */) noexcept
+  auto func = [value](ConstType mask, ConstReference block, Reference) noexcept
   {
     Reference b = *const_cast<Pointer>(std::addressof(block));
     if (value) {
-      const ValueType v = mask;
+      ConstType v = mask;
       b = b | v;
     }
     else {
-      const ValueType v = ~mask;
+      ConstType v = ~mask;
       b = b & v;
     }
     return 1;
@@ -283,14 +288,14 @@ inline
 void Bitset::set(const std::size_t pos, const bool value) noexcept
 {
   Reference block = getBlock(pos);
-  const ValueType mask = makeMask(pos);
+  ConstType mask = makeMask(pos);
   if (value) {
-    const ValueType v = mask;
-    Atomic::bitOr(std::addressof(block), v);
+    ConstType v = mask;
+    atomic_fetch_or(std::addressof(block), v);
   }
   else {
-    const ValueType v = ~mask;
-    Atomic::bitAnd(std::addressof(block), v);
+    ConstType v = ~mask;
+    atomic_fetch_and(std::addressof(block), v);
   }
 }
 
@@ -329,9 +334,10 @@ std::size_t Bitset::size() const noexcept
 inline
 bool Bitset::test(const std::size_t pos) const noexcept
 {
-  const ValueType block = getBlock(pos);
-  const ValueType mask = makeMask(pos);
-  const bool result = (block & mask) != 0;
+  ConstReference block = getBlock(pos);
+  ConstType b = atomic_load(std::addressof(block));
+  ConstType mask = makeMask(pos);
+  const bool result = (b & mask) != 0;
   return result;
 }
 
@@ -381,9 +387,9 @@ auto Bitset::iterate(const std::size_t begin,
   constexpr std::size_t bitmask = ~(bits - 1);
   ValueType result = 0;
   for (std::size_t pos = begin & bitmask; pos < end; pos = pos + bits) {
-    const std::size_t b = Algorithm::max(pos, begin);
-    const std::size_t e = Algorithm::min(pos + bits, end);
-    const ValueType mask = makeMask(b, e);
+    const std::size_t b = (max)(pos, begin);
+    const std::size_t e = (min)(pos + bits, end);
+    ConstType mask = makeMask(b, e);
     ConstReference block = getBlock(pos);
     if (!func(mask, block, result))
       break;
@@ -403,7 +409,7 @@ auto Bitset::makeMask(const std::size_t pos) noexcept -> ValueType
   constexpr std::size_t bits = blockBitSize();
   constexpr std::size_t bitmask = bits - 1;
   const std::size_t index = pos & bitmask;
-  const ValueType mask = ValueType{0b1} << index;
+  ConstType mask = ValueType{0b1} << index;
   return mask;
 }
 
@@ -420,7 +426,7 @@ auto Bitset::makeMask(const std::size_t begin, const std::size_t end) noexcept
 {
   constexpr std::size_t bits = blockBitSize();
   constexpr std::size_t bitmask = bits - 1;
-  ValueType mask = std::numeric_limits<ValueType>::max();
+  ValueType mask = (std::numeric_limits<ValueType>::max)();
   {
     std::size_t b = begin & bitmask;
     mask = mask >> b;

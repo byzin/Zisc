@@ -124,8 +124,8 @@ void Memory::SystemMemoryStats::setTotalVirtualMemory(const std::size_t s) noexc
 inline
 void Memory::Usage::add(const std::size_t size) noexcept
 {
-  Atomic::add(std::addressof(total_), size);
-  Atomic::max(std::addressof(peak_), total());
+  atomic_fetch_add(&total_, size);
+  atomic_fetch_max(&peak_, total());
 }
 
 /*!
@@ -136,7 +136,8 @@ void Memory::Usage::add(const std::size_t size) noexcept
 inline
 std::size_t Memory::Usage::peak() const noexcept
 {
-  return peak_;
+  const std::size_t p = atomic_load(&peak_);
+  return p;
 }
 
 /*!
@@ -147,7 +148,7 @@ std::size_t Memory::Usage::peak() const noexcept
 inline
 void Memory::Usage::release(const std::size_t size) noexcept
 {
-  Atomic::sub(std::addressof(total_), size);
+  atomic_fetch_sub(&total_, size);
 }
 
 /*!
@@ -158,7 +159,7 @@ void Memory::Usage::release(const std::size_t size) noexcept
 inline
 void Memory::Usage::setPeak(const std::size_t p) noexcept
 {
-  peak_ = p;
+  atomic_store(&peak_, p);
 }
 
 /*!
@@ -169,7 +170,7 @@ void Memory::Usage::setPeak(const std::size_t p) noexcept
 inline
 void Memory::Usage::setTotal(const std::size_t t) noexcept
 {
-  total_ = t;
+  atomic_store(&total_, t);
 }
 
 /*!
@@ -180,7 +181,8 @@ void Memory::Usage::setTotal(const std::size_t t) noexcept
 inline
 std::size_t Memory::Usage::total() const noexcept
 {
-  return total_;
+  const std::size_t t = atomic_load(&total_);
+  return t;
 }
 
 /*!

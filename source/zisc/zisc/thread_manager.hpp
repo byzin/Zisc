@@ -27,7 +27,6 @@
 #include <utility>
 #include <vector>
 // Zisc
-#include "bitset.hpp"
 #include "error.hpp"
 #include "non_copyable.hpp"
 #include "type_traits.hpp"
@@ -35,6 +34,7 @@
 #include "memory/std_memory_resource.hpp"
 #include "queue/scalable_circular_queue.hpp"
 #include "thread/atomic.hpp"
+#include "thread/bitset.hpp"
 
 namespace zisc {
 

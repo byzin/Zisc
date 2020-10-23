@@ -53,7 +53,7 @@ class Atomic
 
   //! Atomically obtain the value of the referenced object
   template <TriviallyCopyable Type>
-  static Type load(Type* ptr,
+  static Type load(const Type* ptr,
                    const std::memory_order order = defaultMemOrder()) noexcept;
 
   //! Atomically replace with the given value
@@ -223,7 +223,7 @@ void atomic_store(
 //! Atomically obtain the value of the referenced object
 template <TriviallyCopyable Type>
 Type atomic_load(
-    Type* ptr,
+    const Type* ptr,
     const std::memory_order order = Atomic::defaultMemOrder()) noexcept;
 
 //! Atomically replace with the given value

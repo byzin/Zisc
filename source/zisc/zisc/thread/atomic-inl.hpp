@@ -21,6 +21,7 @@
 #include <atomic>
 #include <cstddef>
 #include <mutex>
+#include <type_traits>
 #include <utility>
 // Zisc
 #include "zisc/concepts.hpp"
@@ -76,13 +77,15 @@ void Atomic::store(Type* ptr,
   \return No description
   */
 template <TriviallyCopyable Type> inline
-Type Atomic::load(Type* ptr, const std::memory_order order) noexcept
+Type Atomic::load(const Type* ptr, const std::memory_order order) noexcept
 {
+  using T = std::remove_cvref_t<Type>;
+  T* p = const_cast<T*>(ptr);
   Type result = cast<Type>(0);
 #if defined(Z_CLANG)
-  __atomic_load(ptr, &result, castMemOrder(order));
+  __atomic_load(p, &result, castMemOrder(order));
 #else // Z_CLANG
-  result = std::atomic_ref<Type>{*ptr}.load(order);
+  result = std::atomic_ref<T>{*p}.load(order);
 #endif // Z_CLANG
   return result;
 }
@@ -590,7 +593,7 @@ void atomic_store(Type* ptr,
   \return No description
   */
 template <TriviallyCopyable Type> inline
-Type atomic_load(Type* ptr, const std::memory_order order) noexcept
+Type atomic_load(const Type* ptr, const std::memory_order order) noexcept
 {
   const Type result = Atomic::load(ptr, order);
   return result;

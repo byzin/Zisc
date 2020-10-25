@@ -16,11 +16,13 @@
 #define ZISC_UNIT_MULTIPLE_HPP
 
 // Standard C++ library
+#include <algorithm>
 #include <cstdint>
 // Zisc
 #include "fraction.hpp"
-#include "utility.hpp"
-#include "zisc_config.hpp"
+#include "zisc/concepts.hpp"
+#include "zisc/utility.hpp"
+#include "zisc/zisc_config.hpp"
 
 namespace zisc {
 
@@ -40,53 +42,53 @@ class UnitMultiple
   using FractionType = Fraction<int64b>;
 
   //! The type that is used in UnitMultiple for arithmetic
-  using ArithmeticType = FractionType::ArithmeticType;
+  using Type = FractionType::Type;
 
 
   //! Initialize with 0
   constexpr UnitMultiple() noexcept;
 
   //! Initialize with (value * kBase^kExponent)
-  constexpr UnitMultiple(const ArithmeticType value) noexcept;
+  constexpr UnitMultiple(const Type value) noexcept;
 
   //! Initialize with (value * kBase^kExponent)
   constexpr UnitMultiple(const FractionType& value) noexcept;
 
   //! Change the exponent of the base
-  template <ArithmeticType kOtherExponent>
+  template <Type kOtherExponent>
   constexpr UnitMultiple(const UnitMultiple<kBase, kOtherExponent>& other) noexcept;
 
 
   //! Set the value
-  constexpr UnitMultiple& operator=(const ArithmeticType value) noexcept;
+  constexpr UnitMultiple& operator=(const Type value) noexcept;
 
   //! Set the value
   constexpr UnitMultiple& operator=(const FractionType& value) noexcept;
 
   //! Change the exponent of the base
-  template <ArithmeticType kOtherExponent>
+  template <Type kOtherExponent>
   constexpr UnitMultiple& operator=(const UnitMultiple<kBase, kOtherExponent>& other) noexcept;
 
 
   //! Return the base value
-  static constexpr ArithmeticType base() noexcept;
-
-  //! Return the exponent value
-  static constexpr ArithmeticType exponent() noexcept;
+  static constexpr Type base() noexcept;
 
   //! Represent this value as (x * kBase^kToExponent)
-  template <ArithmeticType kToExponent>
-  constexpr UnitMultiple<kBase, kToExponent> representedAs() const noexcept;
+  template <Type kToExponent>
+  constexpr UnitMultiple<kBase, kToExponent> cast() const noexcept;
+
+  //! Return the exponent value
+  static constexpr Type exponent() noexcept;
 
   //! Set the value
-  constexpr void setValue(const ArithmeticType value) noexcept;
+  constexpr void set(const Type value) noexcept;
 
   //! Set the value
-  constexpr void setValue(const FractionType& value) noexcept;
+  constexpr void set(const FractionType& value) noexcept;
 
   //! Change the exponent of the base
-  template <ArithmeticType kOtherExponent>
-  constexpr void setValue(const UnitMultiple<kBase, kOtherExponent>& other) noexcept;
+  template <Type kOtherExponent>
+  constexpr void set(const UnitMultiple<kBase, kOtherExponent>& other) noexcept;
 
   //! Return the value
   constexpr FractionType& value() noexcept;
@@ -106,33 +108,33 @@ using GibiUnit = UnitMultiple<1024, 3>;
 
 //! Perform addition operation on two values in the smaller exponent of the unit
 template <int64b kBase, int64b kExponent1, int64b kExponent2>
-constexpr UnitMultiple<kBase, std::min(kExponent1, kExponent2)> operator+(
+constexpr UnitMultiple<kBase, (std::min)(kExponent1, kExponent2)> operator+(
     const UnitMultiple<kBase, kExponent1>& lhs,
     const UnitMultiple<kBase, kExponent2>& rhs) noexcept;
 
 //! Perform subtraction operation on two values in the smaller exponent of the unit
 template <int64b kBase, int64b kExponent1, int64b kExponent2>
-constexpr UnitMultiple<kBase, std::min(kExponent1, kExponent2)> operator-(
+constexpr UnitMultiple<kBase, (std::min)(kExponent1, kExponent2)> operator-(
     const UnitMultiple<kBase, kExponent1>& lhs,
     const UnitMultiple<kBase, kExponent2>& rhs) noexcept;
 
 //! Perform multiplication operation on two values in the smaller exponent of the unit
-template <int64b kBase, int64b kExponent, typename Integer>
+template <int64b kBase, int64b kExponent, Integer Int>
 constexpr UnitMultiple<kBase, kExponent> operator*(
     const UnitMultiple<kBase, kExponent>& lhs,
-    const Integer rhs) noexcept;
+    const Int rhs) noexcept;
 
 //! Perform multiplication operation on two values in the smaller exponent of the unit
-template <typename Integer, int64b kBase, int64b kExponent>
+template <Integer Int, int64b kBase, int64b kExponent>
 constexpr UnitMultiple<kBase, kExponent> operator*(
-    const Integer lhs,
+    const Int lhs,
     const UnitMultiple<kBase, kExponent>& rhs) noexcept;
 
 //! Perform division operation on two values in the smaller exponent of the unit
-template <int64b kBase, int64b kExponent, typename Integer>
+template <int64b kBase, int64b kExponent, Integer Int>
 constexpr UnitMultiple<kBase, kExponent> operator/(
     const UnitMultiple<kBase, kExponent>& lhs,
-    const Integer rhs) noexcept;
+    const Int rhs) noexcept;
 
 //! Check if the two values are equal
 template <int64b kBase, int64b kExponent1, int64b kExponent2>

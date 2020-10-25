@@ -17,34 +17,34 @@
 // GoogleTest
 #include "gtest/gtest.h"
 // Zisc
-#include "zisc/fraction.hpp"
+#include "zisc/math/fraction.hpp"
 
 TEST(FractionTest, ConstructorTest)
 {
   {
     zisc::Fraction32 fraction;
-    EXPECT_EQ(0, fraction.numerator());
-    EXPECT_EQ(1, fraction.denominator());
+    EXPECT_EQ(0, fraction.numer());
+    EXPECT_EQ(1, fraction.denom());
   }
   {
     zisc::Fraction32 fraction{1};
-    EXPECT_EQ(1, fraction.numerator());
-    EXPECT_EQ(1, fraction.denominator());
+    EXPECT_EQ(1, fraction.numer());
+    EXPECT_EQ(1, fraction.denom());
   }
   {
     zisc::Fraction32 fraction{3, 2};
-    EXPECT_EQ(3, fraction.numerator());
-    EXPECT_EQ(2, fraction.denominator());
+    EXPECT_EQ(3, fraction.numer());
+    EXPECT_EQ(2, fraction.denom());
   }
   {
     zisc::Fraction32 fraction{24, 8};
-    EXPECT_EQ(3, fraction.numerator());
-    EXPECT_EQ(1, fraction.denominator());
+    EXPECT_EQ(3, fraction.numer());
+    EXPECT_EQ(1, fraction.denom());
   }
   {
     zisc::Fraction32 fraction{6, -4};
-    EXPECT_EQ(-3, fraction.numerator());
-    EXPECT_EQ(2, fraction.denominator());
+    EXPECT_EQ(-3, fraction.numer());
+    EXPECT_EQ(2, fraction.denom());
   }
 }
 
@@ -57,50 +57,50 @@ TEST(FractionTest, OperatorTest)
                              fraction5{7, 2 * 3 * 5};
   {
     auto result = fraction1 + fraction2;
-    EXPECT_EQ(13, result.numerator());
-    EXPECT_EQ(6, result.denominator());
+    EXPECT_EQ(13, result.numer());
+    EXPECT_EQ(6, result.denom());
   }
   {
     constexpr auto result = fraction4 + fraction5;
-    constexpr auto n = result.numerator();
-    constexpr auto d = result.denominator();
+    constexpr auto n = result.numer();
+    constexpr auto d = result.denom();
     EXPECT_EQ(23, n);
     EXPECT_EQ(60, d);
   }
   {
     auto result = fraction1 - fraction2;
-    EXPECT_EQ(5, result.numerator());
-    EXPECT_EQ(6, result.denominator());
+    EXPECT_EQ(5, result.numer());
+    EXPECT_EQ(6, result.denom());
   }
   {
     constexpr auto result = fraction4 - fraction5;
-    EXPECT_EQ(-1, result.numerator());
-    EXPECT_EQ(12, result.denominator());
+    EXPECT_EQ(-1, result.numer());
+    EXPECT_EQ(12, result.denom());
   }
   {
     auto result = fraction1 - fraction3;
-    EXPECT_EQ(13, result.numerator());
-    EXPECT_EQ(6, result.denominator());
+    EXPECT_EQ(13, result.numer());
+    EXPECT_EQ(6, result.denom());
   }
   {
     auto result = fraction1 * fraction2;
-    EXPECT_EQ(1, result.numerator());
-    EXPECT_EQ(1, result.denominator());
+    EXPECT_EQ(1, result.numer());
+    EXPECT_EQ(1, result.denom());
   }
   {
     constexpr auto result = fraction4 * fraction5;
-    EXPECT_EQ(7, result.numerator());
-    EXPECT_EQ(200, result.denominator());
+    EXPECT_EQ(7, result.numer());
+    EXPECT_EQ(200, result.denom());
   }
   {
     auto result = fraction1 / fraction2;
-    EXPECT_EQ(9, result.numerator());
-    EXPECT_EQ(4, result.denominator());
+    EXPECT_EQ(9, result.numer());
+    EXPECT_EQ(4, result.denom());
   }
   {
     constexpr auto result = fraction4 / fraction5;
-    EXPECT_EQ(9, result.numerator());
-    EXPECT_EQ(14, result.denominator());
+    EXPECT_EQ(9, result.numer());
+    EXPECT_EQ(14, result.denom());
   }
   {
     EXPECT_TRUE(fraction1 == fraction1);
@@ -126,45 +126,12 @@ TEST(FractionTest, OperatorTest)
   }
   // constexpr test
   {
-    auto make_fraction = [](const std::int32_t n, const std::int32_t d)
-    {
-      zisc::Fraction32 fraction{1, 1};
-      fraction.numerator() = n;
-      fraction.denominator() = d;
-      return fraction;
-    };
-    constexpr auto result = make_fraction(3, 2);
-    EXPECT_TRUE(fraction1 == result);
+    constexpr zisc::Fraction32 result{3};
+    EXPECT_EQ(3, result.numer());
+    EXPECT_EQ(1, result.denom());
   }
   {
-    auto make_fraction = [](const std::int32_t n, const std::int32_t d)
-    {
-      zisc::Fraction32 fraction{0};
-      fraction += zisc::Fraction32{n, d};
-      return fraction;
-    };
-    constexpr auto result = make_fraction(3, 2);
+    constexpr zisc::Fraction32 result{3, 2};
     EXPECT_TRUE(fraction1 == result);
-  }
-  {
-    auto make_fraction = [](const std::int32_t n, const std::int32_t d)
-    {
-      zisc::Fraction32 fraction{0};
-      fraction = zisc::Fraction32{n, d};
-      return fraction;
-    };
-    constexpr auto result = make_fraction(3, 2);
-    EXPECT_TRUE(fraction1 == result);
-  }
-  {
-    auto make_fraction = [](const std::int32_t n)
-    {
-      zisc::Fraction32 fraction{0};
-      fraction = n;
-      return fraction;
-    };
-    constexpr auto result = make_fraction(3);
-    EXPECT_EQ(3, result.numerator());
-    EXPECT_EQ(1, result.denominator());
   }
 }

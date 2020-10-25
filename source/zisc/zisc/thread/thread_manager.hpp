@@ -18,10 +18,8 @@
 // Standard C++ library
 #include <array>
 #include <atomic>
-#include <future>
 #include <limits>
 #include <memory>
-#include <mutex>
 #include <thread>
 #include <type_traits>
 #include <utility>

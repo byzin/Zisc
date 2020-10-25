@@ -17,13 +17,14 @@
 
 #include "unit_multiple.hpp"
 // Standard C++ library
+#include <algorithm>
 #include <cstdint>
 // Zisc
 #include "fraction.hpp"
-#include "type_traits.hpp"
-#include "utility.hpp"
-#include "zisc_config.hpp"
-#include "math/math.hpp"
+#include "math.hpp"
+#include "zisc/concepts.hpp"
+#include "zisc/utility.hpp"
+#include "zisc/zisc_config.hpp"
 
 namespace zisc {
 
@@ -31,7 +32,8 @@ namespace zisc {
   \details No detailed description
   */
 template <int64b kBase, int64b kExponent> inline
-constexpr UnitMultiple<kBase, kExponent>::UnitMultiple() noexcept : value_{}
+constexpr UnitMultiple<kBase, kExponent>::UnitMultiple() noexcept :
+    value_{}
 {
 }
 
@@ -41,9 +43,8 @@ constexpr UnitMultiple<kBase, kExponent>::UnitMultiple() noexcept : value_{}
   \param [in] value No description.
   */
 template <int64b kBase, int64b kExponent> inline
-constexpr UnitMultiple<kBase, kExponent>::UnitMultiple(
-    const ArithmeticType value) noexcept :
-        value_{value}
+constexpr UnitMultiple<kBase, kExponent>::UnitMultiple(const Type value) noexcept :
+    value_{value}
 {
 }
 
@@ -53,9 +54,8 @@ constexpr UnitMultiple<kBase, kExponent>::UnitMultiple(
   \param [in] value No description.
   */
 template <int64b kBase, int64b kExponent> inline
-constexpr UnitMultiple<kBase, kExponent>::UnitMultiple(
-    const FractionType& value) noexcept :
-        value_{value}
+constexpr UnitMultiple<kBase, kExponent>::UnitMultiple(const FractionType& value) noexcept :
+    value_{value}
 {
 }
 
@@ -68,7 +68,7 @@ constexpr UnitMultiple<kBase, kExponent>::UnitMultiple(
 template <int64b kBase, int64b kExponent> template <int64b kOtherExponent> inline
 constexpr UnitMultiple<kBase, kExponent>::UnitMultiple(
     const UnitMultiple<kBase, kOtherExponent>& other) noexcept :
-        value_{(other.template representedAs<exponent()>()).value()}
+        value_{(other.template cast<exponent()>()).value()}
 {
 }
 
@@ -79,10 +79,10 @@ constexpr UnitMultiple<kBase, kExponent>::UnitMultiple(
   \return No description
   */
 template <int64b kBase, int64b kExponent> inline
-constexpr auto UnitMultiple<kBase, kExponent>::operator=(
-    const ArithmeticType value) noexcept -> UnitMultiple&
+constexpr auto UnitMultiple<kBase, kExponent>::operator=(const Type value) noexcept
+    -> UnitMultiple&
 {
-  setValue(value);
+  set(value);
   return *this;
 }
 
@@ -93,10 +93,10 @@ constexpr auto UnitMultiple<kBase, kExponent>::operator=(
   \return No description
   */
 template <int64b kBase, int64b kExponent> inline
-constexpr auto UnitMultiple<kBase, kExponent>::operator=(
-    const FractionType& value) noexcept -> UnitMultiple&
+constexpr auto UnitMultiple<kBase, kExponent>::operator=(const FractionType& value) noexcept
+    -> UnitMultiple&
 {
-  setValue(value);
+  set(value);
   return *this;
 }
 
@@ -110,7 +110,7 @@ template <int64b kBase, int64b kExponent> template <int64b kOtherExponent> inlin
 constexpr auto UnitMultiple<kBase, kExponent>::operator=(
     const UnitMultiple<kBase, kOtherExponent>& other) noexcept -> UnitMultiple&
 {
-  setValue(other);
+  set(other);
   return *this;
 }
 
@@ -120,7 +120,7 @@ constexpr auto UnitMultiple<kBase, kExponent>::operator=(
   \return No description
   */
 template <int64b kBase, int64b kExponent> inline
-constexpr auto UnitMultiple<kBase, kExponent>::base() noexcept -> ArithmeticType
+constexpr auto UnitMultiple<kBase, kExponent>::base() noexcept -> Type
 {
   return kBase;
 }
@@ -131,7 +131,7 @@ constexpr auto UnitMultiple<kBase, kExponent>::base() noexcept -> ArithmeticType
   \return No description
   */
 template <int64b kBase, int64b kExponent> inline
-constexpr auto UnitMultiple<kBase, kExponent>::exponent() noexcept -> ArithmeticType
+constexpr auto UnitMultiple<kBase, kExponent>::exponent() noexcept -> Type
 {
   return kExponent;
 }
@@ -143,8 +143,7 @@ constexpr auto UnitMultiple<kBase, kExponent>::exponent() noexcept -> Arithmetic
   \return No description
   */
 template <int64b kBase, int64b kExponent> template <int64b kToExponent> inline
-constexpr UnitMultiple<kBase, kToExponent> UnitMultiple<kBase, kExponent>::
-    representedAs() const noexcept
+constexpr UnitMultiple<kBase, kToExponent> UnitMultiple<kBase, kExponent>::cast() const noexcept
 {
   auto v = value();
   constexpr auto exponent_diff = kToExponent - exponent();
@@ -163,8 +162,7 @@ constexpr UnitMultiple<kBase, kToExponent> UnitMultiple<kBase, kExponent>::
   \param [in] value No description.
   */
 template <int64b kBase, int64b kExponent> inline
-constexpr void UnitMultiple<kBase, kExponent>::setValue(
-    const ArithmeticType value) noexcept
+constexpr void UnitMultiple<kBase, kExponent>::set(const Type value) noexcept
 {
   value_ = value;
 }
@@ -175,8 +173,7 @@ constexpr void UnitMultiple<kBase, kExponent>::setValue(
   \param [in] value No description.
   */
 template <int64b kBase, int64b kExponent> inline
-constexpr void UnitMultiple<kBase, kExponent>::setValue(
-    const FractionType& value) noexcept
+constexpr void UnitMultiple<kBase, kExponent>::set(const FractionType& value) noexcept
 {
   value_ = value;
 }
@@ -188,10 +185,10 @@ constexpr void UnitMultiple<kBase, kExponent>::setValue(
   \param [in] other No description.
   */
 template <int64b kBase, int64b kExponent> template <int64b kOtherExponent> inline
-constexpr void UnitMultiple<kBase, kExponent>::setValue(
+constexpr void UnitMultiple<kBase, kExponent>::set(
     const UnitMultiple<kBase, kOtherExponent>& other) noexcept
 {
-  value_ = (other.template representedAs<kExponent>()).value();
+  value_ = (other.template cast<kExponent>()).value();
 }
 
 /*!
@@ -200,8 +197,7 @@ constexpr void UnitMultiple<kBase, kExponent>::setValue(
   \return No description
   */
 template <int64b kBase, int64b kExponent> inline
-constexpr auto UnitMultiple<kBase, kExponent>::value() noexcept
-    -> FractionType&
+constexpr auto UnitMultiple<kBase, kExponent>::value() noexcept -> FractionType&
 {
   return value_;
 }
@@ -212,8 +208,7 @@ constexpr auto UnitMultiple<kBase, kExponent>::value() noexcept
   \return No description
   */
 template <int64b kBase, int64b kExponent> inline
-constexpr auto UnitMultiple<kBase, kExponent>::value() const noexcept
-    -> const FractionType&
+constexpr auto UnitMultiple<kBase, kExponent>::value() const noexcept -> const FractionType&
 {
   return value_;
 }
@@ -229,11 +224,11 @@ constexpr auto UnitMultiple<kBase, kExponent>::value() const noexcept
   \return No description
   */
 template <int64b kBase, int64b kExponent1, int64b kExponent2> inline
-constexpr UnitMultiple<kBase, std::min(kExponent1, kExponent2)> operator+(
+constexpr UnitMultiple<kBase, (std::min)(kExponent1, kExponent2)> operator+(
     const UnitMultiple<kBase, kExponent1>& lhs,
     const UnitMultiple<kBase, kExponent2>& rhs) noexcept
 {
-  using Multiple = UnitMultiple<kBase, std::min(kExponent1, kExponent2)>;
+  using Multiple = UnitMultiple<kBase, (std::min)(kExponent1, kExponent2)>;
   const auto result = Multiple{lhs}.value() + Multiple{rhs}.value();
   return Multiple{result};
 }
@@ -249,11 +244,11 @@ constexpr UnitMultiple<kBase, std::min(kExponent1, kExponent2)> operator+(
   \return No description
   */
 template <int64b kBase, int64b kExponent1, int64b kExponent2> inline
-constexpr UnitMultiple<kBase, std::min(kExponent1, kExponent2)> operator-(
+constexpr UnitMultiple<kBase, (std::min)(kExponent1, kExponent2)> operator-(
     const UnitMultiple<kBase, kExponent1>& lhs,
     const UnitMultiple<kBase, kExponent2>& rhs) noexcept
 {
-  using Multiple = UnitMultiple<kBase, std::min(kExponent1, kExponent2)>;
+  using Multiple = UnitMultiple<kBase, (std::min)(kExponent1, kExponent2)>;
   const auto result = Multiple{lhs}.value() - Multiple{rhs}.value();
   return Multiple{result};
 }
@@ -263,40 +258,37 @@ constexpr UnitMultiple<kBase, std::min(kExponent1, kExponent2)> operator-(
 
   \tparam kBase No description.
   \tparam kExponent No description.
-  \tparam Integer No description.
+  \tparam Int No description.
   \param [in] lhs No description.
   \param [in] rhs No description.
   \return No description
   */
-template <int64b kBase, int64b kExponent, typename Integer> inline
+template <int64b kBase, int64b kExponent, Integer Int> inline
 constexpr UnitMultiple<kBase, kExponent> operator*(
     const UnitMultiple<kBase, kExponent>& lhs,
-    const Integer rhs) noexcept
+    const Int rhs) noexcept
 {
-  static_assert(kIsInteger<Integer>, "Integer isn't integer type.");
   using Multiple = UnitMultiple<kBase, kExponent>;
   using FracType = typename Multiple::FractionType;
-  const auto result = lhs.value() *
-                      FracType{cast<typename FracType::ArithmeticType>(rhs)};
+  const auto result = lhs.value() * FracType{cast<typename FracType::Type>(rhs)};
   return Multiple{result};
 }
 
 /*!
   \details No detailed description
 
-  \tparam Integer No description.
+  \tparam Int No description.
   \tparam kBase No description.
   \tparam kExponent No description.
   \param [in] lhs No description.
   \param [in] rhs No description.
   \return No description
   */
-template <typename Integer, int64b kBase, int64b kExponent> inline
+template <Integer Int, int64b kBase, int64b kExponent> inline
 constexpr UnitMultiple<kBase, kExponent> operator*(
-    const Integer lhs,
+    const Int lhs,
     const UnitMultiple<kBase, kExponent>& rhs) noexcept
 {
-  static_assert(kIsInteger<Integer>, "Integer isn't integer type.");
   return rhs * lhs;
 }
 
@@ -305,21 +297,19 @@ constexpr UnitMultiple<kBase, kExponent> operator*(
 
   \tparam kBase No description.
   \tparam kExponent No description.
-  \tparam Integer No description.
+  \tparam Int No description.
   \param [in] lhs No description.
   \param [in] rhs No description.
   \return No description
   */
-template <int64b kBase, int64b kExponent, typename Integer> inline
+template <int64b kBase, int64b kExponent, Integer Int> inline
 constexpr UnitMultiple<kBase, kExponent> operator/(
     const UnitMultiple<kBase, kExponent>& lhs,
-    const Integer rhs) noexcept
+    const Int rhs) noexcept
 {
-  static_assert(kIsInteger<Integer>, "Integer isn't integer type.");
   using Multiple = UnitMultiple<kBase, kExponent>;
   using FracType = typename Multiple::FractionType;
-  const auto result = lhs.value() /
-                      FracType{cast<typename FracType::ArithmeticType>(rhs)};
+  const auto result = lhs.value() / FracType{cast<typename FracType::Type>(rhs)};
   return Multiple{result};
 }
 
@@ -338,7 +328,7 @@ constexpr bool operator==(
     const UnitMultiple<kBase, kExponent1>& lhs,
     const UnitMultiple<kBase, kExponent2>& rhs) noexcept
 {
-  using Multiple = UnitMultiple<kBase, std::min(kExponent1, kExponent2)>;
+  using Multiple = UnitMultiple<kBase, (std::min)(kExponent1, kExponent2)>;
   const auto result = Multiple{lhs}.value() == Multiple{rhs}.value();
   return result;
 }
@@ -377,7 +367,7 @@ constexpr bool operator<(
     const UnitMultiple<kBase, kExponent1>& lhs,
     const UnitMultiple<kBase, kExponent2>& rhs) noexcept
 {
-  using Multiple = UnitMultiple<kBase, std::min(kExponent1, kExponent2)>;
+  using Multiple = UnitMultiple<kBase, (std::min)(kExponent1, kExponent2)>;
   const auto result = Multiple{lhs}.value() < Multiple{rhs}.value();
   return result;
 }
@@ -397,7 +387,7 @@ constexpr bool operator<=(
     const UnitMultiple<kBase, kExponent1>& lhs,
     const UnitMultiple<kBase, kExponent2>& rhs) noexcept
 {
-  using Multiple = UnitMultiple<kBase, std::min(kExponent1, kExponent2)>;
+  using Multiple = UnitMultiple<kBase, (std::min)(kExponent1, kExponent2)>;
   const auto result = Multiple{lhs}.value() <= Multiple{rhs}.value();
   return result;
 }

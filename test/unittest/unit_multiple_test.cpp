@@ -17,71 +17,49 @@
 // GoogleTest
 #include "gtest/gtest.h"
 // Zisc
-#include "zisc/fraction.hpp"
-#include "zisc/unit_multiple.hpp"
+#include "zisc/utility.hpp"
+#include "zisc/math/fraction.hpp"
 #include "zisc/math/math.hpp"
+#include "zisc/math/unit_multiple.hpp"
 
 TEST(UnitMultipleTest, ConstructorTest)
 {
+  using zisc::cast;
   {
     constexpr zisc::ByteUnit value{};
-    ASSERT_EQ(0, value.value().numerator());
+    ASSERT_EQ(0, value.value().numer());
   }
   {
     constexpr zisc::ByteUnit value{1};
-    ASSERT_EQ(1, value.value().numerator());
-    ASSERT_DOUBLE_EQ(1.0, value.value().toFloat<double>());
+    ASSERT_EQ(1, value.value().numer());
+    ASSERT_DOUBLE_EQ(1.0, cast<double>(value.value()));
   }
   {
     constexpr zisc::KibiUnit value1{1};
     {
-      constexpr auto value2 = value1.representedAs<zisc::KibiUnit::exponent()>();
-      ASSERT_EQ(1, value2.value().numerator());
-      ASSERT_EQ(1, value2.value().denominator());
+      constexpr auto value2 = value1.cast<zisc::KibiUnit::exponent()>();
+      ASSERT_EQ(1, value2.value().numer());
+      ASSERT_EQ(1, value2.value().denom());
     }
     {
-      constexpr auto value2 = value1.representedAs<zisc::ByteUnit::exponent()>();
-      ASSERT_EQ(1024, value2.value().numerator());
-      ASSERT_EQ(1, value2.value().denominator());
+      constexpr auto value2 = value1.cast<zisc::ByteUnit::exponent()>();
+      ASSERT_EQ(1024, value2.value().numer());
+      ASSERT_EQ(1, value2.value().denom());
     }
     {
-      constexpr auto value2 = value1.representedAs<zisc::MebiUnit::exponent()>();
-      ASSERT_EQ(1, value2.value().numerator());
-      ASSERT_EQ(1024, value2.value().denominator());
+      constexpr auto value2 = value1.cast<zisc::MebiUnit::exponent()>();
+      ASSERT_EQ(1, value2.value().numer());
+      ASSERT_EQ(1024, value2.value().denom());
     }
   }
   {
-    auto make_value = [](const std::int64_t v)
-    {
-      zisc::ByteUnit value{};
-      value.value().numerator() = v;
-      value.setValue(v);
-      return value;
-    };
-    constexpr auto value = make_value(2);
-    ASSERT_EQ(2, value.value().numerator());
+    constexpr zisc::ByteUnit value{2};
+    ASSERT_EQ(2, value.value().numer());
   }
   {
-    auto make_value = [](const std::int64_t v)
-    {
-      zisc::ByteUnit value{zisc::ByteUnit::FractionType{1}};
-      value.setValue(zisc::ByteUnit::FractionType{v});
-      return value;
-    };
-    constexpr auto value = make_value(2);
-    ASSERT_EQ(2, value.value().numerator());
-  }
-  {
-    auto make_value = [](const std::int64_t v)
-    {
-//      zisc::ByteUnit value1{10};
-      zisc::MebiUnit value2{v};
-      zisc::KibiUnit value3{value2};
-      value3.setValue(value2);
-      return value3;
-    };
-    constexpr auto value = make_value(2);
-    ASSERT_EQ(2 * 1024, value.value().numerator());
+    constexpr zisc::MebiUnit v{2};
+    constexpr zisc::KibiUnit value{v};
+    ASSERT_EQ(2 * zisc::ByteUnit::base(), value.value().numer());
   }
   {
     constexpr zisc::ByteUnit byte{};
@@ -100,40 +78,40 @@ TEST(UnitMultipleTest, OperatorTest)
 
   {
     constexpr auto result = value1 + value1;
-    ASSERT_EQ(2, result.value().numerator());
-    ASSERT_EQ(1, result.value().denominator());
+    ASSERT_EQ(2, result.value().numer());
+    ASSERT_EQ(1, result.value().denom());
   }
   {
     constexpr auto result = value1 + value2;
     ASSERT_EQ(0, result.exponent());
-    ASSERT_EQ(512 * 3, result.value().numerator());
-    ASSERT_EQ(1, result.value().denominator());
+    ASSERT_EQ(512 * 3, result.value().numer());
+    ASSERT_EQ(1, result.value().denom());
   }
   {
     constexpr auto result = value1 - value1;
-    ASSERT_EQ(0, result.value().numerator());
-    ASSERT_EQ(1, result.value().denominator());
+    ASSERT_EQ(0, result.value().numer());
+    ASSERT_EQ(1, result.value().denom());
   }
   {
     constexpr auto result = value1 - value2;
     ASSERT_EQ(0, result.exponent());
-    ASSERT_EQ(512, result.value().numerator());
-    ASSERT_EQ(1, result.value().denominator());
+    ASSERT_EQ(512, result.value().numer());
+    ASSERT_EQ(1, result.value().denom());
   }
   {
     constexpr auto result = 2 * value2;
-    ASSERT_EQ(1024, result.value().numerator());
-    ASSERT_EQ(1, result.value().denominator());
+    ASSERT_EQ(1024, result.value().numer());
+    ASSERT_EQ(1, result.value().denom());
   }
   {
     constexpr auto result = value2 * 2;
-    ASSERT_EQ(1024, result.value().numerator());
-    ASSERT_EQ(1, result.value().denominator());
+    ASSERT_EQ(1024, result.value().numer());
+    ASSERT_EQ(1, result.value().denom());
   }
   {
     constexpr auto result = value2 / 2;
-    ASSERT_EQ(256, result.value().numerator());
-    ASSERT_EQ(1, result.value().denominator());
+    ASSERT_EQ(256, result.value().numer());
+    ASSERT_EQ(1, result.value().denom());
   }
   {
     constexpr bool result1 = value1 == value1;
@@ -202,25 +180,25 @@ TEST(UnitMultipleTest, MetricPrefixTest)
   {
     constexpr Kilo kilo{1};
     constexpr Milli milli{kilo};
-    ASSERT_EQ(zisc::pow(10, 6), milli.value().numerator());
-    ASSERT_EQ(1, milli.value().denominator());
+    ASSERT_EQ(zisc::pow(10, 6), milli.value().numer());
+    ASSERT_EQ(1, milli.value().denom());
   }
   {
     constexpr Milli milli{1};
     constexpr Kilo kilo{milli};
-    ASSERT_EQ(1, kilo.value().numerator());
-    ASSERT_EQ(zisc::pow(10, 6), kilo.value().denominator());
+    ASSERT_EQ(1, kilo.value().numer());
+    ASSERT_EQ(zisc::pow(10, 6), kilo.value().denom());
   }
   {
     constexpr Milli milli{1};
     constexpr Nano nano{milli};
-    ASSERT_EQ(zisc::pow(10, 6), nano.value().numerator());
-    ASSERT_EQ(1, nano.value().denominator());
+    ASSERT_EQ(zisc::pow(10, 6), nano.value().numer());
+    ASSERT_EQ(1, nano.value().denom());
   }
   {
     constexpr Nano nano{1};
     constexpr Milli milli{nano};
-    ASSERT_EQ(1, milli.value().numerator());
-    ASSERT_EQ(zisc::pow(10, 6), milli.value().denominator());
+    ASSERT_EQ(1, milli.value().numer());
+    ASSERT_EQ(zisc::pow(10, 6), milli.value().denom());
   }
 }

@@ -21,11 +21,9 @@
 #include <array>
 #include <atomic>
 #include <cstddef>
-#include <future>
 #include <iterator>
 #include <limits>
 #include <memory>
-#include <mutex>
 #include <thread>
 #include <tuple>
 #include <type_traits>

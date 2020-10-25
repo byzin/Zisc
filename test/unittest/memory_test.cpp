@@ -22,8 +22,9 @@
 // Googletest
 #include "gtest/gtest.h"
 // Zisc
-#include "zisc/unit_multiple.hpp"
+#include "zisc/utility.hpp"
 #include "zisc/zisc_config.hpp"
+#include "zisc/math/unit_multiple.hpp"
 #include "zisc/memory/memory.hpp"
 
 TEST(MemoryTest, SystemMemoryStatsTest)
@@ -31,7 +32,8 @@ TEST(MemoryTest, SystemMemoryStatsTest)
   const auto system_stats = zisc::Memory::retrieveSystemStats();
 
   std::cout << std::defaultfloat << std::endl;
-  using Arith = typename zisc::ByteUnit::ArithmeticType;
+  using zisc::cast;
+  using Arith = typename zisc::ByteUnit::Type;
   {
     constexpr std::size_t m = std::numeric_limits<std::size_t>::max();
     ASSERT_NE(system_stats.totalPhysicalMemory(), m) << "Unsupported platform.";
@@ -39,30 +41,30 @@ TEST(MemoryTest, SystemMemoryStatsTest)
   {
     const Arith b = zisc::cast<Arith>(system_stats.totalPhysicalMemory());
     const zisc::ByteUnit bytes{b};
-    const auto mb = bytes.representedAs<zisc::MebiUnit::exponent()>();
-    std::cout << "## Total physical memory size: " << mb.value().toFloat<double>()
+    const auto mb = bytes.cast<zisc::MebiUnit::exponent()>();
+    std::cout << "## Total physical memory size: " << cast<double>(mb.value())
               << " MB" << std::endl;
     EXPECT_GT(b, 0) << "The platform has no physical memory";
   }
   {
     const Arith b = zisc::cast<Arith>(system_stats.availablePhysicalMemory());
     const zisc::ByteUnit bytes{b};
-    const auto mb = bytes.representedAs<zisc::MebiUnit::exponent()>();
-    std::cout << "## Free  physical memory size: " << mb.value().toFloat<double>()
+    const auto mb = bytes.cast<zisc::MebiUnit::exponent()>();
+    std::cout << "## Free  physical memory size: " << cast<double>(mb.value())
               << " MB" << std::endl;
   }
   {
     const Arith b = zisc::cast<Arith>(system_stats.totalVirtualMemory());
     const zisc::ByteUnit bytes{b};
-    const auto mb = bytes.representedAs<zisc::MebiUnit::exponent()>();
-    std::cout << "## Total virtual memory size: " << mb.value().toFloat<double>()
+    const auto mb = bytes.cast<zisc::MebiUnit::exponent()>();
+    std::cout << "## Total virtual memory size: " << cast<double>(mb.value())
               << " MB" << std::endl;
   }
   {
     const Arith b = zisc::cast<Arith>(system_stats.availableVirtualMemory());
     const zisc::ByteUnit bytes{b};
-    const auto mb = bytes.representedAs<zisc::MebiUnit::exponent()>();
-    std::cout << "## Free  virtual memory size: " << mb.value().toFloat<double>()
+    const auto mb = bytes.cast<zisc::MebiUnit::exponent()>();
+    std::cout << "## Free  virtual memory size: " << cast<double>(mb.value())
               << " MB" << std::endl;
   }
 }

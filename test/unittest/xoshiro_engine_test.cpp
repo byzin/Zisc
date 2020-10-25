@@ -48,9 +48,9 @@ void testXoshiroEngine(const std::string_view reference_path)
       ::testXoshiroEngine<zisc:: engine_type >(reference_path); \
     }
 
-XOSHIRO_TEST(XoshiroPlus128, "resources/xoshiro128_plus_reference.txt");
-XOSHIRO_TEST(Xoshiro2Plus128, "resources/xoshiro128_2plus_reference.txt");
-XOSHIRO_TEST(Xoshiro2Star128, "resources/xoshiro128_2star_reference.txt");
-XOSHIRO_TEST(XoshiroPlus256, "resources/xoshiro256_plus_reference.txt");
-XOSHIRO_TEST(Xoshiro2Plus256, "resources/xoshiro256_2plus_reference.txt");
-XOSHIRO_TEST(Xoshiro2Star256, "resources/xoshiro256_2star_reference.txt");
+XOSHIRO_TEST(XoshiroPlus128, "resources/xoshiro128_plus_reference.txt")
+XOSHIRO_TEST(Xoshiro2Plus128, "resources/xoshiro128_2plus_reference.txt")
+XOSHIRO_TEST(Xoshiro2Star128, "resources/xoshiro128_2star_reference.txt")
+XOSHIRO_TEST(XoshiroPlus256, "resources/xoshiro256_plus_reference.txt")
+XOSHIRO_TEST(Xoshiro2Plus256, "resources/xoshiro256_2plus_reference.txt")
+XOSHIRO_TEST(Xoshiro2Star256, "resources/xoshiro256_2star_reference.txt")

@@ -336,7 +336,7 @@ TEST(ScalableCircularQueueTest, ConcurrencyTest)
   using zisc::uint64b;
   using zisc::uint32b;
   using Queue = zisc::ScalableCircularQueue<uint64b>;
-  using Test = LockFreeBoundedQueueTest<Queue, num_of_threads, num_of_thread_tasks>;
+  using QTest = LockFreeBoundedQueueTest<Queue, num_of_threads, num_of_thread_tasks>;
   static_assert(num_of_tasks <= Queue::capacityMax());
 
   zisc::SimpleMemoryResource mem_resource;
@@ -344,7 +344,7 @@ TEST(ScalableCircularQueueTest, ConcurrencyTest)
   q.setCapacity(num_of_tasks);
 
   uint64b elapsed_time = 0;
-  bool result = Test::testEnqueue(q, elapsed_time);
+  bool result = QTest::testEnqueue(q, elapsed_time);
   ASSERT_TRUE(result) << "The enqueue operation in multi-thread failed.";
   ASSERT_EQ(num_of_tasks, q.size());
   std::cout << "Multiple producer time: " << elapsed_time << " ms" << std::endl;
@@ -365,7 +365,7 @@ TEST(ScalableCircularQueueTest, ConcurrencyTest)
 
   std::vector<uint32b> data;
   data.resize(num_of_tasks, 0);
-  result = Test::testDequeue(q, data, elapsed_time);
+  result = QTest::testDequeue(q, data, elapsed_time);
   ASSERT_TRUE(result) << "The dequeue operation in multi-thread failed.";
   ASSERT_EQ(0, q.size());
   std::cout << "Multiple consumer time: " << elapsed_time << " ms" << std::endl;
@@ -382,7 +382,7 @@ TEST(ScalableCircularQueueTest, ConcurrencyLoopTest)
   using zisc::uint64b;
   using zisc::uint32b;
   using Queue = zisc::ScalableCircularQueue<uint64b>;
-  using Test = LockFreeBoundedQueueTest<Queue, num_of_threads, num_of_thread_tasks>;
+  using QTest = LockFreeBoundedQueueTest<Queue, num_of_threads, num_of_thread_tasks>;
   static_assert(num_of_tasks <= Queue::capacityMax());
 
   zisc::SimpleMemoryResource mem_resource;
@@ -392,7 +392,7 @@ TEST(ScalableCircularQueueTest, ConcurrencyLoopTest)
   for (std::size_t loop = 0; loop < 4; ++loop) {
     std::cout << "Loop[" << (loop + 1) << "]" << std::endl;
     uint64b elapsed_time = 0;
-    bool result = Test::testEnqueue(q, elapsed_time);
+    bool result = QTest::testEnqueue(q, elapsed_time);
     ASSERT_TRUE(result) << "The enqueue operation in multi-thread failed.";
     ASSERT_EQ(num_of_tasks, q.size());
     std::cout << "    Multiple producer time: " << elapsed_time << " ms" << std::endl;
@@ -413,7 +413,7 @@ TEST(ScalableCircularQueueTest, ConcurrencyLoopTest)
 
     std::vector<uint32b> data;
     data.resize(num_of_tasks, 0);
-    result = Test::testDequeue(q, data, elapsed_time);
+    result = QTest::testDequeue(q, data, elapsed_time);
     ASSERT_TRUE(result) << "The dequeue operation in multi-thread failed.";
     ASSERT_EQ(0, q.size());
     std::cout << "    Multiple consumer time: " << elapsed_time << " ms" << std::endl;
@@ -431,7 +431,7 @@ TEST(ScalableCircularQueueTest, ConcurrencyTest2)
   using zisc::uint64b;
   using zisc::uint32b;
   using Queue = zisc::ScalableCircularQueue<uint64b>;
-  using Test = LockFreeBoundedQueueTest<Queue, num_of_threads, num_of_thread_tasks>;
+  using QTest = LockFreeBoundedQueueTest<Queue, num_of_threads, num_of_thread_tasks>;
   static_assert(num_of_tasks <= Queue::capacityMax());
 
   zisc::SimpleMemoryResource mem_resource;
@@ -439,7 +439,7 @@ TEST(ScalableCircularQueueTest, ConcurrencyTest2)
   q.setCapacity(2 * num_of_tasks);
 
   uint64b elapsed_time = 0;
-  bool result = Test::testEnqueue(q, elapsed_time);
+  bool result = QTest::testEnqueue(q, elapsed_time);
   ASSERT_TRUE(result) << "The enqueue operation in multi-thread failed.";
   ASSERT_EQ(num_of_tasks, q.size());
   std::cout << "Multiple producer time: " << elapsed_time << " ms" << std::endl;
@@ -460,7 +460,7 @@ TEST(ScalableCircularQueueTest, ConcurrencyTest2)
 
   std::vector<uint32b> data;
   data.resize(num_of_tasks, 0);
-  result = Test::testEnqueueDequeue(q, data, elapsed_time);
+  result = QTest::testEnqueueDequeue(q, data, elapsed_time);
   ASSERT_TRUE(result) << "The enqueue dequeue operations in multi-thread failed.";
   ASSERT_EQ(num_of_tasks, q.size());
   std::cout << "Multiple prodcons time: " << elapsed_time << " ms" << std::endl;
@@ -483,7 +483,7 @@ TEST(ScalableCircularQueueTest, ConcurrencyTest2)
   }
 
   std::fill(data.begin(), data.end(), 0);
-  result = Test::testDequeue(q, data, elapsed_time);
+  result = QTest::testDequeue(q, data, elapsed_time);
   ASSERT_TRUE(result) << "The dequeue operation in multi-thread failed.";
   ASSERT_EQ(0, q.size());
   std::cout << "Multiple consumer time: " << elapsed_time << " ms" << std::endl;
@@ -500,7 +500,7 @@ TEST(ScalableCircularQueueTest, ConcurrencyLoopTest2)
   using zisc::uint64b;
   using zisc::uint32b;
   using Queue = zisc::ScalableCircularQueue<uint64b>;
-  using Test = LockFreeBoundedQueueTest<Queue, num_of_threads, num_of_thread_tasks>;
+  using QTest = LockFreeBoundedQueueTest<Queue, num_of_threads, num_of_thread_tasks>;
   static_assert(num_of_tasks <= Queue::capacityMax());
 
   zisc::SimpleMemoryResource mem_resource;
@@ -510,7 +510,7 @@ TEST(ScalableCircularQueueTest, ConcurrencyLoopTest2)
   for (std::size_t loop = 0; loop < 4; ++loop) {
     std::cout << "Loop[" << (loop + 1) << "]" << std::endl;
     uint64b elapsed_time = 0;
-    bool result = Test::testEnqueue(q, elapsed_time);
+    bool result = QTest::testEnqueue(q, elapsed_time);
     ASSERT_TRUE(result) << "The enqueue operation in multi-thread failed.";
     ASSERT_EQ(num_of_tasks, q.size());
     std::cout << "    Multiple producer time: " << elapsed_time << " ms" << std::endl;
@@ -531,7 +531,7 @@ TEST(ScalableCircularQueueTest, ConcurrencyLoopTest2)
 
     std::vector<uint32b> data;
     data.resize(num_of_tasks, 0);
-    result = Test::testEnqueueDequeue(q, data, elapsed_time);
+    result = QTest::testEnqueueDequeue(q, data, elapsed_time);
     ASSERT_TRUE(result) << "The enqueue dequeue operations in multi-thread failed.";
     ASSERT_EQ(num_of_tasks, q.size());
     std::cout << "    Multiple prodcons time: " << elapsed_time << " ms" << std::endl;
@@ -554,7 +554,7 @@ TEST(ScalableCircularQueueTest, ConcurrencyLoopTest2)
     }
 
     std::fill(data.begin(), data.end(), 0);
-    result = Test::testDequeue(q, data, elapsed_time);
+    result = QTest::testDequeue(q, data, elapsed_time);
     ASSERT_TRUE(result) << "The dequeue operation in multi-thread failed.";
     ASSERT_EQ(0, q.size());
     std::cout << "    Multiple consumer time: " << elapsed_time << " ms" << std::endl;

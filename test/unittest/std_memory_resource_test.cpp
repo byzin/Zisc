@@ -71,7 +71,7 @@ TEST(StdMemoryResourceTest, UniquePtrConstructionTest)
         return 0;
       }
     };
-    struct Test : public Base
+    struct MemTest : public Base
     {
       int getValue() override
       {
@@ -79,7 +79,7 @@ TEST(StdMemoryResourceTest, UniquePtrConstructionTest)
       }
     };
     using UniqueBase = zisc::pmr::unique_ptr<Base>;
-    UniqueBase ptr = zisc::pmr::allocateUnique<Test>(&mem_resource);
+    UniqueBase ptr = zisc::pmr::allocateUnique<MemTest>(&mem_resource);
     ASSERT_TRUE(ptr->getValue());
   }
 }
@@ -87,29 +87,29 @@ TEST(StdMemoryResourceTest, UniquePtrConstructionTest)
 TEST(StdMemoryResourceTest, UniquePtrDeletionTest)
 {
   int value = 0;
-  struct Test
+  struct MemTest
   {
-    Test(int* v) : v_{v} {*v_ = 1;}
-    ~Test() {*v_ = 2;}
+    MemTest(int* v) noexcept : v_{v} {*v_ = 1;}
+    ~MemTest() noexcept {*v_ = 2;}
     int* v_ = nullptr;
   };
 
   zisc::SimpleMemoryResource mem_resource;
-  zisc::pmr::polymorphic_allocator<Test> alloc{&mem_resource};
+  zisc::pmr::polymorphic_allocator<MemTest> alloc{&mem_resource};
 
   // Empty data
   {
-    zisc::pmr::unique_ptr<Test> ptr{};
+    zisc::pmr::unique_ptr<MemTest> ptr{};
   }
 
   // Null pointer
   {
-    zisc::pmr::unique_ptr<Test> ptr{nullptr, alloc};
+    zisc::pmr::unique_ptr<MemTest> ptr{nullptr, alloc};
   }
 
   ASSERT_FALSE(value);
   {
-    auto ptr = zisc::pmr::allocateUnique<Test>(alloc, &value);
+    auto ptr = zisc::pmr::allocateUnique<MemTest>(alloc, &value);
     ASSERT_EQ(value, 1) << "zisc::pmr::unique_ptr construction failed.";
   }
   ASSERT_EQ(value, 2) << "zisc::pmr::unique_ptr destruction failed.";

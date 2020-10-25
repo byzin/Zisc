@@ -27,14 +27,14 @@
 #include <utility>
 #include <vector>
 // Zisc
-#include "error.hpp"
-#include "non_copyable.hpp"
-#include "type_traits.hpp"
-#include "zisc_config.hpp"
-#include "memory/std_memory_resource.hpp"
-#include "queue/scalable_circular_queue.hpp"
-#include "thread/atomic.hpp"
-#include "thread/bitset.hpp"
+#include "atomic.hpp"
+#include "bitset.hpp"
+#include "zisc/concepts.hpp"
+#include "zisc/error.hpp"
+#include "zisc/non_copyable.hpp"
+#include "zisc/zisc_config.hpp"
+#include "zisc/memory/std_memory_resource.hpp"
+#include "zisc/queue/scalable_circular_queue.hpp"
 
 namespace zisc {
 
@@ -54,18 +54,17 @@ class ThreadManager : private NonCopyable<ThreadManager>
 {
  public:
   //! Result type of tasks
-  template <typename T>
+  template <NonReference T>
   class Result : private NonCopyable<Result<T>>
   {
    public:
-    static_assert(!std::is_reference_v<T>, "Reference result isn't supported.");
     using Type = std::remove_volatile_t<T>;
 
     //! Create a result of a task
     Result(const int64b task_id, ThreadManager* manager) noexcept;
 
     //! Destroy a result
-    ~Result() noexcept;
+    ~Result() noexcept {destroy();}
 
     //! Return the result
     Type get();
@@ -82,6 +81,9 @@ class ThreadManager : private NonCopyable<ThreadManager>
     using ResultData = std::aligned_storage_t<sizeof(ResultT), alignof(ResultT)>;
     using ResultReference = std::add_lvalue_reference_t<ResultT>;
     using ResultRReference = std::add_rvalue_reference_t<ResultT>;
+
+    //! Destroy a result data
+    void destroy() noexcept;
 
     //! Check if a result has a value
     bool hasValue() const noexcept;
@@ -138,9 +140,17 @@ class ThreadManager : private NonCopyable<ThreadManager>
     int64b parent_task_id_;
   };
 
-  template <typename Type>
+
+  //
+  template <NonReference Type>
   using SharedResult = std::shared_ptr<Result<Type>>;
   using SharedTask = std::shared_ptr<Task>;
+  template <typename Func, typename ...Args>
+  using InvokeResult = std::remove_volatile_t<std::invoke_result_t<Func, Args...>>;
+  template <typename Ite1, typename Ite2>
+  using CommonIte = std::common_type_t<std::remove_reference_t<Ite1>,
+                                       std::remove_reference_t<Ite2>>;
+
 
   /*!
     \brief No brief description
@@ -178,15 +188,9 @@ class ThreadManager : private NonCopyable<ThreadManager>
     DiffType num_of_iterations_;
   };
 
-  template <typename Func, typename ...ArgTypes>
-  using InvokeResult = std::remove_volatile_t<std::remove_reference_t<std::invoke_result_t<Func, ArgTypes...>>>;
-  template <typename Iterator1, typename Iterator2>
-  using CommonIterator = std::common_type_t<std::remove_reference_t<Iterator1>,
-                                            std::remove_reference_t<Iterator2>>;
-
 
   static constexpr int64b kNoParentId = -1;
-  static constexpr int64b kAllParentId = std::numeric_limits<int64b>::min();
+  static constexpr int64b kAllParentId = (std::numeric_limits<int64b>::min)();
 
 
   //! Create threads as many CPU threads as
@@ -201,15 +205,15 @@ class ThreadManager : private NonCopyable<ThreadManager>
 
 
   //! Calculate a range of a thread
-  template <typename Integer>
-  static std::array<Integer, 2> calcThreadRange(const Integer range,
-                                                const int64b num_of_threads,
-                                                const int64b thread_id) noexcept;
+  template <Integer Int>
+  static std::array<Int, 2> calcThreadRange(const Int range,
+                                            const int64b num_of_threads,
+                                            const int64b thread_id) noexcept;
 
   //! Calculate a range of a thread
-  template <typename Integer>
-  std::array<Integer, 2> calcThreadRange(const Integer range, 
-                                         const int64b thread_id) const noexcept;
+  template <Integer Int>
+  std::array<Int, 2> calcThreadRange(const Int range, 
+                                     const int64b thread_id) const noexcept;
 
   //! Return the maximum task ID
   std::size_t idCapacity() const noexcept;
@@ -228,36 +232,34 @@ class ThreadManager : private NonCopyable<ThreadManager>
   static constexpr std::size_t defaultItemCapacity() noexcept;
 
   //! Run the given task on a worker thread in the manager
-  template <typename Func>
+  template <Invocable Func>
   SharedResult<InvokeResult<Func>> enqueue(
       Func&& task,
-      const int64b parent_task_id = kNoParentId,
-      EnableIfInvocable<Func> = kEnabler);
+      const int64b parent_task_id = kNoParentId);
 
   //! Run the given task on a worker thread in the manager
-  template <typename Func>
+  template <Invocable<int64b> Func>
   SharedResult<InvokeResult<Func, int64b>> enqueue(
       Func&& task,
-      const int64b parent_task_id = kNoParentId,
-      EnableIfInvocable<Func, int64b> = kEnabler);
+      const int64b parent_task_id = kNoParentId);
 
   //! Run tasks on the worker threads in the manager
-  template <typename Func, typename Iterator1, typename Iterator2>
-  SharedResult<void> enqueueLoop(
-      Func&& task,
-      Iterator1&& begin,
-      Iterator2&& end,
-      const int64b parent_task_id = kNoParentId,
-      EnableIfInvocable<Func, CommonIterator<Iterator1, Iterator2>> = kEnabler);
+  template <typename Ite1,
+            typename Ite2,
+            Invocable<CommonIte<Ite1, Ite2>> Func>
+  SharedResult<void> enqueueLoop(Func&& task,
+                                 Ite1&& begin,
+                                 Ite2&& end,
+                                 const int64b parent_task_id = kNoParentId);
 
   //! Run tasks on the worker threads in the manager
-  template <typename Func, typename Iterator1, typename Iterator2>
-  SharedResult<void> enqueueLoop(
-      Func&& task,
-      Iterator1&& begin,
-      Iterator2&& end,
-      const int64b parent_task_id = kNoParentId,
-      EnableIfInvocable<Func, int64b, CommonIterator<Iterator1, Iterator2>> = kEnabler);
+  template <typename Ite1,
+            typename Ite2,
+            Invocable<int64b, CommonIte<Ite1, Ite2>> Func>
+  SharedResult<void> enqueueLoop(Func&& task,
+                                 Ite1&& begin,
+                                 Ite2&& end,
+                                 const int64b parent_task_id = kNoParentId);
 
   //! Check whether the task queue is empty
   bool isEmpty() const noexcept;
@@ -330,14 +332,17 @@ class ThreadManager : private NonCopyable<ThreadManager>
   void createWorkers(const int64b num_of_threads) noexcept;
 
   //! Return the distance of given two iterators
-  template <typename Iterator1, typename Iterator2>
-  static DiffType distance(Iterator1&& begin, Iterator2&& end) noexcept;
+  template <typename Ite1, typename Ite2>
+  static DiffType distance(Ite1&& begin, Ite2&& end) noexcept;
+
+  //! Do worker task
+  void doWorkerTask() noexcept;
 
   //! Run tasks on the worker threads in the manager
-  template <typename ReturnT, typename Func, typename Iterator1, typename Iterator2>
+  template <typename ReturnT, typename Func, typename Ite1, typename Ite2>
   SharedResult<ReturnT> enqueueImpl(Func&& task,
-                                    Iterator1&& begin,
-                                    Iterator2&& end,
+                                    Ite1&& begin,
+                                    Ite2&& end,
                                     const int64b parent_task_id);
 
   //! Exit workers running

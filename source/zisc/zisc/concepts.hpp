@@ -93,6 +93,14 @@ concept CopyAssignable = std::is_copy_assignable_v<Type>;
 template <typename Type>
 concept MoveAssignable = std::is_move_assignable_v<Type>;
 
+//! Specify a type is reference type
+template <typename Type>
+concept Reference = std::is_reference_v<Type>;
+
+//! Specify a type is non-reference type
+template <typename Type>
+concept NonReference = !std::is_reference_v<Type>;
+
 // Callable concepts
 
 //! Specify a callable type can be invoked with a given set of argument

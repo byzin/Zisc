@@ -28,11 +28,11 @@
 #include "gtest/gtest.h"
 // Zisc
 #include "zisc/non_copyable.hpp"
-#include "zisc/thread_manager.hpp"
 #include "zisc/math/math.hpp"
 #include "zisc/memory/simple_memory_resource.hpp"
 #include "zisc/random/correlated_multi_jittered_engine.hpp"
 #include "zisc/random/pcg_engine.hpp"
+#include "zisc/thread/thread_manager.hpp"
 
 namespace {
 
@@ -126,10 +126,10 @@ TEST(ThreadManagerTest, EnqueueTaskTest)
     thread_manager.clear();
     // enqueueLoop()
     {
-      auto task1 = [](const int /* index */) {};
+      auto task1 = [](const int /* index */) noexcept {};
       auto result1 = thread_manager.enqueueLoop(task1, 0, 10);
 
-      auto task2 = [](const zisc::int64b /* thread_number */, const int /* index */) {};
+      auto task2 = [](const zisc::int64b /* thread_number */, const int /* index */) noexcept {};
       auto result2 = thread_manager.enqueueLoop(std::move(task2), 0, 10);
 
       std::function<void (int)> task3{task1};

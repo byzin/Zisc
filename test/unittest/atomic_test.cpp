@@ -22,10 +22,10 @@
 // GoogleTest
 #include "gtest/gtest.h"
 // Zisc
-#include "zisc/thread_manager.hpp"
 #include "zisc/zisc_config.hpp"
 #include "zisc/memory/simple_memory_resource.hpp"
 #include "zisc/thread/atomic.hpp"
+#include "zisc/thread/thread_manager.hpp"
 
 namespace  {
 

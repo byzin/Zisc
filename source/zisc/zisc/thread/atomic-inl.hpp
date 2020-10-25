@@ -196,13 +196,8 @@ Type Atomic::sub(Type* ptr,
 template <TriviallyCopyable Type> inline
 Type Atomic::increment(Type* ptr, const std::memory_order order) noexcept
 {
-  [[maybe_unused]] constexpr Type one = cast<Type>(1);
-  const Type old =
-#if defined(Z_CLANG)
-      add(ptr, one, order);
-#else // Z_CLANG
-      std::atomic_ref<Type>{*ptr}++;
-#endif // Z_CLANG
+  constexpr Type one = cast<Type>(1);
+  const Type old = add(ptr, one, order);
   return old;
 }
 
@@ -217,13 +212,8 @@ Type Atomic::increment(Type* ptr, const std::memory_order order) noexcept
 template <TriviallyCopyable Type> inline
 Type Atomic::decrement(Type* ptr, const std::memory_order order) noexcept
 {
-  [[maybe_unused]] constexpr Type one = cast<Type>(1);
-  const auto old =
-#if defined(Z_CLANG)
-      sub(ptr, one, order);
-#else // Z_CLANG
-      std::atomic_ref<Type>{*ptr}--;
-#endif // Z_CLANG
+  constexpr Type one = cast<Type>(1);
+  const auto old = sub(ptr, one, order);
   return old;
 }
 

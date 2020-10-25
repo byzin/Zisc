@@ -32,13 +32,14 @@
 #include <utility>
 #include <vector>
 // Zisc
-#include "error.hpp"
-#include "type_traits.hpp"
-#include "utility.hpp"
-#include "zisc_config.hpp"
-#include "memory/std_memory_resource.hpp"
-#include "thread/atomic.hpp"
-#include "queue/scalable_circular_queue.hpp"
+#include "atomic.hpp"
+#include "bitset.hpp"
+#include "zisc/concepts.hpp"
+#include "zisc/error.hpp"
+#include "zisc/utility.hpp"
+#include "zisc/zisc_config.hpp"
+#include "zisc/memory/std_memory_resource.hpp"
+#include "zisc/queue/scalable_circular_queue.hpp"
 
 namespace zisc {
 
@@ -48,7 +49,7 @@ namespace zisc {
   \param [in] task_id No description.
   \param [in] manager No description.
   */
-template <typename T> inline
+template <NonReference T> inline
 ThreadManager::Result<T>::Result(const int64b task_id,
                                  ThreadManager* manager) noexcept :
     task_id_{task_id},
@@ -59,9 +60,36 @@ ThreadManager::Result<T>::Result(const int64b task_id,
 
 /*!
   \details No detailed description
+
+  \return No description
   */
-template <typename T> inline
-ThreadManager::Result<T>::~Result() noexcept
+template <NonReference T> inline
+auto ThreadManager::Result<T>::get() -> Type
+{
+  wait();
+  if constexpr (!std::is_void_v<Type>)
+    return std::move(value());
+}
+
+/*!
+  \details No detailed description
+  */
+template <NonReference T> inline
+void ThreadManager::Result<T>::wait() const
+{
+  while (!hasValue()) {
+    // Run another task while waiting for the complesion
+    const bool has_task = runAnotherTask();
+    if (!has_task)
+      std::this_thread::yield();
+  }
+}
+
+/*!
+  \details No detailed description
+  */
+template <NonReference T> inline
+void ThreadManager::Result<T>::destroy() noexcept
 {
   if constexpr (std::is_destructible_v<ResultT>) {
     if (hasValue()) {
@@ -76,34 +104,7 @@ ThreadManager::Result<T>::~Result() noexcept
 
   \return No description
   */
-template <typename T> inline
-auto ThreadManager::Result<T>::get() -> Type
-{
-  wait();
-  if constexpr (!std::is_void_v<Type>)
-    return std::move(value());
-}
-
-/*!
-  \details No detailed description
-  */
-template <typename T> inline
-void ThreadManager::Result<T>::wait() const
-{
-  while (!hasValue()) {
-    // Run another task while waiting for the complesion
-    const bool has_task = runAnotherTask();
-    if (!has_task)
-      std::this_thread::yield();
-  }
-}
-
-/*!
-  \details No detailed description
-
-  \return No description
-  */
-template <typename T> inline
+template <NonReference T> inline
 bool ThreadManager::Result<T>::hasValue() const noexcept
 {
   return has_value_ == kTrue;
@@ -114,7 +115,7 @@ bool ThreadManager::Result<T>::hasValue() const noexcept
 
   \return No description
   */
-template <typename T> inline
+template <NonReference T> inline
 ThreadManager* ThreadManager::Result<T>::manager() const noexcept
 {
   return manager_;
@@ -125,7 +126,7 @@ ThreadManager* ThreadManager::Result<T>::manager() const noexcept
 
   \return No description
   */
-template <typename T> inline
+template <NonReference T> inline
 bool ThreadManager::Result<T>::runAnotherTask() const
 {
   bool has_task = false;
@@ -146,7 +147,7 @@ bool ThreadManager::Result<T>::runAnotherTask() const
 
   \param [in] result No description.
   */
-template <typename T> inline
+template <NonReference T> inline
 void ThreadManager::Result<T>::set(ResultRReference result) noexcept
 {
   ZISC_ASSERT(!hasValue(), "The result already has a value.");
@@ -161,7 +162,7 @@ void ThreadManager::Result<T>::set(ResultRReference result) noexcept
 
   \return No description
   */
-template <typename T> inline
+template <NonReference T> inline
 int64b ThreadManager::Result<T>::taskId() const noexcept
 {
   return task_id_;
@@ -172,10 +173,10 @@ int64b ThreadManager::Result<T>::taskId() const noexcept
 
   \return No description
   */
-template <typename T> inline
+template <NonReference T> inline
 auto ThreadManager::Result<T>::value() noexcept -> ResultReference
 {
-  return *treatAs<ResultT*>(std::addressof(data_));
+  return *reinterp<ResultT*>(std::addressof(data_));
 }
 
 /*!
@@ -336,44 +337,40 @@ ThreadManager::~ThreadManager()
 /*!
   \details No detailed description
 
-  \tparam Integer No description.
+  \tparam Int No description.
   \param [in] range No description.
   \param [in] num_of_threads No description.
   \param [in] thread_id No description.
   \return No description
   */
-template <typename Integer> inline
-std::array<Integer, 2> ThreadManager::calcThreadRange(
-    const Integer range,
-    const int64b num_of_threads,
-    const int64b thread_id) noexcept
+template <Integer Int> inline
+std::array<Int, 2> ThreadManager::calcThreadRange(const Int range,
+                                                  const int64b num_of_threads,
+                                                  const int64b thread_id) noexcept
 {
-  static_assert(kIsInteger<Integer>, "The Integer isn't integer type.");
-  ZISC_ASSERT(0 < num_of_threads, "The num of threads is zero.");
-
-  const Integer threads = cast<Integer>(num_of_threads);
-  const Integer id = cast<Integer>(thread_id);
+  const Int threads = cast<Int>(num_of_threads);
+  const Int id = cast<Int>(thread_id);
+  ZISC_ASSERT(0 < threads, "The num of threads is zero.");
   ZISC_ASSERT(threads <= range, "The range is less than the num of threads.");
 
-  const Integer n = range / threads;
-  const Integer begin = n * id;
-  const Integer end = begin + n + ((id + 1 == threads) ? range - n * threads : 0);
+  const Int n = range / threads;
+  const Int begin = n * id;
+  const Int end = begin + n + ((id + 1 == threads) ? range - n * threads : 0);
   return {{begin, end}};
 }
 
 /*!
   \details No detailed description
 
-  \tparam Integer No description.
+  \tparam Int No description.
   \param [in] range No description.
   \param [in] thread_id No description.
   \return No description
   */
 
-template <typename Integer> inline
-std::array<Integer, 2> ThreadManager::calcThreadRange(
-    const Integer range,
-    const int64b thread_id) const noexcept
+template <Integer Int> inline
+std::array<Int, 2> ThreadManager::calcThreadRange(const Int range,
+                                                  const int64b thread_id) const noexcept
 {
   return calcThreadRange(range, numOfThreads(), thread_id);
 }
@@ -451,21 +448,20 @@ constexpr std::size_t ThreadManager::defaultItemCapacity() noexcept
   \param [in] parent_task_id No description.
   \return No description
   */
-template <typename Func> inline
+template <Invocable Func> inline
 auto ThreadManager::enqueue(Func&& task,
-                            const int64b parent_task_id,
-                            EnableIfInvocable<Func>)
+                            const int64b parent_task_id)
     -> SharedResult<InvokeResult<Func>>
 {
   using ReturnT = InvokeResult<Func>;
-  auto t = [task_impl = std::forward<Func>(task)](const int64b /* thread_id */)
+  auto func = [t = std::forward<Func>(task)](const int64b /* thread_id */)
   {
     if constexpr (std::is_void_v<ReturnT>)
-      task_impl();
+      t();
     else
-      return task_impl();
+      return t();
   };
-  auto result = enqueueImpl<ReturnT>(std::move(t), 0, 1, parent_task_id);
+  auto result = enqueueImpl<ReturnT>(std::move(func), 0, 1, parent_task_id);
   return result;
 }
 
@@ -477,53 +473,52 @@ auto ThreadManager::enqueue(Func&& task,
   \param [in] parent_task_id No description.
   \return No description
   */
-template <typename Func> inline
+template <Invocable<int64b> Func> inline
 auto ThreadManager::enqueue(Func&& task,
-                            const int64b parent_task_id,
-                            EnableIfInvocable<Func, int64b>)
+                            const int64b parent_task_id)
     -> SharedResult<InvokeResult<Func, int64b>>
 {
   using ReturnT = InvokeResult<Func, int64b>;
-  auto t = [task_impl = std::forward<Func>(task)](const int64b thread_id)
+  auto func = [t = std::forward<Func>(task)](const int64b thread_id)
   {
     if constexpr (std::is_void_v<ReturnT>)
-      task_impl(thread_id);
+      t(thread_id);
     else
-      return task_impl(thread_id);
+      return t(thread_id);
   };
-  auto result = enqueueImpl<ReturnT>(std::move(t), 0, 1, parent_task_id);
+  auto result = enqueueImpl<ReturnT>(std::move(func), 0, 1, parent_task_id);
   return result;
 }
 
 /*!
   \details No detailed description
 
+  \tparam Ite1 No description.
+  \tparam Ite2 No description.
   \tparam Func No description.
-  \tparam Iterator1 No description.
-  \tparam Iterator2 No description.
   \param [in] task No description.
   \param [in] begin No description.
   \param [in] end No description.
+  \param [in] parent_task_id No description.
   \return No description
   */
-template <typename Func, typename Iterator1, typename Iterator2> inline
-auto ThreadManager::enqueueLoop(
-    Func&& task,
-    Iterator1&& begin,
-    Iterator2&& end,
-    const int64b parent_task_id,
-    EnableIfInvocable<Func, CommonIterator<Iterator1, Iterator2>>)
-        -> SharedResult<void>
+template <typename Ite1,
+          typename Ite2,
+          Invocable<ThreadManager::CommonIte<Ite1, Ite2>> Func> inline
+auto ThreadManager::enqueueLoop(Func&& task,
+                                Ite1&& begin,
+                                Ite2&& end,
+                                const int64b parent_task_id) -> SharedResult<void>
 {
-  using Iterator = CommonIterator<Iterator1, Iterator2>;
-  auto t = [task_impl = std::forward<Func>(task)]
-  (const int64b /* thread_id */, const Iterator it)
+  using Ite = CommonIte<Ite1, Ite2>;
+  auto func = [t = std::forward<Func>(task)](const int64b /* thread_id */,
+                                             const Ite it)
   {
-    task_impl(it);
+    t(it);
   };
-  auto result = enqueueImpl<void>(std::move(t),
-                                  std::forward<Iterator1>(begin),
-                                  std::forward<Iterator2>(end),
+  auto result = enqueueImpl<void>(std::move(func),
+                                  std::forward<Ite1>(begin),
+                                  std::forward<Ite2>(end),
                                   parent_task_id);
   return result;
 }
@@ -531,32 +526,31 @@ auto ThreadManager::enqueueLoop(
 /*!
   \details No detailed description
 
+  \tparam Ite1 No description.
+  \tparam Ite2 No description.
   \tparam Func No description.
-  \tparam Iterator1 No description.
-  \tparam Iterator2 No description.
   \param [in] task No description.
   \param [in] begin No description.
   \param [in] end No description.
+  \param [in] parent_task_id No description.
   \return No description
   */
-template <typename Func, typename Iterator1, typename Iterator2> inline
-auto ThreadManager::enqueueLoop(
-    Func&& task,
-    Iterator1&& begin,
-    Iterator2&& end,
-    const int64b parent_task_id,
-    EnableIfInvocable<Func, int64b, CommonIterator<Iterator1, Iterator2>>)
-        -> SharedResult<void>
+template <typename Ite1,
+          typename Ite2,
+          Invocable<int64b, ThreadManager::CommonIte<Ite1, Ite2>> Func> inline
+auto ThreadManager::enqueueLoop(Func&& task,
+                                Ite1&& begin,
+                                Ite2&& end,
+                                const int64b parent_task_id) -> SharedResult<void>
 {
-  using Iterator = CommonIterator<Iterator1, Iterator2>;
-  auto t = [task_impl = std::forward<Func>(task)]
-  (const int64b thread_id, const Iterator it)
+  using Ite = CommonIte<Ite1, Ite2>;
+  auto func = [t = std::forward<Func>(task)](const int64b thread_id, const Ite it)
   {
-    task_impl(thread_id, it);
+    t(thread_id, it);
   };
-  auto result = enqueueImpl<void>(std::move(t),
-                                  std::forward<Iterator1>(begin),
-                                  std::forward<Iterator2>(end),
+  auto result = enqueueImpl<void>(std::move(func),
+                                  std::forward<Ite1>(begin),
+                                  std::forward<Ite2>(end),
                                   parent_task_id);
   return result;
 }
@@ -654,7 +648,7 @@ std::size_t ThreadManager::size() const noexcept
 inline
 constexpr int64b ThreadManager::unmanagedThreadId() noexcept
 {
-  const int64b id = std::numeric_limits<int64b>::min();
+  const int64b id = (std::numeric_limits<int64b>::min)();
   return id;
 }
 
@@ -718,8 +712,7 @@ ThreadManager::WorkerTask::~WorkerTask() noexcept
   \param [in] other No description.
   */
 inline
-auto ThreadManager::WorkerTask::operator=(WorkerTask&& other) noexcept
-    -> WorkerTask&
+auto ThreadManager::WorkerTask::operator=(WorkerTask&& other) noexcept -> WorkerTask&
 {
   task_ = std::move(other.task_);
   it_offset_ = other.it_offset_;
@@ -759,31 +752,11 @@ void ThreadManager::createWorkers(const int64b num_of_threads) noexcept
 {
   const std::size_t id_max = getActualNumOfThreads(num_of_threads);
   workers_.reserve(id_max);
-  Atomic::increment(std::addressof(lock_.get()));
+  atomic_fetch_inc(std::addressof(lock_.get()));
   for (std::size_t i = 0; i < id_max; ++i) {
-    auto work = [this]()
+    auto work = [this]() noexcept
     {
-      // Wait until all worker creation are completed
-      while (lock_.get() != 0)
-        std::this_thread::yield();
-
-      const int64b thread_id = getCurrentThreadId();
-      while (workersAreEnabled()) {
-        WorkerTask task = fetchTask();
-        if (task.hasTask()) {
-          task.run(thread_id);
-        }
-        else { // Wait for next task
-          if (lock_.get() != 0) {
-            std::this_thread::yield();
-          }
-          else {
-            worker_state_set_.set(cast<std::size_t>(thread_id), false);
-            Atomic::wait(std::addressof(lock_), 0);
-            worker_state_set_.set(cast<std::size_t>(thread_id), true);
-          }
-        }
-      }
+      doWorkerTask();
     };
     workers_.emplace_back(work);
     worker_state_set_.set(i, true);
@@ -796,27 +769,25 @@ void ThreadManager::createWorkers(const int64b num_of_threads) noexcept
   std::sort(workers_.begin(), workers_.end(), comp);
 
   // Wait until underlying threads become ready
-  Atomic::decrement(std::addressof(lock_.get()));
+  atomic_fetch_dec(std::addressof(lock_.get()));
   waitForCompletion();
 }
 
 /*!
   \details No detailed description
 
-  \tparam Iterator1 No description.
-  \tparam Iterator2 No description.
+  \tparam Ite1 No description.
+  \tparam Ite2 No description.
   \param [in] begin No description.
   \param [in] end No description.
   \return No description
   */
-template <typename Iterator1, typename Iterator2> inline
-auto ThreadManager::distance(Iterator1&& begin, Iterator2&& end) noexcept
-    -> DiffType
+template <typename Ite1, typename Ite2> inline
+auto ThreadManager::distance(Ite1&& begin, Ite2&& end) noexcept -> DiffType
 {
-  using CommonIterator = CommonIterator<Iterator1, Iterator2>;
-  using Iterator = std::remove_cv_t<std::remove_reference_t<CommonIterator>>;
+  using Ite = std::remove_cvref_t<CommonIte<Ite1, Ite2>>;
   DiffType d = 0;
-  if constexpr (std::is_arithmetic_v<Iterator>)
+  if constexpr (std::is_arithmetic_v<Ite>)
     d = cast<DiffType>(end - begin);
   else
     d = cast<DiffType>(std::distance(begin, end));
@@ -826,11 +797,40 @@ auto ThreadManager::distance(Iterator1&& begin, Iterator2&& end) noexcept
 
 /*!
   \details No detailed description
+  */
+inline
+void ThreadManager::doWorkerTask() noexcept
+{
+  // Wait until all worker creation are completed
+  while (atomic_load(std::addressof(lock_.get())) != 0)
+    std::this_thread::yield();
+
+  const int64b thread_id = getCurrentThreadId();
+  while (workersAreEnabled()) {
+    WorkerTask task = fetchTask();
+    if (task.hasTask()) {
+      task.run(thread_id);
+    }
+    else { // Wait for next task
+      if (atomic_load(std::addressof(lock_.get())) != 0) {
+        std::this_thread::yield();
+      }
+      else {
+        worker_state_set_.set(cast<std::size_t>(thread_id), false);
+        atomic_wait(std::addressof(lock_), 0);
+        worker_state_set_.set(cast<std::size_t>(thread_id), true);
+      }
+    }
+  }
+}
+
+/*!
+  \details No detailed description
 
   \tparam ReturnT No description.
   \tparam Func No description.
-  \tparam Iterator1 No description.
-  \tparam Iterator2 No description.
+  \tparam Ite1 No description.
+  \tparam Ite2 No description.
   \param [in] task No description.
   \param [in] begin No description.
   \param [in] end No description.
@@ -838,20 +838,18 @@ auto ThreadManager::distance(Iterator1&& begin, Iterator2&& end) noexcept
   \return No description
   \exception OverflowError No description.
   */
-template <typename ReturnT, typename Func, typename Iterator1, typename Iterator2>
-inline
-auto ThreadManager::enqueueImpl(
-    Func&& task,
-    Iterator1&& begin,
-    Iterator2&& end,
-    const int64b parent_task_id) -> SharedResult<ReturnT>
+template <typename ReturnT, typename Func, typename Ite1, typename Ite2> inline
+auto ThreadManager::enqueueImpl(Func&& task,
+                                Ite1&& begin,
+                                Ite2&& end,
+                                const int64b parent_task_id) -> SharedResult<ReturnT>
 {
-  using FuncT = std::remove_cv_t<std::remove_reference_t<Func>>;
+  using FuncT = std::remove_cvref_t<Func>;
   using SharedResultT = SharedResult<ReturnT>;
-  using Iterator = std::remove_cv_t<CommonIterator<Iterator1, Iterator2>>;
+  using Ite = std::remove_cv_t<CommonIte<Ite1, Ite2>>;
 
   using IsSingle = std::is_invocable<FuncT, int64b>;
-  using IsLoop = std::is_invocable<FuncT, int64b, Iterator>;
+  using IsLoop = std::is_invocable<FuncT, int64b, Ite>;
   static_assert(IsSingle::value || IsLoop::value, "The Func isn't invocable.");
 
 #if defined(Z_GCC) || defined(Z_CLANG)
@@ -861,18 +859,17 @@ auto ThreadManager::enqueueImpl(
   class TaskImpl : public Task
   {
    public:
-    TaskImpl(Func&& t, SharedResultT& r, Iterator1&& b, const int64b p) noexcept
+    TaskImpl(Func&& t, SharedResultT& r, Ite1&& b, const int64b p) noexcept
         : Task(r->taskId(), p),
           task_{std::forward<Func>(t)},
           result_{r},
-          begin_{std::forward<Iterator1>(b)}
+          begin_{std::forward<Ite1>(b)}
     {
     }
     ~TaskImpl() noexcept override
     {
-      if constexpr (IsLoop::value) {
+      if constexpr (IsLoop::value)
         result_->set(0);
-      }
     }
     void getResult(void* result) noexcept override
     {
@@ -884,9 +881,9 @@ auto ThreadManager::enqueueImpl(
       th_manager->waitForParent(taskId(), parentTaskId());
 
       if constexpr (IsLoop::value) { // Loop task
-        if constexpr (std::is_arithmetic_v<Iterator>) {
-          using ItType = std::common_type_t<Iterator, DiffType>;
-          auto ite = cast<Iterator>(cast<ItType>(begin_) + cast<ItType>(it_offset));
+        if constexpr (std::is_arithmetic_v<Ite>) {
+          using IType = std::common_type_t<Ite, DiffType>;
+          auto ite = cast<Ite>(cast<IType>(begin_) + cast<IType>(it_offset));
           task_(thread_id, ite);
         }
         else {
@@ -910,7 +907,7 @@ auto ThreadManager::enqueueImpl(
    private:
     FuncT task_;
     SharedResultT result_;
-    Iterator begin_;
+    Ite begin_;
   };
 #if defined(Z_GCC) || defined(Z_CLANG)
 #pragma GCC diagnostic pop
@@ -929,7 +926,7 @@ auto ThreadManager::enqueueImpl(
   auto shared_task = std::allocate_shared<TaskImpl>(task_alloc,
                                                     std::forward<Func>(task),
                                                     result,
-                                                    std::forward<Iterator1>(begin),
+                                                    std::forward<Ite1>(begin),
                                                     parent_task_id);
 
   auto throw_exception = [](auto& t, auto& r, auto b, auto e)
@@ -943,28 +940,27 @@ auto ThreadManager::enqueueImpl(
 
   // Enqueue loop tasks
   {
-    DiffType padd = 0;
-    auto notify_thread = [this, inactive_threads = getNumOfInactiveThreads(), padd]
-    (const DiffType index) noexcept
+    auto notify_thread = [this](const DiffType index,
+                                const DiffType inactive_threads) noexcept
     {
       if (IsLoop::value && (index < inactive_threads))
-        Atomic::notifyOne(std::addressof(lock_));
-      static_cast<void>(padd);
+        atomic_notify_one(std::addressof(lock_));
     };
 
     auto notify_threads = [this](const DiffType num_of_queued_tasks) noexcept
     {
       const auto inactive_threads = getNumOfInactiveThreads();
       if (IsLoop::value && (inactive_threads <= num_of_queued_tasks)) {
-        Atomic::notifyAll(std::addressof(lock_));
+        atomic_notify_all(std::addressof(lock_));
       }
       else {
         for (DiffType i = 0; i < num_of_queued_tasks; ++i)
-          Atomic::notifyOne(std::addressof(lock_));
+          atomic_notify_one(std::addressof(lock_));
       }
     };
 
-    Atomic::add(std::addressof(lock_.get()), d);
+    const DiffType inactive_threads = getNumOfInactiveThreads();
+    atomic_fetch_add(std::addressof(lock_.get()), d);
     for (DiffType i = 0; i < d; ++i) {
       WorkerTask worker_task{shared_task, i};
       try {
@@ -972,11 +968,11 @@ auto ThreadManager::enqueueImpl(
       }
       catch (const Queue::OverflowError& /* error */) {
         const DiffType rest = d - i;
-        Atomic::sub(std::addressof(lock_.get()), rest);
+        atomic_fetch_sub(std::addressof(lock_.get()), rest);
         notify_threads(i);
         throw_exception(shared_task, result, i, d);
       }
-      notify_thread(i);
+      notify_thread(i, inactive_threads);
     }
     notify_threads(d);
   }
@@ -991,7 +987,7 @@ inline
 void ThreadManager::exitWorkersRunning() noexcept
 {
   lock_.set(-1);
-  Atomic::notifyAll(std::addressof(lock_));
+  atomic_notify_all(std::addressof(lock_));
   for (auto& worker : workers_)
     worker.join();
 }
@@ -1008,7 +1004,7 @@ auto ThreadManager::fetchTask() noexcept -> WorkerTask
   WorkerTask task{};
   const bool flag = std::get<0>(result);
   if (flag) {
-    Atomic::decrement(std::addressof(lock_.get()));
+    atomic_fetch_dec(std::addressof(lock_.get()));
     task = std::move(std::get<1>(result));
   }
   return task;
@@ -1140,7 +1136,8 @@ void ThreadManager::waitForParent(const int64b task_id,
 inline
 bool ThreadManager::workersAreEnabled() const noexcept
 {
-  const bool result = 0 <= lock_.get();
+  const auto l = atomic_load(std::addressof(lock_.get()));
+  const bool result = 0 <= l;
   return result;
 }
 

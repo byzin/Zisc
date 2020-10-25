@@ -184,9 +184,9 @@ bool ScalableCircularQueue<T>::enqueue(ConstReference value)
   const uint64b index = free_elements_.dequeue(true); // Get an entry index
 
   // Check overflow
-  using OverflowError = typename BaseQueueType::OverflowError;
+  using OverflowErr = typename BaseQueueType::OverflowError;
   if (index == RingBuffer::overflowIndex())
-    throw OverflowError{"Queue overflow happened.", resource(), value};
+    throw OverflowErr{"Queue overflow happened.", resource(), value};
 
   const bool result = index != RingBuffer::invalidIndex();
   if (result) {
@@ -209,9 +209,9 @@ bool ScalableCircularQueue<T>::enqueue(RReference value)
   const uint64b index = free_elements_.dequeue(true); // Get an entry index
 
   // Check overflow
-  using OverflowError = typename BaseQueueType::OverflowError;
+  using OverflowErr = typename BaseQueueType::OverflowError;
   if (index == RingBuffer::overflowIndex())
-    throw OverflowError{"Queue overflow happened.", resource(), std::move(value)};
+    throw OverflowErr{"Queue overflow happened.", resource(), std::move(value)};
 
   const bool result = index != RingBuffer::invalidIndex();
   if (result) {

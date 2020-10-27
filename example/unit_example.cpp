@@ -15,7 +15,7 @@
 // Standard C++ library
 #include <iostream>
 // Zisc
-#include "zisc/unit.hpp"
+#include "zisc/math/unit.hpp"
 
 int main()
 {

@@ -18,10 +18,10 @@
 #include "unit.hpp"
 // Standard C++ library
 #include <cstddef>
+#include <numbers>
 // Zisc
-#include "concepts.hpp"
-#include "utility.hpp"
-#include "math/math.hpp"
+#include "zisc/concepts.hpp"
+#include "zisc/utility.hpp"
 
 namespace zisc {
 
@@ -35,7 +35,7 @@ namespace zisc {
 template <FloatingPoint Float> inline
 constexpr Float toRadian(const Float angle) noexcept
 {
-  constexpr Float k = kPi<Float> / cast<Float>(180.0);
+  constexpr Float k = std::numbers::pi_v<Float> / cast<Float>(180.0);
   const Float radian = k * angle;
   return radian;
 }
@@ -50,7 +50,7 @@ constexpr Float toRadian(const Float angle) noexcept
 template <FloatingPoint Float> inline
 constexpr Float toAngle(const Float radian) noexcept
 {
-  constexpr Float k = cast<Float>(180.0) / kPi<Float>;
+  constexpr Float k = cast<Float>(180.0) / std::numbers::pi_v<Float>;
   const Float angle = k * radian;
   return angle;
 }

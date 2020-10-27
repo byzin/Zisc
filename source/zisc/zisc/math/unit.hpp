@@ -18,7 +18,7 @@
 // Standard C++ library
 #include <cstddef>
 // Zisc
-#include "concepts.hpp"
+#include "zisc/concepts.hpp"
 
 namespace zisc {
 

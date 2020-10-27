@@ -29,6 +29,7 @@ static_assert(false, "Compiler doesn't have 'memory_resource'.");
 #include <list>
 #include <map>
 #include <memory>
+#include <regex>
 #include <set>
 #include <sstream>
 #include <string>
@@ -181,6 +182,12 @@ using wstring = basic_string<wchar_t>;
 using u8string = basic_string<char8_t>;
 using u16string = basic_string<char16_t>;
 using u32string = basic_string<char32_t>;
+
+// Regex
+
+template <typename BidirIt>
+using match_results = std::match_results<BidirIt,
+                                         polymorphic_allocator<std::sub_match<BidirIt>>>;
 
 // Memory
 

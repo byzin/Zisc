@@ -48,6 +48,28 @@ constexpr Float Math::pi() noexcept
 }
 
 /*!
+  \details Please read 
+  <a href="https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.582.288&rep=rep1&type=pdf">A generalized Kahan-Babuˇska-Summation-Algorithm</a>
+  for more details.
+
+  \tparam Float No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \param [in,out] compensation No description.
+  \return No description
+  */
+template <FloatingPoint Float> inline
+constexpr Float Math::add(const Float lhs,
+                          const Float rhs,
+                          Float* compensation) noexcept
+{
+  const Float t = lhs + rhs;
+  if (compensation != nullptr)
+    (*compensation) += (abs(rhs) <= abs(lhs)) ? (lhs - t) + rhs : (rhs - t) + lhs;
+  return t;
+}
+
+/*!
   \details No detailed description
 
   \tparam Arith No description.

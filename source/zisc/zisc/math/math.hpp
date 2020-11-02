@@ -38,8 +38,14 @@ class Math
   template <FloatingPoint Float>
   static constexpr Float pi() noexcept;
 
-//  // Basic operations
-//
+  // Basic operations
+
+  //! Add two values with minimizing the loss of significance
+  template <FloatingPoint Float>
+  static constexpr Float add(const Float lhs,
+                             const Float rhs,
+                             Float* compensation = nullptr) noexcept;
+
 //  //! Compute the greatest common divisor of the integers m and n
 //  template <typename Integer1, typename Integer2>
 //  static constexpr std::common_type_t<Integer1, Integer2> gcd(Integer1 m,

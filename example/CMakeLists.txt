@@ -82,8 +82,6 @@ addExample(CompensatedSummationExample OFF
            ${PROJECT_SOURCE_DIR}/compensated_summation_example.cpp)
 addExample(CsvExample OFF
            ${PROJECT_SOURCE_DIR}/csv_example.cpp)
-addExample(CumulativeDistributionFunctionExample OFF
-           ${PROJECT_SOURCE_DIR}/cumulative_distribution_function_example.cpp)
 addExample(ErrorExample OFF
            ${PROJECT_SOURCE_DIR}/error_example.cpp)
 addExample(LockFreeBoundedQueueExample OFF

@@ -500,9 +500,8 @@ auto ThreadManager::enqueue(Func&& task,
   \param [in] parent_task_id No description.
   \return No description
   */
-template <typename Ite1,
-          typename Ite2,
-          Invocable<ThreadManager::CommonIte<Ite1, Ite2>> Func> inline
+template <typename Func, typename Ite1, typename Ite2>
+requires Invocable<Func, ThreadManager::CommonIte<Ite1, Ite2>> inline
 auto ThreadManager::enqueueLoop(Func&& task,
                                 Ite1&& begin,
                                 Ite2&& end,
@@ -533,9 +532,8 @@ auto ThreadManager::enqueueLoop(Func&& task,
   \param [in] parent_task_id No description.
   \return No description
   */
-template <typename Ite1,
-          typename Ite2,
-          Invocable<int64b, ThreadManager::CommonIte<Ite1, Ite2>> Func> inline
+template <typename Func, typename Ite1, typename Ite2>
+requires Invocable<Func, int64b, ThreadManager::CommonIte<Ite1, Ite2>> inline
 auto ThreadManager::enqueueLoop(Func&& task,
                                 Ite1&& begin,
                                 Ite2&& end,

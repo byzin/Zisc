@@ -133,6 +133,7 @@ class Atomic
 
   //! Perform an expression atomically
   template <TriviallyCopyable Type, typename Function, typename ...Types>
+  requires InvocableR<Function, Type, Type, Types...>
   static Type perform(Type* ptr,
                       const std::memory_order order,
                       Function&& expression,
@@ -140,6 +141,7 @@ class Atomic
 
   //! Perform an expression atomically
   template <TriviallyCopyable Type, typename Function, typename ...Types>
+  requires InvocableR<Function, Type, Type, Types...>
   static Type perform(Type* ptr,
                       Function&& expression,
                       Types&&... arguments) noexcept;

@@ -242,18 +242,16 @@ class ThreadManager : private NonCopyable<ThreadManager>
       const int64b parent_task_id = kNoParentId);
 
   //! Run tasks on the worker threads in the manager
-  template <typename Ite1,
-            typename Ite2,
-            Invocable<CommonIte<Ite1, Ite2>> Func>
+  template <typename Func, typename Ite1, typename Ite2>
+  requires Invocable<Func, CommonIte<Ite1, Ite2>>
   SharedResult<void> enqueueLoop(Func&& task,
                                  Ite1&& begin,
                                  Ite2&& end,
                                  const int64b parent_task_id = kNoParentId);
 
   //! Run tasks on the worker threads in the manager
-  template <typename Ite1,
-            typename Ite2,
-            Invocable<int64b, CommonIte<Ite1, Ite2>> Func>
+  template <typename Func, typename Ite1, typename Ite2>
+  requires Invocable<Func, int64b, CommonIte<Ite1, Ite2>>
   SharedResult<void> enqueueLoop(Func&& task,
                                  Ite1&& begin,
                                  Ite2&& end,

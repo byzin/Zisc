@@ -381,14 +381,14 @@ bool Atomic::isLockFree() noexcept
   \param [in] arguments No description.
   \return No description
   */
-template <TriviallyCopyable Type, typename Function, typename ...Types> inline
+template <TriviallyCopyable Type, typename Function, typename ...Types>
+requires InvocableR<Function, Type, Type, Types...>
+inline
 Type Atomic::perform(Type* ptr,
                      const std::memory_order order,
                      Function&& expression,
                      Types&&... arguments) noexcept
 {
-  static_assert(InvocableR<Function, Type, Type, Types...>,
-                "The Function isn't invocable.");
   Type old = *ptr;
   Type cmp = cast<Type>(0);
   do {
@@ -410,7 +410,9 @@ Type Atomic::perform(Type* ptr,
   \param [in] arguments No description.
   \return No description
   */
-template <TriviallyCopyable Type, typename Function, typename ...Types> inline
+template <TriviallyCopyable Type, typename Function, typename ...Types>
+requires InvocableR<Function, Type, Type, Types...>
+inline
 Type Atomic::perform(Type* ptr,
                      Function&& expression,
                      Types&&... arguments) noexcept

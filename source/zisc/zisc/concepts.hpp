@@ -22,6 +22,7 @@ static_assert(false, "'Concepts' isn't supported in the compiler.")
 
 // Standard C++ library
 #include <functional>
+#include <string>
 #include <type_traits>
 #include <utility>
 
@@ -37,9 +38,59 @@ concept SameAs = std::is_same_v<U, T>;
 template <typename Derived, typename Base>
 concept DerivedFrom = std::is_base_of_v<Base, Derived>;
 
+//! Specify a type is a character type
+template <typename Type>
+concept Character = std::is_same_v<char, std::remove_cv_t<Type>> ||
+                    std::is_same_v<wchar_t, std::remove_cv_t<Type>> ||
+                    std::is_same_v<char8_t, std::remove_cv_t<Type>> ||
+                    std::is_same_v<char16_t, std::remove_cv_t<Type>> ||
+                    std::is_same_v<char32_t, std::remove_cv_t<Type>>;
+
+//! Specify a type is a character pointer type
+template <typename Type>
+concept CharPointer = std::is_pointer_v<Type> &&
+                      Character<std::remove_pointer_t<Type>>;
+
+//! Specify a type is a std::basic_string type
+template <typename Type>
+concept StdString = requires (Type) {
+  std::is_same_v<std::basic_string<typename Type::value_type,
+                                   typename Type::traits_type,
+                                   typename Type::allocator_type>,
+                 std::remove_cv_t<Type>>;
+};
+
+//! Specify a type is a std::basic_string_view type
+template <typename Type>
+concept StdStringView = requires (Type) {
+  std::is_same_v<std::basic_string_view<typename Type::value_type,
+                                        typename Type::traits_type>,
+                 std::remove_cv_t<Type>>;
+};
+
+//! Specify a type is a string type
+template <typename Type>
+concept String = CharPointer<Type> || StdString<Type> || StdStringView<Type>;
+
 //! Specify a type is an integer type
 template <typename Type>
 concept Integer = std::is_integral_v<Type> && !SameAs<bool, Type>;
+
+//! Specify a type is a 8bit integer type
+template <typename Type>
+concept Integer8 = Integer<Type> && (sizeof(Type) == 1);
+
+//! Specify a type is a 16bit integer type
+template <typename Type>
+concept Integer16 = Integer<Type> && (sizeof(Type) == 2);
+
+//! Specify a type is a 32bit integer type
+template <typename Type>
+concept Integer32 = Integer<Type> && (sizeof(Type) == 4);
+
+//! Specify a type is a 64bit integer type
+template <typename Type>
+concept Integer64 = Integer<Type> && (sizeof(Type) == 8);
 
 //! Specify a type is an integer type which is signed
 template <typename Type>

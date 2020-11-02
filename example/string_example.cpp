@@ -15,14 +15,14 @@
 // Standard C++ library
 #include <iostream>
 // Zisc
-#include "zisc/string.hpp"
+#include "zisc/string/constant_string.hpp"
 
 int main()
 {
   // String example
   constexpr auto message1 = zisc::toString(R"(## String )");
   constexpr auto message2 = zisc::toString(R"(example)");
-  std::cout << (message1 + message2).toCString() << std::endl;
+  std::cout << (message1 + message2).toCStr() << std::endl;
 
   return 0;
 }

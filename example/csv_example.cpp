@@ -15,14 +15,14 @@
 // Standard C++ library
 #include <iostream>
 #include <sstream>
-#include <string>
+#include <string_view>
 // Zisc
-#include "zisc/csv.hpp"
 #include "zisc/memory/simple_memory_resource.hpp"
+#include "zisc/string/csv.hpp"
 
 int main()
 {
-  using Csv = zisc::Csv<int, double, bool, std::string>;
+  using Csv = zisc::Csv<int, double, bool, std::string_view>;
   // CSV example
   std::cout << "## CSV example" << std::endl;
   std::istringstream csv_string{R"(1, 3.14, true, "Example1")"};

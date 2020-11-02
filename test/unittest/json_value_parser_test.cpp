@@ -14,42 +14,42 @@
 // GoogleTest
 #include "gtest/gtest.h"
 // Zisc
-#include "zisc/json_value_parser.hpp"
-#include "zisc/string.hpp"
 #include "zisc/utility.hpp"
 #include "zisc/zisc_config.hpp"
+#include "zisc/string/constant_string.hpp"
+#include "zisc/string/json_value_parser.hpp"
 
 TEST(JsonValueParserTest, PatternTest)
 {
   // True
   {
     constexpr auto pattern = zisc::JsonValueParser::truePattern();
-    std::cout << std::setw(10) << "True: " << pattern.toCString() << std::endl;
+    std::cout << std::setw(10) << "True: " << pattern.toCStr() << std::endl;
   }
   // False
   {
     constexpr auto pattern = zisc::JsonValueParser::falsePattern();
-    std::cout << std::setw(10) << "False: " << pattern.toCString() << std::endl;
+    std::cout << std::setw(10) << "False: " << pattern.toCStr() << std::endl;
   }
   // Boolean
   {
     constexpr auto pattern = zisc::JsonValueParser::booleanPattern();
-    std::cout << std::setw(10) << "Boolean: " << pattern.toCString() << std::endl;
+    std::cout << std::setw(10) << "Boolean: " << pattern.toCStr() << std::endl;
   }
   // Integer
   {
     constexpr auto pattern = zisc::JsonValueParser::integerPattern();
-    std::cout << std::setw(10) << "Integer: " << pattern.toCString() << std::endl;
+    std::cout << std::setw(10) << "Integer: " << pattern.toCStr() << std::endl;
   }
   // Float 
   {
     constexpr auto pattern = zisc::JsonValueParser::floatPattern();
-    std::cout << std::setw(10) << "Float: " << pattern.toCString() << std::endl;
+    std::cout << std::setw(10) << "Float: " << pattern.toCStr() << std::endl;
   }
   // String
   {
     constexpr auto pattern = zisc::JsonValueParser::stringPattern();
-    std::cout << std::setw(10) << "String: " << pattern.toCString() << std::endl;
+    std::cout << std::setw(10) << "String: " << pattern.toCStr() << std::endl;
   }
 }
 
@@ -57,31 +57,48 @@ TEST(JsonValueParserTest, BooleanTest)
 {
   auto success_test = [](const bool expected, const std::string& json_value)
   {
+    // Temporary use
+    {
+      const bool result1 = zisc::JsonValueParser::isBoolValue(json_value);
+      EXPECT_TRUE(result1)
+          << "'" << json_value << "' is not JSON boolean" << std::endl;
+    }
+    // Instance
     zisc::JsonValueParser parser{};
-    const bool result1 = parser.isType<bool>(json_value);
-    EXPECT_TRUE(result1)
-        << "'" << json_value << "' is not JSON boolean" << std::endl;
-    const bool result2 = parser.toCxxType<bool>(json_value);
-    if (expected) {
-      EXPECT_TRUE(result2)
-          << "JSON boolean conversion failed: '" << json_value << "'";
+    {
+      const bool result1 = parser.isBool(json_value);
+      EXPECT_TRUE(result1)
+          << "'" << json_value << "' is not JSON boolean" << std::endl;
+      const bool result2 = parser.toCxxBool(json_value);
+      if (expected) {
+        EXPECT_TRUE(result2)
+            << "JSON boolean conversion failed: '" << json_value << "'";
+      }
+      else {
+        EXPECT_FALSE(result2)
+            << "JSON boolean conversion failed: '" << json_value << "'";
+      }
+      if (result1)
+        std::cout << "'" << json_value << "' is " << result2 << std::endl;
     }
-    else {
-      EXPECT_FALSE(result2)
-          << "JSON boolean conversion failed: '" << json_value << "'";
-    }
-    if (result1)
-      std::cout << "'" << json_value << "' is " << result2 << std::endl;
   };
 
   auto failure_test = [](const std::string& json_value)
   {
+    // Temporary use
+    {
+      const bool result1 = zisc::JsonValueParser::isBoolValue(json_value);
+      EXPECT_FALSE(result1)
+          << "'" << json_value << "' is JSON boolean" << std::endl;
+    }
     zisc::JsonValueParser parser{};
-    const bool result1 = parser.isBool(json_value);
-    EXPECT_FALSE(result1)
-        << "'" << json_value << "' is JSON boolean" << std::endl;
-    if (!result1)
-      std::cout << "'" << json_value << "' isn't boolean." << std::endl;
+    {
+      const bool result1 = parser.isBool(json_value);
+      EXPECT_FALSE(result1)
+          << "'" << json_value << "' is JSON boolean" << std::endl;
+      if (!result1)
+        std::cout << "'" << json_value << "' isn't boolean." << std::endl;
+    }
   };
 
   // Success tests
@@ -100,38 +117,43 @@ TEST(JsonValueParserTest, IntegerTest)
 {
   auto success_test = [](const int expected, const std::string& json_value)
   {
-    // Static
-    const bool result1 = zisc::JsonValueParser::isTypeValue<int>(json_value);
-    EXPECT_TRUE(result1)
-        << "'" << json_value << "' is not JSON integer." << std::endl;
-    const auto result2 = zisc::JsonValueParser::toCxxTypeValue<int>(json_value);
-    EXPECT_EQ(expected, result2)
-        << "JSON integer conversion failed: '" << json_value << "'";
+    // Temporary use
+    {
+      const bool result1 = zisc::JsonValueParser::isIntegerValue(json_value);
+      EXPECT_TRUE(result1)
+          << "'" << json_value << "' is not JSON integer." << std::endl;
+    }
     // Instance
     zisc::JsonValueParser parser{};
-    const bool result3 = parser.isType<long>(json_value);
-    EXPECT_TRUE(result3)
-        << "'" << json_value << "' is not JSON integer." << std::endl;
-    const auto result4 = parser.toCxxType<long>(json_value);
-    EXPECT_EQ(expected, result4)
-        << "JSON integer conversion failed: '" << json_value << "'";
-    if (result3)
-      std::cout << "'" << json_value << "' is '" << expected << "'" << std::endl;
+    {
+      const bool result1 = parser.isInteger(json_value);
+      EXPECT_TRUE(result1)
+          << "'" << json_value << "' is not JSON integer." << std::endl;
+      const auto result2 = parser.toCxxInteger<long>(json_value);
+      EXPECT_EQ(expected, result2)
+          << "JSON integer conversion failed: '" << json_value << "'";
+      if (result1)
+        std::cout << "'" << json_value << "' is '" << expected << "'" << std::endl;
+    }
   };
 
   auto failure_test = [](const std::string& json_value)
   {
-    // Static
-    const bool result1 = zisc::JsonValueParser::isIntegerValue(json_value);
-    EXPECT_FALSE(result1)
-        << "'" << json_value << "' is JSON integer." << std::endl;
+    // Temporary use
+    {
+      const bool result1 = zisc::JsonValueParser::isIntegerValue(json_value);
+      EXPECT_FALSE(result1)
+          << "'" << json_value << "' is JSON integer." << std::endl;
+    }
     // Instance
     zisc::JsonValueParser parser{};
-    const bool result2 = parser.isInteger(json_value);
-    EXPECT_FALSE(result2)
-        << "'" << json_value << "' is JSON integer." << std::endl;
-    if (!result2)
-      std::cout << "'" << json_value << "' isn't integer." << std::endl;
+    {
+      const bool result1 = parser.isInteger(json_value);
+      EXPECT_FALSE(result1)
+          << "'" << json_value << "' is JSON integer." << std::endl;
+      if (!result1)
+        std::cout << "'" << json_value << "' isn't integer." << std::endl;
+    }
   };
 
   // Success test
@@ -157,38 +179,43 @@ TEST(JsonValueParserTest, FloatTest)
 {
   auto success_test = [](const double expected, const std::string& json_value)
   {
-    // Static
-    const bool result1 = zisc::JsonValueParser::isTypeValue<double>(json_value);
-    EXPECT_TRUE(result1)
-        << "'" << json_value << "' is not JSON float." << std::endl;
-    const auto result2 = zisc::JsonValueParser::toCxxTypeValue<double>(json_value);
-    EXPECT_DOUBLE_EQ(expected, result2)
-        << "JSON float conversion failed: '" << json_value << "'";
+    // Temporary use
+    {
+      const bool result1 = zisc::JsonValueParser::isFloatValue(json_value);
+      EXPECT_TRUE(result1)
+          << "'" << json_value << "' is not JSON float." << std::endl;
+    }
     // Instance
     zisc::JsonValueParser parser{};
-    const bool result3 = parser.isType<double>(json_value);
-    EXPECT_TRUE(result3)
-        << "'" << json_value << "' is not JSON float." << std::endl;
-    const auto result4 = parser.toCxxType<double>(json_value);
-    EXPECT_DOUBLE_EQ(expected, result4)
-        << "JSON float conversion failed: '" << json_value << "'";
-    if (result3)
-      std::cout << "'" << json_value << "' is '" << expected << "'" << std::endl;
+    {
+      const bool result1 = parser.isFloat(json_value);
+      EXPECT_TRUE(result1)
+          << "'" << json_value << "' is not JSON float." << std::endl;
+      const auto result2 = parser.toCxxFloat<double>(json_value);
+      EXPECT_DOUBLE_EQ(expected, result2)
+          << "JSON float conversion failed: '" << json_value << "'";
+      if (result1)
+        std::cout << "'" << json_value << "' is '" << expected << "'" << std::endl;
+    }
   };
 
   auto failure_test = [](const std::string& json_value)
   {
-    // Static
-    const bool result1 = zisc::JsonValueParser::isFloatValue(json_value);
-    EXPECT_FALSE(result1)
-        << "'" << json_value << "' is JSON float." << std::endl;
+    // Temporary use
+    {
+      const bool result1 = zisc::JsonValueParser::isFloatValue(json_value);
+      EXPECT_FALSE(result1)
+          << "'" << json_value << "' is JSON float." << std::endl;
+    }
     // Instance
     zisc::JsonValueParser parser{};
-    const bool result2 = parser.isFloat(json_value);
-    EXPECT_FALSE(result2)
-        << "'" << json_value << "' is JSON float." << std::endl;
-    if (!result2)
-      std::cout << "'" << json_value << "' isn't float." << std::endl;
+    {
+      const bool result1 = parser.isFloat(json_value);
+      EXPECT_FALSE(result1)
+          << "'" << json_value << "' is JSON float." << std::endl;
+      if (!result1)
+        std::cout << "'" << json_value << "' isn't float." << std::endl;
+    }
   };
 
   // Integer success
@@ -230,38 +257,46 @@ TEST(JsonValueParserTest, StringTest)
 {
   auto success_test = [](const std::string& expected, const std::string& json_value)
   {
-    // Static
-    const bool result1 = zisc::JsonValueParser::isTypeValue<std::string>(json_value);
-    EXPECT_TRUE(result1)
-        << "'" << json_value << "' is not JSON string." << std::endl;
-    const auto result2 = zisc::JsonValueParser::toCxxTypeValue<std::string>(json_value);
-    EXPECT_EQ(expected, result2)
-        << "JSON string conversion failed: '" << json_value << "'";
+    // Temporary use
+    {
+      const bool result1 = zisc::JsonValueParser::isStringValue(json_value);
+      EXPECT_TRUE(result1)
+          << "'" << json_value << "' is not JSON string." << std::endl;
+    }
     // Instance
     zisc::JsonValueParser parser{};
-    const bool result3 = parser.isType<std::string>(json_value);
-    EXPECT_TRUE(result3)
-        << "'" << json_value << "' is not JSON string." << std::endl;
-    const auto result4 = parser.toCxxType<std::string>(json_value);
-    EXPECT_EQ(expected, result4)
-        << "JSON string conversion failed: '" << json_value << "'";
-    if (result3)
-      std::cout << "'" << json_value << "' is '" << expected << "'" << std::endl;
+    {
+      const bool result1 = parser.isString(json_value);
+      EXPECT_TRUE(result1)
+          << "'" << json_value << "' is not JSON string." << std::endl;
+      char result2[256] = "";
+      parser.toCxxString(json_value, result2);
+      EXPECT_STREQ(expected.c_str(), result2)
+          << "JSON string conversion failed: '" << json_value << "'";
+      const std::size_t size = parser.getCxxStringSize(json_value);
+      EXPECT_EQ(expected.size(), size);
+      if (result1)
+        std::cout << "'" << json_value << "' is '" << expected << "'" << std::endl;
+    }
   };
 
   auto failure_test = [](const std::string& json_value)
   {
-    // Static
-    const bool result1 = zisc::JsonValueParser::isStringValue(json_value);
-    EXPECT_FALSE(result1)
-        << "'" << json_value << "' is JSON string." << std::endl;
+    // Temporary use
+    {
+      const bool result1 = zisc::JsonValueParser::isStringValue(json_value);
+      EXPECT_FALSE(result1)
+          << "'" << json_value << "' is JSON string." << std::endl;
+    }
     // Instance
     zisc::JsonValueParser parser{};
-    const bool result2 = parser.isString(json_value);
-    EXPECT_FALSE(result2)
-        << "'" << json_value << "' is JSON string." << std::endl;
-    if (!result2)
-      std::cout << "'" << json_value << "' isn't string." << std::endl;
+    {
+      const bool result1 = parser.isString(json_value);
+      EXPECT_FALSE(result1)
+          << "'" << json_value << "' is JSON string." << std::endl;
+      if (!result1)
+        std::cout << "'" << json_value << "' isn't string." << std::endl;
+    }
   };
 
   // Success test

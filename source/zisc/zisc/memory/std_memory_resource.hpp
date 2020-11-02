@@ -188,6 +188,10 @@ using u32string = basic_string<char32_t>;
 template <typename BidirIt>
 using match_results = std::match_results<BidirIt,
                                          polymorphic_allocator<std::sub_match<BidirIt>>>;
+using cmatch = match_results<const char*>;
+using wcmatch = match_results<const wchar_t*>;
+using smatch = match_results<std::string::const_iterator>;
+using wsmatch = match_results<std::wstring::const_iterator>;
 
 // Memory
 

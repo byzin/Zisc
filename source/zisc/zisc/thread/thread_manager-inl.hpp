@@ -919,11 +919,12 @@ auto ThreadManager::enqueueImpl(Func&& task,
   // Create a shared task
   const DiffType d = distance(begin, end);
   pmr::polymorphic_allocator<TaskImpl> task_alloc{mem_resource};
+  const int64b parent_id = (task_id == 0) ? kNoParentId : parent_task_id;
   auto shared_task = std::allocate_shared<TaskImpl>(task_alloc,
                                                     std::forward<Func>(task),
                                                     result,
                                                     std::forward<Ite1>(begin),
-                                                    parent_task_id);
+                                                    parent_id);
 
   auto throw_exception = [](auto& t, auto& r, auto b, auto e)
   {

@@ -349,7 +349,7 @@ TEST(ThreadManagerTest, TaskDependencyTest)
     for (auto& value : vlist)
       value.store(0);
 
-    auto result1 = thread_manager.enqueue(::dtask1);
+    auto result1 = thread_manager.enqueue(::dtask1, zisc::ThreadManager::kAllParentId);
     ASSERT_EQ(0, result1->taskId());
 
     auto task2 = [&vlist](const zisc::int64b /* id */, const std::size_t i) noexcept

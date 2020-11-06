@@ -17,10 +17,11 @@
 
 #include "function_reference.hpp"
 // Standard C++ library
+#include <memory>
 #include <type_traits>
 // Zisc
+#include "concepts.hpp"
 #include "error.hpp"
-#include "type_traits.hpp"
 #include "utility.hpp"
 
 namespace zisc {
@@ -36,66 +37,66 @@ FunctionReference<ReturnT (ArgTypes...)>::FunctionReference() noexcept
 /*!
   \details No detailed description
 
-  \tparam Function No description.
+  \tparam Func No description.
   \param [in] func No description.
   */
 template <typename ReturnT, typename ...ArgTypes>
-template <typename Function> inline
-FunctionReference<ReturnT (ArgTypes...)>::FunctionReference(
-    Function&& func,
-    EnableIf<kIsInvocableRaw<Function>>) noexcept
+template <InvocableR<ReturnT, ArgTypes...> Func> inline
+FunctionReference<ReturnT (ArgTypes...)>::FunctionReference(Func&& func) noexcept
 {
-  initialize<Function>(std::forward<Function>(func));
+  assign(func);
 }
 
 /*!
   \details No detailed description
 
   \tparam Args No description.
-  \param [in] arguments No description.
+  \param [in] args No description.
   \return No description
   */
-
 template <typename ReturnT, typename ...ArgTypes>
 template <typename ...Args> inline
-auto FunctionReference<ReturnT (ArgTypes...)>::operator()(
-    Args&&... arguments) const -> ReturnType
+auto FunctionReference<ReturnT (ArgTypes...)>::operator()(Args&&... args) const
+    -> ReturnType
+    requires Invocable<FunctionPointer, Args...>
 {
   if constexpr (std::is_void_v<ReturnType>)
-    invoke(std::forward<Args>(arguments)...);
+    invoke(std::forward<Args>(args)...);
   else
-    return invoke(std::forward<Args>(arguments)...);
+    return invoke(std::forward<Args>(args)...);
 }
 
 /*!
   \details No detailed description
 
-  \param [in] other No description.
   \return No description
   */
 template <typename ReturnT, typename ...ArgTypes> inline
-auto FunctionReference<ReturnT (ArgTypes...)>::assign(
-    const FunctionReference& other) noexcept -> FunctionReference&
+FunctionReference<ReturnT (ArgTypes...)>::operator bool() const noexcept
 {
-  memory_ = other.memory_;
-  callback_ = other.callback_;
-  return *this;
+  const bool result = callback_ != nullptr;
+  return result;
 }
 
 /*!
   \details No detailed description
 
-  \tparam Function No description.
+  \tparam Func No description.
   \param [in] func No description.
   \return No description
   */
 template <typename ReturnT, typename ...ArgTypes>
-template <typename Function> inline
-auto FunctionReference<ReturnT (ArgTypes...)>::assign(
-    Function&& func,
-    EnableIf<kIsInvocableRaw<Function>>) noexcept -> FunctionReference&
+template <InvocableR<ReturnT, ArgTypes...> Func> inline
+auto FunctionReference<ReturnT (ArgTypes...)>::assign(Func&& func) noexcept
+    -> FunctionReference&
 {
-  initialize<Function>(std::forward<Function>(func));
+  if constexpr (SameAs<FunctionReference, std::remove_cvref_t<Func>>) {
+    memory_ = func.memory_;
+    callback_ = func.callback_;
+  }
+  else {
+    initialize<Func>(std::forward<Func>(func));
+  }
   return *this;
 }
 
@@ -112,19 +113,20 @@ void FunctionReference<ReturnT (ArgTypes...)>::clear() noexcept
   \details No detailed description
 
   \tparam Args No description.
-  \param [in] arguments No description.
+  \param [in] args No description.
   \return No description
   */
 template <typename ReturnT, typename ...ArgTypes>
 template <typename ...Args> inline
-auto FunctionReference<ReturnT (ArgTypes...)>::invoke(
-    Args&&... arguments) const -> ReturnType
+auto FunctionReference<ReturnT (ArgTypes...)>::invoke(Args&&... args) const
+    -> ReturnType
+    requires Invocable<FunctionPointer, Args...>
 {
-  ZISC_ASSERT(cast<bool>(*this), "This function reference is invalid.");
+  ZISC_ASSERT(cast<bool>(*this), "Underlying reference is invalid.");
   if constexpr (std::is_void_v<ReturnType>)
-    callback_(memory(), std::forward<Args>(arguments)...);
+    callback_(memory(), std::forward<Args>(args)...);
   else
-    return callback_(memory(), std::forward<Args>(arguments)...);
+    return callback_(memory(), std::forward<Args>(args)...);
 }
 
 /*!
@@ -133,8 +135,7 @@ auto FunctionReference<ReturnT (ArgTypes...)>::invoke(
   \param [in,out] other No description.
   */
 template <typename ReturnT, typename ...ArgTypes> inline
-void FunctionReference<ReturnT (ArgTypes...)>::swap(
-    FunctionReference& other) noexcept
+void FunctionReference<ReturnT (ArgTypes...)>::swap(FunctionReference& other) noexcept
 {
   zisc::swap(memory_, other.memory_);
   zisc::swap(callback_, other.callback_);
@@ -143,30 +144,29 @@ void FunctionReference<ReturnT (ArgTypes...)>::swap(
 /*!
   \details No detailed description
 
-  \tparam Function No description.
+  \tparam Func No description.
   \param [in] func No description.
   */
 template <typename ReturnT, typename ...ArgTypes>
-template <typename Function> inline
-void FunctionReference<ReturnT (ArgTypes...)>::initialize(
-    Function&& func) noexcept
+template <InvocableR<ReturnT, ArgTypes...> Func> inline
+void FunctionReference<ReturnT (ArgTypes...)>::initialize(Func&& func) noexcept
 {
-  using Func = std::remove_volatile_t<std::remove_reference_t<Function>>;
-  constexpr bool is_function_pointer = std::is_pointer_v<Func>;
-  constexpr bool is_fanctor = std::is_object_v<Func>;
+  using Function = std::remove_volatile_t<std::remove_reference_t<Func>>;
+  constexpr bool is_function_pointer = std::is_pointer_v<Function>;
+  constexpr bool is_fanctor = std::is_object_v<Function>;
   if constexpr (is_function_pointer) {
     // Function pointer case
-    static_assert(sizeof(Func) <= sizeof(Memory),
-                  "the size of Function is larger than the size of a memory.");
-    ::new (memory()) Func{func};
-    callback_ = &invokeFunctionPointer<Func>;
+    static_assert(sizeof(Function) <= sizeof(Memory),
+                  "The size of Function is larger than the size of a memory.");
+    ::new (memory()) Function{func};
+    callback_ = std::addressof(invokeFunctionPointer<Function>);
   }
   else if constexpr (is_fanctor) {
     // Functor case
-    static_assert(sizeof(&func) <= sizeof(Memory),
-                  "the size of Function ref is larger than the size of a memory.");
-    ::new (memory()) const void*{&func};
-    callback_ = &invokeFunctor<Func>;
+    static_assert(sizeof(std::addressof(func)) <= sizeof(Memory),
+                  "The size of Function ref is larger than the size of a memory.");
+    ::new (memory()) const void*{std::addressof(func)};
+    callback_ = std::addressof(invokeFunctor<Function>);
   }
   static_assert(is_function_pointer || is_fanctor, "Unsupported function type.");
 }
@@ -175,42 +175,42 @@ void FunctionReference<ReturnT (ArgTypes...)>::initialize(
   \details No detailed description
 
   \tparam FuncPointer No description.
-  \param [in] function_ptr No description.
-  \param [in] arguments No description.
+  \param [in] func_ptr No description.
+  \param [in] args No description.
   \return No description
   */
 template <typename ReturnT, typename ...ArgTypes>
 template <typename FuncPointer> inline
 auto FunctionReference<ReturnT (ArgTypes...)>::invokeFunctionPointer(
-    const void* function_ptr,
-    ArgTypes... arguments) -> ReturnType
+    const void* func_ptr,
+    ArgTypes... args) -> ReturnType
 {
-  const auto ptr = cast<const FuncPointer*>(function_ptr);
+  const auto ptr = cast<const FuncPointer*>(func_ptr);
   if constexpr (std::is_void_v<ReturnType>)
-    std::invoke(*ptr, arguments...);
+    std::invoke(*ptr, std::forward<ArgTypes>(args)...);
   else
-    return std::invoke(*ptr, arguments...);
+    return std::invoke(*ptr, std::forward<ArgTypes>(args)...);
 }
 
 /*!
   \details No detailed description
 
   \tparam Functor No description.
-  \param [in] functor No description.
-  \param [in] arguments No description.
+  \param [in] func_ptr No description.
+  \param [in] args No description.
   \return No description
   */
 template <typename ReturnT, typename ...ArgTypes>
 template <typename Functor> inline
 auto FunctionReference<ReturnT (ArgTypes...)>::invokeFunctor(
-    const void* functor,
-    ArgTypes... arguments) -> ReturnType
+    const void* func_ptr,
+    ArgTypes... args) -> ReturnType
 {
-  const auto ptr = cast<const Functor* const*>(functor);
+  const auto ptr = cast<const Functor* const*>(func_ptr);
   if constexpr (std::is_void_v<ReturnType>)
-    std::invoke(*(*ptr), arguments...);
+    std::invoke(*(*ptr), std::forward<ArgTypes>(args)...);
   else
-    return std::invoke(*(*ptr), arguments...);
+    return std::invoke(*(*ptr), std::forward<ArgTypes>(args)...);
 }
 
 /*!

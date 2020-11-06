@@ -16,12 +16,11 @@
 #define ZISC_FUNCTION_REFERENCE_HPP
 
 // Standard C++ library
+#include <algorithm>
 #include <cstddef>
 #include <type_traits>
 // Zisc
-#include "algorithm.hpp"
-#include "type_traits.hpp"
-#include "utility.hpp"
+#include "concepts.hpp"
 
 namespace zisc {
 
@@ -43,48 +42,34 @@ class FunctionReference<ReturnT (ArgTypes...)>
   using FunctionPointer = ReturnType (*)(ArgTypes...);
 
 
-  template <typename Function>
-  static constexpr bool kIsInvocableRaw =
-      std::is_invocable_v<Function, ArgTypes...> &&
-      !std::is_same_v<FunctionReference,
-                      std::remove_cv_t<std::remove_reference_t<Function>>>;
-
-
   //! Create an empry
   FunctionReference() noexcept;
 
-  //! Create a reference to a function
-  template <typename Function>
-  FunctionReference(Function&& func,
-                    EnableIf<kIsInvocableRaw<Function>> = kEnabler) noexcept;
+  //! Create a reference to the given callable object
+  template <InvocableR<ReturnT, ArgTypes...> Func>
+  FunctionReference(Func&& func) noexcept;
 
 
   //! Invoke a referenced callable object
   template <typename ...Args>
-  ReturnType operator()(Args&&... arguments) const;
+  ReturnType operator()(Args&&... args) const
+  requires Invocable<FunctionPointer, Args...>;
 
   //! Check whether this refers a callable object 
-  explicit operator bool() const noexcept
-  {
-    return callback_ != nullptr;
-  }
+  explicit operator bool() const noexcept;
 
 
-  //! Copy a function reference
-  FunctionReference& assign(const FunctionReference& other) noexcept;
+  //! Create a reference to the given callable object
+  template <InvocableR<ReturnT, ArgTypes...> Func>
+  FunctionReference& assign(Func&& func) noexcept;
 
-  //! Refer a function pointer
-  template <typename Function>
-  FunctionReference& assign(
-      Function&& func,
-      EnableIf<kIsInvocableRaw<Function>> = kEnabler) noexcept;
-
-  //! Clear the stored callable object
+  //! Clear the underlying reference to a callable object
   void clear() noexcept;
 
   //! Invoke a referenced callable object
   template <typename ...Args>
-  ReturnType invoke(Args&&... arguments) const;
+  ReturnType invoke(Args&&... args) const
+  requires Invocable<FunctionPointer, Args...>;
 
   //! Exchange referenced callable objects of this and other
   void swap(FunctionReference& other) noexcept;
@@ -93,26 +78,23 @@ class FunctionReference<ReturnT (ArgTypes...)>
   static constexpr std::size_t kNumOfArgs = sizeof...(ArgTypes);
 
  private:
-  static constexpr std::size_t kStorageSize = zisc::max(
-      sizeof(void*),
-      sizeof(FunctionPointer));
+  static constexpr std::size_t kStorageSize = (std::max)(sizeof(void*),
+                                                         sizeof(FunctionPointer));
   using Memory = std::aligned_union_t<kStorageSize, void*, FunctionPointer>;
   using CallbackPointer = ReturnType (*)(const void*, ArgTypes...);
 
 
-  //! Initialize with a function
-  template <typename Function>
-  void initialize(Function&& func) noexcept;
+  //! Initialize with a callable object
+  template <InvocableR<ReturnT, ArgTypes...> Func>
+  void initialize(Func&& func) noexcept;
 
   //! Invoke a referenced callable object 
   template <typename FuncPointer>
-  static ReturnType invokeFunctionPointer(const void* function_ptr,
-                                          ArgTypes... argments);
+  static ReturnType invokeFunctionPointer(const void* func_ptr, ArgTypes... args);
 
   //! Invoke a referenced callable object
   template <typename Functor>
-  static ReturnType invokeFunctor(const void* function_memory,
-                                  ArgTypes... argments);
+  static ReturnType invokeFunctor(const void* func_ptr, ArgTypes... args);
 
   //! Return the memory of the function reference
   void* memory() noexcept;

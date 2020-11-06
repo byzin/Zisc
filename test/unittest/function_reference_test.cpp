@@ -15,10 +15,12 @@
 // Standard C++ library
 #include <functional>
 #include <type_traits>
+#include <utility>
 // GoogleTest
 #include "gtest/gtest.h"
 // Zisc
 #include "zisc/function_reference.hpp"
+#include "zisc/non_copyable.hpp"
 
 namespace {
 
@@ -108,8 +110,16 @@ TEST(FunctionReferenceTest, OperatorTest)
 
   {
     zisc::FunctionReference<int (long, long)> func_ref{&::addValueL};
-    FuncRef copied_func{func_ref};
-    ASSERT_EQ(expected, copied_func(v1, v2))
+    FuncRef func_ref2{func_ref};
+    ASSERT_EQ(expected, func_ref2(v1, v2))
+        << "Refering to a copied function reference failed.";
+  }
+
+  // Copy constructor
+  {
+    FuncRef func_ref{&::addValueL};
+    const FuncRef func_ref2 = func_ref;
+    ASSERT_EQ(expected, func_ref2(v1, v2))
         << "Refering to a copied function reference failed.";
   }
 
@@ -151,5 +161,35 @@ TEST(FunctionReferenceTest, OperatorTest)
     FuncRef copied_func{func_ref};
     ASSERT_EQ(expected, copied_func(v1, v2))
         << "Refering to a copied function reference failed.";
+  }
+}
+
+namespace {
+
+class MoveType : public zisc::NonCopyable<MoveType>
+{
+ public:
+  MoveType(const int value) : value_{value} {}
+  [[maybe_unused]] MoveType(MoveType&& other) : value_{other.value_} {}
+  int value_ = 0;
+};
+
+} // namespace 
+
+TEST(FunctionReferenceTest, TypeTest)
+{
+  auto func = [](const MoveType& a, MoveType&& b) noexcept
+  {
+    return a.value_ + b.value_;
+  };
+
+  using FuncRef = zisc::FunctionReference<int (const MoveType&, MoveType&&)>;
+  {
+    FuncRef func_ref{func};
+    const MoveType a{10};
+    MoveType b{6};
+    const int expected = a.value_ + b.value_;
+    ASSERT_EQ(expected, func_ref(a, std::move(b)))
+        << "Handing arguments in zisc::FunctionReference failed.";
   }
 }

@@ -98,23 +98,6 @@ constexpr void swap(Type1& a, Type2& b) noexcept
 /*!
   \details No detailed description
 
-  \tparam Type No description.
-  \tparam T No description.
-  \param [in] object No description.
-  \return No description
-  */
-template <typename Type, typename T> inline
-Type treatAs(T* object) noexcept
-{
-  if constexpr (std::is_same_v<Type, T*>)
-    return object;
-  else
-    return reinterpret_cast<Type>(object);
-}
-
-/*!
-  \details No detailed description
-
   \tparam NewType No description.
   \tparam Type No description.
   \param [in] object No description.

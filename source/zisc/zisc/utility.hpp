@@ -34,10 +34,6 @@ constexpr Float mapTo01(const Integer x) noexcept;
 template <typename Type1, typename Type2>
 constexpr void swap(Type1& a, Type2& b) noexcept;
 
-//! Treat T* as Type*
-template <typename Type, typename T>
-Type treatAs(T* object) noexcept;
-
 //! Convert between types by reinterpreting the underlying bit pattern
 template <typename NewType, typename Type>
 NewType reinterp(Type object) noexcept;

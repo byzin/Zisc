@@ -88,8 +88,10 @@ constexpr Arith Math::pow(Arith base, Int exponent) noexcept
   if (base != zero) {
     x = one;
     // Inverse pow
-    if(isNegative(exponent))
-      base = invert(base);
+    if constexpr (FloatingPoint<Arith>) {
+      if(isNegative(exponent))
+        base = invert(base);
+    }
     // Compute pow
     for (exponent = abs(exponent); 0 < exponent; exponent = exponent >> 1) {
       if (isOdd(exponent))

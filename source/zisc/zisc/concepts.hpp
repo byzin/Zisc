@@ -38,6 +38,13 @@ concept SameAs = std::is_same_v<U, T>;
 template <typename Derived, typename Base>
 concept DerivedFrom = std::is_base_of_v<Base, Derived>;
 
+//! Specify that a type is implicitly convertible to another type
+template <typename From, typename To>
+concept ConvertibleTo = std::is_convertible_v<From, To> &&
+                        requires (std::add_rvalue_reference_t<From> (&f)()) {
+                            static_cast<To>(f());
+                        };
+
 //! Specify a type is a character type
 template <typename Type>
 concept Character = std::is_same_v<char, std::remove_cv_t<Type>> ||
@@ -151,6 +158,33 @@ concept Reference = std::is_reference_v<Type>;
 //! Specify a type is non-reference type
 template <typename Type>
 concept NonReference = !std::is_reference_v<Type>;
+
+// Comparison concepts
+
+// Exposition only
+template <typename B>
+concept BooleanTestableImpl = ConvertibleTo<B, bool>;
+
+//! Specify that a type can be used in Boolean contexts
+template <typename B>
+concept BooleanTestable = BooleanTestableImpl<B> &&
+                          requires (B&& b) {
+                              {!std::forward<B>(b)} -> BooleanTestableImpl;
+                          };
+
+// Exposition only
+template <typename T, typename U>
+concept WeaklyEqualityComparableWith = requires (std::remove_reference_t<T>& t,
+                                                 std::remove_reference_t<U>& u) {
+  {t == u} -> BooleanTestable;
+  {t != u} -> BooleanTestable;
+  {u == t} -> BooleanTestable;
+  {u != t} -> BooleanTestable;
+};
+
+//! Specify that operator '==' is an equivalence relation
+template <typename T>
+concept EqualityComparable = WeaklyEqualityComparableWith<T, T>;
 
 // Callable concepts
 

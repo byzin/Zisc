@@ -243,7 +243,7 @@ class ThreadManager : private NonCopyable<ThreadManager>
 
   //! Run tasks on the worker threads in the manager
   template <typename Func, typename Ite1, typename Ite2>
-  requires Invocable<Func, CommonIte<Ite1, Ite2>>
+  requires Invocable<Func, ThreadManager::CommonIte<Ite1, Ite2>>
   SharedResult<void> enqueueLoop(Func&& task,
                                  Ite1&& begin,
                                  Ite2&& end,
@@ -251,7 +251,7 @@ class ThreadManager : private NonCopyable<ThreadManager>
 
   //! Run tasks on the worker threads in the manager
   template <typename Func, typename Ite1, typename Ite2>
-  requires Invocable<Func, int64b, CommonIte<Ite1, Ite2>>
+  requires Invocable<Func, int64b, ThreadManager::CommonIte<Ite1, Ite2>>
   SharedResult<void> enqueueLoop(Func&& task,
                                  Ite1&& begin,
                                  Ite2&& end,

@@ -52,8 +52,7 @@ class FunctionReference<ReturnT (ArgTypes...)>
 
   //! Invoke a referenced callable object
   template <typename ...Args>
-  ReturnType operator()(Args&&... args) const
-  requires Invocable<FunctionPointer, Args...>;
+  ReturnType operator()(Args&&... args) const;
 
   //! Check whether this refers a callable object 
   explicit operator bool() const noexcept;
@@ -68,8 +67,7 @@ class FunctionReference<ReturnT (ArgTypes...)>
 
   //! Invoke a referenced callable object
   template <typename ...Args>
-  ReturnType invoke(Args&&... args) const
-  requires Invocable<FunctionPointer, Args...>;
+  ReturnType invoke(Args&&... args) const;
 
   //! Exchange referenced callable objects of this and other
   void swap(FunctionReference& other) noexcept;

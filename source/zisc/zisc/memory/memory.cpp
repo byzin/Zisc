@@ -93,7 +93,7 @@ Memory::SystemMemoryStats Memory::retrieveSystemStatsImpl() noexcept
       vm_statistics_data_t vmstats;
       const auto result = host_statistics(host_port,
                                           HOST_VM_INFO,
-                                          treatAs<host_info_t>(&vmstats),
+                                          reinterp<host_info_t>(&vmstats),
                                           &count);
       ZISC_ASSERT(result == KERN_SUCCESS,
                   "Retrieving physical memory info failed.");

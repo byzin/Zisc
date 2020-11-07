@@ -241,7 +241,9 @@ function(Zisc_getClangCompilerFlags cxx_compile_flags cxx_linker_flags cxx_defin
   if(Z_CLANG_USES_LLVM_TOOLS)
     list(APPEND compile_flags -stdlib=libc++)
     list(APPEND linker_flags -stdlib=libc++ -rtlib=compiler-rt)
-    list(APPEND linker_flags -fuse-ld=lld)
+    if(NOT Z_MAC)
+      list(APPEND linker_flags -fuse-ld=lld)
+    endif()
     list(APPEND definitions Z_CLANG_USES_LLVM_TOOLS=1)
   endif()
 

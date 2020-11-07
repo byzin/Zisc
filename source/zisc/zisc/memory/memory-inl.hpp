@@ -17,6 +17,7 @@
 
 #include "memory.hpp"
 // Standard C++ library
+#include <algorithm>
 #include <cstddef>
 #include <cstdlib>
 #include <limits>
@@ -195,11 +196,15 @@ std::size_t Memory::Usage::total() const noexcept
 inline
 void* Memory::allocate(const std::size_t alignment, const std::size_t size)
 {
+  const std::size_t psize = (std::max)(size, sizeof(void*));
+  const std::size_t palignment = (std::max)(alignment, std::alignment_of_v<void*>);
   void* ptr =
 #if defined(Z_WINDOWS)
-      _aligned_malloc(size, alignment);
-#else // Z_WINDOWS
-      std::aligned_alloc(alignment, size);
+      _aligned_malloc(psize, palignment);
+#elif defined(Z_MAC)
+      ::aligned_alloc(palignment, psize);
+#else
+      std::aligned_alloc(palignment, psize);
 #endif // Z_WINDOWS
   return ptr;
 }
@@ -236,7 +241,9 @@ void Memory::free(void* ptr)
 {
 #if defined(Z_WINDOWS)
   _aligned_free(ptr);
-#else // Z_WINDOWS
+#elif defined(Z_MAC)
+  ::free(ptr);
+#else
   std::free(ptr);
 #endif // Z_WINDOWS
 }

@@ -164,14 +164,6 @@ class Atomic
  private:
   //! Convert the memory order type
   static auto castMemOrder(const std::memory_order order) noexcept;
-
-  //! Indicate that the type is always lock-free
-  template <typename Type, Config::ImplType kImpl>
-  static constexpr bool isAlwaysLockFreeImpl() noexcept;
-
-  //! Check if the atomic operations are lock-free
-  template <typename Type, Config::ImplType kImpl>
-  static bool isLockFreeImpl() noexcept;
 };
 
 /*!

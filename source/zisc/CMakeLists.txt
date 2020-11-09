@@ -10,38 +10,9 @@ cmake_minimum_required(VERSION 3.17)
 
 
 function(Zisc_initZiscOptions)
-  # Algorithm
-  set(option_description "Use STL binary tree algorithm.")
-  Zisc_setBooleanOption(ZISC_ALGORITHM_STL_BINARY_TREE OFF ${option_description})
-
   # Atomic
   set(option_description "Use OS specified atomic wait-notification.")
   Zisc_setBooleanOption(ZISC_ATOMIC_OS_SPECIFIED_WAIT ON ${option_description})
-
-  # Math
-  set(option_description "Use STL math funcs instead of the Zisc funcs.")
-  Zisc_setBooleanOption(ZISC_MATH_STL OFF ${option_description})
-
-  set(option_description "Use STL 'exp' instead of the Zisc func.")
-  Zisc_setBooleanOption(ZISC_MATH_STL_EXP ON ${option_description})
-
-  set(option_description "Use STL 'log', 'log2' funcs instead of the Zisc funcs.")
-  Zisc_setBooleanOption(ZISC_MATH_STL_LOG ON ${option_description})
-
-  set(option_description "Use STL 'pow' func instead of the Zisc func")
-  Zisc_setBooleanOption(ZISC_MATH_STL_POW ON ${option_description})
-
-  set(option_description "Use STL 'sqrt' func instead of the Zisc func")
-  Zisc_setBooleanOption(ZISC_MATH_STL_SQRT ON ${option_description})
-
-  set(option_description "Use STL 'cbrt' func instead of the Zisc func")
-  Zisc_setBooleanOption(ZISC_MATH_STL_CBRT ON ${option_description})
-
-  set(option_description "Use STL 'sin', 'cos' and 'tan' funcs instead of the Zisc funcs")
-  Zisc_setBooleanOption(ZISC_MATH_STL_TRIGONOMETRIC ON ${option_description})
-
-  set(option_description "Use STL 'asin', 'acos' and 'atan' funcs instead of the Zisc funcs")
-  Zisc_setBooleanOption(ZISC_MATH_STL_INV_TRIGONOMETRIC ON ${option_description})
 
   set(option_description "Enable zisc assertion.")
   if(Z_DEBUG_MODE)
@@ -57,36 +28,10 @@ endfunction(Zisc_initZiscOptions)
 
 function(Zisc_getZiscFlags zisc_compile_flags zisc_linker_flags zisc_definitions)
   # Options
-  if(${ZISC_ALGORITHM_STL_BINARY_TREE})
-    list(APPEND definitions ZISC_ALGORITHM_STL_BINARY_TREE=1)
-  endif()
   if(${ZISC_ATOMIC_OS_SPECIFIED_WAIT})
     list(APPEND definitions ZISC_ATOMIC_OS_SPECIFIED_WAIT=1)
   endif()
-  if(${ZISC_MATH_STL})
-    list(APPEND definitions ZISC_MATH_STL=1)
-  endif()
-  if(${ZISC_MATH_STL_EXP})
-    list(APPEND definitions ZISC_MATH_STL_EXP=1)
-  endif()
-  if(${ZISC_MATH_STL_LOG})
-    list(APPEND definitions ZISC_MATH_STL_LOG=1)
-  endif()
-  if(${ZISC_MATH_STL_POW})
-    list(APPEND definitions ZISC_MATH_STL_POW=1)
-  endif()
-  if(${ZISC_MATH_STL_SQRT})
-    list(APPEND definitions ZISC_MATH_STL_SQRT=1)
-  endif()
-  if(${ZISC_MATH_STL_CBRT})
-    list(APPEND definitions ZISC_MATH_STL_CBRT=1)
-  endif()
-  if(${ZISC_MATH_STL_TRIGONOMETRIC})
-    list(APPEND definitions ZISC_MATH_STL_TRIGONOMETRIC=1)
-  endif()
-  if(${ZISC_MATH_STL_INV_TRIGONOMETRIC})
-    list(APPEND definitions ZISC_MATH_STL_INV_TRIGONOMETRIC=1)
-  endif()
+
   if(${ZISC_ENABLE_ASSERTION})
     list(APPEND definitions ZISC_ASSERTION=1)
   endif()

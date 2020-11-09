@@ -44,22 +44,6 @@ constexpr uint8b kTrue = 1;
 class Config
 {
  public:
-  /*!
-    \brief No brief description
-
-    No detailed description.
-    */
-  enum class ImplType : uint
-  {
-    kGcc = 0,
-    kClang,
-    kMsvc
-  };
-
-
-  //! Return the implementation type
-  static constexpr ImplType implType() noexcept;
-
   //! Return the value of the major component of the Zisc version number
   static constexpr int versionMajor() noexcept;
 
@@ -72,42 +56,13 @@ class Config
   //! Return the version string of Zisc
   static constexpr std::string_view versionString() noexcept;
 
-  // Algorithm config
-
-  // Algorithm config
-  static constexpr bool isStlBinaryTreeUsed() noexcept;
-
-  // Atomic config
-  static constexpr bool isAtomicOsSpecifiedWaitUsed() noexcept;
-
   //! Return the L1 cache line size in bytes
   static constexpr std::size_t l1CacheLineSize() noexcept;
 
-  // Math config
+  // Algorithm config
 
-  //! Check if STL math library is used
-  static constexpr bool isStlMathUsed() noexcept;
-
-  //! Check if STL 'exp' is used
-  static constexpr bool isStlMathExpUsed() noexcept;
-
-  //! Check if STL 'log' and 'log2' are used
-  static constexpr bool isStlMathLogUsed() noexcept;
-
-  //! Check if STL 'pow' is used
-  static constexpr bool isStlMathPowUsed() noexcept;
-
-  //! Check if STL 'sqrt' is used
-  static constexpr bool isStlMathSqrtUsed() noexcept;
-
-  //! Check if STL 'cbrt' is used
-  static constexpr bool isStlMathCbrtUsed() noexcept;
-
-  //! Check if STL 'sin', 'cos' and 'tan' are used
-  static constexpr bool isStlMathTrigonometricUsed() noexcept;
-
-  //! Check if STL 'asin', 'acos' and 'atan' are used
-  static constexpr bool isStlMathInvTrigonometricUsed() noexcept;
+  // Atomic config
+  static constexpr bool isAtomicOsSpecifiedWaitUsed() noexcept;
 };
 
 } // namespace zisc

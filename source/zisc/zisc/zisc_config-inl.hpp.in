@@ -39,27 +39,6 @@ static_assert(sizeof(uint64b) == 8, "The size of uint64b isn't 8 bytes.");
   \return No description
   */
 inline
-constexpr auto Config::implType() noexcept -> ImplType
-{
-  ImplType type = ImplType::kGcc;
-#if defined(Z_GCC)
-  type = ImplType::kGcc;
-#elif defined(Z_CLANG)
-  type = ImplType::kClang;
-#elif defined(Z_MSVC)
-  type = ImplType::kMsvc;
-#else
-  static_assert(false, "Unsupported implementation is specified.");
-#endif
-  return type;
-}
-
-/*!
-  \details No detailed description
-
-  \return No description
-  */
-inline
 constexpr int Config::versionMajor() noexcept
 {
   return @PROJECT_VERSION_MAJOR@;
@@ -106,14 +85,12 @@ constexpr std::string_view Config::versionString() noexcept
   \return No description
   */
 inline
-constexpr bool Config::isStlBinaryTreeUsed() noexcept
+constexpr std::size_t Config::l1CacheLineSize() noexcept
 {
-#if defined(ZISC_ALGORITHM_STL_BINARY_TREE)
-  const bool flag = true;
-#else // ZISC_ALGORITHM_STL_BINARY_TREE
-  const bool flag = false;
-#endif // ZISC_ALGORITHM_STL_BINARY_TREE
-  return flag;
+  const std::size_t s = @ZISC_L1_CACHE_LINE_SIZE@;
+  const bool is_power_of_2 = (s & (s - 1)) == 0;
+  static_assert(is_power_of_2, "The cache line size isn't power of 2.");
+  return s;
 }
 
 /*!
@@ -129,141 +106,6 @@ constexpr bool Config::isAtomicOsSpecifiedWaitUsed() noexcept
 #else // ZISC_ATOMIC_OS_SPECIFIED_WAIT
   const bool flag = false;
 #endif // ZISC_ATOMIC_OS_SPECIFIED_WAIT
-  return flag;
-}
-
-/*!
-  \details No detailed description
-
-  \return No description
-  */
-inline
-constexpr std::size_t Config::l1CacheLineSize() noexcept
-{
-  const std::size_t s = @ZISC_L1_CACHE_LINE_SIZE@;
-  const bool is_power_of_2 = (s & (s - 1)) == 0;
-  static_assert(is_power_of_2, "The cache line size isn't power of 2.");
-  return s;
-}
-
-/*!
-  \details No detailed description
-
-  \return No description
-  */
-inline
-constexpr bool Config::isStlMathUsed() noexcept
-{
-#if defined(ZISC_MATH_STL)
-  const bool flag = true;
-#else // ZISC_MATH_STL
-  const bool flag = false;
-#endif // ZISC_MATH_STL
-  return flag;
-}
-
-/*!
-  \details No detailed description
-
-  \return No description
-  */
-inline
-constexpr bool Config::isStlMathExpUsed() noexcept
-{
-  bool flag = isStlMathUsed();
-#if defined(ZISC_MATH_STL_EXP)
-  flag = true;
-#endif // ZISC_MATH_STL_EXP
-  return flag;
-}
-
-/*!
-  \details No detailed description
-
-  \return No description
-  */
-inline
-constexpr bool Config::isStlMathLogUsed() noexcept
-{
-  bool flag = isStlMathUsed();
-#if defined(ZISC_MATH_STL_LOG)
-  flag = true;
-#endif // ZISC_MATH_STL_LOG
-  return flag;
-}
-
-/*!
-  \details No detailed description
-
-  \return No description
-  */
-inline
-constexpr bool Config::isStlMathPowUsed() noexcept
-{
-  bool flag = isStlMathUsed();
-#if defined(ZISC_MATH_STL_POW)
-  flag = true;
-#endif // ZISC_MATH_STL_POW
-  return flag;
-}
-
-/*!
-  \details No detailed description
-
-  \return No description
-  */
-inline
-constexpr bool Config::isStlMathSqrtUsed() noexcept
-{
-  bool flag = isStlMathUsed();
-#if defined(ZISC_MATH_STL_SQRT)
-  flag = true;
-#endif // ZISC_MATH_STL_SQRT
-  return flag;
-}
-
-/*!
-  \details No detailed description
-
-  \return No description
-  */
-inline
-constexpr bool Config::isStlMathCbrtUsed() noexcept
-{
-  bool flag = isStlMathUsed();
-#if defined(ZISC_MATH_STL_CBRT)
-  flag = true;
-#endif // ZISC_MATH_STL_CBRT
-  return flag;
-}
-
-/*!
-  \details No detailed description
-
-  \return No description
-  */
-inline
-constexpr bool Config::isStlMathTrigonometricUsed() noexcept
-{
-  bool flag = isStlMathUsed();
-#if defined(ZISC_MATH_STL_TRIGONOMETRIC)
-  flag = true;
-#endif // ZISC_MATH_STL_TRIGONOMETRIC
-  return flag;
-}
-
-/*!
-  \details No detailed description
-
-  \return No description
-  */
-inline
-constexpr bool Config::isStlMathInvTrigonometricUsed() noexcept
-{
-  bool flag = isStlMathUsed();
-#if defined(ZISC_MATH_STL_INV_TRIGONOMETRIC)
-  flag = true;
-#endif // ZISC_MATH_STL_INV_TRIGONOMETRIC
   return flag;
 }
 

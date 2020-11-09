@@ -41,17 +41,14 @@ static_assert(false, "Zisc is built on unsupported OS.");
 
 // Compiler test
 #if defined(__clang__)
-static_assert(zisc::Config::implType() == zisc::Config::ImplType::kClang);
   #if !defined(Z_CLANG)
   static_assert(false, "The macro 'Z_CLANG' isn't defined.");
   #endif // Z_CLANG
 #elif defined(__GNUC__)
-static_assert(zisc::Config::implType() == zisc::Config::ImplType::kGcc);
   #if !defined(Z_GCC)
   static_assert(false, "The macro 'Z_GCC' isn't defined.");
   #endif // Z_GCC
 #elif defined(_MSC_VER)
-static_assert(zisc::Config::implType() == zisc::Config::ImplType::kMsvc);
   #if !defined(Z_MSVC)
   static_assert(false, "The macro 'Z_MSVC' isn't defined.");
   #endif // Z_MSVC

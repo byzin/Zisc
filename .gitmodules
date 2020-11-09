@@ -5,5 +5,5 @@
 	path = document/doxygen_dark_theme
 	url = https://github.com/MaJerle/doxygen_dark_theme
 [submodule "test/dependencies/mpreal"]
-	path = test/dependencies/mpreal
+	path = test/math_reference/dependencies/mpreal
 	url = https://github.com/advanpix/mpreal

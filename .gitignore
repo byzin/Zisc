@@ -64,12 +64,20 @@
 !/test/CMakeLists.txt
 !/test/dependencies/
 !/test/dependencies/googletest
-!/test/dependencies/mpreal
 !/test/unittest/
 !/test/unittest/*.hpp
 !/test/unittest/*.cpp
 !/test/resources/
 !/test/resources/*.txt
+# Math reference
+!/test/math_reference/
+!/test/math_reference/CMakeLists.txt
+!/test/math_reference/*.cpp
+!/test/math_reference/*.hpp
+!/test/math_reference/cmake/
+!/test/math_reference/cmake/*.cmake
+!/test/math_reference/dependencies/
+!/test/math_reference/dependencies/mpreal
 
 # Example
 !/example/

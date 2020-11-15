@@ -76,6 +76,18 @@ Zisc_checkTarget(gtest_main)
 
 # Create a symlink to the test resources
 file(COPY ${PROJECT_SOURCE_DIR}/resources DESTINATION ${PROJECT_BINARY_DIR})
+set(math_reference_files "math_powf_reference.txt"
+                         "math_powd_reference.txt"
+                         "math_powintf_reference.txt"
+                         "math_powintd_reference.txt")
+foreach(reference_file IN LISTS math_reference_files)
+  set(src_file_path ${PROJECT_SOURCE_DIR}/math_reference/${reference_file}.tar.xz)
+  set(dst_file_path ${PROJECT_BINARY_DIR}/resources/${reference_file})
+  if(${src_file_path} IS_NEWER_THAN ${dst_file_path})
+    execute_process(COMMAND ${CMAKE_COMMAND} -E tar Jxf ${src_file_path}
+                    WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/resources)
+  endif()
+endforeach(reference_file)
 
 # Create a unit test
 file(GLOB unittest_source_files ${PROJECT_SOURCE_DIR}/unittest/*.cpp
@@ -93,6 +105,7 @@ getTestWarningFlags(test_warning_flags)
 target_compile_options(${PROJECT_NAME} PRIVATE ${test_compile_flags}
                                                ${cxx_compile_warning_flags}
                                                ${test_warning_flags})
+target_include_directories(${PROJECT_NAME} PRIVATE ${PROJECT_SOURCE_DIR}/math_reference)
 target_link_libraries(${PROJECT_NAME} PRIVATE gtest_main
                                               Zisc
                                               ${test_linker_flags})

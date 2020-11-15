@@ -1355,8 +1355,8 @@ constexpr Float Math::Impl::l2u() noexcept
 template <typename Constants, std::size_t coffset, FloatingPoint Float> inline
 constexpr Float Math::Impl::poly2(const Float x) noexcept
 {
-  constexpr Float y = Constants::get(coffset, 1);
-  constexpr Float z = Constants::get(coffset, 0);
+  constexpr Float y = Constants::get(coffset + 1);
+  constexpr Float z = Constants::get(coffset + 0);
   const Float result = mla(x, y, z);
   return result;
 }
@@ -1805,7 +1805,7 @@ constexpr Float Math::Impl::exp(const F2<Float> x) noexcept
     const Float s2 = s.x_ * s.x_;
     const Float s4 = s2 * s2;
     const Float s8 = s4 * s4;
-    u = poly10<ExpDConstants, 0>(s.x, s2, s4, s8);
+    u = poly10<ExpDConstants, 0>(s.x_, s2, s4, s8);
     t = add(1.0, s);
     t = add(t, mul(squ<F2<Float>>(s), u));
   }

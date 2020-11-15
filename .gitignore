@@ -74,6 +74,7 @@
 !/test/math_reference/CMakeLists.txt
 !/test/math_reference/*.cpp
 !/test/math_reference/*.hpp
+!/test/math_reference/*.tar.xz
 !/test/math_reference/cmake/
 !/test/math_reference/cmake/*.cmake
 !/test/math_reference/dependencies/

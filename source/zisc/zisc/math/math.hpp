@@ -85,10 +85,14 @@ class Math
   template <Arithmetic Arith, FloatingPoint Float>
   static constexpr Arith pow(const Arith base, const Float exponent) noexcept;
 
-//  //! Calculate the square root
-//  template <typename Float>
-//  static Float sqrt(const Float n) noexcept;
-//
+  //! Calculate the square root
+  template <FloatingPoint Float>
+  static constexpr Float sqrt(const Float x) noexcept;
+
+  //! Calculate the square root
+  template <Integer Int, FloatingPoint Float = double>
+  static constexpr Float sqrt(const Int x) noexcept;
+
 //  //! Calculate the cubic root
 //  template <typename Float>
 //  static Float cbrt(const Float n) noexcept;
@@ -625,10 +629,14 @@ constexpr Float kPi = Math::pi<Float>();
 template <Arithmetic Arith1, Arithmetic Arith2>
 constexpr Arith1 pow(const Arith1 base, const Arith2 exponent) noexcept;
 
-////! Calculate the square root
-//template <typename Float>
-//Float sqrt(const Float n) noexcept;
-//
+//! Calculate the square root
+template <FloatingPoint Float>
+constexpr Float sqrt(const Float x) noexcept;
+
+//! Calculate the square root
+template <Integer Int, FloatingPoint Float = double>
+constexpr Float sqrt(const Int x) noexcept;
+
 ////! Calculate the cubic root
 //template <typename Float>
 //Float cbrt(const Float n) noexcept;

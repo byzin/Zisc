@@ -143,56 +143,34 @@ constexpr Arith Math::pow(const Arith base, const Float exponent) noexcept
   return result;
 }
 
-///*!
-//  \details No detailed description
-//
-//  \tparam kExponent No description.
-//  \tparam Arithmetic No description.
-//  \param [in] base No description.
-//  \return No description
-//  */
-//template <int kExponent, typename Arithmetic> inline
-//constexpr Arithmetic Math::power(Arithmetic base) noexcept
-//{
-//  static_assert(std::is_arithmetic_v<Arithmetic>, 
-//                "Arithmetic isn't arithmetic type");
-//  return constant::power<kExponent>(base);
-//}
-//
-///*!
-//  \details No detailed description
-//
-//  \tparam Arithmetic No description.
-//  \tparam SignedInteger No description.
-//  \param [in] base No description.
-//  \param [in] exponent No description.
-//  \return No description
-//  */
-//template <typename Arithmetic, typename SignedInteger>
-//constexpr Arithmetic Math::power(const Arithmetic base,
-//                                 const SignedInteger exponent) noexcept
-//{
-//  return constant::power(base, exponent);
-//}
-//
-///*!
-//  \details No detailed description
-//
-//  \tparam Float No description.
-//  \param [in] base No description.
-//  \param [in] exponent No description.
-//  \return No description
-//  */
-//template <typename Float> inline
-//Float Math::pow(const Float base, const Float exponent) noexcept
-//{
-//  static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-//  const auto y = Config::isStlMathPowUsed()
-//      ? Stl::pow(base, exponent)
-//      : Zisc::pow(base, exponent);
-//  return y;
-//}
-//
+/*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] x No description.
+  \return No description
+  */
+template <FloatingPoint Float> inline
+constexpr Float Math::sqrt(const Float x) noexcept
+{
+  return x;
+}
+
+/*!
+  \details No detailed description
+
+  \tparam Int No description.
+  \tparam Float No description.
+  \param [in] x No description.
+  \return No description
+  */
+template <Integer Int, FloatingPoint Float> inline
+constexpr Float Math::sqrt(const Int x) noexcept
+{
+  const Float y = sqrt(cast<Float>(x));
+  return y;
+}
+
 ///*!
 //  \details No detailed description
 //
@@ -2216,21 +2194,35 @@ constexpr Arith1 pow(const Arith1 base, const Arith2 exponent) noexcept
   return y;
 }
 
-///*!
-//  \details No detailed description
-//
-//  \tparam Float No description.
-//  \param [in] n No description.
-//  \return No description
-//  */
-//template <typename Float> inline
-//Float sqrt(const Float n) noexcept
-//{
-//  static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-//  const auto y = Math::sqrt(n);
-//  return y;
-//}
-//
+/*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] x No description.
+  \return No description
+  */
+template <FloatingPoint Float> inline
+constexpr Float sqrt(const Float x) noexcept
+{
+  const Float y = Math::sqrt(x);
+  return y;
+}
+
+/*!
+  \details No detailed description
+
+  \tparam Int No description.
+  \tparam Float No description.
+  \param [in] x No description.
+  \return No description
+  */
+template <Integer Int, FloatingPoint Float> inline
+constexpr Float sqrt(const Int x) noexcept
+{
+  const Float y = Math::sqrt<Float>(x);
+  return y;
+}
+
 ///*!
 //  \details No detailed description
 //

@@ -12,7 +12,7 @@
   http://opensource.org/licenses/mit-license.php
   */
 
-#include "pow_test.hpp"
+#include "power_test.hpp"
 // Standard C++ library
 #include <limits>
 #include <numbers>
@@ -43,7 +43,8 @@ void testPow(std::ostream* output) noexcept
   constexpr zisc::int32b end = n / 2;
   x_list.reserve(n);
   for (int i = -end; i < end; ++i) {
-    const Float x = getPowInput<Float>(i, end);
+    const Float u = zisc::cast<Float>(i) / zisc::cast<Float>(end);
+    const Float x = makePowInput(u);
     zisc::BSerializer::write(&x, output);
     x_list.push_back(x);
   }
@@ -222,4 +223,94 @@ void testPowIntF(std::ostream* output) noexcept
 void testPowIntD(std::ostream* output) noexcept
 {
   ::testPowInt<double>(output);
+}
+
+namespace {
+
+template <zisc::FloatingPoint Float>
+void testSqrt(std::ostream* output) noexcept
+{
+  using zisc::cast;
+
+  constexpr zisc::int32b n = 100'000;
+  zisc::BSerializer::write(&n, output);
+
+  std::vector<Float> x_list;
+  constexpr zisc::int32b end = n;
+  x_list.reserve(n);
+  for (int i = 0; i < end; ++i) {
+    const Float u = zisc::cast<Float>(i) / zisc::cast<Float>(end);
+    const Float x = makeSqrtInput(u);
+    zisc::BSerializer::write(&x, output);
+    x_list.push_back(x);
+  }
+
+  for (const Float x : x_list) {
+    const mpfr::mpreal in{x};
+    const auto result = mpfr::sqrt(in);
+    const Float y = cast<Float>(result);
+    zisc::BSerializer::write(&y, output);
+  }
+
+  // Special cases
+  auto test_special = [output](const Float x) noexcept
+  {
+    zisc::BSerializer::write(&x, output);
+    const auto result = mpfr::sqrt(mpfr::mpreal{x});
+    const Float y = cast<Float>(result);
+    zisc::BSerializer::write(&y, output);
+  };
+  constexpr zisc::int32b n_specials = 3;
+  zisc::BSerializer::write(&n_specials, output);
+  test_special(cast<Float>(0));
+  test_special(std::numeric_limits<Float>::infinity());
+  test_special(-std::numeric_limits<Float>::infinity());
+}
+
+template <zisc::FloatingPoint Float>
+void testSqrtSubnormal(std::ostream* output) noexcept
+{
+  using zisc::cast;
+
+  constexpr zisc::int32b n = 200;
+  zisc::BSerializer::write(&n, output);
+
+  std::vector<Float> x_list;
+  constexpr zisc::int32b end = n;
+  x_list.reserve(n);
+  for (int i = 0; i < end; ++i) {
+    const Float u = zisc::cast<Float>(i) / zisc::cast<Float>(end);
+    const Float x = makeSqrtInputSub(u);
+    zisc::BSerializer::write(&x, output);
+    x_list.push_back(x);
+  }
+
+  for (const Float x : x_list) {
+    const mpfr::mpreal in{x};
+    const auto result = mpfr::sqrt(in);
+    const Float y = cast<Float>(result);
+    zisc::BSerializer::write(&y, output);
+  }
+}
+
+} // namespace
+
+void testSqrtF(std::ostream* output) noexcept
+{
+  ::testSqrt<float>(output);
+}
+
+void testSqrtD(std::ostream* output) noexcept
+{
+  ::testSqrt<double>(output);
+}
+
+void testSqrtSubnormalF(std::ostream* output) noexcept
+{
+  ::testSqrtSubnormal<float>(output);
+}
+
+void testSqrtSubnormalD(std::ostream* output) noexcept
+{
+  ::testSqrtSubnormal<double>(output);
 }

@@ -79,7 +79,12 @@ file(COPY ${PROJECT_SOURCE_DIR}/resources DESTINATION ${PROJECT_BINARY_DIR})
 set(math_reference_files "math_powf_reference.txt"
                          "math_powd_reference.txt"
                          "math_powintf_reference.txt"
-                         "math_powintd_reference.txt")
+                         "math_powintd_reference.txt"
+                         "math_sqrtf_reference.txt"
+                         "math_sqrtd_reference.txt"
+                         "math_sqrt_subf_reference.txt"
+                         "math_sqrt_subd_reference.txt"
+                         )
 foreach(reference_file IN LISTS math_reference_files)
   set(src_file_path ${PROJECT_SOURCE_DIR}/math_reference/${reference_file}.tar.xz)
   set(dst_file_path ${PROJECT_BINARY_DIR}/resources/${reference_file})

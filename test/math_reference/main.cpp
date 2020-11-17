@@ -20,7 +20,7 @@
 // Zisc
 #include "zisc/binary_serializer.hpp"
 // Test
-#include "pow_test.hpp"
+#include "power_test.hpp"
 
 int main(int /* argc */, char** /* argv */)
 {
@@ -58,6 +58,35 @@ int main(int /* argc */, char** /* argv */)
     std::string_view file_path{"math_powintd_reference.txt"};
     std::ofstream output{file_path.data(), std::ios_base::binary};
     testPowIntD(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  // Sqrt
+  {
+    std::string_view file_path{"math_sqrtf_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testSqrtF(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_sqrtd_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testSqrtD(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_sqrt_subf_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testSqrtSubnormalF(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_sqrt_subd_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testSqrtSubnormalD(&output);
     output.close();
     compress_file(file_path);
   }

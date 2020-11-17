@@ -21,34 +21,36 @@
 #include "gtest/gtest.h"
 // Zisc
 #include "zisc/binary_serializer.hpp"
+#include "zisc/utility.hpp"
 #include "zisc/zisc_config.hpp"
 #include "zisc/math/math.hpp"
 // Test
 #include "math_test.hpp"
-#include "pow_test.hpp"
+#include "power_test.hpp"
 
 namespace {
 
 template <int i, int start, int end>
 void testPowConstant() noexcept
 {
+  static constexpr double u = zisc::cast<double>(i) / zisc::cast<double>(end);
   {
     constexpr double base = 2.0;
-    constexpr double expt = getPowInput<double>(i, end);
+    constexpr double expt = makePowInput(u);
     constexpr double y = zisc::pow(base, expt);
     const double expected = zisc::pow(base, expt);
     ASSERT_EQ(expected, y) << "pow(" << base << "," << expt << ") failed.";
   }
   {
     constexpr double base = std::numbers::pi_v<double>;
-    constexpr double expt = getPowInput<double>(i, end);
+    constexpr double expt = makePowInput(u);
     constexpr double y = zisc::pow(base, expt);
     const double expected = zisc::pow(base, expt);
     ASSERT_EQ(expected, y) << "pow(" << base << "," << expt << ") failed.";
   }
   {
     constexpr double base = 1.0 / std::numbers::pi_v<double>;
-    constexpr double expt = getPowInput<double>(i, end);
+    constexpr double expt = makePowInput(u);
     constexpr double y = zisc::pow(base, expt);
     const double expected = zisc::pow(base, expt);
     ASSERT_EQ(expected, y) << "pow(" << base << "," << expt << ") failed.";
@@ -201,20 +203,108 @@ TEST(MathTest, PowIntDContantTest)
   math_result.check("zisc::pow()");
 }
 
-//TEST(ConstMathTest, SqrtTestD)
-//{
-//  constexpr int start = 0;
-//  constexpr int end = 1024;
-//  PowerConstexprTest<double, end, start>::testSqrt();
-//}
-//
-//TEST(ConstMathTest, CbrtTestD)
-//{
-//  constexpr int start = -512;
-//  constexpr int end = 512;
-//  PowerConstexprTest<double, end, start>::testCbrt();
-//}
-//
+namespace {
+
+template <int i, int start, int end>
+void testSqrtConstant() noexcept
+{
+  static constexpr double u = zisc::cast<double>(i) / zisc::cast<double>(end);
+  {
+    constexpr double x = makeSqrtInput(u);
+    constexpr double y = zisc::sqrt(x);
+    const double expected = zisc::sqrt(x);
+    ASSERT_EQ(expected, y) << "sqrt(" << x << ") failed.";
+  }
+  if constexpr (i < end)
+    testSqrtConstant<i + 1, start, end>();
+}
+
+} // namespace 
+
+TEST(MathTest, SqrtDTest)
+{
+  std::ifstream reference_file{"resources/math_sqrtd_reference.txt",
+                               std::ios_base::binary};
+  zisc::int32b n = 0;
+  zisc::BSerializer::read(&n, &reference_file);
+
+  std::vector<double> x_list;
+  x_list.resize(n);
+  zisc::BSerializer::read(x_list.data(), &reference_file, sizeof(double) * n);
+
+  MathTestResult<double> math_result;
+  std::vector<double> expected_list;
+  expected_list.resize(x_list.size());
+  zisc::BSerializer::read(expected_list.data(), &reference_file, sizeof(double) * n);
+  for (std::size_t i = 0; i < x_list.size(); ++i) {
+    const double x = x_list[i];
+    const double y = zisc::sqrt(x);
+    const double expected = expected_list[i];
+//    EXPECT_DOUBLE_EQ(expected, y) << "sqrt(" << x << ") is wrong.";
+    testMathFloat(expected, y, &math_result);
+  }
+  // Special cases
+  zisc::int32b n_specials = 0;
+  zisc::BSerializer::read(&n_specials, &reference_file);
+  for (int spec_index = 0; spec_index < n_specials; ++spec_index) {
+    double x = 0.0;
+    zisc::BSerializer::read(&x, &reference_file);
+    const double y = zisc::sqrt(x);
+    double expected = 0.0;
+    zisc::BSerializer::read(&expected, &reference_file);
+    if (!testMathFloat(expected, y, &math_result)) {
+      std::cout << "  [special] zisc::sqrt(" << x << ") is wrong."
+                << std::endl
+                << "      actual: " << std::scientific << y  << std::endl
+                << "    expected: " << std::scientific << expected << std::endl;
+    }
+  }
+
+  // Integer
+  {
+    constexpr double y = zisc::sqrt(100);
+    constexpr double expected = zisc::sqrt(100.0);
+    ASSERT_EQ(expected, y);
+  }
+
+  math_result.print();
+  math_result.check("zisc::sqrt()");
+}
+
+TEST(MathTest, SqrtSubnormalDTest)
+{
+  std::ifstream reference_file{"resources/math_sqrt_subd_reference.txt",
+                               std::ios_base::binary};
+  zisc::int32b n = 0;
+  zisc::BSerializer::read(&n, &reference_file);
+
+  std::vector<double> x_list;
+  x_list.resize(n);
+  zisc::BSerializer::read(x_list.data(), &reference_file, sizeof(double) * n);
+
+  MathTestResult<double> math_result;
+  std::vector<double> expected_list;
+  expected_list.resize(x_list.size());
+  zisc::BSerializer::read(expected_list.data(), &reference_file, sizeof(double) * n);
+  for (std::size_t i = 0; i < x_list.size(); ++i) {
+    const double x = x_list[i];
+    const double y = zisc::sqrt(x);
+    const double expected = expected_list[i];
+//    EXPECT_DOUBLE_EQ(expected, y) << "sqrt(" << x << ") is wrong.";
+    testMathFloat(expected, y, &math_result);
+  }
+
+  math_result.print();
+  math_result.check("zisc::sqrt()");
+}
+
+TEST(MathTest, SqrtDContantTest)
+{
+  constexpr int start = 0;
+  constexpr int end = 128;
+  ::testSqrtConstant<start, start, end>();
+}
+
 //TEST(ConstMathTest, ExpTestD)
 //{
 //  constexpr int start = -512;

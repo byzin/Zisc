@@ -64,7 +64,7 @@ constexpr Float mapTo01(const Integer x) noexcept
   ValueType v = 0;
   if constexpr (mant_digits < int_digits) {
     constexpr std::size_t offset = int_digits - mant_digits;
-    v = cast<ValueType>(x) >> offset;
+    v = cast<ValueType>(x >> offset);
   }
   else {
     constexpr std::size_t offset = mant_digits - int_digits;

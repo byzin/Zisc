@@ -260,13 +260,6 @@ TEST(MathTest, SqrtTest)
     }
   }
 
-  // Integer
-  {
-    constexpr float y = zisc::sqrt(100);
-    constexpr float expected = zisc::sqrt(100.0f);
-    ASSERT_EQ(expected, y);
-  }
-
   math_result.print();
   math_result.check("zisc::sqrt()");
 }

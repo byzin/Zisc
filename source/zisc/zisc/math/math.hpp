@@ -87,10 +87,10 @@ class Math
 
   //! Calculate the square root
   template <FloatingPoint Float>
-  static constexpr Float sqrt(const Float x) noexcept;
+  static constexpr Float sqrt(Float x) noexcept;
 
   //! Calculate the square root
-  template <Integer Int, FloatingPoint Float = double>
+  template <FloatingPoint Float = double, Integer Int>
   static constexpr Float sqrt(const Int x) noexcept;
 
 //  //! Calculate the cubic root
@@ -325,7 +325,15 @@ class Math
 
     //!
     template <FloatingPoint Float>
+    static constexpr F2<Float> add(const Float x, const Float y) noexcept;
+
+    //!
+    template <FloatingPoint Float>
     static constexpr F2<Float> add(const Float x, const F2<Float> y) noexcept;
+
+    //!
+    template <FloatingPoint Float>
+    static constexpr F2<Float> add(const F2<Float> x, const Float y) noexcept;
 
     //!
     template <FloatingPoint Float>
@@ -334,6 +342,10 @@ class Math
     //!
     template <FloatingPoint Float>
     static constexpr F2<Float> add2(const Float x, const Float y) noexcept;
+
+    //!
+    template <FloatingPoint Float>
+    static constexpr F2<Float> add2(const Float x, const F2<Float> y) noexcept;
 
     //!
     template <FloatingPoint Float>
@@ -349,15 +361,27 @@ class Math
 
     //!
     template <FloatingPoint Float>
-    static constexpr F2<Float> mul(const F2<Float> x, const Float y) noexcept;
+    static constexpr F2<Float> mul(const Float x, const Float y) noexcept;
 
     //!
     template <FloatingPoint Float>
-    static constexpr F2<Float> mul(const F2<Float> x, const F2<Float> y) noexcept;
+    static constexpr F2<Float> mul(const F2<Float> x, const Float y) noexcept;
+
+    //!
+    template <typename Return, FloatingPoint Float>
+    static constexpr Return mul(const F2<Float> x, const F2<Float> y) noexcept;
 
     //!
     template <FloatingPoint Float>
     static constexpr F2<Float> normalize(const F2<Float> x) noexcept;
+
+    //!
+    template <FloatingPoint Float>
+    static constexpr F2<Float> rec(const Float x) noexcept;
+
+    //!
+    template <FloatingPoint Float>
+    static constexpr F2<Float> rec(const F2<Float> x) noexcept;
 
     //!
     template <FloatingPoint Float>
@@ -634,7 +658,7 @@ template <FloatingPoint Float>
 constexpr Float sqrt(const Float x) noexcept;
 
 //! Calculate the square root
-template <Integer Int, FloatingPoint Float = double>
+template <FloatingPoint Float = double, Integer Int>
 constexpr Float sqrt(const Int x) noexcept;
 
 ////! Calculate the cubic root

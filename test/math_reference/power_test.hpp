@@ -66,7 +66,7 @@ constexpr Float makeSubnormal(const Float x) noexcept
 template <zisc::FloatingPoint Float> inline
 constexpr Float makePowInput(const Float x) noexcept
 {
-  constexpr Float k = zisc::cast<Float>(8.0);
+  constexpr Float k = zisc::cast<Float>(16.0);
   const Float e = k * x;
   return e;
 }

@@ -115,7 +115,7 @@ constexpr Arith Math::pow(Arith base, Int exponent) noexcept
 template <Arithmetic Arith, FloatingPoint Float> inline
 constexpr Arith Math::pow(const Arith base, const Float exponent) noexcept
 {
-  using FLimit = std::numeric_limits<Float>;
+  using FLimits = std::numeric_limits<Float>;
   constexpr Float zero = cast<Float>(0.0);
   constexpr Float one = cast<Float>(1.0);
 
@@ -126,16 +126,16 @@ constexpr Arith Math::pow(const Arith base, const Float exponent) noexcept
   const Impl::F2<Float> d = Impl::mul(Impl::log(Impl::abs(x)), exponent);
   Float result = Impl::exp(d);
   if (d.x_ > cast<Float>(709.78271114955742909217217426))
-    result = FLimit::infinity();
+    result = FLimits::infinity();
 
-  result = Impl::isNan(result) ? FLimit::infinity() : result;
+  result = Impl::isNan(result) ? FLimits::infinity() : result;
   result *= isNegative(x) ? (y_isodd ? -one : one) : one; //! \todo Nan check
 
   const Float efx = Impl::mulsign(Impl::abs(x) - one, exponent);
   if (Impl::isInf(exponent))
-    result = isNegative(efx) ? zero : ((efx == zero) ? one : FLimit::infinity());
+    result = isNegative(efx) ? zero : ((efx == zero) ? one : FLimits::infinity());
   if (Impl::isInf(x) || x == zero)
-    result = (y_isodd ? Impl::sign(x) : one) * ((x == zero) ? -exponent : exponent) < zero ? zero : FLimit::infinity();
+    result = (y_isodd ? Impl::sign(x) : one) * ((x == zero) ? -exponent : exponent) < zero ? zero : FLimits::infinity();
   //! \todo Nan check
   if (exponent == zero || x == one)
     result = one;
@@ -151,9 +151,40 @@ constexpr Arith Math::pow(const Arith base, const Float exponent) noexcept
   \return No description
   */
 template <FloatingPoint Float> inline
-constexpr Float Math::sqrt(const Float x) noexcept
+constexpr Float Math::sqrt(Float x) noexcept
 {
-  return x;
+  constexpr Float half = cast<Float>(0.5);
+  Float q = half;
+  if (x < Impl::fvalue<Float>(5.2939559203393770e-23f, 8.636168555094445E-78)) {
+    x *= Impl::fvalue<Float>(1.8889465931478580e+22f, 1.157920892373162E77);
+    q = half * Impl::fvalue<Float>(7.2759576141834260e-12f, 2.9387358770557188E-39);
+  }
+  if (x > Impl::fvalue<Float>(1.8446744073709552e+19f, 1.3407807929942597e+154)) {
+    x *= Impl::fvalue<Float>(5.4210108624275220e-20f, 7.4583407312002070e-155);
+    q = half * Impl::fvalue<Float>(4294967296.0f, 1.1579208923731620e+77);
+  }
+
+  // http://en.wikipedia.org/wiki/Fast_inverse_square_root
+  Float v = cast<Float>(0);
+  {
+    using Int = IntT<Float>;
+    constexpr Int k = Impl::fvalue<Float>(0x5f375a86, 0x5fe6ec85e7de30dall);
+    const Int u = bit_cast<Int>(x + Impl::fvalue<Float>(1e-45f, 1e-320)) >> 1;
+    v = bit_cast<Float>(k - u);
+  }
+
+  for (int i = 0; i < 3; ++i) {
+    constexpr Float k = cast<Float>(1.5);
+    v = v * (k - half * x * v * v);
+  }
+  v *= x;
+  auto x2 = Impl::mul<Impl::F2<Float>>(Impl::add2(x, Impl::mul(v, v)), Impl::rec(v));
+
+  using FLimits = std::numeric_limits<Float>;
+  Float result = q * (x2.x_ + x2.y_);
+  result = (x == FLimits::infinity()) ? FLimits::infinity() : result;
+  result = (x == cast<Float>(0)) ? x : result;
+  return result;
 }
 
 /*!
@@ -164,7 +195,7 @@ constexpr Float Math::sqrt(const Float x) noexcept
   \param [in] x No description.
   \return No description
   */
-template <Integer Int, FloatingPoint Float> inline
+template <FloatingPoint Float, Integer Int> inline
 constexpr Float Math::sqrt(const Int x) noexcept
 {
   const Float y = sqrt(cast<Float>(x));
@@ -1031,11 +1062,45 @@ constexpr Float Math::sqrt(const Int x) noexcept
   \return No description
   */
 template <FloatingPoint Float> inline
+constexpr auto Math::Impl::add(const Float x, const Float y) noexcept
+    -> F2<Float>
+{
+  F2<Float> result{x + y};
+  result.y_ = x - result.x_ + y;
+  return result;
+}
+
+/*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] x No description.
+  \param [in] y No description.
+  \return No description
+  */
+template <FloatingPoint Float> inline
 constexpr auto Math::Impl::add(const Float x, const F2<Float> y) noexcept
     -> F2<Float>
 {
   F2<Float> result{x + y.x_};
   result.y_ = x - result.x_ + y.x_ + y.y_;
+  return result;
+}
+
+/*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] x No description.
+  \param [in] y No description.
+  \return No description
+  */
+template <FloatingPoint Float> inline
+constexpr auto Math::Impl::add(const F2<Float> x, const Float y) noexcept
+    -> F2<Float>
+{
+  F2<Float> result{x.x_ + y};
+  result.y_ = x.x_ - result.x_ + y + x.y_;
   return result;
 }
 
@@ -1082,13 +1147,30 @@ constexpr auto Math::Impl::add2(const Float x, const Float y) noexcept -> F2<Flo
   \return No description
   */
 template <FloatingPoint Float> inline
+constexpr auto Math::Impl::add2(const Float x, const F2<Float> y) noexcept
+    -> F2<Float>
+{
+  F2<Float> result{x + y.x_};
+  const Float v = result.x_ - x;
+  result.y_ = (x - (result.x_ - v)) + (y.x_ - v) + y.y_;
+  return result;
+}
+
+/*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] x No description.
+  \param [in] y No description.
+  \return No description
+  */
+template <FloatingPoint Float> inline
 constexpr auto Math::Impl::add2(const F2<Float> x, const Float y) noexcept
     -> F2<Float>
 {
   F2<Float> result{x.x_ + y};
   const Float v = result.x_ - x.x_;
-  result.y_ = (x.x_ - (result.x_ - v)) + (y - v);
-  result.y_ += x.y_;
+  result.y_ = (x.x_ - (result.x_ - v)) + (y - v) + x.y_;
   return result;
 }
 
@@ -1106,8 +1188,7 @@ constexpr auto Math::Impl::add2(const F2<Float> x, const F2<Float> y) noexcept
 {
   F2<Float> result{x.x_ + y.x_};
   const Float v = result.x_ - x.x_;
-  result.y_ = (x.x_ - (result.x_ - v)) + (y.x_ - v);
-  result.y_ += x.y_ + y.y_;
+  result.y_ = (x.x_ - (result.x_ - v)) + (y.x_ - v) + (x.y_ + y.y_);
   return result;
 }
 
@@ -1147,6 +1228,27 @@ constexpr auto Math::Impl::div(const F2<Float> x, const F2<Float> y) noexcept
   \return No description
   */
 template <FloatingPoint Float> inline
+constexpr auto Math::Impl::mul(const Float x, const Float y) noexcept -> F2<Float>
+{
+  const Float xh = upper(x);
+  const Float xl = x - xh;
+  const Float yh = upper(y);
+  const Float yl = y - yh;
+
+  F2<Float> result{x * y};
+  result.y_ = xh * yh - result.x_ + xl * yh + xh * yl + xl * yl;
+  return result;
+}
+
+/*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] x No description.
+  \param [in] y No description.
+  \return No description
+  */
+template <FloatingPoint Float> inline
 constexpr auto Math::Impl::mul(const F2<Float> x, const Float y) noexcept
     -> F2<Float>
 {
@@ -1168,18 +1270,23 @@ constexpr auto Math::Impl::mul(const F2<Float> x, const Float y) noexcept
   \param [in] y No description.
   \return No description
   */
-template <FloatingPoint Float> inline
-constexpr auto Math::Impl::mul(const F2<Float> x, const F2<Float> y) noexcept
-    -> F2<Float>
+template <typename Return, FloatingPoint Float> inline
+constexpr Return Math::Impl::mul(const F2<Float> x, const F2<Float> y) noexcept
 {
   const Float xh = upper(x.x_);
   const Float xl = x.x_ - xh;
   const Float yh = upper(y.x_);
   const Float yl = y.x_ - yh;
 
-  F2<Float> result{x.x_ * y.x_};
-  result.y_ = xh * yh - result.x_ + xl * yh + xh * yl + xl * yl + x.x_ * y.y_ + x.y_ * y.x_;
-  return result;
+  if constexpr (SameAs<Float, Return>) {
+    const Float result = x.y_ * yh + xh * y.y_ + xl * yl + xh * yl + xl * yh + xh * yh;
+    return result;
+  }
+  else if constexpr (SameAs<F2<Float>, Return>) {
+    F2<Float> result{x.x_ * y.x_};
+    result.y_ = xh * yh - result.x_ + xl * yh + xh * yl + xl * yl + x.x_ * y.y_ + x.y_ * y.x_;
+    return result;
+  }
 }
 
 /*!
@@ -1194,6 +1301,48 @@ constexpr auto Math::Impl::normalize(const F2<Float> x) noexcept -> F2<Float>
 {
   F2<Float> result{x.x_ + x.y_};
   result.y_ = x.x_ - result.x_ + x.y_;
+  return result;
+}
+
+/*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] x No description.
+  \return No description
+  */
+template <FloatingPoint Float> inline
+constexpr auto Math::Impl::rec(const Float x) noexcept -> F2<Float>
+{
+  const Float xh = upper(x);
+  const Float xl = x - xh;
+  const Float t = invert(x);
+  const Float th = upper(t);
+  const Float tl = t - th;
+
+  constexpr Float one = cast<Float>(1);
+  F2<Float> result{t, t * (one - xh * th - xh * tl - xl * th - xl * tl)};
+  return result;
+}
+
+/*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] x No description.
+  \return No description
+  */
+template <FloatingPoint Float> inline
+constexpr auto Math::Impl::rec(const F2<Float> x) noexcept -> F2<Float>
+{
+  const Float xh = upper(x.x_);
+  const Float xl = x.x_ - xh;
+  const Float t = invert(x.x_);
+  const Float th = upper(t);
+  const Float tl = t - th;
+
+  constexpr Float one = cast<Float>(1);
+  F2<Float> result{t, t * (one - xh * th - xh * tl - xl * th - xl * tl - x.y_ * t)};
   return result;
 }
 
@@ -1743,12 +1892,11 @@ constexpr Float Math::Impl::abs(const Float x) noexcept
 template <FloatingPoint Float> inline
 constexpr Float Math::Impl::copysign(const Float x, const Float y) noexcept
 {
-  using BitType = BitT<Float>;
-  const BitType xi = bit_cast<BitType>(x);
-  const BitType yi = bit_cast<BitType>(y);
-  constexpr BitType n_bits = std::numeric_limits<BitType>::digits;
-  constexpr BitType mask = cast<BitType>(1ull << (n_bits - 1));
-  const BitType zi = (xi & ~mask) ^ (yi & mask);
+  using IntType = IntT<Float>;
+  const IntType xi = bit_cast<IntType>(x);
+  const IntType yi = bit_cast<IntType>(y);
+  constexpr IntType mask = (std::numeric_limits<IntType>::min)();
+  const IntType zi = (xi & ~mask) ^ (yi & mask);
   const Float z = bit_cast<Float>(zi);
   return z;
 }
@@ -1823,10 +1971,10 @@ template <FloatingPoint Float> inline
 constexpr auto Math::Impl::ilogb2(const Float x) noexcept -> IntT<Float>
 {
   using IntType = IntT<Float>;
-  using FLimit = std::numeric_limits<Float>;
+  using FLimits = std::numeric_limits<Float>;
   constexpr IntType mask = fvalue<Float>(0xff, 0x7ff);
   constexpr IntType k = fvalue<Float>(0x7f, 0x3ff);
-  const IntType expt = bit_cast<IntType>(x) >> (FLimit::digits - 1);
+  const IntType expt = bit_cast<IntType>(x) >> (FLimits::digits - 1);
   const IntType y = (expt & mask) - k;
   return y;
 }
@@ -1841,8 +1989,8 @@ constexpr auto Math::Impl::ilogb2(const Float x) noexcept -> IntT<Float>
 template <FloatingPoint Float> inline
 constexpr bool Math::Impl::isInf(const Float x) noexcept
 {
-  using FLimit = std::numeric_limits<Float>;
-  const bool result = (x == FLimit::infinity()) || (x == -FLimit::infinity());
+  using FLimits = std::numeric_limits<Float>;
+  const bool result = (x == FLimits::infinity()) || (x == -FLimits::infinity());
   return result;
 }
 
@@ -1939,9 +2087,9 @@ constexpr Float Math::Impl::ldexp(Float x, int e) noexcept
 template <FloatingPoint Float> inline
 constexpr Float Math::Impl::ldexp3(const Float x, const IntT<Float> e) noexcept
 {
-  using BitType = BitT<Float>;
-  using FLimit = std::numeric_limits<Float>;
-  const auto bits = bit_cast<BitType>(x) + cast<BitType>(e << (FLimit::digits - 1));
+  using IntType = IntT<Float>;
+  using FLimits = std::numeric_limits<Float>;
+  const auto bits = bit_cast<IntType>(x) + cast<IntType>(e << (FLimits::digits - 1));
   const Float y = bit_cast<Float>(bits);
   return y;
 }
@@ -1992,12 +2140,12 @@ constexpr auto Math::Impl::log(Float x) noexcept -> F2<Float>
   s = mul(s, cast<Float>(e));
   s = add(s, scale(u, cast<Float>(2.0)));
   if constexpr (sizeof(Float) == 4) {
-    s = add(s, mul(mul(u2, u), add2(mul(u2, t), c)));
+    s = add(s, mul<F2<Float>>(mul<F2<Float>>(u2, u), add2(mul(u2, t), c)));
   }
   else {
-    u = mul(u2, u);
-    s = add(s, mul(u, c));
-    u = mul(u2, u);
+    u = mul<F2<Float>>(u2, u);
+    s = add(s, mul<F2<Float>>(u, c));
+    u = mul<F2<Float>>(u2, u);
     s = add(s, mul(u, t));
   }
 
@@ -2031,12 +2179,11 @@ constexpr Float Math::Impl::mla(const Float x, const Float y, const Float z) noe
 template <FloatingPoint Float> inline
 constexpr Float Math::Impl::mulsign(const Float x, const Float y) noexcept
 {
-  using BitType = BitT<Float>;
-  const BitType xi = bit_cast<BitType>(x);
-  const BitType yi = bit_cast<BitType>(y);
-  constexpr BitType n_bits = std::numeric_limits<BitType>::digits;
-  constexpr BitType mask = cast<BitType>(1ull << (n_bits - 1));
-  const BitType zi = xi ^ (yi & mask);
+  using IntType = IntT<Float>;
+  const IntType xi = bit_cast<IntType>(x);
+  const IntType yi = bit_cast<IntType>(y);
+  constexpr IntType mask = (std::numeric_limits<IntType>::min)();
+  const IntType zi = xi ^ (yi & mask);
   const Float z = bit_cast<Float>(zi);
   return z;
 }
@@ -2080,11 +2227,9 @@ constexpr Float Math::Impl::sign(const Float x) noexcept
 template <FloatingPoint Float> inline
 constexpr Float Math::Impl::upper(const Float x) noexcept
 {
-  using BitType = BitT<Float>;
-  using FLimit = std::numeric_limits<Float>;
-  using BLimit = std::numeric_limits<BitType>;
-  constexpr BitType mask = cast<BitType>((BLimit::max)() << FLimit::digits);
-  const BitType u = cast<BitType>(bit_cast<BitType>(x) & mask);
+  using IntType = IntT<Float>;
+  constexpr IntType mask = fvalue<Float>(0xfffff000, 0xfffffffff8000000ll);
+  const IntType u = cast<IntType>(bit_cast<IntType>(x) & mask);
   const Float y = bit_cast<Float>(u);
   return y;
 }
@@ -2216,7 +2361,7 @@ constexpr Float sqrt(const Float x) noexcept
   \param [in] x No description.
   \return No description
   */
-template <Integer Int, FloatingPoint Float> inline
+template <FloatingPoint Float, Integer Int> inline
 constexpr Float sqrt(const Int x) noexcept
 {
   const Float y = Math::sqrt<Float>(x);

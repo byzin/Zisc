@@ -20,6 +20,8 @@
 // Zisc
 #include "zisc/binary_serializer.hpp"
 // Test
+#include "basic_test.hpp"
+#include "float_manipulation_test.hpp"
 #include "power_test.hpp"
 
 int main(int /* argc */, char** /* argv */)
@@ -32,7 +34,40 @@ int main(int /* argc */, char** /* argv */)
     std::system(command);
   };
 
-  // Pow test
+  // Basic operations
+  // Fma test
+  {
+    std::string_view file_path{"math_fmaf_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testFmaF(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_fmad_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testFmaD(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  // Fmod test
+  {
+    std::string_view file_path{"math_fmodf_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testFmodF(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_fmodd_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testFmodD(&output);
+    output.close();
+    compress_file(file_path);
+  }
+
+  // Power functions
+  // Pow
   {
     std::string_view file_path{"math_powf_reference.txt"};
     std::ofstream output{file_path.data(), std::ios_base::binary};
@@ -87,6 +122,64 @@ int main(int /* argc */, char** /* argv */)
     std::string_view file_path{"math_sqrt_subd_reference.txt"};
     std::ofstream output{file_path.data(), std::ios_base::binary};
     testSqrtSubnormalD(&output);
+    output.close();
+    compress_file(file_path);
+  }
+
+  // Floating point manipulation functions
+  {
+    std::string_view file_path{"math_frldexpf_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testFrLdexpF(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_frldexpd_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testFrLdexpD(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_frldexp_subf_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testFrLdexpSubnormalF(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_frldexp_subd_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testFrLdexpSubnormalD(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_ilogbf_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testIlogbF(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_ilogbd_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testIlogbD(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_ilogb_subf_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testIlogbSubnormalF(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_ilogb_subd_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testIlogbSubnormalD(&output);
     output.close();
     compress_file(file_path);
   }

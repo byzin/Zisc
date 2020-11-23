@@ -66,7 +66,7 @@ class Algorithm
                                          const LowerType& lower, 
                                          const UpperType& upper) noexcept;
 
-  //! Test whether the given value is negative
+  //! Test whether the given number is negative
   template <Arithmetic Arith>
   static constexpr bool isNegative(const Arith x) noexcept;
 
@@ -116,6 +116,10 @@ template <typename Type1, typename Type2>
 constexpr const std::common_type_t<Type1, Type2>& min(const Type1& a,
                                                       const Type2& b) noexcept;
 
+//! Test whether the given number is negative
+template <Arithmetic Arith>
+constexpr bool signbit(const Arith x) noexcept;
+
 //
 
 //! Test whether a value is in a range
@@ -139,10 +143,6 @@ template <typename Type, typename LowerType, typename UpperType>
 constexpr bool isInClosedBounds(const Type& value, 
                                 const LowerType& lower, 
                                 const UpperType& upper) noexcept;
-
-//! Test whether the n is negative
-template <Arithmetic Arith>
-constexpr bool isNegative(const Arith x) noexcept;
 
 //! Test whether the n is odd
 template <Integer Int>

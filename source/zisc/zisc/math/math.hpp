@@ -46,36 +46,15 @@ class Math
                              const Float rhs,
                              Float* compensation = nullptr) noexcept;
 
-//  //! Compute the greatest common divisor of the integers m and n
-//  template <typename Integer1, typename Integer2>
-//  static constexpr std::common_type_t<Integer1, Integer2> gcd(Integer1 m,
-//                                                              Integer2 n) noexcept;
-//
-//  //! Compute the least common multiple of the integers m and n
-//  template <typename Integer1, typename Integer2>
-//  static constexpr std::common_type_t<Integer1, Integer2> lcm(Integer1 m,
-//                                                              Integer2 n) noexcept;
-//
-//  //!
-//  template <typename Integer>
-//  static constexpr Integer factorial(const Integer n) noexcept;
-//
-//  //!
-//  template <typename Integer1, typename Integer2>
-//  static constexpr std::common_type_t<Integer1, Integer2> sequence(
-//      const Integer1 m,
-//      const Integer2 n) noexcept;
+  //! Fused multiply-add operation
+  template <FloatingPoint Float>
+  static constexpr Float fma(const Float x, const Float y, const Float z) noexcept;
+
+  //! Calculate remainder of the floating point division operation
+  template <FloatingPoint Float>
+  static constexpr Float fmod(const Float x, const Float y) noexcept;
 
   // Power functions
-
-//  //! Raise a number to the given power
-//  template <int kExponent, typename Arithmetic>
-//  static constexpr Arithmetic power(Arithmetic base) noexcept;
-//
-//  //! Raise a number to the given power
-//  template <typename Arithmetic, typename SignedInteger>
-//  static constexpr Arithmetic power(const Arithmetic base,
-//                                    const SignedInteger exponent) noexcept;
 
   //! Raise a number to the given power
   template <Arithmetic Arith, Integer Int>
@@ -93,213 +72,85 @@ class Math
   template <FloatingPoint Float = double, Integer Int>
   static constexpr Float sqrt(const Int x) noexcept;
 
-//  //! Calculate the cubic root
-//  template <typename Float>
-//  static Float cbrt(const Float n) noexcept;
-//
-//  // Exponential functions
-//
-//  //! Calculate e raised to the given power
-//  template <typename Float>
-//  static Float exp(const Float n) noexcept;
-//
-//  //! Calculate the natural logarithm
-//  template <typename Float>
-//  static Float log(const Float x) noexcept;
-//
-//  //! Calculate the binary logarithm
-//  template <typename Float>
-//  static Float log2(const Float x) noexcept;
-//
-//  //! Calculate the common logarithm
-//  template <typename Float>
-//  static Float log10(const Float x) noexcept;
-//
-//  // Trigonometric functions
-//
-//  //! Calculate sin(theta)
-//  template <typename Float>
-//  static Float sin(const Float theta) noexcept;
-//
-//  //! Calculate cos(theta)
-//  template <typename Float>
-//  static Float cos(const Float theta) noexcept;
-//
-//  //! Calculate tan(theta)
-//  template <typename Float>
-//  static Float tan(const Float theta) noexcept;
-//
-//  //! Calculate asin(x)
-//  template <typename Float>
-//  static Float asin(const Float x) noexcept;
-//
-//  //! Calculate acos(x)
-//  template <typename Float>
-//  static Float acos(const Float x) noexcept;
-//
-//  //! Calculate atan(x)
-//  template <typename Float>
-//  static Float atan(const Float x) noexcept;
-//
-//  // Polynomial
-//
-//  //! Solve a quadratic equation
-//  template <typename Float>
-//  static std::tuple<std::array<Float, 2>, uint> solveQuadratic(
-//      const Float a, 
-//      const Float b, 
-//      const Float c) noexcept;
-//
-//  //! Solve a cubic equation
-//  template <typename Float>
-//  static Float solveCubicOne(const Float b, 
-//                             const Float c, 
-//                             const Float d) noexcept;
-//
-//  //! Solve a cubic equation
-//  template <typename Float>
-//  static Float solveCubicOne(const Float a, 
-//                             const Float b, 
-//                             const Float c, 
-//                             const Float d) noexcept;
-//
-//  //! Solve a quartic equation
-//  template <typename Float>
-//  static std::tuple<std::array<Float, 4>, uint> solveQuartic(
-//      const Float a, 
-//      const Float b, 
-//      const Float c, 
-//      const Float d, 
-//      const Float e) noexcept;
-//
-//  class Stl
-//  {
-//   public:
-//    //! Raise a number to the given power
-//    template <typename Float>
-//    static Float pow(const Float base, const Float exponent) noexcept;
-//
-//    //! Calculate the square root
-//    template <typename Float>
-//    static Float sqrt(const Float n) noexcept;
-//
-//    //! Calculate the cubic root
-//    template <typename Float>
-//    static Float cbrt(const Float n) noexcept;
-//
-//    // Exponential functions
-//
-//    //! Calculate e raised to the given power
-//    template <typename Float>
-//    static Float exp(const Float n) noexcept;
-//
-//    //! Calculate the natural logarithm
-//    template <typename Float>
-//    static Float log(const Float x) noexcept;
-//
-//    //! Calculate the binary logarithm
-//    template <typename Float>
-//    static Float log2(const Float x) noexcept;
-//
-//    //! Calculate the common logarithm
-//    template <typename Float>
-//    static Float log10(const Float x) noexcept;
-//
-//    // Trigonometric functions
-//
-//    //! Calculate sin(theta)
-//    template <typename Float>
-//    static Float sin(const Float theta) noexcept;
-//
-//    //! Calculate cos(theta)
-//    template <typename Float>
-//    static Float cos(const Float theta) noexcept;
-//
-//    //! Calculate tan(theta)
-//    template <typename Float>
-//    static Float tan(const Float theta) noexcept;
-//
-//    //! Calculate asin(x)
-//    template <typename Float>
-//    static Float asin(const Float x) noexcept;
-//
-//    //! Calculate acos(x)
-//    template <typename Float>
-//    static Float acos(const Float x) noexcept;
-//
-//    //! Calculate atan(x)
-//    template <typename Float>
-//    static Float atan(const Float x) noexcept;
-//  };
-//
-//  class Zisc
-//  {
-//   public:
-//    //! Raise a number to the given power
-//    template <typename Float>
-//    static Float pow(const Float base, const Float exponent) noexcept;
-//
-//    //! Calculate the square root
-//    template <typename Float>
-//    static Float sqrt(const Float n) noexcept;
-//
-//    //! Calculate the cubic root
-//    template <typename Float>
-//    static Float cbrt(const Float n) noexcept;
-//
-//    // Exponential functions
-//
-//    //! Calculate e raised to the given power
-//    template <typename Float>
-//    static Float exp(const Float n) noexcept;
-//
-//    //! Calculate the natural logarithm
-//    template <typename Float>
-//    static Float log(const Float x) noexcept;
-//
-//    //! Calculate the binary logarithm
-//    template <typename Float>
-//    static Float log2(const Float x) noexcept;
-//
-//    //! Calculate the common logarithm
-//    template <typename Float>
-//    static Float log10(const Float x) noexcept;
-//
-//    // Trigonometric functions
-//
-//    //! Calculate sin(theta)
-//    template <typename Float>
-//    static Float sin(const Float theta) noexcept;
-//
-//    //! Calculate cos(theta)
-//    template <typename Float>
-//    static Float cos(const Float theta) noexcept;
-//
-//    //! Calculate tan(theta)
-//    template <typename Float>
-//    static Float tan(const Float theta) noexcept;
-//
-//    //! Calculate asin(x)
-//    template <typename Float>
-//    static Float asin(const Float x) noexcept;
-//
-//    //! Calculate acos(x)
-//    template <typename Float>
-//    static Float acos(const Float x) noexcept;
-//
-//    //! Calculate atan(x)
-//    template <typename Float>
-//    static Float atan(const Float x) noexcept;
-//  };
-//
-// private:
-//  template <typename Float>
-//  static Float solveCubicOneY(const Float p, const Float q) noexcept;
-//
-//  template <typename Float>
-//  static void sortQuarticResults(const std::array<Float, 2>& x1,
-//                                 const std::array<Float, 2>& x2,
-//                                 std::array<Float, 4>& x) noexcept;
+  //! Calculate the cubic root
+  template <FloatingPoint Float>
+  static constexpr Float cbrt(const Float x) noexcept;
+
+  //! Calculate the cubic root
+  template <FloatingPoint Float = double, Integer Int>
+  static constexpr Float cbrt(const Int x) noexcept;
+
+  // Exponential functions
+
+  //! Calculate e raised to the given power
+  template <FloatingPoint Float>
+  static constexpr Float exp(const Float x) noexcept;
+
+  //! Calculate e raised to the given power
+  template <FloatingPoint Float = double, Integer Int>
+  static constexpr Float exp(const Int x) noexcept;
+
+  //! Calculate 2 raised to the given power
+  template <FloatingPoint Float>
+  static constexpr Float exp2(const Float x) noexcept;
+
+  //! Calculate 2 raised to the given power
+  template <FloatingPoint Float = double, Integer Int>
+  static constexpr Float exp2(const Int x) noexcept;
+
+  //! Calculate the natural logarithm
+  template <FloatingPoint Float>
+  static constexpr Float log(const Float x) noexcept;
+
+  //! Calculate the natural logarithm
+  template <FloatingPoint Float = double, Integer Int>
+  static constexpr Float log(const Int x) noexcept;
+
+  //! Calculate the binary logarithm
+  template <FloatingPoint Float>
+  static constexpr Float log2(const Float x) noexcept;
+
+  //! Calculate the binary logarithm
+  template <FloatingPoint Float = double, Integer Int>
+  static constexpr Float log2(const Int x) noexcept;
+
+  //! Calculate the common logarithm
+  template <FloatingPoint Float>
+  static constexpr Float log10(const Float x) noexcept;
+
+  //! Calculate the common logarithm
+  template <FloatingPoint Float = double, Integer Int>
+  static constexpr Float log10(const Int x) noexcept;
+
+  // Trigonometric functions
+
+  //! Calculate sin(theta)
+  template <FloatingPoint Float>
+  static constexpr Float sin(const Float x) noexcept;
+
+  //! Calculate cos(theta)
+  template <FloatingPoint Float>
+  static constexpr Float cos(const Float x) noexcept;
+
+  //! Calculate tan(theta)
+  template <FloatingPoint Float>
+  static constexpr Float tan(const Float x) noexcept;
+
+  //! Calculate asin(x)
+  template <FloatingPoint Float>
+  static constexpr Float asin(const Float x) noexcept;
+
+  //! Calculate acos(x)
+  template <FloatingPoint Float>
+  static constexpr Float acos(const Float x) noexcept;
+
+  //! Calculate atan(x)
+  template <FloatingPoint Float>
+  static constexpr Float atan(const Float x) noexcept;
+
+  //! Calculate atan(x)
+  template <FloatingPoint Float>
+  static constexpr Float atan2(const Float y, const Float x) noexcept;
 
  private:
   template <FloatingPoint Float>
@@ -617,37 +468,17 @@ class Math
 template <FloatingPoint Float>
 constexpr Float kPi = Math::pi<Float>();
 
-//// Basic operations
-//
-////! Compute the greatest common divisor of the integers m and n
-//template <typename Integer1, typename Integer2>
-//constexpr std::common_type_t<Integer1, Integer2> gcd(Integer1 m,
-//                                                     Integer2 n) noexcept;
-//
-////! Compute the least common multiple of the integers m and n
-//template <typename Integer1, typename Integer2>
-//constexpr std::common_type_t<Integer1, Integer2> lcm(Integer1 m,
-//                                                     Integer2 n) noexcept;
-//
-////!
-//template <typename Integer>
-//constexpr Integer factorial(const Integer n) noexcept;
-//
-////!
-//template <typename Integer1, typename Integer2>
-//constexpr std::common_type_t<Integer1, Integer2> sequence(const Integer1 m,
-//                                                          const Integer2 n) noexcept;
-//
-//// Power functions
-//
-////! Raise a number to the given power
-//template <int kExponent, typename Arithmetic>
-//constexpr Arithmetic power(Arithmetic base) noexcept;
-//
-////! Raise a number to the given power
-//template <typename Arithmetic, typename SignedInteger>
-//constexpr Arithmetic power(const Arithmetic base,
-//                           const SignedInteger exponent) noexcept;
+// Basic operations
+
+//! Fused multiply-add operation
+template <FloatingPoint Float>
+constexpr Float fma(const Float x, const Float y, const Float z) noexcept;
+
+//! Calculate remainder of the floating point division operation
+template <FloatingPoint Float>
+constexpr Float fmod(const Float x, const Float y) noexcept;
+
+// Power functions
 
 //! Raise a number to the given power
 template <Arithmetic Arith1, Arithmetic Arith2>
@@ -661,51 +492,85 @@ constexpr Float sqrt(const Float x) noexcept;
 template <FloatingPoint Float = double, Integer Int>
 constexpr Float sqrt(const Int x) noexcept;
 
-////! Calculate the cubic root
-//template <typename Float>
-//Float cbrt(const Float n) noexcept;
-//
-//// Exponential functions
-//
-////! Calculate e raised to the given power
-//template <typename Float>
-//Float exp(const Float n) noexcept;
-//
-////! Calculate the natural logarithm
-//template <typename Float>
-//Float log(const Float x) noexcept;
-//
-////! Calculate the binary logarithm
-//float log2(const float x) noexcept;
-//
-////! Calculate the common logarithm
-//float log10(const float x) noexcept;
-//
-//// Trigonometric functions
-//
-////! Calculate sin(theta)
-//template <typename Float>
-//Float sin(const Float theta) noexcept;
-//
-////! Calculate cos(theta)
-//template <typename Float>
-//Float cos(const Float theta) noexcept;
-//
-////! Calculate tan(theta)
-//template <typename Float>
-//Float tan(const Float theta) noexcept;
-//
-////! Calculate asin(x)
-//template <typename Float>
-//Float asin(const Float x) noexcept;
-//
-////! Calculate acos(x)
-//template <typename Float>
-//Float acos(const Float x) noexcept;
-//
-////! Calculate atan(x)
-//template <typename Float>
-//Float atan(const Float x) noexcept;
+//! Calculate the cubic root
+template <FloatingPoint Float>
+constexpr Float cbrt(const Float x) noexcept;
+
+//! Calculate the cubic root
+template <FloatingPoint Float = double, Integer Int>
+constexpr Float cbrt(const Int x) noexcept;
+
+// Exponential functions
+
+//! Calculate e raised to the given power
+template <FloatingPoint Float>
+constexpr Float exp(const Float x) noexcept;
+
+//! Calculate e raised to the given power
+template <FloatingPoint Float = double, Integer Int>
+constexpr Float exp(const Int x) noexcept;
+
+//! Calculate 2 raised to the given power
+template <FloatingPoint Float>
+constexpr Float exp2(const Float x) noexcept;
+
+//! Calculate 2 raised to the given power
+template <FloatingPoint Float = double, Integer Int>
+constexpr Float exp2(const Int x) noexcept;
+
+//! Calculate the natural logarithm
+template <FloatingPoint Float>
+constexpr Float log(const Float x) noexcept;
+
+//! Calculate the natural logarithm
+template <FloatingPoint Float = double, Integer Int>
+constexpr Float log(const Int x) noexcept;
+
+//! Calculate the binary logarithm
+template <FloatingPoint Float>
+constexpr Float log2(const Float x) noexcept;
+
+//! Calculate the binary logarithm
+template <FloatingPoint Float = double, Integer Int>
+constexpr Float log2(const Int x) noexcept;
+
+//! Calculate the common logarithm
+template <FloatingPoint Float>
+constexpr Float log10(const Float x) noexcept;
+
+//! Calculate the common logarithm
+template <FloatingPoint Float = double, Integer Int>
+constexpr Float log10(const Int x) noexcept;
+
+// Trigonometric functions
+
+//! Calculate sin(theta)
+template <FloatingPoint Float>
+constexpr Float sin(const Float x) noexcept;
+
+//! Calculate cos(theta)
+template <FloatingPoint Float>
+constexpr Float cos(const Float x) noexcept;
+
+//! Calculate tan(theta)
+template <FloatingPoint Float>
+constexpr Float tan(const Float x) noexcept;
+
+//! Calculate asin(x)
+template <FloatingPoint Float>
+constexpr Float asin(const Float x) noexcept;
+
+//! Calculate acos(x)
+template <FloatingPoint Float>
+constexpr Float acos(const Float x) noexcept;
+
+//! Calculate atan(x)
+template <FloatingPoint Float>
+constexpr Float atan(const Float x) noexcept;
+
+//! Calculate atan(x)
+template <FloatingPoint Float>
+constexpr Float atan2(const Float y, const Float x) noexcept;
 
 } // namespace zisc
 

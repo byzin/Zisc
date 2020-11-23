@@ -53,7 +53,7 @@ constexpr Fraction<Int>::Fraction(const Int n) noexcept
   */
 template <SignedInteger Int> inline
 constexpr Fraction<Int>::Fraction(const Int n, const Int d) noexcept
-    : numerator_{(isNegative(d) ? -n : n) / std::gcd(n, d)},
+    : numerator_{(signbit(d) ? -n : n) / std::gcd(n, d)},
       denominator_{abs(d) / std::gcd(n, d)}
 {
 }

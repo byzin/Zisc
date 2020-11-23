@@ -39,7 +39,7 @@ template <Arithmetic Arith> inline
 constexpr Arith Algorithm::abs(const Arith x) noexcept
 {
   if constexpr (std::is_signed_v<Arith>) {
-    const Arith y = isNegative(x) ? -x : x;
+    const Arith y = signbit(x) ? -x : x;
     return y;
   }
   else {
@@ -310,6 +310,20 @@ constexpr const std::common_type_t<Type1, Type2>& min(const Type1& a,
 /*!
   \details No detailed description
 
+  \tparam Arith No description.
+  \param [in] x No description.
+  \return No description
+  */
+template <Arithmetic Arith> inline
+constexpr bool signbit(const Arith x) noexcept
+{
+  const auto result = Algorithm::isNegative(x);
+  return result;
+}
+
+/*!
+  \details No detailed description
+
   \tparam kIsLeftClosed No description.
   \tparam kIsRightClosed No description.
   \tparam Type No description.
@@ -374,20 +388,6 @@ constexpr bool isInClosedBounds(const Type& value,
                                 const UpperType& upper) noexcept
 {
   const auto result = isInBounds<true, true>(value, lower, upper);
-  return result;
-}
-
-/*!
-  \details No detailed description
-
-  \tparam Arith No description.
-  \param [in] x No description.
-  \return No description
-  */
-template <Arithmetic Arith> inline
-constexpr bool isNegative(const Arith x) noexcept
-{
-  const auto result = Algorithm::isNegative(x);
   return result;
 }
 

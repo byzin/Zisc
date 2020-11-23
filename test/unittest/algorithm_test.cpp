@@ -40,19 +40,19 @@ TEST(AlgorithmTest, clampTest)
   }
 }
 
-TEST(AlgorithmTest, isNegativeTest)
+TEST(AlgorithmTest, signbitTest)
 {
   {
     constexpr int value = -1;
-    ASSERT_TRUE(zisc::isNegative(value));
+    ASSERT_TRUE(zisc::signbit(value));
   }
   {
     constexpr int value = 0;
-    ASSERT_FALSE(zisc::isNegative(value));
+    ASSERT_FALSE(zisc::signbit(value));
   }
   {
     constexpr int value = 1;
-    ASSERT_FALSE(zisc::isNegative(value));
+    ASSERT_FALSE(zisc::signbit(value));
   }
 }
 

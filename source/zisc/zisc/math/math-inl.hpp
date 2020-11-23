@@ -72,6 +72,35 @@ constexpr Float Math::add(const Float lhs,
 /*!
   \details No detailed description
 
+  \tparam Float No description.
+  \param [in] x No description.
+  \param [in] y No description.
+  \param [in] z No description.
+  \return No description
+  */
+template <FloatingPoint Float> inline
+constexpr Float Math::fma(const Float x, const Float y, const Float z) noexcept
+{
+  return x;
+}
+
+/*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] x No description.
+  \param [in] y No description.
+  \return No description
+  */
+template <FloatingPoint Float> inline
+constexpr Float Math::fmod(const Float x, const Float y) noexcept
+{
+  return x;
+}
+
+/*!
+  \details No detailed description
+
   \tparam Arith No description.
   \tparam Int No description.
   \param [in] base No description.
@@ -84,12 +113,12 @@ constexpr Arith Math::pow(Arith base, Int exponent) noexcept
   constexpr Arith zero = cast<Arith>(0);
   constexpr Arith one = cast<Arith>(1);
   constexpr Arith inf = std::numeric_limits<Arith>::infinity();
-  Arith x = (exponent == 0) ? one : isNegative(exponent) ? inf : zero;
+  Arith x = (exponent == 0) ? one : signbit(exponent) ? inf : zero;
   if (base != zero) {
     x = one;
     // Inverse pow
     if constexpr (FloatingPoint<Arith>) {
-      if(isNegative(exponent))
+      if(signbit(exponent))
         base = invert(base);
     }
     // Compute pow
@@ -129,11 +158,11 @@ constexpr Arith Math::pow(const Arith base, const Float exponent) noexcept
     result = FLimits::infinity();
 
   result = Impl::isNan(result) ? FLimits::infinity() : result;
-  result *= isNegative(x) ? (y_isodd ? -one : one) : one; //! \todo Nan check
+  result *= signbit(x) ? (y_isodd ? -one : one) : one; //! \todo Nan check
 
   const Float efx = Impl::mulsign(Impl::abs(x) - one, exponent);
   if (Impl::isInf(exponent))
-    result = isNegative(efx) ? zero : ((efx == zero) ? one : FLimits::infinity());
+    result = signbit(efx) ? zero : ((efx == zero) ? one : FLimits::infinity());
   if (Impl::isInf(x) || x == zero)
     result = (y_isodd ? Impl::sign(x) : one) * ((x == zero) ? -exponent : exponent) < zero ? zero : FLimits::infinity();
   //! \todo Nan check
@@ -202,856 +231,264 @@ constexpr Float Math::sqrt(const Int x) noexcept
   return y;
 }
 
-///*!
-//  \details No detailed description
-//
-//  \tparam Float No description.
-//  \param [in] n No description.
-//  \return No description
-//  */
-//template <typename Float> inline
-//Float Math::sqrt(const Float n) noexcept
-//{
-//  static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-//  const auto y = Config::isStlMathSqrtUsed()
-//      ? Stl::sqrt(n)
-//      : Zisc::sqrt(n);
-//  return y;
-//}
-//
-///*!
-//  \details No detailed description
-//
-//  \tparam Float No description.
-//  \param [in] n No description.
-//  \return No description
-//  */
-//template <typename Float> inline
-//Float Math::cbrt(const Float n) noexcept
-//{
-//  static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-//  const auto y = Config::isStlMathCbrtUsed()
-//      ? Stl::cbrt(n)
-//      : Zisc::cbrt(n);
-//  return y;
-//}
-//
-///*!
-//  \details No detailed description
-//
-//  \tparam Float No description.
-//  \param [in] n No description.
-//  \return No description
-//  */
-//template <typename Float> inline
-//Float Math::exp(const Float n) noexcept
-//{
-//  static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-//  const auto y = Config::isStlMathExpUsed()
-//      ? Stl::exp(n)
-//      : Zisc::exp(n);
-//  return y;
-//}
-//
-///*!
-//  \details No detailed description
-//
-//  \tparam Float No description.
-//  \param [in] x No description.
-//  \return No description
-//  */
-//template <typename Float> inline 
-//Float Math::log(const Float x) noexcept
-//{
-//  static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-//  const auto y = Config::isStlMathLogUsed()
-//      ? Stl::log(x)
-//      : Zisc::log(x);
-//  return y;
-//}
-//
-///*!
-//  \details No detailed description
-//
-//  \tparam Float No description.
-//  \param [in] x No description.
-//  \return No description
-//  */
-//template <typename Float> inline 
-//Float Math::log2(const Float x) noexcept
-//{
-//  static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-//  const auto y = Config::isStlMathLogUsed()
-//      ? Stl::log2(x)
-//      : Zisc::log2(x);
-//  return y;
-//}
-//
-///*!
-//  \details No detailed description
-//
-//  \tparam Float No description.
-//  \param [in] x No description.
-//  \return No description
-//  */
-//template <typename Float> inline 
-//Float Math::log10(const Float x) noexcept
-//{
-//  static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-//  const auto y = Config::isStlMathLogUsed()
-//      ? Stl::log10(x)
-//      : Zisc::log10(x);
-//  return y;
-//}
-//
-///*!
-//  \details No detailed description
-//
-//  \tparam Float No description.
-//  \param [in] theta No description.
-//  \return No description
-//  */
-//template <typename Float> inline 
-//Float Math::sin(const Float theta) noexcept
-//{
-//  static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-//  const auto y = Config::isStlMathTrigonometricUsed()
-//      ? Stl::sin(theta)
-//      : Zisc::sin(theta);
-//  return y;
-//}
-//
-///*!
-//  \details No detailed description
-//
-//  \tparam Float No description.
-//  \param [in] theta No description.
-//  \return No description
-//  */
-//template <typename Float> inline 
-//Float Math::cos(const Float theta) noexcept
-//{
-//  static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-//  const auto y = Config::isStlMathTrigonometricUsed()
-//      ? Stl::cos(theta)
-//      : Zisc::cos(theta);
-//  return y;
-//}
-//
-///*!
-//  \details No detailed description
-//
-//  \tparam Float No description.
-//  \param [in] theta No description.
-//  \return No description
-//  */
-//template <typename Float> inline 
-//Float Math::tan(const Float theta) noexcept
-//{
-//  static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-//  const auto y = Config::isStlMathTrigonometricUsed()
-//      ? Stl::tan(theta)
-//      : Zisc::tan(theta);
-//  return y;
-//}
-//
-///*!
-//  \details No detailed description
-//
-//  \tparam Float No description.
-//  \param [in] x No description.
-//  \return No description
-//  */
-//template <typename Float> inline 
-//Float Math::asin(const Float x) noexcept
-//{
-//  static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-//  ZISC_ASSERT(isInClosedBounds(x, -1.0, 1.0), "The x is out of range.");
-//  const auto y = Config::isStlMathInvTrigonometricUsed()
-//      ? Stl::asin(x)
-//      : Zisc::asin(x);
-//  return y;
-//}
-//
-///*!
-//  \details No detailed description
-//
-//  \tparam Float No description.
-//  \param [in] x No description.
-//  \return No description
-//  */
-//template <typename Float> inline 
-//Float Math::acos(const Float x) noexcept
-//{
-//  static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-//  ZISC_ASSERT(isInClosedBounds(x, -1.0, 1.0), "The x is out of range.");
-//  const auto y = Config::isStlMathInvTrigonometricUsed()
-//      ? Stl::acos(x)
-//      : Zisc::acos(x);
-//  return y;
-//}
-//
-///*!
-//  \details No detailed description
-//
-//  \tparam Float No description.
-//  \param [in] x No description.
-//  \return No description
-//  */
-//template <typename Float> inline 
-//Float Math::atan(const Float x) noexcept
-//{
-//  static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-//  ZISC_ASSERT(x != cast<Float>(0.0), "The x is 0.");
-//  const auto y = Config::isStlMathInvTrigonometricUsed()
-//      ? Stl::atan(x)
-//      : Zisc::atan(x);
-//  return y;
-//}
-//
-///*!
-//  \details No detailed description
-//
-//  \tparam Float No description.
-//  \param [in] base No description.
-//  \param [in] exponent No description.
-//  \return No description
-//  */
-//template <typename Float> inline
-//Float Math::Stl::pow(const Float base, const Float exponent) noexcept
-//{
-//  static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-//  const auto y = std::pow(base, exponent);
-//  return y;
-//}
-//
-///*!
-//  \details No detailed description
-//
-//  \tparam Float No description.
-//  \param [in] n No description.
-//  \return No description
-//  */
-//template <typename Float> inline
-//Float Math::Stl::sqrt(const Float n) noexcept
-//{
-//  static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-//  const auto y = std::sqrt(n);
-//  return y;
-//}
-//
-///*!
-//  \details No detailed description
-//
-//  \tparam Float No description.
-//  \param [in] n No description.
-//  \return No description
-//  */
-//template <typename Float> inline
-//Float Math::Stl::cbrt(const Float n) noexcept
-//{
-//  static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-//  const auto y = std::cbrt(n);
-//  return y;
-//}
-//
-///*!
-//  \details No detailed description
-//
-//  \tparam Float No description.
-//  \param [in] n No description.
-//  \return No description
-//  */
-//template <typename Float> inline
-//Float Math::Stl::exp(const Float n) noexcept
-//{
-//  static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-//  const auto y = std::exp(n);
-//  return y;
-//}
-//
-///*!
-//  \details No detailed description
-//
-//  \tparam Float No description.
-//  \param [in] x No description.
-//  \return No description
-//  */
-//template <typename Float> inline 
-//Float Math::Stl::log(const Float x) noexcept
-//{
-//  static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-//  const auto y = std::log(x);
-//  return y;
-//}
-//
-///*!
-//  \details No detailed description
-//
-//  \tparam Float No description.
-//  \param [in] x No description.
-//  \return No description
-//  */
-//template <typename Float> inline 
-//Float Math::Stl::log2(const Float x) noexcept
-//{
-//  static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-//  const auto y = std::log2(x);
-//  return y;
-//}
-//
-///*!
-//  \details No detailed description
-//
-//  \tparam Float No description.
-//  \param [in] x No description.
-//  \return No description
-//  */
-//template <typename Float> inline 
-//Float Math::Stl::log10(const Float x) noexcept
-//{
-//  static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-//  const auto y = std::log10(x);
-//  return y;
-//}
-//
-///*!
-//  \details No detailed description
-//
-//  \tparam Float No description.
-//  \param [in] theta No description.
-//  \return No description
-//  */
-//template <typename Float> inline 
-//Float Math::Stl::sin(const Float theta) noexcept
-//{
-//  static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-//  const auto y = std::sin(theta);
-//  return y;
-//}
-//
-///*!
-//  \details No detailed description
-//
-//  \tparam Float No description.
-//  \param [in] theta No description.
-//  \return No description
-//  */
-//template <typename Float> inline 
-//Float Math::Stl::cos(const Float theta) noexcept
-//{
-//  static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-//  const auto y = std::cos(theta);
-//  return y;
-//}
-//
-///*!
-//  \details No detailed description
-//
-//  \tparam Float No description.
-//  \param [in] theta No description.
-//  \return No description
-//  */
-//template <typename Float> inline 
-//Float Math::Stl::tan(const Float theta) noexcept
-//{
-//  static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-//  const auto y = std::tan(theta);
-//  return y;
-//}
-//
-///*!
-//  \details No detailed description
-//
-//  \tparam Float No description.
-//  \param [in] x No description.
-//  \return No description
-//  */
-//template <typename Float> inline 
-//Float Math::Stl::asin(const Float x) noexcept
-//{
-//  static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-//  ZISC_ASSERT(isInClosedBounds(x, -1.0, 1.0), "The x is out of range.");
-//  const auto y = std::asin(x);
-//  return y;
-//}
-//
-///*!
-//  \details No detailed description
-//
-//  \tparam Float No description.
-//  \param [in] x No description.
-//  \return No description
-//  */
-//template <typename Float> inline 
-//Float Math::Stl::acos(const Float x) noexcept
-//{
-//  static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-//  ZISC_ASSERT(isInClosedBounds(x, -1.0, 1.0), "The x is out of range.");
-//  const auto y = std::acos(x);
-//  return y;
-//}
-//
-///*!
-//  \details No detailed description
-//
-//  \tparam Float No description.
-//  \param [in] x No description.
-//  \return No description
-//  */
-//template <typename Float> inline 
-//Float Math::Stl::atan(const Float x) noexcept
-//{
-//  static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-//  ZISC_ASSERT(x != cast<Float>(0.0), "The x is 0.");
-//  const auto y = std::atan(x);
-//  return y;
-//}
-//
-///*!
-//  \details No detailed description
-//
-//  \tparam Float No description.
-//  \param [in] base No description.
-//  \param [in] exponent No description.
-//  \return No description
-//  */
-//template <typename Float> inline
-//Float Math::Zisc::pow(const Float base, const Float exponent) noexcept
-//{
-//  static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-//  const auto y = base;
-//  static_cast<void>(exponent);
-//  static_assert(Config::isStlMathPowUsed(),
-//                "The zisc pow isn't implemented yet.");
-//  return y;
-//}
-//
-///*!
-//  \details No detailed description
-//
-//  \tparam Float No description.
-//  \param [in] n No description.
-//  \return No description
-//  */
-//template <typename Float> inline
-//Float Math::Zisc::sqrt(const Float n) noexcept
-//{
-//  static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-//  const auto y = n;
-//  static_assert(Config::isStlMathSqrtUsed(),
-//                "The zisc sqrt isn't implemented yet.");
-//  return y;
-//}
-//
-///*!
-//  \details No detailed description
-//
-//  \tparam Float No description.
-//  \param [in] n No description.
-//  \return No description
-//  */
-//template <typename Float> inline
-//Float Math::Zisc::cbrt(const Float n) noexcept
-//{
-//  static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-//  const auto y = n;
-//  static_assert(Config::isStlMathCbrtUsed(),
-//                "The zisc cbrt isn't implemented yet.");
-//  return y;
-//}
-//
-///*!
-//  \details No detailed description
-//
-//  \tparam Float No description.
-//  \param [in] n No description.
-//  \return No description
-//  */
-//template <typename Float> inline
-//Float Math::Zisc::exp(const Float n) noexcept
-//{
-//  static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-//  const auto y = n;
-//  static_assert(Config::isStlMathExpUsed(),
-//                "The zisc exp isn't implemented yet.");
-//  return y;
-//}
-//
-///*!
-//  \details No detailed description
-//
-//  \tparam Float No description.
-//  \param [in] x No description.
-//  \return No description
-//  */
-//template <typename Float> inline 
-//Float Math::Zisc::log(const Float x) noexcept
-//{
-//  static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-//  const auto y = x;
-//  static_assert(Config::isStlMathLogUsed(),
-//                "The zisc log isn't implemented yet.");
-//  return y;
-//}
-//
-///*!
-//  \details No detailed description
-//
-//  \tparam Float No description.
-//  \param [in] x No description.
-//  \return No description
-//  */
-//template <typename Float> inline 
-//Float Math::Zisc::log2(const Float x) noexcept
-//{
-//  static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-//  const auto y = x;
-//  static_assert(Config::isStlMathLogUsed(),
-//                "The zisc log2 isn't implemented yet.");
-//  return y;
-//}
-//
-///*!
-//  \details No detailed description
-//
-//  \tparam Float No description.
-//  \param [in] x No description.
-//  \return No description
-//  */
-//template <typename Float> inline 
-//Float Math::Zisc::log10(const Float x) noexcept
-//{
-//  static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-//  const auto y = x;
-//  static_assert(Config::isStlMathLogUsed(),
-//                "The zisc log10 isn't implemented yet.");
-//  return y;
-//}
-//
-///*!
-//  \details No detailed description
-//
-//  \tparam Float No description.
-//  \param [in] theta No description.
-//  \return No description
-//  */
-//template <typename Float> inline 
-//Float Math::Zisc::sin(const Float theta) noexcept
-//{
-//  static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-//  const auto y = theta;
-//  static_assert(Config::isStlMathTrigonometricUsed(),
-//                "The zisc sin isn't implemented yet.");
-//  return y;
-//}
-//
-///*!
-//  \details No detailed description
-//
-//  \tparam Float No description.
-//  \param [in] theta No description.
-//  \return No description
-//  */
-//template <typename Float> inline 
-//Float Math::Zisc::cos(const Float theta) noexcept
-//{
-//  static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-//  const auto y = theta;
-//  static_assert(Config::isStlMathTrigonometricUsed(),
-//                "The zisc cos isn't implemented yet.");
-//  return y;
-//}
-//
-///*!
-//  \details No detailed description
-//
-//  \tparam Float No description.
-//  \param [in] theta No description.
-//  \return No description
-//  */
-//template <typename Float> inline 
-//Float Math::Zisc::tan(const Float theta) noexcept
-//{
-//  static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-//  const auto y = theta;
-//  static_assert(Config::isStlMathTrigonometricUsed(),
-//                "The zisc tan isn't implemented yet.");
-//  return y;
-//}
-//
-///*!
-//  \details No detailed description
-//
-//  \tparam Float No description.
-//  \param [in] x No description.
-//  \return No description
-//  */
-//template <typename Float> inline 
-//Float Math::Zisc::asin(const Float x) noexcept
-//{
-//  static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-//  ZISC_ASSERT(isInClosedBounds(x, -1.0, 1.0), "The x is out of range.");
-//  const auto y = x;
-//  static_assert(Config::isStlMathInvTrigonometricUsed(),
-//                "The zisc asin isn't implemented yet.");
-//  return y;
-//}
-//
-///*!
-//  \details No detailed description
-//
-//  \tparam Float No description.
-//  \param [in] x No description.
-//  \return No description
-//  */
-//template <typename Float> inline 
-//Float Math::Zisc::acos(const Float x) noexcept
-//{
-//  static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-//  ZISC_ASSERT(isInClosedBounds(x, -1.0, 1.0), "The x is out of range.");
-//  const auto y = x;
-//  static_assert(Config::isStlMathInvTrigonometricUsed(),
-//                "The zisc acos isn't implemented yet.");
-//  return y;
-//}
-//
-///*!
-//  \details No detailed description
-//
-//  \tparam Float No description.
-//  \param [in] x No description.
-//  \return No description
-//  */
-//template <typename Float> inline 
-//Float Math::Zisc::atan(const Float x) noexcept
-//{
-//  static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-//  ZISC_ASSERT(x != cast<Float>(0.0), "The x is 0.");
-//  const auto y = x;
-//  static_assert(Config::isStlMathInvTrigonometricUsed(),
-//                "The zisc atan isn't implemented yet.");
-//  return y;
-//}
-//
-///*!
-//  \details No detailed description
-//
-//  \tparam Float No description.
-//  \param [in] a No description.
-//  \param [in] b No description.
-//  \param [in] c No description.
-//  \return No description
-//  */
-//template <typename Float> inline
-//std::tuple<std::array<Float, 2>, uint> Math::solveQuadratic(
-//    const Float a, 
-//    const Float b, 
-//    const Float c) noexcept
-//{
-//  constexpr Float min_x = std::numeric_limits<Float>::lowest();
-//  std::array<Float, 2> x = {{min_x, min_x}};
-//  uint n = 0;
-//
-//  const Float discriminant = b * b - 4.0 * a * c;
-//  if (constant::Math::isAlmostEqual(discriminant, cast<Float>(0.0))) {
-//    x[0] = -b / (2.0 * a);
-//    n = 1;
-//  }
-//  else if (0.0 < discriminant) {
-//    const Float root_d = sqrt(discriminant);
-//    x[0] = (-b + root_d) / (2.0 * a);
-//    x[1] = (-b - root_d) / (2.0 * a);
-//    n = 2;
-//  }
-//  return std::make_tuple(x, n);
-//}
-//
-///*!
-//  \details Solve a cubic equation using "cubic reduction" method.
-//
-//  \tparam Float No description.
-//  \param [in] b No description.
-//  \param [in] c No description.
-//  \param [in] d No description.
-//  \return No description
-//  */
-//template <typename Float> inline
-//Float Math::solveCubicOne(const Float b, const Float c, const Float d) noexcept
-//{
-//  static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-//
-//  const Float k = invert(-3.0) * b;
-//
-//  const Float p = (b * k + c);
-//  const Float q = (((2.0 / 3.0) * b * k + c) * k + d);
-//  const Float y = solveCubicOneY(p, q);
-//  const Float x = y  +  k;
-//  return x;
-//}
-//
-///*!
-//  \details Solve a cubic equation using "cubic reduction" method.
-//
-//  \tparam Float No description.
-//  \param [in] a No description.
-//  \param [in] b No description.
-//  \param [in] c No description.
-//  \param [in] d No description.
-//  \return No description
-//  */
-//template <typename Float> inline
-//Float Math::solveCubicOne(const Float a,
-//                          const Float b,
-//                          const Float c,
-//                          const Float d) noexcept
-//{
-//  static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-//
-//  ZISC_ASSERT(a != 0.0, "The a is zero.");
-//  const Float inv_a = invert(a);
-//  const Float k = invert(-3.0) * b * inv_a;
-//
-//  const Float p = (b * k + c) * inv_a;
-//  const Float q = (((2.0 / 3.0) * b * k + c) * k + d) * inv_a;
-//  const Float y = solveCubicOneY(p, q);
-//  const Float x = y  +  k;
-//  return x;
-//}
-//
-///*!
-//  \details No detailed description
-//
-//  \tparam Float No description.
-//  \param [in] a No description.
-//  \param [in] b No description.
-//  \param [in] c No description.
-//  \param [in] d No description.
-//  \param [in] e No description.
-//  \return No description
-//  */
-//template <typename Float> inline
-//std::tuple<std::array<Float, 4>, uint> Math::solveQuartic(
-//    const Float a, 
-//    const Float b, 
-//    const Float c, 
-//    const Float d, 
-//    const Float e) noexcept
-//{
-//  static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-//
-//  ZISC_ASSERT(a != 0.0, "The a is zero.");
-//  const Float inv_a = 1.0 / a;
-//  const Float k = invert(-4.0) * b * inv_a;
-//
-//  const Float p = ((3.0 / 2.0) * b * k + c) * inv_a;
-//  const Float q = ((b * k + c) * 2.0 * k + d) * inv_a;
-//  const Float r = ((((3.0 / 4.0) * b * k + c) * k + d) * k + e) * inv_a;
-//  const Float z = solveCubicOne(-0.5 * p, -r, invert(8.0) * (4 * p * r - q * q));
-//
-//  uint n = 0;
-//  std::array<Float, 4> x;
-//
-//  const Float f2 = 2.0 * z - p;
-//  if (0.0 <= f2) {
-//    constexpr Float min_x = std::numeric_limits<Float>::lowest();
-//    const Float f = sqrt(f2);
-//    std::array<Float, 2> x1 = {{min_x, min_x}};
-//    const Float d1 = -(2.0 * (z + (q / f)) + p);
-//    if (0.0 <= d1) {
-//      const Float root_d1 = sqrt(d1);
-//      x1[0] = 0.5 * (f + root_d1) + k;
-//      x1[1] = 0.5 * (f - root_d1) + k;
-//      n += 2;
-//    }
-//    std::array<Float, 2> x2 = {{min_x, min_x}};
-//    const Float d2 = -(2.0 * (z - (q / f)) + p);
-//    if (0.0 <= d2) {
-//      const Float root_d2 = sqrt(d2);
-//      x2[0] = 0.5 * (-f + root_d2) + k;
-//      x2[1] = 0.5 * (-f - root_d2) + k;
-//      n += 2;
-//    }
-//    sortQuarticResults(x1, x2, x);
-//  }
-//  return std::make_tuple(x, n);
-//}
-//
-///*!
-//  \details No detailed description
-//
-//  \tparam Float No description.
-//  \param [in] p No description.
-//  \param [in] q No description.
-//  \return No description
-//  */
-//template <typename Float> inline
-//Float Math::solveCubicOneY(const Float p, const Float q) noexcept
-//{
-//  Float y;
-//  if (constant::Math::isAlmostEqual(p, cast<Float>(0.0))) {
-//    y = cbrt(-q);
-//  }
-//  else if (constant::Math::isAlmostEqual(q, cast<Float>(0.0))) {
-//    y = sqrt(-p);
-//  }
-//  else {
-//    const Float discriminant = power<2>(q) + (4.0 / 27.0) * power<3>(p);
-//    if (0.0 <= discriminant) {
-//      const Float z = cbrt(0.5 * (sqrt(discriminant) - q));
-//      y = z - (p / (3.0 * z));
-//    }
-//    else {
-//      ZISC_ASSERT(p < 0.0, "The p is positive: ", p);
-//      const Float r = sqrt(invert(-3.0) * p);
-//      const Float cos_theta = clamp(q / (-2.0 * power<3>(r)), -1.0, 1.0);
-//      const Float phi = (invert(3.0)) * acos(cos_theta);
-//      y = 2.0 * r * cos(phi);
-//    }
-//  }
-//  return y;
-//}
-//
-///*!
-//  \details No detailed description
-//
-//  \tparam Float No description.
-//  \param [in] x1 No description.
-//  \param [in] x2 No description.
-//  \param [out] x No description.
-//  */
-//template <typename Float> inline
-//void Math::sortQuarticResults(const std::array<Float, 2>& x1,
-//                              const std::array<Float, 2>& x2,
-//                              std::array<Float, 4>& x) noexcept
-//{
-//  x[0] = max(x1[0], x2[0]);
-//  const Float tmp1 = min(x1[0], x2[0]);
-//  const Float tmp2 = max(x1[1], x2[1]);
-//  x[1] = max(tmp1, tmp2);
-//  x[2] = min(tmp1, tmp2);
-//  x[3] = min(x1[1], x2[1]);
-//}
-//
-///*!
-//  \details No detailed description
-//
-//  \tparam Integer1 No description.
-//  \tparam Integer2 No description.
-//  \param [in] m No description.
-//  \param [in] n No description.
-//  \return No description
-//  */
-//template <typename Integer1, typename Integer2> inline
-//constexpr std::common_type_t<Integer1, Integer2> gcd(
-//    Integer1 m,
-//    Integer2 n) noexcept
-//{
-//  static_assert(kIsInteger<Integer1>, "Integer1 isn't integer type.");
-//  static_assert(kIsInteger<Integer2>, "Integer2 isn't integer type.");
-//  const auto y = Math::gcd(m, n);
-//  return y;
-//}
+/*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] x No description.
+  \return No description
+  */
+template <FloatingPoint Float> inline
+constexpr Float Math::cbrt(const Float x) noexcept
+{
+  return x;
+}
+
+/*!
+  \details No detailed description
+
+  \tparam Int No description.
+  \tparam Float No description.
+  \param [in] x No description.
+  \return No description
+  */
+template <FloatingPoint Float, Integer Int> inline
+constexpr Float Math::cbrt(const Int x) noexcept
+{
+  const Float y = cbrt(cast<Float>(x));
+  return y;
+}
+
+/*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] x No description.
+  \return No description
+  */
+template <FloatingPoint Float> inline
+constexpr Float Math::exp(const Float x) noexcept
+{
+  return x;
+}
+
+/*!
+  \details No detailed description
+
+  \tparam Int No description.
+  \tparam Float No description.
+  \param [in] x No description.
+  \return No description
+  */
+template <FloatingPoint Float, Integer Int> inline
+constexpr Float Math::exp(const Int x) noexcept
+{
+  const Float y = exp(cast<Float>(x));
+  return y;
+}
+
+/*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] x No description.
+  \return No description
+  */
+template <FloatingPoint Float> inline
+constexpr Float Math::exp2(const Float x) noexcept
+{
+  return x;
+}
+
+/*!
+  \details No detailed description
+
+  \tparam Int No description.
+  \tparam Float No description.
+  \param [in] x No description.
+  \return No description
+  */
+template <FloatingPoint Float, Integer Int> inline
+constexpr Float Math::exp2(const Int x) noexcept
+{
+  const Float y = exp2(cast<Float>(x));
+  return y;
+}
+
+/*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] x No description.
+  \return No description
+  */
+template <FloatingPoint Float> inline
+constexpr Float Math::log(const Float x) noexcept
+{
+  return x;
+}
+
+/*!
+  \details No detailed description
+
+  \tparam Int No description.
+  \tparam Float No description.
+  \param [in] x No description.
+  \return No description
+  */
+template <FloatingPoint Float, Integer Int> inline
+constexpr Float Math::log(const Int x) noexcept
+{
+  const Float y = log(cast<Float>(x));
+  return y;
+}
+
+/*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] x No description.
+  \return No description
+  */
+template <FloatingPoint Float> inline
+constexpr Float Math::log2(const Float x) noexcept
+{
+  return x;
+}
+
+/*!
+  \details No detailed description
+
+  \tparam Int No description.
+  \tparam Float No description.
+  \param [in] x No description.
+  \return No description
+  */
+template <FloatingPoint Float, Integer Int> inline
+constexpr Float Math::log2(const Int x) noexcept
+{
+  const Float y = log2(cast<Float>(x));
+  return y;
+}
+
+/*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] x No description.
+  \return No description
+  */
+template <FloatingPoint Float> inline
+constexpr Float Math::log10(const Float x) noexcept
+{
+  return x;
+}
+
+/*!
+  \details No detailed description
+
+  \tparam Int No description.
+  \tparam Float No description.
+  \param [in] x No description.
+  \return No description
+  */
+template <FloatingPoint Float, Integer Int> inline
+constexpr Float Math::log10(const Int x) noexcept
+{
+  const Float y = log10(cast<Float>(x));
+  return y;
+}
+
+/*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] x No description.
+  \return No description
+  */
+template <FloatingPoint Float> inline
+constexpr Float Math::sin(const Float x) noexcept
+{
+  return x;
+}
+
+/*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] x No description.
+  \return No description
+  */
+template <FloatingPoint Float> inline
+constexpr Float Math::cos(const Float x) noexcept
+{
+  return x;
+}
+
+/*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] x No description.
+  \return No description
+  */
+template <FloatingPoint Float> inline
+constexpr Float Math::tan(const Float x) noexcept
+{
+  return x;
+}
+
+/*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] x No description.
+  \return No description
+  */
+template <FloatingPoint Float> inline
+constexpr Float Math::asin(const Float x) noexcept
+{
+  return x;
+}
+
+/*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] x No description.
+  \return No description
+  */
+template <FloatingPoint Float> inline
+constexpr Float Math::acos(const Float x) noexcept
+{
+  return x;
+}
+
+/*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] x No description.
+  \return No description
+  */
+template <FloatingPoint Float> inline
+constexpr Float Math::atan(const Float x) noexcept
+{
+  return x;
+}
+
+/*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] x No description.
+  \return No description
+  */
+template <FloatingPoint Float> inline
+constexpr Float Math::atan2(const Float y, const Float x) noexcept
+{
+  return x;
+}
 
 /*!
   \details No detailed description
@@ -1877,7 +1314,7 @@ constexpr Float Math::Impl::poly19(const Float x,
 template <FloatingPoint Float> inline
 constexpr Float Math::Impl::abs(const Float x) noexcept
 {
-  const Float y = isNegative(x) ? -x : x;
+  const Float y = signbit(x) ? -x : x;
   return y;
 }
 
@@ -2199,7 +1636,7 @@ template <FloatingPoint Float> inline
 constexpr Float Math::Impl::rint(const Float x) noexcept
 {
   constexpr Float half = cast<Float>(0.5);
-  const int result = isNegative(x) ? cast<int>(x - half) : cast<int>(x + half);
+  const int result = signbit(x) ? cast<int>(x - half) : cast<int>(x + half);
   return cast<Float>(result);
 }
 
@@ -2234,94 +1671,36 @@ constexpr Float Math::Impl::upper(const Float x) noexcept
   return y;
 }
 
-///*!
-//  \details No detailed description
-//
-//  \tparam Integer1 No description.
-//  \tparam Integer2 No description.
-//  \param [in] m No description.
-//  \param [in] n No description.
-//  \return No description
-//  */
-//template <typename Integer1, typename Integer2> inline
-//constexpr std::common_type_t<Integer1, Integer2> lcm(
-//    Integer1 m,
-//    Integer2 n) noexcept
-//{
-//  static_assert(kIsInteger<Integer1>, "Integer1 isn't integer type.");
-//  static_assert(kIsInteger<Integer2>, "Integer2 isn't integer type.");
-//  const auto y = Math::lcm(m, n);
-//  return y;
-//}
-//
-///*!
-//  \details No detailed description
-//
-//  \tparam Integer No description.
-//  \param [in] n No description.
-//  \return No description
-//  */
-//template <typename Integer> inline
-//constexpr Integer factorial(const Integer n) noexcept
-//{
-//  static_assert(kIsInteger<Integer>, "Integer isn't integer type.");
-//  const auto y = Math::factorial(n);
-//  return y;
-//}
-//
-///*!
-//  \details No detailed description
-//
-//  \tparam Integer1 No description.
-//  \tparam Integer2 No description.
-//  \param [in] m No description.
-//  \param [in] n No description.
-//  \return No description
-//  */
-//template <typename Integer1, typename Integer2> inline
-//constexpr std::common_type_t<Integer1, Integer2> sequence(
-//    const Integer1 m,
-//    const Integer2 n) noexcept
-//{
-//  static_assert(kIsInteger<Integer1>, "Integer1 isn't integer type.");
-//  static_assert(kIsInteger<Integer2>, "Integer2 isn't integer type.");
-//  const auto y = Math::sequence(m, n);
-//  return y;
-//}
-//
-///*!
-//  \details No detailed description
-//
-//  \tparam kExponent No description.
-//  \tparam Arithmetic No description.
-//  \param [in] base No description.
-//  \return No description
-//  */
-//template <int kExponent, typename Arithmetic> inline
-//constexpr Arithmetic power(Arithmetic base) noexcept
-//{
-//  static_assert(std::is_arithmetic_v<Arithmetic>, 
-//                "Arithmetic isn't arithmetic type");
-//  const auto y = Math::power<kExponent>(base);
-//  return y;
-//}
-//
-///*!
-//  \details No detailed description
-//
-//  \tparam Arithmetic No description.
-//  \tparam SignedInteger No description.
-//  \param [in] base No description.
-//  \param [in] exponent No description.
-//  \return No description
-//  */
-//template <typename Arithmetic, typename SignedInteger>
-//constexpr Arithmetic power(const Arithmetic base,
-//                           const SignedInteger exponent) noexcept
-//{
-//  const auto y = Math::power(base, exponent);
-//  return y;
-//}
+/*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] x No description.
+  \param [in] y No description.
+  \param [in] z No description.
+  \return No description
+  */
+template <FloatingPoint Float> inline
+constexpr Float fma(const Float x, const Float y, const Float z) noexcept
+{
+  const Float result = Math::fma(x, y, z);
+  return result;
+}
+
+/*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] x No description.
+  \param [in] y No description.
+  \return No description
+  */
+template <FloatingPoint Float> inline
+constexpr Float fmod(const Float x, const Float y) noexcept
+{
+  const Float z = Math::fmod(x, y);
+  return z;
+}
 
 /*!
   \details No detailed description
@@ -2368,173 +1747,278 @@ constexpr Float sqrt(const Int x) noexcept
   return y;
 }
 
-///*!
-//  \details No detailed description
-//
-//  \tparam Float No description.
-//  \param [in] n No description.
-//  \return No description
-//  */
-//template <typename Float> inline
-//Float cbrt(const Float n) noexcept
-//{
-//  static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-//  const auto y = Math::cbrt(n);
-//  return y;
-//}
-//
-///*!
-//  \details No detailed description
-//
-//  \tparam Float No description.
-//  \param [in] n No description.
-//  \return No description
-//  */
-//template <typename Float> inline
-//Float exp(const Float n) noexcept
-//{
-//  static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-//  const auto y = Math::exp(n);
-//  return y;
-//}
-//
-///*!
-//  \details No detailed description
-//
-//  \tparam Float No description.
-//  \param [in] x No description.
-//  \return No description
-//  */
-//template <typename Float> inline 
-//Float log(const Float x) noexcept
-//{
-//  static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-//  const auto y = Math::log(x);
-//  return y;
-//}
-//
-///*!
-//  \details No detailed description
-//
-//  \tparam Float No description.
-//  \param [in] x No description.
-//  \return No description
-//  */
-//template <typename Float> inline 
-//Float log2(const Float x) noexcept
-//{
-//  static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-//  const auto y = Math::log2(x);
-//  return y;
-//}
-//
-///*!
-//  \details No detailed description
-//
-//  \tparam Float No description.
-//  \param [in] x No description.
-//  \return No description
-//  */
-//template <typename Float> inline 
-//Float log10(const Float x) noexcept
-//{
-//  static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-//  const auto y = Math::log10(x);
-//  return y;
-//}
-//
-///*!
-//  \details No detailed description
-//
-//  \tparam Float No description.
-//  \param [in] theta No description.
-//  \return No description
-//  */
-//template <typename Float> inline 
-//Float sin(const Float theta) noexcept
-//{
-//  static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-//  const auto y = Math::sin(theta);
-//  return y;
-//}
-//
-///*!
-//  \details No detailed description
-//
-//  \tparam Float No description.
-//  \param [in] theta No description.
-//  \return No description
-//  */
-//template <typename Float> inline 
-//Float cos(const Float theta) noexcept
-//{
-//  static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-//  const auto y = Math::cos(theta);
-//  return y;
-//}
-//
-///*!
-//  \details No detailed description
-//
-//  \tparam Float No description.
-//  \param [in] theta No description.
-//  \return No description
-//  */
-//template <typename Float> inline 
-//Float tan(const Float theta) noexcept
-//{
-//  static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-//  const auto y = Math::tan(theta);
-//  return y;
-//}
-//
-///*!
-//  \details No detailed description
-//
-//  \tparam Float No description.
-//  \param [in] x No description.
-//  \return No description
-//  */
-//template <typename Float> inline 
-//Float asin(const Float x) noexcept
-//{
-//  static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-//  ZISC_ASSERT(isInClosedBounds(x, -1.0, 1.0), "The x is out of range.");
-//  const auto y = Math::asin(x);
-//  return y;
-//}
-//
-///*!
-//  \details No detailed description
-//
-//  \tparam Float No description.
-//  \param [in] x No description.
-//  \return No description
-//  */
-//template <typename Float> inline 
-//Float acos(const Float x) noexcept
-//{
-//  static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-//  ZISC_ASSERT(isInClosedBounds(x, -1.0, 1.0), "The x is out of range.");
-//  const auto y = Math::acos(x);
-//  return y;
-//}
-//
-///*!
-//  \details No detailed description
-//
-//  \tparam Float No description.
-//  \param [in] x No description.
-//  \return No description
-//  */
-//template <typename Float> inline 
-//Float atan(const Float x) noexcept
-//{
-//  static_assert(kIsFloat<Float>, "Float isn't floating point type.");
-//  ZISC_ASSERT(x != cast<Float>(0.0), "The x is 0.");
-//  const auto y = Math::atan(x);
-//  return y;
-//}
+/*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] x No description.
+  \return No description
+  */
+template <FloatingPoint Float> inline
+constexpr Float cbrt(const Float x) noexcept
+{
+  const Float y = Math::cbrt(x);
+  return y;
+}
+
+/*!
+  \details No detailed description
+
+  \tparam Int No description.
+  \tparam Float No description.
+  \param [in] x No description.
+  \return No description
+  */
+template <FloatingPoint Float, Integer Int> inline
+constexpr Float cbrt(const Int x) noexcept
+{
+  const Float y = Math::cbrt<Float>(x);
+  return y;
+}
+
+/*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] x No description.
+  \return No description
+  */
+template <FloatingPoint Float> inline
+constexpr Float exp(const Float x) noexcept
+{
+  const Float y = Math::exp(x);
+  return y;
+}
+
+/*!
+  \details No detailed description
+
+  \tparam Int No description.
+  \tparam Float No description.
+  \param [in] x No description.
+  \return No description
+  */
+template <FloatingPoint Float, Integer Int> inline
+constexpr Float exp(const Int x) noexcept
+{
+  const Float y = Math::exp<Float>(x);
+  return y;
+}
+
+/*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] x No description.
+  \return No description
+  */
+template <FloatingPoint Float> inline
+constexpr Float exp2(const Float x) noexcept
+{
+  const Float y = Math::exp2(x);
+  return y;
+}
+
+/*!
+  \details No detailed description
+
+  \tparam Int No description.
+  \tparam Float No description.
+  \param [in] x No description.
+  \return No description
+  */
+template <FloatingPoint Float, Integer Int> inline
+constexpr Float exp2(const Int x) noexcept
+{
+  const Float y = Math::exp2<Float>(x);
+  return y;
+}
+
+/*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] x No description.
+  \return No description
+  */
+template <FloatingPoint Float> inline
+constexpr Float log(const Float x) noexcept
+{
+  const Float y = Math::log(x);
+  return y;
+}
+
+/*!
+  \details No detailed description
+
+  \tparam Int No description.
+  \tparam Float No description.
+  \param [in] x No description.
+  \return No description
+  */
+template <FloatingPoint Float, Integer Int> inline
+constexpr Float log(const Int x) noexcept
+{
+  const Float y = Math::log<Float>(x);
+  return y;
+}
+
+/*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] x No description.
+  \return No description
+  */
+template <FloatingPoint Float> inline
+constexpr Float log2(const Float x) noexcept
+{
+  const Float y = Math::log2(x);
+  return y;
+}
+
+/*!
+  \details No detailed description
+
+  \tparam Int No description.
+  \tparam Float No description.
+  \param [in] x No description.
+  \return No description
+  */
+template <FloatingPoint Float, Integer Int> inline
+constexpr Float log2(const Int x) noexcept
+{
+  const Float y = Math::log2<Float>(x);
+  return y;
+}
+
+/*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] x No description.
+  \return No description
+  */
+template <FloatingPoint Float> inline
+constexpr Float log10(const Float x) noexcept
+{
+  const Float y = Math::log10(x);
+  return y;
+}
+
+/*!
+  \details No detailed description
+
+  \tparam Int No description.
+  \tparam Float No description.
+  \param [in] x No description.
+  \return No description
+  */
+template <FloatingPoint Float, Integer Int> inline
+constexpr Float log10(const Int x) noexcept
+{
+  const Float y = Math::log10<Float>(x);
+  return y;
+}
+
+/*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] x No description.
+  \return No description
+  */
+template <FloatingPoint Float> inline
+constexpr Float sin(const Float x) noexcept
+{
+  const Float y = Math::sin(x);
+  return y;
+}
+
+/*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] x No description.
+  \return No description
+  */
+template <FloatingPoint Float> inline
+constexpr Float cos(const Float x) noexcept
+{
+  const Float y = Math::cos(x);
+  return y;
+}
+
+/*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] x No description.
+  \return No description
+  */
+template <FloatingPoint Float> inline
+constexpr Float tan(const Float x) noexcept
+{
+  const Float y = Math::tan(x);
+  return y;
+}
+
+/*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] x No description.
+  \return No description
+  */
+template <FloatingPoint Float> inline
+constexpr Float asin(const Float x) noexcept
+{
+  const Float y = Math::asin(x);
+  return y;
+}
+
+/*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] x No description.
+  \return No description
+  */
+template <FloatingPoint Float> inline
+constexpr Float acos(const Float x) noexcept
+{
+  const Float y = Math::acos(x);
+  return y;
+}
+
+/*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] x No description.
+  \return No description
+  */
+template <FloatingPoint Float> inline
+constexpr Float atan(const Float x) noexcept
+{
+  const Float y = Math::atan(x);
+  return y;
+}
+
+/*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] y No description.
+  \param [in] x No description.
+  \return No description
+  */
+template <FloatingPoint Float> inline
+constexpr Float atan2(const Float y, const Float x) noexcept
+{
+  const Float z = Math::atan2(y, x);
+  return z;
+}
 
 } // namespace zisc
 

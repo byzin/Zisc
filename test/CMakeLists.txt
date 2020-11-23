@@ -76,23 +76,18 @@ Zisc_checkTarget(gtest_main)
 
 # Create a symlink to the test resources
 file(COPY ${PROJECT_SOURCE_DIR}/resources DESTINATION ${PROJECT_BINARY_DIR})
-set(math_reference_files "math_powf_reference.txt"
-                         "math_powd_reference.txt"
-                         "math_powintf_reference.txt"
-                         "math_powintd_reference.txt"
-                         "math_sqrtf_reference.txt"
-                         "math_sqrtd_reference.txt"
-                         "math_sqrt_subf_reference.txt"
-                         "math_sqrt_subd_reference.txt"
-                         )
-foreach(reference_file IN LISTS math_reference_files)
-  set(src_file_path ${PROJECT_SOURCE_DIR}/math_reference/${reference_file}.tar.xz)
+file(GLOB math_reference_files "${PROJECT_SOURCE_DIR}/math_reference/*.tar.xz")
+foreach(reference_path IN LISTS math_reference_files)
+  set(src_file_path ${reference_path})
+  get_filename_component(reference_file "${reference_path}" NAME_WLE)
+  get_filename_component(reference_file "${reference_file}" NAME_WLE)
   set(dst_file_path ${PROJECT_BINARY_DIR}/resources/${reference_file})
   if(${src_file_path} IS_NEWER_THAN ${dst_file_path})
     execute_process(COMMAND ${CMAKE_COMMAND} -E tar Jxf ${src_file_path}
                     WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/resources)
+    file(TOUCH_NOCREATE ${dst_file_path})
   endif()
-endforeach(reference_file)
+endforeach(reference_path)
 
 # Create a unit test
 file(GLOB unittest_source_files ${PROJECT_SOURCE_DIR}/unittest/*.cpp

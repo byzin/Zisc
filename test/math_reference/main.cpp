@@ -21,6 +21,7 @@
 #include "zisc/binary_serializer.hpp"
 // Test
 #include "basic_test.hpp"
+#include "error_function_test.hpp"
 #include "float_manipulation_test.hpp"
 #include "power_test.hpp"
 
@@ -122,6 +123,120 @@ int main(int /* argc */, char** /* argv */)
     std::string_view file_path{"math_sqrt_subd_reference.txt"};
     std::ofstream output{file_path.data(), std::ios_base::binary};
     testSqrtSubnormalD(&output);
+    output.close();
+    compress_file(file_path);
+  }
+
+  // Error and gamma functions
+  {
+    std::string_view file_path{"math_erff_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testErfF(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_erfd_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testErfD(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_erf_subf_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testErfSubnormalF(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_erf_subd_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testErfSubnormalD(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_erfcf_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testErfcF(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_erfcd_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testErfcD(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_erfc_subf_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testErfcSubnormalF(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_erfc_subd_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testErfcSubnormalD(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_tgammaf_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testTgammaF(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_tgammad_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testTgammaD(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_tgamma_subf_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testTgammaSubnormalF(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_tgamma_subd_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testTgammaSubnormalD(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_lgammaf_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testLgammaF(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_lgammad_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testLgammaD(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_lgamma_subf_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testLgammaSubnormalF(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_lgamma_subd_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testLgammaSubnormalD(&output);
     output.close();
     compress_file(file_path);
   }

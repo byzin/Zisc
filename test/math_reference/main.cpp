@@ -23,6 +23,7 @@
 #include "basic_test.hpp"
 #include "error_function_test.hpp"
 #include "float_manipulation_test.hpp"
+#include "nearest_integer_test.hpp"
 #include "power_test.hpp"
 
 int main(int /* argc */, char** /* argv */)
@@ -237,6 +238,148 @@ int main(int /* argc */, char** /* argv */)
     std::string_view file_path{"math_lgamma_subd_reference.txt"};
     std::ofstream output{file_path.data(), std::ios_base::binary};
     testLgammaSubnormalD(&output);
+    output.close();
+    compress_file(file_path);
+  }
+
+  // Nearest integer functions
+  {
+    std::string_view file_path{"math_rintf_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testRintF(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_rintd_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testRintD(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_rint_subf_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testRintSubnormalF(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_rint_subd_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testRintSubnormalD(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_ceilf_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testCeilF(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_ceild_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testCeilD(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_ceil_subf_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testCeilSubnormalF(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_ceil_subd_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testCeilSubnormalD(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_floorf_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testFloorF(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_floord_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testFloorD(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_floor_subf_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testFloorSubnormalF(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_floor_subd_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testFloorSubnormalD(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_truncf_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testTruncF(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_truncd_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testTruncD(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_trunc_subf_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testTruncSubnormalF(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_trunc_subd_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testTruncSubnormalD(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_roundf_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testRoundF(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_roundd_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testRoundD(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_round_subf_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testRoundSubnormalF(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_round_subd_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testRoundSubnormalD(&output);
     output.close();
     compress_file(file_path);
   }

@@ -26,6 +26,8 @@
 #include "zisc/concepts.hpp"
 #include "zisc/utility.hpp"
 #include "zisc/zisc_config.hpp"
+// Test
+#include "basic_test.hpp"
 
 namespace {
 
@@ -34,18 +36,7 @@ void testFrLdexp(std::ostream* output) noexcept
 {
   using zisc::cast;
 
-  constexpr zisc::int32b n = 100'000;
-  zisc::BSerializer::write(&n, output);
-
-  std::vector<Float> x_list;
-  constexpr zisc::int32b end = n / 2;
-  x_list.reserve(n);
-  for (int i = -end; i < end; ++i) {
-    const Float u = zisc::cast<Float>(i) / zisc::cast<Float>(end);
-    const auto x = makeFrLdexpInput(u);
-    zisc::BSerializer::write(&x, output);
-    x_list.push_back(x);
-  }
+  auto x_list = makeAllXList<Float>();
 
   for (const auto x : x_list) {
     mp_exp_t expt{0};
@@ -94,18 +85,7 @@ void testFrLdexpSubnormal(std::ostream* output) noexcept
 {
   using zisc::cast;
 
-  constexpr zisc::int32b n = 200;
-  zisc::BSerializer::write(&n, output);
-
-  std::vector<Float> x_list;
-  constexpr zisc::int32b end = n / 2;
-  x_list.reserve(n);
-  for (int i = -end; i < end; ++i) {
-    const Float u = zisc::cast<Float>(i) / zisc::cast<Float>(end);
-    const auto x = makeFrLdexpSubnormalInput(u);
-    zisc::BSerializer::write(&x, output);
-    x_list.push_back(x);
-  }
+  auto x_list = makeAllSubnormalXList<Float>();
 
   for (const auto x : x_list) {
     mp_exp_t expt{0};
@@ -154,18 +134,7 @@ void testIlogb(std::ostream* output) noexcept
 {
   using zisc::cast;
 
-  constexpr zisc::int32b n = 100'000;
-  zisc::BSerializer::write(&n, output);
-
-  std::vector<Float> x_list;
-  constexpr zisc::int32b end = n / 2;
-  x_list.reserve(n);
-  for (int i = -end; i < end; ++i) {
-    const Float u = zisc::cast<Float>(i) / zisc::cast<Float>(end);
-    const auto x = makeIlogbInput(u);
-    zisc::BSerializer::write(&x, output);
-    x_list.push_back(x);
-  }
+  auto x_list = makeAllXList<Float>();
 
   for (const auto x : x_list) {
     const mpfr::mpreal in{x};
@@ -198,18 +167,7 @@ void testIlogbSubnormal(std::ostream* output) noexcept
 {
   using zisc::cast;
 
-  constexpr zisc::int32b n = 200;
-  zisc::BSerializer::write(&n, output);
-
-  std::vector<Float> x_list;
-  constexpr zisc::int32b end = n / 2;
-  x_list.reserve(n);
-  for (int i = -end; i < end; ++i) {
-    const Float u = zisc::cast<Float>(i) / zisc::cast<Float>(end);
-    const auto x = makeIlogbSubnormalInput(u);
-    zisc::BSerializer::write(&x, output);
-    x_list.push_back(x);
-  }
+  auto x_list = makeAllSubnormalXList<Float>();
 
   for (const auto x : x_list) {
     const mpfr::mpreal in{x};

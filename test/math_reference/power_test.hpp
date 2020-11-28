@@ -39,20 +39,6 @@ void testPowIntF(std::ostream* output) noexcept;
 
 void testPowIntD(std::ostream* output) noexcept;
 
-template <zisc::FloatingPoint Float> inline
-constexpr Float makeSqrtInput(const Float x) noexcept
-{
-  const Float y = makeNormal(x);
-  return y;
-}
-
-template <zisc::FloatingPoint Float> inline
-constexpr Float makeSqrtInputSub(const Float x) noexcept
-{
-  const Float y = makeSubnormal(x);
-  return y;
-}
-
 void testSqrtF(std::ostream* output) noexcept;
 
 void testSqrtD(std::ostream* output) noexcept;
@@ -60,5 +46,13 @@ void testSqrtD(std::ostream* output) noexcept;
 void testSqrtSubnormalF(std::ostream* output) noexcept;
 
 void testSqrtSubnormalD(std::ostream* output) noexcept;
+
+void testCbrtF(std::ostream* output) noexcept;
+
+void testCbrtD(std::ostream* output) noexcept;
+
+void testCbrtSubnormalF(std::ostream* output) noexcept;
+
+void testCbrtSubnormalD(std::ostream* output) noexcept;
 
 #endif // ZISC_MATH_REFERENCE_POWER_TEST_HPP

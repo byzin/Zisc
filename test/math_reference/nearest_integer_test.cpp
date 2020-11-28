@@ -26,6 +26,8 @@
 #include "zisc/concepts.hpp"
 #include "zisc/utility.hpp"
 #include "zisc/zisc_config.hpp"
+// Test
+#include "basic_test.hpp"
 
 namespace {
 
@@ -34,52 +36,28 @@ void testNearestInteger(std::ostream* output) noexcept
 {
   using zisc::cast;
 
-  constexpr zisc::int32b n = 100'000;
-  zisc::BSerializer::write(&n, output);
+  auto x_list = makeAllXList<Float>();
 
-  std::vector<Float> x_list;
-  constexpr zisc::int32b end = n / 2;
-  x_list.reserve(n);
-  for (int i = -end; i < end; ++i) {
-    const Float u = zisc::cast<Float>(i) / zisc::cast<Float>(end);
-    const auto x = makeRintInput(u);
-    zisc::BSerializer::write(&x, output);
-    x_list.push_back(x);
-  }
-
-  for (const auto x : x_list) {
-    const mpfr::mpreal in{x};
-    const auto result = (kType == 0) ? mpfr::rint(in) :
-                        (kType == 1) ? mpfr::ceil(in) :
-                        (kType == 2) ? mpfr::floor(in) :
-                        (kType == 3) ? mpfr::trunc(in) :
-                                       mpfr::round(in);
-    {
-      const Float y = cast<Float>(result);
-      zisc::BSerializer::write(&y, output);
-    }
-  }
-
-  // Special cases
-  auto test_special = [output](const Float x) noexcept
+  auto func = [](const Float x) noexcept
   {
-    zisc::BSerializer::write(&x, output);
     const mpfr::mpreal in{x};
     const auto result = (kType == 0) ? mpfr::rint(in) :
                         (kType == 1) ? mpfr::ceil(in) :
                         (kType == 2) ? mpfr::floor(in) :
                         (kType == 3) ? mpfr::trunc(in) :
                                        mpfr::round(in);
-    {
-      const Float y = cast<Float>(result);
-      zisc::BSerializer::write(&y, output);
-    }
+    const Float y = cast<Float>(result);
+    return y;
   };
-  constexpr zisc::int32b n_specials = 3;
-  zisc::BSerializer::write(&n_specials, output);
-  test_special(cast<Float>(0.0));
-  test_special(std::numeric_limits<Float>::infinity());
-  test_special(-std::numeric_limits<Float>::infinity());
+  using Limits = std::numeric_limits<Float>;
+  testF1<Float>(func,
+                x_list,
+                {
+                  cast<Float>(0),
+                  Limits::infinity(),
+                  -Limits::infinity()
+                },
+                output);
 }
 
 template <zisc::FloatingPoint Float, int kType>
@@ -87,31 +65,25 @@ void testNearestIntegerSubnormal(std::ostream* output) noexcept
 {
   using zisc::cast;
 
-  constexpr zisc::int32b n = 200;
-  zisc::BSerializer::write(&n, output);
+  auto x_list = makeAllSubnormalXList<Float>();
 
-  std::vector<Float> x_list;
-  constexpr zisc::int32b end = n / 2;
-  x_list.reserve(n);
-  for (int i = -end; i < end; ++i) {
-    const Float u = zisc::cast<Float>(i) / zisc::cast<Float>(end);
-    const auto x = makeRintSubnormalInput(u);
-    zisc::BSerializer::write(&x, output);
-    x_list.push_back(x);
-  }
-
-  for (const auto x : x_list) {
+  auto func = [](const Float x) noexcept
+  {
     const mpfr::mpreal in{x};
     const auto result = (kType == 0) ? mpfr::rint(in) :
                         (kType == 1) ? mpfr::ceil(in) :
                         (kType == 2) ? mpfr::floor(in) :
                         (kType == 3) ? mpfr::trunc(in) :
                                        mpfr::round(in);
-    {
-      const Float y = cast<Float>(result);
-      zisc::BSerializer::write(&y, output);
-    }
-  }
+    const Float y = cast<Float>(result);
+    return y;
+  };
+  // using Limits = std::numeric_limits<Float>;
+  testF1<Float>(func,
+                x_list,
+                {
+                },
+                output);
 }
 
 } // namespace 

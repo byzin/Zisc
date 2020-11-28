@@ -23,20 +23,6 @@
 // Test
 #include "basic_test.hpp"
 
-template <zisc::FloatingPoint Float> inline
-constexpr Float makeFrLdexpInput(const Float x) noexcept
-{
-  const Float y = makeNormal(x);
-  return y;
-}
-
-template <zisc::FloatingPoint Float> inline
-constexpr Float makeFrLdexpSubnormalInput(const Float x) noexcept
-{
-  const Float y = makeSubnormal(x);
-  return y;
-}
-
 void testFrLdexpF(std::ostream* output) noexcept;
 
 void testFrLdexpD(std::ostream* output) noexcept;
@@ -44,20 +30,6 @@ void testFrLdexpD(std::ostream* output) noexcept;
 void testFrLdexpSubnormalF(std::ostream* output) noexcept;
 
 void testFrLdexpSubnormalD(std::ostream* output) noexcept;
-
-template <zisc::FloatingPoint Float> inline
-constexpr Float makeIlogbInput(const Float x) noexcept
-{
-  const Float y = makeNormal(x);
-  return y;
-}
-
-template <zisc::FloatingPoint Float> inline
-constexpr Float makeIlogbSubnormalInput(const Float x) noexcept
-{
-  const Float y = makeSubnormal(x);
-  return y;
-}
 
 void testIlogbF(std::ostream* output) noexcept;
 

@@ -14,7 +14,6 @@
 
 #include "basic_test.hpp"
 // Standard C++ library
-#include <array>
 #include <limits>
 #include <numbers>
 #include <ostream>
@@ -30,17 +29,17 @@
 
 namespace {
 
-template <zisc::FloatingPoint Float>
+template <zisc::FloatingPoint Float, zisc::int32b kN = 100'000>
 void testFma(std::ostream* output) noexcept
 {
   using zisc::cast;
 
-  constexpr zisc::int32b n = 100'000;
+  constexpr zisc::int32b n = kN;
   zisc::BSerializer::write(&n, output);
 
-  std::vector<std::array<Float, 3>> x_list;
+  std::vector<F3<Float>> x_list;
   constexpr zisc::int32b end = n / 2;
-  x_list.reserve(3 * n);
+  x_list.reserve(n);
   for (int i = -end; i < end; ++i) {
     const Float u = zisc::cast<Float>(i) / zisc::cast<Float>(end);
     const auto x = makeFmaInput(u);
@@ -48,14 +47,19 @@ void testFma(std::ostream* output) noexcept
     x_list.push_back(x);
   }
 
-  for (const auto x : x_list) {
-    const mpfr::mpreal x1{x[0]};
-    const mpfr::mpreal x2{x[1]};
-    const mpfr::mpreal x3{x[2]};
+  auto func = [](const F3<Float> x) noexcept
+  {
+    const mpfr::mpreal x1{x.x_};
+    const mpfr::mpreal x2{x.y_};
+    const mpfr::mpreal x3{x.z_};
     const auto result = mpfr::fma(x1, x2, x3);
     const Float y = cast<Float>(result);
-    zisc::BSerializer::write(&y, output);
-  }
+    return y;
+  };
+  testF3<Float>(func,
+                x_list,
+                {},
+                output);
 }
 
 } // namespace 
@@ -72,17 +76,17 @@ void testFmaD(std::ostream* output) noexcept
 
 namespace {
 
-template <zisc::FloatingPoint Float>
+template <zisc::FloatingPoint Float, zisc::int32b kN = 100'000>
 void testFmod(std::ostream* output) noexcept
 {
   using zisc::cast;
 
-  constexpr zisc::int32b n = 100'000;
+  constexpr zisc::int32b n = kN;
   zisc::BSerializer::write(&n, output);
 
-  std::vector<std::array<Float, 2>> x_list;
+  std::vector<F2<Float>> x_list;
   constexpr zisc::int32b end = n / 2;
-  x_list.reserve(2 * n);
+  x_list.reserve(n);
   for (int i = -end; i < end; ++i) {
     const Float u = zisc::cast<Float>(i) / zisc::cast<Float>(end);
     const auto x = makeFmodInput(u);
@@ -90,28 +94,23 @@ void testFmod(std::ostream* output) noexcept
     x_list.push_back(x);
   }
 
-  for (const auto x : x_list) {
-    const mpfr::mpreal x1{x[0]};
-    const mpfr::mpreal x2{x[1]};
+  auto func = [](const F2<Float> x) noexcept
+  {
+    const mpfr::mpreal x1{x.x_};
+    const mpfr::mpreal x2{x.y_};
     const auto result = mpfr::fmod(x1, x2);
     const Float y = cast<Float>(result);
-    zisc::BSerializer::write(&y, output);
-  }
-
-  // Special cases
-  auto test_special = [output](const Float x1, const Float x2) noexcept
-  {
-    zisc::BSerializer::write(&x1, output);
-    zisc::BSerializer::write(&x2, output);
-    const auto result = mpfr::fmod(mpfr::mpreal{x1}, mpfr::mpreal{x2});
-    const Float y = cast<Float>(result);
-    zisc::BSerializer::write(&y, output);
+    return y;
   };
-  constexpr zisc::int32b n_specials = 3;
-  zisc::BSerializer::write(&n_specials, output);
-  test_special(cast<Float>(0.0), cast<Float>(2.0));
-  test_special(std::numeric_limits<Float>::infinity(), cast<Float>(2.0));
-  test_special(-std::numeric_limits<Float>::infinity(), cast<Float>(2.0));
+  using Limits = std::numeric_limits<Float>;
+  testF2<Float>(func,
+                x_list,
+                {
+                  {cast<Float>(0), cast<Float>(2)},
+                  {Limits::infinity(), cast<Float>(2)},
+                  {-Limits::infinity(), cast<Float>(2)}
+                },
+                output);
 }
 
 } // namespace 

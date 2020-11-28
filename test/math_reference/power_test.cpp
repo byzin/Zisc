@@ -232,39 +232,25 @@ void testSqrt(std::ostream* output) noexcept
 {
   using zisc::cast;
 
-  constexpr zisc::int32b n = 100'000;
-  zisc::BSerializer::write(&n, output);
+  auto x_list = makePositiveXList<Float>();
 
-  std::vector<Float> x_list;
-  constexpr zisc::int32b end = n;
-  x_list.reserve(n);
-  for (int i = 0; i < end; ++i) {
-    const Float u = zisc::cast<Float>(i) / zisc::cast<Float>(end);
-    const Float x = makeSqrtInput(u);
-    zisc::BSerializer::write(&x, output);
-    x_list.push_back(x);
-  }
-
-  for (const Float x : x_list) {
+  auto func = [](const Float x) noexcept
+  {
     const mpfr::mpreal in{x};
     const auto result = mpfr::sqrt(in);
     const Float y = cast<Float>(result);
-    zisc::BSerializer::write(&y, output);
-  }
-
-  // Special cases
-  auto test_special = [output](const Float x) noexcept
-  {
-    zisc::BSerializer::write(&x, output);
-    const auto result = mpfr::sqrt(mpfr::mpreal{x});
-    const Float y = cast<Float>(result);
-    zisc::BSerializer::write(&y, output);
+    return y;
   };
-  constexpr zisc::int32b n_specials = 3;
-  zisc::BSerializer::write(&n_specials, output);
-  test_special(cast<Float>(0));
-  test_special(std::numeric_limits<Float>::infinity());
-  test_special(-std::numeric_limits<Float>::infinity());
+
+  using Limits = std::numeric_limits<Float>;
+  testF1<Float>(func,
+                x_list,
+                {
+                  cast<Float>(0),
+                  Limits::infinity(),
+                  -Limits::infinity()
+                },
+                output);
 }
 
 template <zisc::FloatingPoint Float>
@@ -272,25 +258,22 @@ void testSqrtSubnormal(std::ostream* output) noexcept
 {
   using zisc::cast;
 
-  constexpr zisc::int32b n = 200;
-  zisc::BSerializer::write(&n, output);
+  auto x_list = makePositiveSubnormalXList<Float>();
 
-  std::vector<Float> x_list;
-  constexpr zisc::int32b end = n;
-  x_list.reserve(n);
-  for (int i = 0; i < end; ++i) {
-    const Float u = zisc::cast<Float>(i) / zisc::cast<Float>(end);
-    const Float x = makeSqrtInputSub(u);
-    zisc::BSerializer::write(&x, output);
-    x_list.push_back(x);
-  }
-
-  for (const Float x : x_list) {
+  auto func = [](const Float x) noexcept
+  {
     const mpfr::mpreal in{x};
     const auto result = mpfr::sqrt(in);
     const Float y = cast<Float>(result);
-    zisc::BSerializer::write(&y, output);
-  }
+    return y;
+  };
+
+//  using Limits = std::numeric_limits<Float>;
+  testF1<Float>(func,
+                x_list,
+                {
+                },
+                output);
 }
 
 } // namespace
@@ -313,4 +296,77 @@ void testSqrtSubnormalF(std::ostream* output) noexcept
 void testSqrtSubnormalD(std::ostream* output) noexcept
 {
   ::testSqrtSubnormal<double>(output);
+}
+
+namespace {
+
+template <zisc::FloatingPoint Float>
+void testCbrt(std::ostream* output) noexcept
+{
+  using zisc::cast;
+
+  auto x_list = makeAllXList<Float>();
+
+  auto func = [](const Float x) noexcept
+  {
+    const mpfr::mpreal in{x};
+    const auto result = mpfr::cbrt(in);
+    const Float y = cast<Float>(result);
+    return y;
+  };
+
+  using Limits = std::numeric_limits<Float>;
+  testF1<Float>(func,
+                x_list,
+                {
+                  cast<Float>(0),
+                  Limits::infinity(),
+                  -Limits::infinity()
+                },
+                output);
+}
+
+template <zisc::FloatingPoint Float>
+void testCbrtSubnormal(std::ostream* output) noexcept
+{
+  using zisc::cast;
+
+  auto x_list = makeAllSubnormalXList<Float>();
+
+  auto func = [](const Float x) noexcept
+  {
+    const mpfr::mpreal in{x};
+    const auto result = mpfr::cbrt(in);
+    const Float y = cast<Float>(result);
+    return y;
+  };
+
+//  using Limits = std::numeric_limits<Float>;
+  testF1<Float>(func,
+                x_list,
+                {
+                },
+                output);
+}
+
+} // namespace
+
+void testCbrtF(std::ostream* output) noexcept
+{
+  ::testCbrt<float>(output);
+}
+
+void testCbrtD(std::ostream* output) noexcept
+{
+  ::testCbrt<double>(output);
+}
+
+void testCbrtSubnormalF(std::ostream* output) noexcept
+{
+  ::testCbrtSubnormal<float>(output);
+}
+
+void testCbrtSubnormalD(std::ostream* output) noexcept
+{
+  ::testCbrtSubnormal<double>(output);
 }

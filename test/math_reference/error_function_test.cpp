@@ -26,379 +26,195 @@
 #include "zisc/concepts.hpp"
 #include "zisc/utility.hpp"
 #include "zisc/zisc_config.hpp"
+// Test
+#include "basic_test.hpp"
 
 namespace {
 
-template <zisc::FloatingPoint Float>
+template <zisc::FloatingPoint Float, int kType>
 void testErf(std::ostream* output) noexcept
 {
   using zisc::cast;
 
-  constexpr zisc::int32b n = 100'000;
-  zisc::BSerializer::write(&n, output);
+  auto x_list = makeAllXList<Float>();
 
-  std::vector<Float> x_list;
-  constexpr zisc::int32b end = n / 2;
-  x_list.reserve(n);
-  for (int i = -end; i < end; ++i) {
-    const Float u = zisc::cast<Float>(i) / zisc::cast<Float>(end);
-    const auto x = makeErfInput(u);
-    zisc::BSerializer::write(&x, output);
-    x_list.push_back(x);
-  }
-
-  for (const auto x : x_list) {
-    const mpfr::mpreal in{x};
-    const auto result = mpfr::erf(in);
-    {
-      const Float y = cast<Float>(result);
-      zisc::BSerializer::write(&y, output);
-    }
-  }
-
-  // Special cases
-  auto test_special = [output](const Float x) noexcept
+  auto func = [](const Float x) noexcept
   {
-    zisc::BSerializer::write(&x, output);
-    const auto result = mpfr::erf(mpfr::mpreal{x});
-    {
-      const Float y = cast<Float>(result);
-      zisc::BSerializer::write(&y, output);
-    }
+    const mpfr::mpreal in{x};
+    const auto result = (kType == 0) ? mpfr::erf(in) :
+                                       mpfr::erfc(in);
+    const Float y = cast<Float>(result);
+    return y;
   };
-  constexpr zisc::int32b n_specials = 3;
-  zisc::BSerializer::write(&n_specials, output);
-  test_special(cast<Float>(0.0));
-  test_special(std::numeric_limits<Float>::infinity());
-  test_special(-std::numeric_limits<Float>::infinity());
+
+  using Limits = std::numeric_limits<Float>;
+  testF1<Float>(func,
+                x_list,
+                {
+                  cast<Float>(0),
+                  Limits::infinity(),
+                  -Limits::infinity()
+                },
+                output);
 }
 
-template <zisc::FloatingPoint Float>
+template <zisc::FloatingPoint Float, int kType>
 void testErfSubnormal(std::ostream* output) noexcept
 {
   using zisc::cast;
 
-  constexpr zisc::int32b n = 200;
-  zisc::BSerializer::write(&n, output);
+  auto x_list = makeAllSubnormalXList<Float>();
 
-  std::vector<Float> x_list;
-  constexpr zisc::int32b end = n / 2;
-  x_list.reserve(n);
-  for (int i = -end; i < end; ++i) {
-    const Float u = zisc::cast<Float>(i) / zisc::cast<Float>(end);
-    const auto x = makeErfSubnormalInput(u);
-    zisc::BSerializer::write(&x, output);
-    x_list.push_back(x);
-  }
-
-  for (const auto x : x_list) {
-    const mpfr::mpreal in{x};
-    const auto result = mpfr::erf(in);
-    {
-      const Float y = cast<Float>(result);
-      zisc::BSerializer::write(&y, output);
-    }
-  }
-}
-
-template <zisc::FloatingPoint Float>
-void testErfc(std::ostream* output) noexcept
-{
-  using zisc::cast;
-
-  constexpr zisc::int32b n = 100'000;
-  zisc::BSerializer::write(&n, output);
-
-  std::vector<Float> x_list;
-  constexpr zisc::int32b end = n / 2;
-  x_list.reserve(n);
-  for (int i = -end; i < end; ++i) {
-    const Float u = zisc::cast<Float>(i) / zisc::cast<Float>(end);
-    const auto x = makeErfInput(u);
-    zisc::BSerializer::write(&x, output);
-    x_list.push_back(x);
-  }
-
-  for (const auto x : x_list) {
-    const mpfr::mpreal in{x};
-    const auto result = mpfr::erfc(in);
-    {
-      const Float y = cast<Float>(result);
-      zisc::BSerializer::write(&y, output);
-    }
-  }
-
-  // Special cases
-  auto test_special = [output](const Float x) noexcept
+  auto func = [](const Float x) noexcept
   {
-    zisc::BSerializer::write(&x, output);
-    const auto result = mpfr::erfc(mpfr::mpreal{x});
-    {
-      const Float y = cast<Float>(result);
-      zisc::BSerializer::write(&y, output);
-    }
-  };
-  constexpr zisc::int32b n_specials = 3;
-  zisc::BSerializer::write(&n_specials, output);
-  test_special(cast<Float>(0.0));
-  test_special(std::numeric_limits<Float>::infinity());
-  test_special(-std::numeric_limits<Float>::infinity());
-}
-
-template <zisc::FloatingPoint Float>
-void testErfcSubnormal(std::ostream* output) noexcept
-{
-  using zisc::cast;
-
-  constexpr zisc::int32b n = 200;
-  zisc::BSerializer::write(&n, output);
-
-  std::vector<Float> x_list;
-  constexpr zisc::int32b end = n / 2;
-  x_list.reserve(n);
-  for (int i = -end; i < end; ++i) {
-    const Float u = zisc::cast<Float>(i) / zisc::cast<Float>(end);
-    const auto x = makeErfSubnormalInput(u);
-    zisc::BSerializer::write(&x, output);
-    x_list.push_back(x);
-  }
-
-  for (const auto x : x_list) {
     const mpfr::mpreal in{x};
-    const auto result = mpfr::erfc(in);
-    {
-      const Float y = cast<Float>(result);
-      zisc::BSerializer::write(&y, output);
-    }
-  }
+    const auto result = (kType == 0) ? mpfr::erf(in) :
+                                       mpfr::erfc(in);
+    const Float y = cast<Float>(result);
+    return y;
+  };
+
+  // using Limits = std::numeric_limits<Float>;
+  testF1<Float>(func,
+                x_list,
+                {
+                },
+                output);
 }
 
 } // namespace 
 
 void testErfF(std::ostream* output) noexcept
 {
-  ::testErf<float>(output);
+  ::testErf<float, 0>(output);
 }
 
 void testErfD(std::ostream* output) noexcept
 {
-  ::testErf<double>(output);
+  ::testErf<double, 0>(output);
 }
 
 void testErfSubnormalF(std::ostream* output) noexcept
 {
-  ::testErfSubnormal<float>(output);
+  ::testErfSubnormal<float, 0>(output);
 }
 
 void testErfSubnormalD(std::ostream* output) noexcept
 {
-  ::testErfSubnormal<double>(output);
+  ::testErfSubnormal<double, 0>(output);
 }
 
 void testErfcF(std::ostream* output) noexcept
 {
-  ::testErfc<float>(output);
+  ::testErf<float, 1>(output);
 }
 
 void testErfcD(std::ostream* output) noexcept
 {
-  ::testErfc<double>(output);
+  ::testErf<double, 1>(output);
 }
 
 void testErfcSubnormalF(std::ostream* output) noexcept
 {
-  ::testErfcSubnormal<float>(output);
+  ::testErfSubnormal<float, 1>(output);
 }
 
 void testErfcSubnormalD(std::ostream* output) noexcept
 {
-  ::testErfcSubnormal<double>(output);
+  ::testErfSubnormal<double, 1>(output);
 }
 
 namespace {
 
-template <zisc::FloatingPoint Float>
+template <zisc::FloatingPoint Float, int kType>
 void testTgamma(std::ostream* output) noexcept
 {
   using zisc::cast;
 
-  constexpr zisc::int32b n = 100'000;
-  zisc::BSerializer::write(&n, output);
+  auto x_list = makePositiveXList<Float>();
 
-  std::vector<Float> x_list;
-  constexpr zisc::int32b end = n;
-  x_list.reserve(n);
-  for (int i = 0; i < end; ++i) {
-    const Float u = zisc::cast<Float>(i) / zisc::cast<Float>(end);
-    const auto x = makeTgammaInput(u);
-    zisc::BSerializer::write(&x, output);
-    x_list.push_back(x);
-  }
-
-  for (const auto x : x_list) {
-    const mpfr::mpreal in{x};
-    const auto result = mpfr::tgamma(in);
-    {
-      const Float y = cast<Float>(result);
-      zisc::BSerializer::write(&y, output);
-    }
-  }
-
-  // Special cases
-  auto test_special = [output](const Float x) noexcept
+  auto func = [](const Float x) noexcept
   {
-    zisc::BSerializer::write(&x, output);
-    const auto result = mpfr::tgamma(mpfr::mpreal{x});
-    {
-      const Float y = cast<Float>(result);
-      zisc::BSerializer::write(&y, output);
-    }
+    const mpfr::mpreal in{x};
+    const auto result = (kType == 0) ? mpfr::tgamma(in) :
+                                       mpfr::lgamma(in);
+    const Float y = cast<Float>(result);
+    return y;
   };
-  constexpr zisc::int32b n_specials = 3;
-  zisc::BSerializer::write(&n_specials, output);
-  test_special(cast<Float>(0.0));
-  test_special(std::numeric_limits<Float>::infinity());
-  test_special(-std::numeric_limits<Float>::infinity());
+
+  using Limits = std::numeric_limits<Float>;
+  testF1<Float>(func,
+                x_list,
+                {
+                  cast<Float>(0),
+                  Limits::infinity(),
+                  -Limits::infinity()
+                },
+                output);
 }
 
-template <zisc::FloatingPoint Float>
+template <zisc::FloatingPoint Float, int kType>
 void testTgammaSubnormal(std::ostream* output) noexcept
 {
   using zisc::cast;
 
-  constexpr zisc::int32b n = 200;
-  zisc::BSerializer::write(&n, output);
+  auto x_list = makePositiveSubnormalXList<Float>();
 
-  std::vector<Float> x_list;
-  constexpr zisc::int32b end = n;
-  x_list.reserve(n);
-  for (int i = 0; i < end; ++i) {
-    const Float u = zisc::cast<Float>(i) / zisc::cast<Float>(end);
-    const auto x = makeTgammaSubnormalInput(u);
-    zisc::BSerializer::write(&x, output);
-    x_list.push_back(x);
-  }
-
-  for (const auto x : x_list) {
-    const mpfr::mpreal in{x};
-    const auto result = mpfr::tgamma(in);
-    {
-      const Float y = cast<Float>(result);
-      zisc::BSerializer::write(&y, output);
-    }
-  }
-}
-
-template <zisc::FloatingPoint Float>
-void testLgamma(std::ostream* output) noexcept
-{
-  using zisc::cast;
-
-  constexpr zisc::int32b n = 100'000;
-  zisc::BSerializer::write(&n, output);
-
-  std::vector<Float> x_list;
-  constexpr zisc::int32b end = n;
-  x_list.reserve(n);
-  for (int i = 0; i < end; ++i) {
-    const Float u = zisc::cast<Float>(i) / zisc::cast<Float>(end);
-    const auto x = makeTgammaInput(u);
-    zisc::BSerializer::write(&x, output);
-    x_list.push_back(x);
-  }
-
-  for (const auto x : x_list) {
-    const mpfr::mpreal in{x};
-    const auto result = mpfr::lgamma(in);
-    {
-      const Float y = cast<Float>(result);
-      zisc::BSerializer::write(&y, output);
-    }
-  }
-
-  // Special cases
-  auto test_special = [output](const Float x) noexcept
+  auto func = [](const Float x) noexcept
   {
-    zisc::BSerializer::write(&x, output);
-    const auto result = mpfr::lgamma(mpfr::mpreal{x});
-    {
-      const Float y = cast<Float>(result);
-      zisc::BSerializer::write(&y, output);
-    }
-  };
-  constexpr zisc::int32b n_specials = 3;
-  zisc::BSerializer::write(&n_specials, output);
-  test_special(cast<Float>(0.0));
-  test_special(std::numeric_limits<Float>::infinity());
-  test_special(-std::numeric_limits<Float>::infinity());
-}
-
-template <zisc::FloatingPoint Float>
-void testLgammaSubnormal(std::ostream* output) noexcept
-{
-  using zisc::cast;
-
-  constexpr zisc::int32b n = 200;
-  zisc::BSerializer::write(&n, output);
-
-  std::vector<Float> x_list;
-  constexpr zisc::int32b end = n;
-  x_list.reserve(n);
-  for (int i = 0; i < end; ++i) {
-    const Float u = zisc::cast<Float>(i) / zisc::cast<Float>(end);
-    const auto x = makeTgammaSubnormalInput(u);
-    zisc::BSerializer::write(&x, output);
-    x_list.push_back(x);
-  }
-
-  for (const auto x : x_list) {
     const mpfr::mpreal in{x};
-    const auto result = mpfr::lgamma(in);
-    {
-      const Float y = cast<Float>(result);
-      zisc::BSerializer::write(&y, output);
-    }
-  }
+    const auto result = (kType == 0) ? mpfr::tgamma(in) :
+                                       mpfr::lgamma(in);
+    const Float y = cast<Float>(result);
+    return y;
+  };
+
+  // using Limits = std::numeric_limits<Float>;
+  testF1<Float>(func,
+                x_list,
+                {
+                },
+                output);
 }
 
 } // namespace 
 
 void testTgammaF(std::ostream* output) noexcept
 {
-  ::testTgamma<float>(output);
+  ::testTgamma<float, 0>(output);
 }
 
 void testTgammaD(std::ostream* output) noexcept
 {
-  ::testTgamma<double>(output);
+  ::testTgamma<double, 0>(output);
 }
 
 void testTgammaSubnormalF(std::ostream* output) noexcept
 {
-  ::testTgammaSubnormal<float>(output);
+  ::testTgammaSubnormal<float, 0>(output);
 }
 
 void testTgammaSubnormalD(std::ostream* output) noexcept
 {
-  ::testTgammaSubnormal<double>(output);
+  ::testTgammaSubnormal<double, 0>(output);
 }
 
 void testLgammaF(std::ostream* output) noexcept
 {
-  ::testLgamma<float>(output);
+  ::testTgamma<float, 1>(output);
 }
 
 void testLgammaD(std::ostream* output) noexcept
 {
-  ::testLgamma<double>(output);
+  ::testTgamma<double, 1>(output);
 }
 
 void testLgammaSubnormalF(std::ostream* output) noexcept
 {
-  ::testLgammaSubnormal<float>(output);
+  ::testTgammaSubnormal<float, 1>(output);
 }
 
 void testLgammaSubnormalD(std::ostream* output) noexcept
 {
-  ::testTgammaSubnormal<double>(output);
+  ::testTgammaSubnormal<double, 1>(output);
 }

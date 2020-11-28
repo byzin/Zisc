@@ -14,14 +14,17 @@
 
 // Standard C++ library
 #include <cstdio>
+#include <cstddef>
 #include <cstdlib>
 #include <fstream>
+#include <iostream>
 #include <string_view>
 // Zisc
 #include "zisc/binary_serializer.hpp"
 // Test
 #include "basic_test.hpp"
 #include "error_function_test.hpp"
+#include "exponential_test.hpp"
 #include "float_manipulation_test.hpp"
 #include "nearest_integer_test.hpp"
 #include "power_test.hpp"
@@ -35,6 +38,165 @@ int main(int /* argc */, char** /* argv */)
                                                     file_path.data());
     std::system(command);
   };
+
+  const bool is_debug = false;
+  // Create x list
+  {
+    std::string_view file_path{"math_xpowf_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    makeXList<float>(kPowScale<float>, &output);
+    output.close();
+    compress_file(file_path);
+  }
+  if (is_debug) {
+    std::cout << "## All pow float x" << std::endl;
+    auto x_list = makeXList<float, 100>(kPowScale<float>);
+    for (std::size_t i = 0; i < x_list.size(); ++i)
+      std::cout << "  x[" << i << "] = " << std::scientific << x_list[i] << std::endl;
+  }
+  {
+    std::string_view file_path{"math_xpowd_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    makeXList<double>(kPowScale<double>, &output);
+    output.close();
+    compress_file(file_path);
+  }
+  if (is_debug) {
+    std::cout << "## All pow double x" << std::endl;
+    auto x_list = makeXList<double, 100>(kPowScale<double>);
+    for (std::size_t i = 0; i < x_list.size(); ++i)
+      std::cout << "  x[" << i << "] = " << std::scientific << x_list[i] << std::endl;
+  }
+  {
+    std::string_view file_path{"math_xpositivepowf_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    makePositiveXList<float>(kPowScale<float>, &output);
+    output.close();
+    compress_file(file_path);
+  }
+  if (is_debug) {
+    std::cout << "## All positive pow float x" << std::endl;
+    auto x_list = makePositiveXList<float, 100>(kPowScale<float>);
+    for (std::size_t i = 0; i < x_list.size(); ++i)
+      std::cout << "  x[" << i << "] = " << std::scientific << x_list[i] << std::endl;
+  }
+  {
+    std::string_view file_path{"math_xpositivepowd_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    makePositiveXList<double>(kPowScale<double>, &output);
+    output.close();
+    compress_file(file_path);
+  }
+  if (is_debug) {
+    std::cout << "## All positive pow double x" << std::endl;
+    auto x_list = makePositiveXList<double, 100>(kPowScale<double>);
+    for (std::size_t i = 0; i < x_list.size(); ++i)
+      std::cout << "  x[" << i << "] = " << std::scientific << x_list[i] << std::endl;
+  }
+  {
+    std::string_view file_path{"math_xallf_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    makeAllXList<float>(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  if (is_debug) {
+    std::cout << "## All normal float x" << std::endl;
+    auto x_list = makeAllXList<float, 100>();
+    for (std::size_t i = 0; i < x_list.size(); ++i)
+      std::cout << "  x[" << i << "] = " << std::scientific << x_list[i] << std::endl;
+  }
+  {
+    std::string_view file_path{"math_xall_subf_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    makeAllSubnormalXList<float>(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  if (is_debug) {
+    std::cout << "## All subnormal float x" << std::endl;
+    auto x_list = makeAllSubnormalXList<float, 100>();
+    for (std::size_t i = 0; i < x_list.size(); ++i)
+      std::cout << "  x[" << i << "] = " << std::scientific << x_list[i] << std::endl;
+  }
+  {
+    std::string_view file_path{"math_xalld_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    makeAllXList<double>(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  if (is_debug) {
+    std::cout << "## All normal double x" << std::endl;
+    auto x_list = makeAllXList<double, 100>();
+    for (std::size_t i = 0; i < x_list.size(); ++i)
+      std::cout << "  x[" << i << "] = " << std::scientific << x_list[i] << std::endl;
+  }
+  {
+    std::string_view file_path{"math_xall_subd_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    makeAllSubnormalXList<double>(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  if (is_debug) {
+    std::cout << "## All subnormal double x" << std::endl;
+    auto x_list = makeAllSubnormalXList<double, 100>();
+    for (std::size_t i = 0; i < x_list.size(); ++i)
+      std::cout << "  x[" << i << "] = " << std::scientific << x_list[i] << std::endl;
+  }
+  {
+    std::string_view file_path{"math_xpositivef_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    makePositiveXList<float>(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  if (is_debug) {
+    std::cout << "## Positive normal float x" << std::endl;
+    auto x_list = makePositiveXList<float, 100>();
+    for (std::size_t i = 0; i < x_list.size(); ++i)
+      std::cout << "  x[" << i << "] = " << std::scientific << x_list[i] << std::endl;
+  }
+  {
+    std::string_view file_path{"math_xpositive_subf_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    makePositiveSubnormalXList<float>(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  if (is_debug) {
+    std::cout << "## Positive subnormal float x" << std::endl;
+    auto x_list = makePositiveSubnormalXList<float, 100>();
+    for (std::size_t i = 0; i < x_list.size(); ++i)
+      std::cout << "  x[" << i << "] = " << std::scientific << x_list[i] << std::endl;
+  }
+  {
+    std::string_view file_path{"math_xpositived_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    makePositiveXList<double>(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  if (is_debug) {
+    std::cout << "## Positive normal double x" << std::endl;
+    auto x_list = makePositiveXList<double, 100>();
+    for (std::size_t i = 0; i < x_list.size(); ++i)
+      std::cout << "  x[" << i << "] = " << std::scientific << x_list[i] << std::endl;
+  }
+  {
+    std::string_view file_path{"math_xpositive_subd_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    makePositiveSubnormalXList<double>(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  if (is_debug) {
+    std::cout << "## Positive subnormal double x" << std::endl;
+    auto x_list = makePositiveSubnormalXList<double, 100>();
+    for (std::size_t i = 0; i < x_list.size(); ++i)
+      std::cout << "  x[" << i << "] = " << std::scientific << x_list[i] << std::endl;
+  }
 
   // Basic operations
   // Fma test
@@ -124,6 +286,233 @@ int main(int /* argc */, char** /* argv */)
     std::string_view file_path{"math_sqrt_subd_reference.txt"};
     std::ofstream output{file_path.data(), std::ios_base::binary};
     testSqrtSubnormalD(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  // Cbrt
+  {
+    std::string_view file_path{"math_cbrtf_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testCbrtF(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_cbrtd_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testCbrtD(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_cbrt_subf_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testCbrtSubnormalF(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_cbrt_subd_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testCbrtSubnormalD(&output);
+    output.close();
+    compress_file(file_path);
+  }
+
+  // Exponential functions
+  {
+    std::string_view file_path{"math_expf_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testExpF(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_expd_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testExpD(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_expintf_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testExpIntF(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_expintd_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testExpIntD(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_exp2f_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testExp2F(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_exp2d_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testExp2D(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_exp2intf_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testExp2IntF(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_exp2intd_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testExp2IntD(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_expm1f_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testExpm1F(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_expm1d_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testExpm1D(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_expm1intf_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testExpm1IntF(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_expm1intd_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testExpm1IntD(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_logf_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testLogF(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_logd_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testLogD(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_log_subf_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testLogSubnormalF(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_log_subd_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testLogSubnormalD(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_log10f_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testLog10F(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_log10d_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testLog10D(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_log10_subf_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testLog10SubnormalF(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_log10_subd_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testLog10SubnormalD(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_log2f_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testLog2F(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_log2d_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testLog2D(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_log2_subf_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testLog2SubnormalF(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_log2_subd_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testLog2SubnormalD(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_log1pf_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testLog1pF(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_log1pd_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testLog1pD(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_log1p_subf_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testLog1pSubnormalF(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_log1p_subd_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testLog1pSubnormalD(&output);
     output.close();
     compress_file(file_path);
   }

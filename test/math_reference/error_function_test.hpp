@@ -23,20 +23,6 @@
 // Test
 #include "basic_test.hpp"
 
-template <zisc::FloatingPoint Float> inline
-constexpr Float makeErfInput(const Float x) noexcept
-{
-  const Float y = makeNormal(x);
-  return y;
-}
-
-template <zisc::FloatingPoint Float> inline
-constexpr Float makeErfSubnormalInput(const Float x) noexcept
-{
-  const Float y = makeSubnormal(x);
-  return y;
-}
-
 void testErfF(std::ostream* output) noexcept;
 
 void testErfD(std::ostream* output) noexcept;
@@ -52,20 +38,6 @@ void testErfcD(std::ostream* output) noexcept;
 void testErfcSubnormalF(std::ostream* output) noexcept;
 
 void testErfcSubnormalD(std::ostream* output) noexcept;
-
-template <zisc::FloatingPoint Float> inline
-constexpr Float makeTgammaInput(const Float x) noexcept
-{
-  const Float y = makeNormal(x);
-  return y;
-}
-
-template <zisc::FloatingPoint Float> inline
-constexpr Float makeTgammaSubnormalInput(const Float x) noexcept
-{
-  const Float y = makeSubnormal(x);
-  return y;
-}
 
 void testTgammaF(std::ostream* output) noexcept;
 

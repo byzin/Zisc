@@ -23,20 +23,6 @@
 // Test
 #include "basic_test.hpp"
 
-template <zisc::FloatingPoint Float> inline
-constexpr Float makeRintInput(const Float x) noexcept
-{
-  const Float y = makeNormal(x);
-  return y;
-}
-
-template <zisc::FloatingPoint Float> inline
-constexpr Float makeRintSubnormalInput(const Float x) noexcept
-{
-  const Float y = makeSubnormal(x);
-  return y;
-}
-
 void testRintF(std::ostream* output) noexcept;
 
 void testRintD(std::ostream* output) noexcept;

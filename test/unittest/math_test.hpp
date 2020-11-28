@@ -19,13 +19,16 @@
 #include <array>
 #include <cmath>
 #include <cstddef>
+#include <fstream>
 #include <iostream>
 #include <limits>
 #include <string_view>
 #include <type_traits>
+#include <vector>
 // GoogleTest
 #include "gtest/gtest.h"
 // Zisc
+#include "zisc/binary_serializer.hpp"
 #include "zisc/bit.hpp"
 #include "zisc/concepts.hpp"
 #include "zisc/zisc_config.hpp"
@@ -34,6 +37,7 @@
 template <zisc::FloatingPoint Float>
 struct MathTestResult
 {
+  std::size_t num_of_trials = 0;
   std::size_t num_of_outliers_ = 0;
   Float total_ulp_diff_ = static_cast<Float>(0.0);
   Float compensation_ = static_cast<Float>(0.0);
@@ -53,6 +57,7 @@ struct MathTestResult
 
   void print() noexcept
   {
+    std::cout   << "--      num of trials  : " << num_of_trials << std::endl;
     if (0 < num_of_outliers_) {
       const Float average = averageUlpDiff();
       std::cout << "--      num of outliers: " << num_of_outliers_ << std::endl;
@@ -97,6 +102,7 @@ bool testMathFloat(const Float expected,
                    const Float value, 
                    MathTestResult<Float>* result) noexcept
 {
+  ++result->num_of_trials;
   // Nan
   if (std::isnan(expected) && std::isnan(value))
     return true;
@@ -148,6 +154,75 @@ bool testMathFloat(const Float expected,
     result->fatal_outlier_ = true;
   }
   return flag;
+}
+
+template <zisc::FloatingPoint Float> inline
+std::vector<Float> loadXList(std::string_view file_path) noexcept
+{
+  std::ifstream reference_file{file_path.data(), std::ios_base::binary};
+
+  zisc::int32b n = 0;
+  zisc::BSerializer::read(&n, &reference_file);
+
+  std::vector<Float> x_list;
+  x_list.resize(n);
+  zisc::BSerializer::read(x_list.data(), &reference_file, sizeof(Float) * n);
+
+  return x_list;
+}
+
+template <zisc::FloatingPoint Float> inline
+std::vector<Float> loadPowXList() noexcept
+{
+  auto file_path = (sizeof(Float) == 4)
+    ? std::string_view{"resources/math_xpowf_reference.txt"}
+    : std::string_view{"resources/math_xpowd_reference.txt"};
+  return loadXList<Float>(file_path);
+}
+
+template <zisc::FloatingPoint Float> inline
+std::vector<Float> loadPositivePowXList() noexcept
+{
+  auto file_path = (sizeof(Float) == 4)
+    ? std::string_view{"resources/math_xpositivepowf_reference.txt"}
+    : std::string_view{"resources/math_xpositivepowd_reference.txt"};
+  return loadXList<Float>(file_path);
+}
+
+template <zisc::FloatingPoint Float> inline
+std::vector<Float> loadAllXList() noexcept
+{
+  auto file_path = (sizeof(Float) == 4)
+    ? std::string_view{"resources/math_xallf_reference.txt"}
+    : std::string_view{"resources/math_xalld_reference.txt"};
+  return loadXList<Float>(file_path);
+}
+
+template <zisc::FloatingPoint Float> inline
+std::vector<Float> loadAllSubnormalXList() noexcept
+{
+  auto file_path = (sizeof(Float) == 4)
+    ? std::string_view{"resources/math_xall_subf_reference.txt"}
+    : std::string_view{"resources/math_xall_subd_reference.txt"};
+  return loadXList<Float>(file_path);
+}
+
+template <zisc::FloatingPoint Float> inline
+std::vector<Float> loadPositiveXList() noexcept
+{
+  auto file_path = (sizeof(Float) == 4)
+    ? std::string_view{"resources/math_xpositivef_reference.txt"}
+    : std::string_view{"resources/math_xpositived_reference.txt"};
+  return loadXList<Float>(file_path);
+}
+
+template <zisc::FloatingPoint Float> inline
+std::vector<Float> loadPositiveSubnormalXList() noexcept
+{
+  auto file_path = (sizeof(Float) == 4)
+    ? std::string_view{"resources/math_xpositive_subf_reference.txt"}
+    : std::string_view{"resources/math_xpositive_subd_reference.txt"};
+  return loadXList<Float>(file_path);
 }
 
 #endif // ZISC_MATH_TEST_HPP

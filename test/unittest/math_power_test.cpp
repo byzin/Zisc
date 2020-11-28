@@ -25,6 +25,7 @@
 #include "zisc/zisc_config.hpp"
 #include "zisc/math/math.hpp"
 // Test
+#include "basic_test.hpp"
 #include "math_test.hpp"
 #include "power_test.hpp"
 
@@ -36,21 +37,21 @@ void testPowConstant() noexcept
   static constexpr float u = zisc::cast<float>(i) / zisc::cast<float>(end);
   {
     constexpr float base = 2.0f;
-    constexpr float expt = makePowInput(u);
+    constexpr float expt = kPowScale<float> * u;
     constexpr float y = zisc::pow(base, expt);
     const float expected = zisc::pow(base, expt);
     ASSERT_EQ(expected, y) << "pow(" << base << "," << expt << ") failed.";
   }
   {
     constexpr float base = std::numbers::pi_v<float>;
-    constexpr float expt = makePowInput(u);
+    constexpr float expt = kPowScale<float> * u;
     constexpr float y = zisc::pow(base, expt);
     const float expected = zisc::pow(base, expt);
     ASSERT_EQ(expected, y) << "pow(" << base << "," << expt << ") failed.";
   }
   {
     constexpr float base = 1.0f / std::numbers::pi_v<float>;
-    constexpr float expt = makePowInput(u);
+    constexpr float expt = kPowScale<float> * u;
     constexpr float y = zisc::pow(base, expt);
     const float expected = zisc::pow(base, expt);
     ASSERT_EQ(expected, y) << "pow(" << base << "," << expt << ") failed.";
@@ -210,7 +211,7 @@ void testSqrtConstant() noexcept
 {
   static constexpr float u = zisc::cast<float>(i) / zisc::cast<float>(end);
   {
-    constexpr float x = makeSqrtInput(u);
+    constexpr float x = makeNormal(u);
     constexpr float y = zisc::sqrt(x);
     const float expected = zisc::sqrt(x);
     ASSERT_EQ(expected, y) << "sqrt(" << x << ") failed.";
@@ -223,15 +224,11 @@ void testSqrtConstant() noexcept
 
 TEST(MathTest, SqrtTest)
 {
+  auto x_list = loadPositiveXList<float>();
+  const std::size_t n = x_list.size();
+
   std::ifstream reference_file{"resources/math_sqrtf_reference.txt",
                                std::ios_base::binary};
-  zisc::int32b n = 0;
-  zisc::BSerializer::read(&n, &reference_file);
-
-  std::vector<float> x_list;
-  x_list.resize(n);
-  zisc::BSerializer::read(x_list.data(), &reference_file, sizeof(float) * n);
-
   MathTestResult<float> math_result;
   std::vector<float> expected_list;
   expected_list.resize(x_list.size());
@@ -266,15 +263,11 @@ TEST(MathTest, SqrtTest)
 
 TEST(MathTest, SqrtSubnormalTest)
 {
+  auto x_list = loadPositiveSubnormalXList<float>();
+  const std::size_t n = x_list.size();
+
   std::ifstream reference_file{"resources/math_sqrt_subf_reference.txt",
                                std::ios_base::binary};
-  zisc::int32b n = 0;
-  zisc::BSerializer::read(&n, &reference_file);
-
-  std::vector<float> x_list;
-  x_list.resize(n);
-  zisc::BSerializer::read(x_list.data(), &reference_file, sizeof(float) * n);
-
   MathTestResult<float> math_result;
   std::vector<float> expected_list;
   expected_list.resize(x_list.size());

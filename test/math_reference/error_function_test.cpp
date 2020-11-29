@@ -36,7 +36,7 @@ void testErf(std::ostream* output) noexcept
 {
   using zisc::cast;
 
-  auto x_list = makeAllXList<Float>();
+  auto x_list = makeXList<Float>(kPowScale<Float>);
 
   auto func = [](const Float x) noexcept
   {

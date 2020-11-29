@@ -28,6 +28,7 @@
 #include "float_manipulation_test.hpp"
 #include "nearest_integer_test.hpp"
 #include "power_test.hpp"
+#include "trigonometric_test.hpp"
 
 int main(int /* argc */, char** /* argv */)
 {
@@ -41,6 +42,32 @@ int main(int /* argc */, char** /* argv */)
 
   const bool is_debug = false;
   // Create x list
+  {
+    std::string_view file_path{"math_xonef_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    makeXList<float>(1.0f, &output);
+    output.close();
+    compress_file(file_path);
+  }
+  if (is_debug) {
+    std::cout << "## All one float x" << std::endl;
+    auto x_list = makeXList<float, 100>(1.0f);
+    for (std::size_t i = 0; i < x_list.size(); ++i)
+      std::cout << "  x[" << i << "] = " << std::scientific << x_list[i] << std::endl;
+  }
+  {
+    std::string_view file_path{"math_xoned_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    makeXList<double>(1.0, &output);
+    output.close();
+    compress_file(file_path);
+  }
+  if (is_debug) {
+    std::cout << "## All one double x" << std::endl;
+    auto x_list = makeXList<double, 100>(1.0);
+    for (std::size_t i = 0; i < x_list.size(); ++i)
+      std::cout << "  x[" << i << "] = " << std::scientific << x_list[i] << std::endl;
+  }
   {
     std::string_view file_path{"math_xpowf_reference.txt"};
     std::ofstream output{file_path.data(), std::ios_base::binary};
@@ -513,6 +540,359 @@ int main(int /* argc */, char** /* argv */)
     std::string_view file_path{"math_log1p_subd_reference.txt"};
     std::ofstream output{file_path.data(), std::ios_base::binary};
     testLog1pSubnormalD(&output);
+    output.close();
+    compress_file(file_path);
+  }
+
+  // Trigonometric
+  {
+    std::string_view file_path{"math_sinf_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testSinF(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_sind_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testSinD(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_sin_subf_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testSinSubnormalF(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_sin_subd_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testSinSubnormalD(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_cosf_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testCosF(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_cosd_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testCosD(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_cos_subf_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testCosSubnormalF(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_cos_subd_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testCosSubnormalD(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_tanf_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testTanF(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_tand_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testTanD(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_tan_subf_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testTanSubnormalF(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_tan_subd_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testTanSubnormalD(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_asinf_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testAsinF(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_asind_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testAsinD(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_asin_subf_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testAsinSubnormalF(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_asin_subd_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testAsinSubnormalD(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_acosf_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testAcosF(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_acosd_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testAcosD(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_acos_subf_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testAcosSubnormalF(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_acos_subd_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testAcosSubnormalD(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_atanf_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testAtanF(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_atand_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testAtanD(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_atan_subf_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testAtanSubnormalF(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_atan_subd_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testAtanSubnormalD(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_atan2f_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testAtan2F(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_atan2d_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testAtan2D(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  // Hyperbolic
+  {
+    std::string_view file_path{"math_sinhf_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testSinhF(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_sinhd_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testSinhD(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_sinh_subf_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testSinhSubnormalF(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_sinh_subd_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testSinhSubnormalD(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_coshf_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testCoshF(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_coshd_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testCoshD(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_cosh_subf_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testCoshSubnormalF(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_cosh_subd_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testCoshSubnormalD(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_tanhf_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testTanhF(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_tanhd_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testTanhD(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_tanh_subf_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testTanhSubnormalF(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_tanh_subd_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testTanhSubnormalD(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_asinhf_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testAsinhF(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_asinhd_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testAsinhD(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_asinh_subf_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testAsinhSubnormalF(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_asinh_subd_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testAsinhSubnormalD(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_acoshf_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testAcoshF(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_acoshd_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testAcoshD(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_acosh_subf_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testAcoshSubnormalF(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_acosh_subd_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testAcoshSubnormalD(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_atanhf_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testAtanhF(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_atanhd_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testAtanhD(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_atanh_subf_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testAtanhSubnormalF(&output);
+    output.close();
+    compress_file(file_path);
+  }
+  {
+    std::string_view file_path{"math_atanh_subd_reference.txt"};
+    std::ofstream output{file_path.data(), std::ios_base::binary};
+    testAtanhSubnormalD(&output);
     output.close();
     compress_file(file_path);
   }

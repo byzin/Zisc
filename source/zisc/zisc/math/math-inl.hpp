@@ -81,6 +81,8 @@ constexpr Float Math::add(const Float lhs,
 template <FloatingPoint Float> inline
 constexpr Float Math::fma(const Float x, const Float y, const Float z) noexcept
 {
+  static_cast<void>(y);
+  static_cast<void>(z);
   return x;
 }
 
@@ -95,6 +97,7 @@ constexpr Float Math::fma(const Float x, const Float y, const Float z) noexcept
 template <FloatingPoint Float> inline
 constexpr Float Math::fmod(const Float x, const Float y) noexcept
 {
+  static_cast<void>(y);
   return x;
 }
 
@@ -487,6 +490,7 @@ constexpr Float Math::atan(const Float x) noexcept
 template <FloatingPoint Float> inline
 constexpr Float Math::atan2(const Float y, const Float x) noexcept
 {
+  static_cast<void>(y);
   return x;
 }
 

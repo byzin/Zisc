@@ -23,7 +23,7 @@
 #include <limits>
 #include <tuple>
 // GoogleTest
-#include "gtest/gtest.h"
+#include "googletest.hpp"
 // Zisc
 #include "zisc/ieee_754_binary.hpp"
 #include "zisc/zisc_config.hpp"

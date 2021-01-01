@@ -25,7 +25,7 @@
 #include <string_view>
 #include <tuple>
 // GoogleTest
-#include "gtest/gtest.h"
+#include "googletest.hpp"
 // Zisc
 #include "zisc/bit.hpp"
 #include "zisc/ieee_754_binary.hpp"

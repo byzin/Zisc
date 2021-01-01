@@ -20,7 +20,7 @@
 #include <type_traits>
 #include <vector>
 // GoogleTest
-#include "gtest/gtest.h"
+#include "googletest.hpp"
 // Zisc
 #include "zisc/zisc_config.hpp"
 #include "zisc/memory/simple_memory_resource.hpp"

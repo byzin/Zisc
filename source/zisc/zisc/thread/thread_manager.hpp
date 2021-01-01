@@ -164,9 +164,6 @@ class ThreadManager : private NonCopyable<ThreadManager>
                   const DiffType begin_offset,
                   const DiffType num_of_iterations);
 
-    //! Finalize the queue error
-    ~OverflowError() noexcept override;
-
 
     //! Return the offset of iterator
     DiffType beginOffset() const noexcept;

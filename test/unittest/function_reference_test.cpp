@@ -17,7 +17,7 @@
 #include <type_traits>
 #include <utility>
 // GoogleTest
-#include "gtest/gtest.h"
+#include "googletest.hpp"
 // Zisc
 #include "zisc/function_reference.hpp"
 #include "zisc/non_copyable.hpp"

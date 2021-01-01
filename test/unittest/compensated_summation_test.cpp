@@ -13,7 +13,7 @@
   */
 
 // GoogleTest
-#include "gtest/gtest.h"
+#include "googletest.hpp"
 // Zisc
 #include "zisc/math/math.hpp"
 

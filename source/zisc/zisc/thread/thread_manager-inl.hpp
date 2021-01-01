@@ -242,14 +242,6 @@ ThreadManager::OverflowError::OverflowError(const std::string_view what_arg,
 
 /*!
   \details No detailed description
-  */
-inline
-ThreadManager::OverflowError::~OverflowError() noexcept
-{
-}
-
-/*!
-  \details No detailed description
 
   \return No description
   */

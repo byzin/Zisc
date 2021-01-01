@@ -80,11 +80,4 @@ std::string ErrorCategory::message(const int condition) const
   return code_string;
 }
 
-/*!
-  \details No detailed description
-  */
-SystemError::~SystemError() noexcept
-{
-}
-
 } // namespace zisc

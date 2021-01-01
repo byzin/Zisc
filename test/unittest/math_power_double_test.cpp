@@ -18,7 +18,7 @@
 #include <numbers>
 #include <vector>
 // GoogleTest
-#include "gtest/gtest.h"
+#include "googletest.hpp"
 // Zisc
 #include "zisc/binary_serializer.hpp"
 #include "zisc/utility.hpp"

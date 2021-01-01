@@ -25,7 +25,7 @@
 #include <utility>
 #include <vector>
 // GoogleTest
-#include "gtest/gtest.h"
+#include "googletest.hpp"
 // Zisc
 #include "zisc/non_copyable.hpp"
 #include "zisc/math/math.hpp"

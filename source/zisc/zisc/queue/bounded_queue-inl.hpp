@@ -69,14 +69,6 @@ BoundedQueue<QueueClass, T>::OverflowError::OverflowError(
 
 /*!
   \details No detailed description
-  */
-template <typename QueueClass, Queueable T> inline
-BoundedQueue<QueueClass, T>::OverflowError::~OverflowError()
-{
-}
-
-/*!
-  \details No detailed description
 
   \return No description
   */

@@ -16,7 +16,7 @@
 #include <cstdint>
 #include <string_view>
 // GoogleTest
-#include "gtest/gtest.h"
+#include "googletest.hpp"
 // Zisc
 #include "zisc/zisc_config.hpp"
 #include "zisc/hash/fnv_1a_hash_engine.hpp"

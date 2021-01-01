@@ -17,7 +17,7 @@
 #include <limits>
 #include <type_traits>
 // GoogleTest
-#include "gtest/gtest.h"
+#include "googletest.hpp"
 // Zisc
 #include "zisc/bit.hpp"
 #include "zisc/concepts.hpp"

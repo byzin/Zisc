@@ -26,7 +26,7 @@
 #include <type_traits>
 #include <vector>
 // GoogleTest
-#include "gtest/gtest.h"
+#include "googletest.hpp"
 // Zisc
 #include "zisc/binary_serializer.hpp"
 #include "zisc/bit.hpp"

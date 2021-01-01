@@ -15,7 +15,7 @@
 // Standard C++ library
 #include <cstdint>
 // GoogleTest
-#include "gtest/gtest.h"
+#include "googletest.hpp"
 // Zisc
 #include "zisc/utility.hpp"
 #include "zisc/math/fraction.hpp"

@@ -16,7 +16,7 @@
 #include <fstream>
 #include <string_view>
 // GoogleTest
-#include "gtest/gtest.h"
+#include "googletest.hpp"
 // Zisc
 #include "zisc/random/pcg_engine.hpp"
 

@@ -17,7 +17,7 @@
 #include <fstream>
 #include <string_view>
 // GoogleTest
-#include "gtest/gtest.h"
+#include "googletest.hpp"
 // Zisc
 #include "zisc/utility.hpp"
 #include "zisc/zisc_config.hpp"

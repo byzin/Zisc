@@ -17,7 +17,7 @@
 #include <limits>
 #include <numbers>
 // GoogleTest
-#include "gtest/gtest.h"
+#include "googletest.hpp"
 // Zisc
 #include "zisc/utility.hpp"
 #include "zisc/zisc_config.hpp"

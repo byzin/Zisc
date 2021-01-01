@@ -13,7 +13,7 @@
   */
 
 // GoogleTest
-#include "gtest/gtest.h"
+#include "googletest.hpp"
 // Standard C++ library
 #include <list>
 #include <memory>

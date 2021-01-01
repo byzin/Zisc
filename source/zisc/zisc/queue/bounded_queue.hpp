@@ -80,9 +80,6 @@ class BoundedQueue : private NonCopyable<BoundedQueue<QueueClass, T>>
                   pmr::memory_resource* mem_resource,
                   RReference value);
 
-    //!
-    ~OverflowError() override;
-
 
     //! Return the overflowing value
     Reference get() noexcept;

@@ -100,9 +100,6 @@ class SystemError : public std::system_error
 
   //! Construct the system error
   SystemError(const ErrorCode code, const std::string_view what_arg);
-
-  //! Destruct the system error
-  ~SystemError() noexcept override;
 };
 
 //! If condition is false, print messages and raise an error

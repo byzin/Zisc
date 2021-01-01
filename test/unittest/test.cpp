@@ -8,7 +8,7 @@
   */
 
 // GoogleTest
-#include "gtest/gtest.h"
+#include "googletest.hpp"
 // Zisc
 #include "zisc/zisc_config.hpp"
 

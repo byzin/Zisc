@@ -38,13 +38,12 @@ function(getTestWarningFlags test_warning_flags)
                                 -Wno-float-equal
                                 -Wno-global-constructors
                                 -Wno-sign-conversion
+                                -Wno-suggest-override
                                 -Wno-used-but-marked-unused
                                 )
       if(Z_VISUAL_STUDIO)
-        list(APPEND warning_flags -Wno-language-extension-token
-                                  -Wno-shift-sign-overflow
-                                  -Wno-sign-compare
-                                  -Wno-undef
+        list(APPEND warning_flags -Wno-implicit-float-conversion
+                                  -Wno-unused-result
                                   )
       endif()
     elseif(Z_GCC)

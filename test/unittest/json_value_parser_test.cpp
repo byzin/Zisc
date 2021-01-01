@@ -12,7 +12,7 @@
 #include <iostream>
 #include <string>
 // GoogleTest
-#include "gtest/gtest.h"
+#include "googletest.hpp"
 // Zisc
 #include "zisc/utility.hpp"
 #include "zisc/zisc_config.hpp"

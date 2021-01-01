@@ -39,8 +39,8 @@ int main()
   std::cout << "Task parallel example" << std::endl;
   auto task1_result = thread_manager.enqueue(task);
   auto task2_result = thread_manager.enqueue(task);
-  task1_result.get();
-  task2_result.get();
+  task1_result->wait();
+  task2_result->wait();
   // Loop parallel
   std::cout << "Loop parallel example" << std::endl;
   auto loop_task = [](const zisc::int64b thread_id, const int index)
@@ -51,7 +51,7 @@ int main()
   };
   using Func = std::function<void (zisc::int64b, int)>;
   auto task_result = thread_manager.enqueueLoop(Func{loop_task}, 0, 8);
-  task_result.get();
+  task_result->wait();
 
   return 0;
 }

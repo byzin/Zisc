@@ -45,6 +45,7 @@ struct MathTestResult
   bool fatal_outlier_ = false;
   bool fatal_inf_ = false;
   bool fatal_nan_ = false;
+  [[maybe_unused]] std::array<zisc::uint8b, sizeof(Float) - 3> padding_;
 
   Float averageUlpDiff() const noexcept
   {

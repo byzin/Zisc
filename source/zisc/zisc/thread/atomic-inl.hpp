@@ -424,6 +424,48 @@ Type Atomic::perform(Type* ptr,
   return old;
 }
 
+#if defined(Z_WINDOWS) || defined(Z_LINUX)
+
+/*!
+  \brief No brief description
+
+  No detailed description.
+  */
+template <>
+class AtomicWordBase<true> : private NonCopyable<AtomicWordBase<true>>
+{
+};
+
+#endif // Z_WINDOWS || Z_LINUX
+
+/*!
+  \brief No brief description
+
+  No detailed description.
+  */
+template <bool kOsSpecified>
+class AtomicWordBase : private NonCopyable<AtomicWordBase<kOsSpecified>>
+{
+ public:
+  //! Return the underlying mutex
+  std::mutex& lock() noexcept
+  {
+    return lock_;
+  }
+
+  //! Return the underlyling condition variable
+  std::condition_variable& condition() noexcept
+  {
+    return condition_;
+  }
+
+ private:
+  std::mutex lock_;
+  std::condition_variable condition_;
+  static_assert(std::alignment_of_v<std::condition_variable> <=
+                std::alignment_of_v<std::mutex>);
+};
+
 // template explicit instantiation
 template <>
 void Atomic::wait<false>(AtomicWord<false>* word, const AtomicWordType old) noexcept;
@@ -455,17 +497,6 @@ template <bool kOsSpecified> inline
 AtomicWord<kOsSpecified>::AtomicWord(const AtomicWordType value) noexcept
     : word_{value}
 {
-}
-
-/*!
-  \details No detailed description
-
-  \return No description
-  */
-template <bool kOsSpecified> inline
-AtomicWordExtra<kOsSpecified>& AtomicWord<kOsSpecified>::extra() noexcept
-{
-  return extra_;
 }
 
 /*!
@@ -519,46 +550,6 @@ void AtomicWord<kOsSpecified>::set(const AtomicWordType value,
 {
   Atomic::store(&word_, value, order);
 }
-
-#if defined(Z_WINDOWS) || defined(Z_LINUX)
-
-/*!
-  \brief No brief description
-
-  No detailed description.
-  */
-template <>
-class AtomicWordExtra<true> : private NonCopyable<AtomicWordExtra<false>>
-{
-};
-
-#endif // Z_WINDOWS || Z_LINUX
-
-/*!
-  \brief No brief description
-
-  No detailed description.
-  */
-template <bool kOsSpecified>
-class AtomicWordExtra : private NonCopyable<AtomicWordExtra<kOsSpecified>>
-{
- public:
-  //! Return the underlying mutex
-  std::mutex& lock() noexcept
-  {
-    return lock_;
-  }
-
-  //! Return the underlyling condition variable
-  std::condition_variable& condition() noexcept
-  {
-    return condition_;
-  }
-
- private:
-  std::mutex lock_;
-  std::condition_variable condition_;
-};
 
 /*!
   \details No detailed description

@@ -60,6 +60,29 @@ SystemError::SystemError(const ErrorCode code, const std::string_view what_arg) 
 /*!
   \details No detailed description
 
+  \param [in,out] other No description.
+  */
+inline
+SystemError::SystemError(SystemError&& other) :
+    std::system_error(std::move(other))
+{
+}
+
+/*!
+  \details No detailed description
+
+  \param [in,out] other No description.
+  */
+inline
+SystemError& SystemError::operator=(SystemError&& other)
+{
+  std::system_error::operator=(std::move(other));
+  return *this;
+}
+
+/*!
+  \details No detailed description
+
   \tparam Types No description.
   \param [in] condition No description.
   \param [in] messages No description.

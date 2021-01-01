@@ -243,6 +243,44 @@ ThreadManager::OverflowError::OverflowError(const std::string_view what_arg,
 /*!
   \details No detailed description
 
+  \param [in,out] other No description.
+  */
+inline
+ThreadManager::OverflowError::OverflowError(OverflowError&& other) :
+    SystemError(std::move(other)),
+    task_{std::move(other.task_)},
+    begin_offset_{other.begin_offset_},
+    num_of_iterations_{other.num_of_iterations_}
+{
+}
+
+/*!
+  \details No detailed description
+  */
+inline
+ThreadManager::OverflowError::~OverflowError() noexcept
+{
+}
+
+/*!
+  \details No detailed description
+
+  \param [in,out] other No description.
+  */
+inline
+auto ThreadManager::OverflowError::operator=(OverflowError&& other)
+    -> OverflowError&
+{
+  SystemError::operator=(std::move(other));
+  task_ = std::move(other.task_);
+  begin_offset_ = other.begin_offset_;
+  num_of_iterations_ = other.num_of_iterations_;
+  return *this;
+}
+
+/*!
+  \details No detailed description
+
   \return No description
   */
 inline

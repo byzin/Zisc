@@ -44,9 +44,8 @@ void waitFallback(zisc::AtomicWord<kOsSpecified>* word,
     const bool result = word->get() != old;
     return result;
   };
-  auto& extra = word->extra();
-  auto& condition = extra.condition();
-  std::unique_lock<std::mutex> locker{extra.lock()};
+  auto& condition = word->condition();
+  std::unique_lock<std::mutex> locker{word->lock()};
   condition.wait(locker, pred);
 }
 
@@ -54,8 +53,7 @@ void waitFallback(zisc::AtomicWord<kOsSpecified>* word,
 template <bool kOsSpecified> inline
 void notifyOneFallback(zisc::AtomicWord<kOsSpecified>* word) noexcept
 {
-  auto& extra = word->extra();
-  auto& condition = extra.condition();
+  auto& condition = word->condition();
   condition.notify_one();
 }
 
@@ -63,8 +61,7 @@ void notifyOneFallback(zisc::AtomicWord<kOsSpecified>* word) noexcept
 template <bool kOsSpecified> inline
 void notifyAllFallback(zisc::AtomicWord<kOsSpecified>* word) noexcept
 {
-  auto& extra = word->extra();
-  auto& condition = extra.condition();
+  auto& condition = word->condition();
   condition.notify_all();
 }
 
@@ -183,5 +180,10 @@ void Atomic::notifyAll<false>(AtomicWord<false>* word) noexcept
 {
   ::notifyAllFallback(word);
 }
+
+// Size check
+#if defined(Z_WINDOWS) || defined(Z_LINUX)
+static_assert(sizeof(AtomicWord<true>) == sizeof(AtomicWordType));
+#endif // Z_WINDOWS || Z_LINUX
 
 } // namespace zisc

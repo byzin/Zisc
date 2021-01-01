@@ -58,6 +58,13 @@ ErrorCategory::~ErrorCategory() noexcept
 
 /*!
   \details No detailed description
+  */
+SystemError::~SystemError() noexcept
+{
+}
+
+/*!
+  \details No detailed description
 
   \return No description
   */

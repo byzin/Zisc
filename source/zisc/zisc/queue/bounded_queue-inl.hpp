@@ -70,6 +70,41 @@ BoundedQueue<QueueClass, T>::OverflowError::OverflowError(
 /*!
   \details No detailed description
 
+  \param [in,out] other No description.
+  */
+template <typename QueueClass, Queueable T> inline
+BoundedQueue<QueueClass, T>::OverflowError::OverflowError(OverflowError&& other) :
+    SystemError(std::move(other)),
+    value_{std::move(other.value_)}
+{
+}
+
+/*!
+  \details No detailed description
+  */
+template <typename QueueClass, Queueable T> inline
+BoundedQueue<QueueClass, T>::OverflowError::~OverflowError() noexcept
+{
+}
+
+/*!
+  \details No detailed description
+
+  \param [in,out] other No description.
+  \return No description
+  */
+template <typename QueueClass, Queueable T> inline
+auto BoundedQueue<QueueClass, T>::OverflowError::operator=(OverflowError&& other)
+    -> OverflowError&
+{
+  SystemError::operator=(std::move(other));
+  value_ = std::move(other.value_);
+  return *this;
+}
+
+/*!
+  \details No detailed description
+
   \return No description
   */
 template <typename QueueClass, Queueable T> inline

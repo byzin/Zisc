@@ -21,15 +21,14 @@
 #include <type_traits>
 // Zisc
 #include "zisc/concepts.hpp"
-#include "zisc/non_copyable.hpp"
 #include "zisc/zisc_config.hpp"
 
 namespace zisc {
 
 // Forward declaration
+template <bool kOsSpecified> class AtomicWordBase;
 template <bool kOsSpecified> class AtomicWord;
 using AtomicWordType = int;
-template <bool kOsSpecified> class AtomicWordExtra;
 
 /*!
   \brief Atomic functions
@@ -174,7 +173,7 @@ class Atomic
   \tparam kOsSpecified No description.
   */
 template <bool kOsSpecified>
-class AtomicWord : private NonCopyable<AtomicWord<kOsSpecified>>
+class AtomicWord : public AtomicWordBase<kOsSpecified>
 {
  public:
   //! Construct an atomic word
@@ -183,9 +182,6 @@ class AtomicWord : private NonCopyable<AtomicWord<kOsSpecified>>
   //! Construct an atomic word
   AtomicWord(const AtomicWordType value) noexcept;
 
-
-  //! Return the extra data
-  AtomicWordExtra<kOsSpecified>& extra() noexcept;
 
   //! Return the underlying word
   AtomicWordType& get() noexcept;
@@ -202,7 +198,6 @@ class AtomicWord : private NonCopyable<AtomicWord<kOsSpecified>>
 
  private:
   AtomicWordType word_ = 0;
-  [[no_unique_address]] AtomicWordExtra<kOsSpecified> extra_;
 };
 
 // STL style function aliases

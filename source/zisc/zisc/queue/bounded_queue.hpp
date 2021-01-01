@@ -61,6 +61,10 @@ class BoundedQueue : private NonCopyable<BoundedQueue<QueueClass, T>>
   using reference = Reference;
   using const_reference = ConstReference;
 
+#if defined(Z_GCC) || defined(Z_CLANG)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wweak-vtables"
+#endif // Z_GCC || Z_CLANG
 
   /*!
     \brief No brief description
@@ -80,6 +84,16 @@ class BoundedQueue : private NonCopyable<BoundedQueue<QueueClass, T>>
                   pmr::memory_resource* mem_resource,
                   RReference value);
 
+    //! Move data
+    OverflowError(OverflowError&& other);
+
+    //! Finalize the lock free queue error
+    ~OverflowError() noexcept override;
+
+
+    //! Move data
+    OverflowError& operator=(OverflowError&& other);
+
 
     //! Return the overflowing value
     Reference get() noexcept;
@@ -91,6 +105,9 @@ class BoundedQueue : private NonCopyable<BoundedQueue<QueueClass, T>>
     std::shared_ptr<Type> value_;
   };
 
+#if defined(Z_GCC) || defined(Z_CLANG)
+#pragma GCC diagnostic pop
+#endif // Z_GCC || Z_CLANG
 
   //! Return the maximum possible number of elements
   size_type capacity() const noexcept;

@@ -164,6 +164,16 @@ class ThreadManager : private NonCopyable<ThreadManager>
                   const DiffType begin_offset,
                   const DiffType num_of_iterations);
 
+    //! Move data
+    OverflowError(OverflowError&& other);
+
+    //! Finalize the queue error
+    ~OverflowError() noexcept override;
+
+
+    //! Move data
+    OverflowError& operator=(OverflowError&& other);
+
 
     //! Return the offset of iterator
     DiffType beginOffset() const noexcept;

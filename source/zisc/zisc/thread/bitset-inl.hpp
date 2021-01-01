@@ -281,27 +281,6 @@ void Bitset::reset(const std::size_t begin, const std::size_t end, const bool va
 /*!
   \details No detailed description
 
-  \param [in] pos No description.
-  \param [in] value No description.
-  */
-inline
-void Bitset::set(const std::size_t pos, const bool value) noexcept
-{
-  Reference block = getBlock(pos);
-  ConstType mask = makeMask(pos);
-  if (value) {
-    ConstType v = mask;
-    atomic_fetch_or(std::addressof(block), v);
-  }
-  else {
-    ConstType v = ~mask;
-    atomic_fetch_and(std::addressof(block), v);
-  }
-}
-
-/*!
-  \details No detailed description
-
   \param [in] s No description.
   */
 inline
@@ -335,9 +314,28 @@ inline
 bool Bitset::test(const std::size_t pos) const noexcept
 {
   ConstReference block = getBlock(pos);
-  ConstType b = atomic_load(std::addressof(block));
   ConstType mask = makeMask(pos);
+  ConstType b = atomic_load(std::addressof(block));
   const bool result = (b & mask) != 0;
+  return result;
+}
+
+/*!
+  \details No detailed description
+
+  \param [in] pos No description.
+  \param [in] value No description.
+  \return No description
+  */
+inline
+bool Bitset::testAndSet(const std::size_t pos, const bool value) noexcept
+{
+  Reference block = getBlock(pos);
+  Pointer blockp = std::addressof(block);
+  ConstType mask = makeMask(pos);
+  ConstType v = value ? mask : ~mask;
+  ConstType old = value ? atomic_fetch_or(blockp, v) : atomic_fetch_and(blockp, v);
+  const bool result = (old & mask) != 0;
   return result;
 }
 

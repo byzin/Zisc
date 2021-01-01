@@ -97,17 +97,17 @@ class Bitset : private NonCopyable<Bitset>
   //! Set bits to the given value
   void reset(const std::size_t begin, const std::size_t end, const bool value = false) noexcept;
 
-  //! Set a bit to the given value
-  void set(const std::size_t pos, const bool value) noexcept;
-
   //! Set the number of bits
   void setSize(const std::size_t s) noexcept;
 
   //! Return the number of bits
   std::size_t size() const noexcept;
 
-  //! Access the bit at position pos
+  //! Return the value at the given position
   bool test(const std::size_t pos) const noexcept;
+
+  //! Atomically set value and obtain it's previous value
+  bool testAndSet(const std::size_t pos, const bool value) noexcept;
 
  private:
   //! Return the reference of a block

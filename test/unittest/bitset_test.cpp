@@ -66,8 +66,10 @@ TEST(BitsetTest, BitManipulationTest)
   ASSERT_FALSE(bits.isAny(0, 0));
   ASSERT_FALSE(bits.isAll(0, 0));
 
-  bits.set(5, true);
-  bits.set(98, true);
+  auto test_result = bits.testAndSet(5, true);
+  ASSERT_FALSE(test_result);
+  test_result = bits.testAndSet(98, true);
+  ASSERT_FALSE(test_result);
   ASSERT_FALSE(bits.isNone());
   ASSERT_TRUE(bits.isAny());
   ASSERT_FALSE(bits.isAll());
@@ -75,7 +77,8 @@ TEST(BitsetTest, BitManipulationTest)
   ASSERT_TRUE(bits[98]);
   ASSERT_EQ(2, bits.count());
 
-  bits.set(n - 1, true);
+  test_result = bits.testAndSet(n - 1, true);
+  ASSERT_FALSE(test_result);
   ASSERT_TRUE(bits[n-1]);
   ASSERT_EQ(3, bits.count());
 
@@ -87,8 +90,11 @@ TEST(BitsetTest, BitManipulationTest)
     ASSERT_FALSE(bits.isAll(b, e));
     for (std::size_t i = b; i < e; ++i) {
       ASSERT_FALSE(bits[i]);
-      bits.set(i, true);
+      test_result = bits.testAndSet(i, true);
+      ASSERT_FALSE(test_result);
       ASSERT_TRUE(bits[i]);
+      test_result = bits.testAndSet(i, true);
+      ASSERT_TRUE(test_result);
     }
     ASSERT_FALSE(bits.isNone(b, e));
     ASSERT_TRUE(bits.isAny(b, e));
@@ -114,6 +120,11 @@ TEST(BitsetTest, BitManipulationTest)
     ASSERT_FALSE(bits.isAll(e, e));
     ASSERT_FALSE(bits.count(b, b));
     ASSERT_FALSE(bits.count(e, e));
+
+    test_result = bits.testAndSet(b, false);
+    ASSERT_TRUE(test_result);
+    test_result = bits.testAndSet(b, false);
+    ASSERT_FALSE(test_result);
 
     bits.reset(b, e);
     ASSERT_FALSE(bits.isNone());

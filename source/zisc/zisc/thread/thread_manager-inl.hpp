@@ -755,7 +755,7 @@ void ThreadManager::createWorkers(const int64b num_of_threads) noexcept
       doWorkerTask();
     };
     workers_.emplace_back(work);
-    worker_state_set_.set(i, true);
+    worker_state_set_.testAndSet(i, true);
   }
   // Sort workers by their IDs
   auto comp = [](const std::thread& lhs, const std::thread& rhs) noexcept
@@ -812,9 +812,9 @@ void ThreadManager::doWorkerTask() noexcept
         std::this_thread::yield();
       }
       else {
-        worker_state_set_.set(cast<std::size_t>(thread_id), false);
+        worker_state_set_.testAndSet(cast<std::size_t>(thread_id), false);
         atomic_wait(std::addressof(lock_), 0);
-        worker_state_set_.set(cast<std::size_t>(thread_id), true);
+        worker_state_set_.testAndSet(cast<std::size_t>(thread_id), true);
       }
     }
   }
@@ -1015,7 +1015,7 @@ auto ThreadManager::fetchTask() noexcept -> WorkerTask
 inline
 void ThreadManager::finishTask(const int64b task_id) noexcept
 {
-  task_state_set_.set(cast<std::size_t>(task_id), true);
+  task_state_set_.testAndSet(cast<std::size_t>(task_id), true);
 }
 
 /*!

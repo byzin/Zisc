@@ -165,6 +165,11 @@ class Atomic
   static auto castMemOrder(const std::memory_order order) noexcept;
 };
 
+#if defined(Z_GCC) || defined(Z_CLANG)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpadded"
+#endif // Z_GCC || Z_CLANG
+
 /*!
   \brief No brief description
 
@@ -199,6 +204,10 @@ class AtomicWord : public AtomicWordBase<kOsSpecified>
  private:
   AtomicWordType word_ = 0;
 };
+
+#if defined(Z_GCC) || defined(Z_CLANG)
+#pragma GCC diagnostic pop
+#endif // Z_GCC || Z_CLANG
 
 // STL style function aliases
 

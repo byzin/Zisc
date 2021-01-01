@@ -502,13 +502,17 @@ endfunction(Zisc_setStaticAnalyzer)
 
 
 function(Zisc_createLinkToFiles output_dir)
-  foreach(file IN LISTS ARGN)
-    get_filename_component(name ${file} NAME)
-    file(CREATE_LINK ${file} "${output_dir}/${name}" RESULT result)
-    if(result)
-      message("${result}")
+  foreach(file_path IN LISTS ARGN)
+    get_filename_component(file_name ${file_path} NAME)
+    set(link_path "${output_dir}/${file_name}")
+    if(NOT (link_path STREQUAL file_path))
+      message(STATUS "Create a link '${file_name}'.")
+      file(CREATE_LINK ${file_path} ${link_path} RESULT result COPY_ON_ERROR)
+      if(result)
+        message(FATAL_ERROR "${result}")
+      endif()
     endif()
-  endforeach(file)
+  endforeach(file_path)
 endfunction(Zisc_createLinkToFiles)
 
 
@@ -518,10 +522,7 @@ function(Zisc_createLinkToTarget target output_dir)
 
   set(script
       "include(\"${CMAKE_CURRENT_FUNCTION_LIST_FILE}\")\n"
-      "get_filename_component(target_name \"\${target_path}\" NAME)\n"
-      "if(NOT EXISTS \"${output_dir}/\${target_name}\")\n"
-      "  Zisc_createLinkToFiles(\"${output_dir}\" \"\${target_path}\")\n"
-      "endif()\n")
+      "Zisc_createLinkToFiles(\"${output_dir}\" \"\${target_path}\")\n")
   set(script_dir ${binary_dir}/scripts)
   file(MAKE_DIRECTORY ${script_dir})
   set(script_file ${script_dir}/${link_target}.cmake)

@@ -22,7 +22,7 @@ function(Zisc_initZiscOptions)
   endif()
 
   set(option_description "L1 cache line size")
-  Zisc_setStringOption(ZISC_L1_CACHE_LINE_SIZE "128" ${option_description})
+  Zisc_setStringOption(ZISC_L1_CACHE_LINE_SIZE "64" ${option_description})
 endfunction(Zisc_initZiscOptions)
 
 
@@ -53,16 +53,18 @@ Zisc_getPlatformFlags(platform_definitions)
 Zisc_setVariablesOnCMake(${platform_definitions})
 Zisc_initZiscOptions()
 
+set(zisc_core_dir ${PROJECT_SOURCE_DIR}/core)
+
 # Make zisc configuration header file
 set(zisc_config_dir ${PROJECT_BINARY_DIR}/include/zisc)
 file(MAKE_DIRECTORY ${zisc_config_dir})
-configure_file(${PROJECT_SOURCE_DIR}/zisc/zisc_config-inl.hpp.in
+configure_file(${zisc_core_dir}/zisc/zisc_config-inl.hpp.in
                ${zisc_config_dir}/zisc_config-inl.hpp
                @ONLY)
 
 # Create Zisc library
-file(GLOB_RECURSE zisc_source_files ${PROJECT_SOURCE_DIR}/zisc/*.cpp
-                                    ${PROJECT_SOURCE_DIR}/zisc/*.hpp)
+file(GLOB_RECURSE zisc_source_files ${zisc_core_dir}/zisc/*.cpp
+                                    ${zisc_core_dir}/zisc/*.hpp)
 list(APPEND zisc_source_files ${zisc_config_dir}/zisc_config-inl.hpp)
 add_library(${PROJECT_NAME} STATIC ${zisc_source_files})
 source_group(${PROJECT_NAME} FILES ${zisc_source_files})
@@ -95,7 +97,7 @@ target_link_options(${PROJECT_NAME} PUBLIC ${cxx_linker_flags}
 target_compile_definitions(${PROJECT_NAME} PUBLIC ${platform_definitions}
                                                   ${cxx_definitions}
                                                   ${zisc_definitions})
-target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}
+target_include_directories(${PROJECT_NAME} PUBLIC ${zisc_core_dir}
                                                   ${PROJECT_BINARY_DIR}/include)
 Zisc_enableIpo(${PROJECT_NAME})
 

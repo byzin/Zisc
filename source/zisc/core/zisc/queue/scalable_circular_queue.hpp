@@ -25,16 +25,12 @@
 #include <vector>
 // Zisc
 #include "bounded_queue.hpp"
+#include "ring_buffer.hpp"
 #include "zisc/error.hpp"
 #include "zisc/zisc_config.hpp"
 #include "zisc/memory/std_memory_resource.hpp"
 
 namespace zisc {
-
-#if defined(Z_GCC) || defined(Z_CLANG)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wpadded"
-#endif // Z_GCC || Z_CLANG
 
 /*!
   \brief Scalable Circular Queue (SCQ)
@@ -116,84 +112,15 @@ class ScalableCircularQueue : public BoundedQueue<ScalableCircularQueue<T>, T>
   size_type size() const noexcept;
 
  private:
-  //! Represent a ring buffer of a queue
-  class RingBuffer
-  {
-   public:
-    //! Create a ring buffer
-    RingBuffer(pmr::memory_resource* mem_resource) noexcept;
-
-    //! Move a data
-    RingBuffer(RingBuffer&& other) noexcept;
-
-
-    //! Move a data
-    RingBuffer& operator=(RingBuffer&& other) noexcept;
-
-
-    //! Clear indices
-    void clear() noexcept;
-
-    //! Return the index represent an overflow
-    static constexpr uint64b overflowIndex() noexcept;
-
-    //! Take the first element of the queue
-    uint64b dequeue(const bool nonempty) noexcept;
-
-    //! Return the distance between head and tail
-    std::size_t distance() const noexcept;
-
-    //! Append the given element value to the end of the queue
-    bool enqueue(const uint64b index, const bool nonempty) noexcept;
-
-    //! Fill indices
-    void fill(const uint64b s, const uint64b e) noexcept;
-
-    //! Return the invalid index
-    static constexpr uint64b invalidIndex() noexcept;
-
-    //! Return the order of a ring buffer size
-    uint64b order() const noexcept;
-
-    //! Set the number of elements of indices
-    void setSize(const std::size_t s) noexcept;
-
-    //! Return the number of elements of indices
-    std::size_t size() const noexcept;
-
-   private:
-    //!
-    void catchUp(uint64b tail, uint64b head) noexcept;
-
-    //
-    int64b diff(const uint64b lhs, const uint64b rhs) const noexcept;
-
-    //!
-    int64b getThreshold3(const uint64b half) const noexcept;
-
-    //! Remap index in order to avoid false sharing
-    uint64b permuteIndex(const uint64b index) const noexcept;
-
-
-    static constexpr std::size_t kCacheLineSize = Config::l1CacheLineSize();
-
-
-    alignas(kCacheLineSize) std::atomic<uint64b> head_{0};
-    alignas(kCacheLineSize) std::atomic<int64b> threshold_{0};
-    alignas(kCacheLineSize) std::atomic<uint64b> tail_{0};
-    pmr::vector<std::atomic<uint64b>> indices_;
-    uint64b order_;
-  };
+  //! Append the given element value to the end of the queue
+  template <typename ValueT>
+  bool enqueueImpl(ValueT&& value);
 
 
   RingBuffer free_elements_;
   RingBuffer allocated_elements_;
   container_type elements_;
 };
-
-#if defined(Z_GCC) || defined(Z_CLANG)
-#pragma GCC diagnostic pop
-#endif // Z_GCC || Z_CLANG
 
 } // namespace zisc
 

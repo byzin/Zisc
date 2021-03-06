@@ -32,6 +32,7 @@ constexpr Float mapTo01(const Integer x) noexcept;
 
 //! Swap the values
 template <typename Type1, typename Type2>
+requires ConvertibleTo<Type1, Type2> && ConvertibleTo<Type2, Type1>
 constexpr void swap(Type1& a, Type2& b) noexcept;
 
 //! Convert between types by reinterpreting the underlying bit pattern

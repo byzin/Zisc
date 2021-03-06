@@ -31,6 +31,7 @@
 #include <vector>
 // Zisc
 #include "atomic.hpp"
+#include "atomic_word.hpp"
 #include "bitset.hpp"
 #include "zisc/concepts.hpp"
 #include "zisc/error.hpp"
@@ -441,7 +442,7 @@ void ThreadManager::clear() noexcept
   task_queue_.clear();
   task_state_set_.reset();
   total_tasks_.store(0);
-  lock_.set(0);
+  lock_.store(0, std::memory_order::release);
 }
 
 /*!
@@ -1013,7 +1014,7 @@ auto ThreadManager::enqueueImpl(Func&& task,
 inline
 void ThreadManager::exitWorkersRunning() noexcept
 {
-  lock_.set(-1);
+  lock_.store(-1, std::memory_order::release);
   atomic_notify_all(std::addressof(lock_));
   for (auto& worker : workers_)
     worker.join();

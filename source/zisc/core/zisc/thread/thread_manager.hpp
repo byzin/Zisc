@@ -26,6 +26,7 @@
 #include <vector>
 // Zisc
 #include "atomic.hpp"
+#include "atomic_word.hpp"
 #include "bitset.hpp"
 #include "zisc/concepts.hpp"
 #include "zisc/error.hpp"
@@ -105,7 +106,7 @@ class ThreadManager : private NonCopyable<ThreadManager>
     uint8b has_value_;
   };
 
-  using DiffType = AtomicWordType;
+  using DiffType = Atomic::WordValueType;
 
   /*!
     \brief No brief description

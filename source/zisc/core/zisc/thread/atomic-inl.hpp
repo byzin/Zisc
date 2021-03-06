@@ -38,11 +38,20 @@ namespace zisc {
   \return No description
   */
 inline
-auto Atomic::castMemOrder(const std::memory_order order) noexcept
+constexpr auto Atomic::castMemOrder(const std::memory_order order) noexcept
 {
 #if defined(Z_CLANG)
-  using OrderType = decltype(__ATOMIC_SEQ_CST);
-  return cast<OrderType>(order);
+  using OrderT = decltype(__ATOMIC_SEQ_CST);
+
+  // memory order value check
+  static_assert(__ATOMIC_RELAXED == zisc::cast<OrderT>(std::memory_order::relaxed));
+  static_assert(__ATOMIC_CONSUME == zisc::cast<OrderT>(std::memory_order::consume));
+  static_assert(__ATOMIC_ACQUIRE == zisc::cast<OrderT>(std::memory_order::acquire));
+  static_assert(__ATOMIC_RELEASE == zisc::cast<OrderT>(std::memory_order::release));
+  static_assert(__ATOMIC_ACQ_REL == zisc::cast<OrderT>(std::memory_order::acq_rel));
+  static_assert(__ATOMIC_SEQ_CST == zisc::cast<OrderT>(std::memory_order::seq_cst));
+
+  return cast<OrderT>(order);
 #else // Z_CLANG
   return order;
 #endif // Z_CLANG
@@ -131,10 +140,12 @@ Type Atomic::compareAndExchange(Type* ptr,
                                 const std::memory_order success_order,
                                 const std::memory_order failure_order) noexcept
 {
+  const auto s = castMemOrder(success_order);
+  const auto f = castMemOrder(failure_order);
 #if defined(Z_CLANG)
-  __atomic_compare_exchange(ptr, &cmp, &value, false, castMemOrder(success_order), castMemOrder(failure_order));
+  __atomic_compare_exchange(ptr, &cmp, &value, false, s, f);
 #else // Z_CLANG
-  std::atomic_ref<Type>{*ptr}.compare_exchange_strong(cmp, value, success_order, failure_order);
+  std::atomic_ref<Type>{*ptr}.compare_exchange_strong(cmp, value, s, f);
 #endif // Z_CLANG
   return cmp;
 }
@@ -394,7 +405,7 @@ Type Atomic::perform(Type* ptr,
   do {
     cmp = old;
     const Type value = expression(cmp, std::forward<Types>(arguments)...);
-    old = compareAndExchange(ptr, cmp, value, order);
+    old = compareAndExchange(ptr, cmp, value, order, std::memory_order::acquire);
   } while (old != cmp);
   return old;
 }
@@ -422,133 +433,6 @@ Type Atomic::perform(Type* ptr,
                            std::forward<Function>(expression),
                            std::forward<Types>(arguments)...);
   return old;
-}
-
-#if defined(Z_WINDOWS) || defined(Z_LINUX)
-
-/*!
-  \brief No brief description
-
-  No detailed description.
-  */
-template <>
-class AtomicWordBase<true> : private NonCopyable<AtomicWordBase<true>>
-{
-};
-
-#endif // Z_WINDOWS || Z_LINUX
-
-/*!
-  \brief No brief description
-
-  No detailed description.
-  */
-template <bool kOsSpecified>
-class AtomicWordBase : private NonCopyable<AtomicWordBase<kOsSpecified>>
-{
- public:
-  //! Return the underlying mutex
-  std::mutex& lock() noexcept
-  {
-    return lock_;
-  }
-
-  //! Return the underlyling condition variable
-  std::condition_variable& condition() noexcept
-  {
-    return condition_;
-  }
-
- private:
-  std::mutex lock_;
-  std::condition_variable condition_;
-  static_assert(std::alignment_of_v<std::condition_variable> <=
-                std::alignment_of_v<std::mutex>);
-};
-
-// template explicit instantiation
-template <>
-void Atomic::wait<false>(AtomicWord<false>* word, const AtomicWordType old) noexcept;
-template <>
-void Atomic::wait<true>(AtomicWord<true>* word, const AtomicWordType old) noexcept;
-template <>
-void Atomic::notifyOne<false>(AtomicWord<false>* word) noexcept;
-template <>
-void Atomic::notifyOne<true>(AtomicWord<true>* word) noexcept;
-template <>
-void Atomic::notifyAll<false>(AtomicWord<false>* word) noexcept;
-template <>
-void Atomic::notifyAll<true>(AtomicWord<true>* word) noexcept;
-
-/*!
-  \details No detailed description
-  */
-template <bool kOsSpecified> inline
-AtomicWord<kOsSpecified>::AtomicWord() noexcept
-{
-}
-
-/*!
-  \details No detailed description
-
-  \param [in] value No description.
-  */
-template <bool kOsSpecified> inline
-AtomicWord<kOsSpecified>::AtomicWord(const AtomicWordType value) noexcept
-    : word_{value}
-{
-}
-
-/*!
-  \details No detailed description
-
-  \return No description
-  */
-template <bool kOsSpecified> inline
-auto AtomicWord<kOsSpecified>::get() noexcept -> AtomicWordType&
-{
-  return word_;
-}
-
-/*!
-  \details No detailed description
-
-  \return No description
-  */
-template <bool kOsSpecified> inline
-auto AtomicWord<kOsSpecified>::get() const noexcept -> const AtomicWordType&
-{
-  return word_;
-}
-
-/*!
-  \details No detailed description
-
-  \return No description
-  */
-template <bool kOsSpecified> inline
-constexpr bool AtomicWord<kOsSpecified>::isSpecialized() noexcept
-{
-  const bool flag =
-#if defined(Z_WINDOWS) || defined(Z_LINUX)
-      kOsSpecified;
-#else
-      false;
-#endif
-  return flag;
-}
-
-/*!
-  \details No detailed description
-
-  \param [in] value No description.
-  \param [in] order No description.
-  */
-template <bool kOsSpecified> inline
-void AtomicWord<kOsSpecified>::set(const AtomicWordType value,
-                                   const std::memory_order order) noexcept
-{
-  Atomic::store(&word_, value, order);
 }
 
 /*!
@@ -783,25 +667,27 @@ Int atomic_fetch_xor(Int* ptr,
 /*!
   \details No detailed description
 
-  \tparam kOsSpecialization No description.
+  \tparam kOsSpecified No description.
   \param [in] word No description.
   \param [in] old No description.
+  \param [in] order No description.
   */
-template <bool kOsSpecialization> inline
-void atomic_wait(AtomicWord<kOsSpecialization>* word,
-                 const AtomicWordType old) noexcept
+template <bool kOsSpecified> inline
+void atomic_wait(AtomicWord<kOsSpecified>* word,
+                 const Atomic::WordValueType old,
+                 const std::memory_order order) noexcept
 {
-  Atomic::wait(word, old);
+  Atomic::wait(word, old, order);
 }
 
 /*!
   \details No detailed description
 
-  \tparam kOsSpecialization No description.
+  \tparam kOsSpecified No description.
   \param [in] word No description.
   */
-template <bool kOsSpecialization> inline
-void atomic_notify_one(AtomicWord<kOsSpecialization>* word) noexcept
+template <bool kOsSpecified> inline
+void atomic_notify_one(AtomicWord<kOsSpecified>* word) noexcept
 {
   Atomic::notifyOne(word);
 }
@@ -809,11 +695,11 @@ void atomic_notify_one(AtomicWord<kOsSpecialization>* word) noexcept
 /*!
   \details No detailed description
 
-  \tparam kOsSpecialization No description.
+  \tparam kOsSpecified No description.
   \param [in] word No description.
   */
-template <bool kOsSpecialization> inline
-void atomic_notify_all(AtomicWord<kOsSpecialization>* word) noexcept
+template <bool kOsSpecified> inline
+void atomic_notify_all(AtomicWord<kOsSpecified>* word) noexcept
 {
   Atomic::notifyAll(word);
 }

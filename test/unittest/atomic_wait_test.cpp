@@ -16,6 +16,7 @@
   */
 
 // Standard C++ library
+#include <atomic>
 #include <chrono>
 #include <cstddef>
 #include <iostream>
@@ -27,6 +28,7 @@
 // Zisc
 #include "zisc/zisc_config.hpp"
 #include "zisc/thread/atomic.hpp"
+#include "zisc/thread/atomic_word.hpp"
 
 namespace {
 
@@ -35,7 +37,7 @@ void testWaitNotification(zisc::AtomicWord<specialization>* word)
 {
   using Clock = std::chrono::high_resolution_clock;
 
-  word->set(0);
+  word->store(0, std::memory_order::release);
 
   auto job = [word]() noexcept
   {
@@ -44,12 +46,12 @@ void testWaitNotification(zisc::AtomicWord<specialization>* word)
       return std::chrono::duration_cast<std::chrono::milliseconds>(t).count();
     };
     auto start_time = Clock::now();
-    zisc::atomic_wait(word, 0);
+    zisc::atomic_wait(word, 0, std::memory_order::acquire);
     auto current_time = Clock::now();
     auto elapsed_time = to_millisec(current_time - start_time);
     std::cout << "Elapsed time: " << elapsed_time << " ms" << std::endl;
     ASSERT_GT(elapsed_time, 1200);
-    zisc::atomic_wait(word, 1);
+    zisc::atomic_wait(word, 1, std::memory_order::acquire);
     current_time = Clock::now();
     elapsed_time = to_millisec(current_time - start_time);
     std::cout << "Elapsed time: " << elapsed_time << " ms" << std::endl;
@@ -62,12 +64,12 @@ void testWaitNotification(zisc::AtomicWord<specialization>* word)
   std::this_thread::sleep_for(one_sec);
   zisc::atomic_notify_one(word);
   std::this_thread::sleep_for(h);
-  word->set(1);
+  word->store(1, std::memory_order::release);
   zisc::atomic_notify_one(word);
   std::this_thread::sleep_for(one_sec);
   zisc::atomic_notify_all(word);
   std::this_thread::sleep_for(h);
-  word->set(2);
+  word->store(2, std::memory_order::release);
   zisc::atomic_notify_all(word);
 
   job_thread.join();

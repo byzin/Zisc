@@ -83,13 +83,10 @@ constexpr Float mapTo01(const Integer x) noexcept
   \param [in] a No description.
   \param [in] b No description.
   */
-template <typename Type1, typename Type2> inline
+template <typename Type1, typename Type2>
+requires ConvertibleTo<Type1, Type2> && ConvertibleTo<Type2, Type1> inline
 constexpr void swap(Type1& a, Type2& b) noexcept
 {
-  static_assert(std::is_convertible_v<Type1, Type2>,
-                "Type1 isn't able to be converted to Type2.");
-  static_assert(std::is_convertible_v<Type2, Type1>,
-                "Type2 isn't able to be converted to Type1.");
   auto tmp = std::move(b);
   b = std::move(a);
   a = std::move(tmp);

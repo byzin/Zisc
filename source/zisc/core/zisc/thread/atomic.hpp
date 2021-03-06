@@ -26,9 +26,7 @@
 namespace zisc {
 
 // Forward declaration
-template <bool kOsSpecified> class AtomicWordBase;
 template <bool kOsSpecified> class AtomicWord;
-using AtomicWordType = int;
 
 /*!
   \brief Atomic functions
@@ -38,6 +36,10 @@ using AtomicWordType = int;
 class Atomic
 {
  public:
+  //! Represent atomic word value
+  using WordValueType = int;
+
+
   //! Return the default memory order
   static constexpr std::memory_order defaultMemOrder() noexcept
   {
@@ -148,66 +150,23 @@ class Atomic
   // Atomic wait-notification
 
   //! Block the thread until notified and the word value changed
-  template <bool kOsSpecialization>
-  static void wait(AtomicWord<kOsSpecialization>* word,
-                   const AtomicWordType old) noexcept;
+  template <bool kOsSpecified>
+  static void wait(AtomicWord<kOsSpecified>* word,
+                   const WordValueType old,
+                   const std::memory_order order = defaultMemOrder()) noexcept;
 
   //! Notify a thread blocked in wait
-  template <bool kOsSpecialization>
-  static void notifyOne(AtomicWord<kOsSpecialization>* word) noexcept;
+  template <bool kOsSpecified>
+  static void notifyOne(AtomicWord<kOsSpecified>* word) noexcept;
 
   //! Notify all threads blocked in wait
-  template <bool kOsSpecialization>
-  static void notifyAll(AtomicWord<kOsSpecialization>* word) noexcept;
+  template <bool kOsSpecified>
+  static void notifyAll(AtomicWord<kOsSpecified>* word) noexcept;
 
  private:
   //! Convert the memory order type
-  static auto castMemOrder(const std::memory_order order) noexcept;
+  static constexpr auto castMemOrder(const std::memory_order order) noexcept;
 };
-
-#if defined(Z_GCC) || defined(Z_CLANG)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wpadded"
-#endif // Z_GCC || Z_CLANG
-
-/*!
-  \brief No brief description
-
-  No detailed description.
-
-  \tparam kOsSpecified No description.
-  */
-template <bool kOsSpecified>
-class AtomicWord : public AtomicWordBase<kOsSpecified>
-{
- public:
-  //! Construct an atomic word
-  AtomicWord() noexcept;
-
-  //! Construct an atomic word
-  AtomicWord(const AtomicWordType value) noexcept;
-
-
-  //! Return the underlying word
-  AtomicWordType& get() noexcept;
-
-  //! Return the underlying word
-  const AtomicWordType& get() const noexcept;
-
-  //! Check if the atomic word is specialized
-  static constexpr bool isSpecialized() noexcept;
-
-  //! Set a value to the underlying word atomically
-  void set(const AtomicWordType value,
-           const std::memory_order order = Atomic::defaultMemOrder()) noexcept;
-
- private:
-  AtomicWordType word_ = 0;
-};
-
-#if defined(Z_GCC) || defined(Z_CLANG)
-#pragma GCC diagnostic pop
-#endif // Z_GCC || Z_CLANG
 
 // STL style function aliases
 
@@ -302,17 +261,18 @@ Int atomic_fetch_xor(
     const std::memory_order order = Atomic::defaultMemOrder()) noexcept;
 
 //! Block the thread until notified and the word value changed
-template <bool kOsSpecialization>
-void atomic_wait(AtomicWord<kOsSpecialization>* word,
-                 const AtomicWordType old) noexcept;
+template <bool kOsSpecified>
+void atomic_wait(AtomicWord<kOsSpecified>* word,
+                 const Atomic::WordValueType old,
+                 const std::memory_order order = Atomic::defaultMemOrder()) noexcept;
 
 //! Notify a thread blocked in wait
-template <bool kOsSpecialization>
-void atomic_notify_one(AtomicWord<kOsSpecialization>* word) noexcept;
+template <bool kOsSpecified>
+void atomic_notify_one(AtomicWord<kOsSpecified>* word) noexcept;
 
 //! Notify all threads blocked in wait
-template <bool kOsSpecialization>
-void atomic_notify_all(AtomicWord<kOsSpecialization>* word) noexcept;
+template <bool kOsSpecified>
+void atomic_notify_all(AtomicWord<kOsSpecified>* word) noexcept;
 
 } // namespace zisc
 

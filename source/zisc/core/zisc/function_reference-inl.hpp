@@ -58,9 +58,8 @@ template <typename ReturnT, typename ...ArgTypes>
 template <typename ...Args> inline
 auto FunctionReference<ReturnT (ArgTypes...)>::operator()(Args&&... args) const
     -> ReturnType
+    requires Invocable<FunctionPointer, Args...>
 {
-  static_assert(Invocable<FunctionPointer, Args...>,
-                "This cannot be invoke with the args.");
   if constexpr (std::is_void_v<ReturnType>)
     invoke(std::forward<Args>(args)...);
   else
@@ -121,9 +120,8 @@ template <typename ReturnT, typename ...ArgTypes>
 template <typename ...Args> inline
 auto FunctionReference<ReturnT (ArgTypes...)>::invoke(Args&&... args) const
     -> ReturnType
+    requires Invocable<FunctionPointer, Args...>
 {
-  static_assert(Invocable<FunctionPointer, Args...>,
-                "This cannot be invoke with the args.");
   ZISC_ASSERT(cast<bool>(*this), "Underlying reference is invalid.");
   if constexpr (std::is_void_v<ReturnType>)
     callback_(memory(), std::forward<Args>(args)...);

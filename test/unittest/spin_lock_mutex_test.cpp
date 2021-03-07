@@ -37,7 +37,7 @@ TEST(SpinLockMutexTest, LockTest)
   };
 
   constexpr zisc::int64b start = 0;
-  constexpr zisc::int64b end = 131072;
+  constexpr zisc::int64b end = 4 * 1310720;
   thread_manager.setItemCapacity(end);
   auto result = thread_manager.enqueueLoop(test, start, end);
   result->wait();

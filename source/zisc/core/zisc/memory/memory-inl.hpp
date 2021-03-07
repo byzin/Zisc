@@ -18,6 +18,7 @@
 #include "memory.hpp"
 // Standard C++ library
 #include <algorithm>
+#include <atomic>
 #include <cstddef>
 #include <cstdlib>
 #include <limits>
@@ -125,8 +126,9 @@ void Memory::SystemMemoryStats::setTotalVirtualMemory(const std::size_t s) noexc
 inline
 void Memory::Usage::add(const std::size_t size) noexcept
 {
-  atomic_fetch_add(&total_, size);
-  atomic_fetch_max(&peak_, total());
+  const std::size_t old = atomic_fetch_add(&total_, size, std::memory_order::acq_rel);
+  const std::size_t t = old + size;
+  atomic_fetch_max(&peak_, t, std::memory_order::relaxed);
 }
 
 /*!
@@ -137,7 +139,7 @@ void Memory::Usage::add(const std::size_t size) noexcept
 inline
 std::size_t Memory::Usage::peak() const noexcept
 {
-  const std::size_t p = atomic_load(&peak_);
+  const std::size_t p = atomic_load(&peak_, std::memory_order::acquire);
   return p;
 }
 
@@ -149,7 +151,7 @@ std::size_t Memory::Usage::peak() const noexcept
 inline
 void Memory::Usage::release(const std::size_t size) noexcept
 {
-  atomic_fetch_sub(&total_, size);
+  atomic_fetch_sub(&total_, size, std::memory_order::relaxed);
 }
 
 /*!
@@ -160,7 +162,7 @@ void Memory::Usage::release(const std::size_t size) noexcept
 inline
 void Memory::Usage::setPeak(const std::size_t p) noexcept
 {
-  atomic_store(&peak_, p);
+  atomic_store(&peak_, p, std::memory_order::release);
 }
 
 /*!
@@ -171,7 +173,7 @@ void Memory::Usage::setPeak(const std::size_t p) noexcept
 inline
 void Memory::Usage::setTotal(const std::size_t t) noexcept
 {
-  atomic_store(&total_, t);
+  atomic_store(&total_, t, std::memory_order::release);
 }
 
 /*!
@@ -182,7 +184,7 @@ void Memory::Usage::setTotal(const std::size_t t) noexcept
 inline
 std::size_t Memory::Usage::total() const noexcept
 {
-  const std::size_t t = atomic_load(&total_);
+  const std::size_t t = atomic_load(&total_, std::memory_order::acquire);
   return t;
 }
 
@@ -225,9 +227,9 @@ constexpr Type* Memory::assumeAligned(Type* ptr)
       ptr; //!< \todo Fix me
 #elif defined(Z_CLANG)
       cast<Type*>(__builtin_assume_aligned(ptr, kN));
-#else // Z_CLANG
+#else
       std::assume_aligned<kN>(ptr);
-#endif // Z_CLANG
+#endif
   return result;
 }
 

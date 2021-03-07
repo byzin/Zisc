@@ -43,11 +43,12 @@ namespace zisc {
 Memory::SystemMemoryStats Memory::retrieveSystemStatsImpl() noexcept
 {
   SystemMemoryStats stats;
+  bool success = false;
 #if defined(Z_WINDOWS)
   {
     MEMORYSTATUSEX info{};
     info.dwLength = sizeof(info);
-    GlobalMemoryStatusEx(&info);
+    success = GlobalMemoryStatusEx(&info) != 0;
     stats.setTotalPhysicalMemory(info.ullTotalPhys);
     stats.setAvailablePhysicalMemory(info.ullAvailPhys);
     stats.setTotalVirtualMemory(info.ullTotalVirtual);
@@ -56,15 +57,16 @@ Memory::SystemMemoryStats Memory::retrieveSystemStatsImpl() noexcept
 #elif defined(Z_LINUX)
   {
     struct sysinfo info{};
-    sysinfo(&info);
+    success = sysinfo(&info) == 0;
     const std::size_t total_physical_mem = info.totalram * info.mem_unit;
     stats.setTotalPhysicalMemory(total_physical_mem);
-    const std::size_t free_physical_mem = info.freeram * info.mem_unit;
-    stats.setAvailablePhysicalMemory(free_physical_mem);
+    const std::size_t available_ram = info.freeram + info.bufferram;
+    const std::size_t available_physical_mem = available_ram * info.mem_unit;
+    stats.setAvailablePhysicalMemory(available_physical_mem);
     const std::size_t total_virtual_mem = info.totalswap * info.mem_unit;
     stats.setTotalVirtualMemory(total_virtual_mem);
-    const std::size_t free_virtual_mem = info.freeswap * info.mem_unit;
-    stats.setAvailableVirtualMemory(free_virtual_mem);
+    const std::size_t available_virtual_mem = info.freeswap * info.mem_unit;
+    stats.setAvailableVirtualMemory(available_virtual_mem);
   }
 #elif defined(Z_MAC)
   {
@@ -116,15 +118,14 @@ Memory::SystemMemoryStats Memory::retrieveSystemStatsImpl() noexcept
       stats.setAvailableVirtualMemory(vmusage.xsu_avail);
     }
   }
-#else
-  {
+#endif
+  if (!success) {
     constexpr std::size_t m = (std::numeric_limits<std::size_t>::max)();
     stats.setTotalPhysicalMemory(m);
     stats.setAvailablePhysicalMemory(m);
     stats.setTotalVirtualMemory(m);
     stats.setAvailableVirtualMemory(m);
   }
-#endif
   return stats;
 }
 

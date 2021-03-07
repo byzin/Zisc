@@ -16,6 +16,7 @@
 #include <array>
 #include <cstddef>
 #include <memory>
+#include <thread>
 #include <type_traits>
 #include <utility>
 // GoogleTest
@@ -196,4 +197,75 @@ TEST(SimpleMemoryResourceTest, AlignmentTest)
     constexpr std::size_t alignment = 4096;
     test_allocation(alignment);
   }
+}
+
+TEST(SimpleMemoryResource, MultiThreadTest)
+{
+  zisc::SimpleMemoryResource mem_resource;
+  ASSERT_FALSE(mem_resource.totalMemoryUsage())
+      << "SimpleMemoryResource initialization failed.";
+  ASSERT_FALSE(mem_resource.peakMemoryUsage())
+      << "SimpleMemoryResource initialization failed.";
+
+  std::atomic<int> ready1{0};
+  std::atomic<int> ready2{0};
+  std::atomic<std::size_t> created{0};
+  std::atomic<std::size_t> alloc_completed{0};
+  std::atomic<std::size_t> dealloc_completed{0};
+
+  constexpr std::size_t header_size = sizeof(zisc::SimpleMemoryResource::Header);
+  constexpr std::size_t n_threads = 1024;
+  constexpr std::size_t loop = 100;
+  constexpr std::size_t alloc_size = 5 * 1024;
+
+  auto alloc =
+  [&mem_resource, &ready1, &ready2, &created, &alloc_completed, &dealloc_completed]()
+  {
+    created.fetch_add(1, std::memory_order::release);
+
+    // Allocate memory
+    ready1.wait(0, std::memory_order::acquire);
+    std::array<void*, loop> mem_list;
+    for (std::size_t i = 0; i < loop; ++i) {
+      constexpr std::size_t alignment = std::alignment_of_v<std::size_t>;
+      auto p = mem_resource.allocate(alloc_size, alignment);
+      mem_list[i] = p;
+    }
+    alloc_completed.fetch_add(1, std::memory_order::release);
+
+    // Deallocate memory
+    ready2.wait(0, std::memory_order::acquire);
+    for (auto p : mem_list)
+      mem_resource.deallocate(p, 0, 0);
+    dealloc_completed.fetch_add(1, std::memory_order::release);
+  };
+
+  std::array<std::thread, n_threads> thread_list;
+  // Create threads
+  for (std::size_t i = 0; i < thread_list.size(); ++i)
+    thread_list[i] = std::thread{alloc};
+  while (created.load(std::memory_order::acquire) < n_threads)
+    std::this_thread::yield();
+  ready1.store(1, std::memory_order::release);
+  ready1.notify_all();
+  // Allocation test
+  while (alloc_completed.load(std::memory_order::acquire) < n_threads)
+    std::this_thread::yield();
+  constexpr std::size_t expected_peak = n_threads * loop * (alloc_size + header_size);
+  EXPECT_EQ(expected_peak, mem_resource.totalMemoryUsage())
+      << "Memory allocation in parallel failed.";
+  EXPECT_EQ(expected_peak, mem_resource.peakMemoryUsage())
+      << "Memory allocation in parallel failed.";
+  ready2.store(1, std::memory_order::release);
+  ready2.notify_all();
+  // Deallocation test
+  while (dealloc_completed.load(std::memory_order::acquire) < n_threads)
+    std::this_thread::yield();
+  EXPECT_EQ(0, mem_resource.totalMemoryUsage())
+      << "Memory allocation in parallel failed.";
+  EXPECT_EQ(expected_peak, mem_resource.peakMemoryUsage())
+      << "Memory allocation in parallel failed.";
+  // Join threads
+  for (auto& t : thread_list)
+    t.join();
 }

@@ -120,6 +120,13 @@ class Memory
   static SystemMemoryStats retrieveSystemStats() noexcept;
 
  private:
+  //! Allocate aligned memory for Windows
+  [[nodiscard]]
+  static void* allocateForWin(const std::size_t alignment, const std::size_t size);
+
+  //! Deallocate previously allocated memory for Windows
+  static void freeForWin(void* ptr);
+
   //! Retrieve the system memory statistics
   static SystemMemoryStats retrieveSystemStatsImpl() noexcept;
 };

@@ -24,6 +24,7 @@
 // Platform
 #if defined(Z_WINDOWS)
 #define NOMINMAX
+#include <malloc.h>
 #include <windows.h>
 #elif defined(Z_LINUX)
 #include <sys/sysinfo.h>
@@ -34,6 +35,36 @@
 #endif
 
 namespace zisc {
+
+/*!
+  \details No detailed description
+
+  \param [in] alignment No description.
+  \param [in] size No description.
+  \return No description
+  */
+[[nodiscard]]
+void* Memory::allocateForWin([[maybe_unused]] const std::size_t alignment,
+                             [[maybe_unused]] const std::size_t size)
+{
+  void* ptr = nullptr;
+#if defined(Z_WINDOWS)
+  ptr = _aligned_malloc(size, alignment);
+#endif // Z_WINDOWS
+  return ptr;
+}
+
+/*!
+  \details No detailed description
+
+  \param [out] ptr No description.
+  */
+void Memory::freeForWin([[maybe_unused]] void* ptr)
+{
+#if defined(Z_WINDOWS)
+  _aligned_free(ptr);
+#endif // Z_WINDOWS
+}
 
 /*!
   \details No detailed description

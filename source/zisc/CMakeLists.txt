@@ -36,6 +36,9 @@ function(Zisc_getZiscFlags zisc_compile_flags zisc_linker_flags zisc_definitions
     list(APPEND definitions ZISC_ASSERTION=1)
   endif()
 
+  if(Z_WINDOWS)
+    list(APPEND definitions _ENABLE_EXTENDED_ALIGNED_STORAGE=1)
+  endif()
 
   # Output variables
   set(${zisc_definitions} ${definitions} PARENT_SCOPE)

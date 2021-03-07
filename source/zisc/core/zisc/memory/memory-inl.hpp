@@ -202,7 +202,7 @@ void* Memory::allocate(const std::size_t alignment, const std::size_t size)
   const std::size_t palignment = (std::max)(alignment, std::alignment_of_v<void*>);
   void* ptr =
 #if defined(Z_WINDOWS)
-      _aligned_malloc(psize, palignment);
+      allocateForWin(palignment, psize);
 #elif defined(Z_MAC)
       ::aligned_alloc(palignment, psize);
 #else
@@ -223,13 +223,11 @@ template <std::size_t kN, typename Type> inline
 constexpr Type* Memory::assumeAligned(Type* ptr)
 {
   Type* result =
-#if defined(Z_MSVC)
-      ptr; //!< \todo Fix me
-#elif defined(Z_CLANG)
+#if defined(Z_CLANG)
       cast<Type*>(__builtin_assume_aligned(ptr, kN));
-#else
+#else // Z_CLANG
       std::assume_aligned<kN>(ptr);
-#endif
+#endif // Z_CLANG
   return result;
 }
 
@@ -242,7 +240,7 @@ inline
 void Memory::free(void* ptr)
 {
 #if defined(Z_WINDOWS)
-  _aligned_free(ptr);
+  freeForWin(ptr);
 #elif defined(Z_MAC)
   ::free(ptr);
 #else

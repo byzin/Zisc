@@ -25,6 +25,8 @@
 #include "zisc/zisc_config.hpp"
 #include "zisc/memory/simple_memory_resource.hpp"
 #include "zisc/memory/std_memory_resource.hpp"
+#include "zisc/thread/atomic.hpp"
+#include "zisc/thread/atomic_word.hpp"
 
 namespace {
 
@@ -207,8 +209,8 @@ TEST(SimpleMemoryResource, MultiThreadTest)
   ASSERT_FALSE(mem_resource.peakMemoryUsage())
       << "SimpleMemoryResource initialization failed.";
 
-  std::atomic<int> ready1{0};
-  std::atomic<int> ready2{0};
+  zisc::AtomicWord<true> ready1{0};
+  zisc::AtomicWord<true> ready2{0};
   std::atomic<std::size_t> created{0};
   std::atomic<std::size_t> alloc_completed{0};
   std::atomic<std::size_t> dealloc_completed{0};
@@ -224,7 +226,7 @@ TEST(SimpleMemoryResource, MultiThreadTest)
     created.fetch_add(1, std::memory_order::release);
 
     // Allocate memory
-    ready1.wait(0, std::memory_order::acquire);
+    zisc::atomic_wait(&ready1, 0, std::memory_order::acquire);
     std::array<void*, loop> mem_list;
     for (std::size_t i = 0; i < loop; ++i) {
       constexpr std::size_t alignment = std::alignment_of_v<std::size_t>;
@@ -234,7 +236,7 @@ TEST(SimpleMemoryResource, MultiThreadTest)
     alloc_completed.fetch_add(1, std::memory_order::release);
 
     // Deallocate memory
-    ready2.wait(0, std::memory_order::acquire);
+    zisc::atomic_wait(&ready2, 0, std::memory_order::acquire);
     for (auto p : mem_list)
       mem_resource.deallocate(p, 0, 0);
     dealloc_completed.fetch_add(1, std::memory_order::release);
@@ -247,7 +249,7 @@ TEST(SimpleMemoryResource, MultiThreadTest)
   while (created.load(std::memory_order::acquire) < n_threads)
     std::this_thread::yield();
   ready1.store(1, std::memory_order::release);
-  ready1.notify_all();
+  zisc::atomic_notify_all(&ready1);
   // Allocation test
   while (alloc_completed.load(std::memory_order::acquire) < n_threads)
     std::this_thread::yield();
@@ -257,7 +259,7 @@ TEST(SimpleMemoryResource, MultiThreadTest)
   EXPECT_EQ(expected_peak, mem_resource.peakMemoryUsage())
       << "Memory allocation in parallel failed.";
   ready2.store(1, std::memory_order::release);
-  ready2.notify_all();
+  zisc::atomic_notify_all(&ready2);
   // Deallocation test
   while (dealloc_completed.load(std::memory_order::acquire) < n_threads)
     std::this_thread::yield();

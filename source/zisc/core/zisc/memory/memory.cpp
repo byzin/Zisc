@@ -84,11 +84,13 @@ Memory::SystemMemoryStats Memory::retrieveSystemStatsImpl() noexcept
     stats.setAvailablePhysicalMemory(info.ullAvailPhys);
     stats.setTotalVirtualMemory(info.ullTotalVirtual);
     stats.setAvailableVirtualMemory(info.ullAvailVirtual);
+    ZISC_ASSERT(success, "Retrieving memory info failed.");
   }
 #elif defined(Z_LINUX)
   {
     struct sysinfo info{};
     success = sysinfo(&info) == 0;
+    ZISC_ASSERT(success, "Retrieving memory info failed.");
     const std::size_t total_physical_mem = info.totalram * info.mem_unit;
     stats.setTotalPhysicalMemory(total_physical_mem);
     const std::size_t available_ram = info.freeram + info.bufferram;
@@ -101,50 +103,46 @@ Memory::SystemMemoryStats Memory::retrieveSystemStatsImpl() noexcept
   }
 #elif defined(Z_MAC)
   {
-    mach_port_t host_port = mach_host_self();
-    vm_size_t pagesize = 0;
-    host_page_size(host_port, &pagesize);
-
     // Total size of physical memory
     {
       std::array<int, 2> mib{{CTL_HW, HW_MEMSIZE}};
-      std::size_t total_physical_mem = 0;
-      std::size_t size = sizeof(total_physical_mem);
-      const int result = sysctl(mib.data(),
-                                mib.size(),
-                                &total_physical_mem,
-                                &size,
-                                nullptr,
-                                0);
-      ZISC_ASSERT(0 == result, "Retrieving physical memory info failed.");
-      static_cast<void>(result);
-      stats.setTotalPhysicalMemory(total_physical_mem);
+      std::size_t mem_size = 0;
+      std::size_t size = sizeof(mem_size);
+      const int result = sysctl(mib.data(), mib.size(), &mem_size, &size, nullptr, 0);
+      success = result == 0;
+      ZISC_ASSERT(success, "Retrieving physical memory info failed.");
+
+      stats.setTotalPhysicalMemory(mem_size);
     }
     // Free physical memory size
-    {
+    if (success) {
+      // Retrieve pagesize
+      mach_port_t host_port = mach_host_self();
+      vm_size_t pagesize = 0;
+      int result = host_page_size(host_port, &pagesize);
+      success = result == KERN_SUCCESS;
+      ZISC_ASSERT(success, "Retrieving pagesize failed.");
+      // Retrieve free memory size
       mach_msg_type_number_t count = HOST_VM_INFO_COUNT;
-      vm_statistics_data_t vmstats;
-      const auto result = host_statistics(host_port,
-                                          HOST_VM_INFO,
-                                          reinterp<host_info_t>(&vmstats),
-                                          &count);
-      ZISC_ASSERT(result == KERN_SUCCESS,
-                  "Retrieving physical memory info failed.");
-      static_cast<void>(result);
-      const std::size_t free_physical_mem = vmstats.free_count * pagesize;
-      stats.setAvailablePhysicalMemory(free_physical_mem);
+      vm_statistics_data_t vm_stats;
+      result = host_statistics(host_port,
+                               HOST_VM_INFO,
+                               reinterp<host_info_t>(&vm_stats),
+                               &count);
+      success = result == KERN_SUCCESS;
+      ZISC_ASSERT(success, "Retrieving physical memory info failed.");
+
+      const std::size_t mem_size = vm_stats.free_count * pagesize;
+      stats.setAvailablePhysicalMemory(mem_size);
     }
     // Virtual memory
-    {
+    if (success) {
+      std::array<int, 2> mib{{CTL_VM, VM_SWAPUSAGE}};
       xsw_usage vmusage;
       std::size_t size = sizeof(vmusage);
-      const auto result = sysctlbyname("vm.swapusage",
-                                       &vmusage,
-                                       &size,
-                                       nullptr,
-                                       0);
-      ZISC_ASSERT(0 == result, "Retrieving virtual memory info failed.");
-      static_cast<void>(result);
+      const auto result = sysctl(mib.data(), mib.size(), &vmusage, &size, nullptr, 0);
+      success = result == 0;
+      ZISC_ASSERT(success, "Retrieving virtual memory info failed.");
       stats.setTotalVirtualMemory(vmusage.xsu_total);
       stats.setAvailableVirtualMemory(vmusage.xsu_avail);
     }

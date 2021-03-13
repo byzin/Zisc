@@ -561,7 +561,7 @@ uint64b RingBuffer::permuteIndexImpl(const uint64b index,
                                      const uint64b n) const noexcept
 {
   using AtomicT = std::remove_cvref_t<decltype(getIndex(0))>;
-  constexpr uint64b cache_line_size = kCacheChunkSize;
+  constexpr uint64b cache_line_size = kCacheLineSize;
   constexpr uint64b data_size = sizeof(AtomicT);
   constexpr uint64b shift = (data_size < cache_line_size)
       ? bit_width(cache_line_size) - bit_width(data_size)

@@ -28,7 +28,6 @@ int main()
   std::cout << "## ThreadManager example" << std::endl;
   zisc::SimpleMemoryResource mem_resource;
   zisc::ThreadManager thread_manager{4, &mem_resource};
-  thread_manager.setItemCapacity(8);
   auto task = [](const zisc::int64b thread_id)
   {
     const std::chrono::seconds wait_time{1 + thread_id * 2};

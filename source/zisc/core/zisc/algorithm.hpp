@@ -84,6 +84,13 @@ class Algorithm
 
   // Integer
 
+  //! Return the sub-range of the given index 
+  template <Integer Int1, Integer Int2, Integer Int3>
+  static constexpr std::array<std::common_type_t<Int1, Int2, Int3>, 2> divideRange(
+      const Int1 range,
+      const Int2 num_of_division,
+      const Int3 index) noexcept;
+
   //! Test whether the given value is odd
   template <Integer Int>
   static constexpr bool isOdd(const Int x) noexcept;
@@ -143,6 +150,13 @@ template <typename Type, typename LowerType, typename UpperType>
 constexpr bool isInClosedBounds(const Type& value, 
                                 const LowerType& lower, 
                                 const UpperType& upper) noexcept;
+
+//! Return the sub-range of the given index 
+template <Integer Int1, Integer Int2, Integer Int3>
+constexpr std::array<std::common_type_t<Int1, Int2, Int3>, 2> divideRange(
+    const Int1 range,
+    const Int2 num_of_division,
+    const Int3 index) noexcept;
 
 //! Test whether the n is odd
 template <Integer Int>

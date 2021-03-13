@@ -588,7 +588,7 @@ Type atomic_fetch_min(Type* ptr,
                       const Type value,
                       const std::memory_order order) noexcept
 {
-  const Type old = Atomic::min(ptr, value, order);
+  const Type old = (Atomic::min)(ptr, value, order);
   return old;
 }
 
@@ -606,7 +606,7 @@ Type atomic_fetch_max(Type* ptr,
                       const Type value,
                       const std::memory_order order) noexcept
 {
-  const Type old = Atomic::max(ptr, value, order);
+  const Type old = (Atomic::max)(ptr, value, order);
   return old;
 }
 

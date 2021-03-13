@@ -355,7 +355,7 @@ TEST(ScalableCircularQueueTest, ConcurrencyTest)
     indices.resize(elems.size(), 0);
     std::copy(elems.begin(), elems.end(), indices.begin());
     std::sort(indices.begin(), indices.end());
-    std::unique(indices.begin(), indices.end());
+    [[maybe_unused]] auto end = std::unique(indices.begin(), indices.end());
     auto ite = indices.begin();
     for (std::size_t index = 0; index < num_of_tasks; ++index) {
       ASSERT_EQ(index, *ite) << "Enqueue concurrency test failed.";
@@ -403,7 +403,7 @@ TEST(ScalableCircularQueueTest, ConcurrencyLoopTest)
       indices.resize(elems.size(), 0);
       std::copy(elems.begin(), elems.end(), indices.begin());
       std::sort(indices.begin(), indices.end());
-      std::unique(indices.begin(), indices.end());
+      [[maybe_unused]] auto end = std::unique(indices.begin(), indices.end());
       auto ite = indices.begin();
       for (std::size_t index = 0; index < num_of_tasks; ++index) {
         ASSERT_EQ(index, *ite) << "Enqueue concurrency test failed.";
@@ -450,7 +450,7 @@ TEST(ScalableCircularQueueTest, ConcurrencyTest2)
     indices.resize(elems.size(), 0);
     std::copy(elems.begin(), elems.end(), indices.begin());
     std::sort(indices.begin(), indices.end());
-    std::unique(indices.begin(), indices.end());
+    [[maybe_unused]] auto end = std::unique(indices.begin(), indices.end());
     auto ite = indices.begin();
     for (std::size_t index = 0; index < num_of_tasks; ++index) {
       ASSERT_EQ(index, *ite) << "Enqueue concurrency test failed.";
@@ -474,7 +474,7 @@ TEST(ScalableCircularQueueTest, ConcurrencyTest2)
     indices.resize(elems.size(), 0);
     std::copy(elems.begin(), elems.end(), indices.begin());
     std::sort(indices.begin(), indices.end());
-    std::unique(indices.begin(), indices.end());
+    [[maybe_unused]] auto end = std::unique(indices.begin(), indices.end());
     auto ite = indices.begin();
     for (std::size_t index = 0; index < num_of_tasks; ++index) {
       ASSERT_EQ(index, *ite) << "Enqueue concurrency test failed.";
@@ -521,7 +521,7 @@ TEST(ScalableCircularQueueTest, ConcurrencyLoopTest2)
       indices.resize(elems.size(), 0);
       std::copy(elems.begin(), elems.end(), indices.begin());
       std::sort(indices.begin(), indices.end());
-      std::unique(indices.begin(), indices.end());
+      [[maybe_unused]] auto end = std::unique(indices.begin(), indices.end());
       auto ite = indices.begin();
       for (std::size_t index = 0; index < num_of_tasks; ++index) {
         ASSERT_EQ(index, *ite) << "Enqueue concurrency test failed.";
@@ -545,7 +545,7 @@ TEST(ScalableCircularQueueTest, ConcurrencyLoopTest2)
       indices.resize(elems.size(), 0);
       std::copy(elems.begin(), elems.end(), indices.begin());
       std::sort(indices.begin(), indices.end());
-      std::unique(indices.begin(), indices.end());
+      [[maybe_unused]] auto end = std::unique(indices.begin(), indices.end());
       auto ite = indices.begin();
       for (std::size_t index = 0; index < num_of_tasks; ++index) {
         ASSERT_EQ(index, *ite) << "Enqueue concurrency test failed.";

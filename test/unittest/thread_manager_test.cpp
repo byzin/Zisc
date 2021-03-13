@@ -27,11 +27,13 @@
 // GoogleTest
 #include "googletest.hpp"
 // Zisc
+#include "zisc/algorithm.hpp"
 #include "zisc/non_copyable.hpp"
 #include "zisc/math/math.hpp"
 #include "zisc/memory/simple_memory_resource.hpp"
 #include "zisc/random/correlated_multi_jittered_engine.hpp"
 #include "zisc/random/pcg_engine.hpp"
+#include "zisc/thread/future.hpp"
 #include "zisc/thread/thread_manager.hpp"
 
 namespace {
@@ -80,13 +82,6 @@ void testThreadPoolNest(zisc::ThreadManager& thread_manager,
   }
 }
 
-struct TestValue : private zisc::NonCopyable<TestValue>
-{
-  TestValue(const int value) : value_{value} {}
-  TestValue(TestValue&& other) : value_{other.value_} {}
-  int value_;
-};
-
 } // namespace
 
 TEST(ThreadManagerTest, EnqueueTaskTest)
@@ -114,13 +109,13 @@ TEST(ThreadManagerTest, EnqueueTaskTest)
       std::function<int (zisc::int64b)> task4{task2};
       auto result4 = thread_manager.enqueue(std::move(task4));
 
-      ASSERT_EQ(0, result1->taskId());
+      ASSERT_EQ(0, result1->id());
       ASSERT_EQ(2, result1->get());
-      ASSERT_EQ(1, result2->taskId());
+      ASSERT_EQ(1, result2->id());
       ASSERT_EQ(3, result2->get());
-      ASSERT_EQ(2, result3->taskId());
+      ASSERT_EQ(2, result3->id());
       ASSERT_EQ(2, result3->get());
-      ASSERT_EQ(3, result4->taskId());
+      ASSERT_EQ(3, result4->id());
       ASSERT_EQ(3, result4->get());
     }
     thread_manager.clear();
@@ -138,13 +133,13 @@ TEST(ThreadManagerTest, EnqueueTaskTest)
       std::function<void (zisc::int64b, int)> task4{task2};
       auto result4 = thread_manager.enqueueLoop(std::move(task4), 0, 10);
 
-      ASSERT_EQ(0, result1->taskId());
+      ASSERT_EQ(0, result1->id());
       result1->wait();
-      ASSERT_EQ(1, result2->taskId());
+      ASSERT_EQ(1, result2->id());
       result2->wait();
-      ASSERT_EQ(2, result3->taskId());
+      ASSERT_EQ(2, result3->id());
       result3->wait();
-      ASSERT_EQ(3, result4->taskId());
+      ASSERT_EQ(3, result4->id());
       result4->wait();
     }
   }
@@ -160,10 +155,8 @@ TEST(ThreadManagerTest, EnqueueTaskExceptionTest)
     ASSERT_EQ(1, thread_manager.numOfThreads());
     // enqueueLoop()
     {
-      constexpr std::size_t id_max = thread_manager.defaultIdCapacity();
-      ASSERT_EQ(id_max, thread_manager.idCapacity());
-      constexpr std::size_t cap = thread_manager.defaultItemCapacity();
-      ASSERT_EQ(cap, thread_manager.itemCapacity());
+      constexpr std::size_t cap = thread_manager.defaultCapacity();
+      ASSERT_EQ(cap, thread_manager.capacity());
 
       auto task = [&thread_manager](const zisc::int64b /* id */, const int index)
       {
@@ -174,7 +167,7 @@ TEST(ThreadManagerTest, EnqueueTaskExceptionTest)
       };
       constexpr int begin = 0;
       constexpr int end = zisc::cast<int>(2 * cap);
-      zisc::ThreadManager::SharedResult<void> result;
+      zisc::SharedFuture<void> result;
       try {
         result = thread_manager.enqueueLoop(task, begin, end);
         result->wait();
@@ -186,14 +179,14 @@ TEST(ThreadManagerTest, EnqueueTaskExceptionTest)
         ASSERT_LE(zisc::cast<int>(cap), b);
         ASSERT_EQ(end, e);
         auto& task1 = error.task();
-        task1.getResult(std::addressof(result));
+        result = task1.getFuture<void>();
         for (auto it = error.beginOffset(); it < error.numOfIterations(); ++it)
           task1.run(zisc::ThreadManager::unmanagedThreadId(), it);
       }
       catch (...) {
         FAIL() << "This line must not be processed.";
       }
-      ASSERT_EQ(0, result->taskId());
+      ASSERT_EQ(0, result->id());
       result->wait();
     }
   }
@@ -207,7 +200,7 @@ TEST(ThreadManagerTest, ParallelTest)
   {
     constexpr zisc::uint num_of_threads = 16;
     zisc::ThreadManager thread_manager{num_of_threads, &mem_resource};
-    thread_manager.setItemCapacity(1024);
+    thread_manager.setCapacity(1024);
 
     ASSERT_EQ(num_of_threads, thread_manager.numOfThreads())
         << "Worker creation failed.";
@@ -305,19 +298,19 @@ TEST(ThreadManagerTest, ParallelTest)
     {
       {
         const zisc::uint range = num_of_threads;
-        auto thread_range = thread_manager.calcThreadRange(range, 0);
+        auto thread_range = zisc::divideRange(range, num_of_threads, 0);
         ASSERT_EQ(thread_range[0], 0) << "calcThreadRange() is wrong.";
         ASSERT_EQ(thread_range[1], 1) << "calcThreadRange() is wrong.";
-        thread_range = thread_manager.calcThreadRange(range, num_of_threads - 1);
+        thread_range = zisc::divideRange(range, num_of_threads, num_of_threads - 1);
         ASSERT_EQ(thread_range[0], num_of_threads - 1) << "calcThreadRange() is wrong.";
         ASSERT_EQ(thread_range[1], num_of_threads) << "calcThreadRange() is wrong.";
       }
       {
         const zisc::uint range = num_of_threads + 1;
-        auto thread_range = thread_manager.calcThreadRange(range, 0);
+        auto thread_range = zisc::divideRange(range, num_of_threads, 0);
         ASSERT_EQ(thread_range[0], 0) << "calcThreadRange() is wrong.";
         ASSERT_EQ(thread_range[1], 1) << "calcThreadRange() is wrong.";
-        thread_range = thread_manager.calcThreadRange(range, num_of_threads - 1);
+        thread_range = zisc::divideRange(range, num_of_threads, num_of_threads - 1);
         ASSERT_EQ(thread_range[0], num_of_threads - 1) << "calcThreadRange() is wrong.";
         ASSERT_EQ(thread_range[1], num_of_threads + 1) << "calcThreadRange() is wrong.";
       }
@@ -349,8 +342,8 @@ TEST(ThreadManagerTest, TaskDependencyTest)
     for (auto& value : vlist)
       value.store(0);
 
-    auto result1 = thread_manager.enqueue(::dtask1, zisc::ThreadManager::kAllParentId);
-    ASSERT_EQ(0, result1->taskId());
+    auto result1 = thread_manager.enqueue(::dtask1, zisc::ThreadManager::kAllPrecedences);
+    ASSERT_EQ(0, result1->id());
 
     auto task2 = [&vlist](const zisc::int64b /* id */, const std::size_t i) noexcept
     {
@@ -360,8 +353,8 @@ TEST(ThreadManagerTest, TaskDependencyTest)
     };
     constexpr std::size_t begin = 0;
     constexpr std::size_t end = vlist.size();
-    auto result2 = thread_manager.enqueueLoop(task2, begin, end, result1->taskId());
-    ASSERT_EQ(1, result2->taskId());
+    auto result2 = thread_manager.enqueueLoop(task2, begin, end, result1->id());
+    ASSERT_EQ(1, result2->id());
 
     auto task3 = [&vlist]() noexcept
     {
@@ -370,15 +363,15 @@ TEST(ThreadManagerTest, TaskDependencyTest)
         total += value++;
       return total;
     };
-    auto result3 = thread_manager.enqueue(task3, result2->taskId());
-    ASSERT_EQ(2, result3->taskId());
+    auto result3 = thread_manager.enqueue(task3, result2->id());
+    ASSERT_EQ(2, result3->id());
 
     auto task4 = [&vlist](const std::size_t i) noexcept
     {
       ++vlist[i];
     };
-    auto result4 = thread_manager.enqueueLoop(task4, begin, end, result1->taskId());
-    ASSERT_EQ(3, result4->taskId());
+    auto result4 = thread_manager.enqueueLoop(task4, begin, end, result1->id());
+    ASSERT_EQ(3, result4->id());
 
     auto task5 = [&vlist]() noexcept
     {
@@ -387,11 +380,11 @@ TEST(ThreadManagerTest, TaskDependencyTest)
         total += value.load();
       return total;
     };
-    auto result5 = thread_manager.enqueue(task5, result4->taskId());
-    ASSERT_EQ(4, result5->taskId());
+    auto result5 = thread_manager.enqueue(task5, result4->id());
+    ASSERT_EQ(4, result5->id());
 
-    auto result6 = thread_manager.enqueue(task5, zisc::ThreadManager::kAllParentId);
-    ASSERT_EQ(5, result6->taskId());
+    auto result6 = thread_manager.enqueue(task5, zisc::ThreadManager::kAllPrecedences);
+    ASSERT_EQ(5, result6->id());
 
     ASSERT_EQ(0, task5()) << "Task synchronization failed.";
     thread_manager.waitForCompletion();
@@ -415,23 +408,21 @@ TEST(ThreadManagerTest, TaskDependencyTest)
 TEST(ThreadManagerTest, ExitWorkerRunningTest)
 {
   zisc::SimpleMemoryResource mem_resource;
+  constexpr zisc::uint num_of_works = 1024;
   {
-    constexpr zisc::uint num_of_works = 1024;
-    std::vector<typename zisc::ThreadManager::SharedResult<void>> results;
+    std::vector<typename zisc::SharedFuture<void>> results;
     results.reserve(num_of_works);
     {
       zisc::ThreadManager thread_manager{24, &mem_resource};
-      thread_manager.setIdCapacity(num_of_works);
-      ASSERT_EQ(num_of_works, thread_manager.idCapacity());
-      thread_manager.setItemCapacity(num_of_works);
-      ASSERT_EQ(num_of_works, thread_manager.itemCapacity());
+      thread_manager.setCapacity(num_of_works);
+      ASSERT_EQ(num_of_works, thread_manager.capacity());
       for (zisc::uint number = 0; number < num_of_works; ++number) {
-        auto task = [/* number */](const zisc::int64b)
+        auto task = [](const zisc::int64b)
         {
-          const std::chrono::milliseconds wait_time{100};
+          const std::chrono::milliseconds wait_time{230};
           std::this_thread::sleep_for(wait_time);
         };
-        results.emplace_back(thread_manager.enqueue(task));
+        results.emplace_back(thread_manager.enqueue(std::move(task)));
       }
     }
   }
@@ -451,8 +442,7 @@ TEST(ThreadManagerTest, NestedThreadPoolTest)
       n = base * (n + 1);
     }
     ++n;
-    thread_manager.setIdCapacity(n);
-    thread_manager.setItemCapacity(n);
+    thread_manager.setCapacity(n);
     std::vector<double> results;
     results.resize(n, 0.0);
     ::testThreadPoolNest<base, max_level, 1>(thread_manager, results, 0);
@@ -465,23 +455,42 @@ TEST(ThreadManagerTest, NestedThreadPoolTest)
       << mem_resource.totalMemoryUsage() << " bytes isn't deallocated.";
 }
 
+namespace {
+
+struct TestValue : private zisc::NonCopyable<TestValue>
+{
+  TestValue(const int value, int& flag) : flag_{&flag}, value_{value} {}
+  TestValue(TestValue&& other) : flag_{other.flag_}, value_{other.value_} {}
+  ~TestValue() {*flag_ = 1;}
+  int* flag_ = nullptr;
+  int value_;
+  [[maybe_unused]] int padding_ = 0;
+};
+
+static_assert(!std::is_default_constructible_v<TestValue>);
+
+} // namespace
+
 TEST(ThreadManagerTest, GetValueTest)
 {
   zisc::SimpleMemoryResource mem_resource;
   zisc::ThreadManager thread_manager{1, &mem_resource};
-  auto task = [&thread_manager]()
+  int is_task_completed = 0;
+  auto task = [&thread_manager, &is_task_completed]()
   {
-    auto nested_task = []()
+    auto nested_task = [&is_task_completed]()
     {
-      ::TestValue value{100};
+      ::TestValue value{100, is_task_completed};
       return value;
     };
     auto result = thread_manager.enqueue(nested_task);
-    return result->get();
+    return std::move(result->get());
   };
   auto result = thread_manager.enqueue(task);
-  auto value = result->get();
+  auto value = std::move(result->get());
   ASSERT_EQ(100, value.value_) << "The get value test failed.";
+  result.reset();
+  ASSERT_TRUE(is_task_completed) << "The result wasn't destructed.";
 }
 
 TEST(ThreadManagerTest, TaskStressTest)
@@ -491,12 +500,11 @@ TEST(ThreadManagerTest, TaskStressTest)
     constexpr zisc::uint num_of_threads = 1024u;
     constexpr zisc::uint num_of_tasks = 4'000'000;
 
-    std::vector<typename zisc::ThreadManager::SharedResult<void>> result_list;
+    std::vector<typename zisc::SharedFuture<void>> result_list;
     result_list.resize(num_of_tasks);
 
     zisc::ThreadManager thread_manager{num_of_threads, &mem_resource};
-    thread_manager.setIdCapacity(num_of_tasks);
-    thread_manager.setItemCapacity(num_of_tasks);
+    thread_manager.setCapacity(num_of_tasks);
     for (zisc::uint number = 0; number < num_of_tasks; ++number) {
       auto task = [number](const zisc::int64b)
       {
@@ -507,11 +515,11 @@ TEST(ThreadManagerTest, TaskStressTest)
           value = i;
         }
       };
-      result_list[number] = thread_manager.enqueue(task);
+      result_list[number] = thread_manager.enqueue(std::move(task));
     }
     for (std::size_t i = 0; i < result_list.size(); ++i) {
       auto& result = result_list[i];
-      ASSERT_EQ(zisc::cast<zisc::int64b>(i), result->taskId());
+      ASSERT_EQ(zisc::cast<zisc::int64b>(i), result->id());
       result->wait();
     }
   }
@@ -526,31 +534,30 @@ TEST(ThreadManagerTest, TaskStressPerformanceTest)
     constexpr zisc::uint num_of_threads = 0u;
     constexpr zisc::uint num_of_tasks = 4'000'000;
 
-    std::vector<typename zisc::ThreadManager::SharedResult<void>> result_list;
+    std::vector<typename zisc::SharedFuture<void>> result_list;
     result_list.resize(num_of_tasks);
 
     zisc::ThreadManager thread_manager{num_of_threads, &mem_resource};
-    thread_manager.setIdCapacity(num_of_tasks);
-    thread_manager.setItemCapacity(num_of_tasks);
+    thread_manager.setCapacity(num_of_tasks);
     for (zisc::uint number = 0; number < num_of_tasks; ++number) {
       auto task = [number](const zisc::int64b)
       {
         zisc::PcgLcgRxsMXs32 sampler{number};
         const auto loop = static_cast<int>(sampler(0.0, 1.0) * zisc::pow(1024.0, 2));
-        volatile int value = 0;
+        volatile double value = 0;
         for (int i = 0; i < loop; ++i) {
-          value = i;
+          value = sampler(0.0, 100.0);
         }
       };
       if (number == 0) {
         std::cout << "sizeof(task)  = " << sizeof(decltype(task)) << std::endl;
         std::cout << "alignof(task) = " << std::alignment_of_v<decltype(task)> << std::endl;
       }
-      result_list[number] = thread_manager.enqueue(task);
+      result_list[number] = thread_manager.enqueue(std::move(task));
     }
     for (std::size_t i = 0; i < result_list.size(); ++i) {
       auto& result = result_list[i];
-      ASSERT_EQ(zisc::cast<zisc::int64b>(i), result->taskId());
+      ASSERT_EQ(zisc::cast<zisc::int64b>(i), result->id());
       result->wait();
     }
     std::cout << "sizeof(result)  = " << sizeof(decltype(result_list[0])) << std::endl;
@@ -568,14 +575,14 @@ TEST(ThreadManagerTest, LoopTaskStressTest)
     constexpr zisc::uint num_of_tasks = 4'000'000;
 
     zisc::ThreadManager thread_manager{num_of_threads, &mem_resource};
-    thread_manager.setItemCapacity(num_of_tasks);
+    thread_manager.setCapacity(num_of_tasks);
     auto task = [](const zisc::int64b, const zisc::uint number)
     {
       zisc::PcgLcgRxsMXs32 sampler{number};
       const auto loop = static_cast<int>(sampler(0.0, 1.0) * zisc::pow(1024.0, 2));
-      volatile int value = 0;
+      volatile double value = 0;
       for (int i = 0; i < loop; ++i) {
-        value = i;
+        value = sampler(0.0, 100.0);
       }
     };
     std::cout << "sizeof(task)  = " << sizeof(decltype(task)) << std::endl;
@@ -599,14 +606,14 @@ TEST(ThreadManagerTest, LoopTaskStressPerformanceTest)
     constexpr zisc::uint num_of_tasks = 4'000'000;
 
     zisc::ThreadManager thread_manager{num_of_threads, &mem_resource};
-    thread_manager.setItemCapacity(num_of_tasks);
+    thread_manager.setCapacity(num_of_tasks);
     auto task = [](const zisc::int64b, const zisc::uint number)
     {
       zisc::PcgLcgRxsMXs32 sampler{number};
       const auto loop = static_cast<int>(sampler(0.0, 1.0) * zisc::pow(1024.0, 2));
-      volatile int value = 0;
+      volatile double value = 0;
       for (int i = 0; i < loop; ++i) {
-        value = i;
+        value = sampler(0.0, 100.0);
       }
     };
     std::cout << "sizeof(task)  = " << sizeof(decltype(task)) << std::endl;
@@ -627,7 +634,7 @@ TEST(ThreadManagerTest, LoopTaskStressPerformanceTest2)
   zisc::SimpleMemoryResource mem_resource;
   {
     static constexpr zisc::uint num_of_threads = 0u;
-    static constexpr zisc::uint tasks_per_thread = 1u << 4u;
+    static constexpr zisc::uint tasks_per_thread = 1u << 5u;
     static constexpr zisc::uint num_of_tasks = 1u << 25u;
     std::cout << "Tasks per thread: " << tasks_per_thread << std::endl;
     std::cout << "Num of tasks: " << num_of_tasks << std::endl;
@@ -647,7 +654,7 @@ TEST(ThreadManagerTest, LoopTaskStressPerformanceTest2)
     };
     std::cout << "sizeof(task)  = " << sizeof(decltype(task)) << std::endl;
     std::cout << "alignof(task) = " << std::alignment_of_v<decltype(task)> << std::endl;
-    thread_manager.setItemCapacity(num_of_tasks);
+    thread_manager.setCapacity(num_of_tasks);
     constexpr zisc::uint begin = 0;
     constexpr zisc::uint end = num_of_tasks;
     auto result = thread_manager.enqueueLoop(task, begin, end);

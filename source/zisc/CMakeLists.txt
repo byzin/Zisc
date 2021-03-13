@@ -22,7 +22,7 @@ function(Zisc_initZiscOptions)
   endif()
 
   set(option_description "L1 cache line size")
-  Zisc_setStringOption(ZISC_L1_CACHE_LINE_SIZE "64" ${option_description})
+  Zisc_setStringOption(ZISC_L1_CACHE_LINE_SIZE "128" ${option_description})
 endfunction(Zisc_initZiscOptions)
 
 

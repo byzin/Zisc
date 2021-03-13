@@ -135,8 +135,8 @@ class RingBuffer
   const std::atomic<int64b>& threshold() const noexcept;
 
 
-  static constexpr std::size_t kCacheChunkSize = 2 * Config::l1CacheLineSize();
-  using MemChunk = std::aligned_storage_t<kCacheChunkSize, kCacheChunkSize>;
+  static constexpr std::size_t kCacheLineSize = Config::l1CacheLineSize();
+  using MemChunk = std::aligned_storage_t<kCacheLineSize, kCacheLineSize>;
 
 
   pmr::vector<MemChunk> memory_;

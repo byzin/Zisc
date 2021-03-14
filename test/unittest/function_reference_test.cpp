@@ -14,6 +14,7 @@
 
 // Standard C++ library
 #include <functional>
+#include <memory>
 #include <type_traits>
 #include <utility>
 // GoogleTest
@@ -21,6 +22,176 @@
 // Zisc
 #include "zisc/function_reference.hpp"
 #include "zisc/non_copyable.hpp"
+
+namespace {
+
+constexpr int add(const int a, const int b)
+{
+  return a + b;
+}
+
+constexpr void add2(const int a, const int b, int* result) noexcept
+{
+  *result = add(a, b);
+}
+
+constexpr int addL(const long a, const long b)
+{
+  return static_cast<int>(a + b);
+}
+
+constexpr void addL2(const long a, const long b, int* result) noexcept
+{
+  *result = addL(a, b);
+}
+
+struct Adder : private zisc::NonCopyable<Adder>
+{
+  Adder(const int c) : c_{c} {}
+
+  constexpr int operator()(const int a, const int b)
+  {
+    return add(a, b) + c_;
+  }
+
+  int c_;
+};
+
+struct Adder2 : private zisc::NonCopyable<Adder>
+{
+  Adder2(const int c) : c_{c} {}
+
+  constexpr void operator()(const int a, const int b, int* result) const
+  {
+    add2(a, b, result);
+    *result += c_;
+  }
+
+  int c_;
+};
+
+} // namespace 
+
+TEST(FunctionReferenceTest, InvocationTest)
+{
+  // Non void return case
+  {
+    using FuncRef = zisc::FunctionReference<int (int, int)>;
+    static_assert(FuncRef::kNumOfArgs == 2);
+
+    constexpr int a = 1;
+    constexpr int b = 2;
+
+    // Function pointer
+    {
+      FuncRef ref{::add};
+      ASSERT_EQ(::add(a, b), ref(a, b)) << "FunctionRef invocation failed.";
+    }
+    {
+      FuncRef ref{std::addressof(::add)};
+      ASSERT_EQ(::add(a, b), ref(a, b)) << "FunctionRef invocation failed.";
+
+      FuncRef ref2{ref};
+      ASSERT_EQ(::add(a, b), ref2(a, b)) << "FunctionRef invocation failed.";
+    }
+    // Type conversion
+    {
+      FuncRef ref{std::addressof(::addL)};
+      ASSERT_EQ(::addL(a, b), ref(a, b)) << "FunctionRef invocation failed.";
+    }
+    {
+      using FuncRef2 = zisc::FunctionReference<int (long, long)>;
+      FuncRef2 ref{std::addressof(::addL)};
+      ASSERT_EQ(::addL(a, b), ref(a, b)) << "FunctionRef invocation failed.";
+
+      FuncRef ref2{ref};
+      ASSERT_EQ(::addL(a, b), ref2(a, b)) << "FunctionRef invocation failed.";
+    }
+    // Class with operator()
+    {
+      ::Adder adder{10};
+      FuncRef ref{adder};
+      ASSERT_EQ(adder(a, b), ref(a, b)) << "FunctionRef invocation failed.";
+    }
+    // Lambda
+    {
+      int c = 100;
+      auto adder = [&c](const int lhs, const int rhs) noexcept
+      {
+        return ::add(lhs, rhs) + c;
+      };
+      FuncRef ref{adder};
+      ASSERT_EQ(adder(a, b), ref(a, b)) << "FunctionRef invocation failed.";
+    }
+  }
+  // Void case
+  {
+    using FuncRef = zisc::FunctionReference<void (const int, const int, int*)>;
+
+    constexpr int a = 1;
+    constexpr int b = 2;
+
+    // Function pointer
+    {
+      FuncRef ref{::add2};
+      int expected = 0;
+      ::add2(a, b, &expected);
+      int result = 0;
+      ref(a, b, &result);
+      ASSERT_EQ(expected, result) << "FunctionRef invocation failed.";
+    }
+    {
+      FuncRef ref{std::addressof(::add2)};
+      int expected = 0;
+      ::add2(a, b, &expected);
+      int result = 0;
+      ref(a, b, &result);
+      ASSERT_EQ(expected, result) << "FunctionRef invocation failed.";
+
+      FuncRef ref2{ref};
+      ref2(a, b, &result);
+      ASSERT_EQ(expected, result) << "FunctionRef invocation failed.";
+    }
+    {
+      using FuncRef2 = zisc::FunctionReference<void (long, long, int*)>;
+      FuncRef2 ref{::addL2};
+      int expected = 0;
+      ::addL2(a, b, &expected);
+      int result = 0;
+      ref(a, b, &result);
+      ASSERT_EQ(expected, result) << "FunctionRef invocation failed.";
+
+      FuncRef ref2{ref};
+      ref2(a, b, &result);
+      ASSERT_EQ(expected, result) << "FunctionRef invocation failed.";
+    }
+    // Class with opeartor()
+    {
+      ::Adder2 adder{10};
+      FuncRef ref{adder};
+      int expected = 0;
+      adder(a, b, &expected);
+      int result = 0;
+      ref(a, b, &result);
+      ASSERT_EQ(expected, result) << "FunctionRef invocation failed.";
+    }
+    // Lambda
+    {
+      int c = 100;
+      auto adder = [c](const int lhs, const int rhs, int* result) noexcept
+      {
+        ::add2(lhs, rhs, result);
+        *result += c;
+      };
+      FuncRef ref{adder};
+      int expected = 0;
+      adder(a, b, &expected);
+      int result = 0;
+      ref(a, b, &result);
+      ASSERT_EQ(expected, result) << "FunctionRef invocation failed.";
+    }
+  }
+}
 
 namespace {
 

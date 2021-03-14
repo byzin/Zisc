@@ -38,8 +38,13 @@ template <typename ReturnT, typename ...ArgTypes>
 class FunctionReference<ReturnT (ArgTypes...)>
 {
  public:
+  // Type aliases
   using ReturnType = ReturnT;
   using FunctionPointer = ReturnType (*)(ArgTypes...);
+
+
+  // Constant value
+  static constexpr std::size_t kNumOfArgs = sizeof...(ArgTypes);
 
 
   //! Create an empry
@@ -50,10 +55,12 @@ class FunctionReference<ReturnT (ArgTypes...)>
   FunctionReference(Func&& func) noexcept;
 
 
+  //! Create a reference to the given callable object
+  template <InvocableR<ReturnT, ArgTypes...> Func>
+  FunctionReference& operator=(Func&& func) noexcept;
+
   //! Invoke a referenced callable object
-  template <typename ...Args>
-  ReturnType operator()(Args&&... args) const
-      requires Invocable<FunctionPointer, Args...>;
+  ReturnType operator()(ArgTypes... args) const noexcept;
 
   //! Check whether this refers a callable object 
   explicit operator bool() const noexcept;
@@ -67,44 +74,50 @@ class FunctionReference<ReturnT (ArgTypes...)>
   void clear() noexcept;
 
   //! Invoke a referenced callable object
-  template <typename ...Args>
-  ReturnType invoke(Args&&... args) const
-      requires Invocable<FunctionPointer, Args...>;
+  ReturnType invoke(ArgTypes... args) const noexcept;
 
   //! Exchange referenced callable objects of this and other
   void swap(FunctionReference& other) noexcept;
 
-
-  static constexpr std::size_t kNumOfArgs = sizeof...(ArgTypes);
-
  private:
-  static constexpr std::size_t kStorageSize = (std::max)(sizeof(void*),
-                                                         sizeof(FunctionPointer));
-  using Memory = std::aligned_union_t<kStorageSize, void*, FunctionPointer>;
-  using CallbackPointer = ReturnType (*)(const void*, ArgTypes...);
+  // Type aliases
+  using FuncRefMemory = std::aligned_storage_t<sizeof(void*),
+                                               std::alignment_of_v<void*>>;
+  using InvokerPointer = ReturnType (*)(FuncRefMemory, ArgTypes...);
+  template <typename Type>
+  using ArgRef = std::add_lvalue_reference_t<std::remove_reference_t<Type>>;
 
+
+  //! Forward lvalue as either lvalue or as rvalue
+  template <typename Type>
+  static constexpr Type forward(ArgRef<Type> arg) noexcept;
 
   //! Initialize with a callable object
   template <InvocableR<ReturnT, ArgTypes...> Func>
   void initialize(Func&& func) noexcept;
 
   //! Invoke a referenced callable object 
-  template <typename FuncPointer>
-  static ReturnType invokeFunctionPointer(const void* func_ptr, ArgTypes... args);
+  template <typename FuncPtr>
+  static ReturnType invokeFunctionPointer(FuncRefMemory mem,
+                                          ArgTypes... args) noexcept;
 
   //! Invoke a referenced callable object
   template <typename Functor>
-  static ReturnType invokeFunctor(const void* func_ptr, ArgTypes... args);
+  static ReturnType invokeFunctor(FuncRefMemory mem,
+                                  ArgTypes... args) noexcept;
+
+  //! Return the underlying invoker pointer
+  const InvokerPointer& invoker() const noexcept;
 
   //! Return the memory of the function reference
-  void* memory() noexcept;
+  FuncRefMemory& memory() noexcept;
 
   //! Return the memory of the function reference
-  const void* memory() const noexcept;
+  const FuncRefMemory& memory() const noexcept;
 
 
-  Memory memory_;
-  CallbackPointer callback_ = nullptr;
+  FuncRefMemory memory_;
+  InvokerPointer invoker_ = nullptr;
 };
 
 //! Swap memories in the given instances

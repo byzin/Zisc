@@ -140,8 +140,10 @@ function(Zisc_getSanitizerFlags compile_sanitizer_flags linker_sanitizer_flags)
   if(check_list)
     string(REPLACE ";" "," check_flag "${check_list}")
     set(compile_flags "-fsanitize=${check_flag}")
-    set(linker_flags "-fsanitize=${check_flag}")
-    Zisc_appendClangDriverFlags(compile_flags -fno-omit-frame-pointer)
+    if(NOT Z_VISUAL_STUDIO)
+      list(APPEND compile_flags -fno-omit-frame-pointer)
+      set(linker_flags "-fsanitize=${check_flag}")
+    endif()
 
     # Output
     set(${compile_sanitizer_flags} ${compile_flags} PARENT_SCOPE)
@@ -172,6 +174,11 @@ function(Zisc_getMsvcCompilerFlags cxx_compile_flags cxx_linker_flags cxx_defini
   # Diagnostic
   list(APPEND compile_flags /diagnostics:caret
                             )
+  # Sanitizer
+  Zisc_getSanitizerFlags(compile_sanitizer_flags linker_sanitizer_flags)
+  list(APPEND compile_flags ${compile_sanitizer_flags})
+  list(APPEND linker_flags ${linker_sanitizer_flags})
+
   # Output variables
   set(${cxx_compile_flags} ${compile_flags} PARENT_SCOPE)
   set(${cxx_linker_flags} ${linker_flags} PARENT_SCOPE)

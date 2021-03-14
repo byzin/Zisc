@@ -412,6 +412,9 @@ void RingBuffer::catchUp(uint64b tailp, uint64b headp) noexcept
 inline
 void RingBuffer::destroy() noexcept
 {
+  if (memory_.empty())
+    return;
+
   // Indices
   if (0 < size()) {
     auto mem = std::addressof(getIndex(0));

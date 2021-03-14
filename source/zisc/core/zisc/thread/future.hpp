@@ -121,7 +121,7 @@ class Future : private NonCopyable<Future<T>>
   int64b id_ = invalidId();
   ThreadManager* manager_ = nullptr;
   DataT data_;
-  std::atomic_flag has_value_;
+  std::atomic_flag has_value_ = ATOMIC_FLAG_INIT;
 };
 
 #if defined(Z_GCC) || defined(Z_CLANG)

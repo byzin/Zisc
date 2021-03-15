@@ -183,7 +183,7 @@ void FunctionReference<ReturnT (ArgTypes...)>::initialize(Func&& func) noexcept
   if constexpr (is_func_ptr) {
     // Function pointer case
     using FuncPtr = Function;
-    static_assert(sizeof(FuncPtr) <= sizeof(FuncRefMemory),
+    static_assert(sizeof(FuncPtr) == sizeof(FuncRefMemory),
                   "The memory doesn't have enough space for the function ptr.");
     static_assert(std::alignment_of_v<FuncPtr> <= std::alignment_of_v<FuncRefMemory>,
                   "The memory doesn't satify the alignment of the function ptr.");
@@ -193,7 +193,7 @@ void FunctionReference<ReturnT (ArgTypes...)>::initialize(Func&& func) noexcept
   else if constexpr (has_func_ptr) {
     // Function case
     using FuncPtr = FunctionPointer;
-    static_assert(sizeof(FuncPtr) <= sizeof(FuncRefMemory),
+    static_assert(sizeof(FuncPtr) == sizeof(FuncRefMemory),
                   "The memory doesn't have enough space for the function ptr.");
     static_assert(std::alignment_of_v<FuncPtr> <= std::alignment_of_v<FuncRefMemory>,
                   "The memory doesn't satify the alignment of the function ptr.");
@@ -203,7 +203,7 @@ void FunctionReference<ReturnT (ArgTypes...)>::initialize(Func&& func) noexcept
   else if constexpr (is_fanctor) {
     // Functor case
     using FuncPtr = std::add_pointer_t<Function>;
-    static_assert(sizeof(FuncPtr) <= sizeof(FuncRefMemory),
+    static_assert(sizeof(FuncPtr) == sizeof(FuncRefMemory),
                   "The memory doesn't have enough space for the functor ptr.");
     static_assert(std::alignment_of_v<FuncPtr> <= std::alignment_of_v<FuncRefMemory>,
                   "The memory doesn't satify the alignment of the functor ptr.");

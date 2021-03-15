@@ -193,174 +193,109 @@ TEST(FunctionReferenceTest, InvocationTest)
   }
 }
 
-namespace {
-
-// A regular function
-int addValue(const int a, const int b)
-{
-  return a + b;
-}
-
-int addValueL(const long a, const long b)
-{
-  return static_cast<int>(a + b);
-}
-
-int zero(const int, const int)
-{
-  return 0;
-}
-
-}
-
 TEST(FunctionReferenceTest, OperatorTest)
 {
   using FuncRef = zisc::FunctionReference<int (int, int)>;
-  static_assert(FuncRef::kNumOfArgs == 2);
 
-  constexpr int v1 = 1;
-  constexpr int v2 = 2;
-  const int expected = ::addValue(v1, v2);
+  constexpr int a = 1;
+  constexpr int b = 2;
 
+  // Function pointer
   {
-    FuncRef func_ref;
-    ASSERT_FALSE(static_cast<bool>(func_ref))
-        << "The operator bool of FunctionReference is wrong.";
+    FuncRef ref{};
+    ASSERT_FALSE(zisc::cast<bool>(ref)) << "Operator bool is wrong.";
+
+    ref = ::add;
+    ASSERT_TRUE(zisc::cast<bool>(ref)) << "Operator bool is wrong.";
+    ASSERT_EQ(::add(a, b), ref(a, b)) << "FunctionRef invocation failed.";
+
+    ref.clear();
+    ASSERT_FALSE(zisc::cast<bool>(ref)) << "Operator bool is wrong.";
   }
-
-  // A function pointer
   {
-    FuncRef func_ref{&::addValue};
-    ASSERT_EQ(expected, func_ref(v1, v2))
-        << "Refering to a function pointer failed.";
-    ASSERT_TRUE(static_cast<bool>(func_ref))
-        << "The operator bool of FunctionReference is wrong.";
-
-    FuncRef other{&::zero};
-    ASSERT_EQ(0, other(v1, v2));
-
-    zisc::swap(func_ref, other);
-    ASSERT_EQ(0, func_ref(v1, v2));
-    ASSERT_EQ(expected, other(v1, v2))
-        << "Swapping of function pointers failed.";
-
-    other.clear();
-    ASSERT_FALSE(static_cast<bool>(other))
-        << "Clearing the function reference failed";
-
-    func_ref.assign(&::addValue);
-    ASSERT_EQ(expected, func_ref(v1, v2))
-        << "Refering to a function pointer failed.";
+    FuncRef ref{std::addressof(::add)};
+    // Move constructor
+    FuncRef ref2{std::move(ref)};
+    ASSERT_TRUE(zisc::cast<bool>(ref2)) << "Operator bool is wrong.";
+    ASSERT_EQ(::add(a, b), ref2(a, b)) << "FunctionRef invocation failed.";
+    // Move assignment
+    FuncRef ref3{};
+    ASSERT_FALSE(zisc::cast<bool>(ref3)) << "Operator bool is wrong.";
+    ref3 = std::move(ref2);
+    ASSERT_EQ(::add(a, b), ref3(a, b)) << "FunctionRef invocation failed.";
+    ASSERT_TRUE(zisc::cast<bool>(ref3)) << "Operator bool is wrong.";
+    // Copy assignment
+    FuncRef ref4{};
+    ASSERT_FALSE(zisc::cast<bool>(ref4)) << "Operator bool is wrong.";
+    ref4 = ref3;
+    ASSERT_EQ(::add(a, b), ref4(a, b)) << "FunctionRef invocation failed.";
+    ASSERT_TRUE(zisc::cast<bool>(ref4)) << "Operator bool is wrong.";
   }
+}
 
-  // A function pointer variable
-  {
-    FuncRef::FunctionPointer func_ptr = &::addValue;
-    FuncRef func_ref{func_ptr};
-    ASSERT_EQ(expected, func_ref(v1, v2))
-        << "Refering to a function pointer variable failed.";
-  }
+TEST(FunctionReferenceTest, SwapTest)
+{
+  using FuncRef = zisc::FunctionReference<int (int, int)>;
 
-  {
-    FuncRef func_ref{&::addValueL};
-    ASSERT_EQ(expected, func_ref(v1, v2))
-        << "Refering to a function pointer failed.";
-
-    func_ref.clear();
-    func_ref.assign(&::addValueL);
-    ASSERT_EQ(expected, func_ref(v1, v2))
-        << "Refering to a function pointer failed.";
-  }
+  constexpr int a = 1;
+  constexpr int b = 2;
 
   {
-    int (*func_ptr)(long, long) = &::addValueL;
-    FuncRef func_ref{func_ptr};
-    ASSERT_EQ(expected, func_ref(v1, v2))
-        << "Refering to a function pointer variable failed.";
-  }
+    FuncRef ref1{::add};
+    ::Adder adder{10};
+    FuncRef ref2{adder};
 
-  {
-    zisc::FunctionReference<int (long, long)> func_ref{&::addValueL};
-    FuncRef func_ref2{func_ref};
-    ASSERT_EQ(expected, func_ref2(v1, v2))
-        << "Refering to a copied function reference failed.";
-  }
+    ASSERT_EQ(::add(a, b), ref1(a, b)) << "FunctionRef invocation failed.";
+    ASSERT_NE(::add(a, b), ref2(a, b)) << "FunctionRef invocation failed.";
+    ASSERT_NE(adder(a, b), ref1(a, b)) << "FunctionRef invocation failed.";
+    ASSERT_EQ(adder(a, b), ref2(a, b)) << "FunctionRef invocation failed.";
 
-  // Copy constructor
-  {
-    FuncRef func_ref{&::addValueL};
-    const FuncRef func_ref2 = func_ref;
-    ASSERT_EQ(expected, func_ref2(v1, v2))
-        << "Refering to a copied function reference failed.";
-  }
-
-  // Lambda function1
-  {
-    auto add_value = [](const int a, const int b) noexcept
-    {
-      return a + b;
-    };
-    FuncRef func_ref{add_value};
-    ASSERT_EQ(expected, func_ref(v1, v2))
-        << "Refering to a lambda1 variable failed.";
-  }
-
-  // Lambda function2
-  {
-    int c = 1;
-    auto add_value = [&c](const int a, const int b) noexcept
-    {
-      return a + b + c - 1;
-    };
-    FuncRef func_ref{add_value};
-    ASSERT_EQ(expected, func_ref(v1, v2))
-        << "Refering to a lambda2 variable failed.";
-
-    func_ref.clear();
-    func_ref.assign(add_value);
-    ASSERT_EQ(expected, func_ref(v1, v2))
-        << "Refering to a lambda2 variable failed.";
-  }
-
-  // A function object
-  {
-    std::function<int (int, int)> func_object{&::addValue};
-    FuncRef func_ref{func_object};
-    ASSERT_EQ(expected, func_ref(v1, v2))
-        << "Refering to a function object failed.";
-
-    FuncRef copied_func{func_ref};
-    ASSERT_EQ(expected, copied_func(v1, v2))
-        << "Refering to a copied function reference failed.";
+    zisc::swap(ref1, ref2);
+    ASSERT_NE(::add(a, b), ref1(a, b)) << "FunctionRef swap failed.";
+    ASSERT_EQ(::add(a, b), ref2(a, b)) << "FunctionRef swap failed.";
+    ASSERT_EQ(adder(a, b), ref1(a, b)) << "FunctionRef swap failed.";
+    ASSERT_NE(adder(a, b), ref2(a, b)) << "FunctionRef swap failed.";
   }
 }
 
 namespace {
 
-class MoveType : public zisc::NonCopyable<MoveType>
+class NonCopyable : private zisc::NonCopyable<NonCopyable>
 {
  public:
-  MoveType(const int value) : value_{value} {}
-  [[maybe_unused]] MoveType(MoveType&& other) : value_{other.value_} {}
+  NonCopyable(const int value) : value_{value} {}
+  int value_ = 0;
+};
+
+class Movable : public zisc::NonCopyable<Movable>
+{
+ public:
+  Movable(const int value) : value_{value} {}
+  Movable(Movable&& other) : value_{other.value_} {}
   int value_ = 0;
 };
 
 } // namespace 
 
-TEST(FunctionReferenceTest, TypeTest)
+TEST(FunctionReferenceTest, ArgumentTest)
 {
-  auto func = [](const MoveType& a, MoveType&& b) noexcept
+  auto func = [](Movable a, const NonCopyable& b, NonCopyable& c, Movable&& d) 
   {
-    return a.value_ + b.value_;
+    const int result = a.value_ + b.value_ + c.value_ + d.value_;
+    c.value_ = 100;
+    return result;
   };
 
-  using FuncRef = zisc::FunctionReference<int (const MoveType&, MoveType&&)>;
+  using FuncRef = zisc::FunctionReference<int (::Movable, const ::NonCopyable&, ::NonCopyable&, ::Movable&&)>;
   {
-    FuncRef func_ref{func};
-    const MoveType a{10};
-    MoveType b{6};
-    const int expected = a.value_ + b.value_;
-    ASSERT_EQ(expected, func_ref(a, std::move(b)))
-        << "Handing arguments in zisc::FunctionReference failed.";
+    const FuncRef func_ref{func};
+    Movable a{1};
+    NonCopyable b{2};
+    NonCopyable c{3};
+    Movable d{4};
+    const int expected = a.value_ + b.value_ + c.value_ + d.value_;
+    const int result = func_ref(std::move(a), b, c, std::move(d));
+    ASSERT_EQ(expected, result) << "Passing arguments failed";
+    ASSERT_EQ(100, c.value_) << "Passing arguments failed";
   }
 }

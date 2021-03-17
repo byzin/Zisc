@@ -234,15 +234,11 @@ class ThreadManager : private NonCopyable<ThreadManager>
   // Type aliases
   using TaskQueue = ScalableCircularQueue<WorkerTask>;
   using WorkerLock = AtomicWord<Config::isAtomicOsSpecifiedWaitUsed()>;
-  template <typename Func>
-  using PlainFuncT = std::remove_cvref_t<Func>;
-  template <typename Func>
-  using FuncData = std::conditional_t<std::is_lvalue_reference_v<Func>,
-      std::add_const_t<std::add_pointer_t<PlainFuncT<Func>>>,
-      PlainFuncT<Func>>;
-  template <typename Func>
-  using FuncRef = std::add_lvalue_reference_t<std::add_const_t<PlainFuncT<Func>>>;
 
+
+  //! Increment the given iterator
+  template <typename Ite, typename OffsetT>
+  static Ite advance(Ite& it, const OffsetT offset) noexcept;
 
   //! Create worker threads
   void createWorkers(const int64b num_of_threads) noexcept;
@@ -255,8 +251,9 @@ class ThreadManager : private NonCopyable<ThreadManager>
   void doWorkerTask(const int64b thread_id) noexcept;
 
   //! Run tasks on the worker threads in the manager
-  template <typename ReturnT, typename Func, typename Ite1, typename Ite2>
-  SharedFuture<ReturnT> enqueueImpl(Func&& task,
+  template <typename ReturnT, bool kIsLoopTask,
+            typename TaskData, typename Ite1, typename Ite2>
+  SharedFuture<ReturnT> enqueueImpl(TaskData& task,
                                     Ite1&& begin,
                                     Ite2&& end,
                                     const int64b parent_task_id);
@@ -277,8 +274,8 @@ class ThreadManager : private NonCopyable<ThreadManager>
   int64b getCurrentThreadId() const noexcept;
 
   //! Return the function reference of the given function data
-  template <typename Func>
-  static FuncRef<Func> getFuncRef(FuncData<Func>& data) noexcept;
+  template <typename ...Types, typename TaskData>
+  static auto getTaskRef(TaskData&& data) noexcept;
 
   //! Initialize this thread manager
   void initialize(const int64b num_of_threads) noexcept;
@@ -287,8 +284,8 @@ class ThreadManager : private NonCopyable<ThreadManager>
   int64b issueTaskId() noexcept;
 
   //! Return the func data
-  template <typename Func>
-  static FuncData<Func> makeFuncData(Func&& func) noexcept;
+  template <typename ...Types, Invocable<Types...> Func>
+  static auto makeTaskData(Func&& func) noexcept;
 
   //! Wait current thread for parent task complesion
   void waitForParent(const int64b task_id, const int64b parent_task_id) const noexcept;

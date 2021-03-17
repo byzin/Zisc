@@ -20,6 +20,7 @@
 #include <algorithm>
 #include <atomic>
 #include <cstddef>
+#include <functional>
 #include <iterator>
 #include <limits>
 #include <memory>
@@ -189,6 +190,58 @@ ThreadManager::~ThreadManager()
 /*!
   \details No detailed description
 
+  \tparam Types No description.
+  \tparam TaskData No description.
+  \param [in] data No description.
+  \return No description
+  */
+template <typename ...Types, typename TaskData> inline
+auto ThreadManager::getTaskRef(TaskData&& data) noexcept
+{
+  using FuncT1 = std::remove_volatile_t<std::remove_reference_t<TaskData>>;
+  constexpr bool t1_is_invocable = std::is_invocable_v<FuncT1, Types...>;
+  using FuncT2 = std::remove_pointer_t<FuncT1>;
+  constexpr bool t2_is_invocable = std::is_invocable_v<FuncT2, Types...>;
+  if constexpr (t1_is_invocable)
+    return std::ref(data);
+  else if constexpr (t2_is_invocable)
+    return std::ref(*data);
+  static_assert(t1_is_invocable || t2_is_invocable, "Unsupported data type.");
+}
+
+/*!
+  \details No detailed description
+
+  \tparam Types No description.
+  \tparam Func No description.
+  \param [in] func No description.
+  \return No description
+  */
+template <typename ...Types, Invocable<Types...> Func> inline
+auto ThreadManager::makeTaskData(Func&& func) noexcept
+{
+  using Function = std::remove_volatile_t<std::remove_reference_t<Func>>;
+  using ReturnT = InvokeResult<Function, Types...>;
+  using FunctionPointer = ReturnT (*)(Types...);
+  constexpr bool is_func_ptr = std::is_pointer_v<Function>;
+  constexpr bool has_func_ptr = std::is_convertible_v<Function, FunctionPointer>;
+  constexpr bool is_fanctor = std::is_object_v<Function>;
+
+  if constexpr (is_func_ptr)
+    return func;
+  else if constexpr (has_func_ptr)
+    return FunctionPointer{func};
+  else if constexpr (std::is_lvalue_reference_v<Func>)
+    return std::addressof(func);
+  else // rvalue functor
+    return std::move(func);
+
+  static_assert(is_func_ptr || has_func_ptr || is_fanctor, "Unsupported func type.");
+}
+
+/*!
+  \details No detailed description
+
   \return No description
   */
 inline
@@ -242,15 +295,13 @@ auto ThreadManager::enqueue(Func&& task, const int64b parent_task_id)
     -> SharedFuture<InvokeResult<Func>>
 {
   using ReturnT = InvokeResult<Func>;
-  auto t = [data = makeFuncData(std::forward<Func>(task))](const int64b)
+  auto task_data = [data = makeTaskData(std::forward<Func>(task))]
+  (const int64b) mutable noexcept -> ReturnT
   {
-    const auto& func = getFuncRef<Func>(data);
-    if constexpr (std::is_void_v<ReturnT>)
-      func();
-    else
-      return func();
+    auto func = getTaskRef(data);
+    return std::invoke(func);
   };
-  auto result = enqueueImpl<ReturnT>(std::move(t), 0, 1, parent_task_id);
+  auto result = enqueueImpl<ReturnT, false>(task_data, 0, 1, parent_task_id);
   return result;
 }
 
@@ -267,7 +318,8 @@ auto ThreadManager::enqueue(Func&& task, const int64b parent_task_id)
     -> SharedFuture<InvokeResult<Func, int64b>>
 {
   using ReturnT = InvokeResult<Func, int64b>;
-  auto result = enqueueImpl<ReturnT>(std::forward<Func>(task), 0, 1, parent_task_id);
+  auto task_data = makeTaskData<int64b>(std::forward<Func>(task));
+  auto result = enqueueImpl<ReturnT, false>(task_data, 0, 1, parent_task_id);
   return result;
 }
 
@@ -291,16 +343,16 @@ auto ThreadManager::enqueueLoop(Func&& task,
                                 const int64b parent_task_id) -> SharedFuture<void>
 {
   using Ite = CommonIte<Ite1, Ite2>;
-  auto t = [data = makeFuncData(std::forward<Func>(task))](const int64b,
-                                                           const Ite it)
+  auto task_data = [data = makeTaskData<Ite>(std::forward<Func>(task))]
+  (const int64b, const Ite it) mutable noexcept
   {
-    const auto& func = getFuncRef<Func>(data);
-    func(it);
+    auto func = getTaskRef<Ite>(data);
+    std::invoke(func, it);
   };
-  auto result = enqueueImpl<void>(std::move(t),
-                                  std::forward<Ite1>(begin),
-                                  std::forward<Ite2>(end),
-                                  parent_task_id);
+  auto result = enqueueImpl<void, true>(task_data,
+                                        std::forward<Ite1>(begin),
+                                        std::forward<Ite2>(end),
+                                        parent_task_id);
   return result;
 }
 
@@ -323,10 +375,12 @@ auto ThreadManager::enqueueLoop(Func&& task,
                                 Ite2&& end,
                                 const int64b parent_task_id) -> SharedFuture<void>
 {
-  auto result = enqueueImpl<void>(std::forward<Func>(task),
-                                  std::forward<Ite1>(begin),
-                                  std::forward<Ite2>(end),
-                                  parent_task_id);
+  using Ite = CommonIte<Ite1, Ite2>;
+  auto task_data = makeTaskData<int64b, Ite>(std::forward<Func>(task));
+  auto result = enqueueImpl<void, true>(task_data,
+                                        std::forward<Ite1>(begin),
+                                        std::forward<Ite2>(end),
+                                        parent_task_id);
   return result;
 }
 
@@ -506,6 +560,26 @@ void ThreadManager::WorkerTask::run(const int64b thread_id)
 /*!
   \details No detailed description
 
+  \tparam Ite No description.
+  \tparam OffsetT No description.
+  \param [in] begin No description.
+  \param [in] offset No description.
+  \return No description
+  */
+template <typename Ite, typename OffsetT> inline
+Ite ThreadManager::advance(Ite& begin, const OffsetT offset) noexcept
+{
+  auto ite = begin;
+  if constexpr (std::is_arithmetic_v<Ite>)
+    ite += cast<Ite>(offset);
+  else
+    std::advance(ite, offset);
+  return ite;
+}
+
+/*!
+  \details No detailed description
+
   \param [in] num_of_threads No description.
   */
 inline
@@ -593,7 +667,8 @@ void ThreadManager::doWorkerTask(const int64b thread_id) noexcept
   \details No detailed description
 
   \tparam ReturnT No description.
-  \tparam Func No description.
+  \tparam kIsLoopTask No description.
+  \tparam TaskData No description.
   \tparam Ite1 No description.
   \tparam Ite2 No description.
   \param [in] task No description.
@@ -603,17 +678,16 @@ void ThreadManager::doWorkerTask(const int64b thread_id) noexcept
   \return No description
   \exception OverflowError No description.
   */
-template <typename ReturnT, typename Func, typename Ite1, typename Ite2> inline
-auto ThreadManager::enqueueImpl(Func&& task,
+template <typename ReturnT, bool kIsLoopTask,
+          typename TaskData, typename Ite1, typename Ite2> inline
+auto ThreadManager::enqueueImpl(TaskData& task,
                                 Ite1&& begin,
                                 Ite2&& end,
                                 const int64b parent_task_id) -> SharedFuture<ReturnT>
 {
   using SharedFutureT = SharedFuture<ReturnT>;
   using Ite = std::remove_cv_t<CommonIte<Ite1, Ite2>>;
-  using IsSingle = std::is_invocable<Func, int64b>;
-  using IsLoop = std::is_invocable<Func, int64b, Ite>;
-  static_assert(IsSingle::value || IsLoop::value, "The Func isn't queueable.");
+  using Data = std::remove_reference_t<TaskData>;
 
 #if defined(Z_GCC) || defined(Z_CLANG)
 #pragma GCC diagnostic push
@@ -623,9 +697,9 @@ auto ThreadManager::enqueueImpl(Func&& task,
   {
    public:
     //! Initialize the task
-    TaskImpl(Func t, SharedFutureT& r, Ite1 b, const int64b p) noexcept
+    TaskImpl(Data&& data, SharedFutureT& r, Ite1 b, const int64b p) noexcept
         : PackagedTask(r->id(), p),
-          func_data_{makeFuncData(std::forward<Func>(t))},
+          task_data_{std::move(data)},
           result_{r},
           begin_{std::forward<Ite1>(b)}
     {
@@ -633,7 +707,7 @@ auto ThreadManager::enqueueImpl(Func&& task,
     //! Finalize the task
     ~TaskImpl() noexcept override
     {
-      if constexpr (IsLoop::value)
+      if constexpr (kIsLoopTask || std::is_void_v<ReturnT>)
         result_->set(0);
     }
     //! Retrieve the result of the underlying task
@@ -647,33 +721,25 @@ auto ThreadManager::enqueueImpl(Func&& task,
       auto th_manager = result_->manager();
       th_manager->waitForParent(id(), parentId());
 
-      const auto& func = getFuncRef<Func>(func_data_);
-      if constexpr (IsLoop::value) { // Loop task
-        if constexpr (std::is_arithmetic_v<Ite>) {
-          using IType = std::common_type_t<Ite, DiffType>;
-          auto ite = cast<Ite>(cast<IType>(begin_) + cast<IType>(it_offset));
-          func(thread_id, ite);
-        }
-        else {
-          auto ite = begin_;
-          std::advance(ite, it_offset);
-          func(thread_id, ite);
-        }
+      if constexpr (kIsLoopTask) { // Loop task
+        auto func = getTaskRef<int64b, Ite>(task_data_);
+        auto ite = advance(begin_, it_offset);
+        std::invoke(func, thread_id, ite);
       }
       else { // Single task
+        auto func = getTaskRef<int64b>(task_data_);
         if constexpr (std::is_void_v<ReturnT>) {
-          func(thread_id);
-          result_->set(0);
+          std::invoke(func, thread_id);
         }
         else {
-          auto value = func(thread_id);
+          auto value = std::invoke(func, thread_id);
           result_->set(std::move(value));
         }
       }
     }
 
    private:
-    FuncData<Func> func_data_;
+    Data task_data_;
     SharedFutureT result_;
     Ite begin_;
   };
@@ -695,7 +761,7 @@ auto ThreadManager::enqueueImpl(Func&& task,
   pmr::polymorphic_allocator<TaskImpl> task_alloc{mem_resource};
   const int64b parent_id = (task_id == 0) ? kNoTask : parent_task_id;
   auto shared_task = std::allocate_shared<TaskImpl>(task_alloc,
-                                                    std::forward<Func>(task),
+                                                    std::move(task),
                                                     shared_result,
                                                     std::forward<Ite1>(begin),
                                                     parent_id);
@@ -725,7 +791,7 @@ auto ThreadManager::enqueueImpl(Func&& task,
       }
       atomic_notify_one(std::addressof(worker_lock_));
     }
-    if constexpr (IsLoop::value)
+    if constexpr (kIsLoopTask)
       atomic_notify_all(std::addressof(worker_lock_));
   }
 
@@ -805,22 +871,6 @@ int64b ThreadManager::getCurrentThreadId() const noexcept
 /*!
   \details No detailed description
 
-  \tparam Func No description.
-  \param [in] data No description.
-  \return No description
-  */
-template <typename Func> inline
-auto ThreadManager::getFuncRef(FuncData<Func>& data) noexcept -> FuncRef<Func>
-{
-  if constexpr (std::is_lvalue_reference_v<Func>)
-    return *data;
-  else
-    return data;
-}
-
-/*!
-  \details No detailed description
-
   \param [in] num_of_threads No description.
   */
 inline
@@ -840,22 +890,6 @@ int64b ThreadManager::issueTaskId() noexcept
 {
   const int64b id = total_queued_task_ids_.fetch_add(1, std::memory_order::acq_rel);
   return id;
-}
-
-/*!
-  \details No detailed description
-
-  \tparam Func No description.
-  \param [in] func No description.
-  \return No description
-  */
-template <typename Func> inline
-auto ThreadManager::makeFuncData(Func&& func) noexcept -> FuncData<Func>
-{
-  if constexpr (std::is_lvalue_reference_v<Func>)
-    return std::addressof(func);
-  else
-    return std::move(func);
 }
 
 /*!

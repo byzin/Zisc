@@ -17,6 +17,7 @@
 
 #include "function_reference.hpp"
 // Standard C++ library
+#include <functional>
 #include <memory>
 #include <type_traits>
 // Zisc
@@ -72,10 +73,7 @@ template <typename ReturnT, typename ...ArgTypes> inline
 auto FunctionReference<ReturnT (ArgTypes...)>::operator()(ArgTypes... args) const noexcept
     -> ReturnType
 {
-  if constexpr (std::is_void_v<ReturnType>)
-    invoke(forward<ArgTypes>(args)...);
-  else
-    return invoke(forward<ArgTypes>(args)...);
+  return invoke(forward<ArgTypes>(args)...);
 }
 
 /*!
@@ -132,10 +130,7 @@ auto FunctionReference<ReturnT (ArgTypes...)>::invoke(ArgTypes... args) const no
     -> ReturnType
 {
   ZISC_ASSERT(cast<bool>(*this), "Underlying reference is invalid.");
-  if constexpr (std::is_void_v<ReturnType>)
-    invoker()(memory(), forward<ArgTypes>(args)...);
-  else
-    return invoker()(memory(), forward<ArgTypes>(args)...);
+  return invoker()(memory(), forward<ArgTypes>(args)...);
 }
 
 /*!
@@ -228,10 +223,7 @@ auto FunctionReference<ReturnT (ArgTypes...)>::invokeFunctionPointer(
     ArgTypes... args) noexcept -> ReturnType
 {
   auto ptr = bit_cast<FuncPtr>(mem);
-  if constexpr (std::is_void_v<ReturnType>)
-    std::invoke(ptr, forward<ArgTypes>(args)...);
-  else
-    return std::invoke(ptr, forward<ArgTypes>(args)...);
+  return std::invoke(ptr, forward<ArgTypes>(args)...);
 }
 
 /*!
@@ -249,10 +241,7 @@ auto FunctionReference<ReturnT (ArgTypes...)>::invokeFunctor(
 {
   using FuncPtr = std::add_pointer_t<Functor>;
   auto ptr = bit_cast<FuncPtr>(mem);
-  if constexpr (std::is_void_v<ReturnType>)
-    std::invoke(*ptr, forward<ArgTypes>(args)...);
-  else
-    return std::invoke(*ptr, forward<ArgTypes>(args)...);
+  return std::invoke(*ptr, forward<ArgTypes>(args)...);
 }
 
 /*!

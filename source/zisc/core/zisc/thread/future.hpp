@@ -82,16 +82,14 @@ class Future : private NonCopyable<Future<T>>
 
  private:
   static_assert(std::is_void_v<T> || std::is_move_constructible_v<T>);
+  friend ThreadManager;
 
 
   // Type aliases
-  friend ThreadManager;
   using ValueT = std::conditional_t<std::is_void_v<Type>, int, Type>;
-  using ConstValueT = std::add_const_t<ValueT>;
-  using ValueReference = std::add_lvalue_reference_t<ValueT>;
   using ValueRReference = std::add_rvalue_reference_t<ValueT>;
-  using ConstValueReference = std::add_lvalue_reference_t<ConstValueT>;
-  using DataT = std::conditional_t<std::is_default_constructible_v<ValueT>,
+  using DataT = std::conditional_t<std::is_default_constructible_v<ValueT> &&
+                                   std::is_move_assignable_v<ValueT>,
       ValueT,
       std::aligned_storage_t<sizeof(ValueT), alignof(ValueT)>>;
 
@@ -112,10 +110,10 @@ class Future : private NonCopyable<Future<T>>
   void set(ValueRReference result) noexcept;
 
   //! Return the reference to the value
-  ValueReference value() noexcept;
+  Reference value() noexcept;
 
   //! Return the reference to the value
-  ConstValueReference value() const noexcept;
+  ConstReference value() const noexcept;
 
 
   int64b id_ = invalidId();

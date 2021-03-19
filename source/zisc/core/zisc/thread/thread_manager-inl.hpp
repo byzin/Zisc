@@ -344,7 +344,7 @@ auto ThreadManager::enqueueLoop(Func&& task,
 {
   using Ite = CommonIte<Ite1, Ite2>;
   auto task_data = [data = makeTaskData<Ite>(std::forward<Func>(task))]
-  (const int64b, const Ite it) mutable noexcept
+  (const Ite it, const int64b) mutable noexcept
   {
     auto func = getTaskRef<Ite>(data);
     std::invoke(func, it);
@@ -369,14 +369,14 @@ auto ThreadManager::enqueueLoop(Func&& task,
   \return No description
   */
 template <typename Func, typename Ite1, typename Ite2>
-requires Invocable<Func, int64b, ThreadManager::CommonIte<Ite1, Ite2>> inline
+requires Invocable<Func, ThreadManager::CommonIte<Ite1, Ite2>, int64b> inline
 auto ThreadManager::enqueueLoop(Func&& task,
                                 Ite1&& begin,
                                 Ite2&& end,
                                 const int64b parent_task_id) -> SharedFuture<void>
 {
   using Ite = CommonIte<Ite1, Ite2>;
-  auto task_data = makeTaskData<int64b, Ite>(std::forward<Func>(task));
+  auto task_data = makeTaskData<Ite, int64b>(std::forward<Func>(task));
   auto result = enqueueImpl<void, true>(task_data,
                                         std::forward<Ite1>(begin),
                                         std::forward<Ite2>(end),
@@ -722,9 +722,9 @@ auto ThreadManager::enqueueImpl(TaskData& task,
       th_manager->waitForParent(id(), parentId());
 
       if constexpr (kIsLoopTask) { // Loop task
-        auto func = getTaskRef<int64b, Ite>(task_data_);
+        auto func = getTaskRef<Ite, int64b>(task_data_);
         auto ite = advance(begin_, it_offset);
-        std::invoke(func, thread_id, ite);
+        std::invoke(func, ite, thread_id);
       }
       else { // Single task
         auto func = getTaskRef<int64b>(task_data_);

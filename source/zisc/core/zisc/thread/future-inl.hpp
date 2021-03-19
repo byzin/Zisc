@@ -72,8 +72,7 @@ template <NonReference T> inline
 auto Future<T>::get() -> Reference
 {
   wait();
-  if constexpr (!std::is_void_v<Type>)
-    return value();
+  return value();
 }
 
 /*!
@@ -85,8 +84,7 @@ template <NonReference T> inline
 auto Future<T>::get() const -> ConstReference
 {
   wait();
-  if constexpr (!std::is_void_v<Type>)
-    return value();
+  return value();
 }
 
 /*!
@@ -150,7 +148,7 @@ void Future<T>::destroy() noexcept
 {
   if constexpr (std::is_destructible_v<ValueT> && !std::is_same_v<DataT, ValueT>) {
     if (isReady()) {
-      ValueReference v = value();
+      Reference v = value();
       std::destroy_at(std::addressof(v));
     }
   }
@@ -206,10 +204,12 @@ template <NonReference T> inline
 void Future<T>::set(ValueRReference result) noexcept
 {
   // Set value
-  if constexpr (std::is_same_v<DataT, ValueT>)
-    data_ = std::move(result);
-  else 
-    new (std::addressof(data_)) ValueT{std::move(result)};
+  if constexpr (!std::is_void_v<Type>) {
+    if constexpr (std::is_same_v<DataT, ValueT>)
+      data_ = std::move(result);
+    else 
+      new (std::addressof(data_)) ValueT{std::move(result)};
+  }
   const bool old = has_value_.test_and_set(std::memory_order::release);
   ZISC_ASSERT(!old, "The result already has a value.");
   // Notify the thread manager that the task was completed
@@ -223,12 +223,14 @@ void Future<T>::set(ValueRReference result) noexcept
   \return No description
   */
 template <NonReference T> inline
-auto Future<T>::value() noexcept -> ValueReference
+auto Future<T>::value() noexcept -> Reference
 {
-  if constexpr (std::is_same_v<DataT, ValueT>)
-    return data_;
-  else
-    return *reinterp<ValueT*>(std::addressof(data_));
+  if constexpr (!std::is_void_v<Type>) {
+    if constexpr (std::is_same_v<DataT, ValueT>)
+      return data_;
+    else
+      return *reinterp<ValueT*>(std::addressof(data_));
+  }
 }
 
 /*!
@@ -237,12 +239,14 @@ auto Future<T>::value() noexcept -> ValueReference
   \return No description
   */
 template <NonReference T> inline
-auto Future<T>::value() const noexcept -> ConstValueReference
+auto Future<T>::value() const noexcept -> ConstReference
 {
-  if constexpr (std::is_same_v<DataT, ValueT>)
-    return data_;
-  else
-    return *reinterp<ConstValueT*>(std::addressof(data_));
+  if constexpr (!std::is_void_v<Type>) {
+    if constexpr (std::is_same_v<DataT, ValueT>)
+      return data_;
+    else
+      return *reinterp<ConstType*>(std::addressof(data_));
+  }
 }
 
 } // namespace zisc

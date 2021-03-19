@@ -30,7 +30,7 @@ TEST(SpinLockMutexTest, LockTest)
 
   zisc::int64b value = 0;
   static constexpr zisc::int64b a = 5;
-  auto test = [&locker, &value](const zisc::int64b /* thread_id */, const zisc::int64b /* i */)
+  auto test = [&locker, &value](const zisc::int64b /* i */, const zisc::int64b /* thread_id */)
   {
     std::unique_lock<zisc::SpinLockMutex> l{locker};
     value += a;

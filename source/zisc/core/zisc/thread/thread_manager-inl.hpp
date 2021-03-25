@@ -36,11 +36,11 @@
 #include "future.hpp"
 #include "packaged_task.hpp"
 #include "zisc/concepts.hpp"
+#include "zisc/data_structure/scalable_circular_queue.hpp"
 #include "zisc/error.hpp"
 #include "zisc/utility.hpp"
 #include "zisc/zisc_config.hpp"
 #include "zisc/memory/std_memory_resource.hpp"
-#include "zisc/queue/scalable_circular_queue.hpp"
 
 namespace zisc {
 

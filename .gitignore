@@ -43,9 +43,9 @@
 !/source/zisc/core/zisc/memory/
 !/source/zisc/core/zisc/memory/*.hpp
 !/source/zisc/core/zisc/memory/*.cpp
-!/source/zisc/core/zisc/queue/
-!/source/zisc/core/zisc/queue/*.hpp
-!/source/zisc/core/zisc/queue/*.cpp
+!/source/zisc/core/zisc/data_structure/
+!/source/zisc/core/zisc/data_structure/*.hpp
+!/source/zisc/core/zisc/data_structure/*.cpp
 !/source/zisc/core/zisc/random/
 !/source/zisc/core/zisc/random/*.hpp
 !/source/zisc/core/zisc/random/*.cpp

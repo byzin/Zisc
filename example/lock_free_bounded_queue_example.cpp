@@ -19,9 +19,9 @@
 #include <vector>
 // Zisc
 #include "zisc/zisc_config.hpp"
+#include "zisc/data_structure/bounded_queue.hpp"
+#include "zisc/data_structure/scalable_circular_queue.hpp"
 #include "zisc/memory/simple_memory_resource.hpp"
-#include "zisc/queue/bounded_queue.hpp"
-#include "zisc/queue/scalable_circular_queue.hpp"
 
 template <typename Type>
 void showAtomicProperties(const std::string_view type_name) noexcept

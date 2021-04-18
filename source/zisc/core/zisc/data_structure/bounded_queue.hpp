@@ -30,10 +30,6 @@
 
 namespace zisc {
 
-//! Specify a type is queueable
-template <typename Type>
-concept Queueable = DefaultConstructible<Type> && MoveConstructible<Type> && MoveAssignable<Type>;
-
 /*!
   \brief No brief description
 
@@ -42,12 +38,12 @@ concept Queueable = DefaultConstructible<Type> && MoveConstructible<Type> && Mov
   \tparam QueueClass No description.
   \tparam T No description.
   */
-template <typename QueueClass, Queueable T>
+template <typename QueueClass, Movable T>
 class BoundedQueue : private NonCopyable<BoundedQueue<QueueClass, T>>
 {
  public:
-  // Types
-  using Type = std::remove_cv_t<T>;
+  // Type aliases
+  using Type = std::remove_volatile_t<T>;
   using ConstType = std::add_const_t<Type>;
   using Reference = std::add_lvalue_reference_t<Type>;
   using RReference = std::add_rvalue_reference_t<Type>;
@@ -137,9 +133,13 @@ class BoundedQueue : private NonCopyable<BoundedQueue<QueueClass, T>>
   size_type size() const noexcept;
 
  protected:
-  // Types
-  using QueuePtr = std::add_pointer_t<QueueClass>;
-  using ConstQueuePtr = std::add_pointer_t<std::add_const_t<QueueClass>>;
+  // Type aliases
+  using QueueT = std::remove_volatile_t<QueueClass>;
+  using ConstQueueT = std::add_const_t<QueueT>;
+  using QueuePtr = std::add_pointer_t<QueueT>;
+  using ConstQueuePtr = std::add_pointer_t<ConstQueueT>;
+  using QueueReference = std::add_lvalue_reference_t<QueueT>;
+  using ConstQueueReference = std::add_lvalue_reference_t<ConstQueueT>;
 
 
   //! Create a queue
@@ -151,6 +151,13 @@ class BoundedQueue : private NonCopyable<BoundedQueue<QueueClass, T>>
 
   //! Move a queue
   BoundedQueue& operator=(const BoundedQueue& other) noexcept;
+
+
+  //! Return the reference to the queue class
+  QueueReference ref() noexcept;
+
+  //! Return the reference to the queue class
+  ConstQueueReference ref() const noexcept;
 };
 
 } // namespace zisc

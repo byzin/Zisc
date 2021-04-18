@@ -26,6 +26,7 @@
 // Zisc
 #include "bounded_queue.hpp"
 #include "ring_buffer.hpp"
+#include "zisc/concepts.hpp"
 #include "zisc/error.hpp"
 #include "zisc/zisc_config.hpp"
 #include "zisc/memory/std_memory_resource.hpp"
@@ -33,7 +34,7 @@
 namespace zisc {
 
 /*!
-  \brief Scalable Circular Queue (SCQ)
+  \brief Scalable Circular Lock-free Queue (SCQ)
 
   For more detail, please see the following paper: 
   <a href="https://arxiv.org/abs/1908.04511">A Scalable, Portable, and Memory-Efficient Lock-Free FIFO Queue</a>. <br>
@@ -41,11 +42,11 @@ namespace zisc {
 
   \tparam T No description.
   */
-template <Queueable T>
+template <Movable T>
 class ScalableCircularQueue : public BoundedQueue<ScalableCircularQueue<T>, T>
 {
  public:
-  // Types
+  // Type aliases
   using BaseQueueType = BoundedQueue<ScalableCircularQueue<T>, T>;
   using Type = typename BaseQueueType::Type;
   using ConstType = typename BaseQueueType::ConstType;

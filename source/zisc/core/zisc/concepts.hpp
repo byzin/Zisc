@@ -151,6 +151,9 @@ concept CopyAssignable = std::is_copy_assignable_v<Type>;
 template <typename Type>
 concept MoveAssignable = std::is_move_assignable_v<Type>;
 
+template <typename Type>
+concept Movable = MoveConstructible<Type> && MoveAssignable<Type>;
+
 //! Specify a type is reference type
 template <typename Type>
 concept Reference = std::is_reference_v<Type>;

@@ -29,6 +29,7 @@
 #include <vector>
 // Zisc
 #include "zisc/bit.hpp"
+#include "zisc/concepts.hpp"
 #include "zisc/error.hpp"
 #include "zisc/utility.hpp"
 #include "zisc/zisc_config.hpp"
@@ -41,7 +42,7 @@ namespace zisc {
 
   \param [in,out] mem_resource No description.
   */
-template <Queueable T> inline
+template <Movable T> inline
 ScalableCircularQueue<T>::ScalableCircularQueue(pmr::memory_resource* mem_resource) noexcept
     : ScalableCircularQueue(1, mem_resource)
 {
@@ -53,7 +54,7 @@ ScalableCircularQueue<T>::ScalableCircularQueue(pmr::memory_resource* mem_resour
   \param [in] cap No description.
   \param [in,out] mem_resource No description.
   */
-template <Queueable T> inline
+template <Movable T> inline
 ScalableCircularQueue<T>::ScalableCircularQueue(const size_type cap,
                                                 pmr::memory_resource* mem_resource) noexcept
     : BaseQueueType(),
@@ -69,7 +70,7 @@ ScalableCircularQueue<T>::ScalableCircularQueue(const size_type cap,
 
   \param [in] other No description.
   */
-template <Queueable T> inline
+template <Movable T> inline
 ScalableCircularQueue<T>::ScalableCircularQueue(ScalableCircularQueue&& other) noexcept
     : BaseQueueType(other),
       free_elements_{std::move(other.free_elements_)},
@@ -84,7 +85,7 @@ ScalableCircularQueue<T>::ScalableCircularQueue(ScalableCircularQueue&& other) n
   \param [in] other No description.
   \return No description
   */
-template <Queueable T> inline
+template <Movable T> inline
 auto ScalableCircularQueue<T>::operator=(ScalableCircularQueue&& other) noexcept
     -> ScalableCircularQueue&
 {
@@ -100,7 +101,7 @@ auto ScalableCircularQueue<T>::operator=(ScalableCircularQueue&& other) noexcept
 
   \return No description
   */
-template <Queueable T> inline
+template <Movable T> inline
 auto ScalableCircularQueue<T>::capacity() const noexcept -> size_type
 {
   const size_type cap = elements_.size();
@@ -114,17 +115,17 @@ auto ScalableCircularQueue<T>::capacity() const noexcept -> size_type
 
   \return No description
   */
-template <Queueable T> inline
+template <Movable T> inline
 constexpr auto ScalableCircularQueue<T>::capacityMax() noexcept -> size_type
 {
-  const uint64b cap = uint64b{0b1u} << (std::numeric_limits<uint64b>::digits - 2);
+  const size_type cap = size_type{0b1u} << (std::numeric_limits<size_type>::digits - 2);
   return cap;
 }
 
 /*!
   \details No detailed description
   */
-template <Queueable T> inline
+template <Movable T> inline
 void ScalableCircularQueue<T>::clear() noexcept
 {
   allocated_elements_.clear();
@@ -141,7 +142,7 @@ void ScalableCircularQueue<T>::clear() noexcept
 
   \return No description
   */
-template <Queueable T> inline
+template <Movable T> inline
 auto ScalableCircularQueue<T>::data() const noexcept -> const container_type&
 {
   return elements_;
@@ -152,7 +153,7 @@ auto ScalableCircularQueue<T>::data() const noexcept -> const container_type&
 
   \return No description
   */
-template <Queueable T> inline
+template <Movable T> inline
 auto ScalableCircularQueue<T>::dequeue() noexcept -> std::tuple<bool, Type>
 {
   std::tuple<bool, Type> result;
@@ -173,7 +174,7 @@ auto ScalableCircularQueue<T>::dequeue() noexcept -> std::tuple<bool, Type>
   \return No description
   \exception OverflowError No description.
   */
-template <Queueable T> inline
+template <Movable T> inline
 bool ScalableCircularQueue<T>::enqueue(ConstReference value)
 {
   return enqueueImpl(value);
@@ -186,7 +187,7 @@ bool ScalableCircularQueue<T>::enqueue(ConstReference value)
   \return No description
   \exception OverflowError No description.
   */
-template <Queueable T> inline
+template <Movable T> inline
 bool ScalableCircularQueue<T>::enqueue(RReference value)
 {
   return enqueueImpl(std::move(value));
@@ -197,7 +198,7 @@ bool ScalableCircularQueue<T>::enqueue(RReference value)
 
   \return No description
   */
-template <Queueable T> inline
+template <Movable T> inline
 bool ScalableCircularQueue<T>::isEmpty() const noexcept
 {
   const size_type s = size();
@@ -210,7 +211,7 @@ bool ScalableCircularQueue<T>::isEmpty() const noexcept
 
   \return No description
   */
-template <Queueable T> inline
+template <Movable T> inline
 pmr::memory_resource* ScalableCircularQueue<T>::resource() const noexcept
 {
   pmr::memory_resource* mem_resource = elements_.get_allocator().resource();
@@ -222,7 +223,7 @@ pmr::memory_resource* ScalableCircularQueue<T>::resource() const noexcept
 
   \param [in] cap No description.
   */
-template <Queueable T> inline
+template <Movable T> inline
 void ScalableCircularQueue<T>::setCapacity(const size_type cap) noexcept
 {
   const size_type cap_pow2 = bit_ceil(cap);
@@ -240,7 +241,7 @@ void ScalableCircularQueue<T>::setCapacity(const size_type cap) noexcept
 
   \return No description
   */
-template <Queueable T> inline
+template <Movable T> inline
 auto ScalableCircularQueue<T>::size() const noexcept -> size_type
 {
   const std::size_t s = allocated_elements_.distance();
@@ -255,7 +256,7 @@ auto ScalableCircularQueue<T>::size() const noexcept -> size_type
   \return No description
   \exception OverflowError No description.
   */
-template <Queueable T> template <typename ValueT> inline
+template <Movable T> template <typename ValueT> inline
 bool ScalableCircularQueue<T>::enqueueImpl(ValueT&& value)
 {
   const uint64b index = free_elements_.dequeue(true); // Get an entry index

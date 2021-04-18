@@ -91,7 +91,7 @@ class Future : private NonCopyable<Future<T>>
   using DataT = std::conditional_t<std::is_default_constructible_v<ValueT> &&
                                    std::is_move_assignable_v<ValueT>,
       ValueT,
-      std::aligned_storage_t<sizeof(ValueT), alignof(ValueT)>>;
+      std::aligned_storage_t<sizeof(ValueT), std::alignment_of_v<ValueT>>>;
 
 
   //! Destroy the result data

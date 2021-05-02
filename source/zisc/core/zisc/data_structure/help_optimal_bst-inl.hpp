@@ -24,6 +24,7 @@
 #include <memory>
 #include <tuple>
 #include <type_traits>
+#include <utility>
 #include <vector>
 // Zisc
 #include "help_optimal_bst_node.hpp"
@@ -64,10 +65,44 @@ HelpOptimalBst::HelpOptimalBst(const size_type cap,
 
 /*!
   \details No detailed description
+
+  \param [in] other No description.
+  */
+inline
+HelpOptimalBst::HelpOptimalBst(HelpOptimalBst&& other) noexcept :
+    free_data_nodes_{std::move(other.free_data_nodes_)},
+    free_non_data_nodes_{std::move(other.free_non_data_nodes_)},
+    data_node_list_{std::move(other.data_node_list_)},
+    non_data_node_list_{std::move(other.non_data_node_list_)},
+    c_root_id_{other.c_root_id_},
+    p_root_id_{other.p_root_id_}
+{
+}
+
+/*!
+  \details No detailed description
   */
 inline
 HelpOptimalBst::~HelpOptimalBst() noexcept
 {
+}
+
+/*!
+  \details No detailed description
+
+  \param [in] other No description.
+  \return No description
+  */
+inline
+HelpOptimalBst& HelpOptimalBst::operator=(HelpOptimalBst&& other) noexcept
+{
+  free_data_nodes_ = std::move(other.free_data_nodes_);
+  free_non_data_nodes_ = std::move(other.free_non_data_nodes_);
+  data_node_list_ = std::move(other.data_node_list_);
+  non_data_node_list_ = std::move(other.non_data_node_list_);
+  c_root_id_ = other.c_root_id_;
+  p_root_id_ = other.p_root_id_;
+  return *this;
 }
 
 /*!
@@ -131,7 +166,7 @@ auto HelpOptimalBst::add(const Type& value) -> std::tuple<bool, size_type>
     if (!is_added)
       backtrack(key, &ancestor_id, &successor_id, &parent_id, &child_id);
   }
-  return std::make_tuple(is_added, node_id);
+  return std::make_tuple(is_added, getNodeIndex(node_id));
 }
 
 /*!
@@ -143,7 +178,8 @@ inline
 auto HelpOptimalBst::capacity() const noexcept -> size_type
 {
   const size_type cap = data_node_list_.size();
-  ZISC_ASSERT(has_single_bit(cap), "The capacity isn't power of 2. capacity = ", cap);
+  ZISC_ASSERT((cap == 0) || has_single_bit(cap),
+               "The capacity isn't power of 2. capacity = ", cap);
   return cap;
 }
 
@@ -237,7 +273,8 @@ bool HelpOptimalBst::remove(const Type& value)
           sibling_id = appendSpliceNode(parent_id, key, ancestor_id, &splice_id);
           if (isDeadNode(sibling_id)) {
             makeDeadNode(key, &dead_id);
-            is_removed = casChild(ancestor_id, key, successor_id, dead_id);
+            casChild(ancestor_id, key, successor_id, dead_id);
+            is_removed = true;
           }
           else {
             is_removed = getNode(sibling_id).isSplice() ||
@@ -302,18 +339,18 @@ auto HelpOptimalBst::appendSpliceNode(const size_type node_id,
                                       size_type* splice_id) noexcept -> size_type
 {
   const Node& node = getNode(node_id);
-  const bool is_left = key < node.key();
+  const bool is_left = !(key < node.key());
 
   size_type sibling_id = invalidId();
   while (sibling_id == invalidId()) {
-    const size_type sib_id = node.child(!is_left).load(std::memory_order::acquire);
+    const size_type sib_id = node.child(is_left).load(std::memory_order::acquire);
     if (hasBacktrack(sib_id, nullptr)) {
       sibling_id = sib_id;
     }
     else {
       const Node& sibling = getNode(sib_id);
       makeSpliceNode(sibling.key(), sib_id, backtrack_id, splice_id);
-      if (casChild(node_id, key, sib_id, *splice_id))
+      if (casChild<false>(node_id, key, sib_id, *splice_id))
         sibling_id = sib_id;
     }
   }
@@ -336,9 +373,8 @@ void HelpOptimalBst::backtrack(const double key,
                                size_type* parent_id,
                                size_type* child_id) const noexcept
 {
-  const Node* ancestor = nullptr;
   do {
-    ancestor = std::addressof(getNode(*ancestor_id));
+    const Node* ancestor = std::addressof(getNode(*ancestor_id));
     const bool is_left = key < ancestor->key();
     *successor_id = ancestor->child(is_left).load(std::memory_order::acquire);
   } while (hasBacktrack(*successor_id, ancestor_id));
@@ -369,14 +405,16 @@ double HelpOptimalBst::calcInnerNodeKey(const double key1, const double key2) no
   \param [in] new_id No description.
   \return No description
   */
-inline
+template <bool kIsLeftReplacedWithSmallerKey> inline
 bool HelpOptimalBst::casChild(const size_type node_id,
                               const double key,
                               size_type cmp_id,
                               const size_type new_id) noexcept
 {
   Node& node = getNode(node_id);
-  const bool is_left = key < node.key();
+  const bool is_left = kIsLeftReplacedWithSmallerKey
+      ? key < node.key()
+      : !(key < node.key());
   auto& child = node.child(is_left);
   bool result = child.load(std::memory_order::acquire) == cmp_id;
   if (result) {
@@ -393,9 +431,9 @@ bool HelpOptimalBst::casChild(const size_type node_id,
   \return No description
   */
 inline
-constexpr auto HelpOptimalBst::cRootId() noexcept -> size_type
+auto HelpOptimalBst::cRootId() const noexcept -> size_type
 {
-  return 3;
+  return c_root_id_;
 }
 
 /*!
@@ -504,7 +542,7 @@ void HelpOptimalBst::initialize() noexcept
 
     size_type c_root_id = invalidId();
     makeInnerNode(Node::max1Key(), node1_id, node2_id, true, &c_root_id);
-    ZISC_ASSERT(c_root_id == cRootId(), "C root initialization failed.");
+    c_root_id_ = c_root_id;
   }
 
   // Initialize p root
@@ -514,7 +552,7 @@ void HelpOptimalBst::initialize() noexcept
 
     size_type p_root_id = invalidId();
     makeInnerNode(Node::max0Key(), cRootId(), node2_id, true, &p_root_id);
-    ZISC_ASSERT(p_root_id == pRootId(), "P root initialization failed.");
+    p_root_id_ = p_root_id;
   }
 }
 
@@ -539,6 +577,35 @@ inline
 bool HelpOptimalBst::isDataNode(const size_type id) const noexcept
 {
   const bool result = (id & flagBit()) == flagBit();
+  return result;
+}
+
+/*!
+  \details No detailed description
+
+  \param [in] id No description.
+  \return No description
+  */
+inline
+bool HelpOptimalBst::isDeadNode(const size_type id) const noexcept
+{
+  const Node& node = getNode(id);
+  const bool result = id == node.rightChild().load(std::memory_order::acquire);
+  return result;
+}
+
+/*!
+  \details No detailed description
+
+  \param [in] id No description.
+  \return No description
+  */
+inline
+bool HelpOptimalBst::isLeafNode(const size_type id) const noexcept
+{
+  const Node& node = getNode(id);
+  const size_type l_child_id = node.leftChild().load(std::memory_order::acquire);
+  const bool result = l_child_id == invalidId();
   return result;
 }
 
@@ -681,15 +748,13 @@ void HelpOptimalBst::makeSpliceNode(const double key,
     return;
   }
 
-  Node* node = nullptr;
   if (*id == invalidId()) {
     const size_type n_id = issueNonDataNodeId();
     ZISC_ASSERT(!isDataNode(n_id), "The issued ID isn't for internal node.");
-    node = std::addressof(getNode(n_id));
-    *id = node_id;
+    *id = n_id;
   }
-  node = (node == nullptr) ? std::addressof(getNode(*id)) : node;
-  node->setKey(key);
+  Node* node = std::addressof(getNode(*id));
+  node->setKey(Node::min0Key());
   {
     const Node& original = getNode(node_id);
     const size_type child_id = original.leftChild().load(std::memory_order::acquire);
@@ -728,9 +793,9 @@ void HelpOptimalBst::makeSpecialNode(const double key, size_type* id) noexcept
   \return No description
   */
 inline
-constexpr auto HelpOptimalBst::pRootId() noexcept -> size_type
+auto HelpOptimalBst::pRootId() const noexcept -> size_type
 {
-  return 5;
+  return p_root_id_;
 }
 
 /*!

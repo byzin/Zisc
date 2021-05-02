@@ -54,8 +54,15 @@ class HelpOptimalBst : public BoundedBst<HelpOptimalBst>
   HelpOptimalBst(const size_type cap,
                  pmr::memory_resource* mem_resource) noexcept;
 
+  //! Move a data
+  HelpOptimalBst(HelpOptimalBst&& other) noexcept;
+
   //! Destroy the bst
   ~HelpOptimalBst() noexcept;
+
+
+  //! Move a data
+  HelpOptimalBst& operator=(HelpOptimalBst&& other) noexcept;
 
 
   //! Insert the given value into the bst
@@ -107,13 +114,14 @@ class HelpOptimalBst : public BoundedBst<HelpOptimalBst>
   static double calcInnerNodeKey(const double key1, const double key2) noexcept;
 
   //! Atomically compare node's child and cmp_id and replace with new_id
+  template <bool kIsLeftReplacedWithSmallerKey = true>
   bool casChild(const size_type node_id,
                 const double key,
                 size_type cmp_id,
                 const size_type new_id) noexcept;
 
   //! Return the id of c root
-  static constexpr size_type cRootId() noexcept;
+  size_type cRootId() const noexcept;
 
   //! Destroy elements stored in the bst
   void destroy() noexcept;
@@ -185,7 +193,7 @@ class HelpOptimalBst : public BoundedBst<HelpOptimalBst>
   void makeSpecialNode(const double key, size_type* id) noexcept;
 
   //! Return the id of p root
-  static constexpr size_type pRootId() noexcept;
+  size_type pRootId() const noexcept;
 
   //! Delete data in the given sub-tree and release node IDs
   void releaseNodes(const size_type id) noexcept;
@@ -205,6 +213,8 @@ class HelpOptimalBst : public BoundedBst<HelpOptimalBst>
   RingBuffer free_non_data_nodes_;
   pmr::vector<Node> data_node_list_;
   pmr::vector<Node> non_data_node_list_;
+  size_type c_root_id_ = 0;
+  size_type p_root_id_ = 0;
 };
 
 } // namespace zisc

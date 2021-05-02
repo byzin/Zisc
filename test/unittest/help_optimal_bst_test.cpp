@@ -37,57 +37,106 @@
 // Test
 //#include "lock_free_bounded_queue_test.hpp"
 
-//TEST(ScalableCircularQueueTest, LockFreeTest)
-//{
-//  {
-//    std::atomic<zisc::int32b> v;
-//    EXPECT_TRUE(v.is_always_lock_free) << "std::atomic<int32_t> isn't lock free.";
-//  }
-//  {
-//    std::atomic<zisc::uint32b> v;
-//    EXPECT_TRUE(v.is_always_lock_free) << "std::atomic<uint32_t> isn't lock free.";
-//  }
-//  {
-//    std::atomic<zisc::int64b> v;
-//    EXPECT_TRUE(v.is_always_lock_free) << "std::atomic<int64_t> isn't lock free.";
-//  }
-//  {
-//    std::atomic<zisc::uint64b> v;
-//    EXPECT_TRUE(v.is_always_lock_free) << "std::atomic<uint64_t> isn't lock free.";
-//  }
-//}
+TEST(HelpOptimalBstTest, ConstructorTest)
+{
+  using Bst = zisc::HelpOptimalBst;
 
-//TEST(ScalableCircularQueueTest, ConstructorTest)
-//{
-//  using Queue = zisc::ScalableCircularQueue<int>;
-//
-//  zisc::SimpleMemoryResource mem_resource;
-//  std::unique_ptr<Queue> q;
-//  // Test the constructor without size
-//  {
-//    Queue q1{&mem_resource};
-//    q = std::make_unique<Queue>(std::move(q1));
-//  }
-//  ASSERT_EQ(1, q->capacity()) << "Constructing of ScalableCircularQueue failed.";
-//
-//  // test the constructor with power of 2 size
-//  std::size_t cap = 16;
-//  {
-//    Queue q1{cap, &mem_resource};
-//    q = std::make_unique<Queue>(std::move(q1));
-//  }
-//  ASSERT_EQ(cap, q->capacity()) << "Constructing of ScalableCircularQueue failed.";
-//
-//  // test the constructor with non power of 2 size
-//  cap = 20;
-//  {
-//    Queue q1{cap, &mem_resource};
-//    q = std::make_unique<Queue>(std::move(q1));
-//  }
-//  cap = 32;
-//  ASSERT_EQ(cap, q->capacity()) << "Constructing of ScalableCircularQueue failed.";
-//}
-//
+  zisc::SimpleMemoryResource mem_resource;
+  std::unique_ptr<Bst> bst;
+  //
+  {
+    Bst bst1{&mem_resource};
+    bst = std::make_unique<Bst>(std::move(bst1));
+  }
+  ASSERT_EQ(Bst::defaultCapacity(), bst->capacity())
+      << "Constructing of HelpOptimalBst failed.";
+
+  //
+  std::size_t cap = 4096;
+  {
+    Bst bst1{cap, &mem_resource};
+    bst = std::make_unique<Bst>(std::move(bst1));
+  }
+  ASSERT_EQ(cap, bst->capacity())
+      << "Constructing of HelpOptimalBst failed.";
+
+  //
+  cap = 5000;
+  {
+    Bst bst1{cap, &mem_resource};
+    bst = std::make_unique<Bst>(std::move(bst1));
+  }
+  cap = 8192;
+  ASSERT_EQ(cap, bst->capacity())
+      << "Constructing of HelpOptimalBst failed.";
+}
+
+TEST(HelpOptimalBstTest, OperationTest)
+{
+  using Bst = zisc::HelpOptimalBst;
+
+  zisc::SimpleMemoryResource mem_resource;
+  Bst bst{&mem_resource};
+
+  std::vector<int> value_list{{7, 6, 4, 8, 2, 1, 5, 3, 15, 100, 0}};
+  std::vector<int> value2_list{{10, 25000, -1}};
+
+  for (const int value : value_list) {
+    {
+      const auto [result, index] = bst.add(value);
+      ASSERT_TRUE(result) << "Adding value '" << value << "' into the bst failed.";
+    }
+    {
+      const auto [result, index] = bst.add(value);
+      ASSERT_FALSE(result) << "Adding value '" << value << "' into the bst failed.";
+    }
+  }
+
+  for (const int value : value_list) {
+    const bool result = bst.contain(value);
+    ASSERT_TRUE(result) << "Quering value '" << value << "' from the bst failed.";
+  }
+  for (const int value : value2_list) {
+    const bool result = bst.contain(value);
+    ASSERT_FALSE(result) << "Quering value '" << value << "' from the bst failed.";
+  }
+
+  for (const int value : value_list) {
+    const auto [result, index] = bst.add(value);
+    ASSERT_FALSE(result) << "Adding value '" << value << "' into the bst failed.";
+  }
+
+  for (const int value : value_list) {
+    {
+      const bool result = bst.remove(value);
+      ASSERT_TRUE(result) << "Removing value '" << value << "' from the bst failed.";
+    }
+    {
+      const bool result = bst.remove(value);
+      ASSERT_FALSE(result) << "Removing value '" << value << "' from the bst failed.";
+    }
+  }
+  for (const int value : value2_list) {
+    const bool result = bst.remove(value);
+    ASSERT_FALSE(result) << "Removing value '" << value << "' from the bst failed.";
+  }
+
+  for (const int value : value_list) {
+    const bool result = bst.contain(value);
+    ASSERT_FALSE(result) << "Quering value '" << value << "' from the bst failed.";
+  }
+
+  for (const int value : value_list) {
+    const bool result = bst.remove(value);
+    ASSERT_FALSE(result) << "Removing value '" << value << "' from the bst failed.";
+  }
+
+  for (const int value : value_list) {
+    const auto [result, index] = bst.add(value);
+    ASSERT_TRUE(result) << "Adding value '" << value << "' into the bst failed.";
+  }
+}
+
 //TEST(ScalableCircularQueueTest, QueueTest)
 //{
 //  using Queue = zisc::ScalableCircularQueue<int>;

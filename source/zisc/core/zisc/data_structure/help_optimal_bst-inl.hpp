@@ -22,6 +22,7 @@
 #include <cstddef>
 #include <limits>
 #include <memory>
+#include <ostream>
 #include <tuple>
 #include <type_traits>
 #include <utility>
@@ -119,7 +120,9 @@ auto HelpOptimalBst::add(const Type& value) -> std::tuple<bool, size_type>
 
   auto [ancestor_id, successor_id, parent_id, child_id] = getInitialIds();
   size_type node_id = invalidId();
+  size_type node_id_tmp = invalidId();
   size_type inner_id = invalidId();
+  size_type sibling_id = invalidId();
   size_type splice_id = invalidId();
   bool is_added = false;
   while (!is_added) {
@@ -136,36 +139,44 @@ auto HelpOptimalBst::add(const Type& value) -> std::tuple<bool, size_type>
       makeInnerNode(inner_key, node_id, child_id, is_node_left, &inner_id);
 
       if (!child.isSplice()) {
-        is_added = casChild(parent_id, key, child_id, inner_id);
+        is_added = casChild(parent_id, key, child_id, &inner_id);
       }
       else {
-        is_added = casChild(ancestor_id, key, successor_id, inner_id);
+        is_added = casChild(ancestor_id, key, successor_id, &inner_id);
       }
     }
     else {
       makeLeafNode(key, &node_id);
+      node_id_tmp = node_id;
       if (!hasBacktrack(child_id, nullptr)) {
-        is_added = casChild(parent_id, key, child_id, node_id);
+        is_added = casChild(parent_id, key, child_id, &node_id_tmp);
       }
       else {
-        const size_type sibling_id = appendSpliceNode(parent_id, key, ancestor_id, &splice_id);
-        size_type new_n_idx = invalidId();
+        sibling_id = appendSpliceNode(parent_id, key, ancestor_id, &splice_id);
+        size_type* node_id_ptr = nullptr;
         if (isDeadNode(sibling_id)) {
-          new_n_idx = node_id;
+          sibling_id = invalidId();
+          node_id_ptr = &node_id_tmp;
         }
         else {
           const Node& sibling = getNode(sibling_id);
           const double inner_key = calcInnerNodeKey(parent.key(), key);
           const bool is_node_left = key < sibling.key();
           makeInnerNode(inner_key, node_id, sibling_id, is_node_left, &inner_id);
-          new_n_idx = inner_id;
+          node_id_ptr = &inner_id;
         }
-        is_added = casChild(ancestor_id, key, successor_id, new_n_idx);
+        is_added = casChild(ancestor_id, key, successor_id, node_id_ptr);
       }
     }
     if (!is_added)
       backtrack(key, &ancestor_id, &successor_id, &parent_id, &child_id);
   }
+  if (node_id_tmp != node_id)
+    releaseNodes(node_id_tmp);
+  if (inner_id != child_id)
+    releaseNodes(inner_id);
+  if (splice_id != sibling_id)
+    releaseNodes(splice_id);
   return std::make_tuple(is_added, getNodeIndex(node_id));
 }
 
@@ -243,6 +254,18 @@ constexpr auto HelpOptimalBst::defaultCapacity() noexcept -> size_type
 /*!
   \details No detailed description
 
+  \param [out] output No description.
+  */
+inline
+void HelpOptimalBst::printTree(std::ostream* output) const noexcept
+{
+  printTreeNode(cRootId(), output);
+  (*output) << std::endl;
+}
+
+/*!
+  \details No detailed description
+
   \tparam Type No description.
   \param [in] value No description.
   \return No description
@@ -255,6 +278,7 @@ bool HelpOptimalBst::remove(const Type& value)
   size_type marked_id = invalidId();
   size_type dead_id = invalidId();
   size_type sibling_id = invalidId();
+  size_type sibling_id_tmp = invalidId();
   size_type splice_id = invalidId();
   bool mode = true;
   bool is_removed = false;
@@ -268,34 +292,48 @@ bool HelpOptimalBst::remove(const Type& value)
       if ((child.rightChild().load(std::memory_order::acquire) == invalidId()) &&
           (parent_id != ancestor_id)) {
         makeDeadNode(key, &marked_id, ancestor_id);
-        if (casChild(parent_id, key, child_id, marked_id)) {
+        if (casChild(parent_id, key, child_id, &marked_id)) {
           mode = false;
           sibling_id = appendSpliceNode(parent_id, key, ancestor_id, &splice_id);
           if (isDeadNode(sibling_id)) {
+            sibling_id = invalidId();
+            sibling_id_tmp = invalidId();
             makeDeadNode(key, &dead_id);
-            casChild(ancestor_id, key, successor_id, dead_id);
+            casChild(ancestor_id, key, successor_id, &dead_id);
+            is_removed = true;
+          }
+          else if (getNode(sibling_id).isSplice()) {
+            sibling_id = invalidId();
+            sibling_id_tmp = invalidId();
             is_removed = true;
           }
           else {
-            is_removed = getNode(sibling_id).isSplice() ||
-                         casChild(ancestor_id, key, successor_id, sibling_id);
+            sibling_id_tmp = sibling_id;
+            is_removed = casChild(ancestor_id, key, successor_id, &sibling_id_tmp);
           }
         }
       }
       else {
         makeDeadNode(key, &dead_id);
-        is_removed = casChild(ancestor_id, key, successor_id, dead_id);
+        is_removed = casChild(ancestor_id, key, successor_id, &dead_id);
       }
     }
     else {
       is_removed = (child_id != marked_id) || (parent_id == ancestor_id);
       if (!is_removed) {
-        is_removed = casChild(ancestor_id, key, successor_id, sibling_id);
+        is_removed = casChild(ancestor_id, key, successor_id, &sibling_id_tmp);
       }
     }
     if (!is_removed)
       backtrack(key, &ancestor_id, &successor_id, &parent_id, &child_id);
   }
+  releaseNodes(marked_id);
+  releaseNodes(dead_id);
+  if (sibling_id_tmp != sibling_id)
+    releaseNodes(sibling_id_tmp);
+//  if ((splice_id != sibling_id) || (splice_id == sibling_id_tmp))
+//  if (splice_id != sibling_id)
+//    releaseNodes(splice_id);
   return is_removed;
 }
 
@@ -350,7 +388,7 @@ auto HelpOptimalBst::appendSpliceNode(const size_type node_id,
     else {
       const Node& sibling = getNode(sib_id);
       makeSpliceNode(sibling.key(), sib_id, backtrack_id, splice_id);
-      if (casChild<false>(node_id, key, sib_id, *splice_id))
+      if (casChild<false>(node_id, key, sib_id, splice_id))
         sibling_id = sib_id;
     }
   }
@@ -402,14 +440,14 @@ double HelpOptimalBst::calcInnerNodeKey(const double key1, const double key2) no
   \param [in] node_id No description.
   \param [in] key No description.
   \param [in] cmp_id No description.
-  \param [in] new_id No description.
+  \param [in,out] new_id No description.
   \return No description
   */
 template <bool kIsLeftReplacedWithSmallerKey> inline
 bool HelpOptimalBst::casChild(const size_type node_id,
                               const double key,
                               size_type cmp_id,
-                              const size_type new_id) noexcept
+                              size_type* new_id) noexcept
 {
   Node& node = getNode(node_id);
   const bool is_left = kIsLeftReplacedWithSmallerKey
@@ -420,8 +458,10 @@ bool HelpOptimalBst::casChild(const size_type node_id,
   if (result) {
     constexpr auto success = std::memory_order::acq_rel;
     constexpr auto failure = std::memory_order::acquire;
-    result = child.compare_exchange_strong(cmp_id, new_id, success, failure);
+    result = child.compare_exchange_strong(cmp_id, *new_id, success, failure);
   }
+  if (result)
+    *new_id = cmp_id; // replace the given value with old id
   return result;
 }
 
@@ -790,6 +830,37 @@ void HelpOptimalBst::makeSpecialNode(const double key, size_type* id) noexcept
 /*!
   \details No detailed description
 
+  \param [out] output No description.
+  */
+inline
+void HelpOptimalBst::printTreeNode(const std::size_t id,
+                                   std::ostream* output) const noexcept
+{
+  const Node& node = getNode(id);
+  if (isLeafNode(id)) {
+    const std::size_t index = getNodeIndex(id);
+    if (isDeadNode(id))
+      (*output) << "dead(" << index << "(" << node.key() << ")) ";
+    else
+      (*output) << index << "(" << node.key() << ") ";
+  }
+  else if (!isDeadNode(id)) {
+    {
+      const std::size_t child_id = node.leftChild().load(std::memory_order::acquire);
+      if (child_id != invalidId())
+        printTreeNode(child_id, output);
+    }
+    {
+      const std::size_t child_id = node.rightChild().load(std::memory_order::acquire);
+      if (child_id != invalidId())
+        printTreeNode(child_id, output);
+    }
+  }
+}
+
+/*!
+  \details No detailed description
+
   \return No description
   */
 inline
@@ -807,8 +878,9 @@ inline
 void HelpOptimalBst::releaseNodes(const size_type id) noexcept
 {
   std::array<size_type, 8> id_stack;
-  id_stack[0] = id;
-  size_type n = 1;
+  size_type n = 0;
+  if (id != invalidId())
+    id_stack[n++] = id;
   while (0 < n) {
     const size_type node_id = id_stack[--n];
     const Node& node = getNode(node_id);
@@ -825,6 +897,7 @@ void HelpOptimalBst::releaseNodes(const size_type id) noexcept
       if (l_child_id != invalidId())
         id_stack[n++] = l_child_id;
     }
+    ZISC_ASSERT(n <= id_stack.size(), "The id stack overflowed.");
     returnNodeId(id);
   }
 }
@@ -837,6 +910,16 @@ void HelpOptimalBst::releaseNodes(const size_type id) noexcept
 inline
 void HelpOptimalBst::returnNodeId(const size_type id) noexcept
 {
+  if (id == invalidId())
+    return;
+
+#if defined(Z_DEBUG_MODE)
+  {
+    Node& node = getNode(id);
+    node.setKey(Node::min1Key());
+  }
+#endif // Z_DEBUG_MODE
+
   const size_type index = getNodeIndex(id);
   if (isDataNode(id))
     free_data_nodes_.enqueue(index, true);

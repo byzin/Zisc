@@ -122,7 +122,7 @@ uint64b RingBuffer::dequeue(const bool nonempty) noexcept
   uint64b head_cycle = 0;
   uint64b head_index = 0;
   int attempt = 0;
-  bool flag = nonempty || (0 <= threshold().load());
+  bool flag = nonempty || (0 <= threshold().load(std::memory_order::acquire));
   bool again = false;
   while (flag) {
     const uint64b n = cast<uint64b>(size());
@@ -211,8 +211,7 @@ bool RingBuffer::enqueue(const uint64b index, const bool nonempty) noexcept
   uint64b tail_index = 0;
   uint64b entry = 0;
   bool retry = false;
-  bool flag = true;
-  while (flag) {
+  while (true) {
     const uint64b n = cast<uint64b>(size());
     if (!retry) {
       tailp = tail().fetch_add(1, std::memory_order::acq_rel);
@@ -235,9 +234,9 @@ bool RingBuffer::enqueue(const uint64b index, const bool nonempty) noexcept
         continue;
       const uint64b half = n >> 1;
       const int64b threshold3 = calcThreshold3(half);
-      if (!nonempty && (threshold().load() != threshold3))
-        threshold().store(threshold3);
-      flag = false;
+      if (!nonempty && (threshold().load(std::memory_order::acquire) != threshold3))
+        threshold().store(threshold3, std::memory_order::release);
+      break;
     }
   }
   return true;

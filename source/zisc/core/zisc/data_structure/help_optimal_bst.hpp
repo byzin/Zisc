@@ -18,6 +18,7 @@
 // Standard C++ library
 #include <cstddef>
 #include <memory>
+#include <ostream>
 #include <tuple>
 #include <type_traits>
 #include <vector>
@@ -85,6 +86,9 @@ class HelpOptimalBst : public BoundedBst<HelpOptimalBst>
   //! Return the default capacity for nodes
   static constexpr size_type defaultCapacity() noexcept;
 
+  //! Print tree
+  void printTree(std::ostream* output) const noexcept;
+
   //! Remove the value from the bst
   template <ConvertibleTo<double> Type>
   bool remove(const Type& value);
@@ -118,7 +122,7 @@ class HelpOptimalBst : public BoundedBst<HelpOptimalBst>
   bool casChild(const size_type node_id,
                 const double key,
                 size_type cmp_id,
-                const size_type new_id) noexcept;
+                size_type* new_id) noexcept;
 
   //! Return the id of c root
   size_type cRootId() const noexcept;
@@ -191,6 +195,9 @@ class HelpOptimalBst : public BoundedBst<HelpOptimalBst>
 
   //! Make a special node
   void makeSpecialNode(const double key, size_type* id) noexcept;
+
+  //! Print tree
+  void printTreeNode(const std::size_t id, std::ostream* output) const noexcept;
 
   //! Return the id of p root
   size_type pRootId() const noexcept;

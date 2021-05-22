@@ -13,11 +13,14 @@
   */
 
 // Standard C++ library
+#include <array>
 #include <algorithm>
 #include <atomic>
 #include <cstddef>
 #include <iostream>
+#include <map>
 #include <memory>
+#include <random>
 #include <system_error>
 #include <thread>
 #include <tuple>
@@ -134,6 +137,66 @@ TEST(HelpOptimalBstTest, OperationTest)
   for (const int value : value_list) {
     const auto [result, index] = bst.add(value);
     ASSERT_TRUE(result) << "Adding value '" << value << "' into the bst failed.";
+  }
+}
+
+TEST(HelpOptimalBstTest, AddRemoveTest)
+{
+  using Bst = zisc::HelpOptimalBst;
+
+  const std::array<int, 16> candidate_list{{-171717, -1000, -1, 0, 1, 3, 4, 9, 15, 16, 100, 2000, 10300, 50000, 360000, (std::numeric_limits<int>::max)()}};
+
+  std::mt19937_64 rand_engine{123'567'789};
+  std::uniform_int_distribution<std::size_t> sampler1{0, 1};
+  std::uniform_int_distribution<std::size_t> sampler2{0, candidate_list.size() - 1};
+
+  std::map<int, bool> value_list;
+  for (const auto candidate : candidate_list)
+    value_list[candidate] = false;
+
+  zisc::SimpleMemoryResource mem_resource;
+  Bst bst{candidate_list.size() * 2, &mem_resource};
+//  Bst bst{&mem_resource};
+
+  constexpr std::size_t n = 1000'000;
+  for (std::size_t i = 0; i < n; ++i) {
+    const std::size_t op = sampler1(rand_engine);
+
+    const std::size_t index = sampler2(rand_engine);
+    const int candidate = candidate_list[index];
+    auto& flag = value_list[candidate];
+
+    if (op == 0) { // Add
+      auto [result, id] = bst.add(candidate);
+      if (flag) {
+        ASSERT_FALSE(result) << "BST add operation failed.";
+      }
+      else {
+        ASSERT_TRUE(result) << "BST add operation failed.";
+        flag = true;
+      }
+    }
+    else { // Remove
+      auto result = bst.remove(candidate);
+      if (flag) {
+        ASSERT_TRUE(result) << "BST remove operation failed.";
+        flag = false;
+      }
+      else {
+        ASSERT_FALSE(result) << "BST remove operation failed.";
+      }
+    }
+
+    std::cout << "[" << i << "] op=" << op << ", candidate[" << index << "]=" << candidate << ", flag=" << flag << std::endl;
+    std::cout << "    ";
+    bst.printTree(&std::cout);
+
+    for (auto v : value_list) {
+      if (v.second)
+        ASSERT_TRUE(bst.contain(v.first)) << "BST contain(" << v.first << ") operation failed.";
+      else
+        ASSERT_FALSE(bst.contain(v.first)) << "BST contain(" << v.first << ") operation failed.";
+    }
   }
 }
 

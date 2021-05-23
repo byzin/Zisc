@@ -199,6 +199,10 @@ class HelpOptimalBst : public BoundedBst<HelpOptimalBst>
   //! Print tree
   void printTreeNode(const std::size_t id, std::ostream* output) const noexcept;
 
+  //! Print tree
+  void printTreeNode(std::vector<std::size_t>* id_list,
+                     std::ostream* output) const noexcept;
+
   //! Return the id of p root
   size_type pRootId() const noexcept;
 

@@ -160,6 +160,8 @@ TEST(HelpOptimalBstTest, AddRemoveTest)
 
   constexpr std::size_t n = 1000'000;
   for (std::size_t i = 0; i < n; ++i) {
+    if (i == 157)
+      std::cout << "Ready." << std::endl;
     const std::size_t op = sampler1(rand_engine);
 
     const std::size_t index = sampler2(rand_engine);
@@ -188,7 +190,6 @@ TEST(HelpOptimalBstTest, AddRemoveTest)
     }
 
     std::cout << "[" << i << "] op=" << op << ", candidate[" << index << "]=" << candidate << ", flag=" << flag << std::endl;
-    std::cout << "    ";
     bst.printTree(&std::cout);
 
     for (auto v : value_list) {

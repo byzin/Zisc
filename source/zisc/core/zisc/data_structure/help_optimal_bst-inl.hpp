@@ -34,6 +34,9 @@
 #include "zisc/utility.hpp"
 #include "zisc/memory/std_memory_resource.hpp"
 
+#include <iomanip>
+#include <sstream>
+
 namespace zisc {
 
 /*!
@@ -259,8 +262,23 @@ constexpr auto HelpOptimalBst::defaultCapacity() noexcept -> size_type
 inline
 void HelpOptimalBst::printTree(std::ostream* output) const noexcept
 {
-  printTreeNode(cRootId(), output);
-  (*output) << std::endl;
+//  printTreeNode(cRootId(), output);
+  std::vector<std::size_t> id_list = {cRootId()};
+  bool flag = true;
+  for (std::size_t level = 1; flag; ++level) {
+    flag = false;
+    for (const auto id : id_list) {
+      if (id != invalidId()) {
+        flag = true;
+        break;
+      }
+    }
+    if (flag) {
+      (*output) << std::setw(2) << level;
+      printTreeNode(&id_list, output);
+      (*output) << std::endl;
+    }
+  }
 }
 
 /*!
@@ -856,6 +874,76 @@ void HelpOptimalBst::printTreeNode(const std::size_t id,
         printTreeNode(child_id, output);
     }
   }
+}
+
+inline
+void HelpOptimalBst::printTreeNode(std::vector<std::size_t>* id_list,
+                                   std::ostream* output) const noexcept
+{
+  constexpr std::size_t w = 32;
+  for (const std::size_t id : *id_list) {
+    if (id == invalidId()) {
+      (*output) << std::setw(w) << " " << "|";
+      continue;
+    }
+
+    const Node& node = getNode(id);
+    std::stringstream str;
+    if (isLeafNode(id)) {
+      if (isDeadNode(id))
+        str << "deadL(" << node.key() << ", " << std::setbase(16) << id << ") ";
+      else
+        str << "L(" << node.key() << ", " << std::setbase(16) << id << ") ";
+    }
+    else {
+      if (node.isSplice())
+        str << "S(" << node.key() << ", " << std::setbase(16) << id << ") ";
+      else if (isDeadNode(id))
+        str << "deadN(" << node.key() << ", " << std::setbase(16) << id << ") ";
+      else
+        str << "N(" << node.key() << ", " << std::setbase(16) << id << ") ";
+    }
+    (*output) << std::setw(w) << str.str() << "|";
+  }
+
+  std::vector<std::size_t> new_list;
+  for (const std::size_t id : *id_list) {
+    if (id == invalidId()) {
+      new_list.emplace_back(invalidId());
+      new_list.emplace_back(invalidId());
+      continue;
+    }
+
+    const Node& node = getNode(id);
+    if (isLeafNode(id)) {
+      new_list.emplace_back(invalidId());
+      new_list.emplace_back(invalidId());
+    }
+    else {
+      const std::size_t left_id = node.leftChild().load(std::memory_order::acquire);
+      const std::size_t right_id = node.rightChild().load(std::memory_order::acquire);
+      if (node.isSplice()) {
+        if (right_id != invalidId() && !isLeafNode(right_id)) {
+          const Node& child_node = getNode(right_id);
+          const std::size_t left_c_id = child_node.leftChild().load(std::memory_order::acquire);
+          if (left_id == left_c_id)
+            new_list.emplace_back(invalidId());
+          else
+            new_list.emplace_back(left_id);
+        }
+        new_list.emplace_back(right_id);
+      }
+      else if (isDeadNode(id)) {
+        new_list.emplace_back(invalidId());
+        new_list.emplace_back(invalidId());
+      }
+      else {
+        new_list.emplace_back(left_id);
+        new_list.emplace_back(right_id);
+      }
+    }
+  }
+  *id_list = std::move(new_list);
 }
 
 /*!

@@ -18,7 +18,6 @@
 // Standard C++ library
 #include <cstddef>
 #include <memory>
-#include <ostream>
 #include <tuple>
 #include <type_traits>
 #include <vector>
@@ -87,7 +86,7 @@ class HelpOptimalBst : public BoundedBst<HelpOptimalBst>
   static constexpr size_type defaultCapacity() noexcept;
 
   //! Print tree
-  void printTree(std::ostream* output) const noexcept;
+//  void printTree(std::ostream* output) const noexcept;
 
   //! Remove the value from the bst
   template <ConvertibleTo<double> Type>
@@ -145,6 +144,9 @@ class HelpOptimalBst : public BoundedBst<HelpOptimalBst>
   //! Return the node index corresponding to the given ID
   static size_type getNodeIndex(const size_type id) noexcept;
 
+  //! Return the id to non-spliced node of the given node
+  size_type getRefNodeId(const size_type id) const noexcept;
+
   //! Check if the given node has backtrack ID
   bool hasBacktrack(const size_type id, size_type* backtrack_id) const noexcept;
 
@@ -197,17 +199,21 @@ class HelpOptimalBst : public BoundedBst<HelpOptimalBst>
   void makeSpecialNode(const double key, size_type* id) noexcept;
 
   //! Print tree
-  void printTreeNode(const std::size_t id, std::ostream* output) const noexcept;
-
-  //! Print tree
-  void printTreeNode(std::vector<std::size_t>* id_list,
-                     std::ostream* output) const noexcept;
+//  void printTreeNode(const std::size_t id, std::ostream* output) const noexcept;
+//
+//  //! Print tree
+//  void printTreeNode(std::vector<std::size_t>* id_list,
+//                     std::ostream* output) const noexcept;
 
   //! Return the id of p root
   size_type pRootId() const noexcept;
 
+  //! Eelease the given node ID
+  void releaseNode(const size_type id) noexcept;
+
   //! Delete data in the given sub-tree and release node IDs
-  void releaseNodes(const size_type id) noexcept;
+  void releaseNodes(const size_type id,
+                    const size_type excluded_id = invalidId()) noexcept;
 
   //! Free the give node ID
   void returnNodeId(const size_type id) noexcept;

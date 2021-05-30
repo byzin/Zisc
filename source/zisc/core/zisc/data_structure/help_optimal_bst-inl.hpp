@@ -22,7 +22,6 @@
 #include <cstddef>
 #include <limits>
 #include <memory>
-#include <ostream>
 #include <tuple>
 #include <type_traits>
 #include <utility>
@@ -33,9 +32,6 @@
 #include "zisc/error.hpp"
 #include "zisc/utility.hpp"
 #include "zisc/memory/std_memory_resource.hpp"
-
-#include <iomanip>
-#include <sstream>
 
 namespace zisc {
 
@@ -125,61 +121,70 @@ auto HelpOptimalBst::add(const Type& value) -> std::tuple<bool, size_type>
   size_type node_id = invalidId();
   size_type node_id_tmp = invalidId();
   size_type inner_id = invalidId();
-  size_type sibling_id = invalidId();
   size_type splice_id = invalidId();
+  size_type sibling_id = invalidId();
   bool is_added = false;
   while (!is_added) {
     searchLeaf(key, &ancestor_id, &successor_id, &parent_id, &child_id);
-    const Node& parent = getNode(parent_id);
-    const Node& child = getNode(child_id);
     if (!isDeadNode(child_id)) {
-      if (key == child.key())
+      const size_type next_id = getRefNodeId(child_id);
+      const Node& next = getNode(next_id);
+      if (key == next.key())
         break;
 
       makeLeafNode(key, &node_id);
-      const double inner_key = calcInnerNodeKey(child.key(), key);
-      const bool is_node_left = key < child.key();
-      makeInnerNode(inner_key, node_id, child_id, is_node_left, &inner_id);
-
-      if (!child.isSplice()) {
-        is_added = casChild(parent_id, key, child_id, &inner_id);
+      const double inner_key = calcInnerNodeKey(next.key(), key);
+      const bool is_node_left = key < next.key();
+      makeInnerNode(inner_key, node_id, next_id, is_node_left, &inner_id);
+      node_id_tmp = inner_id;
+      const Node& child = getNode(child_id);
+      if (!child.isSplice() && casChild(parent_id, key, child_id, &node_id_tmp)) {
+        is_added = true;
+        node_id_tmp = invalidId();
       }
-      else {
-        is_added = casChild(ancestor_id, key, successor_id, &inner_id);
+      else if (casChild(ancestor_id, key, successor_id, &node_id_tmp)) {
+        is_added = true;
+        sibling_id = next_id;
       }
+      inner_id = is_added ? invalidId() : inner_id;
     }
     else {
       makeLeafNode(key, &node_id);
-      node_id_tmp = node_id;
       if (!hasBacktrack(child_id, nullptr)) {
+        node_id_tmp = node_id;
         is_added = casChild(parent_id, key, child_id, &node_id_tmp);
       }
       else {
         sibling_id = appendSpliceNode(parent_id, key, ancestor_id, &splice_id);
-        size_type* node_id_ptr = nullptr;
+        sibling_id = getRefNodeId(sibling_id);
         if (isDeadNode(sibling_id)) {
-          sibling_id = invalidId();
-          node_id_ptr = &node_id_tmp;
+          node_id_tmp = node_id;
+          is_added = casChild(ancestor_id, key, successor_id, &node_id_tmp);
+          if (splice_id == sibling_id)
+            releaseNodes(splice_id);
         }
         else {
-          const Node& sibling = getNode(sibling_id);
+          const Node& parent = getNode(parent_id);
           const double inner_key = calcInnerNodeKey(parent.key(), key);
+          const Node& sibling = getNode(sibling_id);
           const bool is_node_left = key < sibling.key();
           makeInnerNode(inner_key, node_id, sibling_id, is_node_left, &inner_id);
-          node_id_ptr = &inner_id;
+          node_id_tmp = inner_id;
+          is_added = casChild(ancestor_id, key, successor_id, &node_id_tmp);
+          inner_id = is_added ? invalidId() : inner_id;
         }
-        is_added = casChild(ancestor_id, key, successor_id, node_id_ptr);
+        splice_id = (splice_id == sibling_id) ? invalidId() : splice_id;
       }
     }
-    if (!is_added)
+    if (!is_added) {
       backtrack(key, &ancestor_id, &successor_id, &parent_id, &child_id);
+      node_id_tmp = invalidId();
+      sibling_id = invalidId();
+    }
   }
-  if (node_id_tmp != node_id)
-    releaseNodes(node_id_tmp);
-  if (inner_id != child_id)
-    releaseNodes(inner_id);
-  if (splice_id != sibling_id)
-    releaseNodes(splice_id);
+  releaseNodes(node_id_tmp, sibling_id);
+  releaseNode(inner_id);
+  releaseNode(splice_id);
   return std::make_tuple(is_added, getNodeIndex(node_id));
 }
 
@@ -254,32 +259,32 @@ constexpr auto HelpOptimalBst::defaultCapacity() noexcept -> size_type
   return 1024;
 }
 
-/*!
-  \details No detailed description
-
-  \param [out] output No description.
-  */
-inline
-void HelpOptimalBst::printTree(std::ostream* output) const noexcept
-{
-//  printTreeNode(cRootId(), output);
-  std::vector<std::size_t> id_list = {cRootId()};
-  bool flag = true;
-  for (std::size_t level = 1; flag; ++level) {
-    flag = false;
-    for (const auto id : id_list) {
-      if (id != invalidId()) {
-        flag = true;
-        break;
-      }
-    }
-    if (flag) {
-      (*output) << std::setw(2) << level;
-      printTreeNode(&id_list, output);
-      (*output) << std::endl;
-    }
-  }
-}
+///*!
+//  \details No detailed description
+//
+//  \param [out] output No description.
+//  */
+//inline
+//void HelpOptimalBst::printTree(std::ostream* output) const noexcept
+//{
+////  printTreeNode(cRootId(), output);
+//  std::vector<std::size_t> id_list = {cRootId()};
+//  bool flag = true;
+//  for (std::size_t level = 1; flag; ++level) {
+//    flag = false;
+//    for (const auto id : id_list) {
+//      if (id != invalidId()) {
+//        flag = true;
+//        break;
+//      }
+//    }
+//    if (flag) {
+//      (*output) << std::setw(2) << level;
+//      printTreeNode(&id_list, output);
+//      (*output) << std::endl;
+//    }
+//  }
+//}
 
 /*!
   \details No detailed description
@@ -294,6 +299,7 @@ bool HelpOptimalBst::remove(const Type& value)
   const double key = cast<double>(value);
   auto [ancestor_id, successor_id, parent_id, child_id] = getInitialIds();
   size_type marked_id = invalidId();
+  size_type marked_id_tmp = invalidId();
   size_type dead_id = invalidId();
   size_type sibling_id = invalidId();
   size_type sibling_id_tmp = invalidId();
@@ -304,31 +310,33 @@ bool HelpOptimalBst::remove(const Type& value)
     searchLeaf(key, &ancestor_id, &successor_id, &parent_id, &child_id);
     const Node& child = getNode(child_id);
     if (mode) {
-      if ((key != child.key()) || isDeadNode(child_id))
+      const size_type next_id = getRefNodeId(child_id);
+      const Node& next = getNode(next_id);
+      if ((key != next.key()) || isDeadNode(child_id))
         break;
 
       if ((child.rightChild().load(std::memory_order::acquire) == invalidId()) &&
           (parent_id != ancestor_id)) {
         makeDeadNode(key, &marked_id, ancestor_id);
-        if (casChild(parent_id, key, child_id, &marked_id)) {
+        marked_id_tmp = marked_id;
+        if (casChild(parent_id, key, child_id, &marked_id_tmp)) {
           mode = false;
           sibling_id = appendSpliceNode(parent_id, key, ancestor_id, &splice_id);
           if (isDeadNode(sibling_id)) {
-            sibling_id = invalidId();
-            sibling_id_tmp = invalidId();
             makeDeadNode(key, &dead_id);
             casChild(ancestor_id, key, successor_id, &dead_id);
             is_removed = true;
+            if (splice_id == sibling_id)
+              releaseNodes(splice_id);
           }
           else if (getNode(sibling_id).isSplice()) {
-            sibling_id = invalidId();
-            sibling_id_tmp = invalidId();
             is_removed = true;
           }
           else {
             sibling_id_tmp = sibling_id;
             is_removed = casChild(ancestor_id, key, successor_id, &sibling_id_tmp);
           }
+          splice_id = (splice_id == sibling_id) ? invalidId() : splice_id;
         }
       }
       else {
@@ -339,19 +347,19 @@ bool HelpOptimalBst::remove(const Type& value)
     else {
       is_removed = (child_id != marked_id) || (parent_id == ancestor_id);
       if (!is_removed) {
+        sibling_id_tmp = sibling_id;
         is_removed = casChild(ancestor_id, key, successor_id, &sibling_id_tmp);
       }
     }
-    if (!is_removed)
+    if (!is_removed) {
       backtrack(key, &ancestor_id, &successor_id, &parent_id, &child_id);
+      sibling_id_tmp = invalidId();
+    }
   }
-  releaseNodes(marked_id);
+  releaseNodes(marked_id_tmp);
   releaseNodes(dead_id);
-  if (sibling_id_tmp != sibling_id)
-    releaseNodes(sibling_id_tmp);
-//  if ((splice_id != sibling_id) || (splice_id == sibling_id_tmp))
-//  if (splice_id != sibling_id)
-//    releaseNodes(splice_id);
+  releaseNodes(sibling_id_tmp, sibling_id);
+  releaseNode(splice_id);
   return is_removed;
 }
 
@@ -563,6 +571,22 @@ auto HelpOptimalBst::getNodeIndex(const size_type id) noexcept -> size_type
   constexpr size_type mask = ~flagBit();
   const size_type index = id & mask;
   return index;
+}
+
+/*!
+  \details No detailed description
+
+  \param [in] id No description.
+  \return No description
+  */
+inline
+auto HelpOptimalBst::getRefNodeId(const size_type id) const noexcept -> size_type
+{
+  const Node& node = getNode(id);
+  const size_type next = node.isSplice()
+      ? node.rightChild().load(std::memory_order::acquire)
+      : id;
+  return next;
 }
 
 /*!
@@ -845,106 +869,106 @@ void HelpOptimalBst::makeSpecialNode(const double key, size_type* id) noexcept
   node->setKey(key);
 }
 
-/*!
-  \details No detailed description
-
-  \param [out] output No description.
-  */
-inline
-void HelpOptimalBst::printTreeNode(const std::size_t id,
-                                   std::ostream* output) const noexcept
-{
-  const Node& node = getNode(id);
-  if (isLeafNode(id)) {
-    const std::size_t index = getNodeIndex(id);
-    if (isDeadNode(id))
-      (*output) << "dead(" << index << "(" << node.key() << ")) ";
-    else
-      (*output) << index << "(" << node.key() << ") ";
-  }
-  else if (!isDeadNode(id)) {
-    {
-      const std::size_t child_id = node.leftChild().load(std::memory_order::acquire);
-      if (child_id != invalidId())
-        printTreeNode(child_id, output);
-    }
-    {
-      const std::size_t child_id = node.rightChild().load(std::memory_order::acquire);
-      if (child_id != invalidId())
-        printTreeNode(child_id, output);
-    }
-  }
-}
-
-inline
-void HelpOptimalBst::printTreeNode(std::vector<std::size_t>* id_list,
-                                   std::ostream* output) const noexcept
-{
-  constexpr std::size_t w = 32;
-  for (const std::size_t id : *id_list) {
-    if (id == invalidId()) {
-      (*output) << std::setw(w) << " " << "|";
-      continue;
-    }
-
-    const Node& node = getNode(id);
-    std::stringstream str;
-    if (isLeafNode(id)) {
-      if (isDeadNode(id))
-        str << "deadL(" << node.key() << ", " << std::setbase(16) << id << ") ";
-      else
-        str << "L(" << node.key() << ", " << std::setbase(16) << id << ") ";
-    }
-    else {
-      if (node.isSplice())
-        str << "S(" << node.key() << ", " << std::setbase(16) << id << ") ";
-      else if (isDeadNode(id))
-        str << "deadN(" << node.key() << ", " << std::setbase(16) << id << ") ";
-      else
-        str << "N(" << node.key() << ", " << std::setbase(16) << id << ") ";
-    }
-    (*output) << std::setw(w) << str.str() << "|";
-  }
-
-  std::vector<std::size_t> new_list;
-  for (const std::size_t id : *id_list) {
-    if (id == invalidId()) {
-      new_list.emplace_back(invalidId());
-      new_list.emplace_back(invalidId());
-      continue;
-    }
-
-    const Node& node = getNode(id);
-    if (isLeafNode(id)) {
-      new_list.emplace_back(invalidId());
-      new_list.emplace_back(invalidId());
-    }
-    else {
-      const std::size_t left_id = node.leftChild().load(std::memory_order::acquire);
-      const std::size_t right_id = node.rightChild().load(std::memory_order::acquire);
-      if (node.isSplice()) {
-        if (right_id != invalidId() && !isLeafNode(right_id)) {
-          const Node& child_node = getNode(right_id);
-          const std::size_t left_c_id = child_node.leftChild().load(std::memory_order::acquire);
-          if (left_id == left_c_id)
-            new_list.emplace_back(invalidId());
-          else
-            new_list.emplace_back(left_id);
-        }
-        new_list.emplace_back(right_id);
-      }
-      else if (isDeadNode(id)) {
-        new_list.emplace_back(invalidId());
-        new_list.emplace_back(invalidId());
-      }
-      else {
-        new_list.emplace_back(left_id);
-        new_list.emplace_back(right_id);
-      }
-    }
-  }
-  *id_list = std::move(new_list);
-}
+///*!
+//  \details No detailed description
+//
+//  \param [out] output No description.
+//  */
+//inline
+//void HelpOptimalBst::printTreeNode(const std::size_t id,
+//                                   std::ostream* output) const noexcept
+//{
+//  const Node& node = getNode(id);
+//  if (isLeafNode(id)) {
+//    const std::size_t index = getNodeIndex(id);
+//    if (isDeadNode(id))
+//      (*output) << "dead(" << index << "(" << node.key() << ")) ";
+//    else
+//      (*output) << index << "(" << node.key() << ") ";
+//  }
+//  else if (!isDeadNode(id)) {
+//    {
+//      const std::size_t child_id = node.leftChild().load(std::memory_order::acquire);
+//      if (child_id != invalidId())
+//        printTreeNode(child_id, output);
+//    }
+//    {
+//      const std::size_t child_id = node.rightChild().load(std::memory_order::acquire);
+//      if (child_id != invalidId())
+//        printTreeNode(child_id, output);
+//    }
+//  }
+//}
+//
+//inline
+//void HelpOptimalBst::printTreeNode(std::vector<std::size_t>* id_list,
+//                                   std::ostream* output) const noexcept
+//{
+//  constexpr std::size_t w = 32;
+//  for (const std::size_t id : *id_list) {
+//    if (id == invalidId()) {
+//      (*output) << std::setw(w) << " " << "|";
+//      continue;
+//    }
+//
+//    const Node& node = getNode(id);
+//    std::stringstream str;
+//    if (isLeafNode(id)) {
+//      if (isDeadNode(id))
+//        str << "deadL(" << node.key() << ", " << std::setbase(16) << id << ") ";
+//      else
+//        str << "L(" << node.key() << ", " << std::setbase(16) << id << ") ";
+//    }
+//    else {
+//      if (node.isSplice())
+//        str << "S(" << node.key() << ", " << std::setbase(16) << id << ") ";
+//      else if (isDeadNode(id))
+//        str << "deadN(" << node.key() << ", " << std::setbase(16) << id << ") ";
+//      else
+//        str << "N(" << node.key() << ", " << std::setbase(16) << id << ") ";
+//    }
+//    (*output) << std::setw(w) << str.str() << "|";
+//  }
+//
+//  std::vector<std::size_t> new_list;
+//  for (const std::size_t id : *id_list) {
+//    if (id == invalidId()) {
+//      new_list.emplace_back(invalidId());
+//      new_list.emplace_back(invalidId());
+//      continue;
+//    }
+//
+//    const Node& node = getNode(id);
+//    if (isLeafNode(id)) {
+//      new_list.emplace_back(invalidId());
+//      new_list.emplace_back(invalidId());
+//    }
+//    else {
+//      const std::size_t left_id = node.leftChild().load(std::memory_order::acquire);
+//      const std::size_t right_id = node.rightChild().load(std::memory_order::acquire);
+//      if (node.isSplice()) {
+//        if (right_id != invalidId() && !isLeafNode(right_id)) {
+//          const Node& child_node = getNode(right_id);
+//          const std::size_t left_c_id = child_node.leftChild().load(std::memory_order::acquire);
+//          if (left_id == left_c_id)
+//            new_list.emplace_back(invalidId());
+//          else
+//            new_list.emplace_back(left_id);
+//        }
+//        new_list.emplace_back(right_id);
+//      }
+//      else if (isDeadNode(id)) {
+//        new_list.emplace_back(invalidId());
+//        new_list.emplace_back(invalidId());
+//      }
+//      else {
+//        new_list.emplace_back(left_id);
+//        new_list.emplace_back(right_id);
+//      }
+//    }
+//  }
+//  *id_list = std::move(new_list);
+//}
 
 /*!
   \details No detailed description
@@ -963,11 +987,22 @@ auto HelpOptimalBst::pRootId() const noexcept -> size_type
   \param [in] id No description.
   */
 inline
-void HelpOptimalBst::releaseNodes(const size_type id) noexcept
+void HelpOptimalBst::releaseNode(const size_type id) noexcept
+{
+  returnNodeId(id);
+}
+
+/*!
+  \details No detailed description
+
+  \param [in] id No description.
+  */
+inline
+void HelpOptimalBst::releaseNodes(const size_type id, const size_type excluded_id) noexcept
 {
   std::array<size_type, 8> id_stack;
   size_type n = 0;
-  if (id != invalidId())
+  if ((id != invalidId()) && (id != excluded_id))
     id_stack[n++] = id;
   while (0 < n) {
     const size_type node_id = id_stack[--n];
@@ -976,17 +1011,17 @@ void HelpOptimalBst::releaseNodes(const size_type id) noexcept
     {
       const size_type r_child_id = node.rightChild().load(std::memory_order::acquire);
       const bool is_dead_node = node_id == r_child_id;
-      if (!is_dead_node && (r_child_id != invalidId()))
+      if (!is_dead_node && (r_child_id != invalidId()) && (r_child_id != excluded_id))
         id_stack[n++] = r_child_id;
     }
     // Left child
     if (!node.isSplice()) {
       const size_type l_child_id = node.leftChild().load(std::memory_order::acquire);
-      if (l_child_id != invalidId())
+      if ((l_child_id != invalidId()) && (l_child_id != excluded_id))
         id_stack[n++] = l_child_id;
     }
     ZISC_ASSERT(n <= id_stack.size(), "The id stack overflowed.");
-    returnNodeId(id);
+    releaseNode(node_id);
   }
 }
 

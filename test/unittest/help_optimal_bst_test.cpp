@@ -156,20 +156,19 @@ TEST(HelpOptimalBstTest, AddRemoveTest)
 
   zisc::SimpleMemoryResource mem_resource;
   Bst bst{candidate_list.size() * 2, &mem_resource};
-//  Bst bst{&mem_resource};
 
-  constexpr std::size_t n = 1000'000;
+  constexpr std::size_t n = 30'000'000;
   for (std::size_t i = 0; i < n; ++i) {
-    if (i == 157)
-      std::cout << "Ready." << std::endl;
     const std::size_t op = sampler1(rand_engine);
 
     const std::size_t index = sampler2(rand_engine);
     const int candidate = candidate_list[index];
     auto& flag = value_list[candidate];
 
+    bool result = false;
     if (op == 0) { // Add
-      auto [result, id] = bst.add(candidate);
+      auto [r, id] = bst.add(candidate);
+      result = r;
       if (flag) {
         ASSERT_FALSE(result) << "BST add operation failed.";
       }
@@ -179,7 +178,7 @@ TEST(HelpOptimalBstTest, AddRemoveTest)
       }
     }
     else { // Remove
-      auto result = bst.remove(candidate);
+      result = bst.remove(candidate);
       if (flag) {
         ASSERT_TRUE(result) << "BST remove operation failed.";
         flag = false;
@@ -188,9 +187,6 @@ TEST(HelpOptimalBstTest, AddRemoveTest)
         ASSERT_FALSE(result) << "BST remove operation failed.";
       }
     }
-
-    std::cout << "[" << i << "] op=" << op << ", candidate[" << index << "]=" << candidate << ", flag=" << flag << std::endl;
-    bst.printTree(&std::cout);
 
     for (auto v : value_list) {
       if (v.second)

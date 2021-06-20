@@ -1,5 +1,5 @@
 /*!
-  \file help_optimal_bst_test.cpp
+  \file mutex_bst_test.cpp
   \author Sho Ikeda
   \brief No brief description
 
@@ -35,112 +35,119 @@
 #include "zisc/stopwatch.hpp"
 #include "zisc/utility.hpp"
 #include "zisc/zisc_config.hpp"
-#include "zisc/data_structure/help_optimal_bst.hpp"
+#include "zisc/data_structure/bounded_bst.hpp"
+#include "zisc/data_structure/mutex_bst.hpp"
 #include "zisc/memory/simple_memory_resource.hpp"
 
-TEST(HelpOptimalBstTest, ConstructorTest)
+TEST(MutexBstTest, ConstructorTest)
 {
-  using Bst = zisc::HelpOptimalBst;
+  using BstImpl = zisc::MutexBst;
+  using Bst = zisc::BoundedBst<BstImpl>;
 
   zisc::SimpleMemoryResource mem_resource;
-  std::unique_ptr<Bst> bst;
-  //
-  {
-    Bst bst1{&mem_resource};
-    bst = std::make_unique<Bst>(std::move(bst1));
-  }
-  ASSERT_EQ(Bst::defaultCapacity(), bst->capacity())
-      << "Constructing of HelpOptimalBst failed.";
+  std::unique_ptr<BstImpl> bst_impl;
+  Bst* bst = nullptr;
 
   //
+  {
+    BstImpl bst_impl1{&mem_resource};
+    bst_impl = std::make_unique<BstImpl>(std::move(bst_impl1));
+  }
+  bst = bst_impl.get();
+  ASSERT_EQ(BstImpl::defaultCapacity(), bst->capacity())
+      << "Constructing of MutexBst failed.";
+
+  // 
   std::size_t cap = 4096;
   {
-    Bst bst1{cap, &mem_resource};
-    bst = std::make_unique<Bst>(std::move(bst1));
+    BstImpl bst_impl1{cap, &mem_resource};
+    bst_impl = std::make_unique<BstImpl>(std::move(bst_impl1));
   }
+  bst = bst_impl.get();
   ASSERT_EQ(cap, bst->capacity())
-      << "Constructing of HelpOptimalBst failed.";
+      << "Constructing of MutexBst failed.";
 
   //
   cap = 5000;
   {
-    Bst bst1{cap, &mem_resource};
-    bst = std::make_unique<Bst>(std::move(bst1));
+    *bst_impl = BstImpl{cap, &mem_resource};
   }
-  cap = 8192;
   ASSERT_EQ(cap, bst->capacity())
-      << "Constructing of HelpOptimalBst failed.";
+      << "Constructing of MutexBst failed.";
 }
 
-TEST(HelpOptimalBstTest, OperationTest)
+TEST(MutexBstTest, OperationTest)
 {
-  using Bst = zisc::HelpOptimalBst;
+  using BstImpl = zisc::MutexBst;
+  using Bst = zisc::BoundedBst<BstImpl>;
 
   zisc::SimpleMemoryResource mem_resource;
-  Bst bst{&mem_resource};
+  BstImpl bst_impl{&mem_resource};
+  Bst* bst = std::addressof(bst_impl);
 
   std::vector<int> value_list{{7, 6, 4, 8, 2, 1, 5, 3, 15, 100, 0}};
   std::vector<int> value2_list{{10, 25000, -1}};
 
   for (const int value : value_list) {
     {
-      const auto [result, index] = bst.add(value);
+      const auto [result, index] = bst->add(value);
       ASSERT_TRUE(result) << "Adding value '" << value << "' into the bst failed.";
     }
     {
-      const auto [result, index] = bst.add(value);
+      const auto [result, index] = bst->add(value);
       ASSERT_FALSE(result) << "Adding value '" << value << "' into the bst failed.";
     }
   }
 
   for (const int value : value_list) {
-    const bool result = bst.contain(value);
+    const bool result = bst->contain(value);
     ASSERT_TRUE(result) << "Quering value '" << value << "' from the bst failed.";
   }
   for (const int value : value2_list) {
-    const bool result = bst.contain(value);
+    const bool result = bst->contain(value);
     ASSERT_FALSE(result) << "Quering value '" << value << "' from the bst failed.";
   }
 
   for (const int value : value_list) {
-    const auto [result, index] = bst.add(value);
+    const auto [result, index] = bst->add(value);
     ASSERT_FALSE(result) << "Adding value '" << value << "' into the bst failed.";
   }
 
   for (const int value : value_list) {
     {
-      const bool result = bst.remove(value);
+      const bool result = bst->remove(value);
       ASSERT_TRUE(result) << "Removing value '" << value << "' from the bst failed.";
     }
     {
-      const bool result = bst.remove(value);
+      const bool result = bst->remove(value);
       ASSERT_FALSE(result) << "Removing value '" << value << "' from the bst failed.";
     }
   }
   for (const int value : value2_list) {
-    const bool result = bst.remove(value);
+    const bool result = bst->remove(value);
     ASSERT_FALSE(result) << "Removing value '" << value << "' from the bst failed.";
   }
 
   for (const int value : value_list) {
-    const bool result = bst.contain(value);
+    const bool result = bst->contain(value);
     ASSERT_FALSE(result) << "Quering value '" << value << "' from the bst failed.";
   }
 
   for (const int value : value_list) {
-    const bool result = bst.remove(value);
+    const bool result = bst->remove(value);
     ASSERT_FALSE(result) << "Removing value '" << value << "' from the bst failed.";
   }
 
   for (const int value : value_list) {
-    const auto [result, index] = bst.add(value);
+    const auto [result, index] = bst->add(value);
     ASSERT_TRUE(result) << "Adding value '" << value << "' into the bst failed.";
   }
 }
 
-TEST(HelpOptimalBstTest, AddRemoveTest)
+TEST(MutexBstTest, AddRemoveTest)
 {
-  using Bst = zisc::HelpOptimalBst;
+  using BstImpl = zisc::MutexBst;
+  using Bst = zisc::BoundedBst<BstImpl>;
 
   const std::array<int, 16> candidate_list{{-171717, -1000, -1, 0, 1, 3, 4, 9, 15, 16, 100, 2000, 10300, 50000, 360000, (std::numeric_limits<int>::max)()}};
 
@@ -153,7 +160,8 @@ TEST(HelpOptimalBstTest, AddRemoveTest)
     value_list[candidate] = false;
 
   zisc::SimpleMemoryResource mem_resource;
-  Bst bst{candidate_list.size() * 2, &mem_resource};
+  BstImpl bst_impl{candidate_list.size() * 2, &mem_resource};
+  Bst* bst = std::addressof(bst_impl);
 
   constexpr std::size_t n = 30'000'000;
   for (std::size_t i = 0; i < n; ++i) {
@@ -165,7 +173,7 @@ TEST(HelpOptimalBstTest, AddRemoveTest)
 
     bool result = false;
     if (op == 0) { // Add
-      auto [r, id] = bst.add(candidate);
+      auto [r, id] = bst->add(candidate);
       result = r;
       if (flag) {
         ASSERT_FALSE(result) << "BST add operation failed.";
@@ -176,7 +184,7 @@ TEST(HelpOptimalBstTest, AddRemoveTest)
       }
     }
     else { // Remove
-      result = bst.remove(candidate);
+      result = bst->remove(candidate);
       if (flag) {
         ASSERT_TRUE(result) << "BST remove operation failed.";
         flag = false;
@@ -188,16 +196,17 @@ TEST(HelpOptimalBstTest, AddRemoveTest)
 
     for (auto v : value_list) {
       if (v.second)
-        ASSERT_TRUE(bst.contain(v.first)) << "BST contain(" << v.first << ") operation failed.";
+        ASSERT_TRUE(bst->contain(v.first)) << "BST contain(" << v.first << ") operation failed.";
       else
-        ASSERT_FALSE(bst.contain(v.first)) << "BST contain(" << v.first << ") operation failed.";
+        ASSERT_FALSE(bst->contain(v.first)) << "BST contain(" << v.first << ") operation failed.";
     }
   }
 }
 
-TEST(HelpOptimalBstTest, MultithreadTest)
+TEST(MutexBstTest, MultithreadTest)
 {
-  using Bst = zisc::HelpOptimalBst;
+  using BstImpl = zisc::MutexBst;
+  using Bst = zisc::BoundedBst<BstImpl>;
 
   const std::size_t num_threads = 32;
   std::vector<std::thread> thread_list;
@@ -208,24 +217,25 @@ TEST(HelpOptimalBstTest, MultithreadTest)
   const std::array<int, 16> candidate_list{{iMin, -600000, -599999, -1000, -524, -10, -2, 0, 4, 15, 89, 100, 5120, 800000, 123456789, iMax}};
 
   zisc::SimpleMemoryResource mem_resource;
-  Bst bst{candidate_list.size() * 2, &mem_resource};
+  BstImpl bst_impl{candidate_list.size() * 2, &mem_resource};
+  Bst* bst = std::addressof(bst_impl);
 
   for (std::size_t i = 0; i < num_threads; ++i) {
     std::mt19937_64 rand_engine{123'456'789 * i};
-    auto task = [rand_engine, &candidate_list, &bst]() mutable
+    auto task = [rand_engine, &candidate_list, bst]() mutable
     {
       std::uniform_int_distribution<std::size_t> sampler1{0, 1};
       std::uniform_int_distribution<std::size_t> sampler2{0, candidate_list.size() - 1};
-      constexpr std::size_t n = 10'000'000;
+      constexpr std::size_t n = 20'000'0;
       for (std::size_t j = 0; j < n; ++j) {
         const std::size_t op = sampler1(rand_engine);
         const std::size_t index = sampler2(rand_engine);
         const int candidate = candidate_list[index];
         if (op == 0) { // Add
-          [[maybe_unused]] auto [result, id] = bst.add(candidate);
+          [[maybe_unused]] auto [result, id] = bst->add(candidate);
         }
         else {
-          [[maybe_unused]] const bool result = bst.remove(candidate);
+          [[maybe_unused]] const bool result = bst->remove(candidate);
         }
       }
     };

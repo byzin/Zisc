@@ -94,7 +94,7 @@ class MutexBst : public BoundedBst<MutexBst>
 
 
   //! Compare the given node and the key
-  static constexpr bool compare(const Node& lhs, const double rhs) noexcept;
+  static bool compare(const Node& lhs, const double rhs) noexcept;
 
   //! Return the invalid id
   static constexpr size_type invalidId() noexcept;

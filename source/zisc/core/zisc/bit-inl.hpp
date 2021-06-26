@@ -21,7 +21,6 @@
 #include <limits>
 #include <type_traits>
 // Zisc
-#include "bit_cast_gcc.hpp"
 #include "concepts.hpp"
 #include "utility.hpp"
 #include "zisc_config.hpp"
@@ -40,8 +39,8 @@ template <TriviallyCopyable To, TriviallyCopyable From> inline
 constexpr To Bit::castBit(const From& from) noexcept
 {
   const To to =
-#if defined(Z_GCC) || defined(Z_CLANG)
-      Zisc::castBit<To, From>(from);
+#if defined(Z_CLANG)
+      __builtin_bit_cast(To, from);
 #else
       std::bit_cast<To, From>(from);
 #endif
@@ -192,38 +191,6 @@ constexpr bool Bit::isPowerOf2(const Integer x) noexcept
       std::has_single_bit(x);
 #endif // Z_CLANG
   return result;
-}
-
-/*!
-  \details No detailed description
-
-  \tparam To No description.
-  \tparam From No description.
-  \param [in] from No description.
-  \return No description
-  */
-template <TriviallyCopyable To, TriviallyCopyable From> inline
-constexpr To Bit::Zisc::castBit(const From& from) noexcept
-{
-#if defined(Z_CLANG)
-  const To to = __builtin_bit_cast(To, from);
-  return to;
-#else // Z_CLANG
-  static_assert(sizeof(From) == sizeof(To));
-  using Binary = gcc::BinaryFromBytes<sizeof(From)>;
-  using BitType = typename Binary::BitType;
-  if constexpr (FloatingPoint<From> && Integer<To>) {
-    const To to = cast<To>(Binary::makeBits(from));
-    return to;
-  }
-  else if constexpr (Integer<From> && FloatingPoint<To>) {
-    const To to = Binary::makeFloat(cast<BitType>(from));
-    return to;
-  }
-  else {
-    static_assert(sizeof(From) == 0, "Not implemented yet.");
-  }
-#endif // Z_CLANG
 }
 
 /*!

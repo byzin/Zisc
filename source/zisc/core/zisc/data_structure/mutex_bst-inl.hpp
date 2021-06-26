@@ -241,7 +241,7 @@ void MutexBst::setCapacity(const size_type cap) noexcept
   \return No description
   */
 inline
-constexpr bool MutexBst::compare(const Node& lhs, const double rhs) noexcept
+bool MutexBst::compare(const Node& lhs, const double rhs) noexcept
 {
   const bool result = lhs.key() < rhs;
   return result;

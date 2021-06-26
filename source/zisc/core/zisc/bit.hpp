@@ -78,10 +78,6 @@ class Bit
   class Zisc
   {
    public:
-    //! Reinterpret the object representation of one type as that of another
-    template <TriviallyCopyable To, TriviallyCopyable From>
-    static constexpr To castBit(const From& from) noexcept;
-
     // Power-of-2 operations
 
     //! Find the smallest integral power of two not less than the given value

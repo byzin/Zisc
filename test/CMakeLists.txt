@@ -116,5 +116,9 @@ Zisc_enableIpo(${PROJECT_NAME})
 Zisc_setStaticAnalyzer(${PROJECT_NAME})
 Zisc_createLinkToTarget(${PROJECT_NAME} ${PROJECT_BINARY_DIR})
 
-# Save the dependency list
-Zisc_savePrerequisites(${PROJECT_NAME} "" "" "")
+# Installation settings
+## Save the dependency list
+Zisc_getSaveDependencyCode(${PROJECT_NAME} ${PROJECT_BINARY_DIR} "" "" "" dependency_code)
+install(CODE ${dependency_code} COMPONENT test)
+## Install actual binary
+install(TARGETS ${PROJECT_NAME} DESTINATION bin COMPONENT test)

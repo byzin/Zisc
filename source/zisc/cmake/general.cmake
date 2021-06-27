@@ -102,7 +102,21 @@ function(Zisc_setVariablesOnCMake)
 endfunction(Zisc_setVariablesOnCMake)
 
 
-function(Zisc_getPrerequisiteTreeImpl target_path exclude_system exe_path dirs rpaths level dependency_list dependency_tree)
+function(Zisc_getSaveDependencyCode target output_dir exe_path dirs rpaths code)
+  set(dependency_code "")
+  string(APPEND dependency_code 
+      "include(\"${CMAKE_CURRENT_FUNCTION_LIST_FILE}\")\n"
+      "Zisc_saveDependencyList(${target} \"$<TARGET_FILE:${target}>\" \"${output_dir}\" \"${exe_path}\" \"${dirs}\" \"${rpaths}\")\n"
+      )
+
+
+  # Output variable
+  set(${code} ${dependency_code} PARENT_SCOPE)
+endfunction(Zisc_getSaveDependencyCode)
+
+## Functions used in dependency code
+
+function(Zisc_getDependencyTreeImpl target_path exclude_system exe_path dirs rpaths level dependency_list dependency_tree)
   include(GetPrerequisites)
 
   set(deps "")
@@ -116,7 +130,7 @@ function(Zisc_getPrerequisiteTreeImpl target_path exclude_system exe_path dirs r
     if(${result} EQUAL -1)
       list(APPEND dep_list "${dependency}")
       list(APPEND new_list "${dependency}")
-      Zisc_getPrerequisiteTreeImpl("${dependency}" ${exclude_system} "${exe_path}" "${dirs}" "${rpaths}" ${next_level} child_list child_tree)
+      Zisc_getDependencyTreeImpl("${dependency}" ${exclude_system} "${exe_path}" "${dirs}" "${rpaths}" ${next_level} child_list child_tree)
       list(APPEND dep_list ${child_list})
       list(APPEND new_list ${child_list})
       list(APPEND dep_tree ${child_tree})
@@ -126,26 +140,26 @@ function(Zisc_getPrerequisiteTreeImpl target_path exclude_system exe_path dirs r
   # Output value
   set(${dependency_list} "${new_list}" PARENT_SCOPE)
   set(${dependency_tree} "${dep_tree}" PARENT_SCOPE)
-endfunction(Zisc_getPrerequisiteTreeImpl)
+endfunction(Zisc_getDependencyTreeImpl)
 
 
-function(Zisc_getPrerequisiteTree target_path exclude_system exe_path dirs rpaths dependency_tree)
+function(Zisc_getDependencyTree target_path exclude_system exe_path dirs rpaths dependency_tree)
   include(GetPrerequisites)
 
   is_file_executable("${target_path}" is_executable)
-  if(${is_executable})
+  if(is_executable)
     set(dep_list "")
-    Zisc_getPrerequisiteTreeImpl(${target_path} ${exclude_system} "${exe_path}" "${dirs}" "${rpaths}" 0 dep_list dep_tree)
+    Zisc_getDependencyTreeImpl(${target_path} ${exclude_system} "${exe_path}" "${dirs}" "${rpaths}" 0 dep_list dep_tree)
   else()
     message(WARNING "'${target_path}' isn't executable.")
   endif()
 
   # Output value
   set(${dependency_tree} "${dep_tree}" PARENT_SCOPE)
-endfunction(Zisc_getPrerequisiteTree)
+endfunction(Zisc_getDependencyTree)
 
 
-function(Zisc_getResolvedPrerequisite dependency target_path exe_path dirs rpaths resolved_dependency)
+function(Zisc_getResolvedDependency dependency target_path exe_path dirs rpaths resolved_dependency)
   include(GetPrerequisites)
 
   # Get resolved dependency
@@ -154,59 +168,38 @@ function(Zisc_getResolvedPrerequisite dependency target_path exe_path dirs rpath
 
   # Output value
   set(${resolved_dependency} "${resolved_dep}" PARENT_SCOPE)
-endfunction(Zisc_getResolvedPrerequisite)
+endfunction(Zisc_getResolvedDependency)
 
 
-function(Zisc_getPrerequisiteTreeString target_path exclude_system exe_path dirs rpaths dependency_tree_string)
+function(Zisc_getDependenciesString target_path exclude_system is_tree_view exe_path dirs rpaths dependency_string)
   include(GetPrerequisites)
 
-  # Get dependency tree
-  Zisc_getPrerequisiteTree(${target_path} ${exclude_system} "${exe_path}" "${dirs}" "${rpaths}" dependency_tree)
+  Zisc_getDependencyTree(${target_path} ${exclude_system} "${exe_path}" "${dirs}" "${rpaths}" dependency_tree)
 
   #
-  set(text "")
-  foreach(tree_item IN LISTS dependency_tree)
-    string(REGEX MATCH "([0-9]*) (.*)" result "${tree_item}")
-    set(level ${CMAKE_MATCH_1})
-    set(dependency ${CMAKE_MATCH_2})
-    Zisc_getResolvedPrerequisite("${dependency}" ${target_path} "${exe_path}" "${dirs}" "${rpaths}" resolved_dep)
-
-    # Get type string
-    gp_file_type(${target_path} "${resolved_dep}" dependency_type)
-    string(LENGTH "${dependency_type}" type_length)
-    foreach(count RANGE ${type_length} 7)
-      string(APPEND dependency_type " ")
-    endforeach(count)
-
-    # Get dependency string
-    string(REPEAT "  " ${level} indent)
-    string(APPEND text "[${indent}${dependency_type}] ${dependency}\n"
-                       "${indent}        => ${resolved_dep}\n")
-  endforeach(tree_item)
-
-  # Output
-  set(${dependency_tree_string} ${text} PARENT_SCOPE)
-endfunction(Zisc_getPrerequisiteTreeString)
-
-
-function(Zisc_getPrerequisitesString target_path exclude_system exe_path dirs rpaths dependency_list_string)
-  include(GetPrerequisites)
-
-  # Get dependency tree
-  Zisc_getPrerequisiteTree(${target_path} ${exclude_system} "${exe_path}" "${dirs}" "${rpaths}" dependency_tree)
-
   set(dependency_list "")
+  set(level_list "")
   foreach(dependency IN LISTS dependency_tree)
     string(REGEX MATCH "([0-9]*) (.*)" result "${dependency}")
     set(level ${CMAKE_MATCH_1})
     set(dependency ${CMAKE_MATCH_2})
-    gp_append_unique(dependency_list ${dependency})
+    if(is_tree_view)
+      list(APPEND dependency_list "${dependency}")
+      list(APPEND level_list ${level})
+    else()
+      gp_append_unique(dependency_list ${dependency})
+      list(APPEND level_list 0)
+    endif()
   endforeach(dependency)
 
   #
   set(text "")
-  foreach(dependency IN LISTS dependency_list)
-    Zisc_getResolvedPrerequisite("${dependency}" ${target_path} "${exe_path}" "${dirs}" "${rpaths}" resolved_dep)
+  list(LENGTH dependency_list num_of_dependencies)
+  math(EXPR num_of_dependencies "${num_of_dependencies} - 1")
+  foreach(index RANGE ${num_of_dependencies})
+    # Get resolved dependency
+    list(GET dependency_list ${index} dependency)
+    Zisc_getResolvedDependency("${dependency}" ${target_path} "${exe_path}" "${dirs}" "${rpaths}" resolved_dep)
 
     # Get type string
     gp_file_type(${target_path} "${resolved_dep}" dependency_type)
@@ -216,47 +209,28 @@ function(Zisc_getPrerequisitesString target_path exclude_system exe_path dirs rp
     endforeach(count)
 
     # Get dependency string
-    string(APPEND text "[${dependency_type}] ${dependency}\n"
-                       "        => ${resolved_dep}\n")
-  endforeach(dependency)
+    list(GET level_list ${index} level)
+    string(REPEAT "  " ${level} indent)
+    string(APPEND text "[${indent}${dependency_type}] ${dependency}\n"
+                       "${indent}        => ${resolved_dep}\n")
+  endforeach(index)
+
 
   # Output
-  set(${dependency_list_string} ${text} PARENT_SCOPE)
-endfunction(Zisc_getPrerequisitesString)
+  set(${dependency_string} ${text} PARENT_SCOPE)
+endfunction(Zisc_getDependenciesString)
 
 
-function(Zisc_savePrerequisites target exe_path dirs rpaths)
-  get_target_property(binary_dir ${target} BINARY_DIR)
-  set(prerequisite_target ${target}_prerequisite)
-
-  # Generate a prerequisite script
-  set(script "")
-  set(prerequisite_file ${binary_dir}/${prerequisite_target}.txt)
-  set(prerequisite_tree_file ${binary_dir}/${prerequisite_target}_tree.txt)
+function(Zisc_saveDependencyList target target_path output_dir exe_path dirs rpaths)
   set(exclude_system 0)
-  if(Z_WINDOWS)
-    set(exclude_system 1)
-  endif()
-  string(APPEND script
-      "include(InstallRequiredSystemLibraries)\n"
-      "include(\"${CMAKE_CURRENT_FUNCTION_LIST_FILE}\")\n"
-      "Zisc_getPrerequisitesString(\${target_path} ${exclude_system} \"${exe_path}\" \"${dirs}\" \"${rpaths}\" text)\n"
-      "file(WRITE \"${prerequisite_file}\" \${text})\n"
-      "Zisc_getPrerequisiteTreeString(\${target_path} ${exclude_system} \"${exe_path}\" \"${dirs}\" \"${rpaths}\" text)\n"
-      "file(WRITE \"${prerequisite_tree_file}\" \${text})\n"
-      )
 
-  # Save the script into a file
-  set(script_dir ${binary_dir}/scripts)
-  file(MAKE_DIRECTORY ${script_dir})
-  set(script_file ${script_dir}/${prerequisite_target}.cmake)
-  file(WRITE ${script_file} ${script})
+  set(dependency_file "${output_dir}/${target}_dependency.txt")
+  set(is_tree_view 0)
+  Zisc_getDependenciesString(${target_path} ${exclude_system} ${is_tree_view} "${exe_path}" "${dirs}" "${rpaths}" text)
+  file(WRITE ${dependency_file} ${text})
 
-  add_custom_target(
-      ${prerequisite_target} ALL
-      ${CMAKE_COMMAND} -D target_path=$<TARGET_FILE:${target}> -P ${script_file}
-      DEPENDS ${target}
-      WORKING_DIRECTORY "${binary_dir}"
-      COMMENT "Get the list of shared libraries required by '${target}'."
-      SOURCES ${script_file})
-endfunction(Zisc_savePrerequisites)
+  set(dependency_tree_file "${output_dir}/${target}_dependency-tree.txt")
+  set(is_tree_view 1)
+  Zisc_getDependenciesString(${target_path} ${exclude_system} ${is_tree_view} "${exe_path}" "${dirs}" "${rpaths}" text)
+  file(WRITE ${dependency_tree_file} ${text})
+endfunction(Zisc_saveDependencyList)

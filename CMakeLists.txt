@@ -44,3 +44,7 @@ endif()
 
 # Build documents
 add_subdirectory(${PROJECT_SOURCE_DIR}/document ${PROJECT_BINARY_DIR}/Document)
+
+# Packaging
+include(${PROJECT_SOURCE_DIR}/cmake/packaging.cmake)
+packageProject()

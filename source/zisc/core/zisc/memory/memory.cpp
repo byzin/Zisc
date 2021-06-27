@@ -25,7 +25,7 @@
 #if defined(Z_WINDOWS)
 #define NOMINMAX
 #include <malloc.h>
-#include <windows.h>
+#include <Windows.h>
 #elif defined(Z_LINUX)
 #include <sys/sysinfo.h>
 #elif defined(Z_MAC)

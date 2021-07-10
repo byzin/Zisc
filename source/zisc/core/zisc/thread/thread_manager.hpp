@@ -17,6 +17,7 @@
 
 // Standard C++ library
 #include <atomic>
+#include <cstddef>
 #include <limits>
 #include <memory>
 #include <mutex>
@@ -29,6 +30,9 @@
 #include "atomic_word.hpp"
 #include "packaged_task.hpp"
 #include "zisc/concepts.hpp"
+#include "zisc/data_structure/bounded_bst.hpp"
+#include "zisc/data_structure/bounded_queue.hpp"
+#include "zisc/data_structure/mutex_bst.hpp"
 #include "zisc/data_structure/scalable_circular_queue.hpp"
 #include "zisc/error.hpp"
 #include "zisc/non_copyable.hpp"
@@ -42,8 +46,6 @@ template <NonReference> class Future;
 class PackagedTask;
 
 // Type aliases
-template <NonReference T>
-using SharedFuture = std::shared_ptr<Future<T>>;
 using SharedTask = std::shared_ptr<PackagedTask>;
 
 #if defined(Z_GCC) || defined(Z_CLANG)
@@ -140,31 +142,31 @@ class ThreadManager : private NonCopyable<ThreadManager>
 
   //! Run the given task on a worker thread in the manager
   template <Invocable Func>
-  SharedFuture<InvokeResult<Func>> enqueue(
+  Future<InvokeResult<Func>> enqueue(
       Func&& task,
       const int64b parent_task_id = kNoTask);
 
   //! Run the given task on a worker thread in the manager
   template <Invocable<int64b> Func>
-  SharedFuture<InvokeResult<Func, int64b>> enqueue(
+  Future<InvokeResult<Func, int64b>> enqueue(
       Func&& task,
       const int64b parent_task_id = kNoTask);
 
   //! Run tasks on the worker threads in the manager
   template <typename Func, typename Ite1, typename Ite2>
   requires Invocable<Func, ThreadManager::CommonIte<Ite1, Ite2>>
-  SharedFuture<void> enqueueLoop(Func&& task,
-                                 Ite1&& begin,
-                                 Ite2&& end,
-                                 const int64b parent_task_id = kNoTask);
+  Future<void> enqueueLoop(Func&& task,
+                           Ite1&& begin,
+                           Ite2&& end,
+                           const int64b parent_task_id = kNoTask);
 
   //! Run tasks on the worker threads in the manager
   template <typename Func, typename Ite1, typename Ite2>
   requires Invocable<Func, ThreadManager::CommonIte<Ite1, Ite2>, int64b>
-  SharedFuture<void> enqueueLoop(Func&& task,
-                                 Ite1&& begin,
-                                 Ite2&& end,
-                                 const int64b parent_task_id = kNoTask);
+  Future<void> enqueueLoop(Func&& task,
+                           Ite1&& begin,
+                           Ite2&& end,
+                           const int64b parent_task_id = kNoTask);
 
   //! Check whether the task queue is empty
   bool isEmpty() const noexcept;
@@ -191,10 +193,6 @@ class ThreadManager : private NonCopyable<ThreadManager>
   void waitForCompletion() noexcept;
 
  private:
-  template <NonReference>
-  friend class Future;
-
-
   /*!
     \brief No brief description
 
@@ -232,8 +230,12 @@ class ThreadManager : private NonCopyable<ThreadManager>
   };
 
   // Type aliases
-  using TaskQueue = ScalableCircularQueue<WorkerTask>;
+  using TaskQueueImpl = ScalableCircularQueue<WorkerTask>;
+  using TaskQueue = BoundedQueue<TaskQueueImpl, WorkerTask>;
+  using TaskIdTreeImpl = MutexBst;
+  using TaskIdTree = BoundedBst<TaskIdTreeImpl>;
   using WorkerLock = AtomicWord<Config::isAtomicOsSpecifiedWaitUsed()>;
+  using TaskStorage = std::aligned_storage_t<64, std::alignment_of_v<std::max_align_t>>;
 
 
   //! Increment the given iterator
@@ -253,10 +255,10 @@ class ThreadManager : private NonCopyable<ThreadManager>
   //! Run tasks on the worker threads in the manager
   template <typename ReturnT, bool kIsLoopTask,
             typename TaskData, typename Ite1, typename Ite2>
-  SharedFuture<ReturnT> enqueueImpl(TaskData& task,
-                                    Ite1&& begin,
-                                    Ite2&& end,
-                                    const int64b parent_task_id);
+  Future<ReturnT> enqueueImpl(TaskData& task,
+                              Ite1&& begin,
+                              Ite2&& end,
+                              const int64b parent_task_id);
 
   //! Exit workers running
   void exitWorkersRunning() noexcept;
@@ -283,9 +285,29 @@ class ThreadManager : private NonCopyable<ThreadManager>
   //! Issue a task ID
   int64b issueTaskId() noexcept;
 
+  //! Create a shared task
+  template <typename Task, typename TaskData, typename Ite>
+  SharedTask makeSharedTask(const std::size_t storage_index,
+                            const int64b task_id,
+                            const int64b parent_task_id,
+                            TaskData&& data,
+                            Ite&& ite) noexcept;
+
   //! Return the func data
   template <typename ...Types, Invocable<Types...> Func>
   static auto makeTaskData(Func&& func) noexcept;
+
+  //! Return the task ID tree
+  TaskIdTree& taskIdTree() noexcept;
+
+  //! Return the task ID tree
+  const TaskIdTree& taskIdTree() const noexcept;
+
+  //! Return the task queue
+  TaskQueue& taskQueue() noexcept;
+
+  //! Return the task queue
+  const TaskQueue& taskQueue() const noexcept;
 
   //! Wait current thread for parent task complesion
   void waitForParent(const int64b task_id, const int64b parent_task_id) const noexcept;
@@ -298,14 +320,13 @@ class ThreadManager : private NonCopyable<ThreadManager>
 
 
   alignas(kCacheLineSize) std::atomic<int64b> total_queued_task_ids_;
-//  alignas(kCacheLineSize) std::atomic<int64b> num_of_completed_task_ids_;
-//  alignas(kCacheLineSize) int64b current_min_task_id_;
   alignas(kCacheLineSize) std::atomic<int> num_of_active_workers_;
-  alignas(kCacheLineSize) std::mutex manager_lock_;
   alignas(kCacheLineSize) WorkerLock worker_lock_;
-  TaskQueue task_queue_;
+  TaskQueueImpl task_queue_;
+  TaskIdTreeImpl task_id_tree_;
   pmr::vector<std::thread> worker_list_;
   pmr::vector<std::thread::id> worker_id_list_;
+  pmr::vector<TaskStorage> task_storage_list_;
 };
 
 #if defined(Z_GCC) || defined(Z_CLANG)

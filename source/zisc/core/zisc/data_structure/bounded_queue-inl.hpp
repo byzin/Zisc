@@ -170,8 +170,7 @@ template <typename QueueClass, Movable T> inline
 auto BoundedQueue<QueueClass, T>::dequeue() noexcept -> std::tuple<bool, Type>
 {
   auto& q = ref();
-  const auto result = q.dequeue();
-  return result;
+  return q.dequeue();
 }
 
 /*!

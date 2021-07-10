@@ -55,7 +55,7 @@ void testAtomicAddition()
   constexpr std::size_t s = 0;
   constexpr std::size_t e = resolution;
   auto result = thread_manager.enqueueLoop(test, s, e);
-  result->wait();
+  result.wait();
 
   const char* error_message = "zisc::atomic_fetch_add() failed. value=";
   for (const auto flag : table)
@@ -90,7 +90,7 @@ void testAtomicSubtraction()
   constexpr std::size_t s = 0;
   constexpr std::size_t e = resolution;
   auto result = thread_manager.enqueueLoop(test, s, e);
-  result->wait();
+  result.wait();
 
   const char* error_message = "zisc::atomic_fetch_sub() failed. value=";
   for (const auto flag : table)
@@ -124,7 +124,7 @@ void testAtomicExchange()
   constexpr Type s = zisc::cast<Type>(1);
   constexpr Type e = zisc::cast<Type>(resolution);
   auto result = thread_manager.enqueueLoop(test, s, e);
-  result->wait();
+  result.wait();
 
   const char* error_message = "zisc::atomic_exchange() failed. value=";
   std::size_t num_of_failure = 0;
@@ -160,7 +160,7 @@ void testAtomicIncrement()
   constexpr std::size_t s = 0;
   constexpr std::size_t e = resolution;
   auto result = thread_manager.enqueueLoop(test, s, e);
-  result->wait();
+  result.wait();
 
   const char* error_message = "zisc::atomic_fetch_inc() failed. value=";
   for (const auto flag : table)
@@ -194,7 +194,7 @@ void testAtomicDecrement()
   constexpr std::size_t s = 0;
   constexpr std::size_t e = resolution;
   auto result = thread_manager.enqueueLoop(test, s, e);
-  result->wait();
+  result.wait();
 
   const char* error_message = "zisc::atomic_fetch_dec() failed. value=";
   for (const auto flag : table)
@@ -225,7 +225,7 @@ void testAtomicMin()
   constexpr Type s = zisc::cast<Type>(0);
   constexpr Type e = zisc::cast<Type>(resolution);
   auto result = thread_manager.enqueueLoop(test, s, e);
-  result->wait();
+  result.wait();
 
   const char* error_message = "zisc::atomic_fetch_min() failed. value=";
   constexpr Type expected = -zisc::cast<Type>(resolution - 1);
@@ -254,7 +254,7 @@ void testAtomicMax()
   constexpr Type s = zisc::cast<Type>(0);
   constexpr Type e = zisc::cast<Type>(resolution);
   auto result = thread_manager.enqueueLoop(test, s, e);
-  result->wait();
+  result.wait();
 
   const char* error_message = "zisc::atomic_fetch_max() failed. value=";
   constexpr Type expected = zisc::cast<Type>(resolution - 1);
@@ -291,7 +291,7 @@ void testAtomicCmpxchg()
   constexpr std::size_t s = 0;
   constexpr std::size_t e = resolution;
   auto result = thread_manager.enqueueLoop(test, s, e);
-  result->wait();
+  result.wait();
 
   const char* error_message = "zisc::atomic_compare_exchange() failed. value=";
   for (const auto flag : table)
@@ -322,7 +322,7 @@ void testAtomicAnd()
   constexpr std::size_t s = 0;
   constexpr std::size_t e = 8 * sizeof(Type);
   auto result = thread_manager.enqueueLoop(test, s, e);
-  result->wait();
+  result.wait();
 
   const char* error_message = "zisc::atomic_fetch_and() failed. value=";
   ASSERT_FALSE(value) << error_message << value;
@@ -350,7 +350,7 @@ void testAtomicOr()
   constexpr std::size_t s = 0;
   constexpr std::size_t e = 8 * sizeof(Type);
   auto result = thread_manager.enqueueLoop(test, s, e);
-  result->wait();
+  result.wait();
 
   const char* error_message = "zisc::atomic_fetch_or() failed. value=";
   constexpr Type expected = ~zisc::cast<Type>(0);

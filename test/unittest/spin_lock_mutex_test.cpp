@@ -40,7 +40,7 @@ TEST(SpinLockMutexTest, LockTest)
   constexpr zisc::int64b end = 4 * 1310720;
   thread_manager.setCapacity(end);
   auto result = thread_manager.enqueueLoop(test, start, end);
-  result->wait();
+  result.wait();
 
   const zisc::int64b expected = end * a;
   ASSERT_EQ(expected, value) << "The concurrency of spin lock isn't guaranteed.";

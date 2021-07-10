@@ -81,6 +81,9 @@ class MutexBst : public BoundedBst<MutexBst>
   //! Return the default capacity
   static constexpr size_type defaultCapacity() noexcept;
 
+  //! Find the minimum key in the bst
+  double findMinKey() const noexcept;
+
   //! Remove the value from the bst
   template <ConvertibleTo<double> Type>
   bool remove(const Type& value);

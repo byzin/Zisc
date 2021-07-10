@@ -95,6 +95,19 @@ bool BoundedBst<BstClass>::contain(const Type& value) const noexcept
 /*!
   \details No detailed description
 
+  \return No description
+  */
+template <typename BstClass> inline
+double BoundedBst<BstClass>::findMinKey() const noexcept
+{
+  auto& bst = ref();
+  const double k = bst.findMinKey();
+  return k;
+}
+
+/*!
+  \details No detailed description
+
   \tparam Type No description.
   \param [in] value No description.
   \return No description

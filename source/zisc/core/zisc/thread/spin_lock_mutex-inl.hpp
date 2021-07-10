@@ -45,7 +45,7 @@ inline
 void SpinLockMutex::lock() noexcept
 {
   while (!tryLock()) {
-    while (locker_.test(std::memory_order::relaxed)) {
+    while (lock_state_.test(std::memory_order::relaxed)) {
       // spin lock
       std::this_thread::yield();
     }
@@ -71,7 +71,7 @@ bool SpinLockMutex::try_lock() noexcept
 inline
 bool SpinLockMutex::tryLock() noexcept
 {
-  return !locker_.test_and_set(std::memory_order::acquire);
+  return !lock_state_.test_and_set(std::memory_order::acquire);
 }
 
 /*!
@@ -80,7 +80,7 @@ bool SpinLockMutex::tryLock() noexcept
 inline
 void SpinLockMutex::unlock() noexcept
 {
-  locker_.clear(std::memory_order::release);
+  lock_state_.clear(std::memory_order::release);
 }
 
 } // namespace zisc

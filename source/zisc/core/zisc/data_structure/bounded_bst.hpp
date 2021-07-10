@@ -58,6 +58,9 @@ class BoundedBst : private NonCopyable<BoundedBst<BstClass>>
   template <ConvertibleTo<double> Type>
   bool contain(const Type& value) const noexcept;
 
+  //! Find the minimum key in the bst
+  double findMinKey() const noexcept;
+
   //! Remove the value from the bst
   template <ConvertibleTo<double> Type>
   bool remove(const Type& value);

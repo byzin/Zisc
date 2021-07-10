@@ -16,6 +16,8 @@
 #define ZISC_PACKAGED_TASK_HPP
 
 // Standard C++ library
+#include <array>
+#include <atomic>
 #include <memory>
 // Zisc
 #include "atomic.hpp"
@@ -27,10 +29,6 @@ namespace zisc {
 
 // Forward declaration
 template <NonReference> class Future;
-
-// Type aliases
-template <NonReference T>
-using SharedFuture = std::shared_ptr<Future<T>>;
 
 #if defined(Z_GCC) || defined(Z_CLANG)
 #pragma GCC diagnostic push
@@ -59,12 +57,12 @@ class PackagedTask : private NonCopyable<PackagedTask>
   //! Run a underlying task
   void operator()(const int64b thread_id, const DiffType offset);
 
-  //! Retrieve the result of the underlying task
+  //! Return the future of the underlying task
   template <NonReference T>
-  SharedFuture<T> getFuture() noexcept;
+  Future<T>& getFuture() noexcept;
 
-  //! Retrieve the result of the underlying task
-  virtual void getFuture(void* result) noexcept = 0;
+  //! Check if the packaged task has a future
+  bool hasFuture() const noexcept;
 
   //! Return the underlying task ID
   int64b id() const noexcept;
@@ -85,9 +83,51 @@ class PackagedTask : private NonCopyable<PackagedTask>
   //! Create a package with the given task id
   PackagedTask(const int64b task_id, const int64b parent_task_id) noexcept;
 
+
+  //! Destroy the task data
+  template <NonReference T>
+  void destroy() noexcept;
+
+  //! Set the result of the task execution
+  template <NonReference T>
+  void setResult(T&& result) noexcept;
+
  private:
+  template <NonReference>
+  friend class Future;
+
+
+  //! Check if the task is completed
+  bool isCompleted() const noexcept;
+
+  //! Return the lock state
+  std::atomic_flag& lockState() noexcept;
+
+  //! Return the lock state
+  const std::atomic_flag& lockState() const noexcept;
+
+  //! Lock the task and future
+  template <NonReference T>
+  bool lock() noexcept;
+
+  //! Set a future for the underlying task
+  void setFuture(void* f) noexcept;
+
+  //! Unlink the task with the given future
+  template <NonReference T>
+  void unlink(Future<T>* f) noexcept;
+
+  //! Unlock the task and the given future
+  template <NonReference T>
+  void unlock(Future<T>* f) noexcept;
+
+
   int64b id_ = invalidId();
   int64b parent_id_ = invalidId();
+  void* future_ = nullptr;
+  std::atomic_flag lock_state_;
+  std::atomic_flag is_completed_;
+  [[maybe_unused]] std::array<uint8b, 6> padding_;
 };
 
 #if defined(Z_GCC) || defined(Z_CLANG)

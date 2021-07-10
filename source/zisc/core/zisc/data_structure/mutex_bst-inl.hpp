@@ -196,6 +196,22 @@ constexpr auto MutexBst::defaultCapacity() noexcept -> size_type
 /*!
   \details No detailed description
 
+  \return No description
+  */
+inline
+double MutexBst::findMinKey() const noexcept
+{
+  double key = 0.0;
+  {
+    std::unique_lock<std::shared_mutex> lock{mutex_};
+    key = node_list_[0].key();
+  }
+  return key;
+}
+
+/*!
+  \details No detailed description
+
   \tparam Type No description.
   \param [in] value No description.
   \return No description

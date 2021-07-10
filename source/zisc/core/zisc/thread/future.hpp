@@ -17,7 +17,6 @@
 
 // Standard C++ library
 #include <atomic>
-#include <memory>
 #include <type_traits>
 // Zisc
 #include "zisc/concepts.hpp"
@@ -27,7 +26,7 @@
 namespace zisc {
 
 // Forward declaration
-class ThreadManager;
+class PackagedTask;
 
 #if defined(Z_GCC) || defined(Z_CLANG)
 #pragma GCC diagnostic push
@@ -55,11 +54,18 @@ class Future : private NonCopyable<Future<T>>
   //! Create a future with no shared state
   Future() noexcept;
 
-  //! Create a future of the 
-  Future(const int64b operation_id, ThreadManager* manager) noexcept;
+  //! Create a future
+  Future(PackagedTask* t) noexcept;
+
+  //! Move data
+  Future(Future&& other) noexcept;
 
   //! Destroy the future
   ~Future() noexcept;
+
+
+  //! Move data
+  Future& operator=(Future&& other) noexcept;
 
 
   //! Return the result
@@ -82,32 +88,61 @@ class Future : private NonCopyable<Future<T>>
 
  private:
   static_assert(std::is_void_v<T> || std::is_move_constructible_v<T>);
-  friend ThreadManager;
+  friend PackagedTask;
 
 
   // Type aliases
   using ValueT = std::conditional_t<std::is_void_v<Type>, int, Type>;
   using ValueRReference = std::add_rvalue_reference_t<ValueT>;
+  using StorageT = std::aligned_storage_t<sizeof(ValueT), std::alignment_of_v<ValueT>>;
   using DataT = std::conditional_t<std::is_default_constructible_v<ValueT> &&
                                    std::is_move_assignable_v<ValueT>,
-      ValueT,
-      std::aligned_storage_t<sizeof(ValueT), std::alignment_of_v<ValueT>>>;
+                                   ValueT,
+                                   StorageT>;
 
 
-  //! Destroy the result data
+  //! Destroy the data in the future
   void destroy() noexcept;
+
+  //! Check if the future is linked with a task
+  bool hasTask() const noexcept;
+
+  //! Check if the future is completed
+  bool isCompleted() const noexcept;
 
   //! Check if the result is available
   bool isReady() const noexcept;
 
-  //! Return the underlying thread manager
-  ThreadManager* manager() const noexcept;
+  //! Link the future with the given task
+  void linkWithTask(PackagedTask* t) noexcept;
 
-  //! Run another task if current thread is managed by the thread manager
-  bool runAnotherTask(const int64b thread_id) const;
+  //! Lock the task and future
+  bool lock() noexcept;
+
+  //! Return the underlying lock state
+  std::atomic_flag& lockState() noexcept;
+
+  //! Return the underlying lock state
+  const std::atomic_flag& lockState() const noexcept;
+
+  //! Move data
+  void moveData(Future& other) noexcept;
 
   //! Set the given result value
   void set(ValueRReference result) noexcept;
+
+  //! Return the linked task
+  PackagedTask& task() noexcept;
+
+  //! Return the linked task
+  const PackagedTask& task() const noexcept;
+
+  //! Unlink the task with the future
+  void unlink(PackagedTask* t) noexcept;
+
+  //! Unlock the task and the future
+  void unlock(PackagedTask* t) noexcept;
+
 
   //! Return the reference to the value
   Reference value() noexcept;
@@ -116,19 +151,18 @@ class Future : private NonCopyable<Future<T>>
   ConstReference value() const noexcept;
 
 
-  int64b id_ = invalidId();
-  ThreadManager* manager_ = nullptr;
+  PackagedTask* task_ = nullptr;
+  int64b task_id_ = invalidId();
   DataT data_;
-  std::atomic_flag has_value_ = ATOMIC_FLAG_INIT;
+  std::atomic_flag lock_state_;
+  std::atomic_flag has_value_;
+  std::atomic_flag is_completed_;
+  [[maybe_unused]] uint8b padding_;
 };
 
 #if defined(Z_GCC) || defined(Z_CLANG)
 #pragma GCC diagnostic pop
 #endif // Z_GCC || Z_CLANG
-
-// Type aliases
-template <NonReference T>
-using SharedFuture = std::shared_ptr<Future<T>>;
 
 } // namespace zisc
 

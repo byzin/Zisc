@@ -24,11 +24,11 @@
 #include <type_traits>
 #include <utility>
 // Zisc
+#include "packaged_task.hpp"
 #include "zisc/concepts.hpp"
 #include "zisc/error.hpp"
 #include "zisc/utility.hpp"
 #include "zisc/zisc_config.hpp"
-#include "zisc/thread/thread_manager.hpp"
 
 namespace zisc {
 
@@ -38,20 +38,30 @@ namespace zisc {
 template <NonReference T> inline
 Future<T>::Future() noexcept
 {
+  static_assert(sizeof(lock_state_) == 1, "std::atomic_flag isn't 1 byte.");
   static_assert(sizeof(has_value_) == 1, "std::atomic_flag isn't 1 byte.");
 }
 
 /*!
   \details No detailed description
 
-  \param [in] operation_id No description.
-  \param [in] manager No description.
+  \param [in,out] t No description.
   */
 template <NonReference T> inline
-Future<T>::Future(const int64b operation_id, ThreadManager* manager) noexcept :
-    id_{operation_id},
-    manager_{manager}
+Future<T>::Future(PackagedTask* t) noexcept
 {
+  linkWithTask(t);
+}
+
+/*!
+  \details No detailed description
+
+  \param [in] other No description.
+  */
+template <NonReference T> inline
+Future<T>::Future(Future&& other) noexcept
+{
+  moveData(other);
 }
 
 /*!
@@ -61,6 +71,19 @@ template <NonReference T> inline
 Future<T>::~Future() noexcept
 {
   destroy();
+}
+
+/*!
+  \details No detailed description
+
+  \param [in] other No description.
+  \return No description
+  */
+template <NonReference T> inline
+auto Future<T>::operator=(Future&& other) noexcept -> Future&
+{
+  moveData(other);
+  return *this;
 }
 
 /*!
@@ -95,7 +118,7 @@ auto Future<T>::get() const -> ConstReference
 template <NonReference T> inline
 int64b Future<T>::id() const noexcept
 {
-  return id_;
+  return task_id_;
 }
 
 /*!
@@ -117,8 +140,8 @@ constexpr int64b Future<T>::invalidId() noexcept
 template <NonReference T> inline
 bool Future<T>::valid() const noexcept
 {
-  const bool flag = manager_ != nullptr;
-  return flag;
+  const bool result = id() != invalidId();
+  return result;
 }
 
 /*!
@@ -127,17 +150,8 @@ bool Future<T>::valid() const noexcept
 template <NonReference T> inline
 void Future<T>::wait() const
 {
-  auto th_manager = manager();
-  const int64b thread_id = th_manager->getCurrentThreadId();
-  while (!isReady()) {
-    bool has_task = false;
-    if (thread_id != ThreadManager::unmanagedThreadId()) {
-      // Run another task while waiting for the complesion
-      has_task = runAnotherTask(thread_id);
-    }
-    if (!has_task)
-      std::this_thread::yield();
-  }
+  while (!isReady())
+    std::this_thread::yield();
 }
 
 /*!
@@ -146,12 +160,43 @@ void Future<T>::wait() const
 template <NonReference T> inline
 void Future<T>::destroy() noexcept
 {
-  if constexpr (std::is_destructible_v<ValueT> && !std::is_same_v<DataT, ValueT>) {
+  bool is_ready = !isCompleted() && lock();
+  if (is_ready) {
+    PackagedTask& t = task();
+    unlink(&t);
+    unlock(&t);
+  }
+
+  if constexpr (std::is_destructible_v<ValueT> && std::is_same_v<DataT, StorageT>) {
     if (isReady()) {
       Reference v = value();
       std::destroy_at(std::addressof(v));
     }
   }
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+template <NonReference T> inline
+bool Future<T>::hasTask() const noexcept
+{
+  const bool result = task_ != nullptr;
+  return result;
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+template <NonReference T> inline
+bool Future<T>::isCompleted() const noexcept
+{
+  const bool result = is_completed_.test(std::memory_order::acquire);
+  return result;
 }
 
 /*!
@@ -169,12 +214,56 @@ bool Future<T>::isReady() const noexcept
 /*!
   \details No detailed description
 
-  \return No description
+  \param [in,out] t No description.
   */
 template <NonReference T> inline
-ThreadManager* Future<T>::manager() const noexcept
+void Future<T>::linkWithTask(PackagedTask* t) noexcept
 {
-  return manager_;
+  task_ = t;
+  if (t) {
+    task_id_ = t->id();
+    t->setFuture(this);
+  }
+}
+
+/*!
+  \details No detailed description
+  */
+template <NonReference T> inline
+bool Future<T>::lock() noexcept
+{
+  bool is_ready = false;
+  // Lock the task and future
+  bool retry = false;
+  while (!is_ready) {
+    if (retry)
+      std::this_thread::yield();
+
+    // Check if the task is locked
+    std::atomic_flag& future_lock = lockState();
+    const bool is_future_locked = future_lock.test_and_set(std::memory_order::acq_rel);
+    if (is_future_locked) {
+      retry = true;
+      continue;
+    }
+
+    // Terminate the set if a task is unlinked
+    if (hasTask()) {
+      future_lock.clear();
+      break;
+    }
+
+    // Check if the future is locked
+    std::atomic_flag& task_lock = task().lockState();
+    const bool is_task_locked = task_lock.test_and_set(std::memory_order::acq_rel);
+    if (is_task_locked) {
+      future_lock.clear();
+      continue;
+    }
+
+    is_ready = true;
+  }
+  return is_ready;
 }
 
 /*!
@@ -183,16 +272,49 @@ ThreadManager* Future<T>::manager() const noexcept
   \return No description
   */
 template <NonReference T> inline
-bool Future<T>::runAnotherTask(const int64b thread_id) const
+std::atomic_flag& Future<T>::lockState() noexcept
 {
-  ZISC_ASSERT(thread_id != ThreadManager::unmanagedThreadId(), 
-              "Unmanaged thread tries to run a work in the thread manager.");
-  auto th_manager = manager();
-  auto task = th_manager->fetchTask();
-  const bool has_task = task.hasTask();
-  if (has_task)
-    task.run(thread_id);
-  return has_task;
+  return lock_state_;
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+template <NonReference T> inline
+const std::atomic_flag& Future<T>::lockState() const noexcept
+{
+  return lock_state_;
+}
+
+/*!
+  \details No detailed description
+
+  \param [in,out] other No description.
+  */
+template <NonReference T> inline
+void Future<T>::moveData(Future& other) noexcept
+{
+  bool is_ready = !isCompleted() && other.lock();
+  if (is_ready)
+    lockState().test_and_set(std::memory_order::release);
+
+  // Move data
+  task_ = nullptr;
+  task_id_ = other.id();
+  if (other.isReady()) {
+    data_ = std::move(other.data_);
+    has_value_.test_and_set(std::memory_order::release);
+    other.has_value_.clear();
+  }
+  else if (other.hasTask()) {
+    linkWithTask(std::addressof(other.task()));
+    other.is_completed_.test_and_set(std::memory_order::release);
+  }
+
+  if (is_ready)
+    unlock(&task());
 }
 
 /*!
@@ -210,11 +332,57 @@ void Future<T>::set(ValueRReference result) noexcept
     else 
       new (std::addressof(data_)) ValueT{std::move(result)};
   }
-  const bool old = has_value_.test_and_set(std::memory_order::release);
+  [[maybe_unused]] const bool old = has_value_.test_and_set(std::memory_order::acq_rel);
   ZISC_ASSERT(!old, "The result already has a value.");
-  // Notify the thread manager that the task was completed
-  auto th_manager = manager();
-  th_manager->finishTask(id());
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+template <NonReference T> inline
+PackagedTask& Future<T>::task() noexcept
+{
+  ZISC_ASSERT(hasTask(), "A task isn't set.");
+  return *task_;
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+template <NonReference T> inline
+const PackagedTask& Future<T>::task() const noexcept
+{
+  ZISC_ASSERT(hasTask(), "A task isn't set.");
+  return *task_;
+}
+
+/*!
+  \details No detailed description
+  */
+template <NonReference T> inline
+void Future<T>::unlink(PackagedTask* t) noexcept
+{
+  t->is_completed_.test_and_set(std::memory_order::release);
+  is_completed_.test_and_set(std::memory_order::release);
+
+  t->setFuture(nullptr);
+  linkWithTask(nullptr);
+}
+
+/*!
+  \details No detailed description
+  */
+template <NonReference T> inline
+void Future<T>::unlock(PackagedTask* t) noexcept
+{
+  std::atomic_flag& future_lock = lockState();
+  future_lock.clear(std::memory_order::release);
+  std::atomic_flag& task_lock = t->lockState();
+  task_lock.clear(std::memory_order::release);
 }
 
 /*!

@@ -239,7 +239,7 @@ bool Future<T>::lock() noexcept
     if (retry)
       std::this_thread::yield();
 
-    // Check if the task is locked
+    // Check if the future is locked
     std::atomic_flag& future_lock = lockState();
     const bool is_future_locked = future_lock.test_and_set(std::memory_order::acq_rel);
     if (is_future_locked) {
@@ -248,15 +248,16 @@ bool Future<T>::lock() noexcept
     }
 
     // Terminate the set if a task is unlinked
-    if (hasTask()) {
+    if (!hasTask()) {
       future_lock.clear();
       break;
     }
 
-    // Check if the future is locked
+    // Check if the task is locked
     std::atomic_flag& task_lock = task().lockState();
     const bool is_task_locked = task_lock.test_and_set(std::memory_order::acq_rel);
     if (is_task_locked) {
+      retry = true;
       future_lock.clear();
       continue;
     }
@@ -296,7 +297,7 @@ const std::atomic_flag& Future<T>::lockState() const noexcept
 template <NonReference T> inline
 void Future<T>::moveData(Future& other) noexcept
 {
-  bool is_ready = !isCompleted() && other.lock();
+  bool is_ready = !other.isCompleted() && other.lock();
   if (is_ready)
     lockState().test_and_set(std::memory_order::release);
 
@@ -304,17 +305,20 @@ void Future<T>::moveData(Future& other) noexcept
   task_ = nullptr;
   task_id_ = other.id();
   if (other.isReady()) {
+    ZISC_ASSERT(!is_ready, "The other future is still locked.");
     data_ = std::move(other.data_);
     has_value_.test_and_set(std::memory_order::release);
+    is_completed_.test_and_set(std::memory_order::release);
     other.has_value_.clear();
   }
   else if (other.hasTask()) {
+    ZISC_ASSERT(is_ready, "The other future isn't locked.");
     linkWithTask(std::addressof(other.task()));
     other.is_completed_.test_and_set(std::memory_order::release);
   }
 
   if (is_ready)
-    unlock(&task());
+    unlock(std::addressof(task()));
 }
 
 /*!
@@ -332,8 +336,7 @@ void Future<T>::set(ValueRReference result) noexcept
     else 
       new (std::addressof(data_)) ValueT{std::move(result)};
   }
-  [[maybe_unused]] const bool old = has_value_.test_and_set(std::memory_order::acq_rel);
-  ZISC_ASSERT(!old, "The result already has a value.");
+  has_value_.test_and_set(std::memory_order::release);
 }
 
 /*!

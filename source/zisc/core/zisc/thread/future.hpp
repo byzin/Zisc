@@ -154,9 +154,9 @@ class Future : private NonCopyable<Future<T>>
   PackagedTask* task_ = nullptr;
   int64b task_id_ = invalidId();
   DataT data_;
-  std::atomic_flag lock_state_;
-  std::atomic_flag has_value_;
-  std::atomic_flag is_completed_;
+  std::atomic_flag lock_state_ = ATOMIC_FLAG_INIT;
+  std::atomic_flag has_value_ = ATOMIC_FLAG_INIT;
+  std::atomic_flag is_completed_ = ATOMIC_FLAG_INIT;
   [[maybe_unused]] uint8b padding_;
 };
 

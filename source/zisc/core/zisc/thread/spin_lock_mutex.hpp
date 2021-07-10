@@ -51,7 +51,7 @@ class SpinLockMutex : private NonCopyable<SpinLockMutex>
   void unlock() noexcept;
 
  private:
-  std::atomic_flag lock_state_;
+  std::atomic_flag lock_state_ = ATOMIC_FLAG_INIT;
 };
 
 } // namespace zisc

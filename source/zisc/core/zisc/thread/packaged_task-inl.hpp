@@ -167,13 +167,13 @@ void PackagedTask::destroy() noexcept
   \tparam T No description.
   \param [in] result No description.
   */
-template <NonReference T> inline
-void PackagedTask::setResult(T&& result) noexcept
+template <NonReference T, NonReference ValueT> inline
+void PackagedTask::setResult(ValueT&& result) noexcept
 {
   auto is_ready = !isCompleted() && lock<T>();
   if (is_ready) {
     Future<T>& f = getFuture<T>();
-    f.set(std::forward<T>(result));
+    f.set(std::forward<ValueT>(result));
     unlink(&f);
     unlock(&f);
   }
@@ -237,7 +237,7 @@ bool PackagedTask::lock() noexcept
     }
 
     // Terminate the set if a future is unlinked
-    if (hasFuture()) {
+    if (!hasFuture()) {
       task_lock.clear();
       break;
     }
@@ -246,6 +246,7 @@ bool PackagedTask::lock() noexcept
     std::atomic_flag& future_lock = getFuture<T>().lockState();
     const bool is_future_locked = future_lock.test_and_set(std::memory_order::acq_rel);
     if (is_future_locked) {
+      retry = true;
       task_lock.clear();
       continue;
     }

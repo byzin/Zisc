@@ -711,8 +711,7 @@ auto ThreadManager::enqueueImpl(TaskData& task,
     ~TaskImpl() noexcept override
     {
       if constexpr (kIsLoopTask || std::is_void_v<ReturnT>)
-        setResult(0);
-      destroy<ReturnT>();
+        setResult<ReturnT>(0);
       [[maybe_unused]] const bool id_result = manager_->taskIdTree().remove(id());
       ZISC_ASSERT(id_result, "The given id isn't in the task tree.");
     }
@@ -732,7 +731,7 @@ auto ThreadManager::enqueueImpl(TaskData& task,
         }
         else {
           auto value = std::invoke(func, thread_id);
-          setResult(std::move(value));
+          setResult<ReturnT>(std::move(value));
         }
       }
     }

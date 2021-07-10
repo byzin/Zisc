@@ -89,8 +89,8 @@ class PackagedTask : private NonCopyable<PackagedTask>
   void destroy() noexcept;
 
   //! Set the result of the task execution
-  template <NonReference T>
-  void setResult(T&& result) noexcept;
+  template <NonReference T, NonReference ValueT>
+  void setResult(ValueT&& result) noexcept;
 
  private:
   template <NonReference>
@@ -125,8 +125,8 @@ class PackagedTask : private NonCopyable<PackagedTask>
   int64b id_ = invalidId();
   int64b parent_id_ = invalidId();
   void* future_ = nullptr;
-  std::atomic_flag lock_state_;
-  std::atomic_flag is_completed_;
+  std::atomic_flag lock_state_ = ATOMIC_FLAG_INIT;
+  std::atomic_flag is_completed_ = ATOMIC_FLAG_INIT;
   [[maybe_unused]] std::array<uint8b, 6> padding_;
 };
 

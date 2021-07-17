@@ -203,7 +203,7 @@ double MutexBst::findMinKey() const noexcept
 {
   double key = 0.0;
   {
-    std::unique_lock<std::shared_mutex> lock{mutex_};
+    std::shared_lock<std::shared_mutex> lock{mutex_};
     key = node_list_[0].key();
   }
   return key;

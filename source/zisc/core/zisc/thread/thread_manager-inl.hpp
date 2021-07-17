@@ -262,9 +262,9 @@ void ThreadManager::clear() noexcept
     waitForCompletion();
   ZISC_ASSERT(num_of_active_workers_.load(std::memory_order::acquire) == 0,
               "Some worker threads are stil active.");
-  ZISC_ASSERT(worker_lock_.load(std::memory_order::acquire) == 0,
-              "Task queue still has some tasks.");
-  ZISC_ASSERT(isEmpty(), "Task queue still has some tasks.");
+  ZISC_ASSERT(worker_lock_.load(std::memory_order::acquire) <= 0,
+              "Some worker threads are stil active.");
+//  ZISC_ASSERT(isEmpty(), "Task queue still has some tasks.");
   total_queued_task_ids_.store(0, std::memory_order::release);
   taskQueue().clear();
   taskIdTree().clear();
@@ -830,6 +830,8 @@ void ThreadManager::exitWorkersRunning() noexcept
   atomic_notify_all(std::addressof(worker_lock_));
   for (auto& worker : worker_list_)
     worker.join();
+  num_of_active_workers_.store(0, std::memory_order::release);
+  clear();
 }
 
 /*!

@@ -965,17 +965,12 @@ TEST(ThreadManagerTest, GetValueTest)
 
   {
     int is_task_completed = 0;
-    auto task = [&thread_manager, &is_task_completed]()
+    auto task = [&is_task_completed]()
     {
-      auto nested_task = [&is_task_completed]()
-      {
-        ::MovableTestValue1 value{};
-        zisc::atomic_store(&value.value_, expected, std::memory_order::release);
-        value.flag_ = std::addressof(is_task_completed);
-        return value;
-      };
-      auto result = thread_manager.enqueue(nested_task);
-      return std::move(result.get());
+      ::MovableTestValue1 value{};
+      zisc::atomic_store(&value.value_, expected, std::memory_order::release);
+      value.flag_ = std::addressof(is_task_completed);
+      return value;
     };
     auto result = thread_manager.enqueue(task);
     {
@@ -997,17 +992,12 @@ TEST(ThreadManagerTest, GetValueTest)
 
   {
     int is_task_completed = 0;
-    auto task = [&thread_manager, &is_task_completed]()
+    auto task = [&is_task_completed]()
     {
-      auto nested_task = [&is_task_completed]()
-      {
-        ::MovableTestValue2 value{};
-        zisc::atomic_store(&value.value_, expected, std::memory_order::release);
-        value.flag_ = std::addressof(is_task_completed);
-        return value;
-      };
-      auto result = thread_manager.enqueue(nested_task);
-      return std::move(result.get());
+      ::MovableTestValue2 value{};
+      zisc::atomic_store(&value.value_, expected, std::memory_order::release);
+      value.flag_ = std::addressof(is_task_completed);
+      return value;
     };
     auto result = thread_manager.enqueue(task);
     {
@@ -1029,15 +1019,10 @@ TEST(ThreadManagerTest, GetValueTest)
 
   {
     int is_task_completed = 0;
-    auto task = [&thread_manager, &is_task_completed]()
+    auto task = [&is_task_completed]()
     {
-      auto nested_task = [&is_task_completed]()
-      {
-        ::MovableTestValue3 value{is_task_completed, expected};
-        return value;
-      };
-      auto result = thread_manager.enqueue(nested_task);
-      return std::move(result.get());
+      ::MovableTestValue3 value{is_task_completed, expected};
+      return value;
     };
     auto result = thread_manager.enqueue(task);
     {

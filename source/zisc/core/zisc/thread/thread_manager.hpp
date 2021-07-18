@@ -51,8 +51,6 @@ using SharedTask = std::shared_ptr<PackagedTask>;
 #if defined(Z_GCC) || defined(Z_CLANG)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wpadded"
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wweak-vtables"
 #endif // Z_GCC || Z_CLANG
 
 /*!
@@ -229,13 +227,62 @@ class ThreadManager : private NonCopyable<ThreadManager>
     [[maybe_unused]] int32b padding_ = 0;
   };
 
+  //! Memory resource for task
+  class TaskResource : public pmr::memory_resource, private NonCopyable<TaskResource>
+  {
+   public:
+    //! Initialize the storage
+    TaskResource() noexcept;
+
+    //! Move data
+    TaskResource(TaskResource&& other) noexcept;
+
+    //! Destroy the storage
+    ~TaskResource() noexcept override;
+
+
+    //! Move data
+    TaskResource& operator=(TaskResource&& other) noexcept;
+
+
+    //! Return the storage offset for std::shared_ptr
+    static constexpr std::size_t offset() noexcept;
+
+    //! Return the alignment of the underlying storage
+    static constexpr std::size_t storageAlignment() noexcept;
+
+    //! Return the size of the underlying storage
+    static constexpr std::size_t storageSize() noexcept;
+
+    //! Return the storage size fot a task
+    static constexpr std::size_t taskSize() noexcept;
+
+   private:
+    static constexpr std::size_t kTaskSize = 64;
+    static constexpr std::size_t kOffset = 32;
+    using TaskStorage = std::aligned_storage_t<kTaskSize + kOffset,
+                                               std::alignment_of_v<std::max_align_t>>;
+
+
+    //! Allocate task memory
+    void* do_allocate(std::size_t size, std::size_t alignment) override;
+
+    //! Deallocate task memory
+    void do_deallocate(void* data, std::size_t size, std::size_t alignment) override;
+
+    //! Compare for equality with another memory resource
+    bool do_is_equal(const pmr::memory_resource& other) const noexcept override;
+
+
+    TaskStorage storage_;
+  };
+
   // Type aliases
   using TaskQueueImpl = ScalableCircularQueue<WorkerTask>;
   using TaskQueue = BoundedQueue<TaskQueueImpl, WorkerTask>;
   using TaskIdTreeImpl = MutexBst;
   using TaskIdTree = BoundedBst<TaskIdTreeImpl>;
   using WorkerLock = AtomicWord<Config::isAtomicOsSpecifiedWaitUsed()>;
-  using TaskStorage = std::aligned_storage_t<64, std::alignment_of_v<std::max_align_t>>;
 
 
   //! Increment the given iterator
@@ -326,11 +373,10 @@ class ThreadManager : private NonCopyable<ThreadManager>
   TaskIdTreeImpl task_id_tree_;
   pmr::vector<std::thread> worker_list_;
   pmr::vector<std::thread::id> worker_id_list_;
-  pmr::vector<TaskStorage> task_storage_list_;
+  pmr::vector<TaskResource> task_storage_list_;
 };
 
 #if defined(Z_GCC) || defined(Z_CLANG)
-#pragma GCC diagnostic pop
 #pragma GCC diagnostic pop
 #endif // Z_GCC || Z_CLANG
 

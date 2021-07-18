@@ -35,6 +35,7 @@
 #include "atomic_word.hpp"
 #include "future.hpp"
 #include "packaged_task.hpp"
+#include "zisc/bit.hpp"
 #include "zisc/concepts.hpp"
 #include "zisc/data_structure/scalable_circular_queue.hpp"
 #include "zisc/error.hpp"
@@ -75,14 +76,6 @@ ThreadManager::OverflowError::OverflowError(OverflowError&& other) :
     task_{std::move(other.task_)},
     begin_offset_{other.begin_offset_},
     num_of_iterations_{other.num_of_iterations_}
-{
-}
-
-/*!
-  \details No detailed description
-  */
-inline
-ThreadManager::OverflowError::~OverflowError() noexcept
 {
 }
 
@@ -442,6 +435,8 @@ void ThreadManager::setCapacity(const std::size_t cap) noexcept
 {
   taskQueue().setCapacity(cap);
   taskIdTree().setCapacity(cap);
+  task_storage_list_.resize(cap);
+  ZISC_ASSERT(cap <= task_storage_list_.capacity(), "Allocating task mem failed.");
   clear();
 }
 
@@ -556,6 +551,85 @@ inline
 void ThreadManager::WorkerTask::run(const int64b thread_id)
 {
   task_->run(thread_id, it_offset_);
+}
+
+/*!
+  \details No detailed description
+  */
+inline
+ThreadManager::TaskResource::TaskResource() noexcept
+{
+}
+
+/*!
+  \details No detailed description
+
+  \param [in,out] other No description.
+  */
+inline
+ThreadManager::TaskResource::TaskResource([[maybe_unused]] TaskResource&& other) noexcept
+{
+}
+
+/*!
+  \details No detailed description
+
+  \param [in,out] other No description.
+  \return No description
+  */
+inline
+auto ThreadManager::TaskResource::operator=([[maybe_unused]] TaskResource&& other) noexcept
+    -> TaskResource&
+{
+  return *this;
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+inline
+constexpr std::size_t ThreadManager::TaskResource::offset() noexcept
+{
+  const std::size_t o = kOffset;
+  return o;
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+inline
+constexpr std::size_t ThreadManager::TaskResource::storageAlignment() noexcept
+{
+  const std::size_t a = std::alignment_of_v<decltype(storage_)>;
+  return a;
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+inline
+constexpr std::size_t ThreadManager::TaskResource::storageSize() noexcept
+{
+  const std::size_t s = sizeof(storage_);
+  return s;
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+inline
+constexpr std::size_t ThreadManager::TaskResource::taskSize() noexcept
+{
+  const std::size_t s = kTaskSize;
+  return s;
 }
 
 /*!
@@ -899,7 +973,7 @@ inline
 void ThreadManager::initialize(const int64b num_of_threads) noexcept
 {
   createWorkers(num_of_threads);
-  clear();
+  setCapacity(defaultCapacity());
 }
 
 /*!
@@ -934,16 +1008,26 @@ SharedTask ThreadManager::makeSharedTask(const std::size_t storage_index,
                                          TaskData&& data,
                                          Ite&& ite) noexcept
 {
-  auto mem_resource = resource();
+  TaskResource& storage = task_storage_list_[storage_index];
+  constexpr std::size_t task_size = sizeof(Task);
+  constexpr std::size_t task_alignment = (std::max)(std::alignment_of_v<Task>,
+                                                    std::alignment_of_v<void*>);
+  constexpr bool can_internal_resource_be_used =
+      (task_size <= TaskResource::taskSize()) &&
+      has_single_bit(task_alignment) &&
+      (task_alignment <= TaskResource::storageAlignment());
+  pmr::memory_resource* mem_resource = can_internal_resource_be_used
+      ? std::addressof(storage)
+      : resource();
   pmr::polymorphic_allocator<Task> task_alloc{mem_resource};
   const int64b parent_id = (task_id == 0) ? kNoTask : parent_task_id;
-  auto shared_task = std::allocate_shared<Task>(task_alloc,
-                                                task_id,
-                                                parent_id,
-                                                std::forward<TaskData>(data),
-                                                std::forward<Ite>(ite),
-                                                this);
-  return std::move(shared_task);
+  SharedTask shared_task = std::allocate_shared<Task>(task_alloc,
+                                                      task_id,
+                                                      parent_id,
+                                                      std::forward<TaskData>(data),
+                                                      std::forward<Ite>(ite),
+                                                      this);
+  return shared_task;
 }
 
 /*!

@@ -32,6 +32,8 @@ template <NonReference> class Future;
 #if defined(Z_GCC) || defined(Z_CLANG)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wweak-vtables"
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpadded"
 #endif // Z_GCC || Z_CLANG
 
 /*!
@@ -126,10 +128,10 @@ class PackagedTask : private NonCopyable<PackagedTask>
   void* future_ = nullptr;
   std::atomic_flag lock_state_ = ATOMIC_FLAG_INIT;
   std::atomic_flag is_completed_ = ATOMIC_FLAG_INIT;
-  [[maybe_unused]] Padding<sizeof(void*) - 2 * sizeof(std::atomic_flag)> pad_;
 };
 
 #if defined(Z_GCC) || defined(Z_CLANG)
+#pragma GCC diagnostic pop
 #pragma GCC diagnostic pop
 #endif // Z_GCC || Z_CLANG
 

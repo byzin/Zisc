@@ -157,7 +157,6 @@ class Future : private NonCopyable<Future<T>>
   std::atomic_flag lock_state_ = ATOMIC_FLAG_INIT;
   std::atomic_flag has_value_ = ATOMIC_FLAG_INIT;
   std::atomic_flag is_completed_ = ATOMIC_FLAG_INIT;
-  [[maybe_unused]] Padding<1> pad_;
 };
 
 #if defined(Z_GCC) || defined(Z_CLANG)

@@ -47,12 +47,14 @@ ThreadManager::TaskResource::~TaskResource() noexcept
 void* ThreadManager::TaskResource::do_allocate(std::size_t size,
                                                std::size_t alignment)
 {
+#if !defined(Z_MSVC)
   [[maybe_unused]] constexpr std::size_t s = storageSize();
   ZISC_ASSERT(size <= s,
               "The required size exceeds the size of the storage.");
   [[maybe_unused]] constexpr std::size_t a = storageAlignment();
   ZISC_ASSERT(has_single_bit(alignment) && (alignment <= a),
               "The storage alignment doesn't fit for the required alignment.");
+#endif // Z_MSVC
   void* ptr = std::addressof(storage_);
   return ptr;
 }

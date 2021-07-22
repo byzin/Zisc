@@ -39,7 +39,6 @@ namespace zisc {
 inline
 PackagedTask::PackagedTask() noexcept
 {
-  static_assert(sizeof(pad_) <= sizeof(void*));
 }
 
 /*!

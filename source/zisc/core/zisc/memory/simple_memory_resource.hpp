@@ -46,7 +46,7 @@ class SimpleMemoryResource : public pmr::memory_resource,
     void* pointer_ = nullptr; //!< The header pointer of the allocated memory
     std::size_t size_ = 0; //!< The size of the allocated memory
     std::size_t alignment_; //!< The alignment of the allocated memory
-    std::size_t padding_ = 0;
+    [[maybe_unused]] Padding<sizeof(std::size_t)> pad_;
   };
 
 

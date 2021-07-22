@@ -46,6 +46,31 @@ constexpr Type cast(T&& value) noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Type1 No description.
+  \tparam Type2 No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
+  */
+template <typename Type1, typename Type2>
+requires WeaklyEqualityComparableWith<Type1, Type2> && WeaklyEqualityComparableWith<Type2, Type1>
+inline
+constexpr bool equal(const Type1& lhs, const Type2& rhs) noexcept
+{
+#if defined(Z_GCC) || defined(Z_CLANG)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wfloat-equal"
+#endif // Z_GCC || Z_CLANG
+  const bool result = lhs == rhs;
+#if defined(Z_GCC) || defined(Z_CLANG)
+#pragma GCC diagnostic pop
+#endif // Z_GCC || Z_CLANG
+  return result;
+}
+
+/*!
   \details Please read "Generating uniform doubles in the unit interval" section
   in the following link:
   <a href="http://prng.di.unimi.it/">xoshiro / xoroshiro generators and the PRNG shootout</a> for more details.

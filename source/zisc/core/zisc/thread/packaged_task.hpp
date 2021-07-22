@@ -16,7 +16,6 @@
 #define ZISC_PACKAGED_TASK_HPP
 
 // Standard C++ library
-#include <array>
 #include <atomic>
 #include <memory>
 // Zisc
@@ -127,7 +126,7 @@ class PackagedTask : private NonCopyable<PackagedTask>
   void* future_ = nullptr;
   std::atomic_flag lock_state_ = ATOMIC_FLAG_INIT;
   std::atomic_flag is_completed_ = ATOMIC_FLAG_INIT;
-  [[maybe_unused]] std::array<uint8b, 6> padding_;
+  [[maybe_unused]] Padding<sizeof(void*) - 2 * sizeof(std::atomic_flag)> pad_;
 };
 
 #if defined(Z_GCC) || defined(Z_CLANG)

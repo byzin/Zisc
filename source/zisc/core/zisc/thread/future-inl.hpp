@@ -38,8 +38,6 @@ namespace zisc {
 template <NonReference T> inline
 Future<T>::Future() noexcept
 {
-  static_assert(sizeof(lock_state_) == 1, "std::atomic_flag isn't 1 byte.");
-  static_assert(sizeof(has_value_) == 1, "std::atomic_flag isn't 1 byte.");
 }
 
 /*!

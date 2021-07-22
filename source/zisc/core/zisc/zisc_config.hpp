@@ -18,6 +18,7 @@
 // Standard C++ library
 #include <cstdint>
 #include <string_view>
+#include <type_traits>
 
 namespace zisc {
 
@@ -31,6 +32,10 @@ using uint8b = std::uint8_t; //!< 8-bit unsigned integer type
 using uint16b = std::uint16_t; //!< 16-bit unsigned integer type
 using uint32b = std::uint32_t; //!< 32-bit unsigned integer type
 using uint64b = std::uint64_t; //!< 64-bit unsigned integer type
+
+//! Represent padding in structure
+template <std::size_t kSize>
+using Padding = std::aligned_storage_t<kSize, 1>;
 
 // Boolean values
 constexpr uint8b kFalse = 0;

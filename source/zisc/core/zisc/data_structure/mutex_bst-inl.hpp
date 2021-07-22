@@ -114,7 +114,7 @@ auto MutexBst::add(const Type& value) -> std::tuple<bool, size_type>
                                      node_list_.end(),
                                      key,
                                      MutexBst::compare);
-    if ((position == node_list_.end()) || (position->key() != key)) {
+    if ((position == node_list_.end()) || equal(position->key(), key)) {
       node_index = index_stack_.back();
       index_stack_.pop_back();
       node_list_.emplace(position, key, node_index);
@@ -176,7 +176,7 @@ bool MutexBst::contain(const Type& value) const noexcept
                                      node_list_.end(),
                                      key,
                                      MutexBst::compare);
-    is_found = (position != node_list_.end()) && (position->key() == key);
+    is_found = (position != node_list_.end()) && equal(position->key(), key);
   }
   return is_found;
 }
@@ -227,7 +227,7 @@ bool MutexBst::remove(const Type& value)
                                      node_list_.end(),
                                      key,
                                      MutexBst::compare);
-    if ((position != node_list_.end()) && (position->key() == key)) {
+    if ((position != node_list_.end()) && equal(position->key(), key)) {
       index_stack_.emplace_back(position->index());
       node_list_.erase(position);
       is_removed = true;

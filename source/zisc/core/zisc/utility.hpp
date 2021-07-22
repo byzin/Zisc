@@ -26,6 +26,11 @@ namespace zisc {
 template <typename Type, typename T>
 constexpr Type cast(T&& value) noexcept;
 
+//! Check if the given two values are equal
+template <typename Type1, typename Type2>
+requires WeaklyEqualityComparableWith<Type1, Type2> && WeaklyEqualityComparableWith<Type2, Type1>
+constexpr bool equal(const Type1& lhs, const Type2& rhs) noexcept;
+
 //! Map an integer value into a [0, 1) floating point value
 template <FloatingPoint Float, UnsignedInteger Integer>
 constexpr Float mapTo01(const Integer x) noexcept;

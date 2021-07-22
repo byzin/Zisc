@@ -48,11 +48,6 @@ class PackagedTask;
 // Type aliases
 using SharedTask = std::shared_ptr<PackagedTask>;
 
-#if defined(Z_GCC) || defined(Z_CLANG)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wpadded"
-#endif // Z_GCC || Z_CLANG
-
 /*!
   \brief ThreadManager class provides task parallel and data parallel thread pool
 
@@ -224,7 +219,7 @@ class ThreadManager : private NonCopyable<ThreadManager>
    private:
     SharedTask task_;
     DiffType it_offset_ = 0;
-    [[maybe_unused]] int32b padding_ = 0;
+    [[maybe_unused]] Padding<4> pad_;
   };
 
   //! Memory resource for task
@@ -274,6 +269,7 @@ class ThreadManager : private NonCopyable<ThreadManager>
     bool do_is_equal(const pmr::memory_resource& other) const noexcept override;
 
 
+    [[maybe_unused]] Padding<8> pad_;
     TaskStorage storage_;
   };
 
@@ -367,18 +363,18 @@ class ThreadManager : private NonCopyable<ThreadManager>
 
 
   alignas(kCacheLineSize) std::atomic<int64b> total_queued_task_ids_;
+  [[maybe_unused]] Padding<kCacheLineSize - sizeof(total_queued_task_ids_)> pad1_;
   alignas(kCacheLineSize) std::atomic<int> num_of_active_workers_;
+  [[maybe_unused]] Padding<kCacheLineSize - sizeof(num_of_active_workers_)> pad2_;
   alignas(kCacheLineSize) WorkerLock worker_lock_;
+  [[maybe_unused]] Padding<kCacheLineSize - sizeof(worker_lock_)> pad3_;
   TaskQueueImpl task_queue_;
   TaskIdTreeImpl task_id_tree_;
   pmr::vector<std::thread> worker_list_;
   pmr::vector<std::thread::id> worker_id_list_;
   pmr::vector<TaskResource> task_storage_list_;
+  [[maybe_unused]] Padding<kCacheLineSize - 56> pad4_;
 };
-
-#if defined(Z_GCC) || defined(Z_CLANG)
-#pragma GCC diagnostic pop
-#endif // Z_GCC || Z_CLANG
 
 } // namespace zisc
 

@@ -257,7 +257,6 @@ void ThreadManager::clear() noexcept
               "Some worker threads are stil active.");
   ZISC_ASSERT(worker_lock_.load(std::memory_order::acquire) <= 0,
               "Some worker threads are stil active.");
-//  ZISC_ASSERT(isEmpty(), "Task queue still has some tasks.");
   total_queued_task_ids_.store(0, std::memory_order::release);
   taskQueue().clear();
   taskIdTree().clear();
@@ -1092,7 +1091,7 @@ void ThreadManager::waitForParent(const int64b task_id,
     else if (parent_task_id == kAllPrecedences) {
       const double key = cast<double>(task_id);
       const double min_key = taskIdTree().findMinKey();
-      flag = key == min_key;
+      flag = equal(key, min_key);
     }
     else {
       flag = !taskIdTree().contain(parent_task_id);

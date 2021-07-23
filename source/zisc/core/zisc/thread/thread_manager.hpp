@@ -373,7 +373,12 @@ class ThreadManager : private NonCopyable<ThreadManager>
   pmr::vector<std::thread> worker_list_;
   pmr::vector<std::thread::id> worker_id_list_;
   pmr::vector<TaskResource> task_storage_list_;
-  [[maybe_unused]] Padding<kCacheLineSize - 56> pad4_;
+  using Pad4 = Padding<kCacheLineSize - ((sizeof(task_queue_) +
+                                          sizeof(task_id_tree_) +
+                                          sizeof(worker_list_) +
+                                          sizeof(worker_id_list_) +
+                                          sizeof(task_storage_list_)) % kCacheLineSize)>; 
+  [[maybe_unused]] Pad4 pad4_;
 };
 
 } // namespace zisc

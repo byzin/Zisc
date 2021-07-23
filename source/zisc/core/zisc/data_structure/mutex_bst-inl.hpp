@@ -114,7 +114,7 @@ auto MutexBst::add(const Type& value) -> std::tuple<bool, size_type>
                                      node_list_.end(),
                                      key,
                                      MutexBst::compare);
-    if ((position == node_list_.end()) || equal(position->key(), key)) {
+    if ((position == node_list_.end()) || !equal(position->key(), key)) {
       node_index = index_stack_.back();
       index_stack_.pop_back();
       node_list_.emplace(position, key, node_index);

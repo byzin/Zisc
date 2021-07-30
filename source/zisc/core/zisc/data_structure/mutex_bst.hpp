@@ -76,7 +76,7 @@ class MutexBst : public BoundedBst<MutexBst>
 
   //! Check if the given value is contained in the bst
   template <ConvertibleTo<double> Type>
-  bool contain(const Type& value) const noexcept;
+  std::tuple<bool, size_type> contain(const Type& value) const noexcept;
 
   //! Return the default capacity
   static constexpr size_type defaultCapacity() noexcept;
@@ -86,10 +86,13 @@ class MutexBst : public BoundedBst<MutexBst>
 
   //! Remove the value from the bst
   template <ConvertibleTo<double> Type>
-  bool remove(const Type& value);
+  std::tuple<bool, size_type> remove(const Type& value);
 
   //! Change the maximum possible number of elements. The bst will be cleared
   void setCapacity(const size_type cap) noexcept;
+
+  //! Return the number of elements in the bst
+  size_type size() const noexcept;
 
  private:
   // Type aliases

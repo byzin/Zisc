@@ -100,11 +100,11 @@ TEST(MutexBstTest, OperationTest)
   }
 
   for (const int value : value_list) {
-    const bool result = bst->contain(value);
+    const auto [result, index] = bst->contain(value);
     ASSERT_TRUE(result) << "Quering value '" << value << "' from the bst failed.";
   }
   for (const int value : value2_list) {
-    const bool result = bst->contain(value);
+    const auto [result, index] = bst->contain(value);
     ASSERT_FALSE(result) << "Quering value '" << value << "' from the bst failed.";
   }
 
@@ -115,26 +115,26 @@ TEST(MutexBstTest, OperationTest)
 
   for (const int value : value_list) {
     {
-      const bool result = bst->remove(value);
+      const auto [result, index] = bst->remove(value);
       ASSERT_TRUE(result) << "Removing value '" << value << "' from the bst failed.";
     }
     {
-      const bool result = bst->remove(value);
+      const auto [result, index] = bst->remove(value);
       ASSERT_FALSE(result) << "Removing value '" << value << "' from the bst failed.";
     }
   }
   for (const int value : value2_list) {
-    const bool result = bst->remove(value);
+    const auto [result, index] = bst->remove(value);
     ASSERT_FALSE(result) << "Removing value '" << value << "' from the bst failed.";
   }
 
   for (const int value : value_list) {
-    const bool result = bst->contain(value);
+    const auto [result, index] = bst->contain(value);
     ASSERT_FALSE(result) << "Quering value '" << value << "' from the bst failed.";
   }
 
   for (const int value : value_list) {
-    const bool result = bst->remove(value);
+    const auto [result, index] = bst->remove(value);
     ASSERT_FALSE(result) << "Removing value '" << value << "' from the bst failed.";
   }
 
@@ -184,7 +184,8 @@ TEST(MutexBstTest, AddRemoveTest)
       }
     }
     else { // Remove
-      result = bst->remove(candidate);
+      auto [r, id] = bst->remove(candidate);
+      result = r;
       if (flag) {
         ASSERT_TRUE(result) << "BST remove operation failed.";
         flag = false;
@@ -195,10 +196,11 @@ TEST(MutexBstTest, AddRemoveTest)
     }
 
     for (auto v : value_list) {
+      const auto [r, id] = bst->contain(v.first);
       if (v.second)
-        ASSERT_TRUE(bst->contain(v.first)) << "BST contain(" << v.first << ") operation failed.";
+        ASSERT_TRUE(r) << "BST contain(" << v.first << ") operation failed.";
       else
-        ASSERT_FALSE(bst->contain(v.first)) << "BST contain(" << v.first << ") operation failed.";
+        ASSERT_FALSE(r) << "BST contain(" << v.first << ") operation failed.";
     }
   }
 }
@@ -235,7 +237,7 @@ TEST(MutexBstTest, MultithreadTest)
           [[maybe_unused]] auto [result, id] = bst->add(candidate);
         }
         else {
-          [[maybe_unused]] const bool result = bst->remove(candidate);
+          [[maybe_unused]] const auto [result, id] = bst->remove(candidate);
         }
       }
     };

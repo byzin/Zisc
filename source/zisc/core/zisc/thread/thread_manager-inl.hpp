@@ -785,7 +785,7 @@ auto ThreadManager::enqueueImpl(TaskData& task,
     {
       if constexpr (kIsLoopTask || std::is_void_v<ReturnT>)
         setResult<ReturnT>(0);
-      [[maybe_unused]] const bool id_result = manager_->taskIdTree().remove(id());
+      [[maybe_unused]] const auto [id_result, storage_index] = manager_->taskIdTree().remove(id());
       ZISC_ASSERT(id_result, "The given id isn't in the task tree.");
     }
     //! Run a task
@@ -1094,7 +1094,8 @@ void ThreadManager::waitForParent(const int64b task_id,
       flag = equal(key, min_key);
     }
     else {
-      flag = !taskIdTree().contain(parent_task_id);
+      const auto [result, storage_index] = taskIdTree().contain(parent_task_id);
+      flag = !result;
     }
     if (flag)
       break;

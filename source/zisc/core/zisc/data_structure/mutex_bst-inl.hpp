@@ -132,7 +132,11 @@ auto MutexBst::add(const Type& value) -> std::tuple<bool, size_type>
 inline
 auto MutexBst::capacity() const noexcept -> size_type
 {
-  const size_type cap = node_list_.capacity();
+  size_type cap = 0;
+  {
+    std::shared_lock<std::shared_mutex> lock{mutex_};
+    cap = node_list_.capacity();
+  }
   return cap;
 }
 
@@ -166,10 +170,12 @@ void MutexBst::clear() noexcept
   \return No description
   */
 template <ConvertibleTo<double> Type> inline
-bool MutexBst::contain(const Type& value) const noexcept
+auto MutexBst::contain(const Type& value) const noexcept
+    -> std::tuple<bool, size_type>
 {
   const double key = cast<double>(value);
   bool is_found = false;
+  size_type node_index = invalidId();
   {
     std::shared_lock<std::shared_mutex> lock{mutex_};
     auto position = std::lower_bound(node_list_.begin(),
@@ -177,8 +183,9 @@ bool MutexBst::contain(const Type& value) const noexcept
                                      key,
                                      MutexBst::compare);
     is_found = (position != node_list_.end()) && equal(position->key(), key);
+    node_index = is_found ? position->index() : invalidId();
   }
-  return is_found;
+  return std::make_tuple(is_found, node_index);
 }
 
 /*!
@@ -217,10 +224,11 @@ double MutexBst::findMinKey() const noexcept
   \return No description
   */
 template <ConvertibleTo<double> Type> inline
-bool MutexBst::remove(const Type& value)
+auto MutexBst::remove(const Type& value) -> std::tuple<bool, size_type>
 {
   const double key = cast<double>(value);
   bool is_removed = false;
+  size_type node_index = invalidId();
   {
     std::unique_lock<std::shared_mutex> lock{mutex_};
     auto position = std::lower_bound(node_list_.begin(),
@@ -229,11 +237,12 @@ bool MutexBst::remove(const Type& value)
                                      MutexBst::compare);
     if ((position != node_list_.end()) && equal(position->key(), key)) {
       index_stack_.emplace_back(position->index());
+      node_index = position->index();
       node_list_.erase(position);
       is_removed = true;
     }
   }
-  return is_removed;
+  return std::make_tuple(is_removed, node_index);
 }
 
 /*!
@@ -247,6 +256,22 @@ void MutexBst::setCapacity(const size_type cap) noexcept
   node_list_.reserve(cap);
   index_stack_.resize(capacity());
   clear();
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+inline
+auto MutexBst::size() const noexcept -> size_type
+{
+  size_type s = 0;
+  {
+    std::shared_lock<std::shared_mutex> lock{mutex_};
+    s = node_list_.size();
+  }
+  return s;
 }
 
 /*!

@@ -85,10 +85,11 @@ void BoundedBst<BstClass>::clear() noexcept
   \return No description
   */
 template <typename BstClass> template <ConvertibleTo<double> Type> inline
-bool BoundedBst<BstClass>::contain(const Type& value) const noexcept
+auto BoundedBst<BstClass>::contain(const Type& value) const noexcept
+    -> std::tuple<bool, size_type>
 {
   auto& bst = ref();
-  const bool result = bst.contain(value);
+  const auto result = bst.contain(value);
   return result;
 }
 
@@ -113,10 +114,10 @@ double BoundedBst<BstClass>::findMinKey() const noexcept
   \return No description
   */
 template <typename BstClass> template <ConvertibleTo<double> Type> inline
-bool BoundedBst<BstClass>::remove(const Type& value)
+auto BoundedBst<BstClass>::remove(const Type& value) -> std::tuple<bool, size_type>
 {
   auto& bst = ref();
-  const bool result = bst.remove(value);
+  const auto result = bst.remove(value);
   return result;
 }
 
@@ -128,6 +129,19 @@ void BoundedBst<BstClass>::setCapacity(const size_type cap) noexcept
 {
   auto& bst = ref();
   bst.setCapacity(cap);
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+template <typename BstClass> inline
+auto BoundedBst<BstClass>::size() const noexcept -> size_type
+{
+  auto& bst = ref();
+  const size_type s = bst.size();
+  return s;
 }
 
 /*!

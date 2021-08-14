@@ -244,6 +244,32 @@ TEST(ScalableCircularQueueTest, QueueMovableValueTest)
   ASSERT_TRUE(q.isEmpty()) << message;
 }
 
+TEST(ScalableCircularQueueTest, SmallSizeTest)
+{
+  using Queue = zisc::ScalableCircularQueue<std::size_t>;
+
+  zisc::SimpleMemoryResource mem_resource;
+  Queue q{1, &mem_resource};
+
+  ASSERT_EQ(1, q.capacity()) << "Invalid queue capacity.";
+  constexpr std::size_t n = 65536;
+  for (std::size_t i = 0; i < n; ++i) {
+    ASSERT_FALSE(q.size()) << "Invalid queue size.";
+    {
+      const bool result = q.enqueue(i);
+      ASSERT_TRUE(result) << "Queueing an index failed.";
+    }
+    ASSERT_EQ(1, q.size()) << "Invalid queue size.";
+    {
+      const auto [result, index] = q.dequeue();
+      ASSERT_TRUE(result) << "Dequeuing an index failed.";
+      ASSERT_EQ(i, index);
+    }
+    ASSERT_FALSE(q.size()) << "Invalid queue size.";
+  }
+  ASSERT_TRUE(q.isEmpty());
+}
+
 TEST(ScalableCircularQueueTest, MultiThreadTest)
 {
   using Queue = zisc::ScalableCircularQueue<std::size_t>;

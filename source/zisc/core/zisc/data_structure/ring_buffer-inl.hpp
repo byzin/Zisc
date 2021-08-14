@@ -562,6 +562,7 @@ uint64b RingBuffer::permuteIndexImpl(const uint64b index,
                                      const uint64b o,
                                      const uint64b n) const noexcept
 {
+  ZISC_ASSERT(has_single_bit(n), "The n isn't power of 2.");
   using AtomicT = std::remove_cvref_t<decltype(getIndex(0))>;
   constexpr uint64b cache_line_size = kCacheLineSize;
   constexpr uint64b data_size = sizeof(AtomicT);
@@ -571,10 +572,11 @@ uint64b RingBuffer::permuteIndexImpl(const uint64b index,
 
   uint64b i = index;
   if (shift < o) {
-    const uint64b upper = cast<uint64b>((index << shift) & (n - 1));
+    const uint64b upper = cast<uint64b>(index << shift);
     const uint64b lower = cast<uint64b>((index & (n - 1)) >> (o - shift));
     i = cast<uint64b>(upper | lower);
   }
+  i = i & (n - 1);
   return i;
 }
 

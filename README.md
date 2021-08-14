@@ -4,7 +4,7 @@ Zisc provides C++ utility classes and functions which can be commonly used.
 
 **Z**in's m**isc**ellaneous C++ library
 
-Version: 0.0.63
+Version: 0.0.64
 
 ## Import instructions ##
 

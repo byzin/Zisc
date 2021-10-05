@@ -47,7 +47,8 @@ function(getTestWarningFlags test_warning_flags)
                                   )
       endif()
     elseif(Z_GCC)
-      list(APPEND warning_flags -Wno-sign-conversion
+      list(APPEND warning_flags -Wno-attributes
+                                -Wno-sign-conversion
                                 -Wno-strict-overflow
                                 -Wno-unused-but-set-variable
                                 )

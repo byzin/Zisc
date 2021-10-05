@@ -44,6 +44,18 @@ function(Zisc_getZiscFlags zisc_compile_flags zisc_linker_flags zisc_definitions
   set(${zisc_definitions} ${definitions} PARENT_SCOPE)
 endfunction(Zisc_getZiscFlags)
 
+function(Zisc_getZiscWarningFlags zisc_warning_flags)
+  set(warning_flags "")
+
+  if(Z_CLANG)
+  elseif(Z_GCC)
+    list(APPEND warning_flags -Wno-attributes)
+  endif()
+
+  # Output variables
+  set(${zisc_warning_flags} ${warning_flags} PARENT_SCOPE)
+endfunction(Zisc_getZiscWarningFlags)
+
 
 #
 set(project_description "Zisc provides commonly used C++ classes and functions.")
@@ -88,9 +100,11 @@ target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_20 ${cxx_feature_list})
 Zisc_getCxxCompilerFlags(cxx_compile_flags cxx_linker_flags cxx_definitions)
 Zisc_getCxxWarningFlags(cxx_compile_warning_flags)
 Zisc_getZiscFlags(zisc_compile_flags zisc_linker_flags zisc_definitions)
+Zisc_getZiscWarningFlags(zisc_warning_flags)
 target_compile_options(${PROJECT_NAME} PUBLIC ${cxx_compile_flags}
                                               ${zisc_compile_flags}
-                                       PRIVATE ${cxx_compile_warning_flags})
+                                       PRIVATE ${cxx_compile_warning_flags}
+                                               ${zisc_warning_flags})
 target_link_libraries(${PROJECT_NAME} PUBLIC Threads::Threads)
 if(Z_WINDOWS)
   target_link_libraries(${PROJECT_NAME} PRIVATE Synchronization.lib)

@@ -45,7 +45,7 @@ void testAtomicAddition()
   std::vector<int> table;
   table.resize(resolution, 0);
 
-  auto test = [&value, &table](const zisc::int64b, const std::size_t)
+  auto test = [&value, &table](const zisc::int64b, const std::size_t) noexcept
   {
     constexpr Type v = zisc::cast<Type>(1);
     auto old = zisc::atomic_fetch_add(&value, v);
@@ -80,7 +80,7 @@ void testAtomicSubtraction()
   std::vector<int> table;
   table.resize(resolution, 0);
 
-  auto test = [&value, &table](const zisc::int64b, const std::size_t)
+  auto test = [&value, &table](const zisc::int64b, const std::size_t) noexcept
   {
     constexpr Type v = zisc::cast<Type>(1);
     auto old = -zisc::atomic_fetch_sub(&value, v);
@@ -115,7 +115,7 @@ void testAtomicExchange()
   std::vector<int> table;
   table.resize(resolution, 0);
 
-  auto test = [&value, &table](const Type v, const zisc::int64b)
+  auto test = [&value, &table](const Type v, const zisc::int64b) noexcept
   {
     auto old = zisc::atomic_exchange(&value, v);
     table[old] = 1;
@@ -151,7 +151,7 @@ void testAtomicIncrement()
   std::vector<int> table;
   table.resize(resolution, 0);
 
-  auto test = [&value, &table](const zisc::int64b, const std::size_t)
+  auto test = [&value, &table](const zisc::int64b, const std::size_t) noexcept
   {
     auto old = zisc::atomic_fetch_inc(&value);
     table[old] = 1;
@@ -185,7 +185,7 @@ void testAtomicDecrement()
   std::vector<int> table;
   table.resize(resolution, 0);
 
-  auto test = [&value, &table](const zisc::int64b, const std::size_t)
+  auto test = [&value, &table](const zisc::int64b, const std::size_t) noexcept
   {
     auto old = -zisc::atomic_fetch_dec(&value);
     table[old] = 1;
@@ -217,7 +217,7 @@ void testAtomicMin()
 
   Type value = zisc::cast<Type>(0);
 
-  auto test = [&value](const Type v, const zisc::int64b)
+  auto test = [&value](const Type v, const zisc::int64b) noexcept
   {
     zisc::atomic_fetch_min(&value, zisc::cast<Type>(-v));
   };
@@ -246,7 +246,7 @@ void testAtomicMax()
 
   Type value = zisc::cast<Type>(0);
 
-  auto test = [&value](const Type v, const zisc::int64b)
+  auto test = [&value](const Type v, const zisc::int64b) noexcept
   {
     zisc::atomic_fetch_max(&value, v);
   };
@@ -277,7 +277,7 @@ void testAtomicCmpxchg()
   std::vector<int> table;
   table.resize(resolution, 0);
 
-  auto test = [&value, &table](const zisc::int64b, const std::size_t)
+  auto test = [&value, &table](const zisc::int64b, const std::size_t) noexcept
   {
     auto inc = [](const Type c)
     {
@@ -313,7 +313,7 @@ void testAtomicAnd()
 
   Type value = std::numeric_limits<Type>::max();
 
-  auto test = [&value](const std::size_t i, const zisc::int64b)
+  auto test = [&value](const std::size_t i, const zisc::int64b) noexcept
   {
     const Type v = ~zisc::cast<Type>(zisc::cast<Type>(1) << i);
     zisc::atomic_fetch_and(&value, v);
@@ -341,7 +341,7 @@ void testAtomicOr()
 
   Type value = zisc::cast<Type>(0);
 
-  auto test = [&value](const std::size_t i, const zisc::int64b)
+  auto test = [&value](const std::size_t i, const zisc::int64b) noexcept
   {
     const Type v = zisc::cast<Type>(zisc::cast<Type>(1) << i);
     zisc::atomic_fetch_or(&value, v);

@@ -49,7 +49,7 @@ struct Adder : private zisc::NonCopyable<Adder>
 {
   Adder(const int c) : c_{c} {}
 
-  constexpr int operator()(const int a, const int b)
+  constexpr int operator()(const int a, const int b) noexcept
   {
     return add(a, b) + c_;
   }
@@ -61,7 +61,7 @@ struct Adder2 : private zisc::NonCopyable<Adder>
 {
   Adder2(const int c) : c_{c} {}
 
-  constexpr void operator()(const int a, const int b, int* result) const
+  constexpr void operator()(const int a, const int b, int* result) const noexcept
   {
     add2(a, b, result);
     *result += c_;

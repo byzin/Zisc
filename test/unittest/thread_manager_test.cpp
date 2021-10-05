@@ -76,7 +76,7 @@ struct NonCopyableSetter2 : private zisc::NonCopyable<NonCopyableSetter2>
   {
     value_.store(0, std::memory_order::release);
   }
-  void operator()([[maybe_unused]] const zisc::int64b thread_id)
+  void operator()([[maybe_unused]] const zisc::int64b thread_id) noexcept
   {
     value_.store(kGlobalConstant2, std::memory_order::release);
   }
@@ -105,7 +105,7 @@ struct MovableSetter2 : private zisc::NonCopyable<MovableSetter2>
   MovableSetter2(MovableSetter2&&)
   {
   }
-  int operator()([[maybe_unused]] const zisc::int64b thread_id)
+  int operator()([[maybe_unused]] const zisc::int64b thread_id) noexcept
   {
     return kGlobalConstant2;
   }
@@ -389,7 +389,7 @@ struct NonCopyableAdder2 : private zisc::NonCopyable<NonCopyableAdder2>
     value_.store(0, std::memory_order::release);
   }
   void operator()(std::list<int>::iterator ite,
-                  [[maybe_unused]] const zisc::int64b thread_id)
+                  [[maybe_unused]] const zisc::int64b thread_id) noexcept
   {
     value_.fetch_add(*ite, std::memory_order::release);
   }
@@ -422,7 +422,7 @@ struct MovableAdder2 : private zisc::NonCopyable<MovableAdder2>
   {
   }
   int operator()(std::list<int>::const_iterator ite,
-                 [[maybe_unused]] const zisc::int64b thread_id)
+                 [[maybe_unused]] const zisc::int64b thread_id) noexcept
   {
     global_value2.fetch_add(*ite, std::memory_order::release);
     return 0;
@@ -830,7 +830,7 @@ TEST(ThreadManagerTest, TaskDependencyTest)
     auto result6 = thread_manager.enqueue(task5, zisc::ThreadManager::kAllPrecedences);
     ASSERT_EQ(5, result6.id());
 
-    ASSERT_EQ(0, task5()) << "Task synchronization failed.";
+    EXPECT_EQ(0, task5()) << "Task synchronization failed.";
     thread_manager.waitForCompletion();
 
     int expected = 3 * zisc::cast<int>(n);
@@ -1182,11 +1182,11 @@ TEST(ThreadManagerTest, TaskStressTest)
     zisc::ThreadManager thread_manager{num_of_threads, &mem_resource};
     thread_manager.setCapacity(num_of_tasks);
     for (zisc::uint number = 0; number < num_of_tasks; ++number) {
-      auto task = [number](const zisc::int64b)
+      auto task = [number](const zisc::int64b) noexcept
       {
         zisc::PcgLcgRxsMXs32 sampler{number};
         const auto loop = static_cast<int>(sampler(0.0, 1.0) * zisc::pow(1024.0, 2));
-        volatile int value = 0;
+        [[maybe_unused]] volatile int value = 0;
         for (int i = 0; i < loop; ++i) {
           value = i;
         }
@@ -1216,11 +1216,11 @@ TEST(ThreadManagerTest, TaskStressPerformanceTest)
     zisc::ThreadManager thread_manager{num_of_threads, &mem_resource};
     thread_manager.setCapacity(num_of_tasks);
     for (zisc::uint number = 0; number < num_of_tasks; ++number) {
-      auto task = [number](const zisc::int64b)
+      auto task = [number](const zisc::int64b) noexcept
       {
         zisc::PcgLcgRxsMXs32 sampler{number};
         const auto loop = static_cast<int>(sampler(0.0, 1.0) * zisc::pow(1024.0, 2));
-        volatile double value = 0;
+        [[maybe_unused]] volatile double value = 0;
         for (int i = 0; i < loop; ++i) {
           value = sampler(0.0, 100.0);
         }
@@ -1256,7 +1256,7 @@ TEST(ThreadManagerTest, LoopTaskStressTest)
     {
       zisc::PcgLcgRxsMXs32 sampler{number};
       const auto loop = static_cast<int>(sampler(0.0, 1.0) * zisc::pow(1024.0, 2));
-      volatile double value = 0;
+      [[maybe_unused]] volatile double value = 0;
       for (int i = 0; i < loop; ++i) {
         value = sampler(0.0, 100.0);
       }
@@ -1287,7 +1287,7 @@ TEST(ThreadManagerTest, LoopTaskStressPerformanceTest)
     {
       zisc::PcgLcgRxsMXs32 sampler{number};
       const auto loop = static_cast<int>(sampler(0.0, 1.0) * zisc::pow(1024.0, 2));
-      volatile double value = 0;
+      [[maybe_unused]] volatile double value = 0;
       for (int i = 0; i < loop; ++i) {
         value = sampler(0.0, 100.0);
       }
@@ -1320,7 +1320,7 @@ TEST(ThreadManagerTest, LoopTaskStressPerformanceTest2)
     std::vector<std::array<double, 2>> results;
     results.resize(thread_manager.numOfThreads() * tasks_per_thread);
     auto task =
-    [&results](const zisc::uint number, const zisc::int64b id)
+    [&results](const zisc::uint number, const zisc::int64b id) noexcept
     {
       using Cmj = zisc::CmjN16;
       for (zisc::uint i = 0; i < tasks_per_thread; ++i) {

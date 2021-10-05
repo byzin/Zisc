@@ -18,14 +18,18 @@
 #if defined(Z_GCC) || defined(Z_CLANG)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wall"
+#endif // Z_GCC || Z_CLANG
+#if defined(Z_CLANG)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Weverything"
-#endif // Z_GCC || Z_CLANG
+#endif // Z_CLANG
 
 #include "gtest/gtest.h"
 
-#if defined(Z_GCC) || defined(Z_CLANG)
+#if defined(Z_CLANG)
 #pragma GCC diagnostic pop
+#endif // Z_CLANG
+#if defined(Z_GCC) || defined(Z_CLANG)
 #pragma GCC diagnostic pop
 #endif // Z_GCC || Z_CLANG
 

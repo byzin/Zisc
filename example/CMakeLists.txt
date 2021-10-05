@@ -22,7 +22,8 @@ function(getExampleWarningFlags example_warning_flags)
                                 -Wno-sign-conversion 
                                 )
     elseif(Z_GCC)
-      list(APPEND warning_flags -Wno-sign-conversion 
+      list(APPEND warning_flags -Wno-attributes
+                                -Wno-sign-conversion 
                                 )
     endif()
   endif()

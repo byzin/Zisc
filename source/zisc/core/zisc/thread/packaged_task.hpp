@@ -31,10 +31,12 @@ template <NonReference> class Future;
 
 #if defined(Z_GCC) || defined(Z_CLANG)
 #pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wweak-vtables"
-#pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wpadded"
 #endif // Z_GCC || Z_CLANG
+#if defined(Z_CLANG)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wweak-vtables"
+#endif // Z_CLANG
 
 /*!
   \brief No brief description
@@ -130,8 +132,10 @@ class PackagedTask : private NonCopyable<PackagedTask>
   std::atomic_flag is_completed_ = ATOMIC_FLAG_INIT;
 };
 
-#if defined(Z_GCC) || defined(Z_CLANG)
+#if defined(Z_CLANG)
 #pragma GCC diagnostic pop
+#endif // Z_CLANG
+#if defined(Z_GCC) || defined(Z_CLANG)
 #pragma GCC diagnostic pop
 #endif // Z_GCC || Z_CLANG
 

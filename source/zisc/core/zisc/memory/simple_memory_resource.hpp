@@ -57,7 +57,7 @@ class SimpleMemoryResource : public pmr::memory_resource,
   SimpleMemoryResource(SimpleMemoryResource&& other) noexcept;
 
   //! Destroy the resource
-  ~SimpleMemoryResource() noexcept override;
+  ~SimpleMemoryResource() noexcept override = default;
 
 
   //! Move a data

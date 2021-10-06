@@ -65,7 +65,7 @@ TEST(StdMemoryResourceTest, UniquePtrConstructionTest)
   {
     struct Base
     {
-      virtual ~Base() {}
+      virtual ~Base() = default;
       virtual int getValue()
       {
         return 0;

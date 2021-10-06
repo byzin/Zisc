@@ -114,7 +114,20 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE ${test_definitions})
 Zisc_enableIpo(${PROJECT_NAME})
 
 #
-Zisc_setStaticAnalyzer(${PROJECT_NAME})
+set(clang_tidy_exclusion_checks bugprone-implicit-widening-of-multiplication-result
+                                bugprone-narrowing-conversions
+                                misc-non-private-member-variables-in-classes
+                                misc-redundant-expression
+                                modernize-avoid-c-arrays
+                                modernize-use-auto
+                                readability-function-cognitive-complexity
+                                readability-isolate-declaration
+                                readability-magic-numbers
+                                readability-named-parameter
+                                readability-static-accessed-through-instance
+                                readability-uppercase-literal-suffix)
+Zisc_setStaticAnalyzer(${PROJECT_NAME}
+                       CLANG_TIDY_EXCLUSION_CHECKS ${clang_tidy_exclusion_checks})
 Zisc_createLinkToTarget(${PROJECT_NAME} ${PROJECT_BINARY_DIR})
 
 # Installation settings

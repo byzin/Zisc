@@ -305,7 +305,7 @@ TEST(JsonValueParserTest, StringTest)
   success_test("テスト", R"("テスト")");
   success_test("test\"test\"test", R"("test\"test\"test")");
   success_test("\"\"", R"("\"\"")");
-  success_test("test: \" \\ \"", R"("test: \" \\ \"")");
+  success_test(R"(test: " \ ")", R"("test: \" \\ \"")");
   success_test("test: \" \b \"", R"("test: \" \b \"")");
   success_test("test: \" \f \"", R"("test: \" \f \"")");
   success_test("test: \" \n \"", R"("test: \" \n \"")");

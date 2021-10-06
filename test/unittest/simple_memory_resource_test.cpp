@@ -54,24 +54,24 @@ TEST(SimpleMemoryResourceTest, MemoryAllocationTest)
   std::size_t total = 0;
   std::size_t peak = 0;
 
-  auto p1 = mem_resource.allocate(sizeof(uint8b), std::alignment_of_v<uint8b>);
+  auto* p1 = mem_resource.allocate(sizeof(uint8b), std::alignment_of_v<uint8b>);
   total += sizeof(uint8b) + header_s;
   peak = total;
   ASSERT_GE(mem_resource.totalMemoryUsage(), total);
   ASSERT_GE(mem_resource.peakMemoryUsage(), peak);
   {
-    const auto header = mem_resource.getHeader(p1);
+    const auto* header = mem_resource.getHeader(p1);
     ASSERT_TRUE(header->size_) << "Header initialization failed.";
     ASSERT_TRUE(header->alignment_) << "Header initialization failed.";
   }
 
-  auto p2 = mem_resource.allocate(sizeof(uint16b), std::alignment_of_v<uint16b>);
+  auto* p2 = mem_resource.allocate(sizeof(uint16b), std::alignment_of_v<uint16b>);
   total += sizeof(uint16b) + header_s;
   peak = total;
   ASSERT_GE(mem_resource.totalMemoryUsage(), total);
   ASSERT_GE(mem_resource.peakMemoryUsage(), peak);
 
-  auto p3 = mem_resource.allocate(sizeof(::Data1), std::alignment_of_v<::Data1>);
+  auto* p3 = mem_resource.allocate(sizeof(::Data1), std::alignment_of_v<::Data1>);
   total += sizeof(::Data1) + header_s;
   peak = total;
   ASSERT_GE(mem_resource.totalMemoryUsage(), total);
@@ -82,12 +82,12 @@ TEST(SimpleMemoryResourceTest, MemoryAllocationTest)
   ASSERT_GE(mem_resource.totalMemoryUsage(), total);
   ASSERT_GE(mem_resource.peakMemoryUsage(), peak);
 
-  auto p4 = mem_resource.allocate(sizeof(uint32b), std::alignment_of_v<uint32b>);
+  auto* p4 = mem_resource.allocate(sizeof(uint32b), std::alignment_of_v<uint32b>);
   total += sizeof(uint32b) + header_s;
   ASSERT_GE(mem_resource.totalMemoryUsage(), total);
   ASSERT_GE(mem_resource.peakMemoryUsage(), peak);
 
-  auto p5 = mem_resource.allocate(sizeof(uint64b), std::alignment_of_v<uint64b>);
+  auto* p5 = mem_resource.allocate(sizeof(uint64b), std::alignment_of_v<uint64b>);
   total += sizeof(uint64b) + header_s;
   ASSERT_GE(mem_resource.totalMemoryUsage(), total);
   ASSERT_GE(mem_resource.peakMemoryUsage(), peak);
@@ -98,7 +98,7 @@ TEST(SimpleMemoryResourceTest, MemoryAllocationTest)
   ASSERT_GE(mem_resource.totalMemoryUsage(), total);
   ASSERT_GE(mem_resource.peakMemoryUsage(), peak);
 
-  auto p6 = mem_resource.allocate(sizeof(long double),
+  auto* p6 = mem_resource.allocate(sizeof(long double),
                                   std::alignment_of_v<long double>);
   total += sizeof(long double) + header_s;
   peak = total;
@@ -230,22 +230,23 @@ TEST(SimpleMemoryResource, MultiThreadTest)
     std::array<void*, loop> mem_list;
     for (std::size_t i = 0; i < loop; ++i) {
       constexpr std::size_t alignment = std::alignment_of_v<std::size_t>;
-      auto p = mem_resource.allocate(alloc_size, alignment);
+      auto* p = mem_resource.allocate(alloc_size, alignment);
       mem_list[i] = p;
     }
     alloc_completed.fetch_add(1, std::memory_order::release);
 
     // Deallocate memory
     zisc::atomic_wait(&ready2, 0, std::memory_order::acquire);
-    for (auto p : mem_list)
+    for (auto* p : mem_list)
       mem_resource.deallocate(p, 0, 0);
     dealloc_completed.fetch_add(1, std::memory_order::release);
   };
 
   std::array<std::thread, n_threads> thread_list;
   // Create threads
-  for (std::size_t i = 0; i < thread_list.size(); ++i)
-    thread_list[i] = std::thread{alloc};
+  for (auto& t : thread_list)
+    t = std::thread{alloc};
+
   while (created.load(std::memory_order::acquire) < n_threads)
     std::this_thread::yield();
   ready1.store(1, std::memory_order::release);

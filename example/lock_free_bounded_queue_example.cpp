@@ -116,7 +116,7 @@ int main()
 
     // Validate results
     for (std::size_t i = 0; i < num_of_works; ++i) {
-      if (!results[i])
+      if (results[i] == 0)
         std::cout << "Multipe producer multiple consumer test failed." << std::endl;
     }
   }

@@ -164,16 +164,16 @@ namespace {
 class Movable : public zisc::NonCopyable<Movable>
 {
  public:
-  Movable() {}
+  Movable() noexcept = default;
 
   Movable(const int v) : value_{v} {}
 
-  Movable(Movable&& other) : value_{other.value_}
+  Movable(Movable&& other) noexcept : value_{other.value_}
   {
     other.value_ = -1;
   }
 
-  Movable& operator=(Movable&& other)
+  Movable& operator=(Movable&& other) noexcept
   {
     std::swap(value_, other.value_);
     return *this;

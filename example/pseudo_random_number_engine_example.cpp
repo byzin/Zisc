@@ -65,7 +65,7 @@ void generateRandomNumbers(PrnEngine<GeneratorClass, ValueT>* engine)
 }
 
 template <typename GeneratorClass>
-void runRngTest(const std::string_view&)
+void runRngTest([[maybe_unused]] const std::string_view& name)
 {
   using ValueType = typename GeneratorClass::ValueType;
   constexpr auto seed = getSeed<ValueType>();

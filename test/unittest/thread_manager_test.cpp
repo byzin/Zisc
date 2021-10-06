@@ -85,12 +85,8 @@ struct NonCopyableSetter2 : private zisc::NonCopyable<NonCopyableSetter2>
 
 struct MovableSetter1 : private zisc::NonCopyable<MovableSetter1>
 {
-  MovableSetter1()
-  {
-  }
-  MovableSetter1(MovableSetter1&&)
-  {
-  }
+  MovableSetter1() = default;
+  MovableSetter1(MovableSetter1&&) noexcept {}
   int operator()() noexcept
   {
     return kGlobalConstant1;
@@ -99,12 +95,8 @@ struct MovableSetter1 : private zisc::NonCopyable<MovableSetter1>
 
 struct MovableSetter2 : private zisc::NonCopyable<MovableSetter2>
 {
-  MovableSetter2()
-  {
-  }
-  MovableSetter2(MovableSetter2&&)
-  {
-  }
+  MovableSetter2() = default;
+  MovableSetter2(MovableSetter2&&) noexcept {}
   int operator()([[maybe_unused]] const zisc::int64b thread_id) noexcept
   {
     return kGlobalConstant2;
@@ -402,7 +394,7 @@ struct MovableAdder1 : private zisc::NonCopyable<MovableAdder1>
   {
     global_value1.store(0, std::memory_order::release);
   }
-  MovableAdder1(MovableAdder1&&)
+  MovableAdder1(MovableAdder1&&) noexcept
   {
   }
   int operator()(const int value) noexcept
@@ -418,7 +410,7 @@ struct MovableAdder2 : private zisc::NonCopyable<MovableAdder2>
   {
     global_value2.store(0, std::memory_order::release);
   }
-  MovableAdder2(MovableAdder2&&)
+  MovableAdder2(MovableAdder2&&) noexcept
   {
   }
   int operator()(std::list<int>::const_iterator ite,
@@ -880,10 +872,8 @@ namespace {
 
 struct MovableTestValue1 : private zisc::NonCopyable<MovableTestValue1>
 {
-  MovableTestValue1()
-  {
-  }
-  MovableTestValue1(MovableTestValue1&& other)
+  MovableTestValue1() = default;
+  MovableTestValue1(MovableTestValue1&& other) noexcept
   {
     std::swap(flag_, other.flag_);
     const int v = zisc::atomic_load(&other.value_, std::memory_order::acquire);
@@ -891,7 +881,7 @@ struct MovableTestValue1 : private zisc::NonCopyable<MovableTestValue1>
   }
   ~MovableTestValue1()
   {
-    if (flag_)
+    if (flag_ != nullptr)
       zisc::atomic_store(flag_, 1, std::memory_order::release);
   }
   int* flag_ = nullptr;
@@ -903,10 +893,8 @@ static_assert(std::is_default_constructible_v<MovableTestValue1>);
 
 struct MovableTestValue2 : private zisc::NonCopyable<MovableTestValue2>
 {
-  MovableTestValue2()
-  {
-  }
-  MovableTestValue2(MovableTestValue2&& other)
+  MovableTestValue2() = default;
+  MovableTestValue2(MovableTestValue2&& other) noexcept
   {
     std::swap(flag_, other.flag_);
     const int v = zisc::atomic_load(&other.value_, std::memory_order::acquire);
@@ -914,10 +902,10 @@ struct MovableTestValue2 : private zisc::NonCopyable<MovableTestValue2>
   }
   ~MovableTestValue2()
   {
-    if (flag_)
+    if (flag_ != nullptr)
       zisc::atomic_store(flag_, 1, std::memory_order::release);
   }
-  MovableTestValue2& operator=(MovableTestValue2&& other)
+  MovableTestValue2& operator=(MovableTestValue2&& other) noexcept
   {
     std::swap(flag_, other.flag_);
     const int v = zisc::atomic_load(&other.value_, std::memory_order::acquire);
@@ -936,7 +924,7 @@ struct MovableTestValue3 : private zisc::NonCopyable<MovableTestValue3>
   MovableTestValue3(int& flag, const int value) : flag_{&flag}, value_{value}
   {
   }
-  MovableTestValue3(MovableTestValue3&& other)
+  MovableTestValue3(MovableTestValue3&& other) noexcept
   {
     std::swap(flag_, other.flag_);
     const int v = zisc::atomic_load(&other.value_, std::memory_order::acquire);
@@ -944,7 +932,7 @@ struct MovableTestValue3 : private zisc::NonCopyable<MovableTestValue3>
   }
   ~MovableTestValue3()
   {
-    if (flag_)
+    if (flag_ != nullptr)
       zisc::atomic_store(flag_, 1, std::memory_order::release);
   }
   int* flag_ = nullptr;

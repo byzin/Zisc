@@ -77,8 +77,8 @@ TEST(MemoryTest, AlignmentTest)
     ASSERT_FALSE(zisc::Memory::isAligned(&storage[1], 16)) << "zisc::isAligned() failed.";
   }
   {
-    const auto ptr1 = &storage[0];
-    const auto ptr2 = zisc::assume_aligned<16>(ptr1);
+    const auto* ptr1 = &storage[0];
+    const auto* ptr2 = zisc::assume_aligned<16>(ptr1);
     ASSERT_EQ(ptr1, ptr2) << "zisc::assume_aligned() failed.";
   }
 }
@@ -91,7 +91,7 @@ TEST(MemoryTest, AllocateTest)
     void* mem = zisc::aligned_alloc(s, s);
     EXPECT_TRUE(mem != nullptr)
         << "zisc::aligned_alloc(" << s << "," << s << ") failed.";
-    if (!mem)
+    if (mem == nullptr)
       return;
     // Alignment test
     EXPECT_TRUE(zisc::Memory::isAligned(mem, s))

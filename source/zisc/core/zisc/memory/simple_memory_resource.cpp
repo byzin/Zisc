@@ -23,13 +23,6 @@ namespace zisc {
 
 /*!
   \details No detailed description
-  */
-SimpleMemoryResource::~SimpleMemoryResource() noexcept
-{
-}
-
-/*!
-  \details No detailed description
 
   \param [in] size No description.
   \param [in] alignment No description.

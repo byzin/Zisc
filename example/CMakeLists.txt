@@ -51,7 +51,19 @@ function(addExample target save_dependency_list)
   Zisc_enableIpo(${target})
 
   #
-  Zisc_setStaticAnalyzer(${target})
+  set(clang_tidy_exclusion_checks bugprone-implicit-widening-of-multiplication-result
+                                  bugprone-narrowing-conversions
+                                  misc-non-private-member-variables-in-classes
+                                  misc-redundant-expression
+                                  modernize-avoid-c-arrays
+                                  modernize-use-auto
+                                  readability-function-cognitive-complexity
+                                  readability-isolate-declaration
+                                  readability-magic-numbers
+                                  readability-static-accessed-through-instance
+                                  readability-uppercase-literal-suffix)
+  Zisc_setStaticAnalyzer(${target}
+                         CLANG_TIDY_EXCLUSION_CHECKS ${clang_tidy_exclusion_checks})
   Zisc_createLinkToTarget(${target} ${PROJECT_BINARY_DIR})
 
   # Installation settings

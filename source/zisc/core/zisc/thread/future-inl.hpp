@@ -36,7 +36,7 @@ namespace zisc {
   \details No detailed description
   */
 template <NonReference T> inline
-Future<T>::Future() noexcept
+Future<T>::Future() noexcept : data_{}
 {
 }
 
@@ -46,7 +46,7 @@ Future<T>::Future() noexcept
   \param [in,out] t No description.
   */
 template <NonReference T> inline
-Future<T>::Future(PackagedTask* t) noexcept
+Future<T>::Future(PackagedTask* t) noexcept : data_{}
 {
   linkWithTask(t);
 }
@@ -57,7 +57,7 @@ Future<T>::Future(PackagedTask* t) noexcept
   \param [in] other No description.
   */
 template <NonReference T> inline
-Future<T>::Future(Future&& other) noexcept
+Future<T>::Future(Future&& other) noexcept : data_{}
 {
   moveData(other);
 }

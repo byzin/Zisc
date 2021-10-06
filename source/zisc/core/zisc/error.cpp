@@ -26,7 +26,7 @@
   \param [in] code No description.
   */
 #define ERROR_CODE_STRING_CASE(code, output) case ErrorCode::k ## code : { \
-                                               output = #code ## s; \
+                                               (output) = #code ## s; \
                                                break; \
                                              }
 
@@ -82,8 +82,8 @@ const char* ErrorCategory::name() const noexcept
   */
 std::string ErrorCategory::message(const int condition) const
 {
-  const ErrorCode code = static_cast<ErrorCode>(condition);
-  const std::string code_string{getErrorCodeString(code)};
+  const auto code = static_cast<ErrorCode>(condition);
+  std::string code_string{getErrorCodeString(code)};
   return code_string;
 }
 

@@ -428,26 +428,42 @@ endfunction(Zisc_getCxxWarningFlags)
 function(Zisc_setStaticAnalyzer target)
   set(static_analyzer_list "")
 
+  # Parse arguments
+  set(options "")
+  set(one_value_args "")
+  set(multi_value_args CLANG_TIDY_EXCLUSION_CHECKS)
+  cmake_parse_arguments(PARSE_ARGV 1 ZISC "${options}" "${one_value_args}" "${multi_value_args}")
+
   # clang-tidy
   if(Z_ENABLE_STATIC_ANALYZER_CLANG_TIDY AND Z_CLANG)
     find_program(clang_tidy "clang-tidy")
     if(clang_tidy)
       set(tidy_command "${clang_tidy}")
-      set(exception_check_list "")
-      list(APPEND exception_check_list modernize-use-auto
-                                       modernize-use-trailing-return-type
-                                       modernize-avoid-c-arrays
-                                       readability-uppercase-literal-suffix
-                                       readability-magic-numbers
-                                       readability-braces-around-statements
-                                       readability-named-parameter
-                                       readability-static-accessed-through-instance
-                                       )
-      set(exception_checks "")
-      foreach(exception_check IN LISTS exception_check_list)
-        set(exception_checks "${exception_checks},-${exception_check}")
-      endforeach(exception_check)
-      list(APPEND tidy_command "-checks=-*,clang-analyzer-*,modernize-*,performance-*,portability-*,readability-*${exception_checks}")
+      set(check_list "")
+      list(APPEND check_list bugprone-*
+                             clang-analyzer-*
+                             concurrency-*
+                             misc-*
+                             modernize-*
+                             performance-*
+                             portability-*
+                             readability-*)
+      set(checks "")
+      foreach(check IN LISTS check_list)
+        set(checks "${checks},${check}")
+      endforeach(check)
+      set(exclusion_list "")
+      list(APPEND exclusion_list bugprone-easily-swappable-parameters
+                                 modernize-use-equals-default
+                                 modernize-use-trailing-return-type
+                                 readability-braces-around-statements
+                                 )
+      list(APPEND exclusion_list ${ZISC_CLANG_TIDY_EXCLUSION_CHECKS})
+      set(exclusion_checks "")
+      foreach(exclusion_check IN LISTS exclusion_list)
+        set(exclusion_checks "${exclusion_checks},-${exclusion_check}")
+      endforeach(exclusion_check)
+      list(APPEND tidy_command "-checks=-*${checks}${exclusion_checks}")
       set_target_properties(${target} PROPERTIES
           C_CLANG_TIDY "${tidy_command}"
           CXX_CLANG_TIDY "${tidy_command}")

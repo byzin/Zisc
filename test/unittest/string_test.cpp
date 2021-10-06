@@ -58,7 +58,7 @@ TEST(ConstantStringTest, ConstructionTest)
     };
     constexpr auto message = make_string();
     EXPECT_TRUE(message == "test");
-    auto data = message.data().data();
+    const auto* data = message.data().data();
     EXPECT_STREQ("test", data);
   }
 }

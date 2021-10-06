@@ -49,7 +49,7 @@ struct Adder : private zisc::NonCopyable<Adder>
 {
   Adder(const int c) : c_{c} {}
 
-  constexpr int operator()(const int a, const int b) noexcept
+  constexpr int operator()(const int a, const int b) const noexcept
   {
     return add(a, b) + c_;
   }
@@ -215,13 +215,13 @@ TEST(FunctionReferenceTest, OperatorTest)
   {
     FuncRef ref{std::addressof(::add)};
     // Move constructor
-    FuncRef ref2{std::move(ref)};
+    FuncRef ref2{ref};
     ASSERT_TRUE(zisc::cast<bool>(ref2)) << "Operator bool is wrong.";
     ASSERT_EQ(::add(a, b), ref2(a, b)) << "FunctionRef invocation failed.";
     // Move assignment
     FuncRef ref3{};
     ASSERT_FALSE(zisc::cast<bool>(ref3)) << "Operator bool is wrong.";
-    ref3 = std::move(ref2);
+    ref3 = ref2;
     ASSERT_EQ(::add(a, b), ref3(a, b)) << "FunctionRef invocation failed.";
     ASSERT_TRUE(zisc::cast<bool>(ref3)) << "Operator bool is wrong.";
     // Copy assignment
@@ -271,7 +271,7 @@ class Movable : public zisc::NonCopyable<Movable>
 {
  public:
   Movable(const int value) : value_{value} {}
-  Movable(Movable&& other) : value_{other.value_} {}
+  Movable(Movable&& other) noexcept : value_{other.value_} {}
   int value_ = 0;
 };
 

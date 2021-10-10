@@ -10,6 +10,9 @@
 function(initProjectOptions)
   include(${PROJECT_SOURCE_DIR}/source/zisc/cmake/general.cmake)
 
+  set(option_description "Build examples.")
+  Zisc_setBooleanOption(ZISC_BUILD_EXAMPLES ON ${option_description})
+
   set(option_description "Build unit tests.")
   Zisc_setBooleanOption(ZISC_BUILD_TESTS OFF ${option_description})
 

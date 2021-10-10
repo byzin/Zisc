@@ -6,7 +6,7 @@
 # http://opensource.org/licenses/mit-license.php
 #
 
-cmake_minimum_required(VERSION 3.17)
+cmake_minimum_required(VERSION 3.21)
 
 
 project(ZiscProject VERSION 0.0.1 LANGUAGES CXX)
@@ -32,7 +32,9 @@ Zisc_restrictBuildDirectory(${PROJECT_SOURCE_DIR}/build)
 add_subdirectory(${zisc_path} ${PROJECT_BINARY_DIR}/Zisc)
 
 # Build examples
-add_subdirectory(${PROJECT_SOURCE_DIR}/example ${PROJECT_BINARY_DIR}/Examples)
+if(ZISC_BUILD_EXAMPLES)
+  add_subdirectory(${PROJECT_SOURCE_DIR}/example ${PROJECT_BINARY_DIR}/Examples)
+endif()
 
 # Build unit test
 if(ZISC_BUILD_TESTS)

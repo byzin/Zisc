@@ -56,7 +56,7 @@ function(Zisc_addGoogleTest source_dir binary_dir)
   set(gtest_force_shared_crt ON CACHE BOOL "" FORCE) # Prevent overriding the parent project's compiler/linker settings on Windows
   set(gtest_build_tests OFF CACHE BOOL "" FORCE)
   set(gtest_build_samples OFF CACHE BOOL "" FORCE)
-  add_subdirectory(${source_dir} ${binary_dir})
+  add_subdirectory(${source_dir} ${binary_dir} EXCLUDE_FROM_ALL)
 endfunction(Zisc_addGoogleTest)
 
 

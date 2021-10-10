@@ -6,10 +6,10 @@
 # http://opensource.org/licenses/mit-license.php
 # 
 
-cmake_minimum_required(VERSION 3.17)
+cmake_minimum_required(VERSION 3.21)
 
 
-set(__zisc_dir__ ${CMAKE_SOURCE_DIR}/source/zisc)
+set(__zisc_dir__ ${CMAKE_CURRENT_LIST_DIR}/../source/zisc)
 
 
 function(getExampleWarningFlags example_warning_flags)
@@ -36,7 +36,7 @@ endfunction(getExampleWarningFlags)
 function(addExample target save_dependency_list)
   set(example_source_files ${ARGN})
   add_executable(${target} ${example_source_files})
-  source_group(${PROJECT_NAME} FILES ${example_source_files})
+  source_group(${PROJECT_NAME}/${target} FILES ${example_source_files})
 
   #
   set_target_properties(${target} PROPERTIES CXX_STANDARD 20
@@ -77,38 +77,44 @@ endfunction(addExample)
 
 
 #
-set(project_description "Examples of Zisc")
-project(Examples VERSION 0.0.1 DESCRIPTION "${project_description}" LANGUAGES  CXX)
+macro(setExampleProject)
+  set(project_description "Examples of Zisc")
+  project(Examples VERSION 0.0.1 DESCRIPTION "${project_description}" LANGUAGES  CXX)
 
-# Initialize platform info
-include(${__zisc_dir__}/cmake/general.cmake)
-include(${__zisc_dir__}/cmake/platform.cmake)
-Zisc_getPlatformFlags(platform_definitions)
-Zisc_setVariablesOnCMake(${platform_definitions})
+  # Initialize platform info
+  include(${__zisc_dir__}/cmake/general.cmake)
+  include(${__zisc_dir__}/cmake/platform.cmake)
+  Zisc_getPlatformFlags(platform_definitions)
+  Zisc_setVariablesOnCMake(${platform_definitions})
 
-# Check dependencies
-Zisc_checkTarget(Zisc)
+  # Check dependencies
+  Zisc_checkTarget(Zisc)
 
-# Build examples
-addExample(AlgorithmExample ON
-           ${PROJECT_SOURCE_DIR}/algorithm_example.cpp)
-addExample(CmjEngineExample OFF
-           ${PROJECT_SOURCE_DIR}/correlated_multi_jittered_engine_example.cpp)
-addExample(CompensatedSummationExample OFF
-           ${PROJECT_SOURCE_DIR}/compensated_summation_example.cpp)
-addExample(CsvExample OFF
-           ${PROJECT_SOURCE_DIR}/csv_example.cpp)
-addExample(ErrorExample OFF
-           ${PROJECT_SOURCE_DIR}/error_example.cpp)
-addExample(LockFreeBoundedQueueExample OFF
-           ${PROJECT_SOURCE_DIR}/lock_free_bounded_queue_example.cpp)
-addExample(PseudoRandomNumberEngineExample OFF
-           ${PROJECT_SOURCE_DIR}/pseudo_random_number_engine_example.cpp)
-addExample(StopwatchExample OFF
-           ${PROJECT_SOURCE_DIR}/stopwatch_example.cpp)
-addExample(StringExample OFF
-           ${PROJECT_SOURCE_DIR}/string_example.cpp)
-addExample(ThreadManagerExample OFF
-           ${PROJECT_SOURCE_DIR}/thread_manager_example.cpp)
-addExample(UnitExample OFF
-           ${PROJECT_SOURCE_DIR}/unit_example.cpp)
+  # Build examples
+  addExample(AlgorithmExample ON
+             ${PROJECT_SOURCE_DIR}/algorithm_example.cpp)
+  addExample(CmjEngineExample OFF
+             ${PROJECT_SOURCE_DIR}/correlated_multi_jittered_engine_example.cpp)
+  addExample(CompensatedSummationExample OFF
+             ${PROJECT_SOURCE_DIR}/compensated_summation_example.cpp)
+  addExample(CsvExample OFF
+             ${PROJECT_SOURCE_DIR}/csv_example.cpp)
+  addExample(ErrorExample OFF
+             ${PROJECT_SOURCE_DIR}/error_example.cpp)
+  addExample(LockFreeBoundedQueueExample OFF
+             ${PROJECT_SOURCE_DIR}/lock_free_bounded_queue_example.cpp)
+  addExample(PseudoRandomNumberEngineExample OFF
+             ${PROJECT_SOURCE_DIR}/pseudo_random_number_engine_example.cpp)
+  addExample(StopwatchExample OFF
+             ${PROJECT_SOURCE_DIR}/stopwatch_example.cpp)
+  addExample(StringExample OFF
+             ${PROJECT_SOURCE_DIR}/string_example.cpp)
+  addExample(ThreadManagerExample OFF
+             ${PROJECT_SOURCE_DIR}/thread_manager_example.cpp)
+  addExample(UnitExample OFF
+             ${PROJECT_SOURCE_DIR}/unit_example.cpp)
+endmacro(setExampleProject)
+
+
+##
+setExampleProject()

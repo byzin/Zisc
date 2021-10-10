@@ -6,10 +6,10 @@
 # http://opensource.org/licenses/mit-license.php
 #
 
-cmake_minimum_required(VERSION 3.17)
+cmake_minimum_required(VERSION 3.21)
 
 
-set(__zisc_dir__ ${CMAKE_SOURCE_DIR}/source/zisc)
+set(__zisc_dir__ ${CMAKE_CURRENT_LIST_DIR}/../source/zisc)
 
 
 function(getTestCompileFlags test_compile_flags test_linker_flags test_definitions)
@@ -61,78 +61,84 @@ endfunction(getTestWarningFlags)
 
 
 #
-set(project_description "Zisc unit test.")
-project(UnitTest VERSION 0.0.1 DESCRIPTION ${project_description} LANGUAGES CXX)
+macro(setTestProject)
+  set(project_description "Zisc unit test.")
+  project(UnitTest VERSION 0.0.1 DESCRIPTION ${project_description} LANGUAGES CXX)
 
 
-# Initialize platform info
-include(${__zisc_dir__}/cmake/general.cmake)
-include(${__zisc_dir__}/cmake/platform.cmake)
-Zisc_getPlatformFlags(platform_definitions)
-Zisc_setVariablesOnCMake(${platform_definitions})
+  # Initialize platform info
+  include(${__zisc_dir__}/cmake/general.cmake)
+  include(${__zisc_dir__}/cmake/platform.cmake)
+  Zisc_getPlatformFlags(platform_definitions)
+  Zisc_setVariablesOnCMake(${platform_definitions})
 
-# Check dependencies
-Zisc_checkTarget(Zisc)
-Zisc_checkTarget(gtest_main)
+  # Check dependencies
+  Zisc_checkTarget(Zisc)
+  Zisc_checkTarget(gtest_main)
 
-# Create a symlink to the test resources
-file(COPY ${PROJECT_SOURCE_DIR}/resources DESTINATION ${PROJECT_BINARY_DIR})
-file(GLOB math_reference_files "${PROJECT_SOURCE_DIR}/math_reference/*.tar.xz")
-foreach(reference_path IN LISTS math_reference_files)
-  set(src_file_path ${reference_path})
-  get_filename_component(reference_file "${reference_path}" NAME_WLE)
-  get_filename_component(reference_file "${reference_file}" NAME_WLE)
-  set(dst_file_path ${PROJECT_BINARY_DIR}/resources/${reference_file})
-  if(${src_file_path} IS_NEWER_THAN ${dst_file_path})
-    execute_process(COMMAND ${CMAKE_COMMAND} -E tar Jxf ${src_file_path}
-                    WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/resources)
-    file(TOUCH_NOCREATE ${dst_file_path})
-  endif()
-endforeach(reference_path)
+  # Create a symlink to the test resources
+  file(COPY ${PROJECT_SOURCE_DIR}/resources DESTINATION ${PROJECT_BINARY_DIR})
+  file(GLOB math_reference_files "${PROJECT_SOURCE_DIR}/math_reference/*.tar.xz")
+  foreach(reference_path IN LISTS math_reference_files)
+    set(src_file_path ${reference_path})
+    get_filename_component(reference_file "${reference_path}" NAME_WLE)
+    get_filename_component(reference_file "${reference_file}" NAME_WLE)
+    set(dst_file_path ${PROJECT_BINARY_DIR}/resources/${reference_file})
+    if(${src_file_path} IS_NEWER_THAN ${dst_file_path})
+      execute_process(COMMAND ${CMAKE_COMMAND} -E tar Jxf ${src_file_path}
+                      WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/resources)
+      file(TOUCH_NOCREATE ${dst_file_path})
+    endif()
+  endforeach(reference_path)
 
-# Create a unit test
-file(GLOB unittest_source_files ${PROJECT_SOURCE_DIR}/unittest/*.cpp
-                                ${PROJECT_SOURCE_DIR}/unittest/*.hpp)
-add_executable(${PROJECT_NAME} ${unittest_source_files})
-source_group(${PROJECT_NAME} FILES ${unittest_source_files})
+  # Create a unit test
+  file(GLOB unittest_source_files ${PROJECT_SOURCE_DIR}/unittest/*.cpp
+                                  ${PROJECT_SOURCE_DIR}/unittest/*.hpp)
+  add_executable(${PROJECT_NAME} ${unittest_source_files})
+  source_group(${PROJECT_NAME} FILES ${unittest_source_files})
 
-set_target_properties(${PROJECT_NAME} PROPERTIES CXX_STANDARD 20 
-                                                 CXX_STANDARD_REQUIRED ON)
+  set_target_properties(${PROJECT_NAME} PROPERTIES CXX_STANDARD 20 
+                                                   CXX_STANDARD_REQUIRED ON)
 
-include(${__zisc_dir__}/cmake/compiler.cmake)
-Zisc_getCxxWarningFlags(cxx_compile_warning_flags)
-getTestCompileFlags(test_compile_flags test_linker_flags test_definitions)
-getTestWarningFlags(test_warning_flags)
-target_compile_options(${PROJECT_NAME} PRIVATE ${test_compile_flags}
-                                               ${cxx_compile_warning_flags}
-                                               ${test_warning_flags})
-target_include_directories(${PROJECT_NAME} PRIVATE ${PROJECT_SOURCE_DIR}/math_reference)
-target_link_libraries(${PROJECT_NAME} PRIVATE gtest_main
-                                              Zisc
-                                              ${test_linker_flags})
-target_compile_definitions(${PROJECT_NAME} PRIVATE ${test_definitions})
-Zisc_enableIpo(${PROJECT_NAME})
+  include(${__zisc_dir__}/cmake/compiler.cmake)
+  Zisc_getCxxWarningFlags(cxx_compile_warning_flags)
+  getTestCompileFlags(test_compile_flags test_linker_flags test_definitions)
+  getTestWarningFlags(test_warning_flags)
+  target_compile_options(${PROJECT_NAME} PRIVATE ${test_compile_flags}
+                                                 ${cxx_compile_warning_flags}
+                                                 ${test_warning_flags})
+  target_link_libraries(${PROJECT_NAME} PRIVATE gtest_main
+                                                Zisc
+                                                ${test_linker_flags})
+  target_compile_definitions(${PROJECT_NAME} PRIVATE ${test_definitions})
+  target_include_directories(${PROJECT_NAME} PRIVATE ${PROJECT_SOURCE_DIR}/math_reference)
+  Zisc_enableIpo(${PROJECT_NAME})
 
-#
-set(clang_tidy_exclusion_checks bugprone-implicit-widening-of-multiplication-result
-                                bugprone-narrowing-conversions
-                                misc-non-private-member-variables-in-classes
-                                misc-redundant-expression
-                                modernize-avoid-c-arrays
-                                modernize-use-auto
-                                readability-function-cognitive-complexity
-                                readability-isolate-declaration
-                                readability-magic-numbers
-                                readability-named-parameter
-                                readability-static-accessed-through-instance
-                                readability-uppercase-literal-suffix)
-Zisc_setStaticAnalyzer(${PROJECT_NAME}
-                       CLANG_TIDY_EXCLUSION_CHECKS ${clang_tidy_exclusion_checks})
-Zisc_createLinkToTarget(${PROJECT_NAME} ${PROJECT_BINARY_DIR})
+  #
+  set(clang_tidy_exclusion_checks bugprone-implicit-widening-of-multiplication-result
+                                  bugprone-narrowing-conversions
+                                  misc-non-private-member-variables-in-classes
+                                  misc-redundant-expression
+                                  modernize-avoid-c-arrays
+                                  modernize-use-auto
+                                  readability-function-cognitive-complexity
+                                  readability-isolate-declaration
+                                  readability-magic-numbers
+                                  readability-named-parameter
+                                  readability-static-accessed-through-instance
+                                  readability-uppercase-literal-suffix)
+  Zisc_setStaticAnalyzer(${PROJECT_NAME}
+                         CLANG_TIDY_EXCLUSION_CHECKS ${clang_tidy_exclusion_checks})
+  Zisc_createLinkToTarget(${PROJECT_NAME} ${PROJECT_BINARY_DIR})
 
-# Installation settings
-## Save the dependency list
-Zisc_getSaveDependencyCode(${PROJECT_NAME} ${PROJECT_BINARY_DIR} "" "" "" dependency_code)
-install(CODE ${dependency_code} COMPONENT test)
-## Install actual binary
-install(TARGETS ${PROJECT_NAME} DESTINATION bin COMPONENT test)
+  # Installation settings
+  ## Save the dependency list
+  Zisc_getSaveDependencyCode(${PROJECT_NAME} ${PROJECT_BINARY_DIR} "" "" "" dependency_code)
+  install(CODE ${dependency_code} COMPONENT test)
+  ## Install actual binary
+  install(TARGETS ${PROJECT_NAME} DESTINATION bin COMPONENT test)
+endmacro(setTestProject)
+
+
+##
+setTestProject()

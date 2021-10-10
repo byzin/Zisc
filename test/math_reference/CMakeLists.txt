@@ -6,10 +6,10 @@
 # http://opensource.org/licenses/mit-license.php
 #
 
-cmake_minimum_required(VERSION 3.17)
+cmake_minimum_required(VERSION 3.21)
 
 
-set(__zisc_dir__ ${CMAKE_SOURCE_DIR}/source/zisc)
+set(__zisc_dir__ ${CMAKE_CURRENT_LIST_DIR}/../../source/zisc)
 
 
 function(getTestCompileFlags test_compile_flags test_linker_flags test_definitions)
@@ -57,59 +57,65 @@ endfunction(getTestWarningFlags)
 
 
 #
-set(project_description "Output math references.")
-project(MathReference VERSION 0.0.1 DESCRIPTION ${project_description} LANGUAGES CXX)
+macro(setMathReferenceProject)
+  set(project_description "Output math references.")
+  project(MathReference VERSION 0.0.1 DESCRIPTION ${project_description} LANGUAGES CXX)
 
-# Find GMP and MPFR
-list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
-find_package(GMP)
-find_package(MPFR)
-if((NOT GMP_FOUND) OR (NOT MPFR_FOUND))
-  return()
-endif()
+  # Find GMP and MPFR
+  list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
+  find_package(GMP)
+  find_package(MPFR)
+  if((NOT GMP_FOUND) OR (NOT MPFR_FOUND))
+    return()
+  endif()
 
-# Initialize platform info
-include(${__zisc_dir__}/cmake/general.cmake)
-include(${__zisc_dir__}/cmake/platform.cmake)
-Zisc_getPlatformFlags(platform_definitions)
-Zisc_setVariablesOnCMake(${platform_definitions})
+  # Initialize platform info
+  include(${__zisc_dir__}/cmake/general.cmake)
+  include(${__zisc_dir__}/cmake/platform.cmake)
+  Zisc_getPlatformFlags(platform_definitions)
+  Zisc_setVariablesOnCMake(${platform_definitions})
 
-# Check dependencies
-Zisc_checkTarget(Zisc)
+  # Check dependencies
+  Zisc_checkTarget(Zisc)
 
-# Create a unit test
-file(GLOB math_source_files ${PROJECT_SOURCE_DIR}/*.cpp
-                            ${PROJECT_SOURCE_DIR}/*.hpp)
-add_executable(${PROJECT_NAME} ${math_source_files})
-source_group(${PROJECT_NAME} FILES ${math_source_files})
+  # Create a unit test
+  file(GLOB math_source_files ${PROJECT_SOURCE_DIR}/*.cpp
+                              ${PROJECT_SOURCE_DIR}/*.hpp)
+  add_executable(${PROJECT_NAME} ${math_source_files})
+  source_group(${PROJECT_NAME} FILES ${math_source_files})
 
-set_target_properties(${PROJECT_NAME} PROPERTIES CXX_STANDARD 20 
-                                                 CXX_STANDARD_REQUIRED ON)
+  set_target_properties(${PROJECT_NAME} PROPERTIES CXX_STANDARD 20 
+                                                   CXX_STANDARD_REQUIRED ON)
 
-include(${__zisc_dir__}/cmake/compiler.cmake)
-Zisc_getCxxWarningFlags(cxx_compile_warning_flags)
-getTestCompileFlags(test_compile_flags test_linker_flags test_definitions)
-getTestWarningFlags(test_warning_flags)
-target_include_directories(${PROJECT_NAME} SYSTEM PRIVATE ${GMP_INCLUDES}
-                                                          ${MPFR_INCLUDES}
-                                                          ${PROJECT_SOURCE_DIR}/dependencies/mpreal)
-target_compile_options(${PROJECT_NAME} PRIVATE ${test_compile_flags}
-                                               ${cxx_compile_warning_flags}
-                                               ${test_warning_flags})
-target_link_libraries(${PROJECT_NAME} PRIVATE ${GMP_LIBRARIES}
-                                              ${MPFR_LIBRARIES}
-                                              Zisc
-                                              ${test_linker_flags})
-target_compile_definitions(${PROJECT_NAME} PRIVATE ${test_definitions})
-Zisc_enableIpo(${PROJECT_NAME})
+  include(${__zisc_dir__}/cmake/compiler.cmake)
+  Zisc_getCxxWarningFlags(cxx_compile_warning_flags)
+  getTestCompileFlags(test_compile_flags test_linker_flags test_definitions)
+  getTestWarningFlags(test_warning_flags)
+  target_include_directories(${PROJECT_NAME} SYSTEM PRIVATE ${GMP_INCLUDES}
+                                                            ${MPFR_INCLUDES}
+                                                            ${PROJECT_SOURCE_DIR}/dependencies/mpreal)
+  target_compile_options(${PROJECT_NAME} PRIVATE ${test_compile_flags}
+                                                 ${cxx_compile_warning_flags}
+                                                 ${test_warning_flags})
+  target_link_libraries(${PROJECT_NAME} PRIVATE ${GMP_LIBRARIES}
+                                                ${MPFR_LIBRARIES}
+                                                Zisc
+                                                ${test_linker_flags})
+  target_compile_definitions(${PROJECT_NAME} PRIVATE ${test_definitions})
+  Zisc_enableIpo(${PROJECT_NAME})
 
-#
-Zisc_setStaticAnalyzer(${PROJECT_NAME})
-Zisc_createLinkToTarget(${PROJECT_NAME} ${PROJECT_BINARY_DIR})
+  #
+  Zisc_setStaticAnalyzer(${PROJECT_NAME})
+  Zisc_createLinkToTarget(${PROJECT_NAME} ${PROJECT_BINARY_DIR})
 
-# installation settings
-## Save dependency list
-Zisc_getSaveDependencyCode(${PROJECT_NAME} ${PROJECT_BINARY_DIR} "" "" "" dependency_code)
-install(CODE ${dependency_code} COMPONENT test)
-## Install actual binary
-install(TARGETS ${PROJECT_NAME} DESTINATION bin COMPONENT test)
+  # installation settings
+  ## Save dependency list
+  Zisc_getSaveDependencyCode(${PROJECT_NAME} ${PROJECT_BINARY_DIR} "" "" "" dependency_code)
+  install(CODE ${dependency_code} COMPONENT test)
+  ## Install actual binary
+  install(TARGETS ${PROJECT_NAME} DESTINATION bin COMPONENT test)
+endmacro(setMathReferenceProject)
+
+
+##
+setMathReferenceProject()

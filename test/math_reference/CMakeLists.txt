@@ -6,7 +6,7 @@
 # http://opensource.org/licenses/mit-license.php
 #
 
-cmake_minimum_required(VERSION 3.21)
+cmake_minimum_required(VERSION 3.22)
 
 
 set(__zisc_dir__ ${CMAKE_CURRENT_LIST_DIR}/../../source/zisc)

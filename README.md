@@ -2,16 +2,18 @@
 
 Zisc provides C++ utility classes and functions which can be commonly used.
 
-**Z**in's m**isc**ellaneous C++ library
+Zisc is a library separated from [Zivc][zivc] for easy maintenance.
 
-Version: 0.0.67
+**Z**ivc m**isc**ellaneous C++ library
+
+Version: 0.0.68
 
 ## Import instructions ##
 
 ### Prerequisites ###
 
 * C++20 support compiler
-* [CMake](https://cmake.org/) (version 3.17 or later)
+* [CMake][cmake] (version 3.22 or later)
 
 ### Importing ###
 
@@ -40,12 +42,19 @@ Clone the Zisc repository and include the cmake config files of Zisc,
 
 I would like to thank the following projects.
 
-* PCG: [PCG, A Family of Better Random Number Generators](http://www.pcg-random.org/)
-* Xoshiro\*: [xoshiro / xoroshiro generators and the PRNG shootout](http://xoshiro.di.unimi.it/)
-* Correlated Multi-Jittered: [Correlated Multi-Jittered Sampling](https://graphics.pixar.com/library/MultiJitteredSampling/paper.pdf)
-* Lock-Free Bounded Queue: [A Scalable, Portable, and Memory-Efficient Lock-Free FIFO Queue](https://arxiv.org/abs/1908.04511)
+* PCG: [PCG, A Family of Better Random Number Generators][pcg]
+* Xoshiro\*: [xoshiro / xoroshiro generators and the PRNG shootout][xoshiro]
+* Correlated Multi-Jittered: [Correlated Multi-Jittered Sampling][cmj]
+* Lock-Free Bounded Queue: [A Scalable, Portable, and Memory-Efficient Lock-Free FIFO Queue][scalable_portable_lock_free_queue]
 
 ## License ##
 
 This software is released under the MIT License,
-see [LICENSE.txt](LICENSE.txt).
+see [LICENSE.md](LICENSE.md).
+
+[zivc]: https://github.com/byzin/Zivc
+[cmake]: https://cmake.org/
+[pcg]: http://www.pcg-random.org/
+[xoshiro]: http://xoshiro.di.unimi.it/
+[cmj]: https://graphics.pixar.com/library/MultiJitteredSampling/paper.pdf
+[scalable_portable_lock_free_queue]: https://arxiv.org/abs/1908.04511

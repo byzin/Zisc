@@ -6,27 +6,29 @@
 # http://opensource.org/licenses/mit-license.php
 #
 
-cmake_minimum_required(VERSION 3.21)
+cmake_minimum_required(VERSION 3.22)
 
 
-project(ZiscProject VERSION 0.0.1 LANGUAGES CXX)
+project(ZiscProject VERSION 0.0.68 LANGUAGES CXX)
 
-## CMake configurations
-set(CMAKE_CONFIGURATION_TYPES "Debug" "RelWithDebInfo" "Release")
-if(NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE "Debug")
+if(PROJECT_IS_TOP_LEVEL)
+  ## CMake configurations
+  set(CMAKE_CONFIGURATION_TYPES "Debug" "RelWithDebInfo" "Release")
+  if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE "Debug")
+  endif()
+  set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+  include(InstallRequiredSystemLibraries)
+  ## Print system environment information
+  set(zisc_path ${PROJECT_SOURCE_DIR}/source/zisc)
+  include(${zisc_path}/cmake/general.cmake)
+  message(STATUS "System information:")
+  Zisc_printSystemInfo("  + ")
+  ## Project options
+  include(${PROJECT_SOURCE_DIR}/cmake/option.cmake)
+  initProjectOptions()
+  Zisc_restrictBuildDirectory(${PROJECT_SOURCE_DIR}/build)
 endif()
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-include(InstallRequiredSystemLibraries)
-
-set(zisc_path ${PROJECT_SOURCE_DIR}/source/zisc)
-include(${zisc_path}/cmake/general.cmake)
-message(STATUS "System information:")
-Zisc_printSystemInfo("  + ")
-## Project options
-include(${PROJECT_SOURCE_DIR}/cmake/option.cmake)
-initProjectOptions()
-Zisc_restrictBuildDirectory(${PROJECT_SOURCE_DIR}/build)
 
 # Build Zisc
 add_subdirectory(${zisc_path} ${PROJECT_BINARY_DIR}/Zisc)
@@ -38,15 +40,16 @@ endif()
 
 # Build unit test
 if(ZISC_BUILD_TESTS)
-  include(${PROJECT_SOURCE_DIR}/cmake/googletest.cmake)
-  addZiscGoogleTest()
+  enable_testing()
   add_subdirectory(${PROJECT_SOURCE_DIR}/test ${PROJECT_BINARY_DIR}/UnitTest)
   add_subdirectory(${PROJECT_SOURCE_DIR}/test/math_reference ${PROJECT_BINARY_DIR}/MathReference)
 endif()
 
-# Build documents
-add_subdirectory(${PROJECT_SOURCE_DIR}/document ${PROJECT_BINARY_DIR}/Document)
+if(PROJECT_IS_TOP_LEVEL)
+  # Build documents
+  add_subdirectory(${PROJECT_SOURCE_DIR}/document ${PROJECT_BINARY_DIR}/Document)
 
-# Packaging
-include(${PROJECT_SOURCE_DIR}/cmake/packaging.cmake)
-packageProject()
+  # Packaging
+  include(${PROJECT_SOURCE_DIR}/cmake/packaging.cmake)
+  packageProject()
+endif()

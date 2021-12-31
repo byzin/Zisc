@@ -14,7 +14,7 @@
 
 # Documents
 !/README.md
-!/LICENSE.txt
+!/LICENSE.md
 !/document/
 !/document/CMakeLists.txt
 !/document/doxygen_dark_theme

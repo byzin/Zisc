@@ -6,7 +6,7 @@
 # http://opensource.org/licenses/mit-license.php
 #
 
-cmake_minimum_required(VERSION 3.21)
+cmake_minimum_required(VERSION 3.22)
 
 
 set(__zisc_dir__ ${CMAKE_CURRENT_LIST_DIR}/../source/zisc)
@@ -26,6 +26,17 @@ function(getTestCompileFlags test_compile_flags test_linker_flags test_definitio
   set(${test_linker_flags} ${linker_flags} PARENT_SCOPE)
   set(${test_definitions} ${definitions} PARENT_SCOPE)
 endfunction(getTestCompileFlags)
+
+
+function(addGoogleTest googletest_path)
+  set(source_dir ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../source)
+  include(${source_dir}/zisc/cmake/general.cmake)
+  include(${source_dir}/zisc/cmake/compiler.cmake)
+
+  Zisc_addGoogleTest(${googletest_path} ${PROJECT_BINARY_DIR}/GoogleTest)
+  Zisc_populateTargetOptions(Zisc gtest)
+  Zisc_populateTargetOptions(Zisc gtest_main)
+endfunction(addGoogleTest)
 
 
 function(getTestWarningFlags test_warning_flags)
@@ -74,6 +85,7 @@ macro(setTestProject)
 
   # Check dependencies
   Zisc_checkTarget(Zisc)
+  addGoogleTest(${PROJECT_SOURCE_DIR}/dependencies/googletest)
   Zisc_checkTarget(gtest_main)
 
   # Create a symlink to the test resources
@@ -137,6 +149,13 @@ macro(setTestProject)
   install(CODE ${dependency_code} COMPONENT test)
   ## Install actual binary
   install(TARGETS ${PROJECT_NAME} DESTINATION bin COMPONENT test)
+
+  # Add tests for CMake
+  add_test(NAME ${PROJECT_NAME} COMMAND ${PROJECT_NAME}
+                                WORKING_DIRECTORY ${PROJECT_BINARY_DIR})
+  set(test_env_list "")
+  list(APPEND test_env_list GTEST_COLOR=1)
+  set_tests_properties(${PROJECT_NAME} PROPERTIES ENVIRONMENT "${test_env_list}")
 endmacro(setTestProject)
 
 

@@ -23,7 +23,7 @@
 #include <thread>
 #include <vector>
 // Zisc
-#include "zisc/data_structure/bounded_queue.hpp"
+#include "zisc/data_structure/queue.hpp"
 #include "zisc/stopwatch.hpp"
 #include "zisc/utility.hpp"
 #include "zisc/zisc_config.hpp"
@@ -36,7 +36,7 @@ class LockFreeBoundedQueueTest
 
  public:
   template <typename QueueClass, typename T>
-  static bool testEnqueue(zisc::BoundedQueue<QueueClass, T>& q,
+  static bool testEnqueue(zisc::Queue<QueueClass, T>& q,
                           uint64b& elapsed_time) noexcept
   {
     std::cout << "    Capacity   : " << q.capacity() << std::endl;
@@ -88,7 +88,7 @@ class LockFreeBoundedQueueTest
   }
 
   template <typename QueueClass, typename T>
-  static bool testEnqueueDequeue(zisc::BoundedQueue<QueueClass, T>& q,
+  static bool testEnqueueDequeue(zisc::Queue<QueueClass, T>& q,
                                  std::vector<uint32b>& data,
                                  uint64b& elapsed_time) noexcept
   {
@@ -154,7 +154,7 @@ class LockFreeBoundedQueueTest
   }
 
   template <typename QueueClass, typename T>
-  static bool testDequeue(zisc::BoundedQueue<QueueClass, T>& q,
+  static bool testDequeue(zisc::Queue<QueueClass, T>& q,
                           std::vector<uint32b>& data,
                           uint64b& elapsed_time) noexcept
   {

@@ -199,6 +199,17 @@ bool ScalableCircularQueue<T>::enqueue(RReference value)
   \return No description
   */
 template <Movable T> inline
+constexpr bool ScalableCircularQueue<T>::isConcurrent() noexcept
+{
+  return true;
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+template <Movable T> inline
 bool ScalableCircularQueue<T>::isEmpty() const noexcept
 {
   const size_type s = size();

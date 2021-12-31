@@ -27,8 +27,8 @@
 #include <utility>
 #include <vector>
 // Zisc
-#include "bounded_bst.hpp"
 #include "mutex_bst_node.hpp"
+#include "search_tree.hpp"
 #include "zisc/concepts.hpp"
 #include "zisc/utility.hpp"
 #include "zisc/zisc_config.hpp"
@@ -214,6 +214,17 @@ double MutexBst::findMinKey() const noexcept
     key = node_list_[0].key();
   }
   return key;
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+inline
+constexpr bool MutexBst::isConcurrent() noexcept
+{
+  return true;
 }
 
 /*!

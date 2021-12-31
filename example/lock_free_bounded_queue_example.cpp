@@ -19,7 +19,7 @@
 #include <vector>
 // Zisc
 #include "zisc/zisc_config.hpp"
-#include "zisc/data_structure/bounded_queue.hpp"
+#include "zisc/data_structure/queue.hpp"
 #include "zisc/data_structure/scalable_circular_queue.hpp"
 #include "zisc/memory/simple_memory_resource.hpp"
 

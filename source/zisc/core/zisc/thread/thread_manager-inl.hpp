@@ -971,6 +971,8 @@ int64b ThreadManager::getCurrentThreadId() const noexcept
 inline
 void ThreadManager::initialize(const int64b num_of_threads) noexcept
 {
+  static_assert(TaskQueue::isConcurrent(), "TaskQueue isn't concurrent.");
+  static_assert(TaskIdTree::isConcurrent(), "TaskIdTree isn't concurrent.");
   createWorkers(num_of_threads);
   setCapacity(defaultCapacity());
 }

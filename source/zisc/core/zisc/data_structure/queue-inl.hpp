@@ -1,5 +1,5 @@
 /*!
-  \file bounded_queue-inl.hpp
+  \file queue-inl.hpp
   \author Sho Ikeda
   \brief No brief description
 
@@ -12,10 +12,10 @@
   http://opensource.org/licenses/mit-license.php
   */
 
-#ifndef ZISC_BOUNDED_QUEUE_INL_HPP
-#define ZISC_BOUNDED_QUEUE_INL_HPP
+#ifndef ZISC_QUEUE_INL_HPP
+#define ZISC_QUEUE_INL_HPP
 
-#include "bounded_queue.hpp"
+#include "queue.hpp"
 // Standard C++ library
 #include <cstddef>
 #include <memory>
@@ -38,14 +38,13 @@ namespace zisc {
   \param [in] value No description.
   */
 template <typename QueueClass, Movable T> inline
-BoundedQueue<QueueClass, T>::OverflowError::OverflowError(
-    const std::string_view what_arg,
-    pmr::memory_resource* mem_resource,
-    ConstReference value) :
-        SystemError(ErrorCode::kBoundedQueueOverflow, what_arg),
-        value_{std::allocate_shared<Type>(
-            pmr::polymorphic_allocator<Type>{mem_resource},
-            value)}
+Queue<QueueClass, T>::OverflowError::OverflowError(const std::string_view what_arg,
+                                                   pmr::memory_resource* mem_resource,
+                                                   ConstReference value)
+    : SystemError(ErrorCode::kBoundedQueueOverflow, what_arg),
+      value_{std::allocate_shared<Type>(
+          pmr::polymorphic_allocator<Type>{mem_resource},
+          value)}
 {
 }
 
@@ -56,14 +55,13 @@ BoundedQueue<QueueClass, T>::OverflowError::OverflowError(
   \param [in] value No description.
   */
 template <typename QueueClass, Movable T> inline
-BoundedQueue<QueueClass, T>::OverflowError::OverflowError(
-    const std::string_view what_arg,
-    pmr::memory_resource* mem_resource,
-    RReference value) :
-        SystemError(ErrorCode::kBoundedQueueOverflow, what_arg),
-        value_{std::allocate_shared<Type>(
-            pmr::polymorphic_allocator<Type>{mem_resource},
-            std::move(value))}
+Queue<QueueClass, T>::OverflowError::OverflowError(const std::string_view what_arg,
+                                                   pmr::memory_resource* mem_resource,
+                                                   RReference value)
+    : SystemError(ErrorCode::kBoundedQueueOverflow, what_arg),
+      value_{std::allocate_shared<Type>(
+          pmr::polymorphic_allocator<Type>{mem_resource},
+          std::move(value))}
 {
 }
 
@@ -73,7 +71,7 @@ BoundedQueue<QueueClass, T>::OverflowError::OverflowError(
   \param [in,out] other No description.
   */
 template <typename QueueClass, Movable T> inline
-BoundedQueue<QueueClass, T>::OverflowError::OverflowError(OverflowError&& other) :
+Queue<QueueClass, T>::OverflowError::OverflowError(OverflowError&& other) :
     SystemError(std::move(other)),
     value_{std::move(other.value_)}
 {
@@ -83,7 +81,7 @@ BoundedQueue<QueueClass, T>::OverflowError::OverflowError(OverflowError&& other)
   \details No detailed description
   */
 template <typename QueueClass, Movable T> inline
-BoundedQueue<QueueClass, T>::OverflowError::~OverflowError() noexcept
+Queue<QueueClass, T>::OverflowError::~OverflowError() noexcept
 {
 }
 
@@ -94,7 +92,7 @@ BoundedQueue<QueueClass, T>::OverflowError::~OverflowError() noexcept
   \return No description
   */
 template <typename QueueClass, Movable T> inline
-auto BoundedQueue<QueueClass, T>::OverflowError::operator=(OverflowError&& other)
+auto Queue<QueueClass, T>::OverflowError::operator=(OverflowError&& other)
     -> OverflowError&
 {
   SystemError::operator=(std::move(other));
@@ -108,7 +106,7 @@ auto BoundedQueue<QueueClass, T>::OverflowError::operator=(OverflowError&& other
   \return No description
   */
 template <typename QueueClass, Movable T> inline
-auto BoundedQueue<QueueClass, T>::OverflowError::get() noexcept
+auto Queue<QueueClass, T>::OverflowError::get() noexcept
     -> Reference
 {
   return *value_;
@@ -120,7 +118,7 @@ auto BoundedQueue<QueueClass, T>::OverflowError::get() noexcept
   \return No description
   */
 template <typename QueueClass, Movable T> inline
-auto BoundedQueue<QueueClass, T>::OverflowError::get() const noexcept
+auto Queue<QueueClass, T>::OverflowError::get() const noexcept
     -> ConstReference
 {
   return *value_;
@@ -132,7 +130,7 @@ auto BoundedQueue<QueueClass, T>::OverflowError::get() const noexcept
   \return No description
   */
 template <typename QueueClass, Movable T> inline
-auto BoundedQueue<QueueClass, T>::capacity() const noexcept -> size_type
+auto Queue<QueueClass, T>::capacity() const noexcept -> size_type
 {
   const auto& q = ref();
   const size_type cap = q.capacity();
@@ -145,7 +143,7 @@ auto BoundedQueue<QueueClass, T>::capacity() const noexcept -> size_type
   \return No description
   */
 template <typename QueueClass, Movable T> inline
-constexpr auto BoundedQueue<QueueClass, T>::capacityMax() noexcept -> size_type
+constexpr auto Queue<QueueClass, T>::capacityMax() noexcept -> size_type
 {
   const size_type cap = QueueT::capacityMax();
   return cap;
@@ -155,7 +153,7 @@ constexpr auto BoundedQueue<QueueClass, T>::capacityMax() noexcept -> size_type
   \details No detailed description
   */
 template <typename QueueClass, Movable T> inline
-void BoundedQueue<QueueClass, T>::clear() noexcept
+void Queue<QueueClass, T>::clear() noexcept
 {
   auto& q = ref();
   q.clear();
@@ -167,7 +165,7 @@ void BoundedQueue<QueueClass, T>::clear() noexcept
   \return No description
   */
 template <typename QueueClass, Movable T> inline
-auto BoundedQueue<QueueClass, T>::dequeue() noexcept -> std::tuple<bool, Type>
+auto Queue<QueueClass, T>::dequeue() noexcept -> std::tuple<bool, Type>
 {
   auto& q = ref();
   return q.dequeue();
@@ -181,7 +179,7 @@ auto BoundedQueue<QueueClass, T>::dequeue() noexcept -> std::tuple<bool, Type>
   \exception OverflowError No description.
   */
 template <typename QueueClass, Movable T> inline
-bool BoundedQueue<QueueClass, T>::enqueue(ConstReference value)
+bool Queue<QueueClass, T>::enqueue(ConstReference value)
 {
   auto& q = ref();
   const bool result = q.enqueue(value);
@@ -196,7 +194,7 @@ bool BoundedQueue<QueueClass, T>::enqueue(ConstReference value)
   \exception OverflowError No description.
   */
 template <typename QueueClass, Movable T> inline
-bool BoundedQueue<QueueClass, T>::enqueue(RReference value)
+bool Queue<QueueClass, T>::enqueue(RReference value)
 {
   auto& q = ref();
   const bool result = q.enqueue(std::move(value));
@@ -209,7 +207,32 @@ bool BoundedQueue<QueueClass, T>::enqueue(RReference value)
   \return No description
   */
 template <typename QueueClass, Movable T> inline
-bool BoundedQueue<QueueClass, T>::isEmpty() const noexcept
+constexpr bool Queue<QueueClass, T>::isBounded() noexcept
+{
+  const size_type c = capacityMax();
+  const bool result = c < kUnboundedCapacityMax;
+  return result;
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+template <typename QueueClass, Movable T> inline
+constexpr bool Queue<QueueClass, T>::isConcurrent() noexcept
+{
+  const bool result = QueueT::isConcurrent();
+  return result;
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+template <typename QueueClass, Movable T> inline
+bool Queue<QueueClass, T>::isEmpty() const noexcept
 {
   const auto& q = ref();
   const bool result = q.isEmpty();
@@ -222,7 +245,7 @@ bool BoundedQueue<QueueClass, T>::isEmpty() const noexcept
   \param [in] cap No description.
   */
 template <typename QueueClass, Movable T> inline
-void BoundedQueue<QueueClass, T>::setCapacity(const size_type cap) noexcept
+void Queue<QueueClass, T>::setCapacity(const size_type cap) noexcept
 {
   auto& q = ref();
   q.setCapacity(cap);
@@ -234,7 +257,7 @@ void BoundedQueue<QueueClass, T>::setCapacity(const size_type cap) noexcept
   \return No description
   */
 template <typename QueueClass, Movable T> inline
-auto BoundedQueue<QueueClass, T>::size() const noexcept -> size_type
+auto Queue<QueueClass, T>::size() const noexcept -> size_type
 {
   const auto& q = ref();
   const size_type s = q.size();
@@ -245,7 +268,7 @@ auto BoundedQueue<QueueClass, T>::size() const noexcept -> size_type
   \details No detailed description
   */
 template <typename QueueClass, Movable T> inline
-BoundedQueue<QueueClass, T>::BoundedQueue() noexcept
+Queue<QueueClass, T>::Queue() noexcept
 {
 }
 
@@ -255,7 +278,7 @@ BoundedQueue<QueueClass, T>::BoundedQueue() noexcept
   \param [in] other No description.
   */
 template <typename QueueClass, Movable T> inline
-BoundedQueue<QueueClass, T>::BoundedQueue([[maybe_unused]] const BoundedQueue& other) noexcept
+Queue<QueueClass, T>::Queue([[maybe_unused]] const Queue& other) noexcept
 {
 }
 
@@ -266,8 +289,8 @@ BoundedQueue<QueueClass, T>::BoundedQueue([[maybe_unused]] const BoundedQueue& o
   \return No description
   */
 template <typename QueueClass, Movable T> inline
-auto BoundedQueue<QueueClass, T>::operator=([[maybe_unused]] const BoundedQueue& other) noexcept
-    -> BoundedQueue&
+auto Queue<QueueClass, T>::operator=([[maybe_unused]] const Queue& other) noexcept
+    -> Queue&
 {
   return *this;
 }
@@ -278,7 +301,7 @@ auto BoundedQueue<QueueClass, T>::operator=([[maybe_unused]] const BoundedQueue&
   \return No description
   */
 template <typename QueueClass, Movable T> inline
-auto BoundedQueue<QueueClass, T>::ref() noexcept -> QueueReference
+auto Queue<QueueClass, T>::ref() noexcept -> QueueReference
 {
   auto q = cast<QueuePtr>(this);
   return *q;
@@ -290,7 +313,7 @@ auto BoundedQueue<QueueClass, T>::ref() noexcept -> QueueReference
   \return No description
   */
 template <typename QueueClass, Movable T> inline
-auto BoundedQueue<QueueClass, T>::ref() const noexcept -> ConstQueueReference
+auto Queue<QueueClass, T>::ref() const noexcept -> ConstQueueReference
 {
   auto q = cast<ConstQueuePtr>(this);
   return *q;
@@ -298,4 +321,4 @@ auto BoundedQueue<QueueClass, T>::ref() const noexcept -> ConstQueueReference
 
 } // namespace zisc
 
-#endif // ZISC_BOUNDED_QUEUE_INL_HPP
+#endif // ZISC_QUEUE_INL_HPP

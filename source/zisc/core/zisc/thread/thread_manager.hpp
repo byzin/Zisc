@@ -30,10 +30,10 @@
 #include "atomic_word.hpp"
 #include "packaged_task.hpp"
 #include "zisc/concepts.hpp"
-#include "zisc/data_structure/bounded_bst.hpp"
-#include "zisc/data_structure/bounded_queue.hpp"
 #include "zisc/data_structure/mutex_bst.hpp"
+#include "zisc/data_structure/queue.hpp"
 #include "zisc/data_structure/scalable_circular_queue.hpp"
+#include "zisc/data_structure/search_tree.hpp"
 #include "zisc/error.hpp"
 #include "zisc/non_copyable.hpp"
 #include "zisc/zisc_config.hpp"
@@ -275,9 +275,9 @@ class ThreadManager : private NonCopyable<ThreadManager>
 
   // Type aliases
   using TaskQueueImpl = ScalableCircularQueue<WorkerTask>;
-  using TaskQueue = BoundedQueue<TaskQueueImpl, WorkerTask>;
+  using TaskQueue = Queue<TaskQueueImpl, WorkerTask>;
   using TaskIdTreeImpl = MutexBst;
-  using TaskIdTree = BoundedBst<TaskIdTreeImpl>;
+  using TaskIdTree = SearchTree<TaskIdTreeImpl>;
   using WorkerLock = AtomicWord<Config::isAtomicOsSpecifiedWaitUsed()>;
 
 

@@ -1,5 +1,5 @@
 /*!
-  \file bounded_queue.hpp
+  \file queue.hpp
   \author Sho Ikeda
   \brief No brief description
 
@@ -12,8 +12,8 @@
   http://opensource.org/licenses/mit-license.php
   */
 
-#ifndef ZISC_BOUNDED_QUEUE_HPP
-#define ZISC_BOUNDED_QUEUE_HPP
+#ifndef ZISC_QUEUE_HPP
+#define ZISC_QUEUE_HPP
 
 // Standard C++ library
 #include <cstddef>
@@ -39,7 +39,7 @@ namespace zisc {
   \tparam T No description.
   */
 template <typename QueueClass, Movable T>
-class BoundedQueue : private NonCopyable<BoundedQueue<QueueClass, T>>
+class Queue : private NonCopyable<Queue<QueueClass, T>>
 {
  public:
   // Type aliases
@@ -108,7 +108,7 @@ class BoundedQueue : private NonCopyable<BoundedQueue<QueueClass, T>>
   //! Return the maximum possible number of elements
   size_type capacity() const noexcept;
 
-  //! Return the maximum possible capacity
+  //! Return the maximum possible capacity if the queue is bounded
   static constexpr size_type capacityMax() noexcept;
 
   //! Clear the contents
@@ -122,6 +122,12 @@ class BoundedQueue : private NonCopyable<BoundedQueue<QueueClass, T>>
 
   //! Append the given element value to the end of the queue
   bool enqueue(RReference value);
+
+  //! Check if the queue is bounded
+  static constexpr bool isBounded() noexcept;
+
+  //! Check if the queue is concurrent
+  static constexpr bool isConcurrent() noexcept;
 
   //! Check whether the queue is empty
   bool isEmpty() const noexcept;
@@ -142,15 +148,18 @@ class BoundedQueue : private NonCopyable<BoundedQueue<QueueClass, T>>
   using ConstQueueReference = std::add_lvalue_reference_t<ConstQueueT>;
 
 
+  static constexpr size_type kUnboundedCapacityMax = (std::numeric_limits<size_type>::max)();
+
+
   //! Create a queue
-  BoundedQueue() noexcept;
+  Queue() noexcept;
 
   //! Move a data
-  BoundedQueue(const BoundedQueue& other) noexcept;
+  Queue(const Queue& other) noexcept;
 
 
   //! Move a queue
-  BoundedQueue& operator=(const BoundedQueue& other) noexcept;
+  Queue& operator=(const Queue& other) noexcept;
 
 
   //! Return the reference to the queue class
@@ -165,9 +174,9 @@ class BoundedQueue : private NonCopyable<BoundedQueue<QueueClass, T>>
 /*!
   \example lock_free_bounded_queue_example.cpp
 
-  This is an example of how to use zisc::BoundedQueue.
+  This is an example of how to use zisc::Queue.
   */
 
-#include "bounded_queue-inl.hpp"
+#include "queue-inl.hpp"
 
-#endif // ZISC_BOUNDED_QUEUE_HPP
+#endif // ZISC_QUEUE_HPP

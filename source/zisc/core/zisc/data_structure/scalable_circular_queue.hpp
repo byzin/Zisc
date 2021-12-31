@@ -24,7 +24,7 @@
 #include <type_traits>
 #include <vector>
 // Zisc
-#include "bounded_queue.hpp"
+#include "queue.hpp"
 #include "ring_buffer.hpp"
 #include "zisc/concepts.hpp"
 #include "zisc/error.hpp"
@@ -43,11 +43,11 @@ namespace zisc {
   \tparam T No description.
   */
 template <Movable T>
-class ScalableCircularQueue : public BoundedQueue<ScalableCircularQueue<T>, T>
+class ScalableCircularQueue : public Queue<ScalableCircularQueue<T>, T>
 {
  public:
   // Type aliases
-  using BaseQueueType = BoundedQueue<ScalableCircularQueue<T>, T>;
+  using BaseQueueType = Queue<ScalableCircularQueue<T>, T>;
   using Type = typename BaseQueueType::Type;
   using ConstType = typename BaseQueueType::ConstType;
   using Reference = typename BaseQueueType::Reference;
@@ -100,6 +100,9 @@ class ScalableCircularQueue : public BoundedQueue<ScalableCircularQueue<T>, T>
   //! Append the given element value to the end of the queue
   bool enqueue(RReference value);
 
+  //! Check if the queue is concurrent
+  static constexpr bool isConcurrent() noexcept;
+
   //! Check whether the queue is empty
   bool isEmpty() const noexcept;
 
@@ -128,7 +131,7 @@ class ScalableCircularQueue : public BoundedQueue<ScalableCircularQueue<T>, T>
 /*!
   \example lock_free_bounded_queue_example.cpp
 
-  This is an example of how to use zisc::LockFreeBoundedQueue.
+  This is an example of how to use zisc::LockFreeQueue.
   */
 
 #include "scalable_circular_queue-inl.hpp"

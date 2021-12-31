@@ -1,0 +1,228 @@
+/*!
+  \file search_tree-inl.hpp
+  \author Sho Ikeda
+  \brief No brief description
+
+  \details
+  No detailed description.
+
+  \copyright
+  Copyright (c) 2015-2021 Sho Ikeda
+  This software is released under the MIT License.
+  http://opensource.org/licenses/mit-license.php
+  */
+
+#ifndef ZISC_SEARCH_TREE_INL_HPP
+#define ZISC_SEARCH_TREE_INL_HPP
+
+#include "search_tree.hpp"
+// Standard C++ library
+#include <cstddef>
+#include <tuple>
+#include <type_traits>
+// Zisc
+#include "zisc/concepts.hpp"
+#include "zisc/utility.hpp"
+#include "zisc/zisc_config.hpp"
+
+namespace zisc {
+
+/*!
+  \details No detailed description
+
+  \tparam Type No description.
+  \param [in] value No description.
+  \return No description
+  */
+template <typename SearchTreeClass> template <ConvertibleTo<double> Type> inline
+auto SearchTree<SearchTreeClass>::add(const Type& value) -> std::tuple<bool, size_type>
+{
+  auto& search_tree = ref();
+  auto result = search_tree.add(value);
+  return result;
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+template <typename SearchTreeClass> inline
+auto SearchTree<SearchTreeClass>::capacity() const noexcept -> size_type
+{
+  auto& search_tree = ref();
+  const size_type cap = search_tree.capacity();
+  return cap;
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+template <typename SearchTreeClass> inline
+constexpr auto SearchTree<SearchTreeClass>::capacityMax() noexcept -> size_type
+{
+  const size_type cap = SearchTreeT::capacityMax();
+  return cap;
+}
+
+/*!
+  \details No detailed description
+  */
+template <typename SearchTreeClass> inline
+void SearchTree<SearchTreeClass>::clear() noexcept
+{
+  auto& search_tree = ref();
+  search_tree.clear();
+}
+
+/*!
+  \details No detailed description
+
+  \tparam Type No description.
+  \param [in] value No description.
+  \return No description
+  */
+template <typename SearchTreeClass> template <ConvertibleTo<double> Type> inline
+auto SearchTree<SearchTreeClass>::contain(const Type& value) const noexcept
+    -> std::tuple<bool, size_type>
+{
+  auto& search_tree = ref();
+  const auto result = search_tree.contain(value);
+  return result;
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+template <typename SearchTreeClass> inline
+double SearchTree<SearchTreeClass>::findMinKey() const noexcept
+{
+  auto& search_tree = ref();
+  const double k = search_tree.findMinKey();
+  return k;
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+template <typename SearchTreeClass> inline
+constexpr bool SearchTree<SearchTreeClass>::isBounded() noexcept
+{
+  const size_type c = capacityMax();
+  const bool result = c < kUnboundedCapacityMax;
+  return result;
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+template <typename SearchTreeClass> inline
+constexpr bool SearchTree<SearchTreeClass>::isConcurrent() noexcept
+{
+  const bool result = SearchTreeT::isConcurrent();
+  return result;
+}
+
+/*!
+  \details No detailed description
+
+  \tparam Type No description.
+  \param [in] value No description.
+  \return No description
+  */
+template <typename SearchTreeClass> template <ConvertibleTo<double> Type> inline
+auto SearchTree<SearchTreeClass>::remove(const Type& value) -> std::tuple<bool, size_type>
+{
+  auto& search_tree = ref();
+  const auto result = search_tree.remove(value);
+  return result;
+}
+
+/*!
+  \details No detailed description
+  */
+template <typename SearchTreeClass> inline
+void SearchTree<SearchTreeClass>::setCapacity(const size_type cap) noexcept
+{
+  auto& search_tree = ref();
+  search_tree.setCapacity(cap);
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+template <typename SearchTreeClass> inline
+auto SearchTree<SearchTreeClass>::size() const noexcept -> size_type
+{
+  auto& search_tree = ref();
+  const size_type s = search_tree.size();
+  return s;
+}
+
+/*!
+  \details No detailed description
+  */
+template <typename SearchTreeClass> inline
+SearchTree<SearchTreeClass>::SearchTree() noexcept
+{
+}
+
+/*!
+  \details No detailed description
+
+  \param [in] other No description.
+  */
+template <typename SearchTreeClass> inline
+SearchTree<SearchTreeClass>::SearchTree([[maybe_unused]] const SearchTree& other) noexcept
+{
+}
+
+/*!
+  \details No detailed description
+
+  \param [in] other No description.
+  \return No description
+  */
+template <typename SearchTreeClass> inline
+auto SearchTree<SearchTreeClass>::operator=([[maybe_unused]] const SearchTree& other) noexcept -> SearchTree&
+{
+  return *this;
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+template <typename SearchTreeClass> inline
+auto SearchTree<SearchTreeClass>::ref() noexcept -> SearchTreeReference
+{
+  auto q = cast<SearchTreePtr>(this);
+  return *q;
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+template <typename SearchTreeClass> inline
+auto SearchTree<SearchTreeClass>::ref() const noexcept -> ConstSearchTreeReference
+{
+  auto q = cast<ConstSearchTreePtr>(this);
+  return *q;
+}
+
+} // namespace zisc
+
+#endif // ZISC_SEARCH_TREE_INL_HPP

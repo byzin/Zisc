@@ -21,8 +21,8 @@
 #include <tuple>
 #include <vector>
 // Zisc
-#include "bounded_bst.hpp"
 #include "mutex_bst_node.hpp"
+#include "search_tree.hpp"
 #include "zisc/concepts.hpp"
 #include "zisc/zisc_config.hpp"
 #include "zisc/memory/std_memory_resource.hpp"
@@ -34,11 +34,11 @@ namespace zisc {
 
   No detailed description.
   */
-class MutexBst : public BoundedBst<MutexBst>
+class MutexBst : public SearchTree<MutexBst>
 {
  public:
   // Type aliases
-  using BaseBstType = BoundedBst<MutexBst>;
+  using BaseBstType = SearchTree<MutexBst>;
 
   // Type aliases for STL
   using size_type = typename BaseBstType::size_type;
@@ -83,6 +83,9 @@ class MutexBst : public BoundedBst<MutexBst>
 
   //! Find the minimum key in the bst
   double findMinKey() const noexcept;
+
+  //! Check if the bst is concurrent
+  static constexpr bool isConcurrent() noexcept;
 
   //! Remove the value from the bst
   template <ConvertibleTo<double> Type>

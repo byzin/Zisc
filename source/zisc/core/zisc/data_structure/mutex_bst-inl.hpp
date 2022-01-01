@@ -23,11 +23,11 @@
 #include <mutex>
 #include <numeric>
 #include <shared_mutex>
-#include <tuple>
 #include <utility>
 #include <vector>
 // Zisc
 #include "mutex_bst_node.hpp"
+#include "query_value.hpp"
 #include "search_tree.hpp"
 #include "zisc/concepts.hpp"
 #include "zisc/utility.hpp"
@@ -104,10 +104,10 @@ MutexBst& MutexBst::operator=(MutexBst&& other) noexcept
   \return No description
   */
 template <ConvertibleTo<double> Type> inline
-auto MutexBst::add(const Type& value) -> std::tuple<bool, size_type>
+auto MutexBst::add(const Type& value) -> QueryResultT
 {
   const double key = cast<double>(value);
-  size_type node_index = invalidId();
+  QueryResultT::Type node_index;
   {
     std::unique_lock<std::shared_mutex> lock{mutex_};
     auto position = std::lower_bound(node_list_.begin(),
@@ -117,11 +117,10 @@ auto MutexBst::add(const Type& value) -> std::tuple<bool, size_type>
     if ((position == node_list_.end()) || !equal(position->key(), key)) {
       node_index = index_stack_.back();
       index_stack_.pop_back();
-      node_list_.emplace(position, key, node_index);
+      node_list_.emplace(position, key, node_index.get());
     }
   }
-  const bool is_added = node_index != invalidId();
-  return std::make_tuple(is_added, node_index);
+  return QueryResultT{std::move(node_index)};
 }
 
 /*!
@@ -170,22 +169,20 @@ void MutexBst::clear() noexcept
   \return No description
   */
 template <ConvertibleTo<double> Type> inline
-auto MutexBst::contain(const Type& value) const noexcept
-    -> std::tuple<bool, size_type>
+auto MutexBst::contain(const Type& value) const noexcept -> QueryResultT
 {
   const double key = cast<double>(value);
-  bool is_found = false;
-  size_type node_index = invalidId();
+  QueryResultT::Type node_index;
   {
     std::shared_lock<std::shared_mutex> lock{mutex_};
     auto position = std::lower_bound(node_list_.begin(),
                                      node_list_.end(),
                                      key,
                                      MutexBst::compare);
-    is_found = (position != node_list_.end()) && equal(position->key(), key);
-    node_index = is_found ? position->index() : invalidId();
+    if ((position != node_list_.end()) && equal(position->key(), key))
+      node_index = position->index();
   }
-  return std::make_tuple(is_found, node_index);
+  return QueryResultT{std::move(node_index)};
 }
 
 /*!
@@ -206,9 +203,9 @@ constexpr auto MutexBst::defaultCapacity() noexcept -> size_type
   \return No description
   */
 inline
-double MutexBst::findMinKey() const noexcept
+auto MutexBst::findMinKey() const noexcept -> QueryResultKeyT
 {
-  double key = 0.0;
+  QueryResultKeyT key;
   {
     std::shared_lock<std::shared_mutex> lock{mutex_};
     key = node_list_[0].key();
@@ -235,11 +232,10 @@ constexpr bool MutexBst::isConcurrent() noexcept
   \return No description
   */
 template <ConvertibleTo<double> Type> inline
-auto MutexBst::remove(const Type& value) -> std::tuple<bool, size_type>
+auto MutexBst::remove(const Type& value) -> QueryResultT
 {
   const double key = cast<double>(value);
-  bool is_removed = false;
-  size_type node_index = invalidId();
+  QueryResultT::Type node_index;
   {
     std::unique_lock<std::shared_mutex> lock{mutex_};
     auto position = std::lower_bound(node_list_.begin(),
@@ -250,10 +246,9 @@ auto MutexBst::remove(const Type& value) -> std::tuple<bool, size_type>
       index_stack_.emplace_back(position->index());
       node_index = position->index();
       node_list_.erase(position);
-      is_removed = true;
     }
   }
-  return std::make_tuple(is_removed, node_index);
+  return QueryResultT{std::move(node_index)};
 }
 
 /*!
@@ -307,8 +302,8 @@ bool MutexBst::compare(const Node& lhs, const double rhs) noexcept
 inline
 constexpr auto MutexBst::invalidId() noexcept -> size_type
 {
-  const size_type index = (std::numeric_limits<size_type>::max)();
-  return index;
+  constexpr size_type invalid = QueryResultT::Type::invalidValue();
+  return invalid;
 }
 
 } // namespace zisc

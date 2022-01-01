@@ -20,9 +20,9 @@
 #include <cstddef>
 #include <memory>
 #include <string_view>
-#include <tuple>
 #include <utility>
 // Zisc
+#include "query_result.hpp"
 #include "zisc/concepts.hpp"
 #include "zisc/error.hpp"
 #include "zisc/utility.hpp"
@@ -165,7 +165,7 @@ void Queue<QueueClass, T>::clear() noexcept
   \return No description
   */
 template <typename QueueClass, Movable T> inline
-auto Queue<QueueClass, T>::dequeue() noexcept -> std::tuple<bool, Type>
+auto Queue<QueueClass, T>::dequeue() noexcept -> DequeueQueryResultT
 {
   auto& q = ref();
   return q.dequeue();
@@ -179,11 +179,10 @@ auto Queue<QueueClass, T>::dequeue() noexcept -> std::tuple<bool, Type>
   \exception OverflowError No description.
   */
 template <typename QueueClass, Movable T> inline
-bool Queue<QueueClass, T>::enqueue(ConstReference value)
+auto Queue<QueueClass, T>::enqueue(ConstReference value) -> EnqueueQueryResultT
 {
   auto& q = ref();
-  const bool result = q.enqueue(value);
-  return result;
+  return q.enqueue(value);
 }
 
 /*!
@@ -194,11 +193,10 @@ bool Queue<QueueClass, T>::enqueue(ConstReference value)
   \exception OverflowError No description.
   */
 template <typename QueueClass, Movable T> inline
-bool Queue<QueueClass, T>::enqueue(RReference value)
+auto Queue<QueueClass, T>::enqueue(RReference value) -> EnqueueQueryResultT
 {
   auto& q = ref();
-  const bool result = q.enqueue(std::move(value));
-  return result;
+  return q.enqueue(std::move(value));
 }
 
 /*!

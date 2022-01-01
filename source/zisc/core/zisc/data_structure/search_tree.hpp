@@ -18,9 +18,10 @@
 // Standard C++ library
 #include <cstddef>
 #include <limits>
-#include <tuple>
 #include <type_traits>
 // Zisc
+#include "query_result.hpp"
+#include "query_value.hpp"
 #include "zisc/concepts.hpp"
 #include "zisc/non_copyable.hpp"
 #include "zisc/zisc_config.hpp"
@@ -41,10 +42,14 @@ class SearchTree : private NonCopyable<SearchTree<SearchTreeClass>>
   // Type aliases for STL
   using size_type = std::size_t;
 
+  // Type aliases
+  using QueryResultT = QueryResult<QueryValue<size_type>>;
+  using QueryResultKeyT = QueryResult<double>;
+
 
   //! Insert the given value into the search tree
   template <ConvertibleTo<double> Type>
-  std::tuple<bool, size_type> add(const Type& value);
+  QueryResultT add(const Type& value);
 
   //! Return the maximum possible number of elements
   size_type capacity() const noexcept;
@@ -57,10 +62,10 @@ class SearchTree : private NonCopyable<SearchTree<SearchTreeClass>>
 
   //! Check if the given value is contained in the search tree
   template <ConvertibleTo<double> Type>
-  std::tuple<bool, size_type> contain(const Type& value) const noexcept;
+  QueryResultT contain(const Type& value) const noexcept;
 
   //! Find the minimum key in the search tree
-  double findMinKey() const noexcept;
+  QueryResultKeyT findMinKey() const noexcept;
 
   //! Check if the search tree is bounded
   static constexpr bool isBounded() noexcept;
@@ -70,7 +75,7 @@ class SearchTree : private NonCopyable<SearchTree<SearchTreeClass>>
 
   //! Remove the value from the search tree
   template <ConvertibleTo<double> Type>
-  std::tuple<bool, size_type> remove(const Type& value);
+  QueryResultT remove(const Type& value);
 
   //! Change the maximum possible number of elements. The search tree will be cleared
   void setCapacity(const size_type cap) noexcept;

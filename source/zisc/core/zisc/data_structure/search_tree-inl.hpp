@@ -18,9 +18,10 @@
 #include "search_tree.hpp"
 // Standard C++ library
 #include <cstddef>
-#include <tuple>
 #include <type_traits>
 // Zisc
+#include "query_result.hpp"
+#include "query_value.hpp"
 #include "zisc/concepts.hpp"
 #include "zisc/utility.hpp"
 #include "zisc/zisc_config.hpp"
@@ -35,11 +36,10 @@ namespace zisc {
   \return No description
   */
 template <typename SearchTreeClass> template <ConvertibleTo<double> Type> inline
-auto SearchTree<SearchTreeClass>::add(const Type& value) -> std::tuple<bool, size_type>
+auto SearchTree<SearchTreeClass>::add(const Type& value) -> QueryResultT
 {
   auto& search_tree = ref();
-  auto result = search_tree.add(value);
-  return result;
+  return search_tree.add(value);
 }
 
 /*!
@@ -85,12 +85,10 @@ void SearchTree<SearchTreeClass>::clear() noexcept
   \return No description
   */
 template <typename SearchTreeClass> template <ConvertibleTo<double> Type> inline
-auto SearchTree<SearchTreeClass>::contain(const Type& value) const noexcept
-    -> std::tuple<bool, size_type>
+auto SearchTree<SearchTreeClass>::contain(const Type& value) const noexcept -> QueryResultT
 {
   auto& search_tree = ref();
-  const auto result = search_tree.contain(value);
-  return result;
+  return search_tree.contain(value);
 }
 
 /*!
@@ -99,11 +97,10 @@ auto SearchTree<SearchTreeClass>::contain(const Type& value) const noexcept
   \return No description
   */
 template <typename SearchTreeClass> inline
-double SearchTree<SearchTreeClass>::findMinKey() const noexcept
+auto SearchTree<SearchTreeClass>::findMinKey() const noexcept -> QueryResultKeyT
 {
   auto& search_tree = ref();
-  const double k = search_tree.findMinKey();
-  return k;
+  return search_tree.findMinKey();
 }
 
 /*!
@@ -139,11 +136,10 @@ constexpr bool SearchTree<SearchTreeClass>::isConcurrent() noexcept
   \return No description
   */
 template <typename SearchTreeClass> template <ConvertibleTo<double> Type> inline
-auto SearchTree<SearchTreeClass>::remove(const Type& value) -> std::tuple<bool, size_type>
+auto SearchTree<SearchTreeClass>::remove(const Type& value) -> QueryResultT
 {
   auto& search_tree = ref();
-  const auto result = search_tree.remove(value);
-  return result;
+  return search_tree.remove(value);
 }
 
 /*!

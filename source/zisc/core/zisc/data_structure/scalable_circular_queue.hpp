@@ -20,10 +20,11 @@
 #include <cstddef>
 #include <memory>
 #include <string_view>
-#include <tuple>
 #include <type_traits>
 #include <vector>
 // Zisc
+#include "query_result.hpp"
+#include "query_value.hpp"
 #include "queue.hpp"
 #include "ring_buffer.hpp"
 #include "zisc/concepts.hpp"
@@ -55,6 +56,8 @@ class ScalableCircularQueue : public Queue<ScalableCircularQueue<T>, T>
   using ConstReference = typename BaseQueueType::ConstReference;
   using Pointer = typename BaseQueueType::Pointer;
   using ConstPointer = typename BaseQueueType::ConstPointer;
+  using EnqueueQueryResultT = typename BaseQueueType::EnqueueQueryResultT;
+  using DequeueQueryResultT = typename BaseQueueType::DequeueQueryResultT;
 
   // Type aliases for STL
   using container_type = pmr::vector<Type>;
@@ -92,13 +95,13 @@ class ScalableCircularQueue : public Queue<ScalableCircularQueue<T>, T>
   const container_type& data() const noexcept;
 
   //! Take the first element of the queue
-  std::tuple<bool, Type> dequeue() noexcept;
+  [[nodiscard]] DequeueQueryResultT dequeue() noexcept;
 
   //! Append the given element value to the end of the queue
-  bool enqueue(ConstReference value);
+  [[nodiscard]] EnqueueQueryResultT enqueue(ConstReference value);
 
   //! Append the given element value to the end of the queue
-  bool enqueue(RReference value);
+  [[nodiscard]] EnqueueQueryResultT enqueue(RReference value);
 
   //! Check if the queue is concurrent
   static constexpr bool isConcurrent() noexcept;
@@ -118,7 +121,7 @@ class ScalableCircularQueue : public Queue<ScalableCircularQueue<T>, T>
  private:
   //! Append the given element value to the end of the queue
   template <typename ValueT>
-  bool enqueueImpl(ValueT&& value);
+  [[nodiscard]] EnqueueQueryResultT enqueueImpl(ValueT&& value);
 
 
   RingBuffer free_elements_;

@@ -20,7 +20,6 @@
 #include <memory>
 #include <system_error>
 #include <thread>
-#include <tuple>
 #include <type_traits>
 #include <utility>
 #include <vector>
@@ -96,20 +95,21 @@ TEST(ScalableCircularQueueTest, QueueTest)
   Queue q{8, &mem_resource};
   const char* message = "Enqueuing of ScalableCircularQueue failed.";
   ASSERT_TRUE(q.isEmpty()) << message;
-  ASSERT_TRUE(q.enqueue(7)) << message;
-  ASSERT_TRUE(q.enqueue(6)) << message;
-  ASSERT_TRUE(q.enqueue(4)) << message;
-  ASSERT_TRUE(q.enqueue(8)) << message;
-  ASSERT_TRUE(q.enqueue(2)) << message;
-  ASSERT_TRUE(q.enqueue(1)) << message;
-  ASSERT_TRUE(q.enqueue(5)) << message;
-  ASSERT_TRUE(q.enqueue(3)) << message;
+  ASSERT_TRUE(q.enqueue(7).isSuccess()) << message;
+  ASSERT_TRUE(q.enqueue(6).isSuccess()) << message;
+  ASSERT_TRUE(q.enqueue(4).isSuccess()) << message;
+  ASSERT_TRUE(q.enqueue(8).isSuccess()) << message;
+  ASSERT_TRUE(q.enqueue(2).isSuccess()) << message;
+  ASSERT_TRUE(q.enqueue(1).isSuccess()) << message;
+  ASSERT_TRUE(q.enqueue(5).isSuccess()) << message;
+  ASSERT_TRUE(q.enqueue(3).isSuccess()) << message;
   ASSERT_EQ(8, q.size()) << message;
 
   auto enqueue_overflow = [&q](const int value)
   {
     try {
-      q.enqueue(value);
+      [[maybe_unused]] const auto result = q.enqueue(value);
+      static_assert(sizeof(result) == 8);
     }
     catch (const Queue::OverflowError& error) {
       std::cout << error.what() << " value: " << error.get() << std::endl;
@@ -121,28 +121,28 @@ TEST(ScalableCircularQueueTest, QueueTest)
   q.clear();
 
   for (std::size_t i = 0; i < 65536; ++i)
-    q.dequeue();
+    [[maybe_unused]] const auto result = q.dequeue();
   ASSERT_TRUE(q.isEmpty()) << message;
   {
     const int v = 1;
-    ASSERT_TRUE(q.enqueue(v)) << message;
+    ASSERT_TRUE(q.enqueue(v).isSuccess()) << message;
   }
-  ASSERT_TRUE(q.enqueue(5)) << message;
-  ASSERT_TRUE(q.enqueue(3)) << message;
-  ASSERT_TRUE(q.enqueue(8)) << message;
-  ASSERT_TRUE(q.enqueue(2)) << message;
-  ASSERT_TRUE(q.enqueue(7)) << message;
-  ASSERT_TRUE(q.enqueue(6)) << message;
-  ASSERT_TRUE(q.enqueue(4)) << message;
+  ASSERT_TRUE(q.enqueue(5).isSuccess()) << message;
+  ASSERT_TRUE(q.enqueue(3).isSuccess()) << message;
+  ASSERT_TRUE(q.enqueue(8).isSuccess()) << message;
+  ASSERT_TRUE(q.enqueue(2).isSuccess()) << message;
+  ASSERT_TRUE(q.enqueue(7).isSuccess()) << message;
+  ASSERT_TRUE(q.enqueue(6).isSuccess()) << message;
+  ASSERT_TRUE(q.enqueue(4).isSuccess()) << message;
   ASSERT_EQ(8, q.size()) << message;
   ASSERT_THROW(enqueue_overflow(9), Queue::OverflowError) << message;
 
   message = "Dequeuing of ScalableCircularQueue failed.";
-  const auto check_dequeue = [message](const std::tuple<bool, int>& value,
+  const auto check_dequeue = [message](const zisc::QueryResult<int>& result,
                                        const int expected)
   {
-    ASSERT_TRUE(std::get<0>(value)) << message;
-    ASSERT_EQ(expected, std::get<1>(value)) << message << " Expected: " << expected;
+    ASSERT_TRUE(result.isSuccess()) << message;
+    ASSERT_EQ(expected, result) << message << " Expected: " << expected;
   };
   check_dequeue(q.dequeue(), 1);
   check_dequeue(q.dequeue(), 5);
@@ -153,8 +153,8 @@ TEST(ScalableCircularQueueTest, QueueTest)
   check_dequeue(q.dequeue(), 6);
   check_dequeue(q.dequeue(), 4);
   {
-    auto result = q.dequeue();
-    ASSERT_FALSE(std::get<0>(result)) << message;
+    const auto result = q.dequeue();
+    ASSERT_FALSE(result.isSuccess()) << message;
   }
   ASSERT_TRUE(q.isEmpty()) << message;
 }
@@ -198,20 +198,21 @@ TEST(ScalableCircularQueueTest, QueueMovableValueTest)
   Queue q{8, &mem_resource};
   const char* message = "Enqueuing of ScalableCircularQueue failed.";
   ASSERT_TRUE(q.isEmpty()) << message;
-  ASSERT_TRUE(q.enqueue(::Movable{1})) << message;
-  ASSERT_TRUE(q.enqueue(::Movable{5})) << message;
-  ASSERT_TRUE(q.enqueue(::Movable{3})) << message;
-  ASSERT_TRUE(q.enqueue(::Movable{8})) << message;
-  ASSERT_TRUE(q.enqueue(::Movable{2})) << message;
-  ASSERT_TRUE(q.enqueue(::Movable{7})) << message;
-  ASSERT_TRUE(q.enqueue(::Movable{6})) << message;
-  ASSERT_TRUE(q.enqueue(::Movable{4})) << message;
+  ASSERT_TRUE(q.enqueue(::Movable{1}).isSuccess()) << message;
+  ASSERT_TRUE(q.enqueue(::Movable{5}).isSuccess()) << message;
+  ASSERT_TRUE(q.enqueue(::Movable{3}).isSuccess()) << message;
+  ASSERT_TRUE(q.enqueue(::Movable{8}).isSuccess()) << message;
+  ASSERT_TRUE(q.enqueue(::Movable{2}).isSuccess()) << message;
+  ASSERT_TRUE(q.enqueue(::Movable{7}).isSuccess()) << message;
+  ASSERT_TRUE(q.enqueue(::Movable{6}).isSuccess()) << message;
+  ASSERT_TRUE(q.enqueue(::Movable{4}).isSuccess()) << message;
   ASSERT_EQ(8, q.size()) << message;
 
   auto enqueue_overflow = [&q](const int value)
   {
     try {
-      q.enqueue(::Movable{value});
+      [[maybe_unused]] const auto result = q.enqueue(::Movable{value});
+      static_assert(sizeof(result) == 8);
     }
     catch (Queue::OverflowError& error) {
       auto r = std::move(error.get());
@@ -222,11 +223,11 @@ TEST(ScalableCircularQueueTest, QueueMovableValueTest)
   ASSERT_THROW(enqueue_overflow(9), Queue::OverflowError) << message;
 
   message = "Dequeuing of ScalableCircularQueue failed.";
-  const auto check_dequeue = [message](const std::tuple<bool, ::Movable>& value,
+  const auto check_dequeue = [message](const zisc::QueryResult<::Movable>& result,
                                        const int expected)
   {
-    ASSERT_TRUE(std::get<0>(value)) << message;
-    const ::Movable& v = std::get<1>(value);
+    ASSERT_TRUE(result.isSuccess()) << message;
+    const ::Movable& v = result;
     ASSERT_EQ(expected, zisc::cast<int>(v)) << message << " Expected: " << expected;
   };
   check_dequeue(q.dequeue(), 1);
@@ -238,8 +239,8 @@ TEST(ScalableCircularQueueTest, QueueMovableValueTest)
   check_dequeue(q.dequeue(), 6);
   check_dequeue(q.dequeue(), 4);
   {
-    auto result = q.dequeue();
-    ASSERT_FALSE(std::get<0>(result)) << message;
+    const auto result = q.dequeue();
+    ASSERT_FALSE(result.isSuccess()) << message;
   }
   ASSERT_TRUE(q.isEmpty()) << message;
 }
@@ -256,13 +257,15 @@ TEST(ScalableCircularQueueTest, SmallSizeTest)
   for (std::size_t i = 0; i < n; ++i) {
     ASSERT_FALSE(q.size()) << "Invalid queue size.";
     {
-      const bool result = q.enqueue(i);
-      ASSERT_TRUE(result) << "Queueing an index failed.";
+      const auto result = q.enqueue(i);
+      static_assert(sizeof(result) == 8);
+      ASSERT_TRUE(result.isSuccess()) << "Queueing an index failed.";
     }
     ASSERT_EQ(1, q.size()) << "Invalid queue size.";
     {
-      const auto [result, index] = q.dequeue();
-      ASSERT_TRUE(result) << "Dequeuing an index failed.";
+      const auto result = q.dequeue();
+      ASSERT_TRUE(result.isSuccess()) << "Dequeuing an index failed.";
+      const std::size_t index = result;
       ASSERT_EQ(i, index);
     }
     ASSERT_FALSE(q.size()) << "Invalid queue size.";
@@ -297,7 +300,7 @@ TEST(ScalableCircularQueueTest, MultiThreadTest)
     const std::size_t id = counter++;
     for (std::size_t i = 0; i < works_per_thread; ++i) {
       const std::size_t value = id * works_per_thread + i;
-      q.enqueue(value);
+      [[maybe_unused]] const auto result = q.enqueue(value);
     }
   };
   stopwatch.start();
@@ -331,10 +334,10 @@ TEST(ScalableCircularQueueTest, MultiThreadTest)
   {
     for (std::size_t i = 0; i < works_per_thread; ++i) {
       const auto result = q.dequeue();
-      const bool flag = std::get<0>(result);
-      const std::size_t value = std::get<1>(result);
-      if (flag)
+      if (result.isSuccess()) {
+        const std::size_t value = result;
         results[value] = 1;
+      }
     }
   };
   stopwatch.start();

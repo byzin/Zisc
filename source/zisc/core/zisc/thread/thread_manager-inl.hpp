@@ -785,8 +785,8 @@ auto ThreadManager::enqueueImpl(TaskData& task,
     {
       if constexpr (kIsLoopTask || std::is_void_v<ReturnT>)
         setResult<ReturnT>(0);
-      [[maybe_unused]] const auto [id_result, storage_index] = manager_->taskIdTree().remove(id());
-      ZISC_ASSERT(id_result, "The given id isn't in the task tree.");
+      [[maybe_unused]] const auto id_result = manager_->taskIdTree().remove(id());
+      ZISC_ASSERT(id_result.isSuccess(), "The given id isn't in the task tree.");
     }
     //! Run a task
     void run(const int64b thread_id, const DiffType it_offset) override
@@ -854,8 +854,9 @@ auto ThreadManager::enqueueImpl(TaskData& task,
 
   // Issue a task ID
   const int64b task_id = issueTaskId();
-  [[maybe_unused]] const auto [id_result, storage_index] = taskIdTree().add(task_id);
-  ZISC_ASSERT(id_result, "Registering the task ID failed: id=", task_id);
+  [[maybe_unused]] const auto id_result = taskIdTree().add(task_id);
+  ZISC_ASSERT(id_result.isSuccess(), "Registering the task ID failed: id=", task_id);
+  const std::size_t storage_index = id_result.get().get();
 
   // Create a shared task
   const DiffType num_of_tasks = distance(begin, end);
@@ -876,7 +877,7 @@ auto ThreadManager::enqueueImpl(TaskData& task,
     for (DiffType i = 0; i < num_of_tasks; ++i) {
       WorkerTask worker_task{shared_task, i};
       try {
-        taskQueue().enqueue(std::move(worker_task));
+        [[maybe_unused]] const auto r = taskQueue().enqueue(std::move(worker_task));
       }
       catch (const TaskQueue::OverflowError& /* error */) {
         const DiffType rest = num_of_tasks - i;
@@ -915,13 +916,10 @@ void ThreadManager::exitWorkersRunning() noexcept
 inline
 auto ThreadManager::fetchTask() noexcept -> WorkerTask
 {
-  auto [flag, queued_task] = taskQueue().dequeue();
-  WorkerTask task{};
-  if (flag) {
+  auto queued_task = taskQueue().dequeue();
+  if (queued_task.isSuccess())
     atomic_fetch_dec(std::addressof(worker_lock_.get()), std::memory_order::release);
-    task = std::move(queued_task);
-  }
-  return task;
+  return std::move(queued_task.get());
 }
 
 /*!
@@ -1092,12 +1090,13 @@ void ThreadManager::waitForParent(const int64b task_id,
     }
     else if (parent_task_id == kAllPrecedences) {
       const double key = cast<double>(task_id);
-      const double min_key = taskIdTree().findMinKey();
-      flag = equal(key, min_key);
+      const auto min_key = taskIdTree().findMinKey();
+      ZISC_ASSERT(min_key.isSuccess(), "Any key wasn't found.");
+      flag = equal(key, min_key.get());
     }
     else {
-      const auto [result, storage_index] = taskIdTree().contain(parent_task_id);
-      flag = !result;
+      const auto result = taskIdTree().contain(parent_task_id);
+      flag = !result.isSuccess();
     }
     if (flag)
       break;

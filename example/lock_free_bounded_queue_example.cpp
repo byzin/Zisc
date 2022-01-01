@@ -14,7 +14,6 @@
 #include <memory>
 #include <string_view>
 #include <thread>
-#include <tuple>
 #include <type_traits>
 #include <vector>
 // Zisc
@@ -50,14 +49,14 @@ int main()
     std::cout << "Enqueing values [3, 1, 4, 5, 0, 2]." << std::endl;
     std::vector<int> values{{3, 1, 4, 5, 0, 2}};
     q.setCapacity(values.size());
-    for (const int value : values)
-      q.enqueue(value);
+    for (const int value : values) {
+      [[maybe_unused]] const auto result = q.enqueue(value);
+    }
     std::cout << "  queue size: " << q.size() << ", elements [";
     for (std::size_t i = 0; i < values.size(); ++i) {
-      const std::tuple<bool, int> result = q.dequeue();
-      const bool flag = std::get<0>(result);
-      if (flag) {
-        const int value = std::get<1>(result);
+      const auto result = q.dequeue();
+      if (result.isSuccess()) {
+        const int value = result;
         std::cout << value;
       }
       if (i == (values.size() - 1))
@@ -85,7 +84,7 @@ int main()
       const std::size_t id = counter++;
       for (std::size_t i = 0; i < works_per_thread; ++i) {
         const int value = static_cast<int>(id * works_per_thread + i);
-        q.enqueue(value);
+        [[maybe_unused]] const auto result = q.enqueue(value);
       }
     };
     for (std::size_t i = 0; i < num_of_threads; ++i)
@@ -102,9 +101,8 @@ int main()
     {
       for (std::size_t i = 0; i < works_per_thread; ++i) {
         const auto result = q.dequeue();
-        const bool flag = std::get<0>(result);
-        if (flag) {
-          const int value = std::get<1>(result);
+        if (result.isSuccess()) {
+          const int value = result;
           results[value] = 1;
         }
       }

@@ -26,6 +26,7 @@
 #include <utility>
 #include <vector>
 // Zisc
+#include "query_value.hpp"
 #include "zisc/bit.hpp"
 #include "zisc/error.hpp"
 #include "zisc/utility.hpp"
@@ -298,8 +299,8 @@ void RingBuffer::full() noexcept
 inline
 constexpr uint64b RingBuffer::invalidIndex() noexcept
 {
-  constexpr uint64b index = std::numeric_limits<uint64b>::max();
-  return index;
+  constexpr uint64b invalid = QueryValueU64::invalidValue();
+  return invalid;
 }
 
 /*!

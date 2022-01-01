@@ -19,9 +19,10 @@
 #include <cstddef>
 #include <memory>
 #include <string_view>
-#include <tuple>
 #include <type_traits>
 // Zisc
+#include "query_result.hpp"
+#include "query_value.hpp"
 #include "zisc/concepts.hpp"
 #include "zisc/error.hpp"
 #include "zisc/non_copyable.hpp"
@@ -50,6 +51,8 @@ class Queue : private NonCopyable<Queue<QueueClass, T>>
   using ConstReference = std::add_lvalue_reference_t<ConstType>;
   using Pointer = std::add_pointer_t<Type>;
   using ConstPointer = std::add_pointer_t<ConstType>;
+  using EnqueueQueryResultT = QueryResult<QueryValueU64>;
+  using DequeueQueryResultT = QueryResult<Type>;
 
   // Type aliases for STL
   using value_type = Type;
@@ -115,13 +118,13 @@ class Queue : private NonCopyable<Queue<QueueClass, T>>
   void clear() noexcept;
 
   //! Take the first element of the queue
-  std::tuple<bool, Type> dequeue() noexcept;
+  [[nodiscard]] DequeueQueryResultT dequeue() noexcept;
 
   //! Append the given element value to the end of the queue
-  bool enqueue(ConstReference value);
+  [[nodiscard]] EnqueueQueryResultT enqueue(ConstReference value);
 
   //! Append the given element value to the end of the queue
-  bool enqueue(RReference value);
+  [[nodiscard]] EnqueueQueryResultT enqueue(RReference value);
 
   //! Check if the queue is bounded
   static constexpr bool isBounded() noexcept;

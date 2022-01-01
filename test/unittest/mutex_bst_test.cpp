@@ -95,56 +95,56 @@ TEST(MutexBstTest, OperationTest)
 
   for (const int value : value_list) {
     {
-      const auto [result, index] = tree->add(value);
+      const bool result = tree->add(value).isSuccess();
       ASSERT_TRUE(result) << "Adding value '" << value << "' into the bst failed.";
     }
     {
-      const auto [result, index] = tree->add(value);
+      const bool result = tree->add(value).isSuccess();
       ASSERT_FALSE(result) << "Adding value '" << value << "' into the bst failed.";
     }
   }
 
   for (const int value : value_list) {
-    const auto [result, index] = tree->contain(value);
+    const bool result = tree->contain(value).isSuccess();
     ASSERT_TRUE(result) << "Quering value '" << value << "' from the bst failed.";
   }
   for (const int value : value2_list) {
-    const auto [result, index] = tree->contain(value);
+    const bool result = tree->contain(value).isSuccess();
     ASSERT_FALSE(result) << "Quering value '" << value << "' from the bst failed.";
   }
 
   for (const int value : value_list) {
-    const auto [result, index] = tree->add(value);
+    const bool result = tree->add(value).isSuccess();
     ASSERT_FALSE(result) << "Adding value '" << value << "' into the bst failed.";
   }
 
   for (const int value : value_list) {
     {
-      const auto [result, index] = tree->remove(value);
+      const bool result = tree->remove(value).isSuccess();
       ASSERT_TRUE(result) << "Removing value '" << value << "' from the bst failed.";
     }
     {
-      const auto [result, index] = tree->remove(value);
+      const bool result = tree->remove(value).isSuccess();
       ASSERT_FALSE(result) << "Removing value '" << value << "' from the bst failed.";
     }
   }
   for (const int value : value2_list) {
-    const auto [result, index] = tree->remove(value);
+    const bool result = tree->remove(value).isSuccess();
     ASSERT_FALSE(result) << "Removing value '" << value << "' from the bst failed.";
   }
 
   for (const int value : value_list) {
-    const auto [result, index] = tree->contain(value);
+    const bool result = tree->contain(value).isSuccess();
     ASSERT_FALSE(result) << "Quering value '" << value << "' from the bst failed.";
   }
 
   for (const int value : value_list) {
-    const auto [result, index] = tree->remove(value);
+    const bool result = tree->remove(value).isSuccess();
     ASSERT_FALSE(result) << "Removing value '" << value << "' from the bst failed.";
   }
 
   for (const int value : value_list) {
-    const auto [result, index] = tree->add(value);
+    const bool result = tree->add(value).isSuccess();
     ASSERT_TRUE(result) << "Adding value '" << value << "' into the bst failed.";
   }
 }
@@ -178,8 +178,9 @@ TEST(MutexBstTest, AddRemoveTest)
 
     bool result = false;
     if (op == 0) { // Add
-      auto [r, id] = tree->add(candidate);
-      result = r;
+      const auto r = tree->add(candidate);
+      static_assert(sizeof(r) == 8);
+      result = r.isSuccess();
       if (flag) {
         ASSERT_FALSE(result) << "BST add operation failed.";
       }
@@ -189,8 +190,8 @@ TEST(MutexBstTest, AddRemoveTest)
       }
     }
     else { // Remove
-      auto [r, id] = tree->remove(candidate);
-      result = r;
+      const auto r = tree->remove(candidate);
+      result = r.isSuccess();
       if (flag) {
         ASSERT_TRUE(result) << "BST remove operation failed.";
         flag = false;
@@ -201,7 +202,7 @@ TEST(MutexBstTest, AddRemoveTest)
     }
 
     for (auto v : value_list) {
-      const auto [r, id] = tree->contain(v.first);
+      const bool r = tree->contain(v.first).isSuccess();
       if (v.second)
         ASSERT_TRUE(r) << "BST contain(" << v.first << ") operation failed.";
       else
@@ -239,10 +240,10 @@ TEST(MutexBstTest, MultithreadTest)
         const std::size_t index = sampler2(rand_engine);
         const int candidate = candidate_list[index];
         if (op == 0) { // Add
-          [[maybe_unused]] auto [result, id] = tree->add(candidate);
+          [[maybe_unused]] const auto result = tree->add(candidate);
         }
         else {
-          [[maybe_unused]] const auto [result, id] = tree->remove(candidate);
+          [[maybe_unused]] const auto result = tree->remove(candidate);
         }
       }
     };

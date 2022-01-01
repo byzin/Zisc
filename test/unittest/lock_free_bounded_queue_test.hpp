@@ -62,8 +62,8 @@ class LockFreeBoundedQueueTest
         const std::size_t offset = id * kNumOfThreadTasks;
         for (std::size_t i = 0; i < kNumOfThreadTasks; ++i) {
           const uint64b index = zisc::cast<uint64b>(offset + i);
-          const bool flag = q.enqueue(index);
-          if (!flag)
+          const auto r = q.enqueue(index);
+          if (!r.isSuccess())
             result = false;
         }
       };
@@ -111,8 +111,8 @@ class LockFreeBoundedQueueTest
         const std::size_t offset = id * num_of_task_threads;
         for (std::size_t i = 0; i < num_of_task_threads; ++i) {
           const uint64b index = zisc::cast<uint64b>(offset + i);
-          const bool flag = q.enqueue(index);
-          if (!flag)
+          const auto r = q.enqueue(index);
+          if (!r.isSuccess())
             result = false;
         }
       };
@@ -125,11 +125,14 @@ class LockFreeBoundedQueueTest
         }
         constexpr std::size_t num_of_task_threads = 2 * kNumOfThreadTasks;
         for (std::size_t i = 0; i < num_of_task_threads; ++i) {
-          auto [flag, index] = q.dequeue();
-          if (flag)
+          const auto r = q.dequeue();
+          if (r.isSuccess()) {
+            const std::size_t index = r;
             data[index] = 1;
-          else
+          }
+          else {
             result = false;
+          }
         }
       };
       threads.emplace_back(work1);
@@ -179,11 +182,14 @@ class LockFreeBoundedQueueTest
           cv.wait(locker);
         }
         for (std::size_t i = 0; i < kNumOfThreadTasks; ++i) {
-          auto [flag, index] = q.dequeue();
-          if (flag)
+          const auto r = q.dequeue();
+          if (r.isSuccess()) {
+            const std::size_t index = r;
             data[index] = 1;
-          else
+          }
+          else {
             result = false;
+          }
         }
       };
       threads.emplace_back(work);

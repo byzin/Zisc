@@ -18,7 +18,6 @@
 // Standard C++ library
 #include <cstddef>
 #include <shared_mutex>
-#include <tuple>
 #include <vector>
 // Zisc
 #include "mutex_bst_node.hpp"
@@ -38,10 +37,12 @@ class MutexBst : public SearchTree<MutexBst>
 {
  public:
   // Type aliases
-  using BaseBstType = SearchTree<MutexBst>;
+  using BaseTreeType = SearchTree<MutexBst>;
+  using QueryResultT = BaseTreeType::QueryResultT;
+  using QueryResultKeyT = BaseTreeType::QueryResultKeyT;
 
   // Type aliases for STL
-  using size_type = typename BaseBstType::size_type;
+  using size_type = typename BaseTreeType::size_type;
 
 
   //! Create a bst
@@ -63,7 +64,7 @@ class MutexBst : public SearchTree<MutexBst>
 
   //! Insert the given value into the bst
   template <ConvertibleTo<double> Type>
-  std::tuple<bool, size_type> add(const Type& value);
+  QueryResultT add(const Type& value);
 
   //! Return the maximum possible number of elements
   size_type capacity() const noexcept;
@@ -76,20 +77,20 @@ class MutexBst : public SearchTree<MutexBst>
 
   //! Check if the given value is contained in the bst
   template <ConvertibleTo<double> Type>
-  std::tuple<bool, size_type> contain(const Type& value) const noexcept;
+  QueryResultT contain(const Type& value) const noexcept;
 
   //! Return the default capacity
   static constexpr size_type defaultCapacity() noexcept;
 
   //! Find the minimum key in the bst
-  double findMinKey() const noexcept;
+  QueryResultKeyT findMinKey() const noexcept;
 
   //! Check if the bst is concurrent
   static constexpr bool isConcurrent() noexcept;
 
   //! Remove the value from the bst
   template <ConvertibleTo<double> Type>
-  std::tuple<bool, size_type> remove(const Type& value);
+  QueryResultT remove(const Type& value);
 
   //! Change the maximum possible number of elements. The bst will be cleared
   void setCapacity(const size_type cap) noexcept;

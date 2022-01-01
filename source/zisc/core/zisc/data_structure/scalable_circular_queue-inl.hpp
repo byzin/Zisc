@@ -24,10 +24,11 @@
 #include <memory>
 #include <string_view>
 #include <type_traits>
-#include <tuple>
 #include <utility>
 #include <vector>
 // Zisc
+#include "query_result.hpp"
+#include "query_value.hpp"
 #include "zisc/bit.hpp"
 #include "zisc/concepts.hpp"
 #include "zisc/error.hpp"
@@ -154,14 +155,13 @@ auto ScalableCircularQueue<T>::data() const noexcept -> const container_type&
   \return No description
   */
 template <Movable T> inline
-auto ScalableCircularQueue<T>::dequeue() noexcept -> std::tuple<bool, Type>
+auto ScalableCircularQueue<T>::dequeue() noexcept -> DequeueQueryResultT
 {
-  std::tuple<bool, Type> result;
+  DequeueQueryResultT result;
   const uint64b index = allocated_elements_.dequeue(false); // Get an entry point
-  auto& flag = std::get<0>(result);
-  flag = index != RingBuffer::invalidIndex();
-  if (flag) {
-    std::get<1>(result) = std::move(elements_[index]);
+  const bool is_success = index != RingBuffer::invalidIndex();
+  if (is_success) {
+    result = std::move(elements_[index]);
     free_elements_.enqueue(index, true);
   }
   return result;
@@ -175,7 +175,7 @@ auto ScalableCircularQueue<T>::dequeue() noexcept -> std::tuple<bool, Type>
   \exception OverflowError No description.
   */
 template <Movable T> inline
-bool ScalableCircularQueue<T>::enqueue(ConstReference value)
+auto ScalableCircularQueue<T>::enqueue(ConstReference value) -> EnqueueQueryResultT
 {
   return enqueueImpl(value);
 }
@@ -188,7 +188,7 @@ bool ScalableCircularQueue<T>::enqueue(ConstReference value)
   \exception OverflowError No description.
   */
 template <Movable T> inline
-bool ScalableCircularQueue<T>::enqueue(RReference value)
+auto ScalableCircularQueue<T>::enqueue(RReference value) -> EnqueueQueryResultT
 {
   return enqueueImpl(std::move(value));
 }
@@ -268,24 +268,24 @@ auto ScalableCircularQueue<T>::size() const noexcept -> size_type
   \exception OverflowError No description.
   */
 template <Movable T> template <typename ValueT> inline
-bool ScalableCircularQueue<T>::enqueueImpl(ValueT&& value)
+auto ScalableCircularQueue<T>::enqueueImpl(ValueT&& value) -> EnqueueQueryResultT
 {
-  const uint64b index = free_elements_.dequeue(true); // Get an entry index
+  using QueryValueT = typename EnqueueQueryResultT::Type;
+  QueryValueT index = free_elements_.dequeue(true); // Get an entry index
 
   // Check overflow
   using OverflowErr = typename BaseQueueType::OverflowError;
-  if (index == RingBuffer::overflowIndex()) {
+  if (index.get() == RingBuffer::overflowIndex()) {
     throw OverflowErr{"Queue overflow happened.",
                       resource(),
                       std::forward<ValueT>(value)};
   }
 
-  const bool result = index != RingBuffer::invalidIndex();
-  if (result) {
-    elements_[index] = std::forward<ValueT>(value);
-    allocated_elements_.enqueue(index, false);
+  if (index.isValid()) {
+    elements_[index.get()] = std::forward<ValueT>(value);
+    allocated_elements_.enqueue(index.get(), false);
   }
-  return result;
+  return EnqueueQueryResultT{std::move(index)};
 }
 
 } // namespace zisc

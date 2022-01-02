@@ -760,8 +760,6 @@ namespace {
 
 int dtask1(const zisc::int64b /* id */) noexcept
 {
-  const std::chrono::milliseconds wait_time{1000};
-  std::this_thread::sleep_for(wait_time);
   return 10;
 }
 
@@ -771,21 +769,23 @@ TEST(ThreadManagerTest, TaskDependencyTest)
 {
   zisc::SimpleMemoryResource mem_resource;
   {
-    constexpr std::size_t nthreads = 64;
-    constexpr std::size_t n = 16;
+    constexpr std::size_t nthreads = 256;
+    constexpr std::size_t n = 32;
     zisc::ThreadManager thread_manager{nthreads, &mem_resource};
     std::array<std::atomic_int, n> vlist;
     for (auto& value : vlist)
-      value.store(0);
+      value.store(0, std::memory_order::release);
+    std::atomic_int ready0{0};
+    std::atomic_int ready1{0};
 
     auto result1 = thread_manager.enqueue(::dtask1, zisc::ThreadManager::kAllPrecedences);
     ASSERT_EQ(0, result1.id());
 
-    auto task2 = [&vlist](const std::size_t i, const zisc::int64b /* id */) noexcept
+    auto task2 = [&vlist, &ready0](const std::size_t i, const zisc::int64b /* id */) noexcept
     {
-      const std::chrono::milliseconds wait_time{1000};
-      std::this_thread::sleep_for(wait_time);
-      ++vlist[i];
+      while (ready0.load(std::memory_order::acquire) == 0)
+        std::this_thread::yield();
+      vlist[i].fetch_add(1, std::memory_order::release);
     };
     constexpr std::size_t begin = 0;
     constexpr std::size_t end = vlist.size();
@@ -796,15 +796,17 @@ TEST(ThreadManagerTest, TaskDependencyTest)
     {
       int total = 0;
       for (auto& value : vlist)
-        total += value++;
+        total += value.fetch_add(1, std::memory_order::acq_rel);
       return total;
     };
     auto result3 = thread_manager.enqueue(task3, result2.id());
     ASSERT_EQ(2, result3.id());
 
-    auto task4 = [&vlist](const std::size_t i) noexcept
+    auto task4 = [&vlist, &ready1](const std::size_t i) noexcept
     {
-      ++vlist[i];
+      while (ready1.load(std::memory_order::acquire) == 0)
+        std::this_thread::yield();
+      vlist[i].fetch_add(1, std::memory_order::release);
     };
     auto result4 = thread_manager.enqueueLoop(task4, begin, end, result1.id());
     ASSERT_EQ(3, result4.id());
@@ -813,7 +815,7 @@ TEST(ThreadManagerTest, TaskDependencyTest)
     {
       int total = 0;
       for (auto& value : vlist)
-        total += value.load();
+        total += value.load(std::memory_order::acquire);
       return total;
     };
     auto result5 = thread_manager.enqueue(task5, result4.id());
@@ -822,20 +824,25 @@ TEST(ThreadManagerTest, TaskDependencyTest)
     auto result6 = thread_manager.enqueue(task5, zisc::ThreadManager::kAllPrecedences);
     ASSERT_EQ(5, result6.id());
 
+    // Any task (except task1) shouldn't be completed
     EXPECT_EQ(0, task5()) << "Task synchronization failed.";
-    thread_manager.waitForCompletion();
 
-    int expected = 3 * zisc::cast<int>(n);
-    ASSERT_EQ(expected, task5()) << "Task synchronization failed.";
+    ASSERT_EQ(10, result1.get()) << "First task failed.";
 
+    ready1.store(1, std::memory_order::release);
+    int expected = zisc::cast<int>(n);
+    ASSERT_EQ(expected, result5.get()) << "Task synchronization failed.";
+
+    ready0.store(1, std::memory_order::release);
     expected = 2 * zisc::cast<int>(n);
     ASSERT_EQ(expected, result3.get()) << "Task synchronization failed.";
 
-    expected = zisc::cast<int>(n);
-    ASSERT_EQ(expected, result5.get()) << "Task synchronization failed.";
-
     expected = 3 * zisc::cast<int>(n);
     ASSERT_EQ(expected, result6.get()) << "Task synchronization failed.";
+
+    thread_manager.waitForCompletion();
+    expected = 3 * zisc::cast<int>(n);
+    ASSERT_EQ(expected, task5()) << "Task synchronization failed.";
   }
   ASSERT_FALSE(mem_resource.totalMemoryUsage())
       << mem_resource.totalMemoryUsage() << " bytes isn't deallocated.";

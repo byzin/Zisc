@@ -181,6 +181,8 @@ SearchTree<SearchTreeClass>::SearchTree() noexcept
 template <typename SearchTreeClass> inline
 SearchTree<SearchTreeClass>::SearchTree([[maybe_unused]] const SearchTree& other) noexcept
 {
+  static_assert(sizeof(QueryResultT) == sizeof(size_type));
+  static_assert(sizeof(QueryResultKeyT) == sizeof(double));
 }
 
 /*!

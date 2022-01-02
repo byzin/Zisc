@@ -109,7 +109,7 @@ TEST(ScalableCircularQueueTest, QueueTest)
   {
     try {
       [[maybe_unused]] const auto result = q.enqueue(value);
-      static_assert(sizeof(result) == 8);
+      static_assert(sizeof(result) == sizeof(std::size_t));
     }
     catch (const Queue::OverflowError& error) {
       std::cout << error.what() << " value: " << error.get() << std::endl;
@@ -212,7 +212,7 @@ TEST(ScalableCircularQueueTest, QueueMovableValueTest)
   {
     try {
       [[maybe_unused]] const auto result = q.enqueue(::Movable{value});
-      static_assert(sizeof(result) == 8);
+      static_assert(sizeof(result) == sizeof(std::size_t));
     }
     catch (Queue::OverflowError& error) {
       auto r = std::move(error.get());
@@ -258,7 +258,7 @@ TEST(ScalableCircularQueueTest, SmallSizeTest)
     ASSERT_FALSE(q.size()) << "Invalid queue size.";
     {
       const auto result = q.enqueue(i);
-      static_assert(sizeof(result) == 8);
+      static_assert(sizeof(result) == sizeof(std::size_t));
       ASSERT_TRUE(result.isSuccess()) << "Queueing an index failed.";
     }
     ASSERT_EQ(1, q.size()) << "Invalid queue size.";

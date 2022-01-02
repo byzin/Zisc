@@ -179,7 +179,8 @@ TEST(MutexBstTest, AddRemoveTest)
     bool result = false;
     if (op == 0) { // Add
       const auto r = tree->add(candidate);
-      static_assert(sizeof(r) == 8);
+      static_assert(decltype(r)::type() == 2);
+      static_assert(sizeof(r) == sizeof(std::size_t));
       result = r.isSuccess();
       if (flag) {
         ASSERT_FALSE(result) << "BST add operation failed.";

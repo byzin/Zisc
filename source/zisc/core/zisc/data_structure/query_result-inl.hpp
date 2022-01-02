@@ -17,6 +17,7 @@
 
 #include "query_result.hpp"
 // Standard C++ library
+#include <cstddef>
 #include <limits>
 #include <memory>
 #include <type_traits>
@@ -123,6 +124,12 @@ class QueryResult<T> : private NonCopyable<QueryResult<T>>
     return result;
   }
 
+  //! Return the result type. For debug
+  static constexpr int type() noexcept
+  {
+    return 1;
+  }
+
  private:
   Type value_;
 };
@@ -137,7 +144,8 @@ class QueryResult<T> : private NonCopyable<QueryResult<T>>
 template <Movable T> requires DerivedFrom<T, QueryValueU8> ||
                               DerivedFrom<T, QueryValueU16> ||
                               DerivedFrom<T, QueryValueU32> ||
-                              DerivedFrom<T, QueryValueU64>
+                              DerivedFrom<T, QueryValueU64> ||
+                              DerivedFrom<T, QueryValue<std::size_t>>
 class QueryResult<T> : private NonCopyable<QueryResult<T>>
 {
  public:
@@ -211,6 +219,12 @@ class QueryResult<T> : private NonCopyable<QueryResult<T>>
   {
     const bool result = get().isValid();
     return result;
+  }
+
+  //! Return the result type. For debug
+  static constexpr int type() noexcept
+  {
+    return 2;
   }
 
  private:
@@ -300,6 +314,12 @@ class QueryResult<T> : private NonCopyable<QueryResult<T>>
   {
     const bool result = is_valid_ == kTrue;
     return result;
+  }
+
+  //! Return the result type. For debug
+  static constexpr int type() noexcept
+  {
+    return 3;
   }
 
  private:
@@ -421,6 +441,17 @@ bool QueryResult<T>::isSuccess() const noexcept
 {
   const bool result = is_valid_ == kTrue;
   return result;
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+template <Movable T> inline
+constexpr int QueryResult<T>::type() noexcept
+{
+  return 0;
 }
 
 } /* namespace zisc */

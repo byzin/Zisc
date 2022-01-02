@@ -78,6 +78,9 @@ class QueryResult : private NonCopyable<QueryResult<T>>
   //! Check if the underlying value is valid
   bool isSuccess() const noexcept;
 
+  //! Return the result type. For debug
+  static constexpr int type() noexcept;
+
  private:
   Type value_;
   uint8b is_valid_ = kFalse;

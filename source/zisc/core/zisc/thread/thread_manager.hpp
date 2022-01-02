@@ -31,6 +31,7 @@
 #include "packaged_task.hpp"
 #include "zisc/concepts.hpp"
 #include "zisc/data_structure/mutex_bst.hpp"
+#include "zisc/data_structure/query_value.hpp"
 #include "zisc/data_structure/queue.hpp"
 #include "zisc/data_structure/scalable_circular_queue.hpp"
 #include "zisc/data_structure/search_tree.hpp"
@@ -191,7 +192,7 @@ class ThreadManager : private NonCopyable<ThreadManager>
 
     No detailed description.
     */
-  class WorkerTask : private NonCopyable<WorkerTask>
+  class WorkerTask : private NonCopyable<WorkerTask>, public QueryValueU32
   {
    public:
     //! Create an empty task
@@ -217,9 +218,8 @@ class ThreadManager : private NonCopyable<ThreadManager>
     void run(const int64b thread_id);
 
    private:
-    SharedTask task_;
     DiffType it_offset_ = 0;
-    [[maybe_unused]] Padding<4> pad_;
+    SharedTask task_;
   };
 
   //! Memory resource for task
@@ -293,7 +293,7 @@ class ThreadManager : private NonCopyable<ThreadManager>
   static DiffType distance(Ite1&& begin, Ite2&& end) noexcept;
 
   //! Do worker task
-  void doWorkerTask(const int64b thread_id) noexcept;
+  void doWorkerTasks(const int64b thread_id);
 
   //! Run tasks on the worker threads in the manager
   template <typename ReturnT, bool kIsLoopTask,

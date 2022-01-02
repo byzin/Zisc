@@ -134,10 +134,10 @@ class QueryResult<T> : private NonCopyable<QueryResult<T>>
 
   \tparam T No description.
   */
-template <Movable T> requires DerivedFrom<QueryValue<uint8b>, T> ||
-                              DerivedFrom<QueryValue<uint16b>, T> ||
-                              DerivedFrom<QueryValue<uint32b>, T> ||
-                              DerivedFrom<QueryValue<uint64b>, T>
+template <Movable T> requires DerivedFrom<T, QueryValueU8> ||
+                              DerivedFrom<T, QueryValueU16> ||
+                              DerivedFrom<T, QueryValueU32> ||
+                              DerivedFrom<T, QueryValueU64>
 class QueryResult<T> : private NonCopyable<QueryResult<T>>
 {
  public:

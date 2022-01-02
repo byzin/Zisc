@@ -287,13 +287,14 @@ auto ThreadManager::enqueue(Func&& task, const int64b parent_task_id)
     -> Future<InvokeResult<Func>>
 {
   using ReturnT = InvokeResult<Func>;
-  auto task_data = [data = makeTaskData(std::forward<Func>(task))]
-  (const int64b) mutable noexcept -> ReturnT
+  auto tmp = makeTaskData(std::forward<Func>(task));
+  auto wrapped_task = [data = std::move(tmp)](const int64b) mutable -> ReturnT
   {
     auto func = getTaskRef(data);
     return std::invoke(func);
   };
-  auto result = enqueueImpl<ReturnT, false>(task_data, 0, 1, parent_task_id);
+  using FutureT = Future<InvokeResult<Func>>;
+  FutureT result = enqueueImpl<ReturnT, false>(wrapped_task, 0, 1, parent_task_id);
   return result;
 }
 
@@ -310,8 +311,9 @@ auto ThreadManager::enqueue(Func&& task, const int64b parent_task_id)
     -> Future<InvokeResult<Func, int64b>>
 {
   using ReturnT = InvokeResult<Func, int64b>;
-  auto task_data = makeTaskData<int64b>(std::forward<Func>(task));
-  auto result = enqueueImpl<ReturnT, false>(task_data, 0, 1, parent_task_id);
+  auto wrapped_task = makeTaskData<int64b>(std::forward<Func>(task));
+  using FutureT = Future<InvokeResult<Func, int64b>>;
+  FutureT result = enqueueImpl<ReturnT, false>(wrapped_task, 0, 1, parent_task_id);
   return result;
 }
 
@@ -335,16 +337,16 @@ auto ThreadManager::enqueueLoop(Func&& task,
                                 const int64b parent_task_id) -> Future<void>
 {
   using Ite = CommonIte<Ite1, Ite2>;
-  auto task_data = [data = makeTaskData<Ite>(std::forward<Func>(task))]
-  (const Ite it, const int64b) mutable noexcept
+  auto tmp = makeTaskData<Ite>(std::forward<Func>(task));
+  auto wrapped_task = [data = std::move(tmp)](const Ite it, const int64b) mutable
   {
     auto func = getTaskRef<Ite>(data);
     std::invoke(func, it);
   };
-  auto result = enqueueImpl<void, true>(task_data,
-                                        std::forward<Ite1>(begin),
-                                        std::forward<Ite2>(end),
-                                        parent_task_id);
+  Future<void> result = enqueueImpl<void, true>(wrapped_task,
+                                                std::forward<Ite1>(begin),
+                                                std::forward<Ite2>(end),
+                                                parent_task_id);
   return result;
 }
 
@@ -368,11 +370,11 @@ auto ThreadManager::enqueueLoop(Func&& task,
                                 const int64b parent_task_id) -> Future<void>
 {
   using Ite = CommonIte<Ite1, Ite2>;
-  auto task_data = makeTaskData<Ite, int64b>(std::forward<Func>(task));
-  auto result = enqueueImpl<void, true>(task_data,
-                                        std::forward<Ite1>(begin),
-                                        std::forward<Ite2>(end),
-                                        parent_task_id);
+  auto wrapped_task = makeTaskData<Ite, int64b>(std::forward<Func>(task));
+  Future<void> result = enqueueImpl<void, true>(wrapped_task,
+                                                std::forward<Ite1>(begin),
+                                                std::forward<Ite2>(end),
+                                                parent_task_id);
   return result;
 }
 
@@ -477,8 +479,10 @@ void ThreadManager::waitForCompletion() noexcept
   \details No detailed description
   */
 inline
-ThreadManager::WorkerTask::WorkerTask() noexcept
+ThreadManager::WorkerTask::WorkerTask() noexcept :
+    QueryValue()
 {
+  static_assert(sizeof(WorkerTask) == 24);
 }
 
 /*!
@@ -491,8 +495,9 @@ ThreadManager::WorkerTask::WorkerTask() noexcept
 template <typename TaskImpl> inline
 ThreadManager::WorkerTask::WorkerTask(std::shared_ptr<TaskImpl>& task,
                                       const DiffType it_offset) noexcept :
-    task_{task},
-    it_offset_{it_offset}
+    QueryValue(0),
+    it_offset_{it_offset},
+    task_{task}
 {
 }
 
@@ -503,8 +508,9 @@ ThreadManager::WorkerTask::WorkerTask(std::shared_ptr<TaskImpl>& task,
   */
 inline
 ThreadManager::WorkerTask::WorkerTask(WorkerTask&& other) noexcept :
-    task_{std::move(other.task_)},
-    it_offset_{other.it_offset_}
+    QueryValue(other.get()),
+    it_offset_{other.it_offset_},
+    task_{std::move(other.task_)}
 {
 }
 
@@ -524,8 +530,9 @@ ThreadManager::WorkerTask::~WorkerTask() noexcept
 inline
 auto ThreadManager::WorkerTask::operator=(WorkerTask&& other) noexcept -> WorkerTask&
 {
-  task_ = std::move(other.task_);
+  QueryValue::operator=(other);
   it_offset_ = other.it_offset_;
+  task_ = std::move(other.task_);
   return *this;
 }
 
@@ -665,21 +672,19 @@ void ThreadManager::createWorkers(const int64b num_of_threads) noexcept
   worker_lock_.store(-1, std::memory_order::release);
   num_of_active_workers_.store(cast<int>(n), std::memory_order::release);
 
-  auto work = [this]() noexcept
+  auto work = [this]()
   {
     // Wait until all worker creation are completed
     atomic_wait(std::addressof(worker_lock_), -1, std::memory_order::acquire);
     // Run worker tasks
     const int64b thread_id = getCurrentThreadId();
-    doWorkerTask(thread_id);
+    doWorkerTasks(thread_id);
   };
 
   for (std::size_t i = 0; i < n; ++i) {
     worker_list_.emplace_back(work);
     worker_id_list_.emplace_back(worker_list_.back().get_id());
   }
-
-  // Sort workers by their underlying IDs
   std::sort(worker_id_list_.begin(), worker_id_list_.end());
 
   // Activate all workers
@@ -714,9 +719,11 @@ auto ThreadManager::distance(Ite1&& begin, Ite2&& end) noexcept -> DiffType
 
 /*!
   \details No detailed description
+
+  \param [in] thread_id No description.
   */
 inline
-void ThreadManager::doWorkerTask(const int64b thread_id) noexcept
+void ThreadManager::doWorkerTasks(const int64b thread_id)
 {
   while (workersAreEnabled()) {
     WorkerTask task = fetchTask();
@@ -725,7 +732,7 @@ void ThreadManager::doWorkerTask(const int64b thread_id) noexcept
     }
     else { // Wait for next task
       const auto num_of_tasks = worker_lock_.load(std::memory_order::acquire);
-      if (num_of_tasks != 0) {
+      if (0 < num_of_tasks) {
         // The worker may just missed queued tasks, waits a little
         std::this_thread::yield();
       }
@@ -854,7 +861,7 @@ auto ThreadManager::enqueueImpl(TaskData& task,
 
   // Issue a task ID
   const int64b task_id = issueTaskId();
-  [[maybe_unused]] const auto id_result = taskIdTree().add(task_id);
+  const auto id_result = taskIdTree().add(task_id);
   ZISC_ASSERT(id_result.isSuccess(), "Registering the task ID failed: id=", task_id);
   const std::size_t storage_index = id_result.get().get();
 
@@ -917,6 +924,7 @@ inline
 auto ThreadManager::fetchTask() noexcept -> WorkerTask
 {
   auto queued_task = taskQueue().dequeue();
+  static_assert(sizeof(queued_task) == sizeof(WorkerTask));
   if (queued_task.isSuccess())
     atomic_fetch_dec(std::addressof(worker_lock_.get()), std::memory_order::release);
   return std::move(queued_task.get());

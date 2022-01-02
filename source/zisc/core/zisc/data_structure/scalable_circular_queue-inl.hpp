@@ -270,22 +270,22 @@ auto ScalableCircularQueue<T>::size() const noexcept -> size_type
 template <Movable T> template <typename ValueT> inline
 auto ScalableCircularQueue<T>::enqueueImpl(ValueT&& value) -> EnqueueQueryResultT
 {
-  using QueryValueT = typename EnqueueQueryResultT::Type;
-  QueryValueT index = free_elements_.dequeue(true); // Get an entry index
+  const uint64b index = free_elements_.dequeue(true); // Get an entry index
 
   // Check overflow
   using OverflowErr = typename BaseQueueType::OverflowError;
-  if (index.get() == RingBuffer::overflowIndex()) {
+  if (index == RingBuffer::overflowIndex()) {
     throw OverflowErr{"Queue overflow happened.",
                       resource(),
                       std::forward<ValueT>(value)};
   }
 
-  if (index.isValid()) {
-    elements_[index.get()] = std::forward<ValueT>(value);
-    allocated_elements_.enqueue(index.get(), false);
+  const bool is_success = index != RingBuffer::invalidIndex();
+  if (is_success) {
+    elements_[index] = std::forward<ValueT>(value);
+    allocated_elements_.enqueue(index, false);
   }
-  return EnqueueQueryResultT{std::move(index)};
+  return EnqueueQueryResultT{index};
 }
 
 } // namespace zisc

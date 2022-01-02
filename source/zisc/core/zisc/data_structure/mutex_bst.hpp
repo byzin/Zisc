@@ -64,7 +64,7 @@ class MutexBst : public SearchTree<MutexBst>
 
   //! Insert the given value into the bst
   template <ConvertibleTo<double> Type>
-  QueryResultT add(const Type& value);
+  [[nodiscard]] QueryResultT add(const Type& value);
 
   //! Return the maximum possible number of elements
   size_type capacity() const noexcept;
@@ -77,20 +77,20 @@ class MutexBst : public SearchTree<MutexBst>
 
   //! Check if the given value is contained in the bst
   template <ConvertibleTo<double> Type>
-  QueryResultT contain(const Type& value) const noexcept;
+  [[nodiscard]] QueryResultT contain(const Type& value) const noexcept;
 
   //! Return the default capacity
   static constexpr size_type defaultCapacity() noexcept;
 
   //! Find the minimum key in the bst
-  QueryResultKeyT findMinKey() const noexcept;
+  [[nodiscard]] QueryResultKeyT findMinKey() const noexcept;
 
   //! Check if the bst is concurrent
   static constexpr bool isConcurrent() noexcept;
 
   //! Remove the value from the bst
   template <ConvertibleTo<double> Type>
-  QueryResultT remove(const Type& value);
+  [[nodiscard]] QueryResultT remove(const Type& value);
 
   //! Change the maximum possible number of elements. The bst will be cleared
   void setCapacity(const size_type cap) noexcept;

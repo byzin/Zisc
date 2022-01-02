@@ -49,7 +49,7 @@ class SearchTree : private NonCopyable<SearchTree<SearchTreeClass>>
 
   //! Insert the given value into the search tree
   template <ConvertibleTo<double> Type>
-  QueryResultT add(const Type& value);
+  [[nodiscard]] QueryResultT add(const Type& value);
 
   //! Return the maximum possible number of elements
   size_type capacity() const noexcept;
@@ -62,10 +62,10 @@ class SearchTree : private NonCopyable<SearchTree<SearchTreeClass>>
 
   //! Check if the given value is contained in the search tree
   template <ConvertibleTo<double> Type>
-  QueryResultT contain(const Type& value) const noexcept;
+  [[nodiscard]] QueryResultT contain(const Type& value) const noexcept;
 
   //! Find the minimum key in the search tree
-  QueryResultKeyT findMinKey() const noexcept;
+  [[nodiscard]] QueryResultKeyT findMinKey() const noexcept;
 
   //! Check if the search tree is bounded
   static constexpr bool isBounded() noexcept;
@@ -75,7 +75,7 @@ class SearchTree : private NonCopyable<SearchTree<SearchTreeClass>>
 
   //! Remove the value from the search tree
   template <ConvertibleTo<double> Type>
-  QueryResultT remove(const Type& value);
+  [[nodiscard]] QueryResultT remove(const Type& value);
 
   //! Change the maximum possible number of elements. The search tree will be cleared
   void setCapacity(const size_type cap) noexcept;

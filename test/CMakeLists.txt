@@ -133,6 +133,7 @@ macro(setTestProject)
                                   misc-redundant-expression
                                   modernize-avoid-c-arrays
                                   modernize-use-auto
+                                  performance-move-const-arg
                                   readability-function-cognitive-complexity
                                   readability-isolate-declaration
                                   readability-magic-numbers

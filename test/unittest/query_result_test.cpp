@@ -104,23 +104,33 @@ TEST(QueryResultTest, FloatValueTest)
   ASSERT_FLOAT_EQ(v1, result3) << "The result doesn't have correct value.";
 }
 
+namespace  {
+
+class QueryValueTest : public zisc::QueryValueU32
+{
+ public:
+  QueryValueTest() {}
+
+  QueryValueTest(const zisc::uint32b value) : QueryValue(value) {}
+};
+
+} /* namespace  */
+
 TEST(QueryResultTest, QueryValueTest)
 {
-  using uint32b = zisc::uint32b;
-  using QueryValue = zisc::QueryValue<uint32b>;
-  using QueryResult = zisc::QueryResult<QueryValue>;
+  using QueryResult = zisc::QueryResult<::QueryValueTest>;
   static_assert(sizeof(QueryResult) == 4);
 
   QueryResult result{};
   // Default value test
   ASSERT_FALSE(result.isSuccess()) << "Default result isn't invalid.";
   // Move valid value
-  const QueryValue v1 = 10;
-  QueryValue tmp = v1;
+  const ::QueryValueTest v1 = 10;
+  ::QueryValueTest tmp = v1;
   result = std::move(tmp);
   ASSERT_TRUE(result.isSuccess()) << "The result isn't valid.";
   ASSERT_EQ(v1, result.get()) << "The result doesn't have correct value.";
-  const QueryValue v2 = result; // Implicit conversion check
+  const ::QueryValueTest v2 = result; // Implicit conversion check
   ASSERT_EQ(v1, v2) << "The result doesn't have correct value.";
   // Move result
   QueryResult result2{};

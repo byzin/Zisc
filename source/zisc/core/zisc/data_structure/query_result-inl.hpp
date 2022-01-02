@@ -31,6 +31,133 @@
 namespace zisc {
 
 /*!
+  \details No detailed description
+  */
+template <Movable T> inline
+QueryResult<T>::QueryResult() noexcept : value_{}
+{
+}
+
+/*!
+  \details No detailed description
+
+  \param [in] value No description.
+  */
+template <Movable T> inline
+QueryResult<T>::QueryResult(RReference value) noexcept :
+    value_{std::move(value)},
+    is_valid_{kTrue}
+{
+}
+
+/*!
+  \details No detailed description
+
+  \param [in] other No description.
+  */
+template <Movable T> inline
+QueryResult<T>::QueryResult(QueryResult&& other) noexcept :
+    value_{std::move(other.value_)},
+    is_valid_{other.is_valid_}
+{
+}
+
+/*!
+  \details No detailed description
+
+  \param [in] value No description.
+  \return No description
+  */
+template <Movable T> inline
+auto QueryResult<T>::operator=(RReference value) noexcept -> QueryResult&
+{
+  value_ = std::move(value);
+  is_valid_ = kTrue;
+  return *this;
+}
+
+/*!
+  \details No detailed description
+
+  \param [in] other No description.
+  \return No description
+  */
+template <Movable T> inline
+auto QueryResult<T>::operator=(QueryResult&& other) noexcept -> QueryResult&
+{
+  value_ = std::move(other.value_);
+  is_valid_ = other.is_valid_;
+  return *this;
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+template <Movable T> inline
+QueryResult<T>::operator Reference() noexcept
+{
+  return get();
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+template <Movable T> inline
+QueryResult<T>::operator ConstReference() const noexcept
+{
+  return get();
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+template <Movable T> inline
+auto QueryResult<T>::get() noexcept -> Reference
+{
+  return value_;
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+template <Movable T> inline
+auto QueryResult<T>::get() const noexcept -> ConstReference
+{
+  return value_;
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+template <Movable T> inline
+bool QueryResult<T>::isSuccess() const noexcept
+{
+  const bool result = is_valid_ == kTrue;
+  return result;
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+template <Movable T> inline
+constexpr int QueryResult<T>::type() noexcept
+{
+  return 0;
+}
+
+/*!
   \brief No brief description
 
   No detailed description.
@@ -326,133 +453,6 @@ class QueryResult<T> : private NonCopyable<QueryResult<T>>
   Type value_;
   uint8b is_valid_ = kFalse;
 };
-
-/*!
-  \details No detailed description
-  */
-template <Movable T> inline
-QueryResult<T>::QueryResult() noexcept : value_{}
-{
-}
-
-/*!
-  \details No detailed description
-
-  \param [in] value No description.
-  */
-template <Movable T> inline
-QueryResult<T>::QueryResult(RReference value) noexcept :
-    value_{std::move(value)},
-    is_valid_{kTrue}
-{
-}
-
-/*!
-  \details No detailed description
-
-  \param [in] other No description.
-  */
-template <Movable T> inline
-QueryResult<T>::QueryResult(QueryResult&& other) noexcept :
-    value_{std::move(other.value_)},
-    is_valid_{other.is_valid_}
-{
-}
-
-/*!
-  \details No detailed description
-
-  \param [in] value No description.
-  \return No description
-  */
-template <Movable T> inline
-auto QueryResult<T>::operator=(RReference value) noexcept -> QueryResult&
-{
-  value_ = std::move(value);
-  is_valid_ = kTrue;
-  return *this;
-}
-
-/*!
-  \details No detailed description
-
-  \param [in] other No description.
-  \return No description
-  */
-template <Movable T> inline
-auto QueryResult<T>::operator=(QueryResult&& other) noexcept -> QueryResult&
-{
-  value_ = std::move(other.value_);
-  is_valid_ = other.is_valid_;
-  return *this;
-}
-
-/*!
-  \details No detailed description
-
-  \return No description
-  */
-template <Movable T> inline
-QueryResult<T>::operator Reference() noexcept
-{
-  return get();
-}
-
-/*!
-  \details No detailed description
-
-  \return No description
-  */
-template <Movable T> inline
-QueryResult<T>::operator ConstReference() const noexcept
-{
-  return get();
-}
-
-/*!
-  \details No detailed description
-
-  \return No description
-  */
-template <Movable T> inline
-auto QueryResult<T>::get() noexcept -> Reference
-{
-  return value_;
-}
-
-/*!
-  \details No detailed description
-
-  \return No description
-  */
-template <Movable T> inline
-auto QueryResult<T>::get() const noexcept -> ConstReference
-{
-  return value_;
-}
-
-/*!
-  \details No detailed description
-
-  \return No description
-  */
-template <Movable T> inline
-bool QueryResult<T>::isSuccess() const noexcept
-{
-  const bool result = is_valid_ == kTrue;
-  return result;
-}
-
-/*!
-  \details No detailed description
-
-  \return No description
-  */
-template <Movable T> inline
-constexpr int QueryResult<T>::type() noexcept
-{
-  return 0;
-}
 
 } /* namespace zisc */
 

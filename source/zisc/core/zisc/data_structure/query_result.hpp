@@ -19,6 +19,7 @@
 #include <memory>
 #include <type_traits>
 // Zisc
+#include "zisc/boolean.hpp"
 #include "zisc/concepts.hpp"
 #include "zisc/non_copyable.hpp"
 #include "zisc/zisc_config.hpp"
@@ -83,7 +84,7 @@ class QueryResult : private NonCopyable<QueryResult<T>>
 
  private:
   Type value_;
-  uint8b is_valid_ = kFalse;
+  Boolean is_valid_;
   [[maybe_unused]] Padding<std::alignment_of_v<Type> - 1> pad_;
 };
 

@@ -37,10 +37,6 @@ using uint64b = std::uint64_t; //!< 64-bit unsigned integer type
 template <std::size_t kSize>
 using Padding = std::aligned_storage_t<kSize, 1>;
 
-// Boolean values
-constexpr uint8b kFalse = 0;
-constexpr uint8b kTrue = 1;
-
 /*!
   \brief Configuration of zisc source
 

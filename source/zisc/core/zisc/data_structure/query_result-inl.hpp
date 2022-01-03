@@ -25,6 +25,7 @@
 // Zisc
 #include "query_value.hpp"
 #include "zisc/bit.hpp"
+#include "zisc/boolean.hpp"
 #include "zisc/concepts.hpp"
 #include "zisc/zisc_config.hpp"
 
@@ -46,7 +47,7 @@ QueryResult<T>::QueryResult() noexcept : value_{}
 template <Movable T> inline
 QueryResult<T>::QueryResult(RReference value) noexcept :
     value_{std::move(value)},
-    is_valid_{kTrue}
+    is_valid_{true}
 {
 }
 
@@ -72,7 +73,7 @@ template <Movable T> inline
 auto QueryResult<T>::operator=(RReference value) noexcept -> QueryResult&
 {
   value_ = std::move(value);
-  is_valid_ = kTrue;
+  is_valid_ = true;
   return *this;
 }
 
@@ -142,8 +143,7 @@ auto QueryResult<T>::get() const noexcept -> ConstReference
 template <Movable T> inline
 bool QueryResult<T>::isSuccess() const noexcept
 {
-  const bool result = is_valid_ == kTrue;
-  return result;
+  return is_valid_;
 }
 
 /*!
@@ -385,7 +385,7 @@ class QueryResult<T> : private NonCopyable<QueryResult<T>>
   }
 
   //! Create a result
-  QueryResult(RReference value) noexcept : value_{std::move(value)}, is_valid_{kTrue}
+  QueryResult(RReference value) noexcept : value_{std::move(value)}, is_valid_{true}
   {
   }
 
@@ -399,7 +399,7 @@ class QueryResult<T> : private NonCopyable<QueryResult<T>>
   QueryResult& operator=(RReference value) noexcept
   {
     value_ = std::move(value);
-    is_valid_ = kTrue;
+    is_valid_ = true;
     return *this;
   }
 
@@ -439,8 +439,7 @@ class QueryResult<T> : private NonCopyable<QueryResult<T>>
   //! Check if the underlying value is valid
   bool isSuccess() const noexcept
   {
-    const bool result = is_valid_ == kTrue;
-    return result;
+    return is_valid_;
   }
 
   //! Return the result type. For debug
@@ -451,7 +450,7 @@ class QueryResult<T> : private NonCopyable<QueryResult<T>>
 
  private:
   Type value_;
-  uint8b is_valid_ = kFalse;
+  Boolean is_valid_;
 };
 
 } /* namespace zisc */

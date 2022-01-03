@@ -46,7 +46,7 @@
                           ": ", \
                           __VA_ARGS__)
 #else // ZISC_ASSERTION
-  #define ZISC_ASSERT(condition, ...) static_cast<void>(condition)
+  #define ZISC_ASSERT(condition, ...)
 #endif // ZISC_ASSERTION
 
 namespace zisc {

@@ -80,8 +80,7 @@ macro(Zisc_setZiscProject)
                  @ONLY)
 
   # Create Zisc library
-  file(GLOB_RECURSE zisc_source_files ${zisc_core_dir}/zisc/*.cpp
-                                      ${zisc_core_dir}/zisc/*.hpp)
+  file(GLOB_RECURSE zisc_source_files ${zisc_core_dir}/zisc/*[.hpp|.cpp])
   list(APPEND zisc_source_files ${zisc_config_dir}/zisc_config-inl.hpp)
   add_library(${PROJECT_NAME} STATIC ${zisc_source_files})
   source_group(${PROJECT_NAME} FILES ${zisc_source_files})

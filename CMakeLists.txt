@@ -11,6 +11,7 @@ cmake_minimum_required(VERSION 3.22)
 
 project(ZiscProject VERSION 0.0.68 LANGUAGES CXX)
 
+set(zisc_path ${PROJECT_SOURCE_DIR}/source/zisc)
 if(PROJECT_IS_TOP_LEVEL)
   ## CMake configurations
   set(CMAKE_CONFIGURATION_TYPES "Debug" "RelWithDebInfo" "Release")
@@ -20,7 +21,6 @@ if(PROJECT_IS_TOP_LEVEL)
   set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
   include(InstallRequiredSystemLibraries)
   ## Print system environment information
-  set(zisc_path ${PROJECT_SOURCE_DIR}/source/zisc)
   include(${zisc_path}/cmake/general.cmake)
   message(STATUS "System information:")
   Zisc_printSystemInfo("  + ")

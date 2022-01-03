@@ -178,7 +178,7 @@ HeaderPtr SimpleMemoryResource::getHeaderImpl(Type data) noexcept
   static_assert(is_power_of_2, "The size of Header isn't power of 2.");
 
   HeaderPtr header = reinterp<HeaderPtr>(data - sizeof(Header));
-  constexpr std::size_t alignment = std::alignment_of_v<Header>;
+  [[maybe_unused]] constexpr std::size_t alignment = std::alignment_of_v<Header>;
   ZISC_ASSERT(Memory::isAligned(header, alignment), "The header isn't aligned.");
   return header;
 }

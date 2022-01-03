@@ -44,8 +44,8 @@ ThreadManager::TaskResource::~TaskResource() noexcept
   \param [in] alignment No description.
   \return No description
   */
-void* ThreadManager::TaskResource::do_allocate(std::size_t size,
-                                               std::size_t alignment)
+void* ThreadManager::TaskResource::do_allocate([[maybe_unused]] std::size_t size,
+                                               [[maybe_unused]] std::size_t alignment)
 {
 #if !defined(Z_MSVC)
   [[maybe_unused]] constexpr std::size_t s = storageSize();

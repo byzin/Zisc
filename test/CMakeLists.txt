@@ -104,8 +104,7 @@ macro(setTestProject)
   endforeach(reference_path)
 
   # Create a unit test
-  file(GLOB unittest_source_files ${PROJECT_SOURCE_DIR}/unittest/*.cpp
-                                  ${PROJECT_SOURCE_DIR}/unittest/*.hpp)
+  file(GLOB unittest_source_files ${PROJECT_SOURCE_DIR}/unittest/*[.hpp|.cpp])
   add_executable(${PROJECT_NAME} ${unittest_source_files})
   source_group(${PROJECT_NAME} FILES ${unittest_source_files})
 

@@ -300,10 +300,6 @@ constexpr F3<Float> makeFmaInput(const Float x) noexcept
   return F3<Float>{x1, x2, x3};
 }
 
-void testFmaF(std::ostream* output) noexcept;
-
-void testFmaD(std::ostream* output) noexcept;
-
 template <zisc::FloatingPoint Float> inline
 constexpr F2<Float> makeFmodInput(const Float x) noexcept
 {
@@ -321,9 +317,5 @@ constexpr F2<Float> makeFmodInput(const Float x) noexcept
 
   return F2<Float>{x1, x2};
 }
-
-void testFmodF(std::ostream* output) noexcept;
-
-void testFmodD(std::ostream* output) noexcept;
 
 #endif // ZISC_MATH_REFERENCE_BASIC_TEST_HPP

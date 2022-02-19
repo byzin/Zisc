@@ -31,28 +31,4 @@ constexpr Float makePowInput(const Float x) noexcept
   return e;
 }
 
-void testPowF(std::ostream* output) noexcept;
-
-void testPowD(std::ostream* output) noexcept;
-
-void testPowIntF(std::ostream* output) noexcept;
-
-void testPowIntD(std::ostream* output) noexcept;
-
-void testSqrtF(std::ostream* output) noexcept;
-
-void testSqrtD(std::ostream* output) noexcept;
-
-void testSqrtSubnormalF(std::ostream* output) noexcept;
-
-void testSqrtSubnormalD(std::ostream* output) noexcept;
-
-void testCbrtF(std::ostream* output) noexcept;
-
-void testCbrtD(std::ostream* output) noexcept;
-
-void testCbrtSubnormalF(std::ostream* output) noexcept;
-
-void testCbrtSubnormalD(std::ostream* output) noexcept;
-
 #endif // ZISC_MATH_REFERENCE_POWER_TEST_HPP

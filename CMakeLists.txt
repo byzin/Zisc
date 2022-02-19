@@ -42,7 +42,6 @@ endif()
 if(ZISC_BUILD_TESTS)
   enable_testing()
   add_subdirectory(${PROJECT_SOURCE_DIR}/test ${PROJECT_BINARY_DIR}/UnitTest)
-  add_subdirectory(${PROJECT_SOURCE_DIR}/test/math_reference ${PROJECT_BINARY_DIR}/MathReference)
 endif()
 
 if(PROJECT_IS_TOP_LEVEL)

@@ -49,12 +49,26 @@ endfunction(Zisc_checkTarget)
 function(Zisc_addGoogleTest source_dir binary_dir)
   message(STATUS "Add GoogleTest library.")
   Zisc_checkSubmodule("${source_dir}")
-  set(BUILD_GMOCK OFF CACHE BOOL "" FORCE)
-  set(INSTALL_GTEST OFF CACHE BOOL "" FORCE)
-  set(gtest_force_shared_crt ON CACHE BOOL "" FORCE) # Prevent overriding the parent project's compiler/linker settings on Windows
-  set(gtest_build_tests OFF CACHE BOOL "" FORCE)
-  set(gtest_build_samples OFF CACHE BOOL "" FORCE)
+  set(BUILD_GMOCK OFF CACHE INTERNAL "" FORCE)
+  set(INSTALL_GTEST OFF CACHE INTERNAL "" FORCE)
+  set(gtest_force_shared_crt ON CACHE INTERNAL "" FORCE) # Prevent overriding the parent project's compiler/linker settings on Windows
+  set(gtest_build_tests OFF CACHE INTERNAL "" FORCE)
+  set(gtest_build_samples OFF CACHE INTERNAL "" FORCE)
+  set(gtest_disable_pthreads ON CACHE INTERNAL "" FORCE)
+  set(gtest_hide_internal_symbols ON CACHE INTERNAL "" FORCE)
   add_subdirectory("${source_dir}" "${binary_dir}" EXCLUDE_FROM_ALL)
+  set_target_properties(gtest
+      PROPERTIES
+      RUNTIME_OUTPUT_DIRECTORY "${binary_dir}/bin"
+      LIBRARY_OUTPUT_DIRECTORY "${binary_dir}/lib"
+      ARCHIVE_OUTPUT_DIRECTORY "${binary_dir}/lib"
+      PDB_OUTPUT_DIRECTORY "${binary_dir}/bin")
+  set_target_properties(gtest_main
+      PROPERTIES
+      RUNTIME_OUTPUT_DIRECTORY "${binary_dir}/bin"
+      LIBRARY_OUTPUT_DIRECTORY "${binary_dir}/lib"
+      ARCHIVE_OUTPUT_DIRECTORY "${binary_dir}/lib"
+      PDB_OUTPUT_DIRECTORY "${binary_dir}/bin")
 endfunction(Zisc_addGoogleTest)
 
 

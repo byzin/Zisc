@@ -111,10 +111,13 @@ function(Zisc_getSanitizerFlags compile_sanitizer_flags linker_sanitizer_flags)
     if(NOT Z_GCC)
       list(APPEND check_list implicit-unsigned-integer-truncation
                              implicit-signed-integer-truncation
-                             implicit-integer-sign-change
                              unsigned-shift-base
                              unsigned-integer-overflow
                              )
+      if(NOT Z_APPLE_CLANG)
+        list(APPEND check_list implicit-integer-sign-change
+                               )
+      endif()
     endif()
   endif()
   if(Z_ENABLE_SANITIZER_LEAK)

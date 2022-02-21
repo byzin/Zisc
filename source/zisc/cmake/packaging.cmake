@@ -41,7 +41,7 @@ function(Zisc_getMakeSimpleRunScriptCode target bin_dir lib_dir env_vars script_
   elseif(Z_MAC)
     set(script_ext "sh")
     set(env_exporter "export")
-    set(script_path_cmd "$(cd \\\"$(dirname \\\"\\\${BASH_SOURCE}\\\")\\\"; pwd)")
+    set(script_path_cmd "$(cd \\\"$(dirname \\\"\\\${BASH_SOURCE}\\\")\\\"$<SEMICOLON> pwd)")
   elseif(Z_LINUX)
     set(script_ext "sh")
     set(env_exporter "export")

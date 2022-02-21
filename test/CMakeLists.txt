@@ -44,8 +44,9 @@ function(getMakeTestRunScriptCode target bin_dir lib_dir script_name output_dir 
   set(env_vars "")
   cmake_path(NATIVE_PATH lib_dir native_lib_dir)
   if(Z_LINUX)
-    list(APPEND env_vars "LD_LIBRARY_PATH=${native_lib_dir}:\\\${LD_LIBRARY_PATH}")
+    list(APPEND env_vars "LD_LIBRARY_PATH=\\\"${native_lib_dir}\\\${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}\\\"")
   elseif(Z_MAC)
+    list(APPEND env_vars "DYLD_LIBRARY_PATH=\\\"${native_lib_dir}:\\\${DYLD_LIBRARY_PATH:-}\\\"")
   elseif(Z_WINDOWS)
   endif()
 

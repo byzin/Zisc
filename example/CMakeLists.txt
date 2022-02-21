@@ -9,7 +9,7 @@
 cmake_minimum_required(VERSION 3.22)
 
 
-set(__zisc_dir__ ${CMAKE_CURRENT_LIST_DIR}/../source/zisc)
+cmake_path(SET __zisc_dir__ NORMALIZE "${CMAKE_CURRENT_LIST_DIR}/../source/zisc")
 
 
 function(getExampleWarningFlags example_warning_flags)
@@ -18,13 +18,11 @@ function(getExampleWarningFlags example_warning_flags)
   # Suppress warnings
   if(ZISC_SUPPRESS_EXCESSIVE_WARNING)
     if(Z_CLANG)
-      list(APPEND warning_flags -Wno-float-equal
-                                -Wno-sign-conversion 
-                                )
+      # list(APPEND warning_flags 
+      #                           )
     elseif(Z_GCC)
-      list(APPEND warning_flags -Wno-attributes
-                                -Wno-sign-conversion 
-                                )
+      # list(APPEND warning_flags 
+      #                           )
     endif()
   endif()
 
@@ -42,7 +40,7 @@ function(addExample target save_dependency_list)
   set_target_properties(${target} PROPERTIES CXX_STANDARD 20
                                              CXX_STANDARD_REQUIRED ON)
 
-  include(${__zisc_dir__}/cmake/compiler.cmake)
+  include("${__zisc_dir__}/cmake/compiler.cmake")
   Zisc_getCxxWarningFlags(cxx_compile_warning_flags)
   getExampleWarningFlags(example_warning_flags)
   target_compile_options(${target} PRIVATE ${cxx_compile_warning_flags}
@@ -51,7 +49,8 @@ function(addExample target save_dependency_list)
   Zisc_enableIpo(${target})
 
   #
-  set(clang_tidy_exclusion_checks bugprone-implicit-widening-of-multiplication-result
+  set(clang_tidy_exclusion_checks bugprone-exception-escape
+                                  bugprone-implicit-widening-of-multiplication-result
                                   bugprone-narrowing-conversions
                                   misc-non-private-member-variables-in-classes
                                   misc-redundant-expression
@@ -64,15 +63,19 @@ function(addExample target save_dependency_list)
                                   readability-uppercase-literal-suffix)
   Zisc_setStaticAnalyzer(${target}
                          CLANG_TIDY_EXCLUSION_CHECKS ${clang_tidy_exclusion_checks})
-  Zisc_createLinkToTarget(${target} ${PROJECT_BINARY_DIR})
+  Zisc_createLinkToTarget(${target} "${PROJECT_BINARY_DIR}")
 
   # Installation settings
+  include("${__zisc_dir__}/cmake/packaging.cmake")
   ## Save the dependency list
   if(save_dependency_list)
-    Zisc_getSaveDependencyCode(${target} ${PROJECT_BINARY_DIR} "" "" "" dependency_code)
-    install(CODE ${dependency_code} COMPONENT example)
+    Zisc_getSaveDependencyCode(${target} "${PROJECT_BINARY_DIR}" "" "" "" dependency_code)
+    install(CODE ${dependency_code}
+            COMPONENT example)
   endif()
-  install(TARGETS ${target} DESTINATION bin COMPONENT example)
+  install(TARGETS ${target}
+          DESTINATION "${CMAKE_INSTALL_BIDIR}"
+          COMPONENT example)
 endfunction(addExample)
 
 
@@ -82,8 +85,8 @@ macro(setExampleProject)
   project(Examples VERSION 0.0.1 DESCRIPTION "${project_description}" LANGUAGES  CXX)
 
   # Initialize platform info
-  include(${__zisc_dir__}/cmake/general.cmake)
-  include(${__zisc_dir__}/cmake/platform.cmake)
+  include("${__zisc_dir__}/cmake/general.cmake")
+  include("${__zisc_dir__}/cmake/platform.cmake")
   Zisc_getPlatformFlags(platform_definitions)
   Zisc_setVariablesOnCMake(${platform_definitions})
 

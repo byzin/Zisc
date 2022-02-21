@@ -137,6 +137,13 @@ class Future : private NonCopyable<Future<T>>
   //! Return the linked task
   const PackagedTask& task() const noexcept;
 
+  //! Return the address of the linked task
+  PackagedTask* taskPtr() noexcept;
+
+  //! Return the address of the linked task
+  const PackagedTask* taskPtr() const noexcept;
+
+
   //! Unlink the task with the future
   void unlink(PackagedTask* t) noexcept;
 

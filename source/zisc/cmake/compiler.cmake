@@ -9,78 +9,62 @@
 
 #
 function(Zisc_initCompilerOptions)
-  include(${CMAKE_CURRENT_FUNCTION_LIST_DIR}/general.cmake)
+  include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/general.cmake")
 
-  set(description "Enable compiler full warning (if supported).")
-  Zisc_setBooleanOption(Z_ENABLE_COMPILER_WARNING ON ${description})
+  set(description "Enable compiler recommended warnings.")
+  Zisc_setBooleanOption(Z_ENABLE_COMPILER_WARNING ON "${description}")
 
-  set(description "Make compiler warnings into errors (if supported).")
-  Zisc_setBooleanOption(Z_MAKE_WARNING_INTO_ERROR OFF ${description})
+  set(description "Enable compiler full warnings (if compiler supports that).")
+  Zisc_setBooleanOption(Z_ENABLE_COMPILER_WARNING_EXTRA OFF "${description}")
+
+  set(description "Make compiler warnings into errors (if supported that).")
+  Zisc_setBooleanOption(Z_MAKE_WARNING_INTO_ERROR OFF "${description}")
 
   set(description "Clang uses LLVM's build tools and libraries instead of platform specific tools.")
-  Zisc_setBooleanOption(Z_CLANG_USES_LLVM_TOOLS OFF ${description})
+  Zisc_setBooleanOption(Z_CLANG_USES_LLVM_TOOLS OFF "${description}")
 
-  set(description "Enable SIMD extensions (AVX2 and FMA on X64).")
-  Zisc_setBooleanOption(Z_ENABLE_HARDWARE_FEATURE_SIMD OFF ${description})
+  set(description "Enable recent hardware features (e.g. SIMD, half precision floating point). Assume 'x86-64-v3' is supported on x86-64.")
+  Zisc_setBooleanOption(Z_ENABLE_RECENT_HARDWARE_FEATURES OFF "${description}")
 
-  set(description "Enable C++ address sanitizer (if compiler supports).")
-  Zisc_setBooleanOption(Z_ENABLE_SANITIZER_ADDRESS OFF ${description})
+  set(description "Enable C++ address sanitizer (if compiler supports that).")
+  Zisc_setBooleanOption(Z_ENABLE_SANITIZER_ADDRESS OFF "${description}")
 
-  set(description "Enable C++ thread sanitizer (if compiler supports).")
-  Zisc_setBooleanOption(Z_ENABLE_SANITIZER_THREAD OFF ${description})
+  set(description "Enable C++ thread sanitizer (if compiler supports that).")
+  Zisc_setBooleanOption(Z_ENABLE_SANITIZER_THREAD OFF "${description}")
 
-  set(description "Enable C++ memory sanitizer (if compiler supports).")
-  Zisc_setBooleanOption(Z_ENABLE_SANITIZER_MEMORY OFF ${description})
+  set(description "Enable C++ memory sanitizer (if compiler supports that).")
+  Zisc_setBooleanOption(Z_ENABLE_SANITIZER_MEMORY OFF "${description}")
 
-  set(description "Enable C++ undefined sanitizer (if compiler supports).")
-  Zisc_setBooleanOption(Z_ENABLE_SANITIZER_UNDEF_BEHAVIOR OFF ${description})
+  set(description "Enable C++ undefined sanitizer (if compiler supports that).")
+  Zisc_setBooleanOption(Z_ENABLE_SANITIZER_UNDEF_BEHAVIOR OFF "${description}")
 
-  set(description "Enable C++ undefined sanitizer (if compiler supports).")
-  Zisc_setBooleanOption(Z_ENABLE_SANITIZER_UNDEF_BEHAVIOR_FULL OFF ${description})
+  set(description "Enable C++ undefined sanitizer (if compiler supports that).")
+  Zisc_setBooleanOption(Z_ENABLE_SANITIZER_UNDEF_BEHAVIOR_FULL OFF "${description}")
 
-  set(description "Enable C++ leak sanitizer (if compiler supports).")
-  Zisc_setBooleanOption(Z_ENABLE_SANITIZER_LEAK OFF ${description})
+  set(description "Enable C++ leak sanitizer (if compiler supports that).")
+  Zisc_setBooleanOption(Z_ENABLE_SANITIZER_LEAK OFF "${description}")
+
+  # TODO. lto=full is required
+  #  set(description "Enable C++ control flow integrity (if compiler supports that).")
+  #  Zisc_setBooleanOption(Z_ENABLE_SANITIZER_CFI OFF "${description}")
+
+  set(description "Enable C++ safe stack protection (if compiler supports that).")
+  Zisc_setBooleanOption(Z_ENABLE_SANITIZER_SAFE_STACK OFF "${description}")
 
   set(description "Enable clang-tidy analyzer.")
-  Zisc_setBooleanOption(Z_ENABLE_STATIC_ANALYZER_CLANG_TIDY OFF ${description})
+  Zisc_setBooleanOption(Z_ENABLE_STATIC_ANALYZER_CLANG_TIDY OFF "${description}")
 
   set(description "Enable link-what-you-use analyzer.")
-  Zisc_setBooleanOption(Z_ENABLE_STATIC_ANALYZER_LWYU OFF ${description})
+  Zisc_setBooleanOption(Z_ENABLE_STATIC_ANALYZER_LWYU OFF "${description}")
 
-  set(description "Save assembly files.")
-  Zisc_setBooleanOption(Z_ENABLE_STATIC_ANALYZER_ASSEMBLY OFF ${description})
+  set(description "Save files show the hint of optimization.")
+  Zisc_setBooleanOption(Z_ENABLE_STATIC_ANALYZER_OPTIMIZATION OFF "${description}")
 endfunction(Zisc_initCompilerOptions)
 
 
-function(Zisc_appendClangDriverFlags cxx_compile_flags)
-  set(compile_flags ${${cxx_compile_flags}})
-  foreach(compile_flag IN LISTS ARGN)
-    if(Z_VISUAL_STUDIO)
-      set(compile_flag "/clang:${compile_flag}")
-    endif()
-    list(APPEND compile_flags ${compile_flag})
-  endforeach(compile_flag)
-  set(${cxx_compile_flags} ${compile_flags} PARENT_SCOPE)
-endfunction(Zisc_appendClangDriverFlags)
-
-
-function(Zisc_appendClangCompilerFlags cxx_compile_flags)
-  set(compile_flags ${${cxx_compile_flags}})
-  foreach(compile_flag IN LISTS ARGN)
-    if(Z_VISUAL_STUDIO)
-      string(REPLACE "=" ";" flags ${compile_flag})
-      set(compile_flag "")
-      foreach(flag IN LISTS flags)
-        list(APPEND compile_flag "SHELL:-Xclang ${flag}")
-      endforeach(flag)
-    endif()
-    list(APPEND compile_flags ${compile_flag})
-  endforeach(compile_flag)
-  set(${cxx_compile_flags} ${compile_flags} PARENT_SCOPE)
-endfunction(Zisc_appendClangCompilerFlags)
-
-
 function(Zisc_getSanitizerFlags compile_sanitizer_flags linker_sanitizer_flags)
+  set(compile_flags "")
+  set(linker_flags "")
   set(check_list "")
 
   # Collect sanitizer checks
@@ -104,6 +88,7 @@ function(Zisc_getSanitizerFlags compile_sanitizer_flags linker_sanitizer_flags)
                            integer-divide-by-zero
                            nonnull-attribute
                            null
+                           object-size
                            pointer-overflow
                            return
                            returns-nonnull-attribute
@@ -112,10 +97,10 @@ function(Zisc_getSanitizerFlags compile_sanitizer_flags linker_sanitizer_flags)
                            vptr
                            )
     if(NOT Z_GCC)
-      list(APPEND check_list nullability-arg
+      list(APPEND check_list function
+                             nullability-arg
                              nullability-assign
                              nullability-return
-                             function
                              )
     endif()
   endif()
@@ -126,6 +111,8 @@ function(Zisc_getSanitizerFlags compile_sanitizer_flags linker_sanitizer_flags)
     if(NOT Z_GCC)
       list(APPEND check_list implicit-unsigned-integer-truncation
                              implicit-signed-integer-truncation
+                             implicit-integer-sign-change
+                             unsigned-shift-base
                              unsigned-integer-overflow
                              )
     endif()
@@ -133,18 +120,23 @@ function(Zisc_getSanitizerFlags compile_sanitizer_flags linker_sanitizer_flags)
   if(Z_ENABLE_SANITIZER_LEAK)
     list(APPEND check_list leak)
   endif()
+  if(Z_ENABLE_SANITIZER_CFI)
+    list(APPEND check_list cfi)
+    list(APPEND compile_flags -fno-sanitize-trap)
+  endif()
+  if(Z_ENABLE_SANITIZER_SAFE_STACK)
+    list(APPEND check_list safe-stack)
+  endif()
 
   # Make a sanitizer option string from check list 
-  set(compile_flags "")
-  set(linker_flags "")
   if(check_list)
     string(REPLACE ";" "," check_flag "${check_list}")
     if(Z_MSVC)
-      set(compile_flags "/fsanitize=${check_flag}")
+      list(APPEND compile_flags "/fsanitize=${check_flag}")
     else()
-      set(compile_flags "-fsanitize=${check_flag}")
+      list(APPEND compile_flags "-fsanitize=${check_flag}")
       list(APPEND compile_flags -fno-omit-frame-pointer)
-      set(linker_flags "-fsanitize=${check_flag}")
+      list(APPEND linker_flags "-fsanitize=${check_flag}")
     endif()
 
     # Output
@@ -159,19 +151,14 @@ function(Zisc_getMsvcCompilerFlags cxx_compile_flags cxx_linker_flags cxx_defini
   set(linker_flags "")
   set(definitions "")
 
-  list(APPEND compile_flags /constexpr:depth${constexpr_depth}
-                            /constexpr:backtrace${constexpr_backtrace}
-                            /constexpr:steps${constexpr_steps})
-
-  if(Z_ENABLE_HARDWARE_FEATURE_SIMD)
-    list(APPEND compile_flags /arch:AVX2)
-  endif()
-
-  if(Z_ENABLE_STATIC_ANALYZER_ASSEMBLY)
+  if(Z_ENABLE_STATIC_ANALYZER_OPTIMIZATION)
     # list(APPEND compile_flags /FA)
   endif()
 
   # Optimization
+  if(Z_ENABLE_RECENT_HARDWARE_FEATURES)
+    list(APPEND compile_flags /arch:AVX2)
+  endif()
 
   # Diagnostic
   list(APPEND compile_flags /diagnostics:caret
@@ -193,22 +180,15 @@ function(Zisc_getClangClCompilerFlags cxx_compile_flags cxx_linker_flags cxx_def
   set(linker_flags "")
   set(definitions "")
 
-  Zisc_appendClangCompilerFlags(compile_flags
-      -fconstexpr-depth=${constexpr_depth}
-      -fconstexpr-backtrace-limit=${constexpr_backtrace}
-      -fconstexpr-steps=${constexpr_steps}
-      -ftemplate-depth=${recursive_template_depth})
-
-  if(Z_ENABLE_HARDWARE_FEATURE_SIMD)
-    list(APPEND compile_flags /clang:-fno-math-errno)
-    list(APPEND compile_flags /arch:AVX2)
-  endif()
-
-  if(Z_ENABLE_STATIC_ANALYZER_ASSEMBLY)
+  if(Z_ENABLE_STATIC_ANALYZER_OPTIMIZATION)
     list(APPEND compile_flags /FA)
   endif()
 
   # Optimization
+  if(Z_ENABLE_RECENT_HARDWARE_FEATURES)
+    list(APPEND compile_flags /clang:-fno-math-errno)
+    list(APPEND compile_flags /arch:AVX2)
+  endif()
   list(APPEND compile_flags /Qvec # Auto loop-vectorization
                             )
 
@@ -233,24 +213,20 @@ function(Zisc_getClangCompilerFlags cxx_compile_flags cxx_linker_flags cxx_defin
   set(linker_flags "")
   set(definitions "")
 
-  list(APPEND compile_flags -fconstexpr-depth=${constexpr_depth}
-                            -fconstexpr-backtrace-limit=${constexpr_backtrace}
-                            -fconstexpr-steps=${constexpr_steps}
-                            -ftemplate-depth=${recursive_template_depth})
-
-  if(Z_ENABLE_HARDWARE_FEATURE_SIMD)
-    list(APPEND compile_flags -fno-math-errno -mavx2 -mfma)
-  endif()
-
-  if(Z_ENABLE_STATIC_ANALYZER_ASSEMBLY)
+  if(Z_ENABLE_STATIC_ANALYZER_OPTIMIZATION)
     list(APPEND compile_flags -save-temps=obj
                               -fverbose-asm)
+  endif()
+
+  # Optimization
+  if(Z_ENABLE_RECENT_HARDWARE_FEATURES)
+    list(APPEND compile_flags -fno-math-errno -march=x86-64-v3)
   endif()
 
   if(Z_CLANG_USES_LLVM_TOOLS)
     list(APPEND compile_flags -stdlib=libc++)
     list(APPEND linker_flags -stdlib=libc++ -rtlib=compiler-rt)
-    if(NOT Z_MAC)
+    if(NOT Z_APPLE_CLANG)
       list(APPEND linker_flags -fuse-ld=lld)
     endif()
     list(APPEND definitions Z_CLANG_USES_LLVM_TOOLS=1)
@@ -273,17 +249,14 @@ function(Zisc_getGccCompilerFlags cxx_compile_flags cxx_linker_flags cxx_definit
   set(linker_flags "")
   set(definitions "")
 
-  list(APPEND compile_flags -fconstexpr-depth=${constexpr_depth}
-                            -fconstexpr-loop-limit=${constexpr_steps}
-                            -ftemplate-depth=${recursive_template_depth})
-
-  if(Z_ENABLE_HARDWARE_FEATURE_SIMD)
-    list(APPEND compile_flags -mavx2 -mfma)
-  endif()
-
-  if(Z_ENABLE_STATIC_ANALYZER_ASSEMBLY)
+  if(Z_ENABLE_STATIC_ANALYZER_OPTIMIZATION)
     list(APPEND compile_flags -save-temps=obj
                               -fverbose-asm)
+  endif()
+
+  # Optimization
+  if(Z_ENABLE_RECENT_HARDWARE_FEATURES)
+    list(APPEND compile_flags -fno-math-errno -march=x86-64-v3)
   endif()
 
   # Sanitizer
@@ -304,6 +277,7 @@ function(Zisc_getMsvcWarningFlags compile_warning_flags)
   if(Z_MAKE_WARNING_INTO_ERROR)
     list(APPEND warning_flags /WX)
   endif()
+
   # Output variables
   set(${compile_warning_flags} ${warning_flags} PARENT_SCOPE)
 endfunction(Zisc_getMsvcWarningFlags)
@@ -318,6 +292,7 @@ function(Zisc_getClangClWarningFlags compile_warning_flags)
   if(Z_MAKE_WARNING_INTO_ERROR)
     list(APPEND warning_flags /WX)
   endif()
+
   # Output variables
   set(${compile_warning_flags} ${warning_flags} PARENT_SCOPE)
 endfunction(Zisc_getClangClWarningFlags)
@@ -325,13 +300,22 @@ endfunction(Zisc_getClangClWarningFlags)
 
 function(Zisc_getClangWarningFlags compile_warning_flags)
   set(warning_flags "")
-  list(APPEND warning_flags -Weverything
-                            -Wno-c++98-compat
-                            -Wno-c++98-compat-pedantic
-                            )
+  if(Z_ENABLE_COMPILER_WARNING_EXTRA)
+    list(APPEND warning_flags -Weverything
+                              -Wno-c++-compat
+                              -Wno-c++98-compat
+                              -Wno-c++98-compat-pedantic
+                              )
+  else()
+    list(APPEND warning_flags -Wall
+                              -Wextra
+                              -pedantic
+                              )
+  endif()
   if(Z_MAKE_WARNING_INTO_ERROR)
     list(APPEND warning_flags -Werror)
   endif()
+
   # Output variables
   set(${compile_warning_flags} ${warning_flags} PARENT_SCOPE)
 endfunction(Zisc_getClangWarningFlags)
@@ -339,33 +323,38 @@ endfunction(Zisc_getClangWarningFlags)
 
 function(Zisc_getGccWarningFlags compile_warning_flags)
   set(warning_flags "")
-  list(APPEND warning_flags -pedantic
-                            -Wall
+  list(APPEND warning_flags -Wall
                             -Wextra
-                            -Wcast-align
-                            -Wcast-qual
-                            -Wctor-dtor-privacy
-                            -Wdisabled-optimization
-                            -Wformat=2
-                            -Winit-self
-                            -Wlogical-op
-                            -Wmissing-declarations
-                            -Wmissing-include-dirs
-                            -Wnoexcept
-                            -Wold-style-cast
-                            -Woverloaded-virtual
-                            -Wredundant-decls
-                            -Wshadow
-                            -Wsign-conversion
-                            -Wsign-promo
-                            -Wstrict-null-sentinel
-                            -Wstrict-overflow=5
-                            -Wswitch-default
-                            -Wundef
+                            -pedantic
+                            -Wno-attributes # GCC warns [[maybe_unused]] on member variable
                             )
+  if(Z_ENABLE_COMPILER_WARNING_EXTRA)
+    list(APPEND warning_flags -Wcast-align
+                              -Wcast-qual
+                              -Wctor-dtor-privacy
+                              -Wdisabled-optimization
+                              -Wformat=2
+                              -Winit-self
+                              -Wlogical-op
+                              -Wmissing-declarations
+                              -Wmissing-include-dirs
+                              -Wnoexcept
+                              -Wold-style-cast
+                              -Woverloaded-virtual
+                              -Wredundant-decls
+                              -Wshadow
+                              -Wsign-conversion
+                              -Wsign-promo
+                              -Wstrict-null-sentinel
+                              -Wstrict-overflow=5
+                              -Wswitch-default
+                              -Wundef
+                              )
+  endif()
   if(Z_MAKE_WARNING_INTO_ERROR)
     list(APPEND warning_flags -Werror)
   endif()
+
   # Output variables
   set(${compile_warning_flags} ${warning_flags} PARENT_SCOPE)
 endfunction(Zisc_getGccWarningFlags)
@@ -374,12 +363,6 @@ endfunction(Zisc_getGccWarningFlags)
 # Output functions
 # Get compile options
 function(Zisc_getCxxCompilerFlags cxx_compile_flags cxx_linker_flags cxx_definitions)
-
-  set(constexpr_depth 512)
-  set(constexpr_backtrace 16)
-  set(constexpr_steps 2147483647)
-  set(recursive_template_depth 2048)
-
   if(Z_GCC)
     Zisc_getGccCompilerFlags(compile_flags linker_flags definitions)
   elseif(Z_CLANG)
@@ -391,6 +374,11 @@ function(Zisc_getCxxCompilerFlags cxx_compile_flags cxx_linker_flags cxx_definit
   elseif(Z_MSVC)
     Zisc_getMsvcCompilerFlags(compile_flags linker_flags definitions)
   endif()
+
+  if(Z_ENABLE_RECENT_HARDWARE_FEATURES)
+    list(APPEND definitions Z_ENABLE_RECENT_HARDWARE_FEATURES=1)
+  endif()
+
   # Output variables
   set(${cxx_compile_flags} ${compile_flags} PARENT_SCOPE)
   set(${cxx_linker_flags} ${linker_flags} PARENT_SCOPE)
@@ -419,6 +407,7 @@ function(Zisc_getCxxWarningFlags compile_warning_flags)
       message(WARNING "${environment}: Warning option isn't supported.")
     endif()
   endif()
+
   # Output variables
   set(${compile_warning_flags} ${warning_flags} PARENT_SCOPE)
 endfunction(Zisc_getCxxWarningFlags)
@@ -480,15 +469,15 @@ function(Zisc_setStaticAnalyzer target)
     list(APPEND static_analyzer_list "link-what-you-use")
   endif()
 
-  # Assembly
-  if(Z_ENABLE_STATIC_ANALYZER_ASSEMBLY)
+  if(Z_ENABLE_STATIC_ANALYZER_OPTIMIZATION)
     get_target_property(binary_dir ${target} BINARY_DIR)
-    set(assembly_target ${target}_assembly)
+    cmake_path(SET optimization_dir "${binary_dir}/optimization/${target}")
+    cmake_path(SET assembly_dir "${optimization_dir}/assembly")
+    file(MAKE_DIRECTORY "${assembly_dir}")
 
-    # Generate a script
-    set(assembly_dir ${binary_dir}/assembly/${target})
-    set(script "include(\"${CMAKE_CURRENT_FUNCTION_LIST_FILE}\")\n"
-               "file(MAKE_DIRECTORY \"${assembly_dir}\")\n")
+    # Save assembly files
+    ## Generate a script
+    set(script "include(\"${CMAKE_CURRENT_FUNCTION_LIST_FILE}\")\n")
     if(Z_CLANG)
       # Search bitcode files
       string(APPEND script
@@ -504,22 +493,30 @@ function(Zisc_setStaticAnalyzer target)
       string(APPEND script
           "Zisc_createLinkToTargetTempFiles(\"${target}\" \"${binary_dir}\" \"${assembly_dir}\" obj asm)\n")
     endif()
-
-    # Save the script
-    set(script_dir ${binary_dir}/scripts)
-    file(MAKE_DIRECTORY ${script_dir})
-    set(script_file ${script_dir}/${assembly_target}.cmake)
-    file(WRITE ${script_file} ${script})
+    ## Save the script
+    set(assembly_target ${target}_assembly)
+    cmake_path(SET script_dir "${binary_dir}/scripts")
+    file(MAKE_DIRECTORY "${script_dir}")
+    cmake_path(SET script_file "${script_dir}/${assembly_target}.cmake")
+    file(WRITE "${script_file}" ${script})
 
     add_custom_target(
         ${assembly_target} ALL
-        ${CMAKE_COMMAND} -P ${script_file}
+        ${CMAKE_COMMAND} -P "${script_file}"
         DEPENDS ${target}
         WORKING_DIRECTORY "${binary_dir}"
         COMMENT "Create links to the assembly of '${target}' into '${assembly_dir}'."
-        SOURCES ${script_file})
+        SOURCES "${script_file}")
 
-    list(APPEND static_analyzer_list "assembly")
+    # Save optimization report
+    if(Z_CLANG)
+      cmake_path(SET opt_file_path "${optimization_dir}/optimization_report.yaml")
+      cmake_path(NATIVE_PATH opt_file_path NORMALIZE file_path)
+      target_compile_options(${target} PRIVATE -fsave-optimization-record
+                                               -foptimization-record-file=${file_path})
+    endif()
+
+    list(APPEND static_analyzer_list "optimization")
   endif()
 
   message(STATUS "[${target}] Static analyzer: ${static_analyzer_list}")
@@ -528,11 +525,12 @@ endfunction(Zisc_setStaticAnalyzer)
 
 function(Zisc_createLinkToFiles output_dir)
   foreach(file_path IN LISTS ARGN)
-    get_filename_component(file_name ${file_path} NAME)
-    set(link_path "${output_dir}/${file_name}")
-    if(NOT (link_path STREQUAL file_path))
+    cmake_path(GET file_path FILENAME file_name)
+    cmake_path(APPEND link_path "${output_dir}" "${file_name}")
+    cmake_path(COMPARE "${link_path}" NOT_EQUAL "${file_path}" result)
+    if(result)
       message(STATUS "Create a link '${file_name}'.")
-      file(CREATE_LINK ${file_path} ${link_path} RESULT result COPY_ON_ERROR)
+      file(CREATE_LINK "${file_path}" "${link_path}" RESULT result COPY_ON_ERROR)
       if(result)
         message(FATAL_ERROR "${result}")
       endif()
@@ -548,25 +546,25 @@ function(Zisc_createLinkToTarget target output_dir)
   set(script
       "include(\"${CMAKE_CURRENT_FUNCTION_LIST_FILE}\")\n"
       "Zisc_createLinkToFiles(\"${output_dir}\" \"\${target_path}\")\n")
-  set(script_dir ${binary_dir}/scripts)
-  file(MAKE_DIRECTORY ${script_dir})
-  set(script_file ${script_dir}/${link_target}.cmake)
-  file(WRITE ${script_file} ${script})
+  cmake_path(SET script_dir "${binary_dir}/scripts")
+  file(MAKE_DIRECTORY "${script_dir}")
+  cmake_path(SET script_file "${script_dir}/${link_target}.cmake")
+  file(WRITE "${script_file}" ${script})
 
   add_custom_target(
       ${link_target} ALL
-      ${CMAKE_COMMAND} -D target_path=$<TARGET_FILE:${target}> -P ${script_file}
+      ${CMAKE_COMMAND} -D target_path=$<TARGET_FILE:${target}> -P "${script_file}"
       DEPENDS ${target}
       WORKING_DIRECTORY "${binary_dir}"
       COMMENT "Create a link to the target '${target}' into '${output_dir}'"
-      SOURCE ${script_file})
+      SOURCE "${script_file}")
 endfunction(Zisc_createLinkToTarget)
 
 
 function(Zisc_createLinkToTargetTempFiles target binary_dir output_dir)
   find_file(tmp_dir
       "${target}.dir"
-      PATHS ${binary_dir}
+      PATHS "${binary_dir}"
       PATH_SUFFIXES CMakeFiles
       DOC "Target '${target}' temporal directory"
       NO_DEFAULT_PATH)
@@ -647,7 +645,7 @@ endfunction(Zisc_getCxxFeatureList)
 
 
 function(Zisc_populateTargetOptions source_target dest_target)
-  include(${CMAKE_CURRENT_FUNCTION_LIST_DIR}/general.cmake)
+  include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/general.cmake")
 
   Zisc_checkTarget(${source_target})
   Zisc_checkTarget(${dest_target})

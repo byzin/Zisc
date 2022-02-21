@@ -10,9 +10,9 @@
 function(packageProject)
   include(InstallRequiredSystemLibraries)
 
-  set(package_directory ${PROJECT_BINARY_DIR}/Packaging)
-  file(MAKE_DIRECTORY ${package_directory})
-  set(CPACK_PACKAGE_DIRECTORY ${package_directory})
+  cmake_path(SET package_directory "${PROJECT_BINARY_DIR}/Packaging")
+  file(MAKE_DIRECTORY "${package_directory}")
+  set(CPACK_PACKAGE_DIRECTORY "${package_directory}")
 
   # Set project info
   set(CPACK_PACKAGE_NAME "Zisc")
@@ -22,7 +22,7 @@ function(packageProject)
   #  set(CPACK_PACKAGE_VERSION_PATCH ${Zisc_VERSION_PATCH})
   #  set(CPACK_PACKAGE_DESCRIPTION ${Zisc_DESCRIPTION})
   set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "C++ utility library")
-  set(CPACK_RESOURCE_FILE_LICENSE ${PROJECT_SOURCE_DIR}/LICENSE.md)
+  set(CPACK_RESOURCE_FILE_LICENSE "${PROJECT_SOURCE_DIR}/LICENSE.md")
   set(CPACK_THREADS 0)
 
   include(CPack)

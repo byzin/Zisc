@@ -12,17 +12,17 @@ cmake_minimum_required(VERSION 3.22)
 function(Zisc_initZiscOptions)
   # Atomic
   set(option_description "Use OS specified atomic wait-notification.")
-  Zisc_setBooleanOption(ZISC_ATOMIC_OS_SPECIFIED_WAIT ON ${option_description})
+  Zisc_setBooleanOption(ZISC_ATOMIC_OS_SPECIFIED_WAIT ON "${option_description}")
 
   set(option_description "Enable zisc assertion.")
   if(Z_DEBUG_MODE)
-    Zisc_setBooleanOption(ZISC_ENABLE_ASSERTION ON ${option_description})
+    Zisc_setBooleanOption(ZISC_ENABLE_ASSERTION ON "${option_description}")
   else()
-    Zisc_setBooleanOption(ZISC_ENABLE_ASSERTION OFF ${option_description})
+    Zisc_setBooleanOption(ZISC_ENABLE_ASSERTION OFF "${option_description}")
   endif()
 
   set(option_description "L1 cache line size")
-  Zisc_setStringOption(ZISC_L1_CACHE_LINE_SIZE "128" ${option_description})
+  Zisc_setStringOption(ZISC_L1_CACHE_LINE_SIZE "128" "${option_description}")
 endfunction(Zisc_initZiscOptions)
 
 
@@ -49,8 +49,11 @@ function(Zisc_getZiscWarningFlags zisc_warning_flags)
   set(warning_flags "")
 
   if(Z_CLANG)
+    # list(APPEND warning_flags
+    #                          )
   elseif(Z_GCC)
-    list(APPEND warning_flags -Wno-attributes)
+    # list(APPEND warning_flags
+    #                          )
   endif()
 
   # Output variables
@@ -64,33 +67,33 @@ macro(Zisc_setZiscProject)
   project(Zisc VERSION 0.0.68 DESCRIPTION "${project_description}" LANGUAGES CXX)
   message(STATUS "${PROJECT_NAME} version: ${PROJECT_VERSION}")
 
-  include(${PROJECT_SOURCE_DIR}/cmake/general.cmake)
-  include(${PROJECT_SOURCE_DIR}/cmake/platform.cmake)
+  include("${PROJECT_SOURCE_DIR}/cmake/general.cmake")
+  include("${PROJECT_SOURCE_DIR}/cmake/platform.cmake")
   Zisc_getPlatformFlags(platform_definitions)
   Zisc_setVariablesOnCMake(${platform_definitions})
   Zisc_initZiscOptions()
 
-  set(zisc_core_dir ${PROJECT_SOURCE_DIR}/core)
+  cmake_path(SET zisc_core_dir "${PROJECT_SOURCE_DIR}/core")
 
   # Make zisc configuration header file
-  set(zisc_config_dir ${PROJECT_BINARY_DIR}/include/zisc)
-  file(MAKE_DIRECTORY ${zisc_config_dir})
-  configure_file(${zisc_core_dir}/zisc/zisc_config-inl.hpp.in
-                 ${zisc_config_dir}/zisc_config-inl.hpp
+  cmake_path(SET zisc_config_dir "${PROJECT_BINARY_DIR}/include/zisc")
+  file(MAKE_DIRECTORY "${zisc_config_dir}")
+  configure_file("${zisc_core_dir}/zisc/zisc_config-inl.hpp.in"
+                 "${zisc_config_dir}/zisc_config-inl.hpp"
                  @ONLY)
 
   # Create Zisc library
   file(GLOB_RECURSE zisc_source_files ${zisc_core_dir}/zisc/*[.hpp|.cpp])
-  list(APPEND zisc_source_files ${zisc_config_dir}/zisc_config-inl.hpp)
-  add_library(${PROJECT_NAME} STATIC ${zisc_source_files})
-  source_group(${PROJECT_NAME} FILES ${zisc_source_files})
+  list(APPEND zisc_source_files "${zisc_config_dir}/zisc_config-inl.hpp")
+  add_library(${PROJECT_NAME} STATIC "${zisc_source_files}")
+  source_group(${PROJECT_NAME} FILES "${zisc_source_files}")
 
   # Find dependencies
   set(THREADS_PREFER_PTHREAD_FLAG ON)
   find_package(Threads REQUIRED)
 
   # Compiler flags
-  include(${PROJECT_SOURCE_DIR}/cmake/compiler.cmake)
+  include("${PROJECT_SOURCE_DIR}/cmake/compiler.cmake")
   Zisc_initCompilerOptions()
   set_target_properties(${PROJECT_NAME} PROPERTIES CXX_STANDARD 20
                                                    CXX_STANDARD_REQUIRED ON)
@@ -115,8 +118,8 @@ macro(Zisc_setZiscProject)
   target_compile_definitions(${PROJECT_NAME} PUBLIC ${platform_definitions}
                                                     ${cxx_definitions}
                                                     ${zisc_definitions})
-  target_include_directories(${PROJECT_NAME} PUBLIC ${zisc_core_dir}
-                                                    ${PROJECT_BINARY_DIR}/include)
+  target_include_directories(${PROJECT_NAME} PUBLIC "${zisc_core_dir}"
+                                                    "${PROJECT_BINARY_DIR}/include")
   Zisc_enableIpo(${PROJECT_NAME})
 
   #

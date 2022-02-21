@@ -16,6 +16,7 @@
 !/README.md
 !/LICENSE.md
 !/document/
+!/document/*.md
 !/document/CMakeLists.txt
 !/document/doxygen_dark_theme
 
@@ -59,6 +60,9 @@
 !source/zisc/cmake/
 !source/zisc/cmake/*.cmake
 !source/zisc/cmake/.gitkeep
+!source/zisc/cmake/script/
+!source/zisc/cmake/script/*.cmd.in
+!source/zisc/cmake/script/*.sh.in
 
 # Test
 !/test/

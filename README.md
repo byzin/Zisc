@@ -2,7 +2,7 @@
 
 Zisc provides C++ utility classes and functions which can be commonly used.
 
-Zisc is a library separated from [Zivc][zivc] for easy maintenance.
+Zisc is a library separated from [Zisc][zisc] for easy maintenance.
 
 **Z**ivc m**isc**ellaneous C++ library
 
@@ -40,21 +40,12 @@ Clone the Zisc repository and include the cmake config files of Zisc,
 
 ## Acknowledgement ##
 
-I would like to thank the following projects.
-
-* PCG: [PCG, A Family of Better Random Number Generators][pcg]
-* Xoshiro\*: [xoshiro / xoroshiro generators and the PRNG shootout][xoshiro]
-* Correlated Multi-Jittered: [Correlated Multi-Jittered Sampling][cmj]
-* Lock-Free Bounded Queue: [A Scalable, Portable, and Memory-Efficient Lock-Free FIFO Queue][scalable_portable_lock_free_queue]
+Please see the [document/acknowledgement.md](document/acknowledgement.md).
 
 ## License ##
 
 This software is released under the MIT License,
 see [LICENSE.md](LICENSE.md).
 
-[zivc]: https://github.com/byzin/Zivc
+[zisc]: https://github.com/byzin/Zisc
 [cmake]: https://cmake.org/
-[pcg]: http://www.pcg-random.org/
-[xoshiro]: http://xoshiro.di.unimi.it/
-[cmj]: https://graphics.pixar.com/library/MultiJitteredSampling/paper.pdf
-[scalable_portable_lock_free_queue]: https://arxiv.org/abs/1908.04511

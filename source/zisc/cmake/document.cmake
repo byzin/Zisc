@@ -18,10 +18,10 @@ function(Zisc_addDoxygenDoc target destination)
   endif()
 
   # Build a target document
-  set(dest_dir ${destination}/${target})
-  file(MAKE_DIRECTORY ${dest_dir})
+  cmake_path(APPEND dest_dir "${destination}" "${target}")
+  file(MAKE_DIRECTORY "${dest_dir}")
 
-  set(DOXYGEN_OUTPUT_DIRECTORY ${dest_dir})
+  set(DOXYGEN_OUTPUT_DIRECTORY "${dest_dir}")
   set(DOXYGEN_CREATE_SUBDIRS YES)
   set(DOXYGEN_ALLOW_UNICODE_NAMES YES)
   set(DOXYGEN_BUILTIN_STL_SUPPORT YES)
@@ -39,15 +39,15 @@ function(Zisc_addDoxygenDoc target destination)
   endforeach(source)
   doxygen_add_docs(${target}
     ${ZDOXYGEN_SOURCE_FILES_OR_DIRS}
-    WORKING_DIRECTORY ${dest_dir} 
+    WORKING_DIRECTORY "${dest_dir}"
     COMMENT "Building document '${target}'")
 
   # Build a target document for debug
   set(target_debug ${target}-debug)
-  set(dest_dir ${destination}/${target_debug})
-  file(MAKE_DIRECTORY ${dest_dir})
+  cmake_path(APPEND dest_dir "${destination}" "${target_debug}")
+  file(MAKE_DIRECTORY "${dest_dir}")
 
-  set(DOXYGEN_OUTPUT_DIRECTORY ${dest_dir})
+  set(DOXYGEN_OUTPUT_DIRECTORY "${dest_dir}")
   set(DOXYGEN_EXTRACT_PRIVATE YES)
   set(DOXYGEN_EXTRACT_PRIV_VIRTUAL YES)
   set(DOXYGEN_EXTRACT_LOCAL_METHODS YES)
@@ -57,6 +57,6 @@ function(Zisc_addDoxygenDoc target destination)
   set(DOXYGEN_GENERATE_TODOLIST YES)
   doxygen_add_docs(${target_debug}
     ${ZDOXYGEN_SOURCE_FILES_OR_DIRS}
-    WORKING_DIRECTORY ${dest_dir}
+    WORKING_DIRECTORY "${dest_dir}"
     COMMENT "Building document '${target_debug}'")
 endfunction(Zisc_addDoxygenDoc)

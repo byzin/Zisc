@@ -160,9 +160,9 @@ void Future<T>::destroy() noexcept
 {
   bool is_ready = !isCompleted() && lock();
   if (is_ready) {
-    PackagedTask& t = task();
-    unlink(&t);
-    unlock(&t);
+    PackagedTask* t = taskPtr();
+    unlink(t);
+    unlock(t);
   }
 
   if constexpr (std::is_destructible_v<ValueT> && std::is_same_v<DataT, StorageT>) {
@@ -181,7 +181,7 @@ void Future<T>::destroy() noexcept
 template <NonReference T> inline
 bool Future<T>::hasTask() const noexcept
 {
-  const bool result = task_ != nullptr;
+  const bool result = taskPtr() != nullptr;
   return result;
 }
 
@@ -311,12 +311,12 @@ void Future<T>::moveData(Future& other) noexcept
   }
   else if (other.hasTask()) {
     ZISC_ASSERT(is_ready, "The other future isn't locked.");
-    linkWithTask(std::addressof(other.task()));
+    linkWithTask(other.taskPtr());
     other.is_completed_.test_and_set(std::memory_order::release);
   }
 
   if (is_ready)
-    unlock(std::addressof(task()));
+    unlock(taskPtr());
 }
 
 /*!
@@ -346,7 +346,7 @@ template <NonReference T> inline
 PackagedTask& Future<T>::task() noexcept
 {
   ZISC_ASSERT(hasTask(), "A task isn't set.");
-  return *task_;
+  return *taskPtr();
 }
 
 /*!
@@ -358,7 +358,29 @@ template <NonReference T> inline
 const PackagedTask& Future<T>::task() const noexcept
 {
   ZISC_ASSERT(hasTask(), "A task isn't set.");
-  return *task_;
+  return *taskPtr();
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+template <NonReference T> inline
+PackagedTask* Future<T>::taskPtr() noexcept
+{
+  return task_;
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+template <NonReference T> inline
+const PackagedTask* Future<T>::taskPtr() const noexcept
+{
+  return task_;
 }
 
 /*!

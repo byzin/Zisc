@@ -134,7 +134,7 @@ function(Zisc_getSanitizerFlags compile_sanitizer_flags linker_sanitizer_flags)
   # Make a sanitizer option string from check list 
   if(check_list)
     string(REPLACE ";" "," check_flag "${check_list}")
-    if(Z_MSVC)
+    if(Z_VISUAL_STUDIO)
       list(APPEND compile_flags "/fsanitize=${check_flag}")
     else()
       list(APPEND compile_flags "-fsanitize=${check_flag}")
@@ -154,18 +154,24 @@ function(Zisc_getMsvcCompilerFlags cxx_compile_flags cxx_linker_flags cxx_defini
   set(linker_flags "")
   set(definitions "")
 
-  if(Z_ENABLE_STATIC_ANALYZER_OPTIMIZATION)
-    # list(APPEND compile_flags /FA)
-  endif()
-
   # Optimization
+  list(APPEND compile_flags /favor:AMD64)
   if(Z_ENABLE_RECENT_HARDWARE_FEATURES)
     list(APPEND compile_flags /arch:AVX2)
   endif()
 
   # Diagnostic
   list(APPEND compile_flags /diagnostics:caret
+                            /nologo
+                            /fastfail
+                            /options:strict
                             )
+
+  # Security
+  list(APPEND compile_flags # /Qspectre
+                            /sdl
+                            )
+
   # Sanitizer
   Zisc_getSanitizerFlags(compile_sanitizer_flags linker_sanitizer_flags)
   list(APPEND compile_flags ${compile_sanitizer_flags})
@@ -183,14 +189,10 @@ function(Zisc_getClangClCompilerFlags cxx_compile_flags cxx_linker_flags cxx_def
   set(linker_flags "")
   set(definitions "")
 
-  if(Z_ENABLE_STATIC_ANALYZER_OPTIMIZATION)
-    list(APPEND compile_flags /FA)
-  endif()
-
   # Optimization
   if(Z_ENABLE_RECENT_HARDWARE_FEATURES)
     list(APPEND compile_flags /clang:-fno-math-errno)
-    list(APPEND compile_flags /arch:AVX2)
+    list(APPEND compile_flags /clang:-march=x86-64-v3)
   endif()
   list(APPEND compile_flags /Qvec # Auto loop-vectorization
                             )
@@ -223,7 +225,9 @@ function(Zisc_getClangCompilerFlags cxx_compile_flags cxx_linker_flags cxx_defin
 
   # Optimization
   if(Z_ENABLE_RECENT_HARDWARE_FEATURES)
-    list(APPEND compile_flags -fno-math-errno -march=x86-64-v3)
+    list(APPEND compile_flags -fno-math-errno
+                              -march=x86-64-v3
+                              )
   endif()
 
   if(Z_CLANG_USES_LLVM_TOOLS)
@@ -234,6 +238,10 @@ function(Zisc_getClangCompilerFlags cxx_compile_flags cxx_linker_flags cxx_defin
     endif()
     list(APPEND definitions Z_CLANG_USES_LLVM_TOOLS=1)
   endif()
+
+  # Diagnostic
+  list(APPEND compile_flags -fcolor-diagnostics
+                            )
 
   # Sanitizer
   Zisc_getSanitizerFlags(compile_sanitizer_flags linker_sanitizer_flags)
@@ -276,7 +284,13 @@ endfunction(Zisc_getGccCompilerFlags)
 
 function(Zisc_getMsvcWarningFlags compile_warning_flags)
   set(warning_flags "")
-  list(APPEND warning_flags /W4)
+  if(Z_ENABLE_COMPILER_WARNING_EXTRA)
+    list(APPEND warning_flags /Wall
+                              )
+  else()
+    list(APPEND warning_flags /W4
+                              )
+  endif()
   if(Z_MAKE_WARNING_INTO_ERROR)
     list(APPEND warning_flags /WX)
   endif()
@@ -288,10 +302,16 @@ endfunction(Zisc_getMsvcWarningFlags)
 
 function(Zisc_getClangClWarningFlags compile_warning_flags)
   set(warning_flags "")
-  list(APPEND warning_flags /Wall
-                            -Wno-c++98-compat
-                            -Wno-c++98-compat-pedantic
-                            )
+  if(Z_ENABLE_COMPILER_WARNING_EXTRA)
+    list(APPEND warning_flags /Wall
+                              -Wno-c++-compat
+                              -Wno-c++98-compat
+                              -Wno-c++98-compat-pedantic
+                              )
+  else()
+    list(APPEND warning_flags /W4
+                              )
+  endif()
   if(Z_MAKE_WARNING_INTO_ERROR)
     list(APPEND warning_flags /WX)
   endif()
@@ -426,6 +446,13 @@ function(Zisc_setStaticAnalyzer target)
   set(multi_value_args CLANG_TIDY_EXCLUSION_CHECKS)
   cmake_parse_arguments(PARSE_ARGV 1 ZISC "${options}" "${one_value_args}" "${multi_value_args}")
 
+  get_target_property(binary_dir ${target} BINARY_DIR)
+  cmake_path(SET analyzation_dir "${binary_dir}/Analyzation/${target}")
+
+  # Set visual studio analyzer
+  Zisc_setCompilerStaticAnalyzer(${target} "${analyzation_dir}")
+  list(APPEND static_analyzer_list "analyzer")
+
   # clang-tidy
   if(Z_ENABLE_STATIC_ANALYZER_CLANG_TIDY AND Z_CLANG)
     find_program(clang_tidy "clang-tidy")
@@ -473,73 +500,12 @@ function(Zisc_setStaticAnalyzer target)
   endif()
 
   if(Z_ENABLE_STATIC_ANALYZER_OPTIMIZATION)
-    get_target_property(binary_dir ${target} BINARY_DIR)
-    cmake_path(SET optimization_dir "${binary_dir}/optimization/${target}")
-    cmake_path(SET assembly_dir "${optimization_dir}/assembly")
-    file(MAKE_DIRECTORY "${assembly_dir}")
-
-    # Save assembly files
-    ## Generate a script
-    set(script "include(\"${CMAKE_CURRENT_FUNCTION_LIST_FILE}\")\n")
-    if(Z_CLANG)
-      # Search bitcode files
-      string(APPEND script
-          "Zisc_createLinkToTargetTempFiles(\"${target}\" \"${binary_dir}\" \"${assembly_dir}\" bc)\n")
-    endif()
-    if(Z_LINUX OR Z_MAC)
-      # Search assembly files
-      string(APPEND script
-          "Zisc_createLinkToTargetTempFiles(\"${target}\" \"${binary_dir}\" \"${assembly_dir}\" s)\n")
-    endif()
-    if(Z_WINDOWS)
-      # Search COFF files
-      string(APPEND script
-          "Zisc_createLinkToTargetTempFiles(\"${target}\" \"${binary_dir}\" \"${assembly_dir}\" obj asm)\n")
-    endif()
-    ## Save the script
-    set(assembly_target ${target}_assembly)
-    cmake_path(SET script_dir "${binary_dir}/scripts")
-    file(MAKE_DIRECTORY "${script_dir}")
-    cmake_path(SET script_file "${script_dir}/${assembly_target}.cmake")
-    file(WRITE "${script_file}" ${script})
-
-    add_custom_target(
-        ${assembly_target} ALL
-        ${CMAKE_COMMAND} -P "${script_file}"
-        DEPENDS ${target}
-        WORKING_DIRECTORY "${binary_dir}"
-        COMMENT "Create links to the assembly of '${target}' into '${assembly_dir}'."
-        SOURCES "${script_file}")
-
-    # Save optimization report
-    if(Z_CLANG)
-      cmake_path(SET opt_file_path "${optimization_dir}/optimization_report.yaml")
-      cmake_path(NATIVE_PATH opt_file_path NORMALIZE file_path)
-      target_compile_options(${target} PRIVATE -fsave-optimization-record
-                                               -foptimization-record-file=${file_path})
-    endif()
-
+    Zisc_setOptimizationStaticAnalyzer(${target} "${analyzation_dir}")
     list(APPEND static_analyzer_list "optimization")
   endif()
 
   message(STATUS "[${target}] Static analyzer: ${static_analyzer_list}")
 endfunction(Zisc_setStaticAnalyzer)
-
-
-function(Zisc_createLinkToFiles output_dir)
-  foreach(file_path IN LISTS ARGN)
-    cmake_path(GET file_path FILENAME file_name)
-    cmake_path(APPEND link_path "${output_dir}" "${file_name}")
-    cmake_path(COMPARE "${link_path}" NOT_EQUAL "${file_path}" result)
-    if(result)
-      message(STATUS "Create a link '${file_name}'.")
-      file(CREATE_LINK "${file_path}" "${link_path}" RESULT result COPY_ON_ERROR)
-      if(result)
-        message(FATAL_ERROR "${result}")
-      endif()
-    endif()
-  endforeach(file_path)
-endfunction(Zisc_createLinkToFiles)
 
 
 function(Zisc_createLinkToTarget target output_dir)
@@ -562,24 +528,6 @@ function(Zisc_createLinkToTarget target output_dir)
       COMMENT "Create a link to the target '${target}' into '${output_dir}'"
       SOURCE "${script_file}")
 endfunction(Zisc_createLinkToTarget)
-
-
-function(Zisc_createLinkToTargetTempFiles target binary_dir output_dir)
-  find_file(tmp_dir
-      "${target}.dir"
-      PATHS "${binary_dir}"
-      PATH_SUFFIXES CMakeFiles
-      DOC "Target '${target}' temporal directory"
-      NO_DEFAULT_PATH)
-  if(tmp_dir)
-    foreach(type IN LISTS ARGN)
-      file(GLOB_RECURSE files LIST_DIRECTORIES false "${tmp_dir}/*.${type}")
-      Zisc_createLinkToFiles("${output_dir}" ${files})
-    endforeach(type)
-  else()
-    message(WARNING "'${target}.dir' not found.")
-  endif()
-endfunction(Zisc_createLinkToTargetTempFiles)
 
 
 function(Zisc_getCxxFeatureList cxx_feature_list)
@@ -711,3 +659,130 @@ function(Zisc_enableIpo target)
     message(STATUS "[${target}] IPO/LTO isn't supported.")
   endif()
 endfunction(Zisc_enableIpo)
+
+# Internal functinos
+
+function(Zisc_getClangOptionSuffix suffix)
+  set(option_suffix "")
+  if(Z_VISUAL_STUDIO)
+    set(option_suffix "/clang:")
+  endif()
+
+  # Output variable
+  set(${suffix} "${option_suffix}" PARENT_SCOPE)
+endfunction(Zisc_getClangOptionSuffix)
+
+
+function(Zisc_setCompilerStaticAnalyzer target analyzation_dir)
+  cmake_path(APPEND analyzer_dir "${analyzation_dir}" "analyzer")
+  file(MAKE_DIRECTORY "${analyzer_dir}")
+  set(analyzer_flags "")
+  if(Z_CLANG)
+    # Zisc_getClangOptionSuffix(suffix)
+    # list(APPEND analyzer_flags ${suffix}--analyze
+    # ${suffix}--analyzer-output html
+    #                           )
+  elseif(Z_MSVC)
+    cmake_path(NATIVE_PATH analyzer_dir NORMALIZE vsanalyzer_dir)
+    list(APPEND analyzer_flags /analyze
+                               # "/analyze:log \"${vsanalyzer_dir}\\\""
+                               )
+  endif()
+  target_compile_options(${target} PRIVATE ${analyzer_flags})
+endfunction(Zisc_setCompilerStaticAnalyzer)
+
+
+function(Zisc_setOptimizationStaticAnalyzer target analyzation_dir)
+  get_target_property(binary_dir ${target} BINARY_DIR)
+  cmake_path(APPEND optimization_dir "${analyzation_dir}" "optimization")
+
+  # Save assembly files
+  cmake_path(APPEND assembly_dir "${optimization_dir}" "assembly")
+  file(MAKE_DIRECTORY "${assembly_dir}")
+  ## Generate a script
+  set(script "include(\"${CMAKE_CURRENT_FUNCTION_LIST_FILE}\")\n")
+  if(Z_CLANG)
+    # Search bitcode files
+    string(APPEND script
+        "Zisc_createLinkToTargetTempFiles(\"${target}\" \"${binary_dir}\" \"${assembly_dir}\" bc)\n")
+  endif()
+  if(Z_LINUX OR Z_MAC)
+    # Search assembly files
+    string(APPEND script
+        "Zisc_createLinkToTargetTempFiles(\"${target}\" \"${binary_dir}\" \"${assembly_dir}\" s)\n")
+  endif()
+  ## Save the script
+  set(assembly_target ${target}_assembly)
+  cmake_path(SET script_dir "${optimization_dir}/script")
+  file(MAKE_DIRECTORY "${script_dir}")
+  cmake_path(SET script_file "${script_dir}/${assembly_target}.cmake")
+  file(WRITE "${script_file}" ${script})
+
+  add_custom_target(
+      ${assembly_target} ALL
+      ${CMAKE_COMMAND} -P "${script_file}"
+      DEPENDS ${target}
+      WORKING_DIRECTORY "${binary_dir}"
+      COMMENT "Create links to the assembly of '${target}' into '${assembly_dir}'."
+      SOURCES "${script_file}")
+
+  if(Z_VISUAL_STUDIO)
+    if(Z_MSVC)
+      cmake_path(NATIVE_PATH assembly_dir NORMALIZE asm_dir)
+      target_compile_options(${target} PRIVATE /FAs
+                                               "/Fa${asm_dir}\\"
+                                               )
+    elseif(Z_CLANG)
+      cmake_path(NATIVE_PATH assembly_dir NORMALIZE asm_dir)
+      target_compile_options(${target} PRIVATE /FA
+                                               "/Fa${asm_dir}/"
+                                               )
+    endif()
+  endif()
+
+  # Save optimization report
+  if(Z_CLANG)
+    cmake_path(SET opt_file_path "${optimization_dir}/optimization_report.yaml")
+    cmake_path(NATIVE_PATH opt_file_path NORMALIZE file_path)
+    Zisc_getClangOptionSuffix(suffix)
+    target_compile_options(${target} PRIVATE ${suffix}-fsave-optimization-record
+                                             ${suffix}-foptimization-record-file=${file_path})
+  endif()
+  if(Z_MSVC)
+    # target_compile_options(${target} PRIVATE /Qpar-report:2 /Qvec-report:2)
+  endif()
+endfunction(Zisc_setOptimizationStaticAnalyzer)
+
+
+function(Zisc_createLinkToFiles output_dir)
+  foreach(file_path IN LISTS ARGN)
+    cmake_path(GET file_path FILENAME file_name)
+    cmake_path(APPEND link_path "${output_dir}" "${file_name}")
+    cmake_path(COMPARE "${link_path}" NOT_EQUAL "${file_path}" result)
+    if(result)
+      message(STATUS "Create a link '${file_name}'.")
+      file(CREATE_LINK "${file_path}" "${link_path}" RESULT result COPY_ON_ERROR)
+      if(result)
+        message(FATAL_ERROR "${result}")
+      endif()
+    endif()
+  endforeach(file_path)
+endfunction(Zisc_createLinkToFiles)
+
+
+function(Zisc_createLinkToTargetTempFiles target binary_dir output_dir)
+  find_file(tmp_dir
+      "${target}.dir"
+      PATHS "${binary_dir}"
+      PATH_SUFFIXES CMakeFiles
+      DOC "Target '${target}' temporal directory"
+      NO_DEFAULT_PATH)
+  if(tmp_dir)
+    foreach(type IN LISTS ARGN)
+      file(GLOB_RECURSE files LIST_DIRECTORIES false "${tmp_dir}/*.${type}")
+      Zisc_createLinkToFiles("${output_dir}" ${files})
+    endforeach(type)
+  else()
+    message(WARNING "'${target}.dir' not found.")
+  endif()
+endfunction(Zisc_createLinkToTargetTempFiles)

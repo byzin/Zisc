@@ -17,10 +17,6 @@ function(getTestCompileFlags test_compile_flags test_linker_flags test_definitio
   set(linker_flags "")
   set(definitions "")
 
-  if(Z_MSVC)
-    list(APPEND compile_flags /bigobj)
-  endif()
-
   # Output variable
   set(${test_compile_flags} ${compile_flags} PARENT_SCOPE)
   set(${test_linker_flags} ${linker_flags} PARENT_SCOPE)
@@ -70,13 +66,15 @@ function(getTestWarningFlags test_warning_flags)
       # list(APPEND warning_flags
       #                          )
       if(Z_VISUAL_STUDIO)
-        list(APPEND warning_flags -Wno-implicit-float-conversion
-                                  -Wno-unused-result
-                                  )
+        # list(APPEND warning_flags
+        #                          )
       endif()
     elseif(Z_GCC)
       # list(APPEND warning_flags
       #                          )
+    elseif(Z_MSVC)
+      list(APPEND warning_flags /wd6326 # Potential comparison of a constant with another constant.
+                                )
     endif()
   endif()
 

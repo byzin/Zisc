@@ -23,6 +23,9 @@ function(getExampleWarningFlags example_warning_flags)
     elseif(Z_GCC)
       # list(APPEND warning_flags 
       #                           )
+    elseif(Z_MSVC)
+      list(APPEND warning_flags /wd6326 # Potential comparison of a constant with another constant.
+                                )
     endif()
   endif()
 

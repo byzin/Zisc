@@ -10,10 +10,10 @@
 
 
 # Variables
-Z_SCRIPT_PATH="@zisc_script_path_cmd@" # The path to this script
+Z_SCRIPT_DIR="@zisc_script_path_cmd@" # The directory which contains this script
 
 @zisc_script_pre_commands@
 
-exec ${Z_SCRIPT_PATH}/@zisc_script_exec@ "$@"
+exec ${Z_SCRIPT_DIR}/@zisc_script_exec@ "$@"
 
 @zisc_script_post_commands@

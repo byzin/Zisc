@@ -1,0 +1,18 @@
+@echo off
+
+rem file: @zisc_script_file_name@
+rem author: Sho Ikeda
+rem
+rem Copyright (c) 2015-2022 Sho Ikeda
+rem This software is released under the MIT License.
+rem http://opensource.org/licenses/mit-license.php
+
+
+rem Variables
+set Z_SCRIPT_DIR=%~dp0
+
+@zisc_script_pre_commands@
+
+call %Z_SCRIPT_DIR%\@zisc_script_exec@ %*
+
+@zisc_script_post_commands@

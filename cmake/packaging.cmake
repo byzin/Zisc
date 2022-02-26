@@ -8,8 +8,6 @@
 
 
 function(packageProject)
-  include(InstallRequiredSystemLibraries)
-
   cmake_path(SET package_directory "${PROJECT_BINARY_DIR}/Packaging")
   file(MAKE_DIRECTORY "${package_directory}")
   set(CPACK_PACKAGE_DIRECTORY "${package_directory}")

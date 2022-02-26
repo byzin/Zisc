@@ -34,9 +34,9 @@ int main()
   {
     zisc::outputMessage(std::cout, "Assert example.");
     ZISC_ASSERT(false, "Zisc version: ",
-                       zisc::Config::versionMajor, ".",
-                       zisc::Config::versionMinor, ".",
-                       zisc::Config::versionPatch);
+                       zisc::Config::versionMajor(), ".",
+                       zisc::Config::versionMinor(), ".",
+                       zisc::Config::versionPatch());
   }
 
   return 0;

@@ -7,26 +7,63 @@
 # 
 
 
-function(Zisc_getDependencyTreeImpl target_path exclude_system exe_path dirs rpaths level dependency_list dependency_tree)
+function(Zisc_getResolvedDependency context dependency exe_path dirs rpaths resolved_dependency)
   include(GetPrerequisites)
 
+  cmake_path(SET dep "${dependency}")
+  cmake_path(IS_ABSOLUTE dep is_absolute_path)
+  if(NOT is_absolute_path)
+    # Get resolved dependency
+    gp_resolve_item("${context}" "${dependency}" "${exe_path}" "${dirs}" dep "${rpaths}")
+    cmake_path(SET dep "${dep}")
+  endif()
+  cmake_path(IS_ABSOLUTE dep is_absolute_path)
+  if(is_absolute_path)
+    # Resolve symlink
+    file(REAL_PATH "${dep}" dep EXPAND_TILDE)
+    #
+    cmake_path(SET resolved_dep NORMALIZE "${dep}")
+  else()
+    message("--   Warning: ${dependency} not found.")
+  endif()
+
+  # Output value
+  set(${resolved_dependency} "${resolved_dep}" PARENT_SCOPE)
+endfunction(Zisc_getResolvedDependency)
+
+
+function(Zisc_getDependencyTreeImpl context target_path exclude_system exe_path dirs rpaths level dependency_list dependency_tree)
+  include(GetPrerequisites)
+
+  set(exclusion_list KERNEL32.dll
+                     )
+
   set(deps "")
-  get_prerequisites("${target_path}" deps ${exclude_system} 0 "${exe_path}" "${dirs}" "${rpaths}")
+  set(recurse 0) # 0: Only direct prerequisites are listed
+  Zisc_getResolvedDependency("${context}" "${target_path}" "${exe_path}" "${dirs}" "${rpaths}" resolved_dep)
+  cmake_path(GET resolved_dep FILENAME dep_file_name)
+
   set(new_list "")
   set(dep_tree "")
-  math(EXPR next_level "${level} + 1")
-  foreach(dependency IN LISTS deps)
-    list(FIND dep_list "${dependency}" result)
-    list(APPEND dep_tree "${level} ${dependency}")
-    if(${result} EQUAL -1)
-      list(APPEND dep_list "${dependency}")
-      list(APPEND new_list "${dependency}")
-      Zisc_getDependencyTreeImpl("${dependency}" ${exclude_system} "${exe_path}" "${dirs}" "${rpaths}" ${next_level} child_list child_tree)
-      list(APPEND dep_list ${child_list})
-      list(APPEND new_list ${child_list})
-      list(APPEND dep_tree ${child_tree})
-    endif()
-  endforeach(dependency)
+  cmake_path(IS_ABSOLUTE resolved_dep is_absolute_path)
+  list(FIND exclusion_list "${dep_file_name}" exclusion_result)
+  if(is_absolute_path AND (exclusion_result EQUAL -1))
+    cmake_path(NATIVE_PATH resolved_dep NORMALIZE resolved_target)
+    get_prerequisites("${resolved_target}" deps ${exclude_system} ${recurse} "${exe_path}" "${dirs}" "${rpaths}")
+    math(EXPR next_level "${level} + 1")
+    foreach(dependency IN LISTS deps)
+      list(FIND dep_list "${dependency}" result)
+      list(APPEND dep_tree "${level} ${dependency}")
+      if(${result} EQUAL -1)
+        list(APPEND dep_list "${dependency}")
+        list(APPEND new_list "${dependency}")
+        Zisc_getDependencyTreeImpl("${context}" "${dependency}" ${exclude_system} "${exe_path}" "${dirs}" "${rpaths}" ${next_level} child_list child_tree)
+        list(APPEND dep_list ${child_list})
+        list(APPEND new_list ${child_list})
+        list(APPEND dep_tree ${child_tree})
+      endif()
+    endforeach(dependency)
+  endif()
 
   # Output value
   set(${dependency_list} "${new_list}" PARENT_SCOPE)
@@ -40,7 +77,8 @@ function(Zisc_getDependencyTree target_path exclude_system exe_path dirs rpaths 
   is_file_executable("${target_path}" is_executable)
   if(is_executable)
     set(dep_list "")
-    Zisc_getDependencyTreeImpl(${target_path} ${exclude_system} "${exe_path}" "${dirs}" "${rpaths}" 0 dep_list dep_tree)
+    set(level 0)
+    Zisc_getDependencyTreeImpl("${target_path}" "${target_path}" ${exclude_system} "${exe_path}" "${dirs}" "${rpaths}" ${level} dep_list dep_tree)
   else()
     message(WARNING "'${target_path}' isn't executable.")
   endif()
@@ -48,18 +86,6 @@ function(Zisc_getDependencyTree target_path exclude_system exe_path dirs rpaths 
   # Output value
   set(${dependency_tree} "${dep_tree}" PARENT_SCOPE)
 endfunction(Zisc_getDependencyTree)
-
-
-function(Zisc_getResolvedDependency dependency target_path exe_path dirs rpaths resolved_dependency)
-  include(GetPrerequisites)
-
-  # Get resolved dependency
-  gp_resolve_item("${target_path}" "${dependency}" "${exe_path}" "${dirs}" resolved_dep "${rpaths}")
-  get_filename_component(resolved_dep "${resolved_dep}" REALPATH)
-
-  # Output value
-  set(${resolved_dependency} "${resolved_dep}" PARENT_SCOPE)
-endfunction(Zisc_getResolvedDependency)
 
 
 function(Zisc_getDependenciesString target_path exclude_system is_tree_view exe_path dirs rpaths dependency_string)
@@ -86,11 +112,16 @@ function(Zisc_getDependenciesString target_path exclude_system is_tree_view exe_
   #
   set(text "")
   list(LENGTH dependency_list num_of_dependencies)
+  if(NOT num_of_dependencies)
+    return()
+  endif()
+
   math(EXPR num_of_dependencies "${num_of_dependencies} - 1")
   foreach(index RANGE ${num_of_dependencies})
     # Get resolved dependency
     list(GET dependency_list ${index} dependency)
-    Zisc_getResolvedDependency("${dependency}" "${target_path}" "${exe_path}" "${dirs}" "${rpaths}" resolved_dep)
+    Zisc_getResolvedDependency("${target_path}" "${dependency}" "${exe_path}" "${dirs}" "${rpaths}" resolved_dep)
+    cmake_path(NATIVE_PATH resolved_dep NORMALIZE resolved_dep)
 
     # Get type string
     gp_file_type("${target_path}" "${resolved_dep}" dependency_type)
@@ -151,7 +182,7 @@ function(Zisc_deployNonSystemDependencies target target_path output_dir exe_path
   foreach(dependency IN LISTS dependency_list)
     message("--   Install non-system dependency: '${dependency}'.")
     cmake_path(GET dependency FILENAME dep_name)
-    Zisc_getResolvedDependency("${dependency}" ${target_path} "${exe_path}" "${dirs}" "${rpaths}" resolved_dep)
+    Zisc_getResolvedDependency("${target_path}" "${dependency}" "${exe_path}" "${dirs}" "${rpaths}" resolved_dep)
     cmake_path(APPEND dest_dep_path "${output_dir}" "${dep_name}")
     file(COPY_FILE "${resolved_dep}" "${dest_dep_path}"
          RESULT copy_result

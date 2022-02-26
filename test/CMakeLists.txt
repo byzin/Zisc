@@ -167,7 +167,7 @@ macro(setTestProject)
   Zisc_getDeployingNonSystemDependencyCode(${PROJECT_NAME} "${CMAKE_INSTALL_LIBDIR}" "" "" "" deploy_code)
   install(CODE ${deploy_code}
           COMPONENT test)
-        getMakeTestRunScriptCode(${PROJECT_NAME} "../${CMAKE_INSTALL_BINDIR}" "../${CMAKE_INSTALL_LIBDIR}" "runUnitTest" "script" run_script_code)
+  getMakeTestRunScriptCode(${PROJECT_NAME} "../${CMAKE_INSTALL_BINDIR}" "../${CMAKE_INSTALL_LIBDIR}" "runUnitTest" "script" run_script_code)
   install(CODE ${run_script_code}
           COMPONENT test)
 

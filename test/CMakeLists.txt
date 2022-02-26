@@ -101,16 +101,17 @@ macro(setTestProject)
   Zisc_checkTarget(gtest_main)
 
   # Create a symlink to the test resources
+  cmake_path(SET dst_script_dir "${PROJECT_BINARY_DIR}/resources")
   file(COPY "${PROJECT_SOURCE_DIR}/resources" DESTINATION "${PROJECT_BINARY_DIR}")
   file(GLOB math_reference_files "${PROJECT_SOURCE_DIR}/math_reference/*.tar.xz")
   foreach(reference_path IN LISTS math_reference_files)
     cmake_path(SET src_file_path NORMALIZE "${reference_path}")
     get_filename_component(reference_file "${reference_path}" NAME_WLE)
     get_filename_component(reference_file "${reference_file}" NAME_WLE)
-    cmake_path(SET dst_file_path "${PROJECT_BINARY_DIR}/resources/${reference_file}")
+    cmake_path(SET dst_file_path "${dst_script_dir}/${reference_file}")
     if("${src_file_path}" IS_NEWER_THAN "${dst_file_path}")
       execute_process(COMMAND ${CMAKE_COMMAND} -E tar Jxf "${src_file_path}"
-                      WORKING_DIRECTORY "${PROJECT_BINARY_DIR}/resources")
+                      WORKING_DIRECTORY "${dst_script_dir}")
       file(TOUCH_NOCREATE "${dst_file_path}")
     endif()
   endforeach(reference_path)
@@ -164,11 +165,17 @@ macro(setTestProject)
   install(TARGETS ${PROJECT_NAME}
           DESTINATION "${CMAKE_INSTALL_BINDIR}"
           COMPONENT test)
+  ## Dependencies
   Zisc_getDeployingNonSystemDependencyCode(${PROJECT_NAME} "${CMAKE_INSTALL_LIBDIR}" "" "" "" deploy_code)
   install(CODE ${deploy_code}
           COMPONENT test)
-  getMakeTestRunScriptCode(${PROJECT_NAME} "../${CMAKE_INSTALL_BINDIR}" "../${CMAKE_INSTALL_LIBDIR}" "runUnitTest" "script" run_script_code)
+  ## Runner script
+  getMakeTestRunScriptCode(${PROJECT_NAME} "../${CMAKE_INSTALL_BINDIR}" "../${CMAKE_INSTALL_LIBDIR}" "runUnitTest" "${PROJECT_NAME}" run_script_code)
   install(CODE ${run_script_code}
+          COMPONENT test)
+  ## Resources
+  install(DIRECTORY "${dst_script_dir}"
+          DESTINATION "${PROJECT_NAME}"
           COMPONENT test)
 
   # Add tests for CMake

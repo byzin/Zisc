@@ -1,4 +1,4 @@
-#!/bin/sh -e
+#!/bin/sh
 
 # file: @zisc_script_file_name@
 # author: Sho Ikeda
@@ -10,10 +10,16 @@
 
 
 # Variables
+Z_CURRENT_DIR=$(pwd)
 Z_SCRIPT_DIR="@zisc_script_path_cmd@" # The directory which contains this script
 
 @zisc_script_pre_commands@
 
+# Move to the script directory and run the execution
+cd ${Z_SCRIPT_DIR}
 exec ${Z_SCRIPT_DIR}/@zisc_script_exec@ "$@"
+
+# Go back to the working directory
+cd ${Z_CURRENT_DIR}
 
 @zisc_script_post_commands@

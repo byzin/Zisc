@@ -77,7 +77,8 @@
 # Math reference
 !/test/math_reference/
 !/test/math_reference/*.hpp
-!/test/math_reference/*.tar.xz
+!/test/math_reference/reference/
+!/test/math_reference/reference/*.7z
 
 # Example
 !/example/

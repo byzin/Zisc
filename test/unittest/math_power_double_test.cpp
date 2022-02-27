@@ -85,7 +85,7 @@ void testPowIntConstant(const std::vector<double>& expected_list,
 
 TEST(MathTest, PowDTest)
 {
-  std::ifstream reference_file{"resources/math_powd_reference.txt",
+  std::ifstream reference_file{"resources/math_powd_reference.bin",
                                std::ios_base::binary};
   zisc::int32b n = 0;
   zisc::BSerializer::read(&n, &reference_file);
@@ -146,7 +146,7 @@ TEST(MathTest, PowIntDContantTest)
   constexpr int start = -8;
   constexpr int end = 8;
 
-  std::ifstream reference_file{"resources/math_powintd_reference.txt",
+  std::ifstream reference_file{"resources/math_powintd_reference.bin",
                                std::ios_base::binary};
   zisc::int32b n = 0;
   zisc::BSerializer::read(&n, &reference_file);
@@ -227,7 +227,7 @@ TEST(MathTest, SqrtDTest)
   auto x_list = loadPositiveXList<double>();
   const std::size_t n = x_list.size();
 
-  std::ifstream reference_file{"resources/math_sqrtd_reference.txt",
+  std::ifstream reference_file{"resources/math_sqrtd_reference.bin",
                                std::ios_base::binary};
   MathTestResult<double> math_result;
   std::vector<double> expected_list;
@@ -273,7 +273,7 @@ TEST(MathTest, SqrtSubnormalDTest)
   auto x_list = loadPositiveSubnormalXList<double>();
   const std::size_t n = x_list.size();
 
-  std::ifstream reference_file{"resources/math_sqrt_subd_reference.txt",
+  std::ifstream reference_file{"resources/math_sqrt_subd_reference.bin",
                                std::ios_base::binary};
   MathTestResult<double> math_result;
   std::vector<double> expected_list;

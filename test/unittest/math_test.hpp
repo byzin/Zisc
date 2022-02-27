@@ -176,8 +176,8 @@ template <zisc::FloatingPoint Float> inline
 std::vector<Float> loadPowXList() noexcept
 {
   auto file_path = (sizeof(Float) == 4)
-    ? std::string_view{"resources/math_xpowf_reference.txt"}
-    : std::string_view{"resources/math_xpowd_reference.txt"};
+    ? std::string_view{"resources/math_xpowf_reference.bin"}
+    : std::string_view{"resources/math_xpowd_reference.bin"};
   return loadXList<Float>(file_path);
 }
 
@@ -185,8 +185,8 @@ template <zisc::FloatingPoint Float> inline
 std::vector<Float> loadPositivePowXList() noexcept
 {
   auto file_path = (sizeof(Float) == 4)
-    ? std::string_view{"resources/math_xpositivepowf_reference.txt"}
-    : std::string_view{"resources/math_xpositivepowd_reference.txt"};
+    ? std::string_view{"resources/math_xpositivepowf_reference.bin"}
+    : std::string_view{"resources/math_xpositivepowd_reference.bin"};
   return loadXList<Float>(file_path);
 }
 
@@ -194,8 +194,8 @@ template <zisc::FloatingPoint Float> inline
 std::vector<Float> loadAllXList() noexcept
 {
   auto file_path = (sizeof(Float) == 4)
-    ? std::string_view{"resources/math_xallf_reference.txt"}
-    : std::string_view{"resources/math_xalld_reference.txt"};
+    ? std::string_view{"resources/math_xallf_reference.bin"}
+    : std::string_view{"resources/math_xalld_reference.bin"};
   return loadXList<Float>(file_path);
 }
 
@@ -203,8 +203,8 @@ template <zisc::FloatingPoint Float> inline
 std::vector<Float> loadAllSubnormalXList() noexcept
 {
   auto file_path = (sizeof(Float) == 4)
-    ? std::string_view{"resources/math_xall_subf_reference.txt"}
-    : std::string_view{"resources/math_xall_subd_reference.txt"};
+    ? std::string_view{"resources/math_xall_subf_reference.bin"}
+    : std::string_view{"resources/math_xall_subd_reference.bin"};
   return loadXList<Float>(file_path);
 }
 
@@ -212,8 +212,8 @@ template <zisc::FloatingPoint Float> inline
 std::vector<Float> loadPositiveXList() noexcept
 {
   auto file_path = (sizeof(Float) == 4)
-    ? std::string_view{"resources/math_xpositivef_reference.txt"}
-    : std::string_view{"resources/math_xpositived_reference.txt"};
+    ? std::string_view{"resources/math_xpositivef_reference.bin"}
+    : std::string_view{"resources/math_xpositived_reference.bin"};
   return loadXList<Float>(file_path);
 }
 
@@ -221,8 +221,8 @@ template <zisc::FloatingPoint Float> inline
 std::vector<Float> loadPositiveSubnormalXList() noexcept
 {
   auto file_path = (sizeof(Float) == 4)
-    ? std::string_view{"resources/math_xpositive_subf_reference.txt"}
-    : std::string_view{"resources/math_xpositive_subd_reference.txt"};
+    ? std::string_view{"resources/math_xpositive_subf_reference.bin"}
+    : std::string_view{"resources/math_xpositive_subd_reference.bin"};
   return loadXList<Float>(file_path);
 }
 

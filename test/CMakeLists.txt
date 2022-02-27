@@ -101,17 +101,16 @@ macro(setTestProject)
   Zisc_checkTarget(gtest_main)
 
   # Create a symlink to the test resources
-  cmake_path(SET dst_script_dir "${PROJECT_BINARY_DIR}/resources")
+  cmake_path(SET dst_resource_dir "${PROJECT_BINARY_DIR}/resources")
   file(COPY "${PROJECT_SOURCE_DIR}/resources" DESTINATION "${PROJECT_BINARY_DIR}")
-  file(GLOB math_reference_files "${PROJECT_SOURCE_DIR}/math_reference/*.tar.xz")
+  file(GLOB math_reference_files "${PROJECT_SOURCE_DIR}/math_reference/reference/*.7z")
   foreach(reference_path IN LISTS math_reference_files)
     cmake_path(SET src_file_path NORMALIZE "${reference_path}")
-    get_filename_component(reference_file "${reference_path}" NAME_WLE)
-    get_filename_component(reference_file "${reference_file}" NAME_WLE)
-    cmake_path(SET dst_file_path "${dst_script_dir}/${reference_file}")
+    cmake_path(GET src_file_path STEM LAST_ONLY reference_name)
+    cmake_path(SET dst_file_path "${dst_resource_dir}/${reference_name}")
     if("${src_file_path}" IS_NEWER_THAN "${dst_file_path}")
-      execute_process(COMMAND ${CMAKE_COMMAND} -E tar Jxf "${src_file_path}"
-                      WORKING_DIRECTORY "${dst_script_dir}")
+      file(ARCHIVE_EXTRACT INPUT "${src_file_path}"
+                           DESTINATION "${dst_resource_dir}")
       file(TOUCH_NOCREATE "${dst_file_path}")
     endif()
   endforeach(reference_path)
@@ -174,7 +173,7 @@ macro(setTestProject)
   install(CODE ${run_script_code}
           COMPONENT test)
   ## Resources
-  install(DIRECTORY "${dst_script_dir}"
+  install(DIRECTORY "${dst_resource_dir}"
           DESTINATION "${PROJECT_NAME}"
           COMPONENT test)
 

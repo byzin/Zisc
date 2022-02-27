@@ -29,6 +29,13 @@
 #include "zisc/hash/fnv_1a_hash_engine.hpp"
 #include "zisc/math/math.hpp"
 
+/*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] x No description.
+  \return No description
+  */
 template <zisc::FloatingPoint Float> inline
 constexpr Float makeNormal(const Float x) noexcept
 {
@@ -37,8 +44,8 @@ constexpr Float makeNormal(const Float x) noexcept
   const Float sign = zisc::signbit(x) ? cast<Float>(-1.0) : cast<Float>(1.0);
   // Exponent
   using Binary = zisc::BinaryFromBytes<sizeof(Float)>;
-  const Float k = cast<Float>(2.0) * zisc::abs(x) - cast<Float>(1.0);
-  constexpr int bias = cast<int>(Binary::exponentBias());
+  const auto k = cast<Float>(2.0) * zisc::abs(x) - cast<Float>(1.0);
+  constexpr auto bias = cast<int>(Binary::exponentBias());
   const int expt = zisc::clamp(cast<int>(k * cast<Float>(bias)), -bias + 1, bias);
   // Significand
   using BitT = typename Binary::BitType;
@@ -53,6 +60,11 @@ constexpr Float makeNormal(const Float x) noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] x No description.
+  \return No description
   */
 template <zisc::FloatingPoint Float> inline
 constexpr Float makeSubnormal(const Float x) noexcept
@@ -72,12 +84,34 @@ constexpr Float makeSubnormal(const Float x) noexcept
 template <zisc::FloatingPoint Float>
 constexpr Float kPowScale = static_cast<Float>(16);
 
+/*!
+  \details No detailed description
+
+  \tparam Type No description.
+  \param [in] data No description.
+  \param [out] output No description.
+  */
+template <typename Type> inline
+void write(const Type* data, std::ostream* output) noexcept
+{
+  if (output)
+    zisc::BSerializer::write(data, output);
+}
+
+/*!
+  \details Sample 'kN' float numbers in regularly spaced in [-1, 1] range and scaled by 's'
+
+  \tparam Float No description.
+  \tparam kN No description.
+  \param [in] s No description.
+  \param [out] output No description.
+  \return No description
+  */
 template <zisc::FloatingPoint Float, zisc::int32b kN = 100'000> inline
 std::vector<Float> makeXList(const Float s, std::ostream* output = nullptr) noexcept
 {
   const zisc::int32b n = kN;
-  if (output)
-    zisc::BSerializer::write(&n, output);
+  write(&n, output);
 
   std::vector<Float> x_list;
   constexpr zisc::int32b end = n / 2;
@@ -85,19 +119,25 @@ std::vector<Float> makeXList(const Float s, std::ostream* output = nullptr) noex
   for (int i = -end; i < end; ++i) {
     const Float u = zisc::cast<Float>(i) / zisc::cast<Float>(end);
     const Float x = s * u;
-    if (output)
-      zisc::BSerializer::write(&x, output);
+    write(&x, output);
     x_list.push_back(x);
   }
   return x_list;
 }
 
+/*!
+  \details Sample 'kN' float numbers in regularly spaced in log scale in all float range
+
+  \tparam Float No description.
+  \tparam kN No description.
+  \param [out] output No description.
+  \return No description
+  */
 template <zisc::FloatingPoint Float, zisc::int32b kN = 200'000> inline
 std::vector<Float> makeAllXList(std::ostream* output = nullptr) noexcept
 {
   const zisc::int32b n = kN;
-  if (output)
-    zisc::BSerializer::write(&n, output);
+  write(&n, output);
 
   std::vector<Float> x_list;
   constexpr zisc::int32b end = n / 2;
@@ -105,19 +145,26 @@ std::vector<Float> makeAllXList(std::ostream* output = nullptr) noexcept
   for (int i = -end; i < end; ++i) {
     const Float u = zisc::cast<Float>(i) / zisc::cast<Float>(end);
     const Float x = makeNormal(u);
-    if (output)
-      zisc::BSerializer::write(&x, output);
+    write(&x, output);
     x_list.push_back(x);
   }
   return x_list;
 }
 
+/*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \tparam kN No description.
+  \param [in] s No description.
+  \param [out] output No description.
+  \return No description
+  */
 template <zisc::FloatingPoint Float, zisc::int32b kN = 100'000> inline
 std::vector<Float> makePositiveXList(const Float s, std::ostream* output = nullptr) noexcept
 {
   const zisc::int32b n = kN;
-  if (output)
-    zisc::BSerializer::write(&n, output);
+  write(&n, output);
 
   std::vector<Float> x_list;
   constexpr zisc::int32b end = n;
@@ -125,19 +172,25 @@ std::vector<Float> makePositiveXList(const Float s, std::ostream* output = nullp
   for (int i = 0; i < end; ++i) {
     const Float u = zisc::cast<Float>(i) / zisc::cast<Float>(end);
     const Float x = s * u;
-    if (output)
-      zisc::BSerializer::write(&x, output);
+    write(&x, output);
     x_list.push_back(x);
   }
   return x_list;
 }
 
+/*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \tparam kN No description.
+  \param [out] output No description.
+  \return No description
+  */
 template <zisc::FloatingPoint Float, zisc::int32b kN = 200'000> inline
 std::vector<Float> makePositiveXList(std::ostream* output = nullptr) noexcept
 {
   const zisc::int32b n = kN;
-  if (output)
-    zisc::BSerializer::write(&n, output);
+  write(&n, output);
 
   std::vector<Float> x_list;
   constexpr zisc::int32b end = n;
@@ -145,19 +198,25 @@ std::vector<Float> makePositiveXList(std::ostream* output = nullptr) noexcept
   for (int i = 0; i < end; ++i) {
     const Float u = zisc::cast<Float>(i) / zisc::cast<Float>(end);
     const Float x = makeNormal(u);
-    if (output)
-      zisc::BSerializer::write(&x, output);
+    write(&x, output);
     x_list.push_back(x);
   }
   return x_list;
 }
 
+/*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \tparam kN No description.
+  \param [out] output No description.
+  \return No description
+  */
 template <zisc::FloatingPoint Float, zisc::int32b kN = 200> inline
 std::vector<Float> makeAllSubnormalXList(std::ostream* output = nullptr) noexcept
 {
   const zisc::int32b n = kN;
-  if (output)
-    zisc::BSerializer::write(&n, output);
+  write(&n, output);
 
   std::vector<Float> x_list;
   constexpr int end = n / 2;
@@ -165,19 +224,25 @@ std::vector<Float> makeAllSubnormalXList(std::ostream* output = nullptr) noexcep
   for (int i = -end; i < end; ++i) {
     const Float u = zisc::cast<Float>(i) / zisc::cast<Float>(end);
     const Float x = makeSubnormal(u);
-    if (output)
-      zisc::BSerializer::write(&x, output);
+    write(&x, output);
     x_list.push_back(x);
   }
   return x_list;
 }
 
+/*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \tparam kN No description.
+  \param [out] output No description.
+  \return No description
+  */
 template <zisc::FloatingPoint Float, zisc::int32b kN = 200> inline
 std::vector<Float> makePositiveSubnormalXList(std::ostream* output = nullptr) noexcept
 {
   const zisc::int32b n = kN;
-  if (output)
-    zisc::BSerializer::write(&n, output);
+  write(&n, output);
 
   std::vector<Float> x_list;
   constexpr int end = n;
@@ -185,8 +250,7 @@ std::vector<Float> makePositiveSubnormalXList(std::ostream* output = nullptr) no
   for (int i = 0; i < end; ++i) {
     const Float u = zisc::cast<Float>(i) / zisc::cast<Float>(end);
     const Float x = makeSubnormal(u);
-    if (output)
-      zisc::BSerializer::write(&x, output);
+    write(&x, output);
     x_list.push_back(x);
   }
   return x_list;
@@ -195,6 +259,16 @@ std::vector<Float> makePositiveSubnormalXList(std::ostream* output = nullptr) no
 template <typename Func, typename Float>
 concept Func1 = zisc::InvocableR<Func, Float, Float>;
 
+/*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \tparam Func No description.
+  \param [in] func No description.
+  \param [in] x_list No description.
+  \param [in] x_spec_list No description.
+  \param [out] output No description.
+  */
 template <zisc::FloatingPoint Float, Func1<Float> Func> inline
 void testF1(const Func func,
             const std::vector<Float>& x_list,
@@ -203,18 +277,25 @@ void testF1(const Func func,
 {
   for (const Float x : x_list) {
     const Float y = func(x);
-    zisc::BSerializer::write(&y, output);
+    write(&y, output);
   }
   // Special case
-  const zisc::int32b n_spec = static_cast<zisc::int32b>(x_spec_list.size());
-  zisc::BSerializer::write(&n_spec, output);
+  const auto n_spec = static_cast<zisc::int32b>(x_spec_list.size());
+  write(&n_spec, output);
   for (const Float x : x_spec_list) {
-    zisc::BSerializer::write(&x, output);
+    write(&x, output);
     const Float y = func(x);
-    zisc::BSerializer::write(&y, output);
+    write(&y, output);
   }
 }
 
+/*!
+  \brief No brief description
+
+  No detailed description.
+
+  \tparam Float No description.
+  */
 template <zisc::FloatingPoint Float>
 struct F2
 {
@@ -225,6 +306,16 @@ struct F2
 template <typename Func, typename Float>
 concept Func2 = zisc::InvocableR<Func, Float, F2<Float>>;
 
+/*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \tparam Func No description.
+  \param [in] func No description.
+  \param [in] x_list No description.
+  \param [in] x_spec_list No description.
+  \param [out] output No description.
+  */
 template <zisc::FloatingPoint Float, Func2<Float> Func> inline
 void testF2(const Func func,
             const std::vector<F2<Float>>& x_list,
@@ -234,18 +325,25 @@ void testF2(const Func func,
   static_assert(sizeof(F2<Float>) == 2 * sizeof(Float));
   for (const F2<Float> x : x_list) {
     const Float y = func(x);
-    zisc::BSerializer::write(&y, output);
+    write(&y, output);
   }
   // Special case
-  const zisc::int32b n_spec = static_cast<zisc::int32b>(x_spec_list.size());
-  zisc::BSerializer::write(&n_spec, output);
+  const auto n_spec = static_cast<zisc::int32b>(x_spec_list.size());
+  write(&n_spec, output);
   for (const F2<Float> x : x_spec_list) {
-    zisc::BSerializer::write(&x, output);
+    write(&x, output);
     const Float y = func(x);
-    zisc::BSerializer::write(&y, output);
+    write(&y, output);
   }
 }
 
+/*!
+  \brief No brief description
+
+  No detailed description.
+
+  \tparam Float No description.
+  */
 template <zisc::FloatingPoint Float>
 struct F3
 {
@@ -257,6 +355,16 @@ struct F3
 template <typename Func, typename Float>
 concept Func3 = zisc::InvocableR<Func, Float, F3<Float>>;
 
+/*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \tparam Func No description.
+  \param [in] func No description.
+  \param [in] x_list No description.
+  \param [in] x_spec_list No description.
+  \param [out] output No description.
+  */
 template <zisc::FloatingPoint Float, Func3<Float> Func> inline
 void testF3(const Func func,
             const std::vector<F3<Float>>& x_list,
@@ -266,18 +374,25 @@ void testF3(const Func func,
   static_assert(sizeof(F3<Float>) == 3 * sizeof(Float));
   for (const F3<Float> x : x_list) {
     const Float y = func(x);
-    zisc::BSerializer::write(&y, output);
+    write(&y, output);
   }
   // Special case
-  const zisc::int32b n_spec = static_cast<zisc::int32b>(x_spec_list.size());
-  zisc::BSerializer::write(&n_spec, output);
+  const auto n_spec = static_cast<zisc::int32b>(x_spec_list.size());
+  write(&n_spec, output);
   for (const F3<Float> x : x_spec_list) {
-    zisc::BSerializer::write(&x, output);
+    write(&x, output);
     const Float y = func(x);
-    zisc::BSerializer::write(&y, output);
+    write(&y, output);
   }
 }
 
+/*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] x No description.
+  \return No description
+  */
 template <zisc::FloatingPoint Float> inline
 constexpr F3<Float> makeFmaInput(const Float x) noexcept
 {
@@ -285,9 +400,9 @@ constexpr F3<Float> makeFmaInput(const Float x) noexcept
   using BitT = typename Binary::BitType;
   using Fnv1aHash = zisc::Fnv1aHashEngine<BitT>;
 
-  constexpr Float t = zisc::cast<Float>(2.0);
-  constexpr Float o = zisc::cast<Float>(1.0);
-  constexpr Float k = zisc::cast<Float>(0.85);
+  constexpr auto t = zisc::cast<Float>(2.0);
+  constexpr auto o = zisc::cast<Float>(1.0);
+  constexpr auto k = zisc::cast<Float>(0.85);
 
   const Float x1 = makeNormal(k * x);
 
@@ -300,6 +415,13 @@ constexpr F3<Float> makeFmaInput(const Float x) noexcept
   return F3<Float>{x1, x2, x3};
 }
 
+/*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] x No description.
+  \return No description
+  */
 template <zisc::FloatingPoint Float> inline
 constexpr F2<Float> makeFmodInput(const Float x) noexcept
 {
@@ -307,8 +429,8 @@ constexpr F2<Float> makeFmodInput(const Float x) noexcept
   using BitT = typename Binary::BitType;
   using Fnv1aHash = zisc::Fnv1aHashEngine<BitT>;
 
-  constexpr Float t = zisc::cast<Float>(2.0);
-  constexpr Float o = zisc::cast<Float>(1.0);
+  constexpr auto t = zisc::cast<Float>(2.0);
+  constexpr auto o = zisc::cast<Float>(1.0);
 
   const Float x1 = makeNormal(x);
 

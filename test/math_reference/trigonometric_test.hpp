@@ -23,6 +23,13 @@
 // Test
 #include "basic_test.hpp"
 
+/*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] x No description.
+  \return No description
+  */
 template <zisc::FloatingPoint Float> inline
 constexpr F2<Float> makeAtan2Input(const Float x) noexcept
 {
@@ -30,8 +37,8 @@ constexpr F2<Float> makeAtan2Input(const Float x) noexcept
   using BitT = typename Binary::BitType;
   using Fnv1aHash = zisc::Fnv1aHashEngine<BitT>;
 
-  constexpr Float t = zisc::cast<Float>(2.0);
-  constexpr Float o = zisc::cast<Float>(1.0);
+  constexpr auto t = zisc::cast<Float>(2.0);
+  constexpr auto o = zisc::cast<Float>(1.0);
 
 //  const Float x1 = makeNormal(x);
   const Float x1 = x;

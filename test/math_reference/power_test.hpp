@@ -23,10 +23,17 @@
 // Test
 #include "basic_test.hpp"
 
+/*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] x No description.
+  \return No description
+  */
 template <zisc::FloatingPoint Float> inline
 constexpr Float makePowInput(const Float x) noexcept
 {
-  constexpr Float k = zisc::cast<Float>(16.0);
+  constexpr auto k = zisc::cast<Float>(16.0);
   const Float e = k * x;
   return e;
 }

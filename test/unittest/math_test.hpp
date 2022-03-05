@@ -17,11 +17,13 @@
 
 // Standard C++ library
 #include <array>
+#include <bitset>
 #include <cmath>
 #include <cstddef>
 #include <fstream>
 #include <iostream>
 #include <limits>
+#include <memory>
 #include <string_view>
 #include <type_traits>
 #include <vector>
@@ -34,6 +36,14 @@
 #include "zisc/zisc_config.hpp"
 #include "zisc/math/math.hpp"
 
+
+/*!
+  \brief No brief description
+
+  No detailed description.
+
+  \tparam Float No description.
+  */
 template <zisc::FloatingPoint Float>
 struct MathTestResult
 {
@@ -45,7 +55,7 @@ struct MathTestResult
   bool fatal_outlier_ = false;
   bool fatal_inf_ = false;
   bool fatal_nan_ = false;
-  [[maybe_unused]] std::array<zisc::uint8b, sizeof(Float) - 3> padding_;
+  [[maybe_unused]] zisc::Padding<sizeof(Float) - 3> pad_;
 
   Float averageUlpDiff() const noexcept
   {
@@ -78,6 +88,14 @@ struct MathTestResult
   }
 };
 
+/*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
+  */
 template <zisc::FloatingPoint Float> inline
 Float calcRoughUlpDistance(const Float lhs, const Float rhs) noexcept
 {
@@ -86,6 +104,14 @@ Float calcRoughUlpDistance(const Float lhs, const Float rhs) noexcept
   return ulps;
 }
 
+/*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
+  */
 template <zisc::FloatingPoint Float> inline
 Float calcUlpDistance(const Float lhs, const Float rhs) noexcept
 {
@@ -98,6 +124,16 @@ Float calcUlpDistance(const Float lhs, const Float rhs) noexcept
   return static_cast<Float>(ulps);
 }
 
+/*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \tparam tolerance_ulps No description.
+  \param [in] expected No description.
+  \param [in] value No description.
+  \param [out] result No description.
+  \return No description
+  */
 template <zisc::FloatingPoint Float, int tolerance_ulps = 1> inline
 bool testMathFloat(const Float expected,
                    const Float value, 
@@ -157,7 +193,14 @@ bool testMathFloat(const Float expected,
   return flag;
 }
 
-template <zisc::FloatingPoint Float> inline
+/*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \param [in] file_path No description.
+  \return No description
+  */
+template <typename Float> inline
 std::vector<Float> loadXList(std::string_view file_path) noexcept
 {
   std::ifstream reference_file{file_path.data(), std::ios_base::binary};
@@ -172,6 +215,12 @@ std::vector<Float> loadXList(std::string_view file_path) noexcept
   return x_list;
 }
 
+/*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \return No description
+  */
 template <zisc::FloatingPoint Float> inline
 std::vector<Float> loadPowXList() noexcept
 {
@@ -181,6 +230,12 @@ std::vector<Float> loadPowXList() noexcept
   return loadXList<Float>(file_path);
 }
 
+/*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \return No description
+  */
 template <zisc::FloatingPoint Float> inline
 std::vector<Float> loadPositivePowXList() noexcept
 {
@@ -190,6 +245,12 @@ std::vector<Float> loadPositivePowXList() noexcept
   return loadXList<Float>(file_path);
 }
 
+/*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \return No description
+  */
 template <zisc::FloatingPoint Float> inline
 std::vector<Float> loadAllXList() noexcept
 {
@@ -199,6 +260,27 @@ std::vector<Float> loadAllXList() noexcept
   return loadXList<Float>(file_path);
 }
 
+/*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \return No description
+  */
+template <typename Float> inline
+std::vector<Float> loadAllHalfXList() noexcept
+{
+  auto file_path = (sizeof(Float) == 2)
+    ? std::string_view{"resources/math_xall_halfh_reference.bin"}
+    : std::string_view{"resources/math_xall_halff_reference.bin"};
+  return loadXList<Float>(file_path);
+}
+
+/*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \return No description
+  */
 template <zisc::FloatingPoint Float> inline
 std::vector<Float> loadAllSubnormalXList() noexcept
 {
@@ -208,6 +290,27 @@ std::vector<Float> loadAllSubnormalXList() noexcept
   return loadXList<Float>(file_path);
 }
 
+/*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \return No description
+  */
+template <typename Float> inline
+std::vector<Float> loadAllHalfSubnormalXList() noexcept
+{
+  auto file_path = (sizeof(Float) == 2)
+    ? std::string_view{"resources/math_xall_half_subh_reference.bin"}
+    : std::string_view{"resources/math_xall_half_subf_reference.bin"};
+  return loadXList<Float>(file_path);
+}
+
+/*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \return No description
+  */
 template <zisc::FloatingPoint Float> inline
 std::vector<Float> loadPositiveXList() noexcept
 {
@@ -217,6 +320,12 @@ std::vector<Float> loadPositiveXList() noexcept
   return loadXList<Float>(file_path);
 }
 
+/*!
+  \details No detailed description
+
+  \tparam Float No description.
+  \return No description
+  */
 template <zisc::FloatingPoint Float> inline
 std::vector<Float> loadPositiveSubnormalXList() noexcept
 {
@@ -224,6 +333,40 @@ std::vector<Float> loadPositiveSubnormalXList() noexcept
     ? std::string_view{"resources/math_xpositive_subf_reference.bin"}
     : std::string_view{"resources/math_xpositive_subd_reference.bin"};
   return loadXList<Float>(file_path);
+}
+
+/*!
+  \details No detailed description
+
+  \tparam Type No description.
+  \param [in] x No description.
+  \return No description
+  */
+template <zisc::TriviallyCopyable Type> inline
+std::bitset<8 * sizeof(Type)> toBitset(const Type x) noexcept
+{
+  using BitType = std::conditional_t<sizeof(Type) == 1, zisc::uint8b,
+                  std::conditional_t<sizeof(Type) == 2, zisc::uint16b,
+                  std::conditional_t<sizeof(Type) == 4, zisc::uint32b,
+                                                        zisc::uint64b>>>;
+  const auto u = zisc::bit_cast<BitType>(x);
+  const std::bitset<8 * sizeof(Type)> bits{zisc::cast<unsigned long long>(u)};
+  return bits;
+}
+
+/*!
+  \details No detailed description
+
+  \tparam Type No description.
+  \param [in,out] s No description.
+  \return No description
+  */
+template <zisc::TriviallyCopyable Type> inline
+Type readValue(std::istream* s) noexcept
+{
+  Type t{};
+  zisc::BSerializer::read(std::addressof(t), s);
+  return t;
 }
 
 #endif // ZISC_MATH_TEST_HPP

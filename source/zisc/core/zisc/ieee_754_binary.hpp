@@ -60,6 +60,15 @@ using Binary16 = Ieee754Binary<Ieee754BinaryFormat::kHalf>;
 using Binary32 = Ieee754Binary<Ieee754BinaryFormat::kSingle>;
 using Binary64 = Ieee754Binary<Ieee754BinaryFormat::kDouble>;
 
+//! Define a binary type of the given bytes
+template <std::size_t kBytes>
+using BinaryFromBytes = Ieee754Binary<cast<Ieee754BinaryFormat>(8 * kBytes)>;
+
+//! Define a binary type of same size as the given float
+template <FloatingPoint Float>
+using BinaryFromFloat = BinaryFromBytes<sizeof(Float)>;
+
+
 /*!
   \brief The software implementation of IEEE 754 binary interchange format
 
@@ -77,10 +86,12 @@ class Ieee754Binary
   // Type aliases
   //! Internal data type
   using BitType = std::conditional_t<kBitSize == 16, uint16b,
-                  std::conditional_t<kBitSize == 32, uint32b, uint64b>>;
+                  std::conditional_t<kBitSize == 32, uint32b,
+                                                     uint64b>>;
   //! Bit representation type
-  using FloatType = std::conditional_t<kBitSize == 32, float,
-                    std::conditional_t<kBitSize == 64, double, BitType>>;
+  using FloatType = std::conditional_t<kBitSize == 16, BitType,
+                    std::conditional_t<kBitSize == 32, float,
+                                                       double>>;
 
 
   //! Initialize a value with 0
@@ -229,6 +240,10 @@ class Ieee754Binary
   static_assert(kBitSize == 8 * sizeof(FloatType));
 
 
+  //! Initialize a value with a floating point value
+  template <FloatingPoint Float>
+  static constexpr BinaryFromFloat<Float> toIeee754Binary(const Float value) noexcept;
+
   //! Convert a special value to the dst format
   template <Ieee754BinaryFormat kDstFormat>
   constexpr Ieee754Binary<kDstFormat> convertSpecialValue() const noexcept;
@@ -279,10 +294,6 @@ constexpr bool operator>(const Ieee754Binary<kFormat>& lhs,
 template <Ieee754BinaryFormat kFormat>
 constexpr bool operator>=(const Ieee754Binary<kFormat>& lhs,
                           const Ieee754Binary<kFormat>& rhs) noexcept;
-
-// Type aliases
-template <std::size_t kBytes>
-using BinaryFromBytes = Ieee754Binary<cast<Ieee754BinaryFormat>(8 * kBytes)>;
 
 // Classification and comparison
 

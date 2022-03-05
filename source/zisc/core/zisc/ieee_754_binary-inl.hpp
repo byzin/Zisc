@@ -146,7 +146,7 @@ constexpr Ieee754Binary<kFormat>::Ieee754Binary() noexcept :
   */
 template <Ieee754BinaryFormat kFormat> template <FloatingPoint Float> inline
 constexpr Ieee754Binary<kFormat>::Ieee754Binary(const Float value) noexcept :
-    Ieee754Binary(bit_cast<BitType>(cast<FloatType>(value)))
+    Ieee754Binary(cast<Ieee754Binary>(toIeee754Binary(value)))
 {
 }
 
@@ -715,6 +715,22 @@ constexpr std::size_t Ieee754Binary<kFormat>::significandBitSize() noexcept
 /*!
   \details No detailed description
 
+  \tparam Float No description.
+  \param [in] value No description.
+  \return No description
+  */
+template <Ieee754BinaryFormat kFormat> template <FloatingPoint Float> inline
+constexpr BinaryFromFloat<Float> Ieee754Binary<kFormat>::toIeee754Binary(const Float value) noexcept
+{
+  using BinaryType = BinaryFromFloat<Float>;
+  const auto u = bit_cast<typename BinaryType::BitType>(value);
+  const BinaryType dst{u};
+  return dst;
+}
+
+/*!
+  \details No detailed description
+
   \tparam kDstFormat No description.
   \return No description
   */
@@ -1081,7 +1097,7 @@ class numeric_limits<zisc::Ieee754Binary<kFormat>>
           : std::numeric_limits<double>::max_exponent10;
 
   //! Identify types which can cause arithmetic operations to trap
-  static constexpr bool traps = true;
+  static constexpr bool traps = false;
 
   //! Identify floating-point types that detect tinyness before rounding
   static constexpr bool tinyness_before = false;

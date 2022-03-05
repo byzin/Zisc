@@ -25,10 +25,15 @@
 // GoogleTest
 #include "googletest.hpp"
 // Zisc
+#include "zisc/binary_serializer.hpp"
+#include "zisc/bit.hpp"
+#include "zisc/concepts.hpp"
 #include "zisc/ieee_754_binary.hpp"
 #include "zisc/zisc_config.hpp"
+// Test
+#include "math_test.hpp"
 
-TEST(Ieee754BinaryTest, Binary16BitSizeTest)
+TEST(Ieee754BinaryTest, HalfBitSizeTest)
 {
   using zisc::Binary16;
   ASSERT_EQ(2, sizeof(Binary16));
@@ -45,7 +50,7 @@ TEST(Ieee754BinaryTest, Binary16BitSizeTest)
   ASSERT_EQ(16, 1 + expt_size + sig_size);
 }
 
-TEST(Ieee754BinaryTest, Binary16LimitsTest)
+TEST(Ieee754BinaryTest, HalfLimitsTest)
 {
   using zisc::uint16b;
   using zisc::Binary16;
@@ -137,7 +142,7 @@ TEST(Ieee754BinaryTest, Binary16LimitsTest)
   }
   {
     constexpr bool traps = Limits::traps;
-    ASSERT_TRUE(traps);
+    ASSERT_FALSE(traps);
   }
   {
     constexpr bool tinyness_before = Limits::tinyness_before;
@@ -194,120 +199,179 @@ TEST(Ieee754BinaryTest, Half2FloatConstantTest)
 {
   using zisc::uint16b;
   using zisc::uint32b;
-  using zisc::Binary16;
-  using Limits = std::numeric_limits<Binary16>;
-
-  union Float
-  {
-    Float(const uint32b v) : u_{v} {}
-    float f_;
-    uint32b u_;
-  };
-
-  auto to_float = [](const uint32b u) noexcept
-  {
-    const Float f{u};
-    return f.f_;
-  };
+  using Half = zisc::Binary16;
+  using Limits = std::numeric_limits<Half>;
+  using FloatBits = decltype(toBitset(1.0f));
 
   {
-    constexpr Binary16 min_b = (Limits::min)();
+    constexpr Half min_b = (Limits::min)();
     constexpr float result = zisc::cast<float>(min_b);
-    const float expected = to_float(0x38800000u);
-    ASSERT_FLOAT_EQ(expected, result);
+    const auto r_bits = toBitset(result);
+    const auto expected = FloatBits{0x38800000ull};
+    ASSERT_EQ(expected, r_bits) << "Converting half to float failed.";
   }
   {
-    constexpr Binary16 low_b = Limits::lowest();
+    constexpr Half low_b = Limits::lowest();
     constexpr float result = zisc::cast<float>(low_b);
-    const float expected = to_float(0xc77fe000u);
-    ASSERT_FLOAT_EQ(expected, result);
+    const auto r_bits = toBitset(result);
+    const auto expected = FloatBits{0xc77fe000ull};
+    ASSERT_EQ(expected, r_bits) << "Converting half to float failed.";
   }
   {
-    constexpr Binary16 max_b = (Limits::max)();
+    constexpr Half max_b = (Limits::max)();
     constexpr float result = zisc::cast<float>(max_b);
-    const float expected = to_float(0x477fe000u);
-    ASSERT_FLOAT_EQ(expected, result);
+    const auto r_bits = toBitset(result);
+    const auto expected = FloatBits{0x477fe000ull};
+    ASSERT_EQ(expected, r_bits) << "Converting half to float failed.";
   }
   {
-    constexpr Binary16 zero_b = Binary16::zero();
+    constexpr Half max_b = Limits::epsilon();
+    constexpr float result = zisc::cast<float>(max_b);
+    const auto r_bits = toBitset(result);
+    const auto expected = FloatBits{0x3a800000ull};
+    ASSERT_EQ(expected, r_bits) << "Converting half to float failed.";
+  }
+  {
+    constexpr Half max_b = Limits::round_error();
+    constexpr float result = zisc::cast<float>(max_b);
+    const auto r_bits = toBitset(result);
+    const auto expected = FloatBits{0x3f000000ull};
+    ASSERT_EQ(expected, r_bits) << "Converting half to float failed.";
+  }
+  {
+    constexpr Half zero_b = Half::zero();
     constexpr float result = zisc::cast<float>(zero_b);
-    const float expected = to_float(0x0u);
-    ASSERT_FLOAT_EQ(expected, result);
+    const auto r_bits = toBitset(result);
+    const auto expected = FloatBits{0x0ull};
+    ASSERT_EQ(expected, r_bits) << "Converting half to float failed.";
   }
   {
-    constexpr Binary16 one_b = Binary16::one();
+    constexpr Half one_b = Half::one();
     constexpr float result = zisc::cast<float>(one_b);
-    const float expected = to_float(0x3f800000u);
-    ASSERT_FLOAT_EQ(expected, result);
+    const auto r_bits = toBitset(result);
+    const auto expected = FloatBits{0x3f800000ull};
+    ASSERT_EQ(expected, r_bits) << "Converting half to float failed.";
   }
   {
-    constexpr Binary16 infinity_b = Limits::infinity();
+    constexpr Half infinity_b = Limits::infinity();
     constexpr float result = zisc::cast<float>(infinity_b);
-    const float expected = to_float(0x7f800000u);
-    ASSERT_FLOAT_EQ(expected, result);
+    const auto r_bits = toBitset(result);
+    const auto expected = FloatBits{0x7f800000ull};
+    ASSERT_EQ(expected, r_bits) << "Converting half to float failed.";
   }
   {
-    constexpr Binary16 infinity_b = -Limits::infinity();
+    constexpr Half infinity_b = -Limits::infinity();
     constexpr float result = zisc::cast<float>(infinity_b);
-    const float expected = to_float(0xff800000u);
-    ASSERT_FLOAT_EQ(expected, result);
+    const auto r_bits = toBitset(result);
+    const auto expected = FloatBits{0xff800000ull};
+    ASSERT_EQ(expected, r_bits) << "Converting half to float failed.";
   }
   {
-    constexpr Binary16 denorm_min_b = Limits::denorm_min();
+    constexpr Half denorm_min_b = Limits::denorm_min();
     constexpr float result = zisc::cast<float>(denorm_min_b);
-    const float expected = to_float(0x33800000u);
-    ASSERT_FLOAT_EQ(expected, result);
+    const auto r_bits = toBitset(result);
+    const auto expected = FloatBits{0x33800000ull};
+    ASSERT_EQ(expected, r_bits) << "Converting half to float failed.";
   }
 }
 
 namespace {
 
-template <int n>
-void testHalf2Float(const std::string_view reference_file_path)
+/*!
+  \details No detailed description
+
+  \tparam Source No description.
+  \tparam Dest No description.
+  \param [in] x_list No description.
+  \param [in] ref_file_path No description.
+  \param [in] src_label No description.
+  \param [in] dst_label No description.
+  */
+template <zisc::TriviallyCopyable Source, zisc::TriviallyCopyable Dest>
+void testHalf(const std::vector<Source>& x_list,
+              const std::string_view ref_file_path,
+              const std::string_view src_label,
+              const std::string_view dst_label)
 {
-  using zisc::uint16b;
-  using zisc::uint32b;
-  using zisc::Binary16;
-  using zisc::Binary32;
+  using zisc::cast;
 
-  union Float
-  {
-    Float() : u_{0} {}
-    float f_;
-    uint32b u_;
-  };
+  const std::size_t n = x_list.size();
 
-  std::ifstream reference_file{reference_file_path.data()};
-  for (int i = 0; i < n; ++i) {
-    Float v;
-    reference_file >> std::hex >> v.u_;
+  // Load reference values
+  std::ifstream reference_file{ref_file_path.data(), std::ios_base::binary};
+  ASSERT_TRUE(reference_file.is_open()) << "Reference file not found: '"
+                                        << ref_file_path.data() << "'.";
+  std::vector<Dest> expected_list;
+  expected_list.resize(n);
+  zisc::BSerializer::read(expected_list.data(), &reference_file, sizeof(Dest) * n);
 
-    const Binary32 f{v.u_};
-    const Binary16 h = zisc::cast<Binary16>(f);
-    uint16b expected1 = 0;
-    reference_file >> std::hex >> expected1;
-    ASSERT_EQ(expected1, h.bits());
+  // Test
+  for (std::size_t i = 0; i < n; ++i) {
+    const Source x = x_list[i];
+    const auto y = cast<Dest>(x);
+    const auto y_bits = toBitset(y);
+    const Dest expected = expected_list[i];
+    const auto e_bits = toBitset(expected);
+    ASSERT_EQ(e_bits, y_bits)
+        << "Converting " << src_label << " to " << dst_label << " failed.";
+  }
 
-    const float f2 = zisc::cast<float>(h);
-    Float expected2;
-    reference_file >> std::hex >> expected2.u_;
-    ASSERT_FLOAT_EQ(expected2.f_, f2);
+  // Special cases
+  const auto n_specials = readValue<zisc::int32b>(&reference_file);
+  for (int spec_index = 0; spec_index < n_specials; ++spec_index) {
+    const auto x = readValue<Source>(&reference_file);
+    const auto y = cast<Dest>(x);
+    const auto y_bits = toBitset(y);
+    const auto expected = readValue<Dest>(&reference_file);
+    const auto e_bits = toBitset(expected);
+    ASSERT_EQ(e_bits, y_bits)
+        << "Converting " << src_label << " to " << dst_label << " failed.";
   }
 }
 
-} // namespace 
+} /* namespace */
+
 
 TEST(Ieee754BinaryTest, Half2FloatTest)
 {
-  ::testHalf2Float<4096>("resources/half_float_reference.txt");
-}
+  using Half = zisc::Binary16;
+  // Load input values
+  auto x_list = loadAllHalfXList<Half>();
+  // Set reference file path
+  const std::string_view ref_file_path = "resources/math_half2float_reference.bin";
 
-TEST(Ieee754BinaryTest, Half2FloatNegativeTest)
-{
-  ::testHalf2Float<4096>("resources/half_float_negative_reference.txt");
+  ::testHalf<Half, float>(x_list, ref_file_path, "half", "float");
 }
 
 TEST(Ieee754BinaryTest, Half2FloatSubnormalTest)
 {
-  ::testHalf2Float<1024>("resources/half_float_subnormal_reference.txt");
+  using Half = zisc::Binary16;
+  // Load input values
+  auto x_list = loadAllHalfSubnormalXList<Half>();
+  // Set reference file path
+  const std::string_view ref_file_path = "resources/math_half2float_subh_reference.bin";
+
+  ::testHalf<Half, float>(x_list, ref_file_path, "half", "float");
+}
+
+TEST(Ieee754BinaryTest, Float2HalfTest)
+{
+  using Half = zisc::Binary16;
+  // Load input values
+  auto x_list = loadAllHalfXList<float>();
+  // Set reference file path
+  const std::string_view ref_file_path = "resources/math_float2half_reference.bin";
+
+  ::testHalf<float, Half>(x_list, ref_file_path, "float", "half");
+}
+
+TEST(Ieee754BinaryTest, Float2HalfSubnormalTest)
+{
+  using Half = zisc::Binary16;
+  // Load input values
+  auto x_list = loadAllHalfSubnormalXList<float>();
+  // Set reference file path
+  const std::string_view ref_file_path = "resources/math_float2half_subf_reference.bin";
+
+  ::testHalf<float, Half>(x_list, ref_file_path, "float", "half");
 }

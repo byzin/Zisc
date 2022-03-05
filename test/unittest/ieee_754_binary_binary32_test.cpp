@@ -32,7 +32,7 @@
 #include "zisc/utility.hpp"
 #include "zisc/zisc_config.hpp"
 
-TEST(Ieee754BinaryTest, Binary32BitSizeTest)
+TEST(Ieee754BinaryTest, FloatBitSizeTest)
 {
   using zisc::Binary32;
   ASSERT_EQ(4, sizeof(Binary32));
@@ -49,7 +49,7 @@ TEST(Ieee754BinaryTest, Binary32BitSizeTest)
   ASSERT_EQ(32, 1 + expt_size + sig_size);
 }
 
-TEST(Ieee754BinaryTest, Binary32LimitsTest)
+TEST(Ieee754BinaryTest, FloatLimitsTest)
 {
   using zisc::uint32b;
   using zisc::Binary32;
@@ -142,18 +142,18 @@ TEST(Ieee754BinaryTest, Binary32LimitsTest)
   }
   {
     constexpr bool traps = Limits::traps;
-    ASSERT_TRUE(traps);
+    ASSERT_FALSE(traps);
   }
   {
     constexpr bool tinyness_before = Limits::tinyness_before;
-    ASSERT_EQ(FLimits::tinyness_before, tinyness_before);
+    ASSERT_FALSE(tinyness_before);
   }
 
   auto print_float_bits = [](const std::string_view name, const float f) noexcept
   {
-    std::array<float, 2> f2{{f, 0.0f}};
+    const auto u = zisc::bit_cast<zisc::uint32b>(f);
     std::cout << "    " << std::setw(16) << std::setfill(' ') << name << ": "
-              << std::bitset<32>{*zisc::reinterp<const zisc::uint64b*>(f2.data())}
+              << std::bitset<32>{zisc::cast<unsigned long long>(u)}
               << std::endl;
   };
 
@@ -363,7 +363,7 @@ TEST(Ieee754BinaryTest, Float2DoubleTest)
   static_assert(sizeof(Generator::result_type) == 4);
   for (std::size_t i = 0; i < n; ++i) {
     const uint32b u = generator(engine);
-    const float f = *zisc::reinterp<const float*>(&u);
+    const float f = zisc::bit_cast<float>(u);
     if (zisc::isNormal(f)) {
       ++num_of_normals;
     }
@@ -568,7 +568,7 @@ TEST(Ieee754BinaryTest, FloatRelationalTest)
 
   auto to_bitset32 = [](const float f)
   {
-    const uint32b u = *zisc::reinterp<const uint32b*>(&f);
+    const uint32b u = zisc::bit_cast<uint32b>(f);
     const uint64b ul = zisc::cast<uint64b>(u);
     std::bitset<32> bits{ul};
     return bits;
@@ -581,13 +581,13 @@ TEST(Ieee754BinaryTest, FloatRelationalTest)
   static_assert(sizeof(Generator::result_type) == 4);
   for (std::size_t i = 0; i < n; ++i) {
     const uint32b ul = generator(engine);
-    const float fl = *zisc::reinterp<const float*>(&ul);
+    const float fl = zisc::bit_cast<float>(ul);
     if (!(zisc::isFinite(fl) || zisc::isInf(fl))) {
       ++num_of_specials;
       continue;
     }
     const uint32b ur = generator(engine);
-    const float fr = *zisc::reinterp<const float*>(&ur);
+    const float fr = zisc::bit_cast<float>(ur);
     if (!(zisc::isFinite(fr) || zisc::isInf(fr))) {
       ++num_of_specials;
       continue;

@@ -29,7 +29,7 @@
 #include "zisc/utility.hpp"
 #include "zisc/zisc_config.hpp"
 
-TEST(Ieee754BinaryTest, Binary64BitSizeTest)
+TEST(Ieee754BinaryTest, DoubleBitSizeTest)
 {
   using zisc::Binary64;
   ASSERT_EQ(8, sizeof(Binary64));
@@ -46,7 +46,7 @@ TEST(Ieee754BinaryTest, Binary64BitSizeTest)
   ASSERT_EQ(64, 1 + expt_size + sig_size);
 }
 
-TEST(Ieee754BinaryTest, Binary64LimitsTest)
+TEST(Ieee754BinaryTest, DoubleLimitsTest)
 {
   using zisc::uint64b;
   using zisc::Binary64;
@@ -139,17 +139,17 @@ TEST(Ieee754BinaryTest, Binary64LimitsTest)
   }
   {
     constexpr bool traps = Limits::traps;
-    ASSERT_TRUE(traps);
+    ASSERT_FALSE(traps);
   }
   {
     constexpr bool tinyness_before = Limits::tinyness_before;
-    ASSERT_EQ(FLimits::tinyness_before, tinyness_before);
+    ASSERT_FALSE(tinyness_before);
   }
 
   auto print_float_bits = [](const std::string_view name, const double f) noexcept
   {
     std::cout << "    " << std::setw(16) << std::setfill(' ') << name << ": "
-              << std::bitset<64>{*zisc::reinterp<const zisc::uint64b*>(&f)}
+              << std::bitset<64>{zisc::bit_cast<unsigned long long>(f)}
               << std::endl;
   };
 
@@ -415,7 +415,7 @@ TEST(Ieee754BinaryTest, Double2FloatTest)
   static_assert(sizeof(Generator::result_type) == 8);
   for (std::size_t i = 0; i < n; ++i) {
     const uint64b u = generator(engine);
-    const double d = *zisc::reinterp<const double*>(&u);
+    const double d = zisc::bit_cast<double>(u);
     if (zisc::isNormal(d)) {
       ++num_of_normals;
     }
@@ -619,7 +619,7 @@ TEST(Ieee754BinaryTest, DoubleRelationalTest)
 
   auto to_bitset64 = [](const double d)
   {
-    const uint64b ul = *zisc::reinterp<const uint64b*>(&d);
+    const uint64b ul = zisc::bit_cast<uint64b>(d);
     std::bitset<64> bits{ul};
     return bits;
   };
@@ -631,13 +631,13 @@ TEST(Ieee754BinaryTest, DoubleRelationalTest)
   static_assert(sizeof(Generator::result_type) == 8);
   for (std::size_t i = 0; i < n; ++i) {
     const uint64b ul = generator(engine);
-    const double fl = *zisc::reinterp<const double*>(&ul);
+    const double fl = zisc::bit_cast<double>(ul);
     if (!(zisc::isFinite(fl) || zisc::isInf(fl))) {
       ++num_of_specials;
       continue;
     }
     const uint64b ur = generator(engine);
-    const double fr = *zisc::reinterp<const double*>(&ur);
+    const double fr = zisc::bit_cast<double>(ur);
     if (!(zisc::isFinite(fr) || zisc::isInf(fr))) {
       ++num_of_specials;
       continue;

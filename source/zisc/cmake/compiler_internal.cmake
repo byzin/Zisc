@@ -46,7 +46,6 @@ function(Zisc_getSanitizerFlags compile_sanitizer_flags linker_sanitizer_flags)
                            integer-divide-by-zero
                            nonnull-attribute
                            null
-                           object-size
                            pointer-overflow
                            return
                            returns-nonnull-attribute
@@ -59,6 +58,10 @@ function(Zisc_getSanitizerFlags compile_sanitizer_flags linker_sanitizer_flags)
                              nullability-arg
                              nullability-assign
                              nullability-return
+                             )
+    endif()
+    if(NOT Z_DEBUG_MODE)
+      list(APPEND check_list object-size
                              )
     endif()
   endif()

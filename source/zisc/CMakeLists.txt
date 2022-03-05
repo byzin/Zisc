@@ -98,9 +98,6 @@ macro(Zisc_setZiscProject)
   set_target_properties(${PROJECT_NAME} PROPERTIES CXX_STANDARD 20
                                                    CXX_STANDARD_REQUIRED ON)
 
-  Zisc_getCxxFeatureList(cxx_feature_list)
-  target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_20 ${cxx_feature_list})
-
   Zisc_getCxxCompilerFlags(cxx_compile_flags cxx_linker_flags cxx_definitions)
   Zisc_getCxxWarningFlags(cxx_compile_warning_flags)
   Zisc_getZiscFlags(zisc_compile_flags zisc_linker_flags zisc_definitions)

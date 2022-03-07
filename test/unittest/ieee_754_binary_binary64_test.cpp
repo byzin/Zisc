@@ -22,6 +22,7 @@
 #include <limits>
 #include <random>
 #include <tuple>
+#include <type_traits>
 // GoogleTest
 #include "googletest.hpp"
 // Zisc
@@ -32,6 +33,8 @@
 TEST(Ieee754BinaryTest, DoubleBitSizeTest)
 {
   using zisc::Binary64;
+  static_assert(std::is_trivially_copyable_v<Binary64>,
+                "Binary64 isn't trivially copyable.");
   ASSERT_EQ(8, sizeof(Binary64));
   constexpr auto sign_mask = Binary64::signBitMask();
   ASSERT_EQ(0b1000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000ull, sign_mask);
@@ -160,24 +163,64 @@ TEST(Ieee754BinaryTest, DoubleLimitsTest)
     constexpr Binary64 min_b = (Limits::min)();
     constexpr double result = cast<double>(min_b);
     ASSERT_EQ(min_f, result);
+    ASSERT_TRUE(zisc::isFinite(min_f)) << "Float classification function failed.";
+    ASSERT_TRUE(zisc::isNormal(min_f)) << "Float classification function failed.";
+    ASSERT_FALSE(zisc::isSubnormal(min_f)) << "Float classification function failed.";
+    ASSERT_FALSE(zisc::isInf(min_f)) << "Float classification function failed.";
+    ASSERT_FALSE(zisc::isNan(min_f)) << "Float classification function failed.";
+    ASSERT_TRUE(zisc::isFinite(min_b)) << "Binary classification function failed.";
+    ASSERT_TRUE(zisc::isNormal(min_b)) << "Binary classification function failed.";
+    ASSERT_FALSE(zisc::isSubnormal(min_b)) << "Binary classification function failed.";
+    ASSERT_FALSE(zisc::isInf(min_b)) << "Binary classification function failed.";
+    ASSERT_FALSE(zisc::isNan(min_b)) << "Binary classification function failed.";
   }
   {
     constexpr double low_f = FLimits::lowest();
     constexpr Binary64 low_b = Limits::lowest();
     constexpr double result = cast<double>(low_b);
     ASSERT_EQ(low_f, result);
+    ASSERT_TRUE(zisc::isFinite(low_f)) << "Float classification function failed.";
+    ASSERT_TRUE(zisc::isNormal(low_f)) << "Float classification function failed.";
+    ASSERT_FALSE(zisc::isSubnormal(low_f)) << "Float classification function failed.";
+    ASSERT_FALSE(zisc::isInf(low_f)) << "Float classification function failed.";
+    ASSERT_FALSE(zisc::isNan(low_f)) << "Float classification function failed.";
+    ASSERT_TRUE(zisc::isFinite(low_b)) << "Binary classification function failed.";
+    ASSERT_TRUE(zisc::isNormal(low_b)) << "Binary classification function failed.";
+    ASSERT_FALSE(zisc::isSubnormal(low_b)) << "Binary classification function failed.";
+    ASSERT_FALSE(zisc::isInf(low_b)) << "Binary classification function failed.";
+    ASSERT_FALSE(zisc::isNan(low_b)) << "Binary classification function failed.";
   }
   {
     constexpr double max_f = (FLimits::max)();
     constexpr Binary64 max_b = (Limits::max)();
     constexpr double result = cast<double>(max_b);
     ASSERT_EQ(max_f, result);
+    ASSERT_TRUE(zisc::isFinite(max_f)) << "Float classification function failed.";
+    ASSERT_TRUE(zisc::isNormal(max_f)) << "Float classification function failed.";
+    ASSERT_FALSE(zisc::isSubnormal(max_f)) << "Float classification function failed.";
+    ASSERT_FALSE(zisc::isInf(max_f)) << "Float classification function failed.";
+    ASSERT_FALSE(zisc::isNan(max_f)) << "Float classification function failed.";
+    ASSERT_TRUE(zisc::isFinite(max_b)) << "Binary classification function failed.";
+    ASSERT_TRUE(zisc::isNormal(max_b)) << "Binary classification function failed.";
+    ASSERT_FALSE(zisc::isSubnormal(max_b)) << "Binary classification function failed.";
+    ASSERT_FALSE(zisc::isInf(max_b)) << "Binary classification function failed.";
+    ASSERT_FALSE(zisc::isNan(max_b)) << "Binary classification function failed.";
   }
   {
     constexpr double eps_f = FLimits::epsilon();
     constexpr Binary64 eps_b = Limits::epsilon();
     constexpr double result = cast<double>(eps_b);
     ASSERT_EQ(eps_f, result);
+    ASSERT_TRUE(zisc::isFinite(eps_f)) << "Float classification function failed.";
+    ASSERT_TRUE(zisc::isNormal(eps_f)) << "Float classification function failed.";
+    ASSERT_FALSE(zisc::isSubnormal(eps_f)) << "Float classification function failed.";
+    ASSERT_FALSE(zisc::isInf(eps_f)) << "Float classification function failed.";
+    ASSERT_FALSE(zisc::isNan(eps_f)) << "Float classification function failed.";
+    ASSERT_TRUE(zisc::isFinite(eps_b)) << "Binary classification function failed.";
+    ASSERT_TRUE(zisc::isNormal(eps_b)) << "Binary classification function failed.";
+    ASSERT_FALSE(zisc::isSubnormal(eps_b)) << "Binary classification function failed.";
+    ASSERT_FALSE(zisc::isInf(eps_b)) << "Binary classification function failed.";
+    ASSERT_FALSE(zisc::isNan(eps_b)) << "Binary classification function failed.";
   }
   {
     constexpr double round_err_f = FLimits::round_error();
@@ -186,10 +229,20 @@ TEST(Ieee754BinaryTest, DoubleLimitsTest)
     ASSERT_EQ(round_err_f, result);
   }
   {
-    constexpr double infinity_f = FLimits::infinity();
-    constexpr Binary64 infinity_b = Limits::infinity();
-    constexpr double result = cast<double>(infinity_b);
-    ASSERT_EQ(infinity_f, result);
+    constexpr double inf_f = FLimits::infinity();
+    constexpr Binary64 inf_b = Limits::infinity();
+    constexpr double result = cast<double>(inf_b);
+    ASSERT_EQ(inf_f, result);
+    ASSERT_FALSE(zisc::isFinite(inf_f)) << "Float classification function failed.";
+    ASSERT_FALSE(zisc::isNormal(inf_f)) << "Float classification function failed.";
+    ASSERT_FALSE(zisc::isSubnormal(inf_f)) << "Float classification function failed.";
+    ASSERT_TRUE(zisc::isInf(inf_f)) << "Float classification function failed.";
+    ASSERT_FALSE(zisc::isNan(inf_f)) << "Float classification function failed.";
+    ASSERT_FALSE(zisc::isFinite(inf_b)) << "Binary classification function failed.";
+    ASSERT_FALSE(zisc::isNormal(inf_b)) << "Binary classification function failed.";
+    ASSERT_FALSE(zisc::isSubnormal(inf_b)) << "Binary classification function failed.";
+    ASSERT_TRUE(zisc::isInf(inf_b)) << "Binary classification function failed.";
+    ASSERT_FALSE(zisc::isNan(inf_b)) << "Binary classification function failed.";
   }
   {
     const double qnan_f = FLimits::quiet_NaN();
@@ -197,6 +250,16 @@ TEST(Ieee754BinaryTest, DoubleLimitsTest)
     constexpr Binary64 qnan_b = Limits::quiet_NaN();
     const double result = cast<double>(qnan_b);
     EXPECT_TRUE(std::isnan(result));
+    ASSERT_FALSE(zisc::isFinite(qnan_f)) << "Float classification function failed.";
+    ASSERT_FALSE(zisc::isNormal(qnan_f)) << "Float classification function failed.";
+    ASSERT_FALSE(zisc::isSubnormal(qnan_f)) << "Float classification function failed.";
+    ASSERT_FALSE(zisc::isInf(qnan_f)) << "Float classification function failed.";
+    ASSERT_TRUE(zisc::isNan(qnan_f)) << "Float classification function failed.";
+    ASSERT_FALSE(zisc::isFinite(qnan_b)) << "Binary classification function failed.";
+    ASSERT_FALSE(zisc::isNormal(qnan_b)) << "Binary classification function failed.";
+    ASSERT_FALSE(zisc::isSubnormal(qnan_b)) << "Binary classification function failed.";
+    ASSERT_FALSE(zisc::isInf(qnan_b)) << "Binary classification function failed.";
+    ASSERT_TRUE(zisc::isNan(qnan_b)) << "Binary classification function failed.";
   }
   {
     const double snan_f = FLimits::signaling_NaN();
@@ -204,12 +267,32 @@ TEST(Ieee754BinaryTest, DoubleLimitsTest)
     constexpr Binary64 snan_b = Limits::signaling_NaN();
     const double result = cast<double>(snan_b);
     EXPECT_TRUE(std::isnan(result));
+    ASSERT_FALSE(zisc::isFinite(snan_f)) << "Float classification function failed.";
+    ASSERT_FALSE(zisc::isNormal(snan_f)) << "Float classification function failed.";
+    ASSERT_FALSE(zisc::isSubnormal(snan_f)) << "Float classification function failed.";
+    ASSERT_FALSE(zisc::isInf(snan_f)) << "Float classification function failed.";
+    ASSERT_TRUE(zisc::isNan(snan_f)) << "Float classification function failed.";
+    ASSERT_FALSE(zisc::isFinite(snan_b)) << "Binary classification function failed.";
+    ASSERT_FALSE(zisc::isNormal(snan_b)) << "Binary classification function failed.";
+    ASSERT_FALSE(zisc::isSubnormal(snan_b)) << "Binary classification function failed.";
+    ASSERT_FALSE(zisc::isInf(snan_b)) << "Binary classification function failed.";
+    ASSERT_TRUE(zisc::isNan(snan_b)) << "Binary classification function failed.";
   }
   {
-    constexpr double denorm_min_f = FLimits::denorm_min();
-    constexpr Binary64 denorm_min_b = Limits::denorm_min();
-    constexpr double result = cast<double>(denorm_min_b);
-    ASSERT_EQ(denorm_min_f, result);
+    constexpr double dmin_f = FLimits::denorm_min();
+    constexpr Binary64 dmin_b = Limits::denorm_min();
+    constexpr double result = cast<double>(dmin_b);
+    ASSERT_EQ(dmin_f, result);
+    ASSERT_TRUE(zisc::isFinite(dmin_f)) << "Float classification function failed.";
+    ASSERT_FALSE(zisc::isNormal(dmin_f)) << "Float classification function failed.";
+    ASSERT_TRUE(zisc::isSubnormal(dmin_f)) << "Float classification function failed.";
+    ASSERT_FALSE(zisc::isInf(dmin_f)) << "Float classification function failed.";
+    ASSERT_FALSE(zisc::isNan(dmin_f)) << "Float classification function failed.";
+    ASSERT_TRUE(zisc::isFinite(dmin_b)) << "Binary classification function failed.";
+    ASSERT_FALSE(zisc::isNormal(dmin_b)) << "Binary classification function failed.";
+    ASSERT_TRUE(zisc::isSubnormal(dmin_b)) << "Binary classification function failed.";
+    ASSERT_FALSE(zisc::isInf(dmin_b)) << "Binary classification function failed.";
+    ASSERT_FALSE(zisc::isNan(dmin_b)) << "Binary classification function failed.";
   }
 }
 

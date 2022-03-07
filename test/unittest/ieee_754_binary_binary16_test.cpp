@@ -22,6 +22,7 @@
 #include <iostream>
 #include <limits>
 #include <tuple>
+#include <type_traits>
 // GoogleTest
 #include "googletest.hpp"
 // Zisc
@@ -36,6 +37,8 @@
 TEST(Ieee754BinaryTest, HalfBitSizeTest)
 {
   using zisc::Binary16;
+  static_assert(std::is_trivially_copyable_v<Binary16>,
+                "Binary16 isn't trivially copyable.");
   ASSERT_EQ(2, sizeof(Binary16));
   constexpr auto sign_mask = Binary16::signBitMask();
   ASSERT_EQ(0b1000'0000'0000'0000u, sign_mask);

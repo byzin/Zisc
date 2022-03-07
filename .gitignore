@@ -35,6 +35,10 @@
 !/source/zisc/core/zisc/*.hpp
 !/source/zisc/core/zisc/*.hpp.in
 !/source/zisc/core/zisc/*.cpp
+!/source/zisc/core/zisc/internal/
+!/source/zisc/core/zisc/internal/*.hpp
+!/source/zisc/core/zisc/internal/*.hpp.in
+!/source/zisc/core/zisc/internal/*.cpp
 !/source/zisc/core/zisc/hash/
 !/source/zisc/core/zisc/hash/*.hpp
 !/source/zisc/core/zisc/hash/*.cpp

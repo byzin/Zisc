@@ -130,7 +130,7 @@ template <Ieee754BinaryFormat kFormat> inline
 constexpr auto Ieee754BinarySoftwareImpl<kFormat>::epsilon() noexcept -> BitType 
 {
   // Compute the exponent of the epsilon
-  const BitType eps_exp = getBiasedExponent(one()) - significandBitSize();
+  const BitType eps_exp = getBiasedExponent(one()) - cast<BitType>(significandBitSize());
   const auto bits = cast<BitType>(eps_exp << significandBitSize());
   return bits;
 }

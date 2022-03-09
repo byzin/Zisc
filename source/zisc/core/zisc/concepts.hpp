@@ -17,7 +17,7 @@
 
 // Check compiler
 #if !defined(__cpp_concepts)
-static_assert(false, "'Concepts' isn't supported in the compiler.")
+static_assert(false, "'Concepts' isn't supported in the compiler.");
 #endif
 
 // Standard C++ library

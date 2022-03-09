@@ -31,7 +31,7 @@ macro(setDocumentProject)
     set(DOXYGEN_PROJECT_BRIEF "Zisc provides commonly used C++ classes and functions.")
 
     # HTML
-    set(html_theme_path "${PROJECT_SOURCE_DIR}/doxygen_dark_theme")
+    cmake_path(SET html_theme_path "${PROJECT_SOURCE_DIR}/doxygen_dark_theme")
     if(EXISTS "${html_theme_path}")
       set(DOXYGEN_HTML_HEADER "${html_theme_path}/html_header.html")
       set(DOXYGEN_HTML_FOOTER "${html_theme_path}/html_footer.html")

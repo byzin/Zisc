@@ -16,9 +16,9 @@ I would like to thank the following projects.
 
 ### Submodules ###
 
-#### GoogleTest ####
+I would like to thank the following submodules too.
 
-I would like to thank the following dubmodules too.
+#### GoogleTest ####
 
 Copyright 2008, Google Inc.
 All rights reserved.

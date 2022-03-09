@@ -6,7 +6,7 @@ Zisc is a library separated from [Zisc][zisc] for easy maintenance.
 
 **Z**ivc m**isc**ellaneous C++ library
 
-Version: 0.0.68
+Version: 0.0.69
 
 ## Import instructions ##
 

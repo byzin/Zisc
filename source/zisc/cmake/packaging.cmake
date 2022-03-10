@@ -57,7 +57,14 @@ function(Zisc_getMakeSimpleRunScriptCode target bin_dir lib_dir env_vars script_
       "cmake_path(SET target_path \"$<TARGET_FILE:${target}>\")\n"
       "cmake_path(GET target_path FILENAME exe_name)\n"
       "cmake_path(APPEND exe_path \"${bin_dir}\" \"\${exe_name}\")\n"
-      "Zisc_makeSimpleRunScript(\"${script_name}\" \"\${exe_path}\" \"${env_vars}\" \"\${dest_dir}\" \"${script_ext}\" \"${env_exporter}\" \"${script_path_cmd}\")\n"
+      "set(env_vars \"\")\n"
+      )
+  # Add environment variables
+  foreach(env_var IN LISTS env_vars)
+    string(APPEND install_code "list(APPEND env_vars \"${env_var}\")\n")
+  endforeach(env_var)
+  string(APPEND install_code
+      "Zisc_makeSimpleRunScript(\"${script_name}\" \"\${exe_path}\" \"\${env_vars}\" \"\${dest_dir}\" \"${script_ext}\" \"${env_exporter}\" \"${script_path_cmd}\")\n"
       )
 
 

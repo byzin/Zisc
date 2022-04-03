@@ -106,7 +106,7 @@ template <std::movable T> inline
 auto ScalableCircularQueue<T>::capacity() const noexcept -> size_type
 {
   const size_type cap = elements_.size();
-  ZISC_ASSERT((cap == 0) || has_single_bit(cap),
+  ZISC_ASSERT((cap == 0) || std::has_single_bit(cap),
               "The capacity isn't power of 2. capacity = ", cap);
   return cap;
 }

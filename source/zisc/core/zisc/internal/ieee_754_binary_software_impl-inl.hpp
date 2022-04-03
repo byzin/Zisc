@@ -17,6 +17,7 @@
 
 #include "ieee_754_binary_software_impl.hpp"
 // Standard C++ library
+#include <bit>
 #include <concepts>
 #include <cstddef>
 #include <type_traits>
@@ -698,8 +699,8 @@ constexpr auto Ieee754BinarySoftwareImpl<kFormat>::scaledUp() const noexcept
                            (dst_sig_size - sig_size);
     const BitType exp_bits = getExponentBits(data());
     if (exp_bits == 0) { // Subnormal case
-      constexpr auto imp_expt = bit_width(DstBinaryT::implicitBit());
-      const auto bit_expt = bit_width(dst_sig_bits);
+      constexpr auto imp_expt = std::bit_width(DstBinaryT::implicitBit());
+      const auto bit_expt = std::bit_width(dst_sig_bits);
       const DstBitT expt_diff = imp_expt - bit_expt;
       dst_expt = (1 + dst_expt) - expt_diff;
       dst_sig_bits = cast<DstBitT>(dst_sig_bits << expt_diff);

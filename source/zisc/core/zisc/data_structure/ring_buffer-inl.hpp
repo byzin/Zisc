@@ -323,10 +323,10 @@ uint64b RingBuffer::order() const noexcept
 inline
 void RingBuffer::setSize(const std::size_t s) noexcept
 {
-  ZISC_ASSERT((s == 0) || has_single_bit(s), "The size isn't power of 2. size = ", s);
+  ZISC_ASSERT((s == 0) || std::has_single_bit(s), "The size isn't power of 2. size = ", s);
   destroy();
   {
-    ZISC_ASSERT(has_single_bit(s), "The s isn't power of 2. s = ", s);
+    ZISC_ASSERT(std::has_single_bit(s), "The s isn't power of 2. s = ", s);
     const std::size_t l = calcMemChunkSize(s);
     memory_.resize(l);
     size_ = s;
@@ -343,7 +343,7 @@ inline
 std::size_t RingBuffer::size() const noexcept
 {
   const std::size_t s = size_;
-  ZISC_ASSERT((s == 0) || has_single_bit(s), "The size isn't power of 2. size = ", s);
+  ZISC_ASSERT((s == 0) || std::has_single_bit(s), "The size isn't power of 2. size = ", s);
   return s;
 }
 
@@ -563,7 +563,7 @@ uint64b RingBuffer::permuteIndexImpl(const uint64b index,
                                      const uint64b o,
                                      const uint64b n) const noexcept
 {
-  ZISC_ASSERT(has_single_bit(n), "The n isn't power of 2.");
+  ZISC_ASSERT(std::has_single_bit(n), "The n isn't power of 2.");
   using AtomicT = std::remove_cvref_t<decltype(getIndex(0))>;
   constexpr uint64b cache_line_size = kCacheLineSize;
   constexpr uint64b data_size = sizeof(AtomicT);

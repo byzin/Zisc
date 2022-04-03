@@ -14,10 +14,10 @@
 
 #include "thread_manager.hpp"
 // Standard C++ library
+#include <bit>
 #include <cstddef>
 #include <memory>
 // Zisc
-#include "zisc/bit.hpp"
 #include "zisc/error.hpp"
 #include "zisc/zisc_config.hpp"
 
@@ -52,7 +52,7 @@ void* ThreadManager::TaskResource::do_allocate([[maybe_unused]] std::size_t size
   ZISC_ASSERT(size <= s,
               "The required size exceeds the size of the storage.");
   [[maybe_unused]] constexpr std::size_t a = storageAlignment();
-  ZISC_ASSERT(has_single_bit(alignment) && (alignment <= a),
+  ZISC_ASSERT(std::has_single_bit(alignment) && (alignment <= a),
               "The storage alignment doesn't fit for the required alignment.");
 #endif // Z_MSVC
   void* ptr = std::addressof(storage_);

@@ -24,6 +24,7 @@
 #include <limits>
 #include <memory>
 // Zisc
+#include "zisc/bit.hpp"
 #include "zisc/utility.hpp"
 #include "zisc/zisc_config.hpp"
 #include "zisc/thread/atomic.hpp"
@@ -203,8 +204,6 @@ void* Memory::allocate(const std::size_t alignment, const std::size_t size)
   void* ptr =
 #if defined(Z_WINDOWS)
       allocateForWin(palignment, psize);
-#elif defined(Z_MAC)
-      ::aligned_alloc(palignment, psize);
 #else
       std::aligned_alloc(palignment, psize);
 #endif // Z_WINDOWS
@@ -241,8 +240,6 @@ void Memory::free(void* ptr)
 {
 #if defined(Z_WINDOWS)
   freeForWin(ptr);
-#elif defined(Z_MAC)
-  ::free(ptr);
 #else
   std::free(ptr);
 #endif // Z_WINDOWS
@@ -258,7 +255,7 @@ void Memory::free(void* ptr)
 inline
 bool Memory::isAligned(const void* data, const std::size_t alignment) noexcept
 {
-  const std::size_t address = reinterp<std::size_t>(data);
+  const std::size_t address = bit_cast<std::size_t>(data);
   const bool result = (address & (alignment - 1)) == 0;
   return result;
 }

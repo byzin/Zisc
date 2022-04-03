@@ -13,12 +13,17 @@
   */
 
 // Standard C++ library
+#include <concepts>
 #include <limits>
+#include <memory>
 #include <type_traits>
+#include <vector>
 // GoogleTest
 #include "googletest.hpp"
 // Zisc
 #include "zisc/concepts.hpp"
+#include "zisc/function_reference.hpp"
+#include "zisc/ieee_754_binary.hpp"
 #include "zisc/utility.hpp"
 #include "zisc/zisc_config.hpp"
 
@@ -50,6 +55,79 @@ class [[maybe_unused]] TestDerived : public TestBase
 
 TEST(ConceptsTest, TypeTest)
 {
+  // std concepts test
+  // Core language concepts
+  static_assert(std::same_as<zisc::int32b, zisc::int32b>);
+  static_assert(!std::same_as<zisc::int32b, zisc::uint32b>);
+  static_assert(std::derived_from<::TestDerived, ::TestBase>);
+  static_assert(!std::derived_from<int, ::TestBase>);
+  static_assert(std::convertible_to<float, zisc::Binary16>);
+  static_assert(!std::convertible_to<float, void*>);
+  static_assert(std::common_with<int, double>);
+  static_assert(!std::common_with<int, void>);
+  static_assert(std::integral<int>);
+  static_assert(std::integral<bool>);
+  static_assert(!std::integral<float>);
+  static_assert(std::signed_integral<int>);
+  static_assert(!std::signed_integral<unsigned int>);
+  static_assert(!std::unsigned_integral<int>);
+  static_assert(std::unsigned_integral<unsigned int>);
+  static_assert(std::floating_point<double>);
+  static_assert(!std::floating_point<int>);
+//  static_assert(std::assignable_from<float, int>);
+//  static_assert(!std::assignable_from<float, ::TestDerived>);
+  static_assert(std::swappable<int>);
+  static_assert(!std::swappable<void>);
+//  static_assert(std::swappable_with<float, int>);
+//  static_assert(!std::swappable_with<float, ::TestDerived>);
+  static_assert(std::destructible<::TestDerived>);
+  static_assert(!std::destructible<void>);
+  static_assert(std::constructible_from<double, unsigned int>);
+  static_assert(!std::constructible_from<::TestDerived, unsigned int>);
+  static_assert(std::default_initializable<int>);
+  static_assert(!std::default_initializable<void>);
+  static_assert(std::move_constructible<std::unique_ptr<int>>);
+  static_assert(!std::move_constructible<void>);
+  static_assert(std::copy_constructible<std::shared_ptr<int>>);
+  static_assert(!std::copy_constructible<std::unique_ptr<int>>);
+  // Comparison concepts
+  static_assert(std::equality_comparable<int>);
+  static_assert(!std::equality_comparable<void>);
+  static_assert(std::equality_comparable_with<int, float>);
+  static_assert(!std::equality_comparable_with<int, void>);
+  static_assert(std::totally_ordered<int>);
+  static_assert(!std::totally_ordered<::TestDerived>);
+  static_assert(std::totally_ordered_with<int, unsigned int>);
+  static_assert(!std::totally_ordered_with<int, ::TestDerived>);
+//  static_assert(std::three_way_comparable<int>);
+//  static_assert(!std::three_way_comparable<void*>);
+//  static_assert(std::three_way_comparable_with<int, unsigned int>);
+//  static_assert(!std::three_way_comparable<int, void*>);
+  // Object concepts
+  static_assert(std::movable<std::unique_ptr<int>>);
+  static_assert(!std::movable<void>);
+  static_assert(std::copyable<std::shared_ptr<int>>);
+  static_assert(!std::copyable<std::unique_ptr<int>>);
+  static_assert(std::semiregular<int>);
+  static_assert(!std::semiregular<void>);
+  static_assert(std::regular<int>);
+  static_assert(!std::regular<void>);
+  // Callable
+  static_assert(std::invocable<zisc::FunctionReference<int ()>>);
+  static_assert(!std::invocable<zisc::FunctionReference<int ()>, int>);
+  static_assert(std::invocable<zisc::FunctionReference<int (int)>, int>);
+  static_assert(!std::invocable<zisc::FunctionReference<int (int)>, int*>);
+  static_assert(std::invocable<zisc::FunctionReference<void (int, double)>, int, float>);
+  static_assert(std::regular_invocable<zisc::FunctionReference<int ()>>);
+  static_assert(!std::regular_invocable<zisc::FunctionReference<int ()>, int>);
+  static_assert(std::regular_invocable<zisc::FunctionReference<int (int)>, int>);
+  static_assert(!std::regular_invocable<zisc::FunctionReference<int (int)>, int*>);
+  static_assert(std::regular_invocable<zisc::FunctionReference<void (int, double)>, int, float>);
+
+  static_assert(std::predicate<zisc::FunctionReference<bool (int)>, int>);
+  static_assert(!std::predicate<zisc::FunctionReference<void (int)>, int>);
+
+  // Zisc concepts test
   // SameAs
   static_assert(zisc::SameAs<zisc::int32b, zisc::int32b>);
   static_assert(!zisc::SameAs<zisc::int32b, zisc::uint32b>);

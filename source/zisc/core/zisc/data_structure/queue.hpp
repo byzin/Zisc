@@ -60,11 +60,6 @@ class Queue : private NonCopyable<Queue<QueueClass, T>>
   using reference = Reference;
   using const_reference = ConstReference;
 
-#if defined(Z_CLANG)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wweak-vtables"
-#endif // Z_CLANG
-
   /*!
     \brief No brief description
 
@@ -103,10 +98,6 @@ class Queue : private NonCopyable<Queue<QueueClass, T>>
    private:
     std::shared_ptr<Type> value_;
   };
-
-#if defined(Z_CLANG)
-#pragma GCC diagnostic pop
-#endif // Z_CLANG
 
   //! Return the maximum possible number of elements
   size_type capacity() const noexcept;

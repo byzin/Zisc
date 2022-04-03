@@ -771,10 +771,6 @@ auto ThreadManager::enqueueImpl(TaskData& task,
   using Ite = std::remove_cv_t<CommonIte<Ite1, Ite2>>;
   using Data = std::remove_reference_t<TaskData>;
 
-#if defined(Z_GCC) || defined(Z_CLANG)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wpadded"
-#endif // Z_CLANG || Z_GCC
   class TaskImpl : public PackagedTask
   {
    public:
@@ -855,9 +851,6 @@ auto ThreadManager::enqueueImpl(TaskData& task,
    private:
     Future<ReturnT> future_;
   };
-#if defined(Z_GCC) || defined(Z_CLANG)
-#pragma GCC diagnostic pop
-#endif // Z_CLANG || Z_GCC
 
   // Issue a task ID
   const int64b task_id = issueTaskId();

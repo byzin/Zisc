@@ -120,7 +120,10 @@ macro(Zisc_setZiscProject)
   Zisc_enableIpo(${PROJECT_NAME})
 
   #
-  Zisc_setStaticAnalyzer(${PROJECT_NAME})
+  set(clang_tidy_exclusion_checks readability-identifier-length
+                                  )
+  Zisc_setStaticAnalyzer(${PROJECT_NAME}
+                         CLANG_TIDY_EXCLUSION_CHECKS ${clang_tidy_exclusion_checks})
 endmacro(Zisc_setZiscProject)
 
 

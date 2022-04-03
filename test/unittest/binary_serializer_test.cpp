@@ -97,7 +97,7 @@ TEST(BinarySerializerTest, ReadWriteTest)
   {
     std::string result;
     result.resize(data3.size());
-    zisc::BSerializer::read(&result[0], &data_stream, result.size());
+    zisc::BSerializer::read(result.data(), &data_stream, result.size());
     ASSERT_EQ(data3, result);
   }
   data_size -= data3.size();

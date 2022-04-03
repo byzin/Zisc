@@ -29,15 +29,6 @@ namespace zisc {
 // Forward declaration
 template <NonReference> class Future;
 
-#if defined(Z_GCC) || defined(Z_CLANG)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wpadded"
-#endif // Z_GCC || Z_CLANG
-#if defined(Z_CLANG)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wweak-vtables"
-#endif // Z_CLANG
-
 /*!
   \brief No brief description
 
@@ -100,6 +91,9 @@ class PackagedTask : private NonCopyable<PackagedTask>
   friend class Future;
 
 
+  //! Check initial flag state
+  void checkInitialFlagState() const noexcept;
+
   //! Check if the task is completed
   bool isCompleted() const noexcept;
 
@@ -128,16 +122,9 @@ class PackagedTask : private NonCopyable<PackagedTask>
   int64b id_ = invalidId();
   int64b parent_id_ = invalidId();
   void* future_ = nullptr;
-  std::atomic_flag lock_state_ = ATOMIC_FLAG_INIT;
-  std::atomic_flag is_completed_ = ATOMIC_FLAG_INIT;
+  std::atomic_flag lock_state_;
+  std::atomic_flag is_completed_;
 };
-
-#if defined(Z_CLANG)
-#pragma GCC diagnostic pop
-#endif // Z_CLANG
-#if defined(Z_GCC) || defined(Z_CLANG)
-#pragma GCC diagnostic pop
-#endif // Z_GCC || Z_CLANG
 
 // Type aliases
 using SharedTask = std::shared_ptr<PackagedTask>;

@@ -27,11 +27,6 @@ namespace zisc {
 // Forward declaration
 template <bool kOsSpecified> class AtomicWordBase;
 
-#if defined(Z_GCC) || defined(Z_CLANG)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wpadded"
-#endif // Z_GCC || Z_CLANG
-
 /*!
   \brief No brief description
 
@@ -69,10 +64,6 @@ class AtomicWord : public AtomicWordBase<kOsSpecified>
  private:
   Atomic::WordValueType word_ = 0;
 };
-
-#if defined(Z_GCC) || defined(Z_CLANG)
-#pragma GCC diagnostic pop
-#endif // Z_GCC || Z_CLANG
 
 } // namespace zisc
 

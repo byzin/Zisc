@@ -77,7 +77,7 @@ TEST(MemoryTest, AlignmentTest)
     ASSERT_FALSE(zisc::Memory::isAligned(&storage[1], 16)) << "zisc::isAligned() failed.";
   }
   {
-    const auto* ptr1 = &storage[0];
+    const auto* ptr1 = storage.data();
     const auto* ptr2 = zisc::assume_aligned<16>(ptr1);
     ASSERT_EQ(ptr1, ptr2) << "zisc::assume_aligned() failed.";
   }

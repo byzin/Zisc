@@ -127,12 +127,7 @@ constexpr int Bit::countROne(const Integer x) noexcept
 template <UnsignedInteger Integer> inline
 constexpr Integer Bit::ceil(const Integer x) noexcept
 {
-  const Integer result =
-#if defined(Z_CLANG)
-      Zisc::ceil(x);
-#else // Z_CLANG
-      std::bit_ceil(x);
-#endif // Z_CLANG
+  const Integer result = std::bit_ceil(x);
   return result;
 }
 
@@ -146,12 +141,7 @@ constexpr Integer Bit::ceil(const Integer x) noexcept
 template <UnsignedInteger Integer> inline
 constexpr Integer Bit::floor(const Integer x) noexcept
 {
-  const Integer result =
-#if defined(Z_CLANG)
-      Zisc::floor(x);
-#else // Z_CLANG
-      std::bit_floor(x);
-#endif // Z_CLANG
+  const Integer result = std::bit_floor(x);
   return result;
 }
 
@@ -165,12 +155,7 @@ constexpr Integer Bit::floor(const Integer x) noexcept
 template <UnsignedInteger Integer> inline
 constexpr Integer Bit::getWidth(const Integer x) noexcept
 {
-  const Integer result =
-#if defined(Z_CLANG)
-      Zisc::getWidth(x);
-#else // Z_CLANG
-      std::bit_width(x);
-#endif // Z_CLANG
+  const Integer result = std::bit_width(x);
   return result;
 }
 
@@ -184,82 +169,7 @@ constexpr Integer Bit::getWidth(const Integer x) noexcept
 template <UnsignedInteger Integer> inline
 constexpr bool Bit::isPowerOf2(const Integer x) noexcept
 {
-  const bool result =
-#if defined(Z_CLANG)
-      Zisc::isPowerOf2(x);
-#else // Z_CLANG
-      std::has_single_bit(x);
-#endif // Z_CLANG
-  return result;
-}
-
-/*!
-  \details No detailed description
-
-  \tparam Integer No description.
-  \param [in] x No description.
-  \return No description
-  */
-template <UnsignedInteger Integer> inline
-constexpr Integer Bit::Zisc::ceil(const Integer x) noexcept
-{
-  Integer result = 1;
-  if (2 <= x) {
-    if constexpr (std::is_same_v<Integer, decltype(+x)>) {
-      result = cast<Integer>(1) << bit_width(cast<Integer>(x - 1));
-    }
-    else { // for types subject to integral promotion
-      constexpr int offset = std::numeric_limits<unsigned>::digits -
-                             std::numeric_limits<Integer>::digits;
-      result = cast<Integer>(1u << (bit_width(cast<Integer>(x - 1)) + offset) >> offset);
-    }
-  }
-  return result;
-}
-
-/*!
-  \details No detailed description
-
-  \tparam Integer No description.
-  \param [in] x No description.
-  \return No description
-  */
-template <UnsignedInteger Integer> inline
-constexpr Integer Bit::Zisc::floor(const Integer x) noexcept
-{
-  const Integer result = (x == 0)
-    ? cast<Integer>(0)
-    : cast<Integer>(cast<Integer>(1) << (bit_width(x) - 1));
-  return result;
-}
-
-/*!
-  \details No detailed description
-
-  \tparam Integer No description.
-  \param [in] x No description.
-  \return No description
-  */
-template <UnsignedInteger Integer> inline
-constexpr Integer Bit::Zisc::getWidth(const Integer x) noexcept
-{
-  constexpr auto n = cast<Integer>(std::numeric_limits<Integer>::digits);
-  const auto zeros = cast<Integer>(countl_zero(x));
-  const Integer result = n - zeros;
-  return result;
-}
-
-/*!
-  \details No detailed description
-
-  \tparam Integer No description.
-  \param [in] x No description.
-  \return No description
-  */
-template <UnsignedInteger Integer> inline
-constexpr bool Bit::Zisc::isPowerOf2(const Integer x) noexcept
-{
-  const bool result = (x != 0) && ((x & (x - 1)) == 0);
+  const bool result = std::has_single_bit(x);
   return result;
 }
 

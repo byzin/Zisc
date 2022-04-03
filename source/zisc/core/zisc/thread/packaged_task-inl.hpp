@@ -39,6 +39,7 @@ namespace zisc {
 inline
 PackagedTask::PackagedTask() noexcept
 {
+  checkInitialFlagState();
 }
 
 /*!
@@ -177,6 +178,18 @@ void PackagedTask::setResult(ValueT&& result) noexcept
     unlink(&f);
     unlock(&f);
   }
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+inline
+void PackagedTask::checkInitialFlagState() const noexcept
+{
+  ZISC_ASSERT(!lock_state_.test(), "The flag isn't initialized.");
+  ZISC_ASSERT(!is_completed_.test(), "The flag isn't initialized.");
 }
 
 /*!

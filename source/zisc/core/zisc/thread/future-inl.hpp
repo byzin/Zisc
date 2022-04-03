@@ -38,6 +38,7 @@ namespace zisc {
 template <NonReference T> inline
 Future<T>::Future() noexcept : data_{}
 {
+  checkInitialFlagState();
 }
 
 /*!
@@ -48,6 +49,7 @@ Future<T>::Future() noexcept : data_{}
 template <NonReference T> inline
 Future<T>::Future(PackagedTask* t) noexcept : data_{}
 {
+  checkInitialFlagState();
   linkWithTask(t);
 }
 
@@ -59,6 +61,7 @@ Future<T>::Future(PackagedTask* t) noexcept : data_{}
 template <NonReference T> inline
 Future<T>::Future(Future&& other) noexcept : data_{}
 {
+  checkInitialFlagState();
   moveData(other);
 }
 
@@ -150,6 +153,17 @@ void Future<T>::wait() const
 {
   while (!isReady())
     std::this_thread::yield();
+}
+
+/*!
+  \details No detailed description
+  */
+template <NonReference T> inline
+void Future<T>::checkInitialFlagState() const noexcept
+{
+  ZISC_ASSERT(!lock_state_.test(), "The flag isn't initialized.");
+  ZISC_ASSERT(!has_value_.test(), "The flag isn't initialized.");
+  ZISC_ASSERT(!is_completed_.test(), "The flag isn't initialized.");
 }
 
 /*!

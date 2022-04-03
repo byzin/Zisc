@@ -224,7 +224,7 @@ constexpr Type* Memory::assumeAligned(Type* ptr)
 {
   Type* result =
 #if defined(Z_CLANG)
-      cast<Type*>(__builtin_assume_aligned(ptr, kN));
+      static_cast<Type*>(__builtin_assume_aligned(ptr, kN));
 #else // Z_CLANG
       std::assume_aligned<kN>(ptr);
 #endif // Z_CLANG

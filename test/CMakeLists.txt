@@ -147,6 +147,7 @@ macro(setTestProject)
                                   performance-move-const-arg
                                   readability-function-cognitive-complexity
                                   readability-function-size
+                                  readability-identifier-length
                                   readability-isolate-declaration
                                   readability-magic-numbers
                                   readability-named-parameter

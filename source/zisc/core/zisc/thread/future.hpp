@@ -28,11 +28,6 @@ namespace zisc {
 // Forward declaration
 class PackagedTask;
 
-#if defined(Z_GCC) || defined(Z_CLANG)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wpadded"
-#endif // Z_GCC || Z_CLANG
-
 /*!
   \brief Future provides a mechanism to access the result of asynchronous operations
 
@@ -101,6 +96,9 @@ class Future : private NonCopyable<Future<T>>
                                    StorageT>;
 
 
+  //! Check initial flag state
+  void checkInitialFlagState() const noexcept;
+
   //! Destroy the data in the future
   void destroy() noexcept;
 
@@ -161,14 +159,10 @@ class Future : private NonCopyable<Future<T>>
   PackagedTask* task_ = nullptr;
   int64b task_id_ = invalidId();
   DataT data_;
-  std::atomic_flag lock_state_ = ATOMIC_FLAG_INIT;
-  std::atomic_flag has_value_ = ATOMIC_FLAG_INIT;
-  std::atomic_flag is_completed_ = ATOMIC_FLAG_INIT;
+  std::atomic_flag lock_state_;
+  std::atomic_flag has_value_;
+  std::atomic_flag is_completed_;
 };
-
-#if defined(Z_GCC) || defined(Z_CLANG)
-#pragma GCC diagnostic pop
-#endif // Z_GCC || Z_CLANG
 
 } // namespace zisc
 

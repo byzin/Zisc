@@ -60,6 +60,7 @@ function(addExample target save_dependency_list)
                                   modernize-avoid-c-arrays
                                   modernize-use-auto
                                   readability-function-cognitive-complexity
+                                  readability-identifier-length
                                   readability-isolate-declaration
                                   readability-magic-numbers
                                   readability-static-accessed-through-instance

@@ -17,10 +17,10 @@
 
 // Standard C++ library
 #include <array>
+#include <concepts>
 #include <cstddef>
 #include <cstdint>
 // Zisc
-#include "zisc/concepts.hpp"
 #include "zisc/zisc_config.hpp"
 
 namespace zisc {
@@ -41,18 +41,18 @@ class CorrelatedMultiJitteredEngine
 
 
   //! Generate a [0, 1) float random number
-  template <FloatingPoint Float>
+  template <std::floating_point Float>
   static Float generate1d(const ValueType s, const ValueType p) noexcept;
 
   //! Generate two [0, 1) float random numbers
-  template <FloatingPoint Float>
+  template <std::floating_point Float>
   static std::array<Float, 2> generate2d(ValueType s, const ValueType p) noexcept;
 
   //! Return the period
   static constexpr std::size_t getPeriod() noexcept;
 
   //! Check if a specified sample (0 base count) is the end of period
-  template <UnsignedInteger Integer>
+  template <std::unsigned_integral Integer>
   static constexpr bool isEndOfPeriod(const Integer sample) noexcept;
 
  private:

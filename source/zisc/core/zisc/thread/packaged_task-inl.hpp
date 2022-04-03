@@ -72,7 +72,7 @@ template <NonReference T> inline
 Future<T>& PackagedTask::getFuture() noexcept
 {
   ZISC_ASSERT(hasFuture(), "A future isn't set.");
-  auto f = cast<Future<T>*>(future_);
+  auto f = static_cast<Future<T>*>(future_);
   return *f;
 }
 

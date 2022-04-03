@@ -16,13 +16,13 @@
 #define ZISC_MUTEX_BST_HPP
 
 // Standard C++ library
+#include <concepts>
 #include <cstddef>
 #include <shared_mutex>
 #include <vector>
 // Zisc
 #include "mutex_bst_node.hpp"
 #include "search_tree.hpp"
-#include "zisc/concepts.hpp"
 #include "zisc/zisc_config.hpp"
 #include "zisc/memory/std_memory_resource.hpp"
 
@@ -63,7 +63,7 @@ class MutexBst : public SearchTree<MutexBst>
 
 
   //! Insert the given value into the bst
-  template <ConvertibleTo<double> Type>
+  template <std::convertible_to<double> Type>
   [[nodiscard]] QueryResultT add(const Type& value);
 
   //! Return the maximum possible number of elements
@@ -76,7 +76,7 @@ class MutexBst : public SearchTree<MutexBst>
   void clear() noexcept;
 
   //! Check if the given value is contained in the bst
-  template <ConvertibleTo<double> Type>
+  template <std::convertible_to<double> Type>
   [[nodiscard]] QueryResultT contain(const Type& value) const noexcept;
 
   //! Return the default capacity
@@ -89,7 +89,7 @@ class MutexBst : public SearchTree<MutexBst>
   static constexpr bool isConcurrent() noexcept;
 
   //! Remove the value from the bst
-  template <ConvertibleTo<double> Type>
+  template <std::convertible_to<double> Type>
   [[nodiscard]] QueryResultT remove(const Type& value);
 
   //! Change the maximum possible number of elements. The bst will be cleared

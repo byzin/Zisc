@@ -44,14 +44,14 @@ constexpr auto Atomic::castMemOrder(const std::memory_order order) noexcept
   using OrderT = decltype(__ATOMIC_SEQ_CST);
 
   // memory order value check
-  static_assert(__ATOMIC_RELAXED == zisc::cast<OrderT>(std::memory_order::relaxed));
-  static_assert(__ATOMIC_CONSUME == zisc::cast<OrderT>(std::memory_order::consume));
-  static_assert(__ATOMIC_ACQUIRE == zisc::cast<OrderT>(std::memory_order::acquire));
-  static_assert(__ATOMIC_RELEASE == zisc::cast<OrderT>(std::memory_order::release));
-  static_assert(__ATOMIC_ACQ_REL == zisc::cast<OrderT>(std::memory_order::acq_rel));
-  static_assert(__ATOMIC_SEQ_CST == zisc::cast<OrderT>(std::memory_order::seq_cst));
+  static_assert(__ATOMIC_RELAXED == static_cast<OrderT>(std::memory_order::relaxed));
+  static_assert(__ATOMIC_CONSUME == static_cast<OrderT>(std::memory_order::consume));
+  static_assert(__ATOMIC_ACQUIRE == static_cast<OrderT>(std::memory_order::acquire));
+  static_assert(__ATOMIC_RELEASE == static_cast<OrderT>(std::memory_order::release));
+  static_assert(__ATOMIC_ACQ_REL == static_cast<OrderT>(std::memory_order::acq_rel));
+  static_assert(__ATOMIC_SEQ_CST == static_cast<OrderT>(std::memory_order::seq_cst));
 
-  return cast<OrderT>(order);
+  return static_cast<OrderT>(order);
 #else // Z_CLANG
   return order;
 #endif // Z_CLANG

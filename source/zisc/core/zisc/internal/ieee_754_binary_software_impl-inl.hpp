@@ -17,12 +17,12 @@
 
 #include "ieee_754_binary_software_impl.hpp"
 // Standard C++ library
+#include <concepts>
 #include <cstddef>
 #include <type_traits>
 // Zisc
 #include "zisc/algorithm.hpp"
 #include "zisc/bit.hpp"
-#include "zisc/concepts.hpp"
 #include "zisc/ieee_754_binary.hpp"
 #include "zisc/utility.hpp"
 #include "zisc/zisc_config.hpp"
@@ -43,7 +43,7 @@ constexpr Ieee754BinarySoftwareImpl<kFormat>::Ieee754BinarySoftwareImpl() noexce
 
   \param [in] value No description.
   */
-template <Ieee754BinaryFormat kFormat> template <FloatingPoint Float> inline
+template <Ieee754BinaryFormat kFormat> template <std::floating_point Float> inline
 constexpr Ieee754BinarySoftwareImpl<kFormat>::Ieee754BinarySoftwareImpl(const Float value) noexcept :
     Ieee754BinarySoftwareImpl(toBinary(value).template convertTo<kFormat>())
 {
@@ -103,7 +103,7 @@ constexpr auto Ieee754BinarySoftwareImpl<kFormat>::convertTo() const noexcept
   \return No description
   */
 template <Ieee754BinaryFormat kFormat>
-template <FloatingPoint Float, Ieee754RoundingMode kRMode> inline
+template <std::floating_point Float, Ieee754RoundingMode kRMode> inline
 constexpr Float Ieee754BinarySoftwareImpl<kFormat>::convertTo() const noexcept
 {
   const auto dst = convertTo<kBinFormatFromFloat<Float>, kRMode>();
@@ -570,7 +570,7 @@ constexpr std::size_t Ieee754BinarySoftwareImpl<kFormat>::significandBitSize() n
   \param [in] value No description.
   \return No description
   */
-template <Ieee754BinaryFormat kFormat> template <FloatingPoint Float> inline
+template <Ieee754BinaryFormat kFormat> template <std::floating_point Float> inline
 constexpr auto Ieee754BinarySoftwareImpl<kFormat>::toBinary(const Float value) noexcept
     -> Ieee754BinarySoftwareImpl<kBinFormatFromFloat<Float>>
 {

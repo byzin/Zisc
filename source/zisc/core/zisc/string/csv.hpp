@@ -16,6 +16,7 @@
 #define ZISC_CSV_HPP
 
 // Standard C++ library
+#include <concepts>
 #include <cstddef>
 #include <istream>
 #include <regex>
@@ -109,11 +110,11 @@ class Csv : private NonCopyable<Csv<Type, Types...>>
 
 
   //! Convert a CSV bool to a C++ bool 
-  template <SameAs<bool> PType>
+  template <std::same_as<bool> PType>
   PType toCxxType(const std::string_view json_value) const noexcept;
 
   //! Convert a CSV float to a C++ float
-  template <FloatingPoint PType>
+  template <std::floating_point PType>
   PType toCxxType(const std::string_view json_value) const noexcept;
 
   //! Convert a CSV integer to a C++ integer
@@ -129,11 +130,11 @@ class Csv : private NonCopyable<Csv<Type, Types...>>
   static constexpr auto getCsvPattern() noexcept;
 
   //! Return the boolean pattern string for regex
-  template <SameAs<bool> PType>
+  template <std::same_as<bool> PType>
   static constexpr auto getTypePattern() noexcept;
 
   //! Return the float pattern string for regex
-  template <FloatingPoint PType>
+  template <std::floating_point PType>
   static constexpr auto getTypePattern() noexcept;
 
   //! Return the integer pattern string for regex

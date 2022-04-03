@@ -17,6 +17,7 @@
 
 #include "query_result.hpp"
 // Standard C++ library
+#include <concepts>
 #include <cstddef>
 #include <limits>
 #include <memory>
@@ -26,7 +27,6 @@
 #include "query_value.hpp"
 #include "zisc/bit.hpp"
 #include "zisc/boolean.hpp"
-#include "zisc/concepts.hpp"
 #include "zisc/zisc_config.hpp"
 
 namespace zisc {
@@ -34,7 +34,7 @@ namespace zisc {
 /*!
   \details No detailed description
   */
-template <Movable T> inline
+template <std::movable T> inline
 QueryResult<T>::QueryResult() noexcept : value_{}
 {
 }
@@ -44,7 +44,7 @@ QueryResult<T>::QueryResult() noexcept : value_{}
 
   \param [in] value No description.
   */
-template <Movable T> inline
+template <std::movable T> inline
 QueryResult<T>::QueryResult(RReference value) noexcept :
     value_{std::move(value)},
     is_valid_{true}
@@ -56,7 +56,7 @@ QueryResult<T>::QueryResult(RReference value) noexcept :
 
   \param [in] other No description.
   */
-template <Movable T> inline
+template <std::movable T> inline
 QueryResult<T>::QueryResult(QueryResult&& other) noexcept :
     value_{std::move(other.value_)},
     is_valid_{other.is_valid_}
@@ -69,7 +69,7 @@ QueryResult<T>::QueryResult(QueryResult&& other) noexcept :
   \param [in] value No description.
   \return No description
   */
-template <Movable T> inline
+template <std::movable T> inline
 auto QueryResult<T>::operator=(RReference value) noexcept -> QueryResult&
 {
   value_ = std::move(value);
@@ -83,7 +83,7 @@ auto QueryResult<T>::operator=(RReference value) noexcept -> QueryResult&
   \param [in] other No description.
   \return No description
   */
-template <Movable T> inline
+template <std::movable T> inline
 auto QueryResult<T>::operator=(QueryResult&& other) noexcept -> QueryResult&
 {
   value_ = std::move(other.value_);
@@ -96,7 +96,7 @@ auto QueryResult<T>::operator=(QueryResult&& other) noexcept -> QueryResult&
 
   \return No description
   */
-template <Movable T> inline
+template <std::movable T> inline
 QueryResult<T>::operator Reference() noexcept
 {
   return get();
@@ -107,7 +107,7 @@ QueryResult<T>::operator Reference() noexcept
 
   \return No description
   */
-template <Movable T> inline
+template <std::movable T> inline
 QueryResult<T>::operator ConstReference() const noexcept
 {
   return get();
@@ -118,7 +118,7 @@ QueryResult<T>::operator ConstReference() const noexcept
 
   \return No description
   */
-template <Movable T> inline
+template <std::movable T> inline
 auto QueryResult<T>::get() noexcept -> Reference
 {
   return value_;
@@ -129,7 +129,7 @@ auto QueryResult<T>::get() noexcept -> Reference
 
   \return No description
   */
-template <Movable T> inline
+template <std::movable T> inline
 auto QueryResult<T>::get() const noexcept -> ConstReference
 {
   return value_;
@@ -140,7 +140,7 @@ auto QueryResult<T>::get() const noexcept -> ConstReference
 
   \return No description
   */
-template <Movable T> inline
+template <std::movable T> inline
 bool QueryResult<T>::isSuccess() const noexcept
 {
   return is_valid_;
@@ -151,7 +151,7 @@ bool QueryResult<T>::isSuccess() const noexcept
 
   \return No description
   */
-template <Movable T> inline
+template <std::movable T> inline
 constexpr int QueryResult<T>::type() noexcept
 {
   return 0;
@@ -164,7 +164,7 @@ constexpr int QueryResult<T>::type() noexcept
 
   \tparam T No description.
   */
-template <Movable T> requires FloatingPoint<T>
+template <std::movable T> requires std::floating_point<T>
 class QueryResult<T> : private NonCopyable<QueryResult<T>>
 {
  public:
@@ -268,11 +268,11 @@ class QueryResult<T> : private NonCopyable<QueryResult<T>>
 
   \tparam T No description.
   */
-template <Movable T> requires DerivedFrom<T, QueryValueU8> ||
-                              DerivedFrom<T, QueryValueU16> ||
-                              DerivedFrom<T, QueryValueU32> ||
-                              DerivedFrom<T, QueryValueU64> ||
-                              DerivedFrom<T, QueryValue<std::size_t>>
+template <std::movable T> requires std::derived_from<T, QueryValueU8> ||
+                                   std::derived_from<T, QueryValueU16> ||
+                                   std::derived_from<T, QueryValueU32> ||
+                                   std::derived_from<T, QueryValueU64> ||
+                                   std::derived_from<T, QueryValue<std::size_t>>
 class QueryResult<T> : private NonCopyable<QueryResult<T>>
 {
  public:
@@ -365,7 +365,7 @@ class QueryResult<T> : private NonCopyable<QueryResult<T>>
 
   \tparam T No description.
   */
-template <Movable T> requires (std::alignment_of_v<T> == 1)
+template <std::movable T> requires (std::alignment_of_v<T> == 1)
 class QueryResult<T> : private NonCopyable<QueryResult<T>>
 {
  public:

@@ -17,10 +17,10 @@
 
 // Standard C++ library
 #include <array>
+#include <concepts>
 #include <cstddef>
 // Zisc
 #include "pseudo_random_number_engine.hpp"
-#include "zisc/concepts.hpp"
 #include "zisc/zisc_config.hpp"
 
 namespace zisc {
@@ -40,7 +40,7 @@ enum class XoshiroMethod : int
   \tparam ValueT No description.
   \tparam kMethod No description.
   */
-template <UnsignedInteger ValueT, XoshiroMethod kMethod>
+template <std::unsigned_integral ValueT, XoshiroMethod kMethod>
 class XoshiroEngine : public PseudoRandomNumberEngine<XoshiroEngine<ValueT, kMethod>, ValueT>
 {
  public:
@@ -62,7 +62,7 @@ class XoshiroEngine : public PseudoRandomNumberEngine<XoshiroEngine<ValueT, kMet
   static constexpr std::size_t getPeriodPow2() noexcept;
 
   //! Check if a specified sample (0 base count) is the end of period
-  template <UnsignedInteger Integer>
+  template <std::unsigned_integral Integer>
   static constexpr bool isEndOfPeriod(const Integer sample) noexcept;
 
   //! Set a seed

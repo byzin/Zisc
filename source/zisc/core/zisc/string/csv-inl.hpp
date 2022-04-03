@@ -17,6 +17,7 @@
 
 #include "csv.hpp"
 // Standard C++ library
+#include <concepts>
 #include <cstddef>
 #include <istream>
 #include <regex>
@@ -262,7 +263,7 @@ void Csv<Type, Types...>::setCapacity(const std::size_t cap) noexcept
   \param [in] json_value No description.
   \return No description
   */
-template <typename Type, typename ...Types> template <SameAs<bool> PType> inline
+template <typename Type, typename ...Types> template <std::same_as<bool> PType> inline
 PType Csv<Type, Types...>::toCxxType(const std::string_view json_value) const noexcept
 {
   const PType result = JsonValueParser::toCxxBool(json_value);
@@ -276,7 +277,7 @@ PType Csv<Type, Types...>::toCxxType(const std::string_view json_value) const no
   \param [in] json_value No description.
   \return No description
   */
-template <typename Type, typename ...Types> template <FloatingPoint PType> inline
+template <typename Type, typename ...Types> template <std::floating_point PType> inline
 PType Csv<Type, Types...>::toCxxType(const std::string_view json_value) const noexcept
 {
   const PType result = JsonValueParser::toCxxFloat<PType>(json_value);
@@ -345,7 +346,7 @@ constexpr auto Csv<Type, Types...>::getCsvPattern() noexcept
   \tparam PType No description.
   \return No description
   */
-template <typename Type, typename ...Types> template <SameAs<bool> PType> inline
+template <typename Type, typename ...Types> template <std::same_as<bool> PType> inline
 constexpr auto Csv<Type, Types...>::getTypePattern() noexcept
 {
   return JsonValueParser::booleanPattern();
@@ -357,7 +358,7 @@ constexpr auto Csv<Type, Types...>::getTypePattern() noexcept
   \tparam PType No description.
   \return No description
   */
-template <typename Type, typename ...Types> template <FloatingPoint PType> inline
+template <typename Type, typename ...Types> template <std::floating_point PType> inline
 constexpr auto Csv<Type, Types...>::getTypePattern() noexcept
 {
   return JsonValueParser::floatPattern();

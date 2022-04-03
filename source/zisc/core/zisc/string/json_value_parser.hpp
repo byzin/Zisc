@@ -16,6 +16,7 @@
 #define ZISC_JSON_VALUE_PARSER_HPP
 
 // Standard C++ library
+#include <concepts>
 #include <cstddef>
 #include <regex>
 #include <string_view>
@@ -72,7 +73,7 @@ class JsonValueParser
   static bool toCxxBool(const std::string_view json_value) noexcept;
 
   //! Convert JSON float to C++ float
-  template <FloatingPoint Float>
+  template <std::floating_point Float>
   static Float toCxxFloat(const std::string_view json_value) noexcept;
 
   //! Convert JSON float to C++ float
@@ -128,7 +129,7 @@ class JsonValueParser
                         const std::string_view json_value) noexcept;
 
   //! Convert JSON float to C++ float
-  template <FloatingPoint Float>
+  template <std::floating_point Float>
   static Float toCxxFloatImpl(std::string_view json_value) noexcept;
 
   //! Convert JSON integer to C++ integer

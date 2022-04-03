@@ -18,12 +18,12 @@
 #include "xoshiro_engine.hpp"
 // Standard C++ library
 #include <array>
+#include <concepts>
 #include <cstddef>
 #include <limits>
 #include <type_traits>
 // Zisc
 #include "pseudo_random_number_engine.hpp"
-#include "zisc/concepts.hpp"
 #include "zisc/utility.hpp"
 #include "zisc/zisc_config.hpp"
 
@@ -32,7 +32,7 @@ namespace zisc {
 /*!
   \details No detailed description
   */
-template <UnsignedInteger ValueT, XoshiroMethod kMethod> inline
+template <std::unsigned_integral ValueT, XoshiroMethod kMethod> inline
 XoshiroEngine<ValueT, kMethod>::XoshiroEngine() noexcept
 {
   setSeed(BaseEngine::defaultSeed());
@@ -43,7 +43,7 @@ XoshiroEngine<ValueT, kMethod>::XoshiroEngine() noexcept
 
   \param [in] seed No description.
   */
-template <UnsignedInteger ValueT, XoshiroMethod kMethod> inline
+template <std::unsigned_integral ValueT, XoshiroMethod kMethod> inline
 XoshiroEngine<ValueT, kMethod>::XoshiroEngine(const ValueType seed) noexcept
 {
   setSeed(seed);
@@ -54,7 +54,7 @@ XoshiroEngine<ValueT, kMethod>::XoshiroEngine(const ValueType seed) noexcept
 
   \return No description
   */
-template <UnsignedInteger ValueT, XoshiroMethod kMethod> inline
+template <std::unsigned_integral ValueT, XoshiroMethod kMethod> inline
 auto XoshiroEngine<ValueT, kMethod>::generate() noexcept -> ValueType
 {
   const ValueType result = generateRandom();
@@ -67,7 +67,7 @@ auto XoshiroEngine<ValueT, kMethod>::generate() noexcept -> ValueType
 
   \return No description
   */
-template <UnsignedInteger ValueT, XoshiroMethod kMethod> inline
+template <std::unsigned_integral ValueT, XoshiroMethod kMethod> inline
 constexpr std::size_t XoshiroEngine<ValueT, kMethod>::getPeriodPow2() noexcept
 {
   constexpr std::size_t period_pow2 = 4 * std::numeric_limits<ValueType>::digits;
@@ -81,8 +81,8 @@ constexpr std::size_t XoshiroEngine<ValueT, kMethod>::getPeriodPow2() noexcept
   \param [in] sample No description.
   \return No description
   */
-template <UnsignedInteger ValueT, XoshiroMethod kMethod>
-template <UnsignedInteger Integer> inline
+template <std::unsigned_integral ValueT, XoshiroMethod kMethod>
+template <std::unsigned_integral Integer> inline
 constexpr bool XoshiroEngine<ValueT, kMethod>::isEndOfPeriod(
     const Integer sample) noexcept
 {
@@ -106,7 +106,7 @@ constexpr bool XoshiroEngine<ValueT, kMethod>::isEndOfPeriod(
 
   \param [in] seed No description.
   */
-template <UnsignedInteger ValueT, XoshiroMethod kMethod> inline
+template <std::unsigned_integral ValueT, XoshiroMethod kMethod> inline
 void XoshiroEngine<ValueT, kMethod>::setSeed(const ValueType seed) noexcept
 {
   state_.fill(seed);
@@ -117,7 +117,7 @@ void XoshiroEngine<ValueT, kMethod>::setSeed(const ValueType seed) noexcept
 
   \return No description
   */
-template <UnsignedInteger ValueT, XoshiroMethod kMethod> inline
+template <std::unsigned_integral ValueT, XoshiroMethod kMethod> inline
 constexpr auto XoshiroEngine<ValueT, kMethod>::a() noexcept -> ValueType
 {
   ValueType value = 0;
@@ -133,7 +133,7 @@ constexpr auto XoshiroEngine<ValueT, kMethod>::a() noexcept -> ValueType
 
   \return No description
   */
-template <UnsignedInteger ValueT, XoshiroMethod kMethod> inline
+template <std::unsigned_integral ValueT, XoshiroMethod kMethod> inline
 constexpr auto XoshiroEngine<ValueT, kMethod>::b() noexcept -> ValueType
 {
   ValueType value = 0;
@@ -149,7 +149,7 @@ constexpr auto XoshiroEngine<ValueT, kMethod>::b() noexcept -> ValueType
 
   \return No description
   */
-template <UnsignedInteger ValueT, XoshiroMethod kMethod> inline
+template <std::unsigned_integral ValueT, XoshiroMethod kMethod> inline
 constexpr auto XoshiroEngine<ValueT, kMethod>::c() noexcept -> ValueType
 {
   ValueType value = 0;
@@ -165,7 +165,7 @@ constexpr auto XoshiroEngine<ValueT, kMethod>::c() noexcept -> ValueType
 
   \return No description
   */
-template <UnsignedInteger ValueT, XoshiroMethod kMethod> inline
+template <std::unsigned_integral ValueT, XoshiroMethod kMethod> inline
 auto XoshiroEngine<ValueT, kMethod>::generateRandom() noexcept -> ValueType
 {
   ValueType result = 0;
@@ -181,7 +181,7 @@ auto XoshiroEngine<ValueT, kMethod>::generateRandom() noexcept -> ValueType
 /*!
   \details No detailed description
   */
-template <UnsignedInteger ValueT, XoshiroMethod kMethod> inline
+template <std::unsigned_integral ValueT, XoshiroMethod kMethod> inline
 void XoshiroEngine<ValueT, kMethod>::nextState() noexcept
 {
   const ValueType t = state_[1] << b();
@@ -200,7 +200,7 @@ void XoshiroEngine<ValueT, kMethod>::nextState() noexcept
   \param [in] x No description.
   \return No description
   */
-template <UnsignedInteger ValueT, XoshiroMethod kMethod>
+template <std::unsigned_integral ValueT, XoshiroMethod kMethod>
 template <ValueT k> inline
 auto XoshiroEngine<ValueT, kMethod>::rotateLeft(const ValueType x) noexcept
     -> ValueType

@@ -16,13 +16,13 @@
 #define ZISC_SEARCH_TREE_HPP
 
 // Standard C++ library
+#include <concepts>
 #include <cstddef>
 #include <limits>
 #include <type_traits>
 // Zisc
 #include "query_result.hpp"
 #include "query_value.hpp"
-#include "zisc/concepts.hpp"
 #include "zisc/non_copyable.hpp"
 #include "zisc/zisc_config.hpp"
 
@@ -48,7 +48,7 @@ class SearchTree : private NonCopyable<SearchTree<SearchTreeClass>>
 
 
   //! Insert the given value into the search tree
-  template <ConvertibleTo<double> Type>
+  template <std::convertible_to<double> Type>
   [[nodiscard]] QueryResultT add(const Type& value);
 
   //! Return the maximum possible number of elements
@@ -61,7 +61,7 @@ class SearchTree : private NonCopyable<SearchTree<SearchTreeClass>>
   void clear() noexcept;
 
   //! Check if the given value is contained in the search tree
-  template <ConvertibleTo<double> Type>
+  template <std::convertible_to<double> Type>
   [[nodiscard]] QueryResultT contain(const Type& value) const noexcept;
 
   //! Find the minimum key in the search tree
@@ -74,7 +74,7 @@ class SearchTree : private NonCopyable<SearchTree<SearchTreeClass>>
   static constexpr bool isConcurrent() noexcept;
 
   //! Remove the value from the search tree
-  template <ConvertibleTo<double> Type>
+  template <std::convertible_to<double> Type>
   [[nodiscard]] QueryResultT remove(const Type& value);
 
   //! Change the maximum possible number of elements. The search tree will be cleared

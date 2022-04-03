@@ -60,7 +60,7 @@ class FunctionReference<ReturnT (ArgTypes...)>
   FunctionReference& operator=(Func&& func) noexcept;
 
   //! Invoke a referenced callable object
-  ReturnType operator()(ArgTypes... args) const noexcept;
+  ReturnType operator()(ArgTypes... args) const;
 
   //! Check whether this refers a callable object 
   explicit operator bool() const noexcept;
@@ -74,7 +74,7 @@ class FunctionReference<ReturnT (ArgTypes...)>
   void clear() noexcept;
 
   //! Invoke a referenced callable object
-  ReturnType invoke(ArgTypes... args) const noexcept;
+  ReturnType invoke(ArgTypes... args) const;
 
   //! Exchange referenced callable objects of this and other
   void swap(FunctionReference& other) noexcept;
@@ -98,13 +98,11 @@ class FunctionReference<ReturnT (ArgTypes...)>
 
   //! Invoke a referenced callable object 
   template <typename FuncPtr>
-  static ReturnType invokeFunctionPointer(FuncRefMemory mem,
-                                          ArgTypes... args) noexcept;
+  static ReturnType invokeFunctionPointer(FuncRefMemory mem, ArgTypes... args);
 
   //! Invoke a referenced callable object
   template <typename Functor>
-  static ReturnType invokeFunctor(FuncRefMemory mem,
-                                  ArgTypes... args) noexcept;
+  static ReturnType invokeFunctor(FuncRefMemory mem, ArgTypes... args);
 
   //! Return the underlying invoker pointer
   const InvokerPointer& invoker() const noexcept;

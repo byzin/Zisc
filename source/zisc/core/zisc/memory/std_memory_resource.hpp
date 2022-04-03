@@ -23,6 +23,7 @@
 #elif
 static_assert(false, "Compiler doesn't have 'memory_resource'.");
 #endif
+#include <concepts>
 #include <deque>
 #include <forward_list>
 #include <functional>
@@ -38,8 +39,6 @@ static_assert(false, "Compiler doesn't have 'memory_resource'.");
 #include <unordered_set>
 #include <utility>
 #include <vector>
-// Zisc
-#include "zisc/concepts.hpp"
 
 namespace zisc {
 
@@ -223,7 +222,7 @@ class UniquePtrDeleter
   UniquePtrDeleter(UniquePtrDeleter&& other) noexcept;
 
   //! Move a data from a super class
-  template <DerivedFrom<Type> Derived>
+  template <std::derived_from<Type> Derived>
   UniquePtrDeleter(UniquePtrDeleter<Derived>&& other) noexcept;
 
 

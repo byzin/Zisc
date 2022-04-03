@@ -19,6 +19,8 @@
 // Standard C++ library
 #include <algorithm>
 #include <atomic>
+#include <bit>
+#include <concepts>
 #include <cstddef>
 #include <limits>
 #include <memory>
@@ -29,8 +31,6 @@
 // Zisc
 #include "query_result.hpp"
 #include "query_value.hpp"
-#include "zisc/bit.hpp"
-#include "zisc/concepts.hpp"
 #include "zisc/error.hpp"
 #include "zisc/utility.hpp"
 #include "zisc/zisc_config.hpp"
@@ -43,7 +43,7 @@ namespace zisc {
 
   \param [in,out] mem_resource No description.
   */
-template <Movable T> inline
+template <std::movable T> inline
 ScalableCircularQueue<T>::ScalableCircularQueue(pmr::memory_resource* mem_resource) noexcept
     : ScalableCircularQueue(1, mem_resource)
 {
@@ -55,7 +55,7 @@ ScalableCircularQueue<T>::ScalableCircularQueue(pmr::memory_resource* mem_resour
   \param [in] cap No description.
   \param [in,out] mem_resource No description.
   */
-template <Movable T> inline
+template <std::movable T> inline
 ScalableCircularQueue<T>::ScalableCircularQueue(const size_type cap,
                                                 pmr::memory_resource* mem_resource) noexcept
     : BaseQueueType(),
@@ -71,7 +71,7 @@ ScalableCircularQueue<T>::ScalableCircularQueue(const size_type cap,
 
   \param [in] other No description.
   */
-template <Movable T> inline
+template <std::movable T> inline
 ScalableCircularQueue<T>::ScalableCircularQueue(ScalableCircularQueue&& other) noexcept
     : BaseQueueType(other),
       free_elements_{std::move(other.free_elements_)},
@@ -86,7 +86,7 @@ ScalableCircularQueue<T>::ScalableCircularQueue(ScalableCircularQueue&& other) n
   \param [in] other No description.
   \return No description
   */
-template <Movable T> inline
+template <std::movable T> inline
 auto ScalableCircularQueue<T>::operator=(ScalableCircularQueue&& other) noexcept
     -> ScalableCircularQueue&
 {
@@ -102,7 +102,7 @@ auto ScalableCircularQueue<T>::operator=(ScalableCircularQueue&& other) noexcept
 
   \return No description
   */
-template <Movable T> inline
+template <std::movable T> inline
 auto ScalableCircularQueue<T>::capacity() const noexcept -> size_type
 {
   const size_type cap = elements_.size();
@@ -116,7 +116,7 @@ auto ScalableCircularQueue<T>::capacity() const noexcept -> size_type
 
   \return No description
   */
-template <Movable T> inline
+template <std::movable T> inline
 constexpr auto ScalableCircularQueue<T>::capacityMax() noexcept -> size_type
 {
   const size_type cap = size_type{0b1u} << (std::numeric_limits<size_type>::digits - 2);
@@ -126,7 +126,7 @@ constexpr auto ScalableCircularQueue<T>::capacityMax() noexcept -> size_type
 /*!
   \details No detailed description
   */
-template <Movable T> inline
+template <std::movable T> inline
 void ScalableCircularQueue<T>::clear() noexcept
 {
   allocated_elements_.clear();
@@ -143,7 +143,7 @@ void ScalableCircularQueue<T>::clear() noexcept
 
   \return No description
   */
-template <Movable T> inline
+template <std::movable T> inline
 auto ScalableCircularQueue<T>::data() const noexcept -> const container_type&
 {
   return elements_;
@@ -154,7 +154,7 @@ auto ScalableCircularQueue<T>::data() const noexcept -> const container_type&
 
   \return No description
   */
-template <Movable T> inline
+template <std::movable T> inline
 auto ScalableCircularQueue<T>::dequeue() noexcept -> DequeueQueryResultT
 {
   DequeueQueryResultT result;
@@ -174,7 +174,7 @@ auto ScalableCircularQueue<T>::dequeue() noexcept -> DequeueQueryResultT
   \return No description
   \exception OverflowError No description.
   */
-template <Movable T> inline
+template <std::movable T> inline
 auto ScalableCircularQueue<T>::enqueue(ConstReference value) -> EnqueueQueryResultT
 {
   return enqueueImpl(value);
@@ -187,7 +187,7 @@ auto ScalableCircularQueue<T>::enqueue(ConstReference value) -> EnqueueQueryResu
   \return No description
   \exception OverflowError No description.
   */
-template <Movable T> inline
+template <std::movable T> inline
 auto ScalableCircularQueue<T>::enqueue(RReference value) -> EnqueueQueryResultT
 {
   return enqueueImpl(std::move(value));
@@ -198,7 +198,7 @@ auto ScalableCircularQueue<T>::enqueue(RReference value) -> EnqueueQueryResultT
 
   \return No description
   */
-template <Movable T> inline
+template <std::movable T> inline
 constexpr bool ScalableCircularQueue<T>::isConcurrent() noexcept
 {
   return true;
@@ -209,7 +209,7 @@ constexpr bool ScalableCircularQueue<T>::isConcurrent() noexcept
 
   \return No description
   */
-template <Movable T> inline
+template <std::movable T> inline
 bool ScalableCircularQueue<T>::isEmpty() const noexcept
 {
   const size_type s = size();
@@ -222,7 +222,7 @@ bool ScalableCircularQueue<T>::isEmpty() const noexcept
 
   \return No description
   */
-template <Movable T> inline
+template <std::movable T> inline
 pmr::memory_resource* ScalableCircularQueue<T>::resource() const noexcept
 {
   pmr::memory_resource* mem_resource = elements_.get_allocator().resource();
@@ -234,10 +234,10 @@ pmr::memory_resource* ScalableCircularQueue<T>::resource() const noexcept
 
   \param [in] cap No description.
   */
-template <Movable T> inline
+template <std::movable T> inline
 void ScalableCircularQueue<T>::setCapacity(const size_type cap) noexcept
 {
-  const size_type cap_pow2 = bit_ceil(cap);
+  const size_type cap_pow2 = std::bit_ceil(cap);
   constexpr size_type cap_max = capacityMax();
   if ((capacity() < cap_pow2) && (cap_pow2 <= cap_max)) {
     elements_.resize(cap_pow2);
@@ -252,7 +252,7 @@ void ScalableCircularQueue<T>::setCapacity(const size_type cap) noexcept
 
   \return No description
   */
-template <Movable T> inline
+template <std::movable T> inline
 auto ScalableCircularQueue<T>::size() const noexcept -> size_type
 {
   const std::size_t s = allocated_elements_.distance();
@@ -267,7 +267,7 @@ auto ScalableCircularQueue<T>::size() const noexcept -> size_type
   \return No description
   \exception OverflowError No description.
   */
-template <Movable T> template <typename ValueT> inline
+template <std::movable T> template <typename ValueT> inline
 auto ScalableCircularQueue<T>::enqueueImpl(ValueT&& value) -> EnqueueQueryResultT
 {
   const uint64b index = free_elements_.dequeue(true); // Get an entry index

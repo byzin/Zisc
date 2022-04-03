@@ -17,6 +17,7 @@
 
 #include "json_value_parser.hpp"
 // Standard C++ library
+#include <concepts>
 #include <cstddef>
 #include <cstdlib>
 #include <regex>
@@ -177,7 +178,7 @@ bool JsonValueParser::toCxxBool(const std::string_view json_value) noexcept
   \param [in] json_value No description.
   \return No description
   */
-template <FloatingPoint Float> inline
+template <std::floating_point Float> inline
 Float JsonValueParser::toCxxFloat(const std::string_view json_value) noexcept
 {
   const Float result = toCxxFloatImpl<Float>(json_value);
@@ -419,7 +420,7 @@ bool JsonValueParser::isValueOf(const std::regex& pattern,
   \param [in] json_value No description.
   \return No description
   */
-template <FloatingPoint Float> inline
+template <std::floating_point Float> inline
 Float JsonValueParser::toCxxFloatImpl(const std::string_view json_value) noexcept
 {
   using FType = std::remove_cv_t<Float>;

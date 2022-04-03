@@ -17,10 +17,10 @@
 
 #include "unit.hpp"
 // Standard C++ library
+#include <concepts>
 #include <cstddef>
 #include <numbers>
 // Zisc
-#include "zisc/concepts.hpp"
 #include "zisc/utility.hpp"
 
 namespace zisc {
@@ -32,7 +32,7 @@ namespace zisc {
   \param [in] angle No description.
   \return Radian
   */
-template <FloatingPoint Float> inline
+template <std::floating_point Float> inline
 constexpr Float toRadian(const Float angle) noexcept
 {
   constexpr Float k = std::numbers::pi_v<Float> / cast<Float>(180.0);
@@ -47,7 +47,7 @@ constexpr Float toRadian(const Float angle) noexcept
   \param [in] radian No description.
   \return Degree
   */
-template <FloatingPoint Float> inline
+template <std::floating_point Float> inline
 constexpr Float toAngle(const Float radian) noexcept
 {
   constexpr Float k = cast<Float>(180.0) / std::numbers::pi_v<Float>;

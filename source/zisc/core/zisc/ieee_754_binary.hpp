@@ -16,10 +16,10 @@
 #define ZISC_IEEE_754_BINARY_HPP
 
 // Standard C++ library
+#include <concepts>
 #include <cstddef>
 #include <type_traits>
 // Zisc
-#include "concepts.hpp"
 #include "utility.hpp"
 #include "zisc_config.hpp"
 
@@ -40,15 +40,15 @@ enum class Ieee754BinaryFormat : std::size_t
 // Format utilities
 //! Define a binary format of the given bytes
 template <std::size_t kBytes>
-constexpr Ieee754BinaryFormat kBinFormatFromBytes = cast<Ieee754BinaryFormat>(8 * kBytes);
+constexpr Ieee754BinaryFormat kBinFormatFromBytes = static_cast<Ieee754BinaryFormat>(8 * kBytes);
 
 //! Define a binary format of same size as the given float
-template <FloatingPoint Float>
+template <std::floating_point Float>
 constexpr Ieee754BinaryFormat kBinFormatFromFloat = kBinFormatFromBytes<sizeof(Float)>;
 
 //! Get the bit size of the given binary format
 template <Ieee754BinaryFormat kFormat>
-constexpr std::size_t kBinFormatBitSize = cast<std::size_t>(kFormat);
+constexpr std::size_t kBinFormatBitSize = static_cast<std::size_t>(kFormat);
 
 /*!
   \brief No brief description
@@ -89,7 +89,7 @@ template <std::size_t kBytes>
 using BinaryFromBytes = Ieee754Binary<kBinFormatFromBytes<kBytes>>;
 
 //! Define a binary type of same size as the given float
-template <FloatingPoint Float>
+template <std::floating_point Float>
 using BinaryFromFloat = Ieee754Binary<kBinFormatFromFloat<Float>>;
 
 /*!
@@ -121,7 +121,7 @@ class Ieee754Binary
   constexpr Ieee754Binary() noexcept;
 
   //! Initialize a value with the given floating point value
-  template <FloatingPoint Float>
+  template <std::floating_point Float>
   constexpr Ieee754Binary(const Float value) noexcept;
 
   //! Initialize a value with the given bits
@@ -291,7 +291,7 @@ template <Ieee754BinaryClass Float>
 constexpr bool isFinite(const Float& x) noexcept;
 
 //! Check if the given value is finite value
-template <FloatingPoint Float>
+template <std::floating_point Float>
 constexpr bool isFinite(const Float& x) noexcept;
 
 //! Check if the given value is infinite
@@ -299,7 +299,7 @@ template <Ieee754BinaryClass Float>
 constexpr bool isInf(const Float& x) noexcept;
 
 //! Check if the given value is infinite
-template <FloatingPoint Float>
+template <std::floating_point Float>
 constexpr bool isInf(const Float& x) noexcept;
 
 //! Check if the given value is NaN
@@ -307,7 +307,7 @@ template <Ieee754BinaryClass Float>
 constexpr bool isNan(const Float& x) noexcept;
 
 //! Check if the given value is NaN
-template <FloatingPoint Float>
+template <std::floating_point Float>
 constexpr bool isNan(const Float& x) noexcept;
 
 //! Check if the given value is normal
@@ -315,7 +315,7 @@ template <Ieee754BinaryClass Float>
 constexpr bool isNormal(const Float& x) noexcept;
 
 //! Check if the given value is normal
-template <FloatingPoint Float>
+template <std::floating_point Float>
 constexpr bool isNormal(const Float& x) noexcept;
 
 //! Check if the given value is subnormal
@@ -323,7 +323,7 @@ template <Ieee754BinaryClass Float>
 constexpr bool isSubnormal(const Float& x) noexcept;
 
 //! Check if the given value is subnormal
-template <FloatingPoint Float>
+template <std::floating_point Float>
 constexpr bool isSubnormal(const Float& x) noexcept;
 
 } // namespace zisc

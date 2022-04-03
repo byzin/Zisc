@@ -17,6 +17,7 @@
 
 // Standard C++ library
 #include <atomic>
+#include <concepts>
 #include <cstddef>
 #include <memory>
 #include <string_view>
@@ -27,7 +28,6 @@
 #include "query_value.hpp"
 #include "queue.hpp"
 #include "ring_buffer.hpp"
-#include "zisc/concepts.hpp"
 #include "zisc/error.hpp"
 #include "zisc/zisc_config.hpp"
 #include "zisc/memory/std_memory_resource.hpp"
@@ -43,7 +43,7 @@ namespace zisc {
 
   \tparam T No description.
   */
-template <Movable T>
+template <std::movable T>
 class ScalableCircularQueue : public Queue<ScalableCircularQueue<T>, T>
 {
  public:

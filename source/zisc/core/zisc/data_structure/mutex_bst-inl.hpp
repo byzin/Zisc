@@ -18,6 +18,7 @@
 #include "mutex_bst.hpp"
 // Standard C++ library
 #include <algorithm>
+#include <concepts>
 #include <cstddef>
 #include <limits>
 #include <mutex>
@@ -29,7 +30,6 @@
 #include "mutex_bst_node.hpp"
 #include "query_value.hpp"
 #include "search_tree.hpp"
-#include "zisc/concepts.hpp"
 #include "zisc/utility.hpp"
 #include "zisc/zisc_config.hpp"
 #include "zisc/memory/std_memory_resource.hpp"
@@ -103,7 +103,7 @@ MutexBst& MutexBst::operator=(MutexBst&& other) noexcept
   \param [in] value No description.
   \return No description
   */
-template <ConvertibleTo<double> Type> inline
+template <std::convertible_to<double> Type> inline
 auto MutexBst::add(const Type& value) -> QueryResultT
 {
   const double key = cast<double>(value);
@@ -168,7 +168,7 @@ void MutexBst::clear() noexcept
   \param [in] value No description.
   \return No description
   */
-template <ConvertibleTo<double> Type> inline
+template <std::convertible_to<double> Type> inline
 auto MutexBst::contain(const Type& value) const noexcept -> QueryResultT
 {
   const double key = cast<double>(value);
@@ -231,7 +231,7 @@ constexpr bool MutexBst::isConcurrent() noexcept
   \param [in] value No description.
   \return No description
   */
-template <ConvertibleTo<double> Type> inline
+template <std::convertible_to<double> Type> inline
 auto MutexBst::remove(const Type& value) -> QueryResultT
 {
   const double key = cast<double>(value);

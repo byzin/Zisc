@@ -17,9 +17,11 @@
 
 #include "function_reference.hpp"
 // Standard C++ library
+#include <concepts>
 #include <functional>
 #include <memory>
 #include <type_traits>
+#include <utility>
 // Zisc
 #include "bit.hpp"
 #include "concepts.hpp"
@@ -70,7 +72,7 @@ auto FunctionReference<ReturnT (ArgTypes...)>::operator=(Func&& func) noexcept -
   \return No description
   */
 template <typename ReturnT, typename ...ArgTypes> inline
-auto FunctionReference<ReturnT (ArgTypes...)>::operator()(ArgTypes... args) const noexcept
+auto FunctionReference<ReturnT (ArgTypes...)>::operator()(ArgTypes... args) const
     -> ReturnType
 {
   return invoke(forward<ArgTypes>(args)...);
@@ -99,7 +101,7 @@ template <typename ReturnT, typename ...ArgTypes>
 template <InvocableR<ReturnT, ArgTypes...> Func> inline
 auto FunctionReference<ReturnT (ArgTypes...)>::assign(Func&& func) noexcept -> FunctionReference&
 {
-  if constexpr (SameAs<FunctionReference, std::remove_cvref_t<Func>>) {
+  if constexpr (std::same_as<FunctionReference, std::remove_cvref_t<Func>>) {
     memory_ = func.memory();
     invoker_ = func.invoker();
   }
@@ -126,7 +128,7 @@ void FunctionReference<ReturnT (ArgTypes...)>::clear() noexcept
   \return No description
   */
 template <typename ReturnT, typename ...ArgTypes> inline
-auto FunctionReference<ReturnT (ArgTypes...)>::invoke(ArgTypes... args) const noexcept
+auto FunctionReference<ReturnT (ArgTypes...)>::invoke(ArgTypes... args) const
     -> ReturnType
 {
   ZISC_ASSERT(cast<bool>(*this), "Underlying reference is invalid.");
@@ -141,8 +143,8 @@ auto FunctionReference<ReturnT (ArgTypes...)>::invoke(ArgTypes... args) const no
 template <typename ReturnT, typename ...ArgTypes> inline
 void FunctionReference<ReturnT (ArgTypes...)>::swap(FunctionReference& other) noexcept
 {
-  zisc::swap(memory_, other.memory_);
-  zisc::swap(invoker_, other.invoker_);
+  std::swap(memory_, other.memory_);
+  std::swap(invoker_, other.invoker_);
 }
 
 /*!
@@ -220,7 +222,7 @@ template <typename ReturnT, typename ...ArgTypes>
 template <typename FuncPtr> inline
 auto FunctionReference<ReturnT (ArgTypes...)>::invokeFunctionPointer(
     FuncRefMemory mem,
-    ArgTypes... args) noexcept -> ReturnType
+    ArgTypes... args) -> ReturnType
 {
   auto ptr = bit_cast<FuncPtr>(mem);
   return std::invoke(ptr, forward<ArgTypes>(args)...);
@@ -237,7 +239,7 @@ auto FunctionReference<ReturnT (ArgTypes...)>::invokeFunctionPointer(
 template <typename ReturnT, typename ...ArgTypes> template <typename Functor> inline
 auto FunctionReference<ReturnT (ArgTypes...)>::invokeFunctor(
     FuncRefMemory mem,
-    ArgTypes... args) noexcept -> ReturnType
+    ArgTypes... args) -> ReturnType
 {
   using FuncPtr = std::add_pointer_t<Functor>;
   auto ptr = bit_cast<FuncPtr>(mem);

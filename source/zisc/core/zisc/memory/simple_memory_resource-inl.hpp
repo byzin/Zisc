@@ -89,7 +89,7 @@ void* SimpleMemoryResource::allocateMemory(const std::size_t size,
   void* ptr = aligned_alloc(alloc_alignment, alloc_size);
 
   // Get the pointer to the data
-  uint8b* data = zisc::cast<uint8b*>(ptr) + hsize;
+  uint8b* data = static_cast<uint8b*>(ptr) + hsize;
   ZISC_ASSERT(Memory::isAligned(data, alignment), "The data isn't aligned.");
   // Initialize header
   {
@@ -112,7 +112,7 @@ void SimpleMemoryResource::deallocateMemory(void* data,
                                             const std::size_t /* size */,
                                             const std::size_t /* alignment */) noexcept
 {
-  Header* header = getHeaderImpl<Header*>(cast<uint8b*>(data));
+  Header* header = getHeaderImpl<Header*>(static_cast<uint8b*>(data));
   const std::size_t alloc_size = header->size_;
   free(header->pointer_);
   memory_usage_.release(alloc_size);
@@ -127,7 +127,7 @@ void SimpleMemoryResource::deallocateMemory(void* data,
 inline
 auto SimpleMemoryResource::getHeader(const void* data) const noexcept -> const Header*
 {
-  const Header* header = getHeaderImpl<const Header*>(cast<const uint8b*>(data));
+  const Header* header = getHeaderImpl<const Header*>(static_cast<const uint8b*>(data));
   return header;
 }
 

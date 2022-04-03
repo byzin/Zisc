@@ -19,6 +19,7 @@
 // Standard C++ library
 #include <algorithm>
 #include <array>
+#include <concepts>
 #include <limits>
 #include <type_traits>
 #include <utility>
@@ -76,7 +77,7 @@ constexpr std::common_type_t<Type, LowerType, UpperType> Algorithm::clamp(
   \param [in] x No description.
   \return No description
   */
-template <FloatingPoint Float> inline
+template <std::floating_point Float> inline
 constexpr Float Algorithm::invert(const Float x) noexcept
 {
   constexpr Float zero = cast<Float>(0.0);
@@ -298,7 +299,7 @@ constexpr std::common_type_t<Type, LowerType, UpperType> clamp(
   \param [in] x No description.
   \return No description
   */
-template <FloatingPoint Float> inline
+template <std::floating_point Float> inline
 constexpr Float invert(const Float x) noexcept
 {
   const auto y = Algorithm::invert(x);

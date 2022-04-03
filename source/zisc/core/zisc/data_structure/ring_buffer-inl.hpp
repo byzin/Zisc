@@ -19,6 +19,7 @@
 // Standard C++ library
 #include <algorithm>
 #include <atomic>
+#include <bit>
 #include <cstddef>
 #include <limits>
 #include <memory>
@@ -27,7 +28,6 @@
 #include <vector>
 // Zisc
 #include "query_value.hpp"
-#include "zisc/bit.hpp"
 #include "zisc/error.hpp"
 #include "zisc/utility.hpp"
 #include "zisc/zisc_config.hpp"
@@ -311,7 +311,7 @@ constexpr uint64b RingBuffer::invalidIndex() noexcept
 inline
 uint64b RingBuffer::order() const noexcept
 {
-  const uint64b o = cast<uint64b>(bit_width(size() >> 1));
+  const uint64b o = cast<uint64b>(std::bit_width(size() >> 1));
   return (0 < o) ? o - 1 : 0;
 }
 
@@ -568,7 +568,7 @@ uint64b RingBuffer::permuteIndexImpl(const uint64b index,
   constexpr uint64b cache_line_size = kCacheLineSize;
   constexpr uint64b data_size = sizeof(AtomicT);
   constexpr uint64b shift = (data_size < cache_line_size)
-      ? bit_width(cache_line_size) - bit_width(data_size)
+      ? std::bit_width(cache_line_size) - std::bit_width(data_size)
       : 0;
 
   uint64b i = index;

@@ -16,10 +16,10 @@
 #define ZISC_IEEE_754_BINARY_SOFTWARE_IMPL_HPP
 
 // Standard C++ library
+#include <concepts>
 #include <cstddef>
 #include <type_traits>
 // Zisc
-#include "zisc/concepts.hpp"
 #include "zisc/ieee_754_binary.hpp"
 #include "zisc/utility.hpp"
 #include "zisc/zisc_config.hpp"
@@ -49,7 +49,7 @@ class Ieee754BinarySoftwareImpl
   constexpr Ieee754BinarySoftwareImpl() noexcept;
 
   //! Initialize a value with the given floating point value
-  template <FloatingPoint Float>
+  template <std::floating_point Float>
   constexpr Ieee754BinarySoftwareImpl(const Float value) noexcept;
 
   //! Initialize a value with the given bit data
@@ -66,7 +66,7 @@ class Ieee754BinarySoftwareImpl
   constexpr Ieee754BinarySoftwareImpl<kDstFormat> convertTo() const noexcept;
 
   //! Convert to a floating point
-  template <FloatingPoint Float,
+  template <std::floating_point Float,
             Ieee754RoundingMode kRMode = kDefaultIeee754RoundingMode>
   constexpr Float convertTo() const noexcept;
 
@@ -179,7 +179,7 @@ class Ieee754BinarySoftwareImpl
 
 
   //! Convert the given floating point value to a binary
-  template <FloatingPoint Float>
+  template <std::floating_point Float>
   static constexpr Ieee754BinarySoftwareImpl<kBinFormatFromFloat<Float>> toBinary(const Float value) noexcept;
 
   //! Convert a special value to the dst format

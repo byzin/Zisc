@@ -216,7 +216,7 @@ TEST(ScalableCircularQueueTest, QueueMovableValueTest)
     }
     catch (Queue::OverflowError& error) {
       auto r = std::move(error.get());
-      std::cout << error.what() << " value: " << zisc::cast<int>(r) << std::endl;
+      std::cout << error.what() << " value: " << static_cast<int>(r) << std::endl;
       throw;
     }
   };
@@ -228,7 +228,7 @@ TEST(ScalableCircularQueueTest, QueueMovableValueTest)
   {
     ASSERT_TRUE(result.isSuccess()) << message;
     const ::Movable& v = result;
-    ASSERT_EQ(expected, zisc::cast<int>(v)) << message << " Expected: " << expected;
+    ASSERT_EQ(expected, static_cast<int>(v)) << message << " Expected: " << expected;
   };
   check_dequeue(q.dequeue(), 1);
   check_dequeue(q.dequeue(), 5);

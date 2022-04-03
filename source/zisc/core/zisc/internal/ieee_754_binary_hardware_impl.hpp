@@ -16,10 +16,10 @@
 #define ZISC_IEEE_754_BINARY_HARDWARE_IMPL_HPP
 
 // Standard C++ library
+#include <concepts>
 #include <cstddef>
 #include <type_traits>
 // Zisc
-#include "zisc/concepts.hpp"
 #include "zisc/ieee_754_binary.hpp"
 #include "zisc/utility.hpp"
 #include "zisc/zisc_config.hpp"
@@ -66,7 +66,7 @@ class Ieee754BinaryHardwareImpl
   constexpr Ieee754BinaryHardwareImpl() noexcept;
 
   //! Initialize a value with the given floating point value
-  template <FloatingPoint Float>
+  template <std::floating_point Float>
   constexpr Ieee754BinaryHardwareImpl(const Float value) noexcept;
 
   //! Initialize a value with the given bits data
@@ -79,7 +79,7 @@ class Ieee754BinaryHardwareImpl
   constexpr Ieee754BinaryHardwareImpl<kDstFormat> convertTo() const noexcept;
 
   //! Convert to a floating point
-  template <FloatingPoint Float,
+  template <std::floating_point Float,
             Ieee754RoundingMode kRMode = kDefaultIeee754RoundingMode>
   constexpr Float convertTo() const noexcept;
 

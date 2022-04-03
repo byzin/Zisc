@@ -17,6 +17,7 @@
 
 #include "fraction.hpp"
 // Standard C++ library
+#include <concepts>
 #include <numeric>
 // Zisc
 #include "zisc/algorithm.hpp"
@@ -219,7 +220,7 @@ constexpr auto Fraction<Int>::invert() const noexcept -> Fraction
 
   \return No description
   */
-template <SignedInteger Int> template <FloatingPoint Float> inline
+template <SignedInteger Int> template <std::floating_point Float> inline
 constexpr Float Fraction<Int>::toFloat() const noexcept
 {
   const Float value = cast<Float>(numer()) / cast<Float>(denom());

@@ -17,12 +17,12 @@
 
 #include "ieee_754_binary.hpp"
 // Standard C++ library
+#include <concepts>
 #include <cstddef>
 #include <type_traits>
 // Zisc
 #include "algorithm.hpp"
 #include "bit.hpp"
-#include "concepts.hpp"
 #include "utility.hpp"
 #include "zisc_config.hpp"
 #include "internal/ieee_754_binary_software_impl.hpp"
@@ -49,7 +49,7 @@ constexpr bool isFinite(const Float& x) noexcept
   \param [in] x No description.
   \return No description
   */
-template <FloatingPoint Float> inline
+template <std::floating_point Float> inline
 constexpr bool isFinite(const Float& x) noexcept
 {
   using FLimit = std::numeric_limits<Float>;
@@ -77,7 +77,7 @@ constexpr bool isInf(const Float& x) noexcept
   \param [in] x No description.
   \return No description
   */
-template <FloatingPoint Float> inline
+template <std::floating_point Float> inline
 constexpr bool isInf(const Float& x) noexcept
 {
   using FLimit = std::numeric_limits<Float>;
@@ -105,7 +105,7 @@ constexpr bool isNan(const Float& x) noexcept
   \param [in] x No description.
   \return No description
   */
-template <FloatingPoint Float> inline
+template <std::floating_point Float> inline
 constexpr bool isNan(const Float& x) noexcept
 {
   const bool result = !(isFinite(x) || isInf(x));
@@ -132,7 +132,7 @@ constexpr bool isNormal(const Float& x) noexcept
   \param [in] x No description.
   \return No description
   */
-template <FloatingPoint Float> inline
+template <std::floating_point Float> inline
 constexpr bool isNormal(const Float& x) noexcept
 {
   using FLimit = std::numeric_limits<Float>;
@@ -161,7 +161,7 @@ constexpr bool isSubnormal(const Float& x) noexcept
   \param [in] x No description.
   \return No description
   */
-template <FloatingPoint Float> inline
+template <std::floating_point Float> inline
 constexpr bool isSubnormal(const Float& x) noexcept
 {
   using FLimit = std::numeric_limits<Float>;
@@ -185,7 +185,7 @@ constexpr Ieee754Binary<kFormat>::Ieee754Binary() noexcept :
 
   \param [in] value No description.
   */
-template <Ieee754BinaryFormat kFormat> template <FloatingPoint Float> inline
+template <Ieee754BinaryFormat kFormat> template <std::floating_point Float> inline
 constexpr Ieee754Binary<kFormat>::Ieee754Binary(const Float value) noexcept :
     impl_{value}
 {

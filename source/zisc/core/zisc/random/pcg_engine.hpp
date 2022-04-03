@@ -16,11 +16,11 @@
 #define ZISC_PCG_ENGINE_HPP
 
 // Standard C++ library
+#include <concepts>
 #include <cstddef>
 #include <type_traits>
 // Zisc
 #include "pseudo_random_number_engine.hpp"
-#include "zisc/concepts.hpp"
 #include "zisc/zisc_config.hpp"
 
 namespace zisc {
@@ -44,7 +44,7 @@ enum class PcgBase : int
   \tparam ValueT No description.
   \tparam kBase No description.
   */
-template <UnsignedInteger ValueT, PcgBase kBase>
+template <std::unsigned_integral ValueT, PcgBase kBase>
 class PcgEngine : public PseudoRandomNumberEngine<PcgEngine<ValueT, kBase>, ValueT>
 {
  public:
@@ -66,7 +66,7 @@ class PcgEngine : public PseudoRandomNumberEngine<PcgEngine<ValueT, kBase>, Valu
   static constexpr std::size_t getPeriodPow2() noexcept;
 
   //! Check if a specified sample (0 base count) is the end of period
-  template <UnsignedInteger Integer>
+  template <std::unsigned_integral Integer>
   static constexpr bool isEndOfPeriod(const Integer sample) noexcept;
 
   //! Set seed

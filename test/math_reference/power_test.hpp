@@ -16,6 +16,7 @@
 #define ZISC_MATH_REFERENCE_POWER_TEST_HPP
 
 // Standard C++ library
+#include <concepts>
 #include <ostream>
 // Zisc
 #include "zisc/concepts.hpp"
@@ -30,7 +31,7 @@
   \param [in] x No description.
   \return No description
   */
-template <zisc::FloatingPoint Float> inline
+template <std::floating_point Float> inline
 constexpr Float makePowInput(const Float x) noexcept
 {
   constexpr auto k = zisc::cast<Float>(16.0);

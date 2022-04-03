@@ -15,6 +15,8 @@
 #ifndef ZISC_ALGORITHM_HPP
 #define ZISC_ALGORITHM_HPP
 
+// Standard C++ library
+#include <concepts>
 // Zisc
 #include "concepts.hpp"
 #include "zisc_config.hpp"
@@ -41,7 +43,7 @@ class Algorithm
       const UpperType upper) noexcept;
 
   //! Return a inverse number of the given value
-  template <FloatingPoint Float>
+  template <std::floating_point Float>
   static constexpr Float invert(const Float x) noexcept;
 
   //! Test whether a value is in a range
@@ -110,7 +112,7 @@ constexpr std::common_type_t<Type, LowerType, UpperType> clamp(
     const UpperType upper) noexcept;
 
 //! Return a inverse number
-template <FloatingPoint Float>
+template <std::floating_point Float>
 constexpr Float invert(const Float x) noexcept;
 
 //! Return the large of two elements

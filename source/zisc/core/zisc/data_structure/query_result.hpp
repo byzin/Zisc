@@ -16,11 +16,11 @@
 #define ZISC_QUERY_RESULT_HPP
 
 // Standard C++ library
+#include <concepts>
 #include <memory>
 #include <type_traits>
 // Zisc
 #include "zisc/boolean.hpp"
-#include "zisc/concepts.hpp"
 #include "zisc/non_copyable.hpp"
 #include "zisc/zisc_config.hpp"
 
@@ -33,7 +33,7 @@ namespace zisc {
 
   \tparam T No description.
   */
-template <Movable T>
+template <std::movable T>
 class QueryResult : private NonCopyable<QueryResult<T>>
 {
  public:

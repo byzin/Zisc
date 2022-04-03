@@ -17,6 +17,7 @@
 
 #include "math.hpp"
 // Standard C++ library
+#include <concepts>
 #include <cstddef>
 #include <limits>
 #include <type_traits>
@@ -35,7 +36,7 @@ namespace zisc {
   \tparam Float No description.
   \return No description
   */
-template <FloatingPoint Float> inline
+template <std::floating_point Float> inline
 constexpr Float Math::pi() noexcept
 {
   constexpr int64b n = std::numeric_limits<Float>::digits;
@@ -58,7 +59,7 @@ constexpr Float Math::pi() noexcept
   \param [in,out] compensation No description.
   \return No description
   */
-template <FloatingPoint Float> inline
+template <std::floating_point Float> inline
 constexpr Float Math::add(const Float lhs,
                           const Float rhs,
                           Float* compensation) noexcept
@@ -78,7 +79,7 @@ constexpr Float Math::add(const Float lhs,
   \param [in] z No description.
   \return No description
   */
-template <FloatingPoint Float> inline
+template <std::floating_point Float> inline
 constexpr Float Math::fma(const Float x, const Float y, const Float z) noexcept
 {
   static_cast<void>(y);
@@ -94,7 +95,7 @@ constexpr Float Math::fma(const Float x, const Float y, const Float z) noexcept
   \param [in] y No description.
   \return No description
   */
-template <FloatingPoint Float> inline
+template <std::floating_point Float> inline
 constexpr Float Math::fmod(const Float x, const Float y) noexcept
 {
   static_cast<void>(y);
@@ -120,7 +121,7 @@ constexpr Arith Math::pow(Arith base, Int exponent) noexcept
   if (base != zero) {
     x = one;
     // Inverse pow
-    if constexpr (FloatingPoint<Arith>) {
+    if constexpr (std::floating_point<Arith>) {
       if(signbit(exponent))
         base = invert(base);
     }
@@ -144,7 +145,7 @@ constexpr Arith Math::pow(Arith base, Int exponent) noexcept
   \param [in] exponent No description.
   \return No description
   */
-template <Arithmetic Arith, FloatingPoint Float> inline
+template <Arithmetic Arith, std::floating_point Float> inline
 constexpr Arith Math::pow(const Arith base, const Float exponent) noexcept
 {
   using FLimits = std::numeric_limits<Float>;
@@ -182,7 +183,7 @@ constexpr Arith Math::pow(const Arith base, const Float exponent) noexcept
   \param [in] x No description.
   \return No description
   */
-template <FloatingPoint Float> inline
+template <std::floating_point Float> inline
 constexpr Float Math::sqrt(Float x) noexcept
 {
   constexpr Float half = cast<Float>(0.5);
@@ -227,7 +228,7 @@ constexpr Float Math::sqrt(Float x) noexcept
   \param [in] x No description.
   \return No description
   */
-template <FloatingPoint Float, Integer Int> inline
+template <std::floating_point Float, Integer Int> inline
 constexpr Float Math::sqrt(const Int x) noexcept
 {
   const Float y = sqrt(cast<Float>(x));
@@ -241,7 +242,7 @@ constexpr Float Math::sqrt(const Int x) noexcept
   \param [in] x No description.
   \return No description
   */
-template <FloatingPoint Float> inline
+template <std::floating_point Float> inline
 constexpr Float Math::cbrt(const Float x) noexcept
 {
   return x;
@@ -255,7 +256,7 @@ constexpr Float Math::cbrt(const Float x) noexcept
   \param [in] x No description.
   \return No description
   */
-template <FloatingPoint Float, Integer Int> inline
+template <std::floating_point Float, Integer Int> inline
 constexpr Float Math::cbrt(const Int x) noexcept
 {
   const Float y = cbrt(cast<Float>(x));
@@ -269,7 +270,7 @@ constexpr Float Math::cbrt(const Int x) noexcept
   \param [in] x No description.
   \return No description
   */
-template <FloatingPoint Float> inline
+template <std::floating_point Float> inline
 constexpr Float Math::exp(const Float x) noexcept
 {
   return x;
@@ -283,7 +284,7 @@ constexpr Float Math::exp(const Float x) noexcept
   \param [in] x No description.
   \return No description
   */
-template <FloatingPoint Float, Integer Int> inline
+template <std::floating_point Float, Integer Int> inline
 constexpr Float Math::exp(const Int x) noexcept
 {
   const Float y = exp(cast<Float>(x));
@@ -297,7 +298,7 @@ constexpr Float Math::exp(const Int x) noexcept
   \param [in] x No description.
   \return No description
   */
-template <FloatingPoint Float> inline
+template <std::floating_point Float> inline
 constexpr Float Math::exp2(const Float x) noexcept
 {
   return x;
@@ -311,7 +312,7 @@ constexpr Float Math::exp2(const Float x) noexcept
   \param [in] x No description.
   \return No description
   */
-template <FloatingPoint Float, Integer Int> inline
+template <std::floating_point Float, Integer Int> inline
 constexpr Float Math::exp2(const Int x) noexcept
 {
   const Float y = exp2(cast<Float>(x));
@@ -325,7 +326,7 @@ constexpr Float Math::exp2(const Int x) noexcept
   \param [in] x No description.
   \return No description
   */
-template <FloatingPoint Float> inline
+template <std::floating_point Float> inline
 constexpr Float Math::log(const Float x) noexcept
 {
   return x;
@@ -339,7 +340,7 @@ constexpr Float Math::log(const Float x) noexcept
   \param [in] x No description.
   \return No description
   */
-template <FloatingPoint Float, Integer Int> inline
+template <std::floating_point Float, Integer Int> inline
 constexpr Float Math::log(const Int x) noexcept
 {
   const Float y = log(cast<Float>(x));
@@ -353,7 +354,7 @@ constexpr Float Math::log(const Int x) noexcept
   \param [in] x No description.
   \return No description
   */
-template <FloatingPoint Float> inline
+template <std::floating_point Float> inline
 constexpr Float Math::log2(const Float x) noexcept
 {
   return x;
@@ -367,7 +368,7 @@ constexpr Float Math::log2(const Float x) noexcept
   \param [in] x No description.
   \return No description
   */
-template <FloatingPoint Float, Integer Int> inline
+template <std::floating_point Float, Integer Int> inline
 constexpr Float Math::log2(const Int x) noexcept
 {
   const Float y = log2(cast<Float>(x));
@@ -381,7 +382,7 @@ constexpr Float Math::log2(const Int x) noexcept
   \param [in] x No description.
   \return No description
   */
-template <FloatingPoint Float> inline
+template <std::floating_point Float> inline
 constexpr Float Math::log10(const Float x) noexcept
 {
   return x;
@@ -395,7 +396,7 @@ constexpr Float Math::log10(const Float x) noexcept
   \param [in] x No description.
   \return No description
   */
-template <FloatingPoint Float, Integer Int> inline
+template <std::floating_point Float, Integer Int> inline
 constexpr Float Math::log10(const Int x) noexcept
 {
   const Float y = log10(cast<Float>(x));
@@ -409,7 +410,7 @@ constexpr Float Math::log10(const Int x) noexcept
   \param [in] x No description.
   \return No description
   */
-template <FloatingPoint Float> inline
+template <std::floating_point Float> inline
 constexpr Float Math::sin(const Float x) noexcept
 {
   return x;
@@ -422,7 +423,7 @@ constexpr Float Math::sin(const Float x) noexcept
   \param [in] x No description.
   \return No description
   */
-template <FloatingPoint Float> inline
+template <std::floating_point Float> inline
 constexpr Float Math::cos(const Float x) noexcept
 {
   return x;
@@ -435,7 +436,7 @@ constexpr Float Math::cos(const Float x) noexcept
   \param [in] x No description.
   \return No description
   */
-template <FloatingPoint Float> inline
+template <std::floating_point Float> inline
 constexpr Float Math::tan(const Float x) noexcept
 {
   return x;
@@ -448,7 +449,7 @@ constexpr Float Math::tan(const Float x) noexcept
   \param [in] x No description.
   \return No description
   */
-template <FloatingPoint Float> inline
+template <std::floating_point Float> inline
 constexpr Float Math::asin(const Float x) noexcept
 {
   return x;
@@ -461,7 +462,7 @@ constexpr Float Math::asin(const Float x) noexcept
   \param [in] x No description.
   \return No description
   */
-template <FloatingPoint Float> inline
+template <std::floating_point Float> inline
 constexpr Float Math::acos(const Float x) noexcept
 {
   return x;
@@ -474,7 +475,7 @@ constexpr Float Math::acos(const Float x) noexcept
   \param [in] x No description.
   \return No description
   */
-template <FloatingPoint Float> inline
+template <std::floating_point Float> inline
 constexpr Float Math::atan(const Float x) noexcept
 {
   return x;
@@ -487,7 +488,7 @@ constexpr Float Math::atan(const Float x) noexcept
   \param [in] x No description.
   \return No description
   */
-template <FloatingPoint Float> inline
+template <std::floating_point Float> inline
 constexpr Float Math::atan2(const Float y, const Float x) noexcept
 {
   static_cast<void>(y);
@@ -502,7 +503,7 @@ constexpr Float Math::atan2(const Float y, const Float x) noexcept
   \param [in] y No description.
   \return No description
   */
-template <FloatingPoint Float> inline
+template <std::floating_point Float> inline
 constexpr auto Math::Impl::add(const Float x, const Float y) noexcept
     -> F2<Float>
 {
@@ -519,7 +520,7 @@ constexpr auto Math::Impl::add(const Float x, const Float y) noexcept
   \param [in] y No description.
   \return No description
   */
-template <FloatingPoint Float> inline
+template <std::floating_point Float> inline
 constexpr auto Math::Impl::add(const Float x, const F2<Float> y) noexcept
     -> F2<Float>
 {
@@ -536,7 +537,7 @@ constexpr auto Math::Impl::add(const Float x, const F2<Float> y) noexcept
   \param [in] y No description.
   \return No description
   */
-template <FloatingPoint Float> inline
+template <std::floating_point Float> inline
 constexpr auto Math::Impl::add(const F2<Float> x, const Float y) noexcept
     -> F2<Float>
 {
@@ -553,7 +554,7 @@ constexpr auto Math::Impl::add(const F2<Float> x, const Float y) noexcept
   \param [in] y No description.
   \return No description
   */
-template <FloatingPoint Float> inline
+template <std::floating_point Float> inline
 constexpr auto Math::Impl::add(const F2<Float> x, const F2<Float> y) noexcept
     -> F2<Float>
 {
@@ -570,7 +571,7 @@ constexpr auto Math::Impl::add(const F2<Float> x, const F2<Float> y) noexcept
   \param [in] y No description.
   \return No description
   */
-template <FloatingPoint Float> inline
+template <std::floating_point Float> inline
 constexpr auto Math::Impl::add2(const Float x, const Float y) noexcept -> F2<Float>
 {
   F2<Float> result{x + y};
@@ -587,7 +588,7 @@ constexpr auto Math::Impl::add2(const Float x, const Float y) noexcept -> F2<Flo
   \param [in] y No description.
   \return No description
   */
-template <FloatingPoint Float> inline
+template <std::floating_point Float> inline
 constexpr auto Math::Impl::add2(const Float x, const F2<Float> y) noexcept
     -> F2<Float>
 {
@@ -605,7 +606,7 @@ constexpr auto Math::Impl::add2(const Float x, const F2<Float> y) noexcept
   \param [in] y No description.
   \return No description
   */
-template <FloatingPoint Float> inline
+template <std::floating_point Float> inline
 constexpr auto Math::Impl::add2(const F2<Float> x, const Float y) noexcept
     -> F2<Float>
 {
@@ -623,7 +624,7 @@ constexpr auto Math::Impl::add2(const F2<Float> x, const Float y) noexcept
   \param [in] y No description.
   \return No description
   */
-template <FloatingPoint Float> inline
+template <std::floating_point Float> inline
 constexpr auto Math::Impl::add2(const F2<Float> x, const F2<Float> y) noexcept
     -> F2<Float>
 {
@@ -641,7 +642,7 @@ constexpr auto Math::Impl::add2(const F2<Float> x, const F2<Float> y) noexcept
   \param [in] y No description.
   \return No description
   */
-template <FloatingPoint Float> inline
+template <std::floating_point Float> inline
 constexpr auto Math::Impl::div(const F2<Float> x, const F2<Float> y) noexcept
     -> F2<Float>
 {
@@ -668,7 +669,7 @@ constexpr auto Math::Impl::div(const F2<Float> x, const F2<Float> y) noexcept
   \param [in] y No description.
   \return No description
   */
-template <FloatingPoint Float> inline
+template <std::floating_point Float> inline
 constexpr auto Math::Impl::mul(const Float x, const Float y) noexcept -> F2<Float>
 {
   const Float xh = upper(x);
@@ -689,7 +690,7 @@ constexpr auto Math::Impl::mul(const Float x, const Float y) noexcept -> F2<Floa
   \param [in] y No description.
   \return No description
   */
-template <FloatingPoint Float> inline
+template <std::floating_point Float> inline
 constexpr auto Math::Impl::mul(const F2<Float> x, const Float y) noexcept
     -> F2<Float>
 {
@@ -711,7 +712,7 @@ constexpr auto Math::Impl::mul(const F2<Float> x, const Float y) noexcept
   \param [in] y No description.
   \return No description
   */
-template <typename Return, FloatingPoint Float> inline
+template <typename Return, std::floating_point Float> inline
 constexpr Return Math::Impl::mul(const F2<Float> x, const F2<Float> y) noexcept
 {
   const Float xh = upper(x.x_);
@@ -719,11 +720,11 @@ constexpr Return Math::Impl::mul(const F2<Float> x, const F2<Float> y) noexcept
   const Float yh = upper(y.x_);
   const Float yl = y.x_ - yh;
 
-  if constexpr (SameAs<Float, Return>) {
+  if constexpr (std::same_as<Float, Return>) {
     const Float result = x.y_ * yh + xh * y.y_ + xl * yl + xh * yl + xl * yh + xh * yh;
     return result;
   }
-  else if constexpr (SameAs<F2<Float>, Return>) {
+  else if constexpr (std::same_as<F2<Float>, Return>) {
     F2<Float> result{x.x_ * y.x_};
     result.y_ = xh * yh - result.x_ + xl * yh + xh * yl + xl * yl + x.x_ * y.y_ + x.y_ * y.x_;
     return result;
@@ -737,7 +738,7 @@ constexpr Return Math::Impl::mul(const F2<Float> x, const F2<Float> y) noexcept
   \param [in] x No description.
   \return No description
   */
-template <FloatingPoint Float> inline
+template <std::floating_point Float> inline
 constexpr auto Math::Impl::normalize(const F2<Float> x) noexcept -> F2<Float>
 {
   F2<Float> result{x.x_ + x.y_};
@@ -752,7 +753,7 @@ constexpr auto Math::Impl::normalize(const F2<Float> x) noexcept -> F2<Float>
   \param [in] x No description.
   \return No description
   */
-template <FloatingPoint Float> inline
+template <std::floating_point Float> inline
 constexpr auto Math::Impl::rec(const Float x) noexcept -> F2<Float>
 {
   const Float xh = upper(x);
@@ -773,7 +774,7 @@ constexpr auto Math::Impl::rec(const Float x) noexcept -> F2<Float>
   \param [in] x No description.
   \return No description
   */
-template <FloatingPoint Float> inline
+template <std::floating_point Float> inline
 constexpr auto Math::Impl::rec(const F2<Float> x) noexcept -> F2<Float>
 {
   const Float xh = upper(x.x_);
@@ -795,7 +796,7 @@ constexpr auto Math::Impl::rec(const F2<Float> x) noexcept -> F2<Float>
   \param [in] s No description.
   \return No description
   */
-template <FloatingPoint Float> inline
+template <std::floating_point Float> inline
 constexpr auto Math::Impl::scale(const F2<Float> x, const Float s) noexcept
     -> F2<Float>
 {
@@ -810,7 +811,7 @@ constexpr auto Math::Impl::scale(const F2<Float> x, const Float s) noexcept
   \param [in] x No description.
   \return No description
   */
-template <typename Return, FloatingPoint Float> inline
+template <typename Return, std::floating_point Float> inline
 constexpr Return Math::Impl::squ(const F2<Float> x) noexcept
 {
   const Float xh = upper(x.x_);
@@ -873,7 +874,7 @@ constexpr double Math::Impl::LogDConstants::get(const std::size_t index) noexcep
   \tparam Float No description.
   \return No description
   */
-template <FloatingPoint Float> inline
+template <std::floating_point Float> inline
 constexpr Float Math::Impl::ln2() noexcept
 {
   const Float k = fvalue<Float>(
@@ -888,7 +889,7 @@ constexpr Float Math::Impl::ln2() noexcept
   \tparam Float No description.
   \return No description
   */
-template <FloatingPoint Float> inline
+template <std::floating_point Float> inline
 constexpr Float Math::Impl::l2l() noexcept
 {
   const Float k = fvalue<Float>(
@@ -903,7 +904,7 @@ constexpr Float Math::Impl::l2l() noexcept
   \tparam Float No description.
   \return No description
   */
-template <FloatingPoint Float> inline
+template <std::floating_point Float> inline
 constexpr Float Math::Impl::l2u() noexcept
 {
   const Float k = fvalue<Float>(
@@ -920,7 +921,7 @@ constexpr Float Math::Impl::l2u() noexcept
   \param [in] x No description.
   \return No description
   */
-template <typename Constants, std::size_t coffset, FloatingPoint Float> inline
+template <typename Constants, std::size_t coffset, std::floating_point Float> inline
 constexpr Float Math::Impl::poly2(const Float x) noexcept
 {
   constexpr Float y = Constants::get(coffset + 1);
@@ -938,7 +939,7 @@ constexpr Float Math::Impl::poly2(const Float x) noexcept
   \param [in] x2 No description.
   \return No description
   */
-template <typename Constants, std::size_t coffset, FloatingPoint Float> inline
+template <typename Constants, std::size_t coffset, std::floating_point Float> inline
 constexpr Float Math::Impl::poly3(const Float x, const Float x2) noexcept
 {
   constexpr Float y = Constants::get(coffset + 2);
@@ -956,7 +957,7 @@ constexpr Float Math::Impl::poly3(const Float x, const Float x2) noexcept
   \param [in] x2 No description.
   \return No description
   */
-template <typename Constants, std::size_t coffset, FloatingPoint Float> inline
+template <typename Constants, std::size_t coffset, std::floating_point Float> inline
 constexpr Float Math::Impl::poly4(const Float x, const Float x2) noexcept
 {
   const Float y = poly2<Constants, coffset + 2>(x);
@@ -975,7 +976,7 @@ constexpr Float Math::Impl::poly4(const Float x, const Float x2) noexcept
   \param [in] x4 No description.
   \return No description
   */
-template <typename Constants, std::size_t coffset, FloatingPoint Float> inline
+template <typename Constants, std::size_t coffset, std::floating_point Float> inline
 constexpr Float Math::Impl::poly5(const Float x,
                                   const Float x2,
                                   const Float x4) noexcept
@@ -996,7 +997,7 @@ constexpr Float Math::Impl::poly5(const Float x,
   \param [in] x4 No description.
   \return No description
   */
-template <typename Constants, std::size_t coffset, FloatingPoint Float> inline
+template <typename Constants, std::size_t coffset, std::floating_point Float> inline
 constexpr Float Math::Impl::poly6(const Float x,
                                   const Float x2,
                                   const Float x4) noexcept
@@ -1017,7 +1018,7 @@ constexpr Float Math::Impl::poly6(const Float x,
   \param [in] x4 No description.
   \return No description
   */
-template <typename Constants, std::size_t coffset, FloatingPoint Float> inline
+template <typename Constants, std::size_t coffset, std::floating_point Float> inline
 constexpr Float Math::Impl::poly7(const Float x,
                                   const Float x2,
                                   const Float x4) noexcept
@@ -1038,7 +1039,7 @@ constexpr Float Math::Impl::poly7(const Float x,
   \param [in] x4 No description.
   \return No description
   */
-template <typename Constants, std::size_t coffset, FloatingPoint Float> inline
+template <typename Constants, std::size_t coffset, std::floating_point Float> inline
 constexpr Float Math::Impl::poly8(const Float x,
                                   const Float x2,
                                   const Float x4) noexcept
@@ -1060,7 +1061,7 @@ constexpr Float Math::Impl::poly8(const Float x,
   \param [in] x8 No description.
   \return No description
   */
-template <typename Constants, std::size_t coffset, FloatingPoint Float> inline
+template <typename Constants, std::size_t coffset, std::floating_point Float> inline
 constexpr Float Math::Impl::poly9(const Float x,
                                   const Float x2,
                                   const Float x4,
@@ -1083,7 +1084,7 @@ constexpr Float Math::Impl::poly9(const Float x,
   \param [in] x8 No description.
   \return No description
   */
-template <typename Constants, std::size_t coffset, FloatingPoint Float> inline
+template <typename Constants, std::size_t coffset, std::floating_point Float> inline
 constexpr Float Math::Impl::poly10(const Float x,
                                    const Float x2,
                                    const Float x4,
@@ -1106,7 +1107,7 @@ constexpr Float Math::Impl::poly10(const Float x,
   \param [in] x8 No description.
   \return No description
   */
-template <typename Constants, std::size_t coffset, FloatingPoint Float> inline
+template <typename Constants, std::size_t coffset, std::floating_point Float> inline
 constexpr Float Math::Impl::poly11(const Float x,
                                    const Float x2,
                                    const Float x4,
@@ -1129,7 +1130,7 @@ constexpr Float Math::Impl::poly11(const Float x,
   \param [in] x8 No description.
   \return No description
   */
-template <typename Constants, std::size_t coffset, FloatingPoint Float> inline
+template <typename Constants, std::size_t coffset, std::floating_point Float> inline
 constexpr Float Math::Impl::poly12(const Float x,
                                    const Float x2,
                                    const Float x4,
@@ -1152,7 +1153,7 @@ constexpr Float Math::Impl::poly12(const Float x,
   \param [in] x8 No description.
   \return No description
   */
-template <typename Constants, std::size_t coffset, FloatingPoint Float> inline
+template <typename Constants, std::size_t coffset, std::floating_point Float> inline
 constexpr Float Math::Impl::poly13(const Float x,
                                    const Float x2,
                                    const Float x4,
@@ -1175,7 +1176,7 @@ constexpr Float Math::Impl::poly13(const Float x,
   \param [in] x8 No description.
   \return No description
   */
-template <typename Constants, std::size_t coffset, FloatingPoint Float> inline
+template <typename Constants, std::size_t coffset, std::floating_point Float> inline
 constexpr Float Math::Impl::poly14(const Float x,
                                    const Float x2,
                                    const Float x4,
@@ -1198,7 +1199,7 @@ constexpr Float Math::Impl::poly14(const Float x,
   \param [in] x8 No description.
   \return No description
   */
-template <typename Constants, std::size_t coffset, FloatingPoint Float> inline
+template <typename Constants, std::size_t coffset, std::floating_point Float> inline
 constexpr Float Math::Impl::poly15(const Float x,
                                    const Float x2,
                                    const Float x4,
@@ -1221,7 +1222,7 @@ constexpr Float Math::Impl::poly15(const Float x,
   \param [in] x8 No description.
   \return No description
   */
-template <typename Constants, std::size_t coffset, FloatingPoint Float> inline
+template <typename Constants, std::size_t coffset, std::floating_point Float> inline
 constexpr Float Math::Impl::poly16(const Float x,
                                    const Float x2,
                                    const Float x4,
@@ -1245,7 +1246,7 @@ constexpr Float Math::Impl::poly16(const Float x,
   \param [in] x16 No description.
   \return No description
   */
-template <typename Constants, std::size_t coffset, FloatingPoint Float> inline
+template <typename Constants, std::size_t coffset, std::floating_point Float> inline
 constexpr Float Math::Impl::poly17(const Float x,
                                    const Float x2,
                                    const Float x4,
@@ -1270,7 +1271,7 @@ constexpr Float Math::Impl::poly17(const Float x,
   \param [in] x16 No description.
   \return No description
   */
-template <typename Constants, std::size_t coffset, FloatingPoint Float> inline
+template <typename Constants, std::size_t coffset, std::floating_point Float> inline
 constexpr Float Math::Impl::poly18(const Float x,
                                    const Float x2,
                                    const Float x4,
@@ -1295,7 +1296,7 @@ constexpr Float Math::Impl::poly18(const Float x,
   \param [in] x16 No description.
   \return No description
   */
-template <typename Constants, std::size_t coffset, FloatingPoint Float> inline
+template <typename Constants, std::size_t coffset, std::floating_point Float> inline
 constexpr Float Math::Impl::poly19(const Float x,
                                    const Float x2,
                                    const Float x4,
@@ -1315,7 +1316,7 @@ constexpr Float Math::Impl::poly19(const Float x,
   \param [in] x No description.
   \return No description
   */
-template <FloatingPoint Float> inline
+template <std::floating_point Float> inline
 constexpr Float Math::Impl::abs(const Float x) noexcept
 {
   const Float y = signbit(x) ? -x : x;
@@ -1330,7 +1331,7 @@ constexpr Float Math::Impl::abs(const Float x) noexcept
   \param [in] y No description.
   \return No description
   */
-template <FloatingPoint Float> inline
+template <std::floating_point Float> inline
 constexpr Float Math::Impl::copysign(const Float x, const Float y) noexcept
 {
   using IntType = IntT<Float>;
@@ -1349,7 +1350,7 @@ constexpr Float Math::Impl::copysign(const Float x, const Float y) noexcept
   \param [in] x No description.
   \return No description
   */
-template <FloatingPoint Float> inline
+template <std::floating_point Float> inline
 constexpr Float Math::Impl::exp(const F2<Float> x) noexcept
 {
   const int q = cast<int>(rint((x.x_ + x.y_) * ln2<Float>()));
@@ -1392,7 +1393,7 @@ constexpr Float Math::Impl::exp(const F2<Float> x) noexcept
   \param [in] v2 No description.
   \return No description
   */
-template <FloatingPoint Float, Arithmetic Arith1, Arithmetic Arith2> inline
+template <std::floating_point Float, Arithmetic Arith1, Arithmetic Arith2> inline
 constexpr auto Math::Impl::fvalue(const Arith1 v1, const Arith2 v2) noexcept
 {
   if constexpr (sizeof(Float) == 4)
@@ -1408,7 +1409,7 @@ constexpr auto Math::Impl::fvalue(const Arith1 v1, const Arith2 v2) noexcept
   \param [in] x No description.
   \return No description
   */
-template <FloatingPoint Float> inline
+template <std::floating_point Float> inline
 constexpr auto Math::Impl::ilogb2(const Float x) noexcept -> IntT<Float>
 {
   using IntType = IntT<Float>;
@@ -1427,7 +1428,7 @@ constexpr auto Math::Impl::ilogb2(const Float x) noexcept -> IntT<Float>
   \param [in] x No description.
   \return No description
   */
-template <FloatingPoint Float> inline
+template <std::floating_point Float> inline
 constexpr bool Math::Impl::isInf(const Float x) noexcept
 {
   using FLimits = std::numeric_limits<Float>;
@@ -1442,7 +1443,7 @@ constexpr bool Math::Impl::isInf(const Float x) noexcept
   \param [in] x No description.
   \return No description
   */
-template <FloatingPoint Float> inline
+template <std::floating_point Float> inline
 constexpr bool Math::Impl::isInt(const Float x) noexcept
 {
   Float d = x;
@@ -1463,7 +1464,7 @@ constexpr bool Math::Impl::isInt(const Float x) noexcept
   \param [in] x No description.
   \return No description
   */
-template <FloatingPoint Float> inline
+template <std::floating_point Float> inline
 constexpr bool Math::Impl::isNan(const Float x) noexcept
 {
   const bool result = x != x;
@@ -1477,7 +1478,7 @@ constexpr bool Math::Impl::isNan(const Float x) noexcept
   \param [in] x No description.
   \return No description
   */
-template <FloatingPoint Float> inline
+template <std::floating_point Float> inline
 constexpr bool Math::Impl::isOdd(const Float x) noexcept
 {
   Float d = x;
@@ -1498,7 +1499,7 @@ constexpr bool Math::Impl::isOdd(const Float x) noexcept
   \param [in] e No description.
   \return No description
   */
-template <FloatingPoint Float> inline
+template <std::floating_point Float> inline
 constexpr Float Math::Impl::ldexp(Float x, int e) noexcept
 {
   using IntType = IntT<Float>;
@@ -1525,7 +1526,7 @@ constexpr Float Math::Impl::ldexp(Float x, int e) noexcept
   \param [in] e No description.
   \return No description
   */
-template <FloatingPoint Float> inline
+template <std::floating_point Float> inline
 constexpr Float Math::Impl::ldexp3(const Float x, const IntT<Float> e) noexcept
 {
   using IntType = IntT<Float>;
@@ -1542,7 +1543,7 @@ constexpr Float Math::Impl::ldexp3(const Float x, const IntT<Float> e) noexcept
   \param [in] x No description.
   \return No description
   */
-template <FloatingPoint Float> inline
+template <std::floating_point Float> inline
 constexpr auto Math::Impl::log(Float x) noexcept -> F2<Float>
 {
   const bool is_subnormal = x < (std::numeric_limits<Float>::min)();
@@ -1602,7 +1603,7 @@ constexpr auto Math::Impl::log(Float x) noexcept -> F2<Float>
   \param [in] z No description.
   \return No description
   */
-template <FloatingPoint Float> inline
+template <std::floating_point Float> inline
 constexpr Float Math::Impl::mla(const Float x, const Float y, const Float z) noexcept
 {
   const Float result = x * y + z;
@@ -1617,7 +1618,7 @@ constexpr Float Math::Impl::mla(const Float x, const Float y, const Float z) noe
   \param [in] y No description.
   \return No description
   */
-template <FloatingPoint Float> inline
+template <std::floating_point Float> inline
 constexpr Float Math::Impl::mulsign(const Float x, const Float y) noexcept
 {
   using IntType = IntT<Float>;
@@ -1636,7 +1637,7 @@ constexpr Float Math::Impl::mulsign(const Float x, const Float y) noexcept
   \param [in] x No description.
   \return No description
   */
-template <FloatingPoint Float> inline
+template <std::floating_point Float> inline
 constexpr Float Math::Impl::rint(const Float x) noexcept
 {
   constexpr Float half = cast<Float>(0.5);
@@ -1651,7 +1652,7 @@ constexpr Float Math::Impl::rint(const Float x) noexcept
   \param [in] x No description.
   \return No description
   */
-template <FloatingPoint Float> inline
+template <std::floating_point Float> inline
 constexpr Float Math::Impl::sign(const Float x) noexcept
 {
   const Float y = mulsign(cast<Float>(1.0), x);
@@ -1665,7 +1666,7 @@ constexpr Float Math::Impl::sign(const Float x) noexcept
   \param [in] x No description.
   \return No description
   */
-template <FloatingPoint Float> inline
+template <std::floating_point Float> inline
 constexpr Float Math::Impl::upper(const Float x) noexcept
 {
   using IntType = IntT<Float>;
@@ -1684,7 +1685,7 @@ constexpr Float Math::Impl::upper(const Float x) noexcept
   \param [in] z No description.
   \return No description
   */
-template <FloatingPoint Float> inline
+template <std::floating_point Float> inline
 constexpr Float fma(const Float x, const Float y, const Float z) noexcept
 {
   const Float result = Math::fma(x, y, z);
@@ -1699,7 +1700,7 @@ constexpr Float fma(const Float x, const Float y, const Float z) noexcept
   \param [in] y No description.
   \return No description
   */
-template <FloatingPoint Float> inline
+template <std::floating_point Float> inline
 constexpr Float fmod(const Float x, const Float y) noexcept
 {
   const Float z = Math::fmod(x, y);
@@ -1729,7 +1730,7 @@ constexpr Arith1 pow(const Arith1 base, const Arith2 exponent) noexcept
   \param [in] x No description.
   \return No description
   */
-template <FloatingPoint Float> inline
+template <std::floating_point Float> inline
 constexpr Float sqrt(const Float x) noexcept
 {
   const Float y = Math::sqrt(x);
@@ -1744,7 +1745,7 @@ constexpr Float sqrt(const Float x) noexcept
   \param [in] x No description.
   \return No description
   */
-template <FloatingPoint Float, Integer Int> inline
+template <std::floating_point Float, Integer Int> inline
 constexpr Float sqrt(const Int x) noexcept
 {
   const Float y = Math::sqrt<Float>(x);
@@ -1758,7 +1759,7 @@ constexpr Float sqrt(const Int x) noexcept
   \param [in] x No description.
   \return No description
   */
-template <FloatingPoint Float> inline
+template <std::floating_point Float> inline
 constexpr Float cbrt(const Float x) noexcept
 {
   const Float y = Math::cbrt(x);
@@ -1773,7 +1774,7 @@ constexpr Float cbrt(const Float x) noexcept
   \param [in] x No description.
   \return No description
   */
-template <FloatingPoint Float, Integer Int> inline
+template <std::floating_point Float, Integer Int> inline
 constexpr Float cbrt(const Int x) noexcept
 {
   const Float y = Math::cbrt<Float>(x);
@@ -1787,7 +1788,7 @@ constexpr Float cbrt(const Int x) noexcept
   \param [in] x No description.
   \return No description
   */
-template <FloatingPoint Float> inline
+template <std::floating_point Float> inline
 constexpr Float exp(const Float x) noexcept
 {
   const Float y = Math::exp(x);
@@ -1802,7 +1803,7 @@ constexpr Float exp(const Float x) noexcept
   \param [in] x No description.
   \return No description
   */
-template <FloatingPoint Float, Integer Int> inline
+template <std::floating_point Float, Integer Int> inline
 constexpr Float exp(const Int x) noexcept
 {
   const Float y = Math::exp<Float>(x);
@@ -1816,7 +1817,7 @@ constexpr Float exp(const Int x) noexcept
   \param [in] x No description.
   \return No description
   */
-template <FloatingPoint Float> inline
+template <std::floating_point Float> inline
 constexpr Float exp2(const Float x) noexcept
 {
   const Float y = Math::exp2(x);
@@ -1831,7 +1832,7 @@ constexpr Float exp2(const Float x) noexcept
   \param [in] x No description.
   \return No description
   */
-template <FloatingPoint Float, Integer Int> inline
+template <std::floating_point Float, Integer Int> inline
 constexpr Float exp2(const Int x) noexcept
 {
   const Float y = Math::exp2<Float>(x);
@@ -1845,7 +1846,7 @@ constexpr Float exp2(const Int x) noexcept
   \param [in] x No description.
   \return No description
   */
-template <FloatingPoint Float> inline
+template <std::floating_point Float> inline
 constexpr Float log(const Float x) noexcept
 {
   const Float y = Math::log(x);
@@ -1860,7 +1861,7 @@ constexpr Float log(const Float x) noexcept
   \param [in] x No description.
   \return No description
   */
-template <FloatingPoint Float, Integer Int> inline
+template <std::floating_point Float, Integer Int> inline
 constexpr Float log(const Int x) noexcept
 {
   const Float y = Math::log<Float>(x);
@@ -1874,7 +1875,7 @@ constexpr Float log(const Int x) noexcept
   \param [in] x No description.
   \return No description
   */
-template <FloatingPoint Float> inline
+template <std::floating_point Float> inline
 constexpr Float log2(const Float x) noexcept
 {
   const Float y = Math::log2(x);
@@ -1889,7 +1890,7 @@ constexpr Float log2(const Float x) noexcept
   \param [in] x No description.
   \return No description
   */
-template <FloatingPoint Float, Integer Int> inline
+template <std::floating_point Float, Integer Int> inline
 constexpr Float log2(const Int x) noexcept
 {
   const Float y = Math::log2<Float>(x);
@@ -1903,7 +1904,7 @@ constexpr Float log2(const Int x) noexcept
   \param [in] x No description.
   \return No description
   */
-template <FloatingPoint Float> inline
+template <std::floating_point Float> inline
 constexpr Float log10(const Float x) noexcept
 {
   const Float y = Math::log10(x);
@@ -1918,7 +1919,7 @@ constexpr Float log10(const Float x) noexcept
   \param [in] x No description.
   \return No description
   */
-template <FloatingPoint Float, Integer Int> inline
+template <std::floating_point Float, Integer Int> inline
 constexpr Float log10(const Int x) noexcept
 {
   const Float y = Math::log10<Float>(x);
@@ -1932,7 +1933,7 @@ constexpr Float log10(const Int x) noexcept
   \param [in] x No description.
   \return No description
   */
-template <FloatingPoint Float> inline
+template <std::floating_point Float> inline
 constexpr Float sin(const Float x) noexcept
 {
   const Float y = Math::sin(x);
@@ -1946,7 +1947,7 @@ constexpr Float sin(const Float x) noexcept
   \param [in] x No description.
   \return No description
   */
-template <FloatingPoint Float> inline
+template <std::floating_point Float> inline
 constexpr Float cos(const Float x) noexcept
 {
   const Float y = Math::cos(x);
@@ -1960,7 +1961,7 @@ constexpr Float cos(const Float x) noexcept
   \param [in] x No description.
   \return No description
   */
-template <FloatingPoint Float> inline
+template <std::floating_point Float> inline
 constexpr Float tan(const Float x) noexcept
 {
   const Float y = Math::tan(x);
@@ -1974,7 +1975,7 @@ constexpr Float tan(const Float x) noexcept
   \param [in] x No description.
   \return No description
   */
-template <FloatingPoint Float> inline
+template <std::floating_point Float> inline
 constexpr Float asin(const Float x) noexcept
 {
   const Float y = Math::asin(x);
@@ -1988,7 +1989,7 @@ constexpr Float asin(const Float x) noexcept
   \param [in] x No description.
   \return No description
   */
-template <FloatingPoint Float> inline
+template <std::floating_point Float> inline
 constexpr Float acos(const Float x) noexcept
 {
   const Float y = Math::acos(x);
@@ -2002,7 +2003,7 @@ constexpr Float acos(const Float x) noexcept
   \param [in] x No description.
   \return No description
   */
-template <FloatingPoint Float> inline
+template <std::floating_point Float> inline
 constexpr Float atan(const Float x) noexcept
 {
   const Float y = Math::atan(x);
@@ -2017,7 +2018,7 @@ constexpr Float atan(const Float x) noexcept
   \param [in] x No description.
   \return No description
   */
-template <FloatingPoint Float> inline
+template <std::floating_point Float> inline
 constexpr Float atan2(const Float y, const Float x) noexcept
 {
   const Float z = Math::atan2(y, x);

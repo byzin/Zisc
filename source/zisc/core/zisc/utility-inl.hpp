@@ -17,13 +17,13 @@
 
 #include "utility.hpp"
 // Standard C++ library
+#include <concepts>
 #include <cstdint>
 #include <cstddef>
 #include <limits>
 #include <type_traits>
 #include <utility>
 // Zisc
-#include "concepts.hpp"
 #include "zisc_config.hpp"
 
 namespace zisc {
@@ -36,10 +36,12 @@ namespace zisc {
   \param [in] value No description.
   \return No description
   */
-template <typename Type, typename T> inline
+template <typename Type, typename T>
+requires std::is_nothrow_convertible_v<T, Type> ||
+         std::is_nothrow_constructible_v<Type, T> inline
 constexpr Type cast(T&& value) noexcept
 {
-  if constexpr (std::is_same_v<Type, T>)
+  if constexpr (std::same_as<Type, T>)
     return value;
   else
     return static_cast<Type>(value);
@@ -55,8 +57,7 @@ constexpr Type cast(T&& value) noexcept
   \return No description
   */
 template <typename Type1, typename Type2>
-requires WeaklyEqualityComparableWith<Type1, Type2> && WeaklyEqualityComparableWith<Type2, Type1>
-inline
+requires std::equality_comparable_with<Type1, Type2> inline
 constexpr bool equal(const Type1& lhs, const Type2& rhs) noexcept
 {
 #if defined(Z_GCC) || defined(Z_CLANG)
@@ -80,7 +81,7 @@ constexpr bool equal(const Type1& lhs, const Type2& rhs) noexcept
   \param [in] x No description.
   \return No description
   */
-template <FloatingPoint Float, UnsignedInteger Integer> inline
+template <std::floating_point Float, std::unsigned_integral Integer> inline
 constexpr Float mapTo01(const Integer x) noexcept
 {
   constexpr std::size_t int_digits = std::numeric_limits<Integer>::digits;
@@ -103,23 +104,6 @@ constexpr Float mapTo01(const Integer x) noexcept
 /*!
   \details No detailed description
 
-  \tparam Type1 No description.
-  \tparam Type2 No description.
-  \param [in] a No description.
-  \param [in] b No description.
-  */
-template <typename Type1, typename Type2>
-requires ConvertibleTo<Type1, Type2> && ConvertibleTo<Type2, Type1> inline
-constexpr void swap(Type1& a, Type2& b) noexcept
-{
-  auto tmp = std::move(b);
-  b = std::move(a);
-  a = std::move(tmp);
-}
-
-/*!
-  \details No detailed description
-
   \tparam NewType No description.
   \tparam Type No description.
   \param [in] object No description.
@@ -128,7 +112,7 @@ constexpr void swap(Type1& a, Type2& b) noexcept
 template <typename NewType, typename Type> inline
 NewType reinterp(Type object) noexcept
 {
-  if constexpr (std::is_same_v<Type, NewType>)
+  if constexpr (std::same_as<Type, NewType>)
     return object;
   else
     return reinterpret_cast<NewType>(object);

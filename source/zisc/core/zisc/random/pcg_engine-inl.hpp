@@ -17,11 +17,11 @@
 
 #include "pcg_engine.hpp"
 // Standard C++ library
+#include <concepts>
 #include <cstddef>
 #include <limits>
 #include <type_traits>
 // Zisc
-#include "zisc/concepts.hpp"
 #include "zisc/utility.hpp"
 #include "zisc/zisc_config.hpp"
 
@@ -30,7 +30,7 @@ namespace zisc {
 /*!
   \details No detailed description
   */
-template <UnsignedInteger ValueT, PcgBase kBase> inline
+template <std::unsigned_integral ValueT, PcgBase kBase> inline
 PcgEngine<ValueT, kBase>::PcgEngine() noexcept
 {
   setSeed(BaseEngine::defaultSeed());
@@ -41,7 +41,7 @@ PcgEngine<ValueT, kBase>::PcgEngine() noexcept
 
   \param [in] seed No description.
   */
-template <UnsignedInteger ValueT, PcgBase kBase> inline
+template <std::unsigned_integral ValueT, PcgBase kBase> inline
 PcgEngine<ValueT, kBase>::PcgEngine(const ValueType seed) noexcept
 {
   setSeed(seed);
@@ -52,7 +52,7 @@ PcgEngine<ValueT, kBase>::PcgEngine(const ValueType seed) noexcept
 
   \return No description
   */
-template <UnsignedInteger ValueT, PcgBase kBase> inline
+template <std::unsigned_integral ValueT, PcgBase kBase> inline
 auto PcgEngine<ValueT, kBase>::generate() noexcept -> ValueType
 {
   const ValueType base = generateBase();
@@ -65,7 +65,7 @@ auto PcgEngine<ValueT, kBase>::generate() noexcept -> ValueType
 
   \return No description
   */
-template <UnsignedInteger ValueT, PcgBase kBase> inline
+template <std::unsigned_integral ValueT, PcgBase kBase> inline
 constexpr std::size_t PcgEngine<ValueT, kBase>::getPeriodPow2() noexcept
 {
   constexpr bool is_mcg = kBase == PcgBase::Mcg;
@@ -80,8 +80,8 @@ constexpr std::size_t PcgEngine<ValueT, kBase>::getPeriodPow2() noexcept
   \param [in] sample No description.
   \return No description
   */
-template <UnsignedInteger ValueT, PcgBase kBase>
-template <UnsignedInteger Integer> inline
+template <std::unsigned_integral ValueT, PcgBase kBase>
+template <std::unsigned_integral Integer> inline
 constexpr bool PcgEngine<ValueT, kBase>::isEndOfPeriod(
     const Integer sample) noexcept
 {
@@ -103,7 +103,7 @@ constexpr bool PcgEngine<ValueT, kBase>::isEndOfPeriod(
 
   \param [in] seed No description.
   */
-template <UnsignedInteger ValueT, PcgBase kBase> inline
+template <std::unsigned_integral ValueT, PcgBase kBase> inline
 void PcgEngine<ValueT, kBase>::setSeed(const ValueType seed) noexcept
 {
   constexpr bool is_mcg = (kBase == PcgBase::Mcg);
@@ -116,7 +116,7 @@ void PcgEngine<ValueT, kBase>::setSeed(const ValueType seed) noexcept
   \param [in] state No description.
   \return No description
   */
-template <UnsignedInteger ValueT, PcgBase kBase> inline
+template <std::unsigned_integral ValueT, PcgBase kBase> inline
 auto PcgEngine<ValueT, kBase>::bump(const ValueType state) const noexcept -> ValueType
 {
   const ValueType result = state * multiplier() + increment();
@@ -128,7 +128,7 @@ auto PcgEngine<ValueT, kBase>::bump(const ValueType state) const noexcept -> Val
 
   \return No description
   */
-template <UnsignedInteger ValueT, PcgBase kBase> inline
+template <std::unsigned_integral ValueT, PcgBase kBase> inline
 auto PcgEngine<ValueT, kBase>::generateBase() noexcept -> ValueType
 {
   if constexpr (kOutputPrevious) {
@@ -147,7 +147,7 @@ auto PcgEngine<ValueT, kBase>::generateBase() noexcept -> ValueType
 
   \return No description
   */
-template <UnsignedInteger ValueT, PcgBase kBase> inline
+template <std::unsigned_integral ValueT, PcgBase kBase> inline
 constexpr auto PcgEngine<ValueT, kBase>::increment() noexcept -> ValueType
 {
   ValueType i = 0;
@@ -170,7 +170,7 @@ constexpr auto PcgEngine<ValueT, kBase>::increment() noexcept -> ValueType
 
   \return No description
   */
-template <UnsignedInteger ValueT, PcgBase kBase> inline
+template <std::unsigned_integral ValueT, PcgBase kBase> inline
 constexpr auto PcgEngine<ValueT, kBase>::mcgMultiplier() noexcept -> ValueType
 {
   ValueType m = 0;
@@ -190,7 +190,7 @@ constexpr auto PcgEngine<ValueT, kBase>::mcgMultiplier() noexcept -> ValueType
 
   \return No description
   */
-template <UnsignedInteger ValueT, PcgBase kBase> inline
+template <std::unsigned_integral ValueT, PcgBase kBase> inline
 constexpr auto PcgEngine<ValueT, kBase>::multiplier() noexcept -> ValueType
 {
   ValueType m = 0;
@@ -211,7 +211,7 @@ constexpr auto PcgEngine<ValueT, kBase>::multiplier() noexcept -> ValueType
   \param [in] internal No description.
   \return No description
   */
-template <UnsignedInteger ValueT, PcgBase kBase> inline
+template <std::unsigned_integral ValueT, PcgBase kBase> inline
 auto PcgEngine<ValueT, kBase>::output(ValueType internal) noexcept -> ValueType
 {
   // Constant values

@@ -17,12 +17,11 @@
 
 #include "std_memory_resource.hpp"
 // Standard C++ library
+#include <concepts>
 #include <cstddef>
 #include <memory>
 #include <type_traits>
 #include <utility>
-// Zisc
-#include "zisc/concepts.hpp"
 
 namespace zisc {
 
@@ -65,7 +64,7 @@ UniquePtrDeleter<Type>::UniquePtrDeleter(UniquePtrDeleter&& other) noexcept:
   \tparam Derived No description.
   \param [in] other No description.
   */
-template <typename Type> template <DerivedFrom<Type> Derived> inline
+template <typename Type> template <std::derived_from<Type> Derived> inline
 UniquePtrDeleter<Type>::UniquePtrDeleter(UniquePtrDeleter<Derived>&& other) noexcept
     : resource_{other.resource()}
 {

@@ -18,12 +18,12 @@
 #include "correlated_multi_jittered_engine.hpp"
 // Standard C++ library
 #include <array>
+#include <bit>
+#include <concepts>
 #include <cstddef>
 #include <cstdint>
 // Zisc
 #include "zisc/algorithm.hpp"
-#include "zisc/bit.hpp"
-#include "zisc/concepts.hpp"
 #include "zisc/utility.hpp"
 #include "zisc/zisc_config.hpp"
 
@@ -36,7 +36,7 @@ namespace zisc {
   \param [in] p No description.
   \return No description
   */
-template <uint32b kRootN> template <FloatingPoint Float> inline
+template <uint32b kRootN> template <std::floating_point Float> inline
 Float CorrelatedMultiJitteredEngine<kRootN>::generate1d(
     const ValueType s,
     const ValueType p) noexcept
@@ -63,7 +63,7 @@ Float CorrelatedMultiJitteredEngine<kRootN>::generate1d(
   \param [in] p No description.
   \return No description
   */
-template <uint32b kRootN> template <FloatingPoint Float> inline
+template <uint32b kRootN> template <std::floating_point Float> inline
 std::array<Float, 2> CorrelatedMultiJitteredEngine<kRootN>::generate2d(
     ValueType s,
     const ValueType p) noexcept
@@ -109,7 +109,7 @@ constexpr std::size_t CorrelatedMultiJitteredEngine<kRootN>::getPeriod() noexcep
   \param [in] sample No description.
   \return No description
   */
-template <uint32b kRootN> template <UnsignedInteger Integer> inline
+template <uint32b kRootN> template <std::unsigned_integral Integer> inline
 constexpr bool CorrelatedMultiJitteredEngine<kRootN>::isEndOfPeriod(
     const Integer sample) noexcept
 {
@@ -175,7 +175,7 @@ auto CorrelatedMultiJitteredEngine<kRootN>::permute(
     ValueType i,
     const ValueType p) noexcept -> ValueType
 {
-  constexpr bool is_power_of_2 = (1 < l) && has_single_bit(l);
+  constexpr bool is_power_of_2 = (1 < l) && std::has_single_bit(l);
   constexpr ValueType w = makeWMask(l - 1);
   if (is_power_of_2) {
     // fast case

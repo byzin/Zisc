@@ -16,6 +16,7 @@
 #define ZISC_MATH_REFERENCE_BASIC_TEST_HPP
 
 // Standard C++ library
+#include <concepts>
 #include <limits>
 #include <ostream>
 #include <vector>
@@ -36,7 +37,7 @@
   \param [in] x No description.
   \return No description
   */
-template <zisc::FloatingPoint Float> inline
+template <std::floating_point Float> inline
 constexpr Float makeNormal(const Float x) noexcept
 {
   using zisc::cast;
@@ -66,7 +67,7 @@ constexpr Float makeNormal(const Float x) noexcept
   \param [in] x No description.
   \return No description
   */
-template <zisc::FloatingPoint Float> inline
+template <std::floating_point Float> inline
 constexpr Float makeSubnormal(const Float x) noexcept
 {
   using zisc::cast;
@@ -81,7 +82,7 @@ constexpr Float makeSubnormal(const Float x) noexcept
   return subnormal;
 }
 
-template <zisc::FloatingPoint Float>
+template <std::floating_point Float>
 constexpr Float kPowScale = static_cast<Float>(16);
 
 /*!
@@ -107,7 +108,7 @@ void write(const Type* data, std::ostream* output) noexcept
   \param [out] output No description.
   \return No description
   */
-template <zisc::FloatingPoint Float, zisc::int32b kN = 100'000> inline
+template <std::floating_point Float, zisc::int32b kN = 100'000> inline
 std::vector<Float> makeXList(const Float s, std::ostream* output = nullptr) noexcept
 {
   const zisc::int32b n = kN;
@@ -133,7 +134,7 @@ std::vector<Float> makeXList(const Float s, std::ostream* output = nullptr) noex
   \param [out] output No description.
   \return No description
   */
-template <zisc::FloatingPoint Float, zisc::int32b kN = 200'000> inline
+template <std::floating_point Float, zisc::int32b kN = 200'000> inline
 std::vector<Float> makeAllXList(std::ostream* output = nullptr) noexcept
 {
   const zisc::int32b n = kN;
@@ -160,7 +161,7 @@ std::vector<Float> makeAllXList(std::ostream* output = nullptr) noexcept
   \param [out] output No description.
   \return No description
   */
-template <zisc::FloatingPoint Float, zisc::int32b kN = 100'000> inline
+template <std::floating_point Float, zisc::int32b kN = 100'000> inline
 std::vector<Float> makePositiveXList(const Float s, std::ostream* output = nullptr) noexcept
 {
   const zisc::int32b n = kN;
@@ -186,7 +187,7 @@ std::vector<Float> makePositiveXList(const Float s, std::ostream* output = nullp
   \param [out] output No description.
   \return No description
   */
-template <zisc::FloatingPoint Float, zisc::int32b kN = 200'000> inline
+template <std::floating_point Float, zisc::int32b kN = 200'000> inline
 std::vector<Float> makePositiveXList(std::ostream* output = nullptr) noexcept
 {
   const zisc::int32b n = kN;
@@ -212,7 +213,7 @@ std::vector<Float> makePositiveXList(std::ostream* output = nullptr) noexcept
   \param [out] output No description.
   \return No description
   */
-template <zisc::FloatingPoint Float, zisc::int32b kN = 200> inline
+template <std::floating_point Float, zisc::int32b kN = 200> inline
 std::vector<Float> makeAllSubnormalXList(std::ostream* output = nullptr) noexcept
 {
   const zisc::int32b n = kN;
@@ -238,7 +239,7 @@ std::vector<Float> makeAllSubnormalXList(std::ostream* output = nullptr) noexcep
   \param [out] output No description.
   \return No description
   */
-template <zisc::FloatingPoint Float, zisc::int32b kN = 200> inline
+template <std::floating_point Float, zisc::int32b kN = 200> inline
 std::vector<Float> makePositiveSubnormalXList(std::ostream* output = nullptr) noexcept
 {
   const zisc::int32b n = kN;
@@ -269,7 +270,7 @@ concept Func1 = zisc::InvocableR<Func, Float, Float>;
   \param [in] x_spec_list No description.
   \param [out] output No description.
   */
-template <zisc::FloatingPoint Float, Func1<Float> Func> inline
+template <std::floating_point Float, Func1<Float> Func> inline
 void testF1(const Func func,
             const std::vector<Float>& x_list,
             const std::vector<Float>& x_spec_list,
@@ -296,7 +297,7 @@ void testF1(const Func func,
 
   \tparam Float No description.
   */
-template <zisc::FloatingPoint Float>
+template <std::floating_point Float>
 struct F2
 {
   Float x_ = static_cast<Float>(0);
@@ -316,7 +317,7 @@ concept Func2 = zisc::InvocableR<Func, Float, F2<Float>>;
   \param [in] x_spec_list No description.
   \param [out] output No description.
   */
-template <zisc::FloatingPoint Float, Func2<Float> Func> inline
+template <std::floating_point Float, Func2<Float> Func> inline
 void testF2(const Func func,
             const std::vector<F2<Float>>& x_list,
             const std::vector<F2<Float>>& x_spec_list,
@@ -344,7 +345,7 @@ void testF2(const Func func,
 
   \tparam Float No description.
   */
-template <zisc::FloatingPoint Float>
+template <std::floating_point Float>
 struct F3
 {
   Float x_ = static_cast<Float>(0);
@@ -365,7 +366,7 @@ concept Func3 = zisc::InvocableR<Func, Float, F3<Float>>;
   \param [in] x_spec_list No description.
   \param [out] output No description.
   */
-template <zisc::FloatingPoint Float, Func3<Float> Func> inline
+template <std::floating_point Float, Func3<Float> Func> inline
 void testF3(const Func func,
             const std::vector<F3<Float>>& x_list,
             const std::vector<F3<Float>>& x_spec_list,
@@ -393,7 +394,7 @@ void testF3(const Func func,
   \param [in] x No description.
   \return No description
   */
-template <zisc::FloatingPoint Float> inline
+template <std::floating_point Float> inline
 constexpr F3<Float> makeFmaInput(const Float x) noexcept
 {
   using Binary = zisc::BinaryFromBytes<sizeof(Float)>;
@@ -422,7 +423,7 @@ constexpr F3<Float> makeFmaInput(const Float x) noexcept
   \param [in] x No description.
   \return No description
   */
-template <zisc::FloatingPoint Float> inline
+template <std::floating_point Float> inline
 constexpr F2<Float> makeFmodInput(const Float x) noexcept
 {
   using Binary = zisc::BinaryFromBytes<sizeof(Float)>;

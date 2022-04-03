@@ -16,9 +16,9 @@
 #define ZISC_PSEUDO_RANDOM_NUMBER_ENGINE_HPP
 
 // Standard C++ library
+#include <concepts>
 #include <cstdint>
 // Zisc
-#include "zisc/concepts.hpp"
 #include "zisc/zisc_config.hpp"
 
 namespace zisc {
@@ -31,7 +31,7 @@ namespace zisc {
   \tparam GeneratorClass No description.
   \tparam ValueT No description.
   */
-template <typename GeneratorClass, UnsignedInteger ValueT>
+template <typename GeneratorClass, std::unsigned_integral ValueT>
 class PseudoRandomNumberEngine
 {
  public:
@@ -43,7 +43,7 @@ class PseudoRandomNumberEngine
   ValueType operator()() noexcept;
 
   //! Generate a float random number x satisfying [lower, upper)
-  template <FloatingPoint Float>
+  template <std::floating_point Float>
   Float operator()(const Float lower, const Float upper) noexcept;
 
 
@@ -54,15 +54,15 @@ class PseudoRandomNumberEngine
   ValueType generate() noexcept;
 
   //! Generate a float random number x satisfying [lower, upper)
-  template <FloatingPoint Float>
+  template <std::floating_point Float>
   Float generate(const Float lower, const Float upper) noexcept;
 
   //! Generate a [0, 1) float random number
-  template <FloatingPoint Float>
+  template <std::floating_point Float>
   Float generate01() noexcept;
 
   //! Check if a specified sample (0 base count) is the end of period
-  template <UnsignedInteger Integer>
+  template <std::unsigned_integral Integer>
   static constexpr bool isEndOfPeriod(const Integer sample) noexcept;
 
   //! Set a random seed

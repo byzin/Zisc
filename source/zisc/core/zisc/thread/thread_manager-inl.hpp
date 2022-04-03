@@ -19,6 +19,7 @@
 // Standard C++ library
 #include <algorithm>
 #include <atomic>
+#include <bit>
 #include <cstddef>
 #include <functional>
 #include <iterator>
@@ -35,7 +36,6 @@
 #include "atomic_word.hpp"
 #include "future.hpp"
 #include "packaged_task.hpp"
-#include "zisc/bit.hpp"
 #include "zisc/concepts.hpp"
 #include "zisc/data_structure/scalable_circular_queue.hpp"
 #include "zisc/error.hpp"
@@ -860,8 +860,11 @@ auto ThreadManager::enqueueImpl(TaskData& task,
 
   // Create a shared task
   const DiffType num_of_tasks = distance(begin, end);
-  auto shared_task = makeSharedTask<TaskImpl>(storage_index, task_id, parent_task_id,
-                                              std::move(task), std::forward<Ite1>(begin));
+  auto shared_task = makeSharedTask<TaskImpl>(storage_index,
+                                              task_id,
+                                              parent_task_id,
+                                              std::move(task),
+                                              std::forward<Ite1>(begin));
   Future<ReturnT> result{shared_task.get()};
 
   auto throw_exception = [](auto& t, auto& f, auto b, auto e)
@@ -1014,7 +1017,7 @@ SharedTask ThreadManager::makeSharedTask(const std::size_t storage_index,
                                                     std::alignment_of_v<void*>);
   constexpr bool can_internal_resource_be_used =
       (task_size <= TaskResource::taskSize()) &&
-      has_single_bit(task_alignment) &&
+      std::has_single_bit(task_alignment) &&
       (task_alignment <= TaskResource::storageAlignment());
   pmr::memory_resource* mem_resource = can_internal_resource_be_used
       ? std::addressof(storage)

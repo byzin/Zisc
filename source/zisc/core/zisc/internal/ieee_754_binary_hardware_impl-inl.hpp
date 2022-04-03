@@ -17,11 +17,11 @@
 
 #include "ieee_754_binary_hardware_impl.hpp"
 // Standard C++ library
+#include <concepts>
 #include <cstddef>
 #include <type_traits>
 // Zisc
 #include "zisc/bit.hpp"
-#include "zisc/concepts.hpp"
 #include "zisc/ieee_754_binary.hpp"
 #include "zisc/utility.hpp"
 #include "zisc/zisc_config.hpp"
@@ -43,7 +43,7 @@ constexpr Ieee754BinaryHardwareImpl<kFormat>::Ieee754BinaryHardwareImpl() noexce
   \tparam Float No description.
   \param [in] value No description.
   */
-template <Ieee754BinaryFormat kFormat> template <FloatingPoint Float> inline
+template <Ieee754BinaryFormat kFormat> template <std::floating_point Float> inline
 constexpr Ieee754BinaryHardwareImpl<kFormat>::Ieee754BinaryHardwareImpl(const Float value) noexcept :
     data_{static_cast<typename DataType::T>(value)}
 {
@@ -86,7 +86,7 @@ constexpr auto Ieee754BinaryHardwareImpl<kFormat>::convertTo() const noexcept
   \return No description
   */
 template <Ieee754BinaryFormat kFormat>
-template <FloatingPoint Float, Ieee754RoundingMode kRMode> inline
+template <std::floating_point Float, Ieee754RoundingMode kRMode> inline
 constexpr Float Ieee754BinaryHardwareImpl<kFormat>::convertTo() const noexcept
 {
   return cast<Float>(data().value_);

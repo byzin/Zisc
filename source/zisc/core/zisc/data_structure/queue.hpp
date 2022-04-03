@@ -16,6 +16,7 @@
 #define ZISC_QUEUE_HPP
 
 // Standard C++ library
+#include <concepts>
 #include <cstddef>
 #include <memory>
 #include <string_view>
@@ -23,7 +24,6 @@
 // Zisc
 #include "query_result.hpp"
 #include "query_value.hpp"
-#include "zisc/concepts.hpp"
 #include "zisc/error.hpp"
 #include "zisc/non_copyable.hpp"
 #include "zisc/zisc_config.hpp"
@@ -39,7 +39,7 @@ namespace zisc {
   \tparam QueueClass No description.
   \tparam T No description.
   */
-template <typename QueueClass, Movable T>
+template <typename QueueClass, std::movable T>
 class Queue : private NonCopyable<Queue<QueueClass, T>>
 {
  public:

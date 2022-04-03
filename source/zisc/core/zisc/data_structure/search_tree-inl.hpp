@@ -17,12 +17,12 @@
 
 #include "search_tree.hpp"
 // Standard C++ library
+#include <concepts>
 #include <cstddef>
 #include <type_traits>
 // Zisc
 #include "query_result.hpp"
 #include "query_value.hpp"
-#include "zisc/concepts.hpp"
 #include "zisc/utility.hpp"
 #include "zisc/zisc_config.hpp"
 
@@ -35,7 +35,7 @@ namespace zisc {
   \param [in] value No description.
   \return No description
   */
-template <typename SearchTreeClass> template <ConvertibleTo<double> Type> inline
+template <typename SearchTreeClass> template <std::convertible_to<double> Type> inline
 auto SearchTree<SearchTreeClass>::add(const Type& value) -> QueryResultT
 {
   auto& search_tree = ref();
@@ -84,7 +84,7 @@ void SearchTree<SearchTreeClass>::clear() noexcept
   \param [in] value No description.
   \return No description
   */
-template <typename SearchTreeClass> template <ConvertibleTo<double> Type> inline
+template <typename SearchTreeClass> template <std::convertible_to<double> Type> inline
 auto SearchTree<SearchTreeClass>::contain(const Type& value) const noexcept -> QueryResultT
 {
   auto& search_tree = ref();
@@ -135,7 +135,7 @@ constexpr bool SearchTree<SearchTreeClass>::isConcurrent() noexcept
   \param [in] value No description.
   \return No description
   */
-template <typename SearchTreeClass> template <ConvertibleTo<double> Type> inline
+template <typename SearchTreeClass> template <std::convertible_to<double> Type> inline
 auto SearchTree<SearchTreeClass>::remove(const Type& value) -> QueryResultT
 {
   auto& search_tree = ref();
@@ -205,7 +205,7 @@ auto SearchTree<SearchTreeClass>::operator=([[maybe_unused]] const SearchTree& o
 template <typename SearchTreeClass> inline
 auto SearchTree<SearchTreeClass>::ref() noexcept -> SearchTreeReference
 {
-  auto q = cast<SearchTreePtr>(this);
+  auto q = static_cast<SearchTreePtr>(this);
   return *q;
 }
 
@@ -217,7 +217,7 @@ auto SearchTree<SearchTreeClass>::ref() noexcept -> SearchTreeReference
 template <typename SearchTreeClass> inline
 auto SearchTree<SearchTreeClass>::ref() const noexcept -> ConstSearchTreeReference
 {
-  auto q = cast<ConstSearchTreePtr>(this);
+  auto q = static_cast<ConstSearchTreePtr>(this);
   return *q;
 }
 

@@ -15,6 +15,8 @@
 #ifndef ZISC_FRACTION_HPP
 #define ZISC_FRACTION_HPP
 
+// Standard C++ library
+#include <concepts>
 // Zisc
 #include "zisc/concepts.hpp"
 #include "zisc/zisc_config.hpp"
@@ -89,7 +91,7 @@ class Fraction
   constexpr Fraction invert() const noexcept;
 
   //! Convert a fraction to a float
-  template <FloatingPoint Float>
+  template <std::floating_point Float>
   constexpr Float toFloat() const noexcept;
 
  private:

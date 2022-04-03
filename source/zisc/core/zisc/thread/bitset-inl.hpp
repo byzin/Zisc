@@ -17,6 +17,7 @@
 
 #include "bitset.hpp"
 // Standard C++ library
+#include <bit>
 #include <cstddef>
 #include <limits>
 #include <memory>
@@ -25,7 +26,6 @@
 // Zisc
 #include "atomic.hpp"
 #include "zisc/algorithm.hpp"
-#include "zisc/bit.hpp"
 #include "zisc/zisc_config.hpp"
 #include "zisc/memory/std_memory_resource.hpp"
 
@@ -132,7 +132,7 @@ std::size_t Bitset::count(const std::size_t begin, const std::size_t end) const 
   {
     ConstType b = atomic_load(std::addressof(block));
     const ValueType v = b & mask;
-    result += cast<ValueType>(popcount(v));
+    result += cast<ValueType>(std::popcount(v));
     return 1;
   };
   const std::size_t result = iterate(begin, end, func);

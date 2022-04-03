@@ -14,6 +14,7 @@
 
 // Standard C++ library
 #include <bit>
+#include <concepts>
 #include <limits>
 #include <type_traits>
 // GoogleTest
@@ -26,7 +27,7 @@
 
 namespace {
 
-template <zisc::UnsignedInteger Integer, zisc::FloatingPoint Float>
+template <zisc::UnsignedInteger Integer, std::floating_point Float>
 void testCastBit()
 {
   static_assert(sizeof(Integer) == sizeof(Float));
@@ -177,21 +178,21 @@ void testCountlZero()
   constexpr int offset = 8 * (sizeof(Integer) - sizeof(zisc::uint8b));
   {
     constexpr Integer x = 0b00000000;
-    constexpr int result = zisc::countl_zero(x);
+    constexpr int result = std::countl_zero(x);
     constexpr int expected = 8 + offset;
-    ASSERT_EQ(expected, result) << "zisc::countl_zero(" << x << ") failed.";
+    ASSERT_EQ(expected, result) << "std::countl_zero(" << x << ") failed.";
   }
   {
     constexpr Integer x = 0b11111111;
-    constexpr int result = zisc::countl_zero(x);
+    constexpr int result = std::countl_zero(x);
     constexpr int expected = 0 + offset;
-    ASSERT_EQ(expected, result) << "zisc::countl_zero(" << x << ") failed.";
+    ASSERT_EQ(expected, result) << "std::countl_zero(" << x << ") failed.";
   }
   {
     constexpr Integer x = 0b00011100;
-    constexpr int result = zisc::countl_zero(x);
+    constexpr int result = std::countl_zero(x);
     constexpr int expected = 3 + offset;
-    ASSERT_EQ(expected, result) << "zisc::countl_zero(" << x << ") failed.";
+    ASSERT_EQ(expected, result) << "std::countl_zero(" << x << ") failed.";
   }
 }
 
@@ -226,21 +227,21 @@ void testCountlOne()
   using zisc::cast;
   {
     constexpr Integer x = cast<Integer>(Integer{0b00000000} << offset);
-    constexpr int result = zisc::countl_one(x);
+    constexpr int result = std::countl_one(x);
     constexpr int expected = 0;
-    ASSERT_EQ(expected, result) << "zisc::countl_one(" << x << ") failed.";
+    ASSERT_EQ(expected, result) << "std::countl_one(" << x << ") failed.";
   }
   {
     constexpr Integer x = cast<Integer>(Integer{0b11111111} << offset);
-    constexpr int result = zisc::countl_one(x);
+    constexpr int result = std::countl_one(x);
     constexpr int expected = 8;
-    ASSERT_EQ(expected, result) << "zisc::countl_one(" << x << ") failed.";
+    ASSERT_EQ(expected, result) << "std::countl_one(" << x << ") failed.";
   }
   {
     constexpr Integer x = cast<Integer>(Integer{0b11100011} << offset);
-    constexpr int result = zisc::countl_one(x);
+    constexpr int result = std::countl_one(x);
     constexpr int expected = 3;
-    ASSERT_EQ(expected, result) << "zisc::countl_one(" << x << ") failed.";
+    ASSERT_EQ(expected, result) << "std::countl_one(" << x << ") failed.";
   }
 }
 
@@ -274,21 +275,21 @@ void testCountrZero()
   constexpr int offset = 8 * (sizeof(Integer) - sizeof(zisc::uint8b));
   {
     constexpr Integer x = 0b00000000;
-    constexpr int result = zisc::countr_zero(x);
+    constexpr int result = std::countr_zero(x);
     constexpr int expected = 8 + offset;
-    ASSERT_EQ(expected, result) << "zisc::countr_zero(" << x << ") failed.";
+    ASSERT_EQ(expected, result) << "std::countr_zero(" << x << ") failed.";
   }
   {
     constexpr Integer x = 0b11111111;
-    constexpr int result = zisc::countr_zero(x);
+    constexpr int result = std::countr_zero(x);
     constexpr int expected = 0;
-    ASSERT_EQ(expected, result) << "zisc::countr_zero(" << x << ") failed.";
+    ASSERT_EQ(expected, result) << "std::countr_zero(" << x << ") failed.";
   }
   {
     constexpr Integer x = 0b00011100;
-    constexpr int result = zisc::countr_zero(x);
+    constexpr int result = std::countr_zero(x);
     constexpr int expected = 2;
-    ASSERT_EQ(expected, result) << "zisc::countr_zero(" << x << ") failed.";
+    ASSERT_EQ(expected, result) << "std::countr_zero(" << x << ") failed.";
   }
 }
 
@@ -321,21 +322,21 @@ void testCountrOne()
 {
   {
     constexpr Integer x = 0b00000000;
-    constexpr int result = zisc::countr_one(x);
+    constexpr int result = std::countr_one(x);
     constexpr int expected = 0;
-    ASSERT_EQ(expected, result) << "zisc::countr_one(" << x << ") failed.";
+    ASSERT_EQ(expected, result) << "std::countr_one(" << x << ") failed.";
   }
   {
     constexpr Integer x = 0b11111111;
-    constexpr int result = zisc::countr_one(x);
+    constexpr int result = std::countr_one(x);
     constexpr int expected = 8;
-    ASSERT_EQ(expected, result) << "zisc::countr_one(" << x << ") failed.";
+    ASSERT_EQ(expected, result) << "std::countr_one(" << x << ") failed.";
   }
   {
     constexpr Integer x = 0b11100011;
-    constexpr int result = zisc::countr_one(x);
+    constexpr int result = std::countr_one(x);
     constexpr int expected = 2;
-    ASSERT_EQ(expected, result) << "zisc::countr_one(" << x << ") failed.";
+    ASSERT_EQ(expected, result) << "std::countr_one(" << x << ") failed.";
   }
 }
 
@@ -368,21 +369,21 @@ void testPopcount()
 {
   {
     constexpr Integer x = 0b00000000;
-    constexpr int result = zisc::popcount(x);
+    constexpr int result = std::popcount(x);
     constexpr int expected = 0;
-    ASSERT_EQ(expected, result) << "zisc::popcount(" << x << ") failed.";
+    ASSERT_EQ(expected, result) << "std::popcount(" << x << ") failed.";
   }
   {
     constexpr Integer x = 0b11111111;
-    constexpr int result = zisc::popcount(x);
+    constexpr int result = std::popcount(x);
     constexpr int expected = 8;
-    ASSERT_EQ(expected, result) << "zisc::popcount(" << x << ") failed.";
+    ASSERT_EQ(expected, result) << "std::popcount(" << x << ") failed.";
   }
   {
     constexpr Integer x = 0b00011101;
-    constexpr int result = zisc::popcount(x);
+    constexpr int result = std::popcount(x);
     constexpr int expected = 4;
-    ASSERT_EQ(expected, result) << "zisc::popcount(" << x << ") failed.";
+    ASSERT_EQ(expected, result) << "std::popcount(" << x << ") failed.";
   }
 }
 
@@ -415,53 +416,53 @@ void testIsPowerOf2()
 {
   {
     constexpr Integer x = 0b00000000;
-    constexpr bool result = zisc::has_single_bit(x);
-    ASSERT_FALSE(result) << "zisc::has_single_bit(" << x << ") failed.";
+    constexpr bool result = std::has_single_bit(x);
+    ASSERT_FALSE(result) << "std::has_single_bit(" << x << ") failed.";
   }
   {
     constexpr Integer x = 0b00000001;
-    constexpr bool result = zisc::has_single_bit(x);
-    ASSERT_TRUE(result) << "zisc::has_single_bit(" << x << ") failed.";
+    constexpr bool result = std::has_single_bit(x);
+    ASSERT_TRUE(result) << "std::has_single_bit(" << x << ") failed.";
   }
   {
     constexpr Integer x = 0b00000010;
-    constexpr bool result = zisc::has_single_bit(x);
-    ASSERT_TRUE(result) << "zisc::has_single_bit(" << x << ") failed.";
+    constexpr bool result = std::has_single_bit(x);
+    ASSERT_TRUE(result) << "std::has_single_bit(" << x << ") failed.";
   }
   {
     constexpr Integer x = 0b00000011;
-    constexpr bool result = zisc::has_single_bit(x);
-    ASSERT_FALSE(result) << "zisc::has_single_bit(" << x << ") failed.";
+    constexpr bool result = std::has_single_bit(x);
+    ASSERT_FALSE(result) << "std::has_single_bit(" << x << ") failed.";
   }
   {
     constexpr Integer x = 0b00000100;
-    constexpr bool result = zisc::has_single_bit(x);
-    ASSERT_TRUE(result) << "zisc::has_single_bit(" << x << ") failed.";
+    constexpr bool result = std::has_single_bit(x);
+    ASSERT_TRUE(result) << "std::has_single_bit(" << x << ") failed.";
   }
   {
     constexpr Integer x = 0b00000101;
-    constexpr bool result = zisc::has_single_bit(x);
-    ASSERT_FALSE(result) << "zisc::has_single_bit(" << x << ") failed.";
+    constexpr bool result = std::has_single_bit(x);
+    ASSERT_FALSE(result) << "std::has_single_bit(" << x << ") failed.";
   }
   {
     constexpr Integer x = 0b00000110;
-    constexpr bool result = zisc::has_single_bit(x);
-    ASSERT_FALSE(result) << "zisc::has_single_bit(" << x << ") failed.";
+    constexpr bool result = std::has_single_bit(x);
+    ASSERT_FALSE(result) << "std::has_single_bit(" << x << ") failed.";
   }
   {
     constexpr Integer x = 0b00000111;
-    constexpr bool result = zisc::has_single_bit(x);
-    ASSERT_FALSE(result) << "zisc::has_single_bit(" << x << ") failed.";
+    constexpr bool result = std::has_single_bit(x);
+    ASSERT_FALSE(result) << "std::has_single_bit(" << x << ") failed.";
   }
   {
     constexpr Integer x = 0b00001000;
-    constexpr bool result = zisc::has_single_bit(x);
-    ASSERT_TRUE(result) << "zisc::has_single_bit(" << x << ") failed.";
+    constexpr bool result = std::has_single_bit(x);
+    ASSERT_TRUE(result) << "std::has_single_bit(" << x << ") failed.";
   }
   {
     constexpr Integer x = 0b00001001;
-    constexpr bool result = zisc::has_single_bit(x);
-    ASSERT_FALSE(result) << "zisc::has_single_bit(" << x << ") failed.";
+    constexpr bool result = std::has_single_bit(x);
+    ASSERT_FALSE(result) << "std::has_single_bit(" << x << ") failed.";
   }
 }
 
@@ -495,43 +496,43 @@ void testBitWidth()
   using zisc::cast;
   {
     constexpr Integer x = 0b0000;
-    constexpr Integer result = zisc::bit_width(x);
-    ASSERT_FALSE(result) << "zisc::bit_width(" << x << ") failed.";
+    constexpr Integer result = std::bit_width(x);
+    ASSERT_FALSE(result) << "std::bit_width(" << x << ") failed.";
   }
   {
     constexpr Integer x = 0b0001;
-    constexpr Integer result = zisc::bit_width(x);
-    ASSERT_EQ(cast<Integer>(1), result) << "zisc::bit_width(" << x << ") failed.";
+    constexpr Integer result = std::bit_width(x);
+    ASSERT_EQ(cast<Integer>(1), result) << "std::bit_width(" << x << ") failed.";
   }
   {
     constexpr Integer x = 0b0010;
-    constexpr Integer result = zisc::bit_width(x);
-    ASSERT_EQ(cast<Integer>(2), result) << "zisc::bit_width(" << x << ") failed.";
+    constexpr Integer result = std::bit_width(x);
+    ASSERT_EQ(cast<Integer>(2), result) << "std::bit_width(" << x << ") failed.";
   }
   {
     constexpr Integer x = 0b0011;
-    constexpr Integer result = zisc::bit_width(x);
-    ASSERT_EQ(cast<Integer>(2), result) << "zisc::bit_width(" << x << ") failed.";
+    constexpr Integer result = std::bit_width(x);
+    ASSERT_EQ(cast<Integer>(2), result) << "std::bit_width(" << x << ") failed.";
   }
   {
     constexpr Integer x = 0b0100;
-    constexpr Integer result = zisc::bit_width(x);
-    ASSERT_EQ(cast<Integer>(3), result) << "zisc::bit_width(" << x << ") failed.";
+    constexpr Integer result = std::bit_width(x);
+    ASSERT_EQ(cast<Integer>(3), result) << "std::bit_width(" << x << ") failed.";
   }
   {
     constexpr Integer x = 0b0101;
-    constexpr Integer result = zisc::bit_width(x);
-    ASSERT_EQ(cast<Integer>(3), result) << "zisc::bit_width(" << x << ") failed.";
+    constexpr Integer result = std::bit_width(x);
+    ASSERT_EQ(cast<Integer>(3), result) << "std::bit_width(" << x << ") failed.";
   }
   {
     constexpr Integer x = 0b0110;
-    constexpr Integer result = zisc::bit_width(x);
-    ASSERT_EQ(cast<Integer>(3), result) << "zisc::bit_width(" << x << ") failed.";
+    constexpr Integer result = std::bit_width(x);
+    ASSERT_EQ(cast<Integer>(3), result) << "std::bit_width(" << x << ") failed.";
   }
   {
     constexpr Integer x = 0b0111;
-    constexpr Integer result = zisc::bit_width(x);
-    ASSERT_EQ(cast<Integer>(3), result) << "zisc::bit_width(" << x << ") failed.";
+    constexpr Integer result = std::bit_width(x);
+    ASSERT_EQ(cast<Integer>(3), result) << "std::bit_width(" << x << ") failed.";
   }
 }
 
@@ -565,63 +566,63 @@ void testBitCeil()
   using zisc::cast;
   {
     constexpr Integer x = 0b0000;
-    constexpr Integer result = zisc::bit_ceil(x);
+    constexpr Integer result = std::bit_ceil(x);
     constexpr Integer expected = 0b0001;
-    ASSERT_EQ(expected, result) << "zisc::bit_ceil(" << x << ") failed.";
+    ASSERT_EQ(expected, result) << "std::bit_ceil(" << x << ") failed.";
   }
   {
     constexpr Integer x = 0b0001;
-    constexpr Integer result = zisc::bit_ceil(x);
+    constexpr Integer result = std::bit_ceil(x);
     constexpr Integer expected = 0b0001;
-    ASSERT_EQ(expected, result) << "zisc::bit_ceil(" << x << ") failed.";
+    ASSERT_EQ(expected, result) << "std::bit_ceil(" << x << ") failed.";
   }
   {
     constexpr Integer x = 0b0010;
-    constexpr Integer result = zisc::bit_ceil(x);
+    constexpr Integer result = std::bit_ceil(x);
     constexpr Integer expected = 0b0010;
-    ASSERT_EQ(expected, result) << "zisc::bit_ceil(" << x << ") failed.";
+    ASSERT_EQ(expected, result) << "std::bit_ceil(" << x << ") failed.";
   }
   {
     constexpr Integer x = 0b0011;
-    constexpr Integer result = zisc::bit_ceil(x);
+    constexpr Integer result = std::bit_ceil(x);
     constexpr Integer expected = 0b0100;
-    ASSERT_EQ(expected, result) << "zisc::bit_ceil(" << x << ") failed.";
+    ASSERT_EQ(expected, result) << "std::bit_ceil(" << x << ") failed.";
   }
   {
     constexpr Integer x = 0b0100;
-    constexpr Integer result = zisc::bit_ceil(x);
+    constexpr Integer result = std::bit_ceil(x);
     constexpr Integer expected = 0b0100;
-    ASSERT_EQ(expected, result) << "zisc::bit_ceil(" << x << ") failed.";
+    ASSERT_EQ(expected, result) << "std::bit_ceil(" << x << ") failed.";
   }
   {
     constexpr Integer x = 0b0101;
-    constexpr Integer result = zisc::bit_ceil(x);
+    constexpr Integer result = std::bit_ceil(x);
     constexpr Integer expected = 0b1000;
-    ASSERT_EQ(expected, result) << "zisc::bit_ceil(" << x << ") failed.";
+    ASSERT_EQ(expected, result) << "std::bit_ceil(" << x << ") failed.";
   }
   {
     constexpr Integer x = 0b0110;
-    constexpr Integer result = zisc::bit_ceil(x);
+    constexpr Integer result = std::bit_ceil(x);
     constexpr Integer expected = 0b1000;
-    ASSERT_EQ(expected, result) << "zisc::bit_ceil(" << x << ") failed.";
+    ASSERT_EQ(expected, result) << "std::bit_ceil(" << x << ") failed.";
   }
   {
     constexpr Integer x = 0b0111;
-    constexpr Integer result = zisc::bit_ceil(x);
+    constexpr Integer result = std::bit_ceil(x);
     constexpr Integer expected = 0b1000;
-    ASSERT_EQ(expected, result) << "zisc::bit_ceil(" << x << ") failed.";
+    ASSERT_EQ(expected, result) << "std::bit_ceil(" << x << ") failed.";
   }
   {
     constexpr Integer x = 0b1000;
-    constexpr Integer result = zisc::bit_ceil(x);
+    constexpr Integer result = std::bit_ceil(x);
     constexpr Integer expected = 0b1000;
-    ASSERT_EQ(expected, result) << "zisc::bit_ceil(" << x << ") failed.";
+    ASSERT_EQ(expected, result) << "std::bit_ceil(" << x << ") failed.";
   }
   {
     constexpr Integer x = 0b1001;
-    constexpr Integer result = zisc::bit_ceil(x);
+    constexpr Integer result = std::bit_ceil(x);
     constexpr Integer expected = 0b10000;
-    ASSERT_EQ(expected, result) << "zisc::bit_ceil(" << x << ") failed.";
+    ASSERT_EQ(expected, result) << "std::bit_ceil(" << x << ") failed.";
   }
 }
 
@@ -655,63 +656,63 @@ void testBitFloor()
   using zisc::cast;
   {
     constexpr Integer x = 0b0000;
-    constexpr Integer result = zisc::bit_floor(x);
+    constexpr Integer result = std::bit_floor(x);
     constexpr Integer expected = 0b0000;
-    ASSERT_EQ(expected, result) << "zisc::bit_floor(" << x << ") failed.";
+    ASSERT_EQ(expected, result) << "std::bit_floor(" << x << ") failed.";
   }
   {
     constexpr Integer x = 0b0001;
-    constexpr Integer result = zisc::bit_floor(x);
+    constexpr Integer result = std::bit_floor(x);
     constexpr Integer expected = 0b0001;
-    ASSERT_EQ(expected, result) << "zisc::bit_floor(" << x << ") failed.";
+    ASSERT_EQ(expected, result) << "std::bit_floor(" << x << ") failed.";
   }
   {
     constexpr Integer x = 0b0010;
-    constexpr Integer result = zisc::bit_floor(x);
+    constexpr Integer result = std::bit_floor(x);
     constexpr Integer expected = 0b0010;
-    ASSERT_EQ(expected, result) << "zisc::bit_floor(" << x << ") failed.";
+    ASSERT_EQ(expected, result) << "std::bit_floor(" << x << ") failed.";
   }
   {
     constexpr Integer x = 0b0011;
-    constexpr Integer result = zisc::bit_floor(x);
+    constexpr Integer result = std::bit_floor(x);
     constexpr Integer expected = 0b0010;
-    ASSERT_EQ(expected, result) << "zisc::bit_floor(" << x << ") failed.";
+    ASSERT_EQ(expected, result) << "std::bit_floor(" << x << ") failed.";
   }
   {
     constexpr Integer x = 0b0100;
-    constexpr Integer result = zisc::bit_floor(x);
+    constexpr Integer result = std::bit_floor(x);
     constexpr Integer expected = 0b0100;
-    ASSERT_EQ(expected, result) << "zisc::bit_floor(" << x << ") failed.";
+    ASSERT_EQ(expected, result) << "std::bit_floor(" << x << ") failed.";
   }
   {
     constexpr Integer x = 0b0101;
-    constexpr Integer result = zisc::bit_floor(x);
+    constexpr Integer result = std::bit_floor(x);
     constexpr Integer expected = 0b0100;
-    ASSERT_EQ(expected, result) << "zisc::bit_floor(" << x << ") failed.";
+    ASSERT_EQ(expected, result) << "std::bit_floor(" << x << ") failed.";
   }
   {
     constexpr Integer x = 0b0110;
-    constexpr Integer result = zisc::bit_floor(x);
+    constexpr Integer result = std::bit_floor(x);
     constexpr Integer expected = 0b0100;
-    ASSERT_EQ(expected, result) << "zisc::bit_floor(" << x << ") failed.";
+    ASSERT_EQ(expected, result) << "std::bit_floor(" << x << ") failed.";
   }
   {
     constexpr Integer x = 0b0111;
-    constexpr Integer result = zisc::bit_floor(x);
+    constexpr Integer result = std::bit_floor(x);
     constexpr Integer expected = 0b0100;
-    ASSERT_EQ(expected, result) << "zisc::bit_floor(" << x << ") failed.";
+    ASSERT_EQ(expected, result) << "std::bit_floor(" << x << ") failed.";
   }
   {
     constexpr Integer x = 0b1000;
-    constexpr Integer result = zisc::bit_floor(x);
+    constexpr Integer result = std::bit_floor(x);
     constexpr Integer expected = 0b1000;
-    ASSERT_EQ(expected, result) << "zisc::bit_floor(" << x << ") failed.";
+    ASSERT_EQ(expected, result) << "std::bit_floor(" << x << ") failed.";
   }
   {
     constexpr Integer x = 0b1001;
-    constexpr Integer result = zisc::bit_floor(x);
+    constexpr Integer result = std::bit_floor(x);
     constexpr Integer expected = 0b1000;
-    ASSERT_EQ(expected, result) << "zisc::bit_floor(" << x << ") failed.";
+    ASSERT_EQ(expected, result) << "std::bit_floor(" << x << ") failed.";
   }
 }
 
@@ -735,4 +736,138 @@ TEST(BitTest, BitFloorUint32Test)
 TEST(BitTest, BitFloorUint64Test)
 {
   ::testBitFloor<zisc::uint64b>();
+}
+
+namespace {
+
+template <zisc::UnsignedInteger Integer>
+void testBitwiseLeftRotating()
+{
+  using zisc::cast;
+  constexpr std::size_t nbits = 8 * sizeof(Integer);
+  constexpr Integer a = 0b0101;
+  constexpr Integer b = 0b1010;
+  constexpr Integer x = cast<Integer>((b << (nbits - 4)) | a);
+  {
+    constexpr Integer result = std::rotl(x, 0);
+    constexpr Integer expected = x;
+    ASSERT_EQ(expected, result) << "std::rotl(" << x << ") failed.";
+  }
+  {
+    constexpr Integer result = std::rotl(x, 1);
+    constexpr Integer expected = cast<Integer>((x << 1) | (x >> (nbits - 1)));
+    ASSERT_EQ(expected, result) << "std::rotl(" << x << ") failed.";
+  }
+  {
+    constexpr Integer result = std::rotl(x, 4);
+    constexpr Integer expected = cast<Integer>((x << 4) | (x >> (nbits - 4)));
+    ASSERT_EQ(expected, result) << "std::rotl(" << x << ") failed.";
+  }
+  {
+    constexpr Integer result = std::rotl(x, 9);
+    if constexpr (nbits < 9)
+    {
+      constexpr Integer expected = cast<Integer>((x << 1) | (x >> (nbits - 1)));
+      ASSERT_EQ(expected, result) << "std::rotl(" << x << ") failed.";
+    }
+    else
+    {
+      constexpr Integer expected = cast<Integer>((x << 9) | (x >> (nbits - 9)));
+      ASSERT_EQ(expected, result) << "std::rotl(" << x << ") failed.";
+    }
+  }
+  {
+    constexpr Integer result = std::rotl(x, -1);
+    constexpr Integer expected = cast<Integer>((x >> 1) | (x << (nbits - 1)));
+    ASSERT_EQ(expected, result) << "std::rotl(" << x << ") failed.";
+  }
+}
+
+}
+
+TEST(BitTest, BitwiseLeftRotating8Test)
+{
+  ::testBitwiseLeftRotating<zisc::uint8b>();
+}
+
+TEST(BitTest, BitwiseLeftRotating16Test)
+{
+  ::testBitwiseLeftRotating<zisc::uint16b>();
+}
+
+TEST(BitTest, BitwiseLeftRotating32Test)
+{
+  ::testBitwiseLeftRotating<zisc::uint32b>();
+}
+
+TEST(BitTest, BitwiseLeftRotating64Test)
+{
+  ::testBitwiseLeftRotating<zisc::uint64b>();
+}
+
+namespace {
+
+template <zisc::UnsignedInteger Integer>
+void testBitwiseRightRotating()
+{
+  using zisc::cast;
+  constexpr std::size_t nbits = 8 * sizeof(Integer);
+  constexpr Integer a = 0b0101;
+  constexpr Integer b = 0b1010;
+  constexpr Integer x = cast<Integer>((b << (nbits - 4)) | a);
+  {
+    constexpr Integer result = std::rotr(x, 0);
+    constexpr Integer expected = x;
+    ASSERT_EQ(expected, result) << "std::rotr(" << x << ") failed.";
+  }
+  {
+    constexpr Integer result = std::rotr(x, 1);
+    constexpr Integer expected = cast<Integer>((x >> 1) | (x << (nbits - 1)));
+    ASSERT_EQ(expected, result) << "std::rotr(" << x << ") failed.";
+  }
+  {
+    constexpr Integer result = std::rotr(x, 4);
+    constexpr Integer expected = cast<Integer>((x >> 4) | (x << (nbits - 4)));
+    ASSERT_EQ(expected, result) << "std::rotr(" << x << ") failed.";
+  }
+  {
+    constexpr Integer result = std::rotr(x, 9);
+    if constexpr (nbits < 9)
+    {
+      constexpr Integer expected = cast<Integer>((x >> 1) | (x << (nbits - 1)));
+      ASSERT_EQ(expected, result) << "std::rotr(" << x << ") failed.";
+    }
+    else
+    {
+      constexpr Integer expected = cast<Integer>((x >> 9) | (x << (nbits - 9)));
+      ASSERT_EQ(expected, result) << "std::rotr(" << x << ") failed.";
+    }
+  }
+  {
+    constexpr Integer result = std::rotr(x, -1);
+    constexpr Integer expected = cast<Integer>((x << 1) | (x >> (nbits - 1)));
+    ASSERT_EQ(expected, result) << "std::rotr(" << x << ") failed.";
+  }
+}
+
+}
+
+TEST(BitTest, BitwiseRightRotating8Test)
+{
+  ::testBitwiseRightRotating<zisc::uint8b>();
+}
+
+TEST(BitTest, BitwiseRightRotating16Test)
+{
+  ::testBitwiseRightRotating<zisc::uint16b>();
+}
+
+TEST(BitTest, BitwiseRightRotating32Test)
+{
+  ::testBitwiseRightRotating<zisc::uint32b>();
+}
+
+TEST(BitTest, BitwiseRightRotating64Test)
+{
+  ::testBitwiseRightRotating<zisc::uint64b>();
 }

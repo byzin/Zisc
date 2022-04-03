@@ -19,6 +19,7 @@
 #include <array>
 #include <bitset>
 #include <cmath>
+#include <concepts>
 #include <cstddef>
 #include <fstream>
 #include <iostream>
@@ -44,7 +45,7 @@
 
   \tparam Float No description.
   */
-template <zisc::FloatingPoint Float>
+template <std::floating_point Float>
 struct MathTestResult
 {
   std::size_t num_of_trials = 0;
@@ -96,7 +97,7 @@ struct MathTestResult
   \param [in] rhs No description.
   \return No description
   */
-template <zisc::FloatingPoint Float> inline
+template <std::floating_point Float> inline
 Float calcRoughUlpDistance(const Float lhs, const Float rhs) noexcept
 {
   constexpr Float eps = std::numeric_limits<Float>::epsilon();
@@ -112,7 +113,7 @@ Float calcRoughUlpDistance(const Float lhs, const Float rhs) noexcept
   \param [in] rhs No description.
   \return No description
   */
-template <zisc::FloatingPoint Float> inline
+template <std::floating_point Float> inline
 Float calcUlpDistance(const Float lhs, const Float rhs) noexcept
 {
   using BitT = std::conditional_t<sizeof(Float) == 4, zisc::uint32b, zisc::uint64b>;
@@ -134,7 +135,7 @@ Float calcUlpDistance(const Float lhs, const Float rhs) noexcept
   \param [out] result No description.
   \return No description
   */
-template <zisc::FloatingPoint Float, int tolerance_ulps = 1> inline
+template <std::floating_point Float, int tolerance_ulps = 1> inline
 bool testMathFloat(const Float expected,
                    const Float value, 
                    MathTestResult<Float>* result) noexcept
@@ -221,7 +222,7 @@ std::vector<Float> loadXList(std::string_view file_path) noexcept
   \tparam Float No description.
   \return No description
   */
-template <zisc::FloatingPoint Float> inline
+template <std::floating_point Float> inline
 std::vector<Float> loadPowXList() noexcept
 {
   auto file_path = (sizeof(Float) == 4)
@@ -236,7 +237,7 @@ std::vector<Float> loadPowXList() noexcept
   \tparam Float No description.
   \return No description
   */
-template <zisc::FloatingPoint Float> inline
+template <std::floating_point Float> inline
 std::vector<Float> loadPositivePowXList() noexcept
 {
   auto file_path = (sizeof(Float) == 4)
@@ -251,7 +252,7 @@ std::vector<Float> loadPositivePowXList() noexcept
   \tparam Float No description.
   \return No description
   */
-template <zisc::FloatingPoint Float> inline
+template <std::floating_point Float> inline
 std::vector<Float> loadAllXList() noexcept
 {
   auto file_path = (sizeof(Float) == 4)
@@ -281,7 +282,7 @@ std::vector<Float> loadAllHalfXList() noexcept
   \tparam Float No description.
   \return No description
   */
-template <zisc::FloatingPoint Float> inline
+template <std::floating_point Float> inline
 std::vector<Float> loadAllSubnormalXList() noexcept
 {
   auto file_path = (sizeof(Float) == 4)
@@ -311,7 +312,7 @@ std::vector<Float> loadAllHalfSubnormalXList() noexcept
   \tparam Float No description.
   \return No description
   */
-template <zisc::FloatingPoint Float> inline
+template <std::floating_point Float> inline
 std::vector<Float> loadPositiveXList() noexcept
 {
   auto file_path = (sizeof(Float) == 4)
@@ -326,7 +327,7 @@ std::vector<Float> loadPositiveXList() noexcept
   \tparam Float No description.
   \return No description
   */
-template <zisc::FloatingPoint Float> inline
+template <std::floating_point Float> inline
 std::vector<Float> loadPositiveSubnormalXList() noexcept
 {
   auto file_path = (sizeof(Float) == 4)

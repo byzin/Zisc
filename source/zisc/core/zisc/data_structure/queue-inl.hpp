@@ -17,13 +17,13 @@
 
 #include "queue.hpp"
 // Standard C++ library
+#include <concepts>
 #include <cstddef>
 #include <memory>
 #include <string_view>
 #include <utility>
 // Zisc
 #include "query_result.hpp"
-#include "zisc/concepts.hpp"
 #include "zisc/error.hpp"
 #include "zisc/utility.hpp"
 #include "zisc/zisc_config.hpp"
@@ -37,7 +37,7 @@ namespace zisc {
   \param [in] what_arg No description.
   \param [in] value No description.
   */
-template <typename QueueClass, Movable T> inline
+template <typename QueueClass, std::movable T> inline
 Queue<QueueClass, T>::OverflowError::OverflowError(const std::string_view what_arg,
                                                    pmr::memory_resource* mem_resource,
                                                    ConstReference value)
@@ -54,7 +54,7 @@ Queue<QueueClass, T>::OverflowError::OverflowError(const std::string_view what_a
   \param [in] what_arg No description.
   \param [in] value No description.
   */
-template <typename QueueClass, Movable T> inline
+template <typename QueueClass, std::movable T> inline
 Queue<QueueClass, T>::OverflowError::OverflowError(const std::string_view what_arg,
                                                    pmr::memory_resource* mem_resource,
                                                    RReference value)
@@ -70,7 +70,7 @@ Queue<QueueClass, T>::OverflowError::OverflowError(const std::string_view what_a
 
   \param [in,out] other No description.
   */
-template <typename QueueClass, Movable T> inline
+template <typename QueueClass, std::movable T> inline
 Queue<QueueClass, T>::OverflowError::OverflowError(OverflowError&& other) :
     SystemError(std::move(other)),
     value_{std::move(other.value_)}
@@ -80,7 +80,7 @@ Queue<QueueClass, T>::OverflowError::OverflowError(OverflowError&& other) :
 /*!
   \details No detailed description
   */
-template <typename QueueClass, Movable T> inline
+template <typename QueueClass, std::movable T> inline
 Queue<QueueClass, T>::OverflowError::~OverflowError() noexcept
 {
 }
@@ -91,7 +91,7 @@ Queue<QueueClass, T>::OverflowError::~OverflowError() noexcept
   \param [in,out] other No description.
   \return No description
   */
-template <typename QueueClass, Movable T> inline
+template <typename QueueClass, std::movable T> inline
 auto Queue<QueueClass, T>::OverflowError::operator=(OverflowError&& other)
     -> OverflowError&
 {
@@ -105,7 +105,7 @@ auto Queue<QueueClass, T>::OverflowError::operator=(OverflowError&& other)
 
   \return No description
   */
-template <typename QueueClass, Movable T> inline
+template <typename QueueClass, std::movable T> inline
 auto Queue<QueueClass, T>::OverflowError::get() noexcept
     -> Reference
 {
@@ -117,7 +117,7 @@ auto Queue<QueueClass, T>::OverflowError::get() noexcept
 
   \return No description
   */
-template <typename QueueClass, Movable T> inline
+template <typename QueueClass, std::movable T> inline
 auto Queue<QueueClass, T>::OverflowError::get() const noexcept
     -> ConstReference
 {
@@ -129,7 +129,7 @@ auto Queue<QueueClass, T>::OverflowError::get() const noexcept
 
   \return No description
   */
-template <typename QueueClass, Movable T> inline
+template <typename QueueClass, std::movable T> inline
 auto Queue<QueueClass, T>::capacity() const noexcept -> size_type
 {
   const auto& q = ref();
@@ -142,7 +142,7 @@ auto Queue<QueueClass, T>::capacity() const noexcept -> size_type
 
   \return No description
   */
-template <typename QueueClass, Movable T> inline
+template <typename QueueClass, std::movable T> inline
 constexpr auto Queue<QueueClass, T>::capacityMax() noexcept -> size_type
 {
   const size_type cap = QueueT::capacityMax();
@@ -152,7 +152,7 @@ constexpr auto Queue<QueueClass, T>::capacityMax() noexcept -> size_type
 /*!
   \details No detailed description
   */
-template <typename QueueClass, Movable T> inline
+template <typename QueueClass, std::movable T> inline
 void Queue<QueueClass, T>::clear() noexcept
 {
   auto& q = ref();
@@ -164,7 +164,7 @@ void Queue<QueueClass, T>::clear() noexcept
 
   \return No description
   */
-template <typename QueueClass, Movable T> inline
+template <typename QueueClass, std::movable T> inline
 auto Queue<QueueClass, T>::dequeue() noexcept -> DequeueQueryResultT
 {
   auto& q = ref();
@@ -178,7 +178,7 @@ auto Queue<QueueClass, T>::dequeue() noexcept -> DequeueQueryResultT
   \return No description
   \exception OverflowError No description.
   */
-template <typename QueueClass, Movable T> inline
+template <typename QueueClass, std::movable T> inline
 auto Queue<QueueClass, T>::enqueue(ConstReference value) -> EnqueueQueryResultT
 {
   auto& q = ref();
@@ -192,7 +192,7 @@ auto Queue<QueueClass, T>::enqueue(ConstReference value) -> EnqueueQueryResultT
   \return No description
   \exception OverflowError No description.
   */
-template <typename QueueClass, Movable T> inline
+template <typename QueueClass, std::movable T> inline
 auto Queue<QueueClass, T>::enqueue(RReference value) -> EnqueueQueryResultT
 {
   auto& q = ref();
@@ -204,7 +204,7 @@ auto Queue<QueueClass, T>::enqueue(RReference value) -> EnqueueQueryResultT
 
   \return No description
   */
-template <typename QueueClass, Movable T> inline
+template <typename QueueClass, std::movable T> inline
 constexpr bool Queue<QueueClass, T>::isBounded() noexcept
 {
   const size_type c = capacityMax();
@@ -217,7 +217,7 @@ constexpr bool Queue<QueueClass, T>::isBounded() noexcept
 
   \return No description
   */
-template <typename QueueClass, Movable T> inline
+template <typename QueueClass, std::movable T> inline
 constexpr bool Queue<QueueClass, T>::isConcurrent() noexcept
 {
   const bool result = QueueT::isConcurrent();
@@ -229,7 +229,7 @@ constexpr bool Queue<QueueClass, T>::isConcurrent() noexcept
 
   \return No description
   */
-template <typename QueueClass, Movable T> inline
+template <typename QueueClass, std::movable T> inline
 bool Queue<QueueClass, T>::isEmpty() const noexcept
 {
   const auto& q = ref();
@@ -242,7 +242,7 @@ bool Queue<QueueClass, T>::isEmpty() const noexcept
 
   \param [in] cap No description.
   */
-template <typename QueueClass, Movable T> inline
+template <typename QueueClass, std::movable T> inline
 void Queue<QueueClass, T>::setCapacity(const size_type cap) noexcept
 {
   auto& q = ref();
@@ -254,7 +254,7 @@ void Queue<QueueClass, T>::setCapacity(const size_type cap) noexcept
 
   \return No description
   */
-template <typename QueueClass, Movable T> inline
+template <typename QueueClass, std::movable T> inline
 auto Queue<QueueClass, T>::size() const noexcept -> size_type
 {
   const auto& q = ref();
@@ -265,7 +265,7 @@ auto Queue<QueueClass, T>::size() const noexcept -> size_type
 /*!
   \details No detailed description
   */
-template <typename QueueClass, Movable T> inline
+template <typename QueueClass, std::movable T> inline
 Queue<QueueClass, T>::Queue() noexcept
 {
 }
@@ -275,7 +275,7 @@ Queue<QueueClass, T>::Queue() noexcept
 
   \param [in] other No description.
   */
-template <typename QueueClass, Movable T> inline
+template <typename QueueClass, std::movable T> inline
 Queue<QueueClass, T>::Queue([[maybe_unused]] const Queue& other) noexcept
 {
 }
@@ -286,7 +286,7 @@ Queue<QueueClass, T>::Queue([[maybe_unused]] const Queue& other) noexcept
   \param [in] other No description.
   \return No description
   */
-template <typename QueueClass, Movable T> inline
+template <typename QueueClass, std::movable T> inline
 auto Queue<QueueClass, T>::operator=([[maybe_unused]] const Queue& other) noexcept
     -> Queue&
 {
@@ -298,10 +298,10 @@ auto Queue<QueueClass, T>::operator=([[maybe_unused]] const Queue& other) noexce
 
   \return No description
   */
-template <typename QueueClass, Movable T> inline
+template <typename QueueClass, std::movable T> inline
 auto Queue<QueueClass, T>::ref() noexcept -> QueueReference
 {
-  auto q = cast<QueuePtr>(this);
+  auto q = static_cast<QueuePtr>(this);
   return *q;
 }
 
@@ -310,10 +310,10 @@ auto Queue<QueueClass, T>::ref() noexcept -> QueueReference
 
   \return No description
   */
-template <typename QueueClass, Movable T> inline
+template <typename QueueClass, std::movable T> inline
 auto Queue<QueueClass, T>::ref() const noexcept -> ConstQueueReference
 {
-  auto q = cast<ConstQueuePtr>(this);
+  auto q = static_cast<ConstQueuePtr>(this);
   return *q;
 }
 

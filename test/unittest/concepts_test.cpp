@@ -112,28 +112,8 @@ TEST(ConceptsTest, TypeTest)
   static_assert(!std::semiregular<void>);
   static_assert(std::regular<int>);
   static_assert(!std::regular<void>);
-  // Callable
-  static_assert(std::invocable<zisc::FunctionReference<int ()>>);
-  static_assert(!std::invocable<zisc::FunctionReference<int ()>, int>);
-  static_assert(std::invocable<zisc::FunctionReference<int (int)>, int>);
-  static_assert(!std::invocable<zisc::FunctionReference<int (int)>, int*>);
-  static_assert(std::invocable<zisc::FunctionReference<void (int, double)>, int, float>);
-  static_assert(std::regular_invocable<zisc::FunctionReference<int ()>>);
-  static_assert(!std::regular_invocable<zisc::FunctionReference<int ()>, int>);
-  static_assert(std::regular_invocable<zisc::FunctionReference<int (int)>, int>);
-  static_assert(!std::regular_invocable<zisc::FunctionReference<int (int)>, int*>);
-  static_assert(std::regular_invocable<zisc::FunctionReference<void (int, double)>, int, float>);
-
-  static_assert(std::predicate<zisc::FunctionReference<bool (int)>, int>);
-  static_assert(!std::predicate<zisc::FunctionReference<void (int)>, int>);
 
   // Zisc concepts test
-  // SameAs
-  static_assert(zisc::SameAs<zisc::int32b, zisc::int32b>);
-  static_assert(!zisc::SameAs<zisc::int32b, zisc::uint32b>);
-  // DerivedFrom
-  static_assert(zisc::DerivedFrom<::TestDerived, ::TestBase>);
-  static_assert(!zisc::DerivedFrom<int, ::TestBase>);
   // Integer
   static_assert(!zisc::Integer<void>);
   static_assert(zisc::Integer<int>);
@@ -188,29 +168,26 @@ TEST(ConceptsTest, TypeTest)
   static_assert(!zisc::UnsignedInteger<long double>);
   static_assert(!zisc::UnsignedInteger<void*>);
   static_assert(!zisc::UnsignedInteger<::TestDerived>);
-  // FloatingPoint
-  static_assert(!zisc::FloatingPoint<void>);
-  static_assert(!zisc::FloatingPoint<int>);
-  static_assert(!zisc::FloatingPoint<unsigned int>);
-  static_assert(!zisc::FloatingPoint<bool>);
-  static_assert(!zisc::FloatingPoint<zisc::int8b>);
-  static_assert(!zisc::FloatingPoint<zisc::int16b>);
-  static_assert(!zisc::FloatingPoint<zisc::int32b>);
-  static_assert(!zisc::FloatingPoint<zisc::int64b>);
-  static_assert(!zisc::FloatingPoint<zisc::uint8b>);
-  static_assert(!zisc::FloatingPoint<zisc::uint16b>);
-  static_assert(!zisc::FloatingPoint<zisc::uint32b>);
-  static_assert(!zisc::FloatingPoint<zisc::uint64b>);
-  static_assert(zisc::FloatingPoint<float>);
-  static_assert(zisc::FloatingPoint<double>);
-  static_assert(zisc::FloatingPoint<long double>);
-  static_assert(!zisc::FloatingPoint<void*>);
-  static_assert(!zisc::FloatingPoint<::TestDerived>);
 }
 
 TEST(ConceptsTest, CallbaleTest)
 {
-  // Invocable
+  // std callable concepts
+  static_assert(std::invocable<zisc::FunctionReference<int ()>>);
+  static_assert(!std::invocable<zisc::FunctionReference<int ()>, int>);
+  static_assert(std::invocable<zisc::FunctionReference<int (int)>, int>);
+  static_assert(!std::invocable<zisc::FunctionReference<int (int)>, int*>);
+  static_assert(std::invocable<zisc::FunctionReference<void (int, double)>, int, float>);
+  static_assert(std::regular_invocable<zisc::FunctionReference<int ()>>);
+  static_assert(!std::regular_invocable<zisc::FunctionReference<int ()>, int>);
+  static_assert(std::regular_invocable<zisc::FunctionReference<int (int)>, int>);
+  static_assert(!std::regular_invocable<zisc::FunctionReference<int (int)>, int*>);
+  static_assert(std::regular_invocable<zisc::FunctionReference<void (int, double)>, int, float>);
+
+  static_assert(std::predicate<zisc::FunctionReference<bool (int)>, int>);
+  static_assert(!std::predicate<zisc::FunctionReference<void (int)>, int>);
+
+  // zisc callable concepts
   {
     using Func = decltype(::testFunc1);
     static_assert(zisc::Invocable<Func>);

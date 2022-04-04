@@ -203,8 +203,8 @@ void* Memory::allocate(const std::size_t alignment, const std::size_t size)
   const std::size_t palignment = (std::max)(alignment, std::alignment_of_v<void*>);
   void* ptr =
 #if defined(Z_WINDOWS)
-      allocateForWin(palignment, psize);
-#else
+      alignedAllocWin(palignment, psize);
+#else // Z_WINDOWS
       std::aligned_alloc(palignment, psize);
 #endif // Z_WINDOWS
   return ptr;
@@ -239,8 +239,8 @@ inline
 void Memory::free(void* ptr)
 {
 #if defined(Z_WINDOWS)
-  freeForWin(ptr);
-#else
+  freeWin(ptr);
+#else // Z_WINDOWS
   std::free(ptr);
 #endif // Z_WINDOWS
 }

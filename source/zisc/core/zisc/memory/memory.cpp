@@ -44,8 +44,8 @@ namespace zisc {
   \return No description
   */
 [[nodiscard]]
-void* Memory::allocateForWin([[maybe_unused]] const std::size_t alignment,
-                             [[maybe_unused]] const std::size_t size)
+void* Memory::alignedAllocWin([[maybe_unused]] const std::size_t alignment,
+                              [[maybe_unused]] const std::size_t size)
 {
   void* ptr = nullptr;
 #if defined(Z_WINDOWS)
@@ -59,7 +59,7 @@ void* Memory::allocateForWin([[maybe_unused]] const std::size_t alignment,
 
   \param [out] ptr No description.
   */
-void Memory::freeForWin([[maybe_unused]] void* ptr)
+void Memory::freeWin([[maybe_unused]] void* ptr)
 {
 #if defined(Z_WINDOWS)
   _aligned_free(ptr);

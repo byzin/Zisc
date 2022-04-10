@@ -30,15 +30,15 @@
 #include "atomic_word.hpp"
 #include "packaged_task.hpp"
 #include "zisc/concepts.hpp"
-#include "zisc/data_structure/mutex_bst.hpp"
-#include "zisc/data_structure/query_value.hpp"
-#include "zisc/data_structure/queue.hpp"
-#include "zisc/data_structure/scalable_circular_queue.hpp"
-#include "zisc/data_structure/search_tree.hpp"
 #include "zisc/error.hpp"
 #include "zisc/non_copyable.hpp"
 #include "zisc/zisc_config.hpp"
 #include "zisc/memory/std_memory_resource.hpp"
+#include "zisc/structure/mutex_bst.hpp"
+#include "zisc/structure/query_value.hpp"
+#include "zisc/structure/queue.hpp"
+#include "zisc/structure/scalable_circular_queue.hpp"
+#include "zisc/structure/search_tree.hpp"
 
 namespace zisc {
 

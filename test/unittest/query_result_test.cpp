@@ -17,9 +17,9 @@
 // GoogleTest
 #include "googletest.hpp"
 // Zisc
-#include "zisc/data_structure/query_result.hpp"
-#include "zisc/data_structure/query_value.hpp"
 #include "zisc/zisc_config.hpp"
+#include "zisc/structure/query_result.hpp"
+#include "zisc/structure/query_value.hpp"
 
 TEST(QueryResultTest, Int32bValueTest)
 {

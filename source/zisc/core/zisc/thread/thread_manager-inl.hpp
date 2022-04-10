@@ -37,11 +37,11 @@
 #include "future.hpp"
 #include "packaged_task.hpp"
 #include "zisc/concepts.hpp"
-#include "zisc/data_structure/scalable_circular_queue.hpp"
 #include "zisc/error.hpp"
 #include "zisc/utility.hpp"
 #include "zisc/zisc_config.hpp"
 #include "zisc/memory/std_memory_resource.hpp"
+#include "zisc/structure/scalable_circular_queue.hpp"
 
 namespace zisc {
 
@@ -856,10 +856,10 @@ auto ThreadManager::enqueueImpl(TaskData& task,
   const int64b task_id = issueTaskId();
   const auto id_result = taskIdTree().add(task_id);
   ZISC_ASSERT(id_result.isSuccess(), "Registering the task ID failed: id=", task_id);
-  const std::size_t storage_index = id_result.get().get();
 
   // Create a shared task
   const DiffType num_of_tasks = distance(begin, end);
+  const std::size_t storage_index = id_result.get().get();
   auto shared_task = makeSharedTask<TaskImpl>(storage_index,
                                               task_id,
                                               parent_task_id,

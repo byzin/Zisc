@@ -35,9 +35,9 @@
 #include "zisc/stopwatch.hpp"
 #include "zisc/utility.hpp"
 #include "zisc/zisc_config.hpp"
-#include "zisc/data_structure/mutex_bst.hpp"
-#include "zisc/data_structure/search_tree.hpp"
 #include "zisc/memory/simple_memory_resource.hpp"
+#include "zisc/structure/mutex_bst.hpp"
+#include "zisc/structure/search_tree.hpp"
 
 TEST(MutexBstTest, ConstructorTest)
 {

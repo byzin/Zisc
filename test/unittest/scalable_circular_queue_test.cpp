@@ -31,8 +31,8 @@
 #include "zisc/stopwatch.hpp"
 #include "zisc/utility.hpp"
 #include "zisc/zisc_config.hpp"
-#include "zisc/data_structure/scalable_circular_queue.hpp"
 #include "zisc/memory/simple_memory_resource.hpp"
+#include "zisc/structure/scalable_circular_queue.hpp"
 // Test
 #include "lock_free_bounded_queue_test.hpp"
 

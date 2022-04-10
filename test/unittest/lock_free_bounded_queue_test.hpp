@@ -23,10 +23,10 @@
 #include <thread>
 #include <vector>
 // Zisc
-#include "zisc/data_structure/queue.hpp"
 #include "zisc/stopwatch.hpp"
 #include "zisc/utility.hpp"
 #include "zisc/zisc_config.hpp"
+#include "zisc/structure/queue.hpp"
 
 template <typename Queue, std::size_t kNumOfThreads, std::size_t kNumOfThreadTasks>
 class LockFreeBoundedQueueTest

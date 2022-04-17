@@ -28,7 +28,7 @@ void testXoshiroEngine(const std::string_view reference_path)
   std::ifstream reference_file;
   reference_file.open(reference_path.data());
 
-  using ValueType = typename XoshiroEngine::ValueType;
+  using ValueType = typename XoshiroEngine::ValueT;
   XoshiroEngine sampler{};
 
   constexpr int n = 1024;

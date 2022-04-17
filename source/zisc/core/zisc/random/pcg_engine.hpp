@@ -41,26 +41,26 @@ enum class PcgBase : int
 
   No detailed description.
 
-  \tparam ValueT No description.
+  \tparam T No description.
   \tparam kBase No description.
   */
-template <std::unsigned_integral ValueT, PcgBase kBase>
-class PcgEngine : public PseudoRandomNumberEngine<PcgEngine<ValueT, kBase>, ValueT>
+template <std::unsigned_integral T, PcgBase kBase>
+class PcgEngine : public PseudoRandomNumberEngine<PcgEngine<T, kBase>, T>
 {
  public:
-  using BaseEngine = PseudoRandomNumberEngine<PcgEngine, ValueT>;
-  using ValueType = typename BaseEngine::ValueType;
+  using BaseEngineT = PseudoRandomNumberEngine<PcgEngine, T>;
+  using ValueT = typename BaseEngineT::ValueT;
 
 
   //! Initialize
   PcgEngine() noexcept;
 
   //! Initialize
-  PcgEngine(const ValueType seed) noexcept;
+  PcgEngine(const ValueT seed) noexcept;
 
 
   //! Generate a random number
-  ValueType generate() noexcept;
+  ValueT generate() noexcept;
 
   //! Return the n which of the period 2^n
   static constexpr std::size_t getPeriodPow2() noexcept;
@@ -70,44 +70,44 @@ class PcgEngine : public PseudoRandomNumberEngine<PcgEngine<ValueT, kBase>, Valu
   static constexpr bool isEndOfPeriod(const Integer sample) noexcept;
 
   //! Set seed
-  void setSeed(const ValueType seed) noexcept;
+  void setSeed(const ValueT seed) noexcept;
 
  private:
   using BitCountType = uint8b;
 
 
   //! Bump
-  ValueType bump(const ValueType state) const noexcept;
+  ValueT bump(const ValueT state) const noexcept;
 
   //! Generate a base of a random number
-  ValueType generateBase() noexcept;
+  ValueT generateBase() noexcept;
 
   //! Return the default increment
-  static constexpr ValueType increment() noexcept;
+  static constexpr ValueT increment() noexcept;
 
   //! Return the default multiplier
-  static constexpr ValueType mcgMultiplier() noexcept;
+  static constexpr ValueT mcgMultiplier() noexcept;
 
   //! Return the default multiplier
-  static constexpr ValueType multiplier() noexcept;
+  static constexpr ValueT multiplier() noexcept;
 
   //!
-  static ValueType output(ValueType internal) noexcept;
+  static ValueT output(ValueT internal) noexcept;
 
 
-  static constexpr bool kOutputPrevious = sizeof(ValueType) <= 8;
+  static constexpr bool kOutputPrevious = sizeof(ValueT) <= 8;
 
 
-  ValueType state_;
+  ValueT state_;
 };
 
 // Type aliases
 
-template <UnsignedInteger ValueT>
-using PcgLcgEngine = PcgEngine<ValueT, PcgBase::Lcg>;
+template <UnsignedInteger T>
+using PcgLcgEngine = PcgEngine<T, PcgBase::Lcg>;
 
-template <UnsignedInteger ValueT>
-using PcgMcgEngine = PcgEngine<ValueT, PcgBase::Mcg>;
+template <UnsignedInteger T>
+using PcgMcgEngine = PcgEngine<T, PcgBase::Mcg>;
 
 // Predefined PCG engine type
 // RxsMXs

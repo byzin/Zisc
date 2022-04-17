@@ -20,6 +20,7 @@
 #include <chrono>
 #include <cstddef>
 #include <mutex>
+#include <optional>
 #include <thread>
 #include <vector>
 // Zisc
@@ -63,7 +64,7 @@ class LockFreeBoundedQueueTest
         for (std::size_t i = 0; i < kNumOfThreadTasks; ++i) {
           const uint64b index = zisc::cast<uint64b>(offset + i);
           const auto r = q.enqueue(index);
-          if (!r.isSuccess())
+          if (!r.has_value())
             result = false;
         }
       };
@@ -112,7 +113,7 @@ class LockFreeBoundedQueueTest
         for (std::size_t i = 0; i < num_of_task_threads; ++i) {
           const uint64b index = zisc::cast<uint64b>(offset + i);
           const auto r = q.enqueue(index);
-          if (!r.isSuccess())
+          if (!r.has_value())
             result = false;
         }
       };
@@ -126,8 +127,8 @@ class LockFreeBoundedQueueTest
         constexpr std::size_t num_of_task_threads = 2 * kNumOfThreadTasks;
         for (std::size_t i = 0; i < num_of_task_threads; ++i) {
           const auto r = q.dequeue();
-          if (r.isSuccess()) {
-            const std::size_t index = r;
+          if (r.has_value()) {
+            const std::size_t index = *r;
             data[index] = 1;
           }
           else {
@@ -183,8 +184,8 @@ class LockFreeBoundedQueueTest
         }
         for (std::size_t i = 0; i < kNumOfThreadTasks; ++i) {
           const auto r = q.dequeue();
-          if (r.isSuccess()) {
-            const std::size_t index = r;
+          if (r.has_value()) {
+            const std::size_t index = *r;
             data[index] = 1;
           }
           else {

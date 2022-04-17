@@ -31,11 +31,10 @@ namespace zisc {
 
   \return No description
   */
-template <typename GeneratorClass, std::unsigned_integral ValueT> inline
-auto PseudoRandomNumberEngine<GeneratorClass, ValueT>::operator()() noexcept
-    -> ValueType 
+template <typename GeneratorClass, std::unsigned_integral T> inline
+auto PseudoRandomNumberEngine<GeneratorClass, T>::operator()() noexcept -> ValueT 
 {
-  const ValueType result = generate();
+  const ValueT result = generate();
   return result;
 }
 
@@ -47,9 +46,9 @@ auto PseudoRandomNumberEngine<GeneratorClass, ValueT>::operator()() noexcept
   \param [in] upper No description.
   \return No description
   */
-template <typename GeneratorClass, std::unsigned_integral ValueT>
+template <typename GeneratorClass, std::unsigned_integral T>
 template <std::floating_point Float> inline
-Float PseudoRandomNumberEngine<GeneratorClass, ValueT>::operator()(
+Float PseudoRandomNumberEngine<GeneratorClass, T>::operator()(
     const Float lower,
     const Float upper) noexcept
 {
@@ -62,14 +61,14 @@ Float PseudoRandomNumberEngine<GeneratorClass, ValueT>::operator()(
 
   \return No description
   */
-template <typename GeneratorClass, std::unsigned_integral ValueT> inline
-constexpr auto PseudoRandomNumberEngine<GeneratorClass, ValueT>::defaultSeed() noexcept
-    -> ValueType
+template <typename GeneratorClass, std::unsigned_integral T> inline
+constexpr auto PseudoRandomNumberEngine<GeneratorClass, T>::defaultSeed() noexcept
+    -> ValueT
 {
-  ValueType seed = 0;
-  if constexpr (sizeof(ValueType) == 4)
+  ValueT seed = 0;
+  if constexpr (sizeof(ValueT) == 4)
     seed = 0xa01755e8u;
-  else if constexpr (sizeof(ValueType) == 8)
+  else if constexpr (sizeof(ValueT) == 8)
     seed = 0x698d965fcddf1a9dull;
   return seed;
 }
@@ -79,11 +78,11 @@ constexpr auto PseudoRandomNumberEngine<GeneratorClass, ValueT>::defaultSeed() n
 
   \return No description
   */
-template <typename GeneratorClass, std::unsigned_integral ValueT> inline
-auto PseudoRandomNumberEngine<GeneratorClass, ValueT>::generate() noexcept
-    -> ValueType
+template <typename GeneratorClass, std::unsigned_integral T> inline
+auto PseudoRandomNumberEngine<GeneratorClass, T>::generate() noexcept
+    -> ValueT
 {
-  const ValueType result = static_cast<GeneratorType*>(this)->generate();
+  const ValueT result = static_cast<GeneratorT*>(this)->generate();
   return result;
 }
 
@@ -95,9 +94,9 @@ auto PseudoRandomNumberEngine<GeneratorClass, ValueT>::generate() noexcept
   \param [in] upper No description.
   \return No description
   */
-template <typename GeneratorClass, std::unsigned_integral ValueT>
+template <typename GeneratorClass, std::unsigned_integral T>
 template <std::floating_point Float> inline
-Float PseudoRandomNumberEngine<GeneratorClass, ValueT>::generate(
+Float PseudoRandomNumberEngine<GeneratorClass, T>::generate(
     const Float lower,
     const Float upper) noexcept
 {
@@ -112,12 +111,12 @@ Float PseudoRandomNumberEngine<GeneratorClass, ValueT>::generate(
   \tparam Float No description.
   \return No description
   */
-template <typename GeneratorClass, std::unsigned_integral ValueT>
+template <typename GeneratorClass, std::unsigned_integral T>
 template <std::floating_point Float> inline
-Float PseudoRandomNumberEngine<GeneratorClass, ValueT>::generate01() noexcept
+Float PseudoRandomNumberEngine<GeneratorClass, T>::generate01() noexcept
 {
   // Generate a integer random number
-  const ValueType x = generate();
+  const ValueT x = generate();
   // Map to a [0, 1) float
   const auto y = mapTo01<Float>(x);
   return y;
@@ -130,12 +129,12 @@ Float PseudoRandomNumberEngine<GeneratorClass, ValueT>::generate01() noexcept
   \param [in] sample No description.
   \return No description
   */
-template <typename GeneratorClass, std::unsigned_integral ValueT>
+template <typename GeneratorClass, std::unsigned_integral T>
 template <std::unsigned_integral Integer> inline
-constexpr bool PseudoRandomNumberEngine<GeneratorClass, ValueT>::
+constexpr bool PseudoRandomNumberEngine<GeneratorClass, T>::
     isEndOfPeriod(const Integer sample) noexcept
 {
-  const bool result = GeneratorType::isEndOfPeriod(sample);
+  const bool result = GeneratorT::isEndOfPeriod(sample);
   return result;
 }
 
@@ -144,26 +143,26 @@ constexpr bool PseudoRandomNumberEngine<GeneratorClass, ValueT>::
 
   \param [in] seed No description.
   */
-template <typename GeneratorClass, std::unsigned_integral ValueT> inline
-void PseudoRandomNumberEngine<GeneratorClass, ValueT>::setSeed(
-    const ValueType seed) noexcept
+template <typename GeneratorClass, std::unsigned_integral T> inline
+void PseudoRandomNumberEngine<GeneratorClass, T>::setSeed(
+    const ValueT seed) noexcept
 {
-  static_cast<GeneratorType*>(this)->setSeed(seed);
+  static_cast<GeneratorT*>(this)->setSeed(seed);
 }
 
 /*!
   \details No detailed description
   */
-template <typename GeneratorClass, std::unsigned_integral ValueT> inline
-PseudoRandomNumberEngine<GeneratorClass, ValueT>::PseudoRandomNumberEngine() noexcept
+template <typename GeneratorClass, std::unsigned_integral T> inline
+PseudoRandomNumberEngine<GeneratorClass, T>::PseudoRandomNumberEngine() noexcept
 {
 }
 
 /*!
   \details No detailed description
   */
-template <typename GeneratorClass, std::unsigned_integral ValueT> inline
-PseudoRandomNumberEngine<GeneratorClass, ValueT>::PseudoRandomNumberEngine(
+template <typename GeneratorClass, std::unsigned_integral T> inline
+PseudoRandomNumberEngine<GeneratorClass, T>::PseudoRandomNumberEngine(
     const PseudoRandomNumberEngine&) noexcept
 {
 }

@@ -30,10 +30,10 @@ namespace zisc {
 /*!
   \details No detailed description
   */
-template <std::unsigned_integral ValueT, PcgBase kBase> inline
-PcgEngine<ValueT, kBase>::PcgEngine() noexcept
+template <std::unsigned_integral T, PcgBase kBase> inline
+PcgEngine<T, kBase>::PcgEngine() noexcept
 {
-  setSeed(BaseEngine::defaultSeed());
+  setSeed(BaseEngineT::defaultSeed());
 }
 
 /*!
@@ -41,8 +41,8 @@ PcgEngine<ValueT, kBase>::PcgEngine() noexcept
 
   \param [in] seed No description.
   */
-template <std::unsigned_integral ValueT, PcgBase kBase> inline
-PcgEngine<ValueT, kBase>::PcgEngine(const ValueType seed) noexcept
+template <std::unsigned_integral T, PcgBase kBase> inline
+PcgEngine<T, kBase>::PcgEngine(const ValueT seed) noexcept
 {
   setSeed(seed);
 }
@@ -52,11 +52,11 @@ PcgEngine<ValueT, kBase>::PcgEngine(const ValueType seed) noexcept
 
   \return No description
   */
-template <std::unsigned_integral ValueT, PcgBase kBase> inline
-auto PcgEngine<ValueT, kBase>::generate() noexcept -> ValueType
+template <std::unsigned_integral T, PcgBase kBase> inline
+auto PcgEngine<T, kBase>::generate() noexcept -> ValueT
 {
-  const ValueType base = generateBase();
-  const ValueType result = output(base);
+  const ValueT base = generateBase();
+  const ValueT result = output(base);
   return result;
 }
 
@@ -65,11 +65,11 @@ auto PcgEngine<ValueT, kBase>::generate() noexcept -> ValueType
 
   \return No description
   */
-template <std::unsigned_integral ValueT, PcgBase kBase> inline
-constexpr std::size_t PcgEngine<ValueT, kBase>::getPeriodPow2() noexcept
+template <std::unsigned_integral T, PcgBase kBase> inline
+constexpr std::size_t PcgEngine<T, kBase>::getPeriodPow2() noexcept
 {
   constexpr bool is_mcg = kBase == PcgBase::Mcg;
-  constexpr std::size_t period_pow2 = 8 * sizeof(ValueType) - (is_mcg ? 2 : 0);
+  constexpr std::size_t period_pow2 = 8 * sizeof(ValueT) - (is_mcg ? 2 : 0);
   return period_pow2;
 }
 
@@ -80,9 +80,9 @@ constexpr std::size_t PcgEngine<ValueT, kBase>::getPeriodPow2() noexcept
   \param [in] sample No description.
   \return No description
   */
-template <std::unsigned_integral ValueT, PcgBase kBase>
+template <std::unsigned_integral T, PcgBase kBase>
 template <std::unsigned_integral Integer> inline
-constexpr bool PcgEngine<ValueT, kBase>::isEndOfPeriod(
+constexpr bool PcgEngine<T, kBase>::isEndOfPeriod(
     const Integer sample) noexcept
 {
   constexpr std::size_t sample_bit_size = sizeof(Integer) * 8;
@@ -103,11 +103,11 @@ constexpr bool PcgEngine<ValueT, kBase>::isEndOfPeriod(
 
   \param [in] seed No description.
   */
-template <std::unsigned_integral ValueT, PcgBase kBase> inline
-void PcgEngine<ValueT, kBase>::setSeed(const ValueType seed) noexcept
+template <std::unsigned_integral T, PcgBase kBase> inline
+void PcgEngine<T, kBase>::setSeed(const ValueT seed) noexcept
 {
   constexpr bool is_mcg = (kBase == PcgBase::Mcg);
-  state_ = is_mcg ? (seed | cast<ValueType>(3)) : bump(seed + increment());
+  state_ = is_mcg ? (seed | cast<ValueT>(3)) : bump(seed + increment());
 }
 
 /*!
@@ -116,10 +116,10 @@ void PcgEngine<ValueT, kBase>::setSeed(const ValueType seed) noexcept
   \param [in] state No description.
   \return No description
   */
-template <std::unsigned_integral ValueT, PcgBase kBase> inline
-auto PcgEngine<ValueT, kBase>::bump(const ValueType state) const noexcept -> ValueType
+template <std::unsigned_integral T, PcgBase kBase> inline
+auto PcgEngine<T, kBase>::bump(const ValueT state) const noexcept -> ValueT
 {
-  const ValueType result = state * multiplier() + increment();
+  const ValueT result = state * multiplier() + increment();
   return result;
 }
 
@@ -128,11 +128,11 @@ auto PcgEngine<ValueT, kBase>::bump(const ValueType state) const noexcept -> Val
 
   \return No description
   */
-template <std::unsigned_integral ValueT, PcgBase kBase> inline
-auto PcgEngine<ValueT, kBase>::generateBase() noexcept -> ValueType
+template <std::unsigned_integral T, PcgBase kBase> inline
+auto PcgEngine<T, kBase>::generateBase() noexcept -> ValueT
 {
   if constexpr (kOutputPrevious) {
-    const ValueType old_state = state_;
+    const ValueT old_state = state_;
     state_ = bump(state_);
     return old_state;
   }
@@ -147,19 +147,19 @@ auto PcgEngine<ValueT, kBase>::generateBase() noexcept -> ValueType
 
   \return No description
   */
-template <std::unsigned_integral ValueT, PcgBase kBase> inline
-constexpr auto PcgEngine<ValueT, kBase>::increment() noexcept -> ValueType
+template <std::unsigned_integral T, PcgBase kBase> inline
+constexpr auto PcgEngine<T, kBase>::increment() noexcept -> ValueT
 {
-  ValueType i = 0;
+  ValueT i = 0;
   constexpr bool is_mcg = kBase == PcgBase::Mcg;
   if constexpr (!is_mcg) {
-    if constexpr (sizeof(ValueType) == 1)
+    if constexpr (sizeof(ValueT) == 1)
       i = 77u;
-    else if constexpr (sizeof(ValueType) == 2)
+    else if constexpr (sizeof(ValueT) == 2)
       i = 47989u;
-    else if constexpr (sizeof(ValueType) == 4)
+    else if constexpr (sizeof(ValueT) == 4)
       i = 2891336453u;
-    else if constexpr (sizeof(ValueType) == 8)
+    else if constexpr (sizeof(ValueT) == 8)
       i = 1442695040888963407ull;
   }
   return i;
@@ -170,17 +170,17 @@ constexpr auto PcgEngine<ValueT, kBase>::increment() noexcept -> ValueType
 
   \return No description
   */
-template <std::unsigned_integral ValueT, PcgBase kBase> inline
-constexpr auto PcgEngine<ValueT, kBase>::mcgMultiplier() noexcept -> ValueType
+template <std::unsigned_integral T, PcgBase kBase> inline
+constexpr auto PcgEngine<T, kBase>::mcgMultiplier() noexcept -> ValueT
 {
-  ValueType m = 0;
-  if constexpr (sizeof(ValueType) == 1)
+  ValueT m = 0;
+  if constexpr (sizeof(ValueT) == 1)
     m = 217u;
-  else if constexpr (sizeof(ValueType) == 2)
+  else if constexpr (sizeof(ValueT) == 2)
     m = 62169u;
-  else if constexpr (sizeof(ValueType) == 4)
+  else if constexpr (sizeof(ValueT) == 4)
     m = 277803737u;
-  else if constexpr (sizeof(ValueType) == 8)
+  else if constexpr (sizeof(ValueT) == 8)
     m = 12605985483714917081ull;
   return m;
 }
@@ -190,17 +190,17 @@ constexpr auto PcgEngine<ValueT, kBase>::mcgMultiplier() noexcept -> ValueType
 
   \return No description
   */
-template <std::unsigned_integral ValueT, PcgBase kBase> inline
-constexpr auto PcgEngine<ValueT, kBase>::multiplier() noexcept -> ValueType
+template <std::unsigned_integral T, PcgBase kBase> inline
+constexpr auto PcgEngine<T, kBase>::multiplier() noexcept -> ValueT
 {
-  ValueType m = 0;
-  if constexpr (sizeof(ValueType) == 1)
+  ValueT m = 0;
+  if constexpr (sizeof(ValueT) == 1)
     m = 141u;
-  else if constexpr (sizeof(ValueType) == 2)
+  else if constexpr (sizeof(ValueT) == 2)
     m = 12829u;
-  else if constexpr (sizeof(ValueType) == 4)
+  else if constexpr (sizeof(ValueT) == 4)
     m = 747796405u;
-  else if constexpr (sizeof(ValueType) == 8)
+  else if constexpr (sizeof(ValueT) == 8)
     m = 6364136223846793005ull;
   return m;
 }
@@ -211,12 +211,12 @@ constexpr auto PcgEngine<ValueT, kBase>::multiplier() noexcept -> ValueType
   \param [in] internal No description.
   \return No description
   */
-template <std::unsigned_integral ValueT, PcgBase kBase> inline
-auto PcgEngine<ValueT, kBase>::output(ValueType internal) noexcept -> ValueType
+template <std::unsigned_integral T, PcgBase kBase> inline
+auto PcgEngine<T, kBase>::output(ValueT internal) noexcept -> ValueT
 {
   // Constant values
-  constexpr BitCountType xtypebits = cast<BitCountType>(8 * sizeof(ValueType));
-  constexpr BitCountType bits = cast<BitCountType>(8 * sizeof(ValueType));
+  constexpr BitCountType xtypebits = cast<BitCountType>(8 * sizeof(ValueT));
+  constexpr BitCountType bits = cast<BitCountType>(8 * sizeof(ValueT));
   constexpr BitCountType opbits = (128 <= xtypebits) ? 6 :
                                   ( 64 <= xtypebits) ? 5 :
                                   ( 32 <= xtypebits) ? 4 :
@@ -231,7 +231,7 @@ auto PcgEngine<ValueT, kBase>::output(ValueType internal) noexcept -> ValueType
       : 0;
   internal ^= internal >> (opbits + rshift);
   internal *= mcgMultiplier();
-  ValueType result = internal >> shift;
+  ValueT result = internal >> shift;
   result ^= result >> xshift;
   return result;
 }

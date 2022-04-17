@@ -26,6 +26,7 @@
 #include <limits>
 #include <memory>
 #include <mutex>
+#include <optional>
 #include <thread>
 #include <tuple>
 #include <type_traits>
@@ -479,8 +480,7 @@ void ThreadManager::waitForCompletion() noexcept
   \details No detailed description
   */
 inline
-ThreadManager::WorkerTask::WorkerTask() noexcept :
-    QueryValue()
+ThreadManager::WorkerTask::WorkerTask() noexcept
 {
   static_assert(sizeof(WorkerTask) == 24);
 }
@@ -495,7 +495,6 @@ ThreadManager::WorkerTask::WorkerTask() noexcept :
 template <typename TaskImpl> inline
 ThreadManager::WorkerTask::WorkerTask(std::shared_ptr<TaskImpl>& task,
                                       const DiffType it_offset) noexcept :
-    QueryValue(0),
     it_offset_{it_offset},
     task_{task}
 {
@@ -508,7 +507,6 @@ ThreadManager::WorkerTask::WorkerTask(std::shared_ptr<TaskImpl>& task,
   */
 inline
 ThreadManager::WorkerTask::WorkerTask(WorkerTask&& other) noexcept :
-    QueryValue(other.get()),
     it_offset_{other.it_offset_},
     task_{std::move(other.task_)}
 {
@@ -530,7 +528,6 @@ ThreadManager::WorkerTask::~WorkerTask() noexcept
 inline
 auto ThreadManager::WorkerTask::operator=(WorkerTask&& other) noexcept -> WorkerTask&
 {
-  QueryValue::operator=(other);
   it_offset_ = other.it_offset_;
   task_ = std::move(other.task_);
   return *this;
@@ -788,8 +785,8 @@ auto ThreadManager::enqueueImpl(TaskData& task,
     {
       if constexpr (kIsLoopTask || std::is_void_v<ReturnT>)
         setResult<ReturnT>(0);
-      [[maybe_unused]] const auto id_result = manager_->taskIdTree().remove(id());
-      ZISC_ASSERT(id_result.isSuccess(), "The given id isn't in the task tree.");
+      [[maybe_unused]] const auto storage_id = manager_->taskIdTree().remove(id());
+      ZISC_ASSERT(storage_id.has_value(), "The given id isn't in the task tree.");
     }
     //! Run a task
     void run(const int64b thread_id, const DiffType it_offset) override
@@ -854,13 +851,12 @@ auto ThreadManager::enqueueImpl(TaskData& task,
 
   // Issue a task ID
   const int64b task_id = issueTaskId();
-  const auto id_result = taskIdTree().add(task_id);
-  ZISC_ASSERT(id_result.isSuccess(), "Registering the task ID failed: id=", task_id);
+  const auto storage_id = taskIdTree().add(task_id);
+  ZISC_ASSERT(storage_id.has_value(), "Registering the task ID failed: id=", task_id);
 
   // Create a shared task
   const DiffType num_of_tasks = distance(begin, end);
-  const std::size_t storage_index = id_result.get().get();
-  auto shared_task = makeSharedTask<TaskImpl>(storage_index,
+  auto shared_task = makeSharedTask<TaskImpl>(*storage_id,
                                               task_id,
                                               parent_task_id,
                                               std::move(task),
@@ -920,10 +916,9 @@ inline
 auto ThreadManager::fetchTask() noexcept -> WorkerTask
 {
   auto queued_task = taskQueue().dequeue();
-  static_assert(sizeof(queued_task) == sizeof(WorkerTask));
-  if (queued_task.isSuccess())
+  if (queued_task.has_value())
     atomic_fetch_dec(std::addressof(worker_lock_.get()), std::memory_order::release);
-  return std::move(queued_task.get());
+  return std::move(*queued_task);
 }
 
 /*!
@@ -1093,14 +1088,12 @@ void ThreadManager::waitForParent(const int64b task_id,
       flag = true;
     }
     else if (parent_task_id == kAllPrecedences) {
-      const double key = cast<double>(task_id);
       const auto min_key = taskIdTree().findMinKey();
-      ZISC_ASSERT(min_key.isSuccess(), "Any key wasn't found.");
-      flag = equal(key, min_key.get());
+      flag = !min_key.has_value() || (*(min_key.value()) == task_id);
     }
     else {
       const auto result = taskIdTree().contain(parent_task_id);
-      flag = !result.isSuccess();
+      flag = !result.has_value();
     }
     if (flag)
       break;

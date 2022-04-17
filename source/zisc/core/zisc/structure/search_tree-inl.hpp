@@ -19,10 +19,10 @@
 // Standard C++ library
 #include <concepts>
 #include <cstddef>
+#include <optional>
 #include <type_traits>
+#include <utility>
 // Zisc
-#include "query_result.hpp"
-#include "query_value.hpp"
 #include "zisc/utility.hpp"
 #include "zisc/zisc_config.hpp"
 
@@ -31,12 +31,16 @@ namespace zisc {
 /*!
   \details No detailed description
 
-  \tparam Type No description.
   \param [in] value No description.
   \return No description
   */
-template <typename SearchTreeClass> template <std::convertible_to<double> Type> inline
-auto SearchTree<SearchTreeClass>::add(const Type& value) -> QueryResultT
+template <typename SearchTreeClass,
+          std::movable Key,
+          MappedValue T,
+          std::invocable<Key, Key> Compare>
+inline
+auto SearchTree<SearchTreeClass, Key, T, Compare>::add(ConstReference value)
+    -> std::optional<size_type>
 {
   auto& search_tree = ref();
   return search_tree.add(value);
@@ -45,14 +49,19 @@ auto SearchTree<SearchTreeClass>::add(const Type& value) -> QueryResultT
 /*!
   \details No detailed description
 
+  \param [in] value No description.
   \return No description
   */
-template <typename SearchTreeClass> inline
-auto SearchTree<SearchTreeClass>::capacity() const noexcept -> size_type
+template <typename SearchTreeClass,
+          std::movable Key,
+          MappedValue T,
+          std::invocable<Key, Key> Compare>
+inline
+auto SearchTree<SearchTreeClass, Key, T, Compare>::add(RReference value)
+    -> std::optional<size_type>
 {
   auto& search_tree = ref();
-  const size_type cap = search_tree.capacity();
-  return cap;
+  return search_tree.add(std::move(value));
 }
 
 /*!
@@ -60,18 +69,43 @@ auto SearchTree<SearchTreeClass>::capacity() const noexcept -> size_type
 
   \return No description
   */
-template <typename SearchTreeClass> inline
-constexpr auto SearchTree<SearchTreeClass>::capacityMax() noexcept -> size_type
+template <typename SearchTreeClass,
+          std::movable Key,
+          MappedValue T,
+          std::invocable<Key, Key> Compare>
+inline
+auto SearchTree<SearchTreeClass, Key, T, Compare>::capacity() const noexcept
+    -> size_type
 {
-  const size_type cap = SearchTreeT::capacityMax();
-  return cap;
+  auto& search_tree = ref();
+  return search_tree.capacity();
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+template <typename SearchTreeClass,
+          std::movable Key,
+          MappedValue T,
+          std::invocable<Key, Key> Compare>
+inline
+constexpr auto SearchTree<SearchTreeClass, Key, T, Compare>::capacityMax() noexcept
+    -> size_type
+{
+  return SearchTreeT::capacityMax();
 }
 
 /*!
   \details No detailed description
   */
-template <typename SearchTreeClass> inline
-void SearchTree<SearchTreeClass>::clear() noexcept
+template <typename SearchTreeClass,
+          std::movable Key,
+          MappedValue T,
+          std::invocable<Key, Key> Compare>
+inline
+void SearchTree<SearchTreeClass, Key, T, Compare>::clear() noexcept
 {
   auto& search_tree = ref();
   search_tree.clear();
@@ -80,15 +114,19 @@ void SearchTree<SearchTreeClass>::clear() noexcept
 /*!
   \details No detailed description
 
-  \tparam Type No description.
   \param [in] value No description.
   \return No description
   */
-template <typename SearchTreeClass> template <std::convertible_to<double> Type> inline
-auto SearchTree<SearchTreeClass>::contain(const Type& value) const noexcept -> QueryResultT
+template <typename SearchTreeClass,
+          std::movable Key,
+          MappedValue T,
+          std::invocable<Key, Key> Compare>
+inline
+auto SearchTree<SearchTreeClass, Key, T, Compare>::contain(ConstKeyT& key) const noexcept
+    -> std::optional<size_type>
 {
   auto& search_tree = ref();
-  return search_tree.contain(value);
+  return search_tree.contain(key);
 }
 
 /*!
@@ -96,8 +134,13 @@ auto SearchTree<SearchTreeClass>::contain(const Type& value) const noexcept -> Q
 
   \return No description
   */
-template <typename SearchTreeClass> inline
-auto SearchTree<SearchTreeClass>::findMinKey() const noexcept -> QueryResultKeyT
+template <typename SearchTreeClass,
+          std::movable Key,
+          MappedValue T,
+          std::invocable<Key, Key> Compare>
+inline
+auto SearchTree<SearchTreeClass, Key, T, Compare>::findMinKey() noexcept
+    -> std::optional<Pointer>
 {
   auto& search_tree = ref();
   return search_tree.findMinKey();
@@ -108,12 +151,16 @@ auto SearchTree<SearchTreeClass>::findMinKey() const noexcept -> QueryResultKeyT
 
   \return No description
   */
-template <typename SearchTreeClass> inline
-constexpr bool SearchTree<SearchTreeClass>::isBounded() noexcept
+template <typename SearchTreeClass,
+          std::movable Key,
+          MappedValue T,
+          std::invocable<Key, Key> Compare>
+inline
+auto SearchTree<SearchTreeClass, Key, T, Compare>::findMinKey() const noexcept
+    -> std::optional<ConstPointer>
 {
-  const size_type c = capacityMax();
-  const bool result = c < kUnboundedCapacityMax;
-  return result;
+  auto& search_tree = ref();
+  return search_tree.findMinKey();
 }
 
 /*!
@@ -121,32 +168,58 @@ constexpr bool SearchTree<SearchTreeClass>::isBounded() noexcept
 
   \return No description
   */
-template <typename SearchTreeClass> inline
-constexpr bool SearchTree<SearchTreeClass>::isConcurrent() noexcept
+template <typename SearchTreeClass,
+          std::movable Key,
+          MappedValue T,
+          std::invocable<Key, Key> Compare>
+inline
+constexpr bool SearchTree<SearchTreeClass, Key, T, Compare>::isBounded() noexcept
 {
-  const bool result = SearchTreeT::isConcurrent();
-  return result;
+  return SearchTreeT::isBounded();
 }
 
 /*!
   \details No detailed description
 
-  \tparam Type No description.
+  \return No description
+  */
+template <typename SearchTreeClass,
+          std::movable Key,
+          MappedValue T,
+          std::invocable<Key, Key> Compare>
+inline
+constexpr bool SearchTree<SearchTreeClass, Key, T, Compare>::isConcurrent() noexcept
+{
+  return SearchTreeT::isConcurrent();
+}
+
+/*!
+  \details No detailed description
+
   \param [in] value No description.
   \return No description
   */
-template <typename SearchTreeClass> template <std::convertible_to<double> Type> inline
-auto SearchTree<SearchTreeClass>::remove(const Type& value) -> QueryResultT
+template <typename SearchTreeClass,
+          std::movable Key,
+          MappedValue T,
+          std::invocable<Key, Key> Compare>
+inline
+auto SearchTree<SearchTreeClass, Key, T, Compare>::remove(ConstKeyT& key)
+    -> std::optional<size_type>
 {
   auto& search_tree = ref();
-  return search_tree.remove(value);
+  return search_tree.remove(key);
 }
 
 /*!
   \details No detailed description
   */
-template <typename SearchTreeClass> inline
-void SearchTree<SearchTreeClass>::setCapacity(const size_type cap) noexcept
+template <typename SearchTreeClass,
+          std::movable Key,
+          MappedValue T,
+          std::invocable<Key, Key> Compare>
+inline
+void SearchTree<SearchTreeClass, Key, T, Compare>::setCapacity(const size_type cap) noexcept
 {
   auto& search_tree = ref();
   search_tree.setCapacity(cap);
@@ -157,19 +230,26 @@ void SearchTree<SearchTreeClass>::setCapacity(const size_type cap) noexcept
 
   \return No description
   */
-template <typename SearchTreeClass> inline
-auto SearchTree<SearchTreeClass>::size() const noexcept -> size_type
+template <typename SearchTreeClass,
+          std::movable Key,
+          MappedValue T,
+          std::invocable<Key, Key> Compare>
+inline
+auto SearchTree<SearchTreeClass, Key, T, Compare>::size() const noexcept -> size_type
 {
   auto& search_tree = ref();
-  const size_type s = search_tree.size();
-  return s;
+  return search_tree.size();
 }
 
 /*!
   \details No detailed description
   */
-template <typename SearchTreeClass> inline
-SearchTree<SearchTreeClass>::SearchTree() noexcept
+template <typename SearchTreeClass,
+          std::movable Key,
+          MappedValue T,
+          std::invocable<Key, Key> Compare>
+inline
+SearchTree<SearchTreeClass, Key, T, Compare>::SearchTree() noexcept
 {
 }
 
@@ -178,11 +258,13 @@ SearchTree<SearchTreeClass>::SearchTree() noexcept
 
   \param [in] other No description.
   */
-template <typename SearchTreeClass> inline
-SearchTree<SearchTreeClass>::SearchTree([[maybe_unused]] const SearchTree& other) noexcept
+template <typename SearchTreeClass,
+          std::movable Key,
+          MappedValue T,
+          std::invocable<Key, Key> Compare>
+inline
+SearchTree<SearchTreeClass, Key, T, Compare>::SearchTree([[maybe_unused]] const SearchTree& other) noexcept
 {
-  static_assert(sizeof(QueryResultT) == sizeof(size_type));
-  static_assert(sizeof(QueryResultKeyT) == sizeof(double));
 }
 
 /*!
@@ -191,8 +273,13 @@ SearchTree<SearchTreeClass>::SearchTree([[maybe_unused]] const SearchTree& other
   \param [in] other No description.
   \return No description
   */
-template <typename SearchTreeClass> inline
-auto SearchTree<SearchTreeClass>::operator=([[maybe_unused]] const SearchTree& other) noexcept -> SearchTree&
+template <typename SearchTreeClass,
+          std::movable Key,
+          MappedValue T,
+          std::invocable<Key, Key> Compare>
+inline
+auto SearchTree<SearchTreeClass, Key, T, Compare>::operator=([[maybe_unused]] const SearchTree& other) noexcept
+    -> SearchTree&
 {
   return *this;
 }
@@ -202,8 +289,32 @@ auto SearchTree<SearchTreeClass>::operator=([[maybe_unused]] const SearchTree& o
 
   \return No description
   */
-template <typename SearchTreeClass> inline
-auto SearchTree<SearchTreeClass>::ref() noexcept -> SearchTreeReference
+template <typename SearchTreeClass,
+          std::movable Key,
+          MappedValue T,
+          std::invocable<Key, Key> Compare>
+inline
+auto SearchTree<SearchTreeClass, Key, T, Compare>::getKey(ConstReference value) noexcept
+    -> ConstKeyT&
+{
+  if constexpr (std::is_void_v<T>)
+    return value;
+  else
+    return std::get<0>(value);
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+template <typename SearchTreeClass,
+          std::movable Key,
+          MappedValue T,
+          std::invocable<Key, Key> Compare>
+inline
+auto SearchTree<SearchTreeClass, Key, T, Compare>::ref() noexcept
+    -> SearchTreeReference
 {
   auto q = static_cast<SearchTreePtr>(this);
   return *q;
@@ -214,8 +325,13 @@ auto SearchTree<SearchTreeClass>::ref() noexcept -> SearchTreeReference
 
   \return No description
   */
-template <typename SearchTreeClass> inline
-auto SearchTree<SearchTreeClass>::ref() const noexcept -> ConstSearchTreeReference
+template <typename SearchTreeClass,
+          std::movable Key,
+          MappedValue T,
+          std::invocable<Key, Key> Compare>
+inline
+auto SearchTree<SearchTreeClass, Key, T, Compare>::ref() const noexcept
+    -> ConstSearchTreeReference
 {
   auto q = static_cast<ConstSearchTreePtr>(this);
   return *q;

@@ -35,7 +35,6 @@
 #include "zisc/zisc_config.hpp"
 #include "zisc/memory/std_memory_resource.hpp"
 #include "zisc/structure/mutex_bst.hpp"
-#include "zisc/structure/query_value.hpp"
 #include "zisc/structure/queue.hpp"
 #include "zisc/structure/scalable_circular_queue.hpp"
 #include "zisc/structure/search_tree.hpp"
@@ -192,7 +191,7 @@ class ThreadManager : private NonCopyable<ThreadManager>
 
     No detailed description.
     */
-  class WorkerTask : private NonCopyable<WorkerTask>, public QueryValueU32
+  class WorkerTask : private NonCopyable<WorkerTask>
   {
    public:
     //! Create an empty task
@@ -276,8 +275,8 @@ class ThreadManager : private NonCopyable<ThreadManager>
   // Type aliases
   using TaskQueueImpl = ScalableCircularQueue<WorkerTask>;
   using TaskQueue = Queue<TaskQueueImpl, WorkerTask>;
-  using TaskIdTreeImpl = MutexBst;
-  using TaskIdTree = SearchTree<TaskIdTreeImpl>;
+  using TaskIdTreeImpl = MutexBst<int64b>;
+  using TaskIdTree = SearchTree<TaskIdTreeImpl, int64b>;
   using WorkerLock = AtomicWord<Config::isAtomicOsSpecifiedWaitUsed()>;
 
 

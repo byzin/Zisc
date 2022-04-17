@@ -40,35 +40,35 @@ concept HashValue = UnsignedInteger<Type> && (sizeof(Type) == 4 || sizeof(Type) 
   No detailed description.
 
   \tparam HashClass No description.
-  \tparam ValueT No description.
+  \tparam T No description.
   */
-template <typename HashClass, HashValue ValueT>
+template <typename HashClass, HashValue T>
 class HashEngine
 {
  public:
-  using HashType = HashClass;
-  using ValueType = ValueT;
+  using HashT = HashClass;
+  using ValueT = T;
 
 
   //! Compute a hash value
-  static constexpr ValueType hash(const char* seed) noexcept;
+  static constexpr ValueT hash(const char* seed) noexcept;
 
   //! Compute a hash value
-  static constexpr ValueType hash(const std::string_view seed) noexcept;
+  static constexpr ValueT hash(const std::string_view seed) noexcept;
 
   //! Compute a hash value
   template <HashKeyElement Int8>
-  static constexpr ValueType hash(const Int8* seed, const std::size_t n) noexcept;
+  static constexpr ValueT hash(const Int8* seed, const std::size_t n) noexcept;
 
   //! Compute a hash value
   template <UnsignedInteger Integer>
-  static constexpr ValueType hash(const Integer seed) noexcept;
+  static constexpr ValueT hash(const Integer seed) noexcept;
 
  private:
   //! Implementation of the hash function
   template <HashKeyElement Int8>
-  static constexpr ValueType hashValue(const Int8* seed,
-                                       const std::size_t n) noexcept;
+  static constexpr ValueT hashValue(const Int8* seed,
+                                    const std::size_t n) noexcept;
 };
 
 } // namespace zisc

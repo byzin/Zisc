@@ -37,26 +37,26 @@ enum class XoshiroMethod : int
 
   No detailed description.
 
-  \tparam ValueT No description.
+  \tparam T No description.
   \tparam kMethod No description.
   */
-template <std::unsigned_integral ValueT, XoshiroMethod kMethod>
-class XoshiroEngine : public PseudoRandomNumberEngine<XoshiroEngine<ValueT, kMethod>, ValueT>
+template <std::unsigned_integral T, XoshiroMethod kMethod>
+class XoshiroEngine : public PseudoRandomNumberEngine<XoshiroEngine<T, kMethod>, T>
 {
  public:
-  using BaseEngine = PseudoRandomNumberEngine<XoshiroEngine, ValueT>;
-  using ValueType = typename BaseEngine::ValueType;
+  using BaseEngineT = PseudoRandomNumberEngine<XoshiroEngine, T>;
+  using ValueT = typename BaseEngineT::ValueT;
 
 
   //! Initialize
   XoshiroEngine() noexcept;
 
   //! Initialize
-  XoshiroEngine(const ValueType seed) noexcept;
+  XoshiroEngine(const ValueT seed) noexcept;
 
 
   //! Generate a random number
-  ValueType generate() noexcept;
+  ValueT generate() noexcept;
 
   //! Return the n which of the period 2^n-1
   static constexpr std::size_t getPeriodPow2() noexcept;
@@ -66,30 +66,30 @@ class XoshiroEngine : public PseudoRandomNumberEngine<XoshiroEngine<ValueT, kMet
   static constexpr bool isEndOfPeriod(const Integer sample) noexcept;
 
   //! Set a seed
-  void setSeed(const ValueType seed) noexcept;
+  void setSeed(const ValueT seed) noexcept;
 
  private:
   //!
-  static constexpr ValueType a() noexcept;
+  static constexpr ValueT a() noexcept;
 
   //!
-  static constexpr ValueType b() noexcept;
+  static constexpr ValueT b() noexcept;
 
   //!
-  static constexpr ValueType c() noexcept;
+  static constexpr ValueT c() noexcept;
 
   //! Generate a random number
-  ValueType generateRandom() noexcept;
+  ValueT generateRandom() noexcept;
 
   //! Next seed state
   void nextState() noexcept;
 
   //!
-  template <ValueT k>
-  static ValueType rotateLeft(const ValueType x) noexcept;
+  template <T k>
+  static ValueT rotateLeft(const ValueT x) noexcept;
 
 
-  alignas(4 * sizeof(ValueType)) std::array<ValueType, 4> state_;
+  alignas(4 * sizeof(ValueT)) std::array<ValueT, 4> state_;
 };
 
 // Predefined Xoshiro** type

@@ -36,14 +36,13 @@ namespace zisc {
   \param [in] n No description.
   \return No description
   */
-template <HashValue ValueT> template <HashKeyElement Int8> inline
-constexpr auto Fnv1aHashEngine<ValueT>::hashValue(
-    const Int8* seed,
-    const std::size_t n) noexcept -> ValueType
+template <HashValue T> template <HashKeyElement Int8> inline
+constexpr auto Fnv1aHashEngine<T>::hashValue(const Int8* seed,
+                                             const std::size_t n) noexcept -> ValueT
 {
-  ValueType x = offset();
+  ValueT x = offset();
   for (std::size_t i = 0; i < n; ++i)
-    x = (x ^ cast<ValueType>(seed[i])) * prime();
+    x = (x ^ cast<ValueT>(seed[i])) * prime();
   return x;
 }
 
@@ -52,14 +51,14 @@ constexpr auto Fnv1aHashEngine<ValueT>::hashValue(
 
   \return No description
   */
-template <HashValue ValueT> inline
-constexpr auto Fnv1aHashEngine<ValueT>::prime() noexcept -> ValueType
+template <HashValue T> inline
+constexpr auto Fnv1aHashEngine<T>::prime() noexcept -> ValueT
 {
-  ValueType p = 0;
-  if constexpr (sizeof(ValueType) == 4)
-    p = cast<ValueType>(16777619u);
-  else if constexpr (sizeof(ValueType) == 8)
-    p = cast<ValueType>(1099511628211ull);
+  ValueT p = 0;
+  if constexpr (sizeof(ValueT) == 4)
+    p = cast<ValueT>(16777619u);
+  else if constexpr (sizeof(ValueT) == 8)
+    p = cast<ValueT>(1099511628211ull);
   return p;
 }
 
@@ -68,14 +67,14 @@ constexpr auto Fnv1aHashEngine<ValueT>::prime() noexcept -> ValueType
 
   \return No description
   */
-template <HashValue ValueT> inline
-constexpr auto Fnv1aHashEngine<ValueT>::offset() noexcept -> ValueType
+template <HashValue T> inline
+constexpr auto Fnv1aHashEngine<T>::offset() noexcept -> ValueT
 {
-  ValueType p = 0;
-  if constexpr (sizeof(ValueType) == 4)
-    p = cast<ValueType>(2166136261u);
-  else if constexpr (sizeof(ValueType) == 8)
-    p = cast<ValueType>(14695981039346656037ull);
+  ValueT p = 0;
+  if constexpr (sizeof(ValueT) == 4)
+    p = cast<ValueT>(2166136261u);
+  else if constexpr (sizeof(ValueT) == 8)
+    p = cast<ValueT>(14695981039346656037ull);
   return p;
 }
 

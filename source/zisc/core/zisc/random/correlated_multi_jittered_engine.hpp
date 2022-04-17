@@ -37,16 +37,16 @@ template <uint32b kRootN>
 class CorrelatedMultiJitteredEngine
 {
  public:
-  using ValueType = uint32b;
+  using ValueT = uint32b;
 
 
   //! Generate a [0, 1) float random number
   template <std::floating_point Float>
-  static Float generate1d(const ValueType s, const ValueType p) noexcept;
+  static Float generate1d(const ValueT s, const ValueT p) noexcept;
 
   //! Generate two [0, 1) float random numbers
   template <std::floating_point Float>
-  static std::array<Float, 2> generate2d(ValueType s, const ValueType p) noexcept;
+  static std::array<Float, 2> generate2d(ValueT s, const ValueT p) noexcept;
 
   //! Return the period
   static constexpr std::size_t getPeriod() noexcept;
@@ -57,18 +57,18 @@ class CorrelatedMultiJitteredEngine
 
  private:
   //! Hash the i value
-  static ValueType hashInteger(ValueType i, const ValueType p) noexcept;
+  static ValueT hashInteger(ValueT i, const ValueT p) noexcept;
 
   //! Make a w mask
-  static constexpr ValueType makeWMask(const ValueType w) noexcept;
+  static constexpr ValueT makeWMask(const ValueT w) noexcept;
 
   //!
   template <uint32b l>
-  static ValueType permute(ValueType i, const ValueType p) noexcept;
+  static ValueT permute(ValueT i, const ValueT p) noexcept;
 
   //! The implementation of permutation
   template <uint32b w>
-  static ValueType permuteImpl(ValueType i, const ValueType p) noexcept;
+  static ValueT permuteImpl(ValueT i, const ValueT p) noexcept;
 };
 
 // Type aliases

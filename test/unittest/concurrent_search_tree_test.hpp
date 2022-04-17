@@ -88,7 +88,7 @@ class SearchTreeTest
       const bool use_sparse,
       const bool use_zipfian,
       const double zipfian_param,
-      zisc::SearchTree<SearchTreeClass>* search_tree);
+      zisc::SearchTree<SearchTreeClass, zisc::uint64b>* search_tree);
 
   //
   template <typename SearchTreeClass>
@@ -103,7 +103,7 @@ class SearchTreeTest
       const bool use_sparse,
       const bool use_zipfian,
       const double zipfian_param,
-      zisc::SearchTree<SearchTreeClass>* search_tree);
+      zisc::SearchTree<SearchTreeClass, zisc::uint64b>* search_tree);
 
  private:
   /*!
@@ -151,7 +151,7 @@ class SearchTreeTest
       const std::vector<zisc::uint64b>& input_list,
       const std::vector<Operation>& op_list,
       const std::size_t i,
-      zisc::SearchTree<SearchTreeClass>* search_tree,
+      zisc::SearchTree<SearchTreeClass, zisc::uint64b>* search_tree,
       std::vector<std::size_t>* total_list,
       std::vector<zisc::int64b>* added_list,
       std::atomic_flag* finish);

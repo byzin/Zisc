@@ -21,14 +21,15 @@
 #include <concepts>
 #include <cstddef>
 #include <limits>
+#include <memory>
 #include <mutex>
+#include <new>
 #include <numeric>
+#include <optional>
 #include <shared_mutex>
 #include <utility>
 #include <vector>
 // Zisc
-#include "mutex_bst_node.hpp"
-#include "query_value.hpp"
 #include "search_tree.hpp"
 #include "zisc/utility.hpp"
 #include "zisc/zisc_config.hpp"
@@ -41,8 +42,9 @@ namespace zisc {
 
   \param [in,out] mem_resource No description.
   */
+template <std::movable Key, MappedValue T, std::invocable<Key, Key> Compare>
 inline
-MutexBst::MutexBst(pmr::memory_resource* mem_resource) noexcept :
+MutexBst<Key, T, Compare>::MutexBst(pmr::memory_resource* mem_resource) noexcept :
     MutexBst(defaultCapacity(), mem_resource)
 {
 }
@@ -53,11 +55,13 @@ MutexBst::MutexBst(pmr::memory_resource* mem_resource) noexcept :
   \param [in] cap No description.
   \param [in,out] mem_resource No description.
   */
+template <std::movable Key, MappedValue T, std::invocable<Key, Key> Compare>
 inline
-MutexBst::MutexBst(const size_type cap,
-                   pmr::memory_resource* mem_resource) noexcept :
-    node_list_{typename decltype(node_list_)::allocator_type{mem_resource}},
-    index_stack_{typename decltype(index_stack_)::allocator_type{mem_resource}}
+MutexBst<Key, T, Compare>::MutexBst(const size_type cap,
+                                    pmr::memory_resource* mem_resource) noexcept :
+    index_stack_{typename decltype(index_stack_)::allocator_type{mem_resource}},
+    node_pool_{typename decltype(node_pool_)::allocator_type{mem_resource}},
+    node_list_{typename decltype(node_list_)::allocator_type{mem_resource}}
 {
   setCapacity(cap);
 }
@@ -67,18 +71,21 @@ MutexBst::MutexBst(const size_type cap,
 
   \param [in,out] other No description.
   */
+template <std::movable Key, MappedValue T, std::invocable<Key, Key> Compare>
 inline
-MutexBst::MutexBst(MutexBst&& other) noexcept :
-    node_list_{std::move(other.node_list_)},
-    index_stack_{std::move(other.index_stack_)}
+MutexBst<Key, T, Compare>::MutexBst(MutexBst&& other) noexcept :
+    index_stack_{std::move(other.index_stack_)},
+    node_pool_{std::move(other.node_pool_)},
+    node_list_{std::move(other.node_list_)}
 {
 }
 
 /*!
   \details No detailed description
   */
+template <std::movable Key, MappedValue T, std::invocable<Key, Key> Compare>
 inline
-MutexBst::~MutexBst() noexcept
+MutexBst<Key, T, Compare>::~MutexBst() noexcept
 {
 }
 
@@ -88,39 +95,57 @@ MutexBst::~MutexBst() noexcept
   \param [in,out] other No description.
   \return No description
   */
+template <std::movable Key, MappedValue T, std::invocable<Key, Key> Compare>
 inline
-MutexBst& MutexBst::operator=(MutexBst&& other) noexcept
+auto MutexBst<Key, T, Compare>::operator=(MutexBst&& other) noexcept -> MutexBst&
 {
-  node_list_ = std::move(other.node_list_);
   index_stack_ = std::move(other.index_stack_);
+  node_pool_ = std::move(other.node_pool_);
+  node_list_ = std::move(other.node_list_);
   return *this;
 }
 
 /*!
   \details No detailed description
 
-  \tparam Type No description.
   \param [in] value No description.
   \return No description
   */
-template <std::convertible_to<double> Type> inline
-auto MutexBst::add(const Type& value) -> QueryResultT
+template <std::movable Key, MappedValue T, std::invocable<Key, Key> Compare>
+inline
+auto MutexBst<Key, T, Compare>::add(ConstReference value) -> std::optional<size_type>
 {
-  const double key = cast<double>(value);
-  QueryResultT::Type node_index;
+  ValueT copy = value;
+  return add(std::move(copy));
+}
+
+/*!
+  \details No detailed description
+
+  \param [in] value No description.
+  \return No description
+  */
+template <std::movable Key, MappedValue T, std::invocable<Key, Key> Compare>
+inline
+auto MutexBst<Key, T, Compare>::add(RReference value) -> std::optional<size_type>
+{
+  ConstKeyT& key = BaseTreeT::getKey(value);
+  size_type node_index = invalidId();
   {
-    std::unique_lock<std::shared_mutex> lock{mutex_};
-    auto position = std::lower_bound(node_list_.begin(),
-                                     node_list_.end(),
-                                     key,
-                                     MutexBst::compare);
-    if ((position == node_list_.end()) || !equal(position->key(), key)) {
+    std::unique_lock lock{mutex_};
+    pmr::vector<Pointer>& list = node_list_;
+    auto pos = std::lower_bound(list.begin(), list.end(), key, MutexBst::compare);
+    if ((pos == list.end()) || !MutexBst::equal(BaseTreeT::getKey(**pos), key)) {
       node_index = index_stack_.back();
       index_stack_.pop_back();
-      node_list_.emplace(position, key, node_index.get());
+      Pointer ptr = getMemory(node_index);
+      ptr = new(ptr) ValueT{std::move(value)};
+      list.emplace(pos, ptr);
     }
   }
-  return QueryResultT{std::move(node_index)};
+  return (node_index != invalidId())
+      ? std::make_optional(node_index)
+      : std::optional<size_type>{};
 }
 
 /*!
@@ -128,13 +153,14 @@ auto MutexBst::add(const Type& value) -> QueryResultT
 
   \return No description
   */
+template <std::movable Key, MappedValue T, std::invocable<Key, Key> Compare>
 inline
-auto MutexBst::capacity() const noexcept -> size_type
+auto MutexBst<Key, T, Compare>::capacity() const noexcept -> size_type
 {
   size_type cap = 0;
   {
-    std::shared_lock<std::shared_mutex> lock{mutex_};
-    cap = node_list_.capacity();
+    std::shared_lock lock{mutex_};
+    cap = node_pool_.capacity();
   }
   return cap;
 }
@@ -144,19 +170,22 @@ auto MutexBst::capacity() const noexcept -> size_type
 
   \return No description
   */
+template <std::movable Key, MappedValue T, std::invocable<Key, Key> Compare>
 inline
-constexpr auto MutexBst::capacityMax() noexcept -> size_type
+constexpr auto MutexBst<Key, T, Compare>::capacityMax() noexcept -> size_type
 {
-  const size_type cap = (std::numeric_limits<size_type>::max)();
+  const size_type cap = (std::numeric_limits<size_type>::max)() >> 1;
   return cap;
 }
 
 /*!
   \details No detailed description
   */
+template <std::movable Key, MappedValue T, std::invocable<Key, Key> Compare>
 inline
-void MutexBst::clear() noexcept
+void MutexBst<Key, T, Compare>::clear() noexcept
 {
+  std::for_each(node_list_.begin(), node_list_.end(), std::destroy_at<ValueT>);
   node_list_.clear();
   std::iota(index_stack_.rbegin(), index_stack_.rend(), 0);
 }
@@ -164,25 +193,25 @@ void MutexBst::clear() noexcept
 /*!
   \details No detailed description
 
-  \tparam Type No description.
-  \param [in] value No description.
+  \param [in] key No description.
   \return No description
   */
-template <std::convertible_to<double> Type> inline
-auto MutexBst::contain(const Type& value) const noexcept -> QueryResultT
+template <std::movable Key, MappedValue T, std::invocable<Key, Key> Compare>
+inline
+auto MutexBst<Key, T, Compare>::contain(ConstKeyT& key) const noexcept
+    -> std::optional<size_type>
 {
-  const double key = cast<double>(value);
-  QueryResultT::Type node_index;
+  size_type node_index = invalidId();
   {
-    std::shared_lock<std::shared_mutex> lock{mutex_};
-    auto position = std::lower_bound(node_list_.begin(),
-                                     node_list_.end(),
-                                     key,
-                                     MutexBst::compare);
-    if ((position != node_list_.end()) && equal(position->key(), key))
-      node_index = position->index();
+    std::shared_lock lock{mutex_};
+    const pmr::vector<Pointer>& list = node_list_;
+    auto pos = std::lower_bound(list.begin(), list.end(), key, MutexBst::compare);
+    if ((pos != list.end()) && MutexBst::equal(BaseTreeT::getKey(**pos), key))
+      node_index = getIndex(*pos);
   }
-  return QueryResultT{std::move(node_index)};
+  return (node_index != invalidId())
+      ? std::make_optional(node_index)
+      : std::optional<size_type>();
 }
 
 /*!
@@ -190,8 +219,9 @@ auto MutexBst::contain(const Type& value) const noexcept -> QueryResultT
 
   \return No description
   */
+template <std::movable Key, MappedValue T, std::invocable<Key, Key> Compare>
 inline
-constexpr auto MutexBst::defaultCapacity() noexcept -> size_type
+constexpr auto MutexBst<Key, T, Compare>::defaultCapacity() noexcept -> size_type
 {
   const size_type cap = 1024;
   return cap;
@@ -202,15 +232,19 @@ constexpr auto MutexBst::defaultCapacity() noexcept -> size_type
 
   \return No description
   */
+template <std::movable Key, MappedValue T, std::invocable<Key, Key> Compare>
 inline
-auto MutexBst::findMinKey() const noexcept -> QueryResultKeyT
+auto MutexBst<Key, T, Compare>::findMinKey() noexcept -> std::optional<Pointer>
 {
-  QueryResultKeyT key;
+  const pmr::vector<Pointer>& list = node_list_;
   {
-    std::shared_lock<std::shared_mutex> lock{mutex_};
-    key = node_list_[0].key();
+    std::shared_lock lock{mutex_};
+    ZISC_ASSERT(std::is_sorted(list.begin(), list.end(), MutexBst::compareNode),
+                "The node list isn't sorted.");
+    return !node_list_.empty()
+        ? std::make_optional(node_list_.front())
+        : std::optional<Pointer>{};
   }
-  return key;
 }
 
 /*!
@@ -218,8 +252,57 @@ auto MutexBst::findMinKey() const noexcept -> QueryResultKeyT
 
   \return No description
   */
+template <std::movable Key, MappedValue T, std::invocable<Key, Key> Compare>
 inline
-constexpr bool MutexBst::isConcurrent() noexcept
+auto MutexBst<Key, T, Compare>::findMinKey() const noexcept -> std::optional<ConstPointer>
+{
+  const pmr::vector<Pointer>& list = node_list_;
+  {
+    std::shared_lock lock{mutex_};
+    ZISC_ASSERT(std::is_sorted(list.begin(), list.end(), MutexBst::compareNode),
+                "The node list isn't sorted.");
+    return !node_list_.empty()
+        ? std::make_optional(node_list_.front())
+        : std::optional<ConstPointer>{};
+  }
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+template <std::movable Key, MappedValue T, std::invocable<Key, Key> Compare>
+inline
+auto MutexBst<Key, T, Compare>::get(const size_type index) noexcept
+    -> Reference
+{
+  Reference ref = *getMemory(index);
+  return ref;
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+template <std::movable Key, MappedValue T, std::invocable<Key, Key> Compare>
+inline
+auto MutexBst<Key, T, Compare>::get(const size_type index) const noexcept
+    -> ConstReference
+{
+  ConstReference ref = *getMemory(index);
+  return ref;
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+template <std::movable Key, MappedValue T, std::invocable<Key, Key> Compare>
+inline
+constexpr bool MutexBst<Key, T, Compare>::isBounded() noexcept
 {
   return true;
 }
@@ -227,28 +310,40 @@ constexpr bool MutexBst::isConcurrent() noexcept
 /*!
   \details No detailed description
 
-  \tparam Type No description.
-  \param [in] value No description.
   \return No description
   */
-template <std::convertible_to<double> Type> inline
-auto MutexBst::remove(const Type& value) -> QueryResultT
+template <std::movable Key, MappedValue T, std::invocable<Key, Key> Compare>
+inline
+constexpr bool MutexBst<Key, T, Compare>::isConcurrent() noexcept
 {
-  const double key = cast<double>(value);
-  QueryResultT::Type node_index;
+  return true;
+}
+
+/*!
+  \details No detailed description
+
+  \param [in] key No description.
+  \return No description
+  */
+template <std::movable Key, MappedValue T, std::invocable<Key, Key> Compare>
+inline
+auto MutexBst<Key, T, Compare>::remove(ConstKeyT& key) -> std::optional<size_type>
+{
+  size_type node_index = invalidId();
   {
-    std::unique_lock<std::shared_mutex> lock{mutex_};
-    auto position = std::lower_bound(node_list_.begin(),
-                                     node_list_.end(),
-                                     key,
-                                     MutexBst::compare);
-    if ((position != node_list_.end()) && equal(position->key(), key)) {
-      index_stack_.emplace_back(position->index());
-      node_index = position->index();
-      node_list_.erase(position);
+    std::unique_lock lock{mutex_};
+    pmr::vector<Pointer>& list = node_list_;
+    auto pos = std::lower_bound(list.begin(), list.end(), key, MutexBst::compare);
+    if ((pos != list.end()) && MutexBst::equal(BaseTreeT::getKey(**pos), key)) {
+      node_index = getIndex(*pos);
+      std::destroy_at<ValueT>(*pos);
+      list.erase(pos);
+      index_stack_.emplace_back(node_index);
     }
   }
-  return QueryResultT{std::move(node_index)};
+  return (node_index != invalidId())
+      ? std::make_optional(node_index)
+      : std::optional<size_type>{};
 }
 
 /*!
@@ -256,11 +351,14 @@ auto MutexBst::remove(const Type& value) -> QueryResultT
 
   \param [in] cap No description.
   */
+template <std::movable Key, MappedValue T, std::invocable<Key, Key> Compare>
 inline
-void MutexBst::setCapacity(const size_type cap) noexcept
+void MutexBst<Key, T, Compare>::setCapacity(const size_type cap) noexcept
 {
-  node_list_.reserve(cap);
-  index_stack_.resize(capacity());
+  clear();
+  index_stack_.resize(cap);
+  node_pool_.resize(index_stack_.size());
+  node_list_.reserve(index_stack_.size());
   clear();
 }
 
@@ -269,12 +367,13 @@ void MutexBst::setCapacity(const size_type cap) noexcept
 
   \return No description
   */
+template <std::movable Key, MappedValue T, std::invocable<Key, Key> Compare>
 inline
-auto MutexBst::size() const noexcept -> size_type
+auto MutexBst<Key, T, Compare>::size() const noexcept -> size_type
 {
   size_type s = 0;
   {
-    std::shared_lock<std::shared_mutex> lock{mutex_};
+    std::shared_lock lock{mutex_};
     s = node_list_.size();
   }
   return s;
@@ -287,11 +386,92 @@ auto MutexBst::size() const noexcept -> size_type
   \param [in] rhs No description.
   \return No description
   */
+template <std::movable Key, MappedValue T, std::invocable<Key, Key> Compare>
 inline
-bool MutexBst::compare(const Node& lhs, const double rhs) noexcept
+bool MutexBst<Key, T, Compare>::compare(ConstPointer lhs, ConstKeyT& rhs) noexcept
 {
-  const bool result = lhs.key() < rhs;
+  ConstKeyT& lhs_key = BaseTreeT::getKey(*lhs);
+  const bool result = CompareT{}(lhs_key, rhs);
   return result;
+}
+
+/*!
+  \details No detailed description
+
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
+  */
+template <std::movable Key, MappedValue T, std::invocable<Key, Key> Compare>
+inline
+bool MutexBst<Key, T, Compare>::compareNode(ConstPointer lhs, ConstPointer rhs) noexcept
+{
+  return MutexBst::compare(lhs, BaseTreeT::getKey(*rhs));
+}
+
+/*!
+  \details No detailed description
+
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
+  */
+template <std::movable Key, MappedValue T, std::invocable<Key, Key> Compare>
+inline
+bool MutexBst<Key, T, Compare>::equal(ConstKeyT& lhs, ConstKeyT& rhs) noexcept
+{
+  const bool result = !CompareT{}(lhs, rhs) && !CompareT{}(rhs, lhs);
+  return result;
+}
+
+/*!
+  \details No detailed description
+
+  \param [in] node No description.
+  \return No description
+  */
+template <std::movable Key, MappedValue T, std::invocable<Key, Key> Compare>
+inline
+auto MutexBst<Key, T, Compare>::getIndex(ConstPointer node) const noexcept -> size_type
+{
+  const auto index = cast<size_type>(std::distance(getMemory(0), node));
+  return index;
+}
+
+/*!
+  \details No detailed description
+
+  \param [in] index No description.
+  \return No description
+  */
+template <std::movable Key, MappedValue T, std::invocable<Key, Key> Compare>
+inline
+auto MutexBst<Key, T, Compare>::getMemory(const size_type index) noexcept -> Pointer
+{
+  static_assert(sizeof(ValueT) == sizeof(Memory),
+                "The memory size isn't same as the value type.");
+  static_assert(std::alignment_of_v<ValueT> == std::alignment_of_v<Memory>,
+                "The memory alignment isn't same as the value type.");
+  auto* mem = reinterp<Pointer>(&node_pool_[index]);
+  return mem;
+}
+
+/*!
+  \details No detailed description
+
+  \param [in] index No description.
+  \return No description
+  */
+template <std::movable Key, MappedValue T, std::invocable<Key, Key> Compare>
+inline
+auto MutexBst<Key, T, Compare>::getMemory(const size_type index) const noexcept -> ConstPointer
+{
+  static_assert(sizeof(ValueT) == sizeof(Memory),
+                "The memory size isn't same as the value type.");
+  static_assert(std::alignment_of_v<ValueT> == std::alignment_of_v<Memory>,
+                "The memory alignment isn't same as the value type.");
+  const auto* mem = reinterp<ConstPointer>(&node_pool_[index]);
+  return mem;
 }
 
 /*!
@@ -299,10 +479,11 @@ bool MutexBst::compare(const Node& lhs, const double rhs) noexcept
 
   \return No description
   */
+template <std::movable Key, MappedValue T, std::invocable<Key, Key> Compare>
 inline
-constexpr auto MutexBst::invalidId() noexcept -> size_type
+constexpr auto MutexBst<Key, T, Compare>::invalidId() noexcept -> size_type
 {
-  constexpr size_type invalid = QueryResultT::Type::invalidValue();
+  constexpr size_type invalid = (std::numeric_limits<size_type>::max)();
   return invalid;
 }
 

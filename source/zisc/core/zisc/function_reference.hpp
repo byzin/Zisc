@@ -39,8 +39,7 @@ class FunctionReference<ReturnT (ArgTypes...)>
 {
  public:
   // Type aliases
-  using ReturnType = ReturnT;
-  using FunctionPointer = ReturnType (*)(ArgTypes...);
+  using FunctionPointer = ReturnT (*)(ArgTypes...);
 
 
   // Constant value
@@ -60,7 +59,7 @@ class FunctionReference<ReturnT (ArgTypes...)>
   FunctionReference& operator=(Func&& func) noexcept;
 
   //! Invoke a referenced callable object
-  ReturnType operator()(ArgTypes... args) const;
+  ReturnT operator()(ArgTypes... args) const;
 
   //! Check whether this refers a callable object 
   explicit operator bool() const noexcept;
@@ -74,7 +73,7 @@ class FunctionReference<ReturnT (ArgTypes...)>
   void clear() noexcept;
 
   //! Invoke a referenced callable object
-  ReturnType invoke(ArgTypes... args) const;
+  ReturnT invoke(ArgTypes... args) const;
 
   //! Exchange referenced callable objects of this and other
   void swap(FunctionReference& other) noexcept;
@@ -83,7 +82,7 @@ class FunctionReference<ReturnT (ArgTypes...)>
   // Type aliases
   using FuncRefMemory = std::aligned_storage_t<sizeof(void*),
                                                std::alignment_of_v<void*>>;
-  using InvokerPointer = ReturnType (*)(FuncRefMemory, ArgTypes...);
+  using InvokerPointer = ReturnT (*)(FuncRefMemory, ArgTypes...);
   template <typename Type>
   using ArgRef = std::add_lvalue_reference_t<std::remove_reference_t<Type>>;
 
@@ -98,11 +97,11 @@ class FunctionReference<ReturnT (ArgTypes...)>
 
   //! Invoke a referenced callable object 
   template <typename FuncPtr>
-  static ReturnType invokeFunctionPointer(FuncRefMemory mem, ArgTypes... args);
+  static ReturnT invokeFunctionPointer(FuncRefMemory mem, ArgTypes... args);
 
   //! Invoke a referenced callable object
   template <typename Functor>
-  static ReturnType invokeFunctor(FuncRefMemory mem, ArgTypes... args);
+  static ReturnT invokeFunctor(FuncRefMemory mem, ArgTypes... args);
 
   //! Return the underlying invoker pointer
   const InvokerPointer& invoker() const noexcept;

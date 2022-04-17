@@ -19,11 +19,10 @@
 #include <concepts>
 #include <cstddef>
 #include <memory>
+#include <optional>
 #include <string_view>
 #include <type_traits>
 // Zisc
-#include "query_result.hpp"
-#include "query_value.hpp"
 #include "zisc/error.hpp"
 #include "zisc/non_copyable.hpp"
 #include "zisc/zisc_config.hpp"
@@ -44,21 +43,22 @@ class Queue : private NonCopyable<Queue<QueueClass, T>>
 {
  public:
   // Type aliases
-  using Type = std::remove_volatile_t<T>;
-  using ConstType = std::add_const_t<Type>;
-  using Reference = std::add_lvalue_reference_t<Type>;
-  using RReference = std::add_rvalue_reference_t<Type>;
-  using ConstReference = std::add_lvalue_reference_t<ConstType>;
-  using Pointer = std::add_pointer_t<Type>;
-  using ConstPointer = std::add_pointer_t<ConstType>;
-  using EnqueueQueryResultT = QueryResult<QueryValueU64>;
-  using DequeueQueryResultT = QueryResult<Type>;
+  using ValueT = std::remove_volatile_t<T>;
+  using ConstT = std::add_const_t<ValueT>;
+  using Reference = std::add_lvalue_reference_t<ValueT>;
+  using RReference = std::add_rvalue_reference_t<ValueT>;
+  using ConstReference = std::add_lvalue_reference_t<ConstT>;
+  using Pointer = std::add_pointer_t<ValueT>;
+  using ConstPointer = std::add_pointer_t<ConstT>;
 
   // Type aliases for STL
-  using value_type = Type;
+  using value_type = ValueT;
   using size_type = std::size_t;
+  using difference_type = std::ptrdiff_t;
   using reference = Reference;
   using const_reference = ConstReference;
+  using pointer = Pointer;
+  using const_pointer = ConstPointer;
 
   /*!
     \brief No brief description
@@ -96,8 +96,9 @@ class Queue : private NonCopyable<Queue<QueueClass, T>>
     ConstReference get() const noexcept;
 
    private:
-    std::shared_ptr<Type> value_;
+    std::shared_ptr<ValueT> value_;
   };
+
 
   //! Return the maximum possible number of elements
   size_type capacity() const noexcept;
@@ -109,13 +110,19 @@ class Queue : private NonCopyable<Queue<QueueClass, T>>
   void clear() noexcept;
 
   //! Take the first element of the queue
-  [[nodiscard]] DequeueQueryResultT dequeue() noexcept;
+  [[nodiscard]] std::optional<ValueT> dequeue() noexcept;
 
   //! Append the given element value to the end of the queue
-  [[nodiscard]] EnqueueQueryResultT enqueue(ConstReference value);
+  [[nodiscard]] std::optional<size_type> enqueue(ConstReference value);
 
   //! Append the given element value to the end of the queue
-  [[nodiscard]] EnqueueQueryResultT enqueue(RReference value);
+  [[nodiscard]] std::optional<size_type> enqueue(RReference value);
+
+  //! Return the value by the given index
+  Reference get(const size_type index) noexcept;
+
+  //! Return the value by the given index
+  ConstReference get(const size_type index) const noexcept;
 
   //! Check if the queue is bounded
   static constexpr bool isBounded() noexcept;
@@ -140,9 +147,6 @@ class Queue : private NonCopyable<Queue<QueueClass, T>>
   using ConstQueuePtr = std::add_pointer_t<ConstQueueT>;
   using QueueReference = std::add_lvalue_reference_t<QueueT>;
   using ConstQueueReference = std::add_lvalue_reference_t<ConstQueueT>;
-
-
-  static constexpr size_type kUnboundedCapacityMax = (std::numeric_limits<size_type>::max)();
 
 
   //! Create a queue

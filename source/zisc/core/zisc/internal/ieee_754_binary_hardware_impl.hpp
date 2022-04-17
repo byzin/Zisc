@@ -38,9 +38,9 @@ class Ieee754BinaryHardwareImpl
 {
  public:
   //! Bit representation type
-  using BitType = std::conditional_t<kFormat == Ieee754BinaryFormat::kHalf,   uint16b,
-                  std::conditional_t<kFormat == Ieee754BinaryFormat::kSingle, uint32b,
-                                                                              uint64b>>;
+  using BitT = std::conditional_t<kFormat == Ieee754BinaryFormat::kHalf,   uint16b,
+               std::conditional_t<kFormat == Ieee754BinaryFormat::kSingle, uint32b,
+                                                                           uint64b>>;
  /*!
     \brief Internal data type
 
@@ -70,7 +70,7 @@ class Ieee754BinaryHardwareImpl
   constexpr Ieee754BinaryHardwareImpl(const Float value) noexcept;
 
   //! Initialize a value with the given bits data
-  constexpr Ieee754BinaryHardwareImpl(const BitType bits) noexcept;
+  constexpr Ieee754BinaryHardwareImpl(const BitT bits) noexcept;
 
 
   //! Convert to other format
@@ -93,7 +93,7 @@ class Ieee754BinaryHardwareImpl
   static constexpr Ieee754BinaryFormat format() noexcept;
 
   //! Set the data to the given bits
-  constexpr void setBits(const BitType bits) noexcept;
+  constexpr void setBits(const BitT bits) noexcept;
 
  private:
   //! Initialize a value with the given floating point value

@@ -27,7 +27,6 @@
 #include <utility>
 #include <vector>
 // Zisc
-#include "query_value.hpp"
 #include "zisc/error.hpp"
 #include "zisc/utility.hpp"
 #include "zisc/zisc_config.hpp"
@@ -84,6 +83,18 @@ auto RingBuffer::operator=(RingBuffer&& other) noexcept -> RingBuffer&
 
 /*!
   \details No detailed description
+
+  \return No description
+  */
+inline
+constexpr std::size_t RingBuffer::capacityMax() noexcept
+{
+  constexpr std::size_t invalid = (std::numeric_limits<std::size_t>::max)();
+  return invalid;
+}
+
+/*!
+  \details No detailed description
   */
 inline
 void RingBuffer::clear() noexcept
@@ -105,7 +116,7 @@ void RingBuffer::clear() noexcept
 inline
 constexpr uint64b RingBuffer::overflowIndex() noexcept
 {
-  constexpr uint64b index = std::numeric_limits<uint64b>::max() - 1;
+  constexpr auto index = cast<uint64b>(capacityMax() - 1);
   return index;
 }
 
@@ -116,7 +127,7 @@ constexpr uint64b RingBuffer::overflowIndex() noexcept
   \return No description
   */
 inline
-uint64b RingBuffer::dequeue(const bool nonempty) noexcept
+std::size_t RingBuffer::dequeue(const bool nonempty) noexcept
 {
   uint64b index = invalidIndex();
   uint64b headp = 0;
@@ -180,7 +191,7 @@ uint64b RingBuffer::dequeue(const bool nonempty) noexcept
       }
     }
   }
-  return index;
+  return cast<std::size_t>(index);
 }
 
 /*!
@@ -191,8 +202,8 @@ uint64b RingBuffer::dequeue(const bool nonempty) noexcept
 inline
 std::size_t RingBuffer::distance() const noexcept
 {
-  const auto h = head().load(std::memory_order::acquire);
-  const auto t = tail().load(std::memory_order::acquire);
+  const uint64b h = head().load(std::memory_order::acquire);
+  const uint64b t = tail().load(std::memory_order::acquire);
   const std::size_t d = (h < t) ? cast<std::size_t>(t - h) : 0;
   return d;
 }
@@ -205,7 +216,7 @@ std::size_t RingBuffer::distance() const noexcept
   \return No description
   */
 inline
-bool RingBuffer::enqueue(const uint64b index, const bool nonempty) noexcept
+bool RingBuffer::enqueue(const std::size_t index, const bool nonempty) noexcept
 {
   uint64b tailp = 0;
   uint64b tail_cycle = 0;
@@ -226,7 +237,7 @@ bool RingBuffer::enqueue(const uint64b index, const bool nonempty) noexcept
         ((entry == entry_cycle) ||
          ((entry == (entry_cycle ^ n)) &&
           (diff(head().load(std::memory_order::acquire), tailp) <= 0)))) {
-      const uint64b entry_index = index ^ cast<uint64b>(n - 1);
+      const uint64b entry_index = cast<uint64b>(index) ^ cast<uint64b>(n - 1);
       retry = !getIndex(tail_index).compare_exchange_weak(entry,
                                                           tail_cycle ^ entry_index,
                                                           std::memory_order::acq_rel,
@@ -299,7 +310,7 @@ void RingBuffer::full() noexcept
 inline
 constexpr uint64b RingBuffer::invalidIndex() noexcept
 {
-  constexpr uint64b invalid = QueryValueU64::invalidValue();
+  constexpr auto invalid = cast<uint64b>(capacityMax());
   return invalid;
 }
 
@@ -323,7 +334,8 @@ uint64b RingBuffer::order() const noexcept
 inline
 void RingBuffer::setSize(const std::size_t s) noexcept
 {
-  ZISC_ASSERT((s == 0) || std::has_single_bit(s), "The size isn't power of 2. size = ", s);
+  ZISC_ASSERT((s == 0) || std::has_single_bit(s), "The size isn't 2^n. size = ", s);
+  ZISC_ASSERT(s < capacityMax(), "The size exceeds the capacity max. size = ", s);
   destroy();
   {
     ZISC_ASSERT(std::has_single_bit(s), "The s isn't power of 2. s = ", s);
@@ -343,7 +355,7 @@ inline
 std::size_t RingBuffer::size() const noexcept
 {
   const std::size_t s = size_;
-  ZISC_ASSERT((s == 0) || std::has_single_bit(s), "The size isn't power of 2. size = ", s);
+  ZISC_ASSERT((s == 0) || std::has_single_bit(s), "The size isn't 2^n. size = ", s);
   return s;
 }
 

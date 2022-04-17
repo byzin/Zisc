@@ -24,13 +24,12 @@
 #include <cstddef>
 #include <limits>
 #include <memory>
+#include <optional>
 #include <string_view>
 #include <type_traits>
 #include <utility>
 #include <vector>
 // Zisc
-#include "query_result.hpp"
-#include "query_value.hpp"
 #include "zisc/error.hpp"
 #include "zisc/utility.hpp"
 #include "zisc/zisc_config.hpp"
@@ -58,7 +57,7 @@ ScalableCircularQueue<T>::ScalableCircularQueue(pmr::memory_resource* mem_resour
 template <std::movable T> inline
 ScalableCircularQueue<T>::ScalableCircularQueue(const size_type cap,
                                                 pmr::memory_resource* mem_resource) noexcept
-    : BaseQueueType(),
+    : BaseQueueT(),
       free_elements_{mem_resource},
       allocated_elements_{mem_resource},
       elements_{typename decltype(elements_)::allocator_type{mem_resource}}
@@ -73,7 +72,7 @@ ScalableCircularQueue<T>::ScalableCircularQueue(const size_type cap,
   */
 template <std::movable T> inline
 ScalableCircularQueue<T>::ScalableCircularQueue(ScalableCircularQueue&& other) noexcept
-    : BaseQueueType(other),
+    : BaseQueueT(other),
       free_elements_{std::move(other.free_elements_)},
       allocated_elements_{std::move(other.allocated_elements_)},
       elements_{std::move(other.elements_)}
@@ -90,7 +89,7 @@ template <std::movable T> inline
 auto ScalableCircularQueue<T>::operator=(ScalableCircularQueue&& other) noexcept
     -> ScalableCircularQueue&
 {
-  BaseQueueType::operator=(std::move(other));
+  BaseQueueT::operator=(std::move(other));
   free_elements_ = std::move(other.free_elements_);
   allocated_elements_ = std::move(other.allocated_elements_);
   elements_ = std::move(other.elements_);
@@ -119,7 +118,7 @@ auto ScalableCircularQueue<T>::capacity() const noexcept -> size_type
 template <std::movable T> inline
 constexpr auto ScalableCircularQueue<T>::capacityMax() noexcept -> size_type
 {
-  const size_type cap = size_type{0b1u} << (std::numeric_limits<size_type>::digits - 2);
+  const size_type cap = (std::numeric_limits<size_type>::max)() >> 2;
   return cap;
 }
 
@@ -155,10 +154,10 @@ auto ScalableCircularQueue<T>::data() const noexcept -> const container_type&
   \return No description
   */
 template <std::movable T> inline
-auto ScalableCircularQueue<T>::dequeue() noexcept -> DequeueQueryResultT
+auto ScalableCircularQueue<T>::dequeue() noexcept -> std::optional<ValueT> 
 {
-  DequeueQueryResultT result;
-  const uint64b index = allocated_elements_.dequeue(false); // Get an entry point
+  std::optional<ValueT> result{};
+  const size_type index = allocated_elements_.dequeue(false); // Get an entry point
   const bool is_success = index != RingBuffer::invalidIndex();
   if (is_success) {
     result = std::move(elements_[index]);
@@ -175,7 +174,7 @@ auto ScalableCircularQueue<T>::dequeue() noexcept -> DequeueQueryResultT
   \exception OverflowError No description.
   */
 template <std::movable T> inline
-auto ScalableCircularQueue<T>::enqueue(ConstReference value) -> EnqueueQueryResultT
+auto ScalableCircularQueue<T>::enqueue(ConstReference value) -> std::optional<size_type>
 {
   return enqueueImpl(value);
 }
@@ -188,9 +187,33 @@ auto ScalableCircularQueue<T>::enqueue(ConstReference value) -> EnqueueQueryResu
   \exception OverflowError No description.
   */
 template <std::movable T> inline
-auto ScalableCircularQueue<T>::enqueue(RReference value) -> EnqueueQueryResultT
+auto ScalableCircularQueue<T>::enqueue(RReference value) -> std::optional<size_type>
 {
   return enqueueImpl(std::move(value));
+}
+
+/*!
+  \details No detailed description
+
+  \param [in] index No description.
+  \return No description
+  */
+template <std::movable T> inline
+auto ScalableCircularQueue<T>::get(const size_type index) noexcept -> Reference
+{
+  return elements_[cast<size_type>(index)];
+}
+
+/*!
+  \details No detailed description
+
+  \param [in] index No description.
+  \return No description
+  */
+template <std::movable T> inline
+auto ScalableCircularQueue<T>::get(const size_type index) const noexcept -> ConstReference
+{
+  return elements_[cast<size_type>(index)];
 }
 
 /*!
@@ -268,12 +291,12 @@ auto ScalableCircularQueue<T>::size() const noexcept -> size_type
   \exception OverflowError No description.
   */
 template <std::movable T> template <typename ValueT> inline
-auto ScalableCircularQueue<T>::enqueueImpl(ValueT&& value) -> EnqueueQueryResultT
+auto ScalableCircularQueue<T>::enqueueImpl(ValueT&& value) -> std::optional<size_type>
 {
-  const uint64b index = free_elements_.dequeue(true); // Get an entry index
+  const size_type index = free_elements_.dequeue(true); // Get an entry index
 
   // Check overflow
-  using OverflowErr = typename BaseQueueType::OverflowError;
+  using OverflowErr = typename BaseQueueT::OverflowError;
   if (index == RingBuffer::overflowIndex()) {
     throw OverflowErr{"Queue overflow happened.",
                       resource(),
@@ -285,7 +308,7 @@ auto ScalableCircularQueue<T>::enqueueImpl(ValueT&& value) -> EnqueueQueryResult
     elements_[index] = std::forward<ValueT>(value);
     allocated_elements_.enqueue(index, false);
   }
-  return EnqueueQueryResultT{index};
+  return is_success ? std::make_optional(index) : std::optional<size_type>{};
 }
 
 } // namespace zisc

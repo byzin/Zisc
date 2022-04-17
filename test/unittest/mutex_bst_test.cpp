@@ -41,12 +41,12 @@
 
 TEST(MutexBstTest, ConstructorTest)
 {
-  using TreeImpl = zisc::MutexBst;
-  using Tree = zisc::SearchTree<TreeImpl>;
+  using TreeImpl = zisc::MutexBst<int>;
+  using Tree = zisc::SearchTree<TreeImpl, int>;
 
-  static_assert(!TreeImpl::isBounded(), "MutexBst isn't bounded tree.");
+  static_assert(TreeImpl::isBounded(), "MutexBst isn't bounded tree.");
   static_assert(TreeImpl::isConcurrent(), "MutexBst isn't bounded tree.");
-  static_assert(!Tree::isBounded(), "MutexBst isn't bounded tree.");
+  static_assert(Tree::isBounded(), "MutexBst isn't bounded tree.");
   static_assert(Tree::isConcurrent(), "MutexBst isn't bounded tree.");
 
   zisc::SimpleMemoryResource mem_resource;
@@ -83,8 +83,8 @@ TEST(MutexBstTest, ConstructorTest)
 
 TEST(MutexBstTest, OperationTest)
 {
-  using TreeImpl = zisc::MutexBst;
-  using Bst = zisc::SearchTree<TreeImpl>;
+  using TreeImpl = zisc::MutexBst<int>;
+  using Bst = zisc::SearchTree<TreeImpl, int>;
 
   zisc::SimpleMemoryResource mem_resource;
   TreeImpl tree_impl{&mem_resource};
@@ -95,64 +95,64 @@ TEST(MutexBstTest, OperationTest)
 
   for (const int value : value_list) {
     {
-      const bool result = tree->add(value).isSuccess();
+      const bool result = tree->add(value).has_value();
       ASSERT_TRUE(result) << "Adding value '" << value << "' into the bst failed.";
     }
     {
-      const bool result = tree->add(value).isSuccess();
+      const bool result = tree->add(value).has_value();
       ASSERT_FALSE(result) << "Adding value '" << value << "' into the bst failed.";
     }
   }
 
   for (const int value : value_list) {
-    const bool result = tree->contain(value).isSuccess();
+    const bool result = tree->contain(value).has_value();
     ASSERT_TRUE(result) << "Quering value '" << value << "' from the bst failed.";
   }
   for (const int value : value2_list) {
-    const bool result = tree->contain(value).isSuccess();
+    const bool result = tree->contain(value).has_value();
     ASSERT_FALSE(result) << "Quering value '" << value << "' from the bst failed.";
   }
 
   for (const int value : value_list) {
-    const bool result = tree->add(value).isSuccess();
+    const bool result = tree->add(value).has_value();
     ASSERT_FALSE(result) << "Adding value '" << value << "' into the bst failed.";
   }
 
   for (const int value : value_list) {
     {
-      const bool result = tree->remove(value).isSuccess();
+      const bool result = tree->remove(value).has_value();
       ASSERT_TRUE(result) << "Removing value '" << value << "' from the bst failed.";
     }
     {
-      const bool result = tree->remove(value).isSuccess();
+      const bool result = tree->remove(value).has_value();
       ASSERT_FALSE(result) << "Removing value '" << value << "' from the bst failed.";
     }
   }
   for (const int value : value2_list) {
-    const bool result = tree->remove(value).isSuccess();
+    const bool result = tree->remove(value).has_value();
     ASSERT_FALSE(result) << "Removing value '" << value << "' from the bst failed.";
   }
 
   for (const int value : value_list) {
-    const bool result = tree->contain(value).isSuccess();
+    const bool result = tree->contain(value).has_value();
     ASSERT_FALSE(result) << "Quering value '" << value << "' from the bst failed.";
   }
 
   for (const int value : value_list) {
-    const bool result = tree->remove(value).isSuccess();
+    const bool result = tree->remove(value).has_value();
     ASSERT_FALSE(result) << "Removing value '" << value << "' from the bst failed.";
   }
 
   for (const int value : value_list) {
-    const bool result = tree->add(value).isSuccess();
+    const bool result = tree->add(value).has_value();
     ASSERT_TRUE(result) << "Adding value '" << value << "' into the bst failed.";
   }
 }
 
 TEST(MutexBstTest, AddRemoveTest)
 {
-  using TreeImpl = zisc::MutexBst;
-  using Tree = zisc::SearchTree<TreeImpl>;
+  using TreeImpl = zisc::MutexBst<int>;
+  using Tree = zisc::SearchTree<TreeImpl, int>;
 
   const std::array<int, 16> candidate_list{{-171717, -1000, -1, 0, 1, 3, 4, 9, 15, 16, 100, 2000, 10300, 50000, 360000, (std::numeric_limits<int>::max)()}};
 
@@ -179,9 +179,7 @@ TEST(MutexBstTest, AddRemoveTest)
     bool result = false;
     if (op == 0) { // Add
       const auto r = tree->add(candidate);
-      static_assert(decltype(r)::type() == 2);
-      static_assert(sizeof(r) == sizeof(std::size_t));
-      result = r.isSuccess();
+      result = r.has_value();
       if (flag) {
         ASSERT_FALSE(result) << "BST add operation failed.";
       }
@@ -192,7 +190,7 @@ TEST(MutexBstTest, AddRemoveTest)
     }
     else { // Remove
       const auto r = tree->remove(candidate);
-      result = r.isSuccess();
+      result = r.has_value();
       if (flag) {
         ASSERT_TRUE(result) << "BST remove operation failed.";
         flag = false;
@@ -203,7 +201,7 @@ TEST(MutexBstTest, AddRemoveTest)
     }
 
     for (auto v : value_list) {
-      const bool r = tree->contain(v.first).isSuccess();
+      const bool r = tree->contain(v.first).has_value();
       if (v.second)
         ASSERT_TRUE(r) << "BST contain(" << v.first << ") operation failed.";
       else
@@ -214,8 +212,8 @@ TEST(MutexBstTest, AddRemoveTest)
 
 TEST(MutexBstTest, MultithreadTest)
 {
-  using TreeImpl = zisc::MutexBst;
-  using Tree = zisc::SearchTree<TreeImpl>;
+  using TreeImpl = zisc::MutexBst<int>;
+  using Tree = zisc::SearchTree<TreeImpl, int>;
 
   const std::size_t num_threads = 32;
   std::vector<std::thread> thread_list;

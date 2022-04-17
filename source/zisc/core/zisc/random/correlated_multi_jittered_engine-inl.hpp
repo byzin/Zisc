@@ -38,18 +38,18 @@ namespace zisc {
   */
 template <uint32b kRootN> template <std::floating_point Float> inline
 Float CorrelatedMultiJitteredEngine<kRootN>::generate1d(
-    const ValueType s,
-    const ValueType p) noexcept
+    const ValueT s,
+    const ValueT p) noexcept
 {
-  constexpr ValueType n = getPeriod();
+  constexpr ValueT n = getPeriod();
 
   // Generate a random
-  const ValueType u = hashInteger(s, p * 0x967a889b);
+  const ValueT u = hashInteger(s, p * 0x967a889b);
   Float x = mapTo01<Float>(u);
 
   // Random jitter
   constexpr Float inv_n = invert(cast<Float>(n));
-  const ValueType sx = permute<n>(s, p * 0x68bc21eb);
+  const ValueT sx = permute<n>(s, p * 0x68bc21eb);
   x = inv_n * (cast<Float>(sx) + x);
 
   return x;
@@ -65,25 +65,25 @@ Float CorrelatedMultiJitteredEngine<kRootN>::generate1d(
   */
 template <uint32b kRootN> template <std::floating_point Float> inline
 std::array<Float, 2> CorrelatedMultiJitteredEngine<kRootN>::generate2d(
-    ValueType s,
-    const ValueType p) noexcept
+    ValueT s,
+    const ValueT p) noexcept
 {
-  constexpr ValueType n = getPeriod();
+  constexpr ValueT n = getPeriod();
 
   // Generate randoms
   s = permute<n>(s, p * 0x51633e2d);
-  const ValueType u1 = hashInteger(s, p * 0x967a889b);
-  const ValueType u2 = hashInteger(s, p * 0x368cc8b7);
+  const ValueT u1 = hashInteger(s, p * 0x967a889b);
+  const ValueT u2 = hashInteger(s, p * 0x368cc8b7);
   Float x = mapTo01<Float>(u1);
   Float y = mapTo01<Float>(u2);
 
   // Random jitter
   constexpr Float inv_n = invert(cast<Float>(n));
   constexpr Float inv_root_n = invert(cast<Float>(kRootN));
-  const ValueType s_div = s / kRootN;
-  const ValueType s_mod = s  - s_div * kRootN;
-  const ValueType sx = permute<kRootN>(s_mod, p * 0x68bc21eb);
-  const ValueType sy = permute<kRootN>(s_div, p * 0x02e5be93);
+  const ValueT s_div = s / kRootN;
+  const ValueT s_mod = s  - s_div * kRootN;
+  const ValueT sx = permute<kRootN>(s_mod, p * 0x68bc21eb);
+  const ValueT sy = permute<kRootN>(s_div, p * 0x02e5be93);
   x = inv_root_n * (cast<Float>(sx) + inv_root_n * (cast<Float>(sy) + x));
   y = inv_n * (cast<Float>(s) + y);
 
@@ -128,8 +128,8 @@ constexpr bool CorrelatedMultiJitteredEngine<kRootN>::isEndOfPeriod(
   */
 template <uint32b kRootN> inline
 auto CorrelatedMultiJitteredEngine<kRootN>::hashInteger(
-    ValueType i,
-    const ValueType p) noexcept -> ValueType
+    ValueT i,
+    const ValueT p) noexcept -> ValueT
 {
   i ^= p;
   i ^= i >> 17;
@@ -151,8 +151,8 @@ auto CorrelatedMultiJitteredEngine<kRootN>::hashInteger(
   \return No description
   */
 template <uint32b kRootN> inline
-constexpr auto CorrelatedMultiJitteredEngine<kRootN>::makeWMask(ValueType w) noexcept
-    -> ValueType
+constexpr auto CorrelatedMultiJitteredEngine<kRootN>::makeWMask(ValueT w) noexcept
+    -> ValueT
 {
   w |= w >> 1;
   w |= w >> 2;
@@ -172,11 +172,11 @@ constexpr auto CorrelatedMultiJitteredEngine<kRootN>::makeWMask(ValueType w) noe
   */
 template <uint32b kRootN> template <uint32b l> inline
 auto CorrelatedMultiJitteredEngine<kRootN>::permute(
-    ValueType i,
-    const ValueType p) noexcept -> ValueType
+    ValueT i,
+    const ValueT p) noexcept -> ValueT
 {
   constexpr bool is_power_of_2 = (1 < l) && std::has_single_bit(l);
-  constexpr ValueType w = makeWMask(l - 1);
+  constexpr ValueT w = makeWMask(l - 1);
   if (is_power_of_2) {
     // fast case
     i = permuteImpl<w>(i, p);
@@ -202,8 +202,8 @@ auto CorrelatedMultiJitteredEngine<kRootN>::permute(
   */
 template <uint32b kRootN> template <uint32b w> inline
 auto CorrelatedMultiJitteredEngine<kRootN>::permuteImpl(
-    ValueType i,
-    const ValueType p) noexcept -> ValueType
+    ValueT i,
+    const ValueT p) noexcept -> ValueT
 {
   i ^= p;
   i *= 0xe170893d;

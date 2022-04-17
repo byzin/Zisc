@@ -20,10 +20,10 @@
 #include <concepts>
 #include <cstddef>
 #include <memory>
+#include <optional>
 #include <string_view>
 #include <utility>
 // Zisc
-#include "query_result.hpp"
 #include "zisc/error.hpp"
 #include "zisc/utility.hpp"
 #include "zisc/zisc_config.hpp"
@@ -42,8 +42,8 @@ Queue<QueueClass, T>::OverflowError::OverflowError(const std::string_view what_a
                                                    pmr::memory_resource* mem_resource,
                                                    ConstReference value)
     : SystemError(ErrorCode::kBoundedQueueOverflow, what_arg),
-      value_{std::allocate_shared<Type>(
-          pmr::polymorphic_allocator<Type>{mem_resource},
+      value_{std::allocate_shared<ValueT>(
+          pmr::polymorphic_allocator<ValueT>{mem_resource},
           value)}
 {
 }
@@ -59,8 +59,8 @@ Queue<QueueClass, T>::OverflowError::OverflowError(const std::string_view what_a
                                                    pmr::memory_resource* mem_resource,
                                                    RReference value)
     : SystemError(ErrorCode::kBoundedQueueOverflow, what_arg),
-      value_{std::allocate_shared<Type>(
-          pmr::polymorphic_allocator<Type>{mem_resource},
+      value_{std::allocate_shared<ValueT>(
+          pmr::polymorphic_allocator<ValueT>{mem_resource},
           std::move(value))}
 {
 }
@@ -133,8 +133,7 @@ template <typename QueueClass, std::movable T> inline
 auto Queue<QueueClass, T>::capacity() const noexcept -> size_type
 {
   const auto& q = ref();
-  const size_type cap = q.capacity();
-  return cap;
+  return q.capacity();
 }
 
 /*!
@@ -145,8 +144,7 @@ auto Queue<QueueClass, T>::capacity() const noexcept -> size_type
 template <typename QueueClass, std::movable T> inline
 constexpr auto Queue<QueueClass, T>::capacityMax() noexcept -> size_type
 {
-  const size_type cap = QueueT::capacityMax();
-  return cap;
+  return QueueT::capacityMax();
 }
 
 /*!
@@ -165,7 +163,7 @@ void Queue<QueueClass, T>::clear() noexcept
   \return No description
   */
 template <typename QueueClass, std::movable T> inline
-auto Queue<QueueClass, T>::dequeue() noexcept -> DequeueQueryResultT
+auto Queue<QueueClass, T>::dequeue() noexcept -> std::optional<ValueT>
 {
   auto& q = ref();
   return q.dequeue();
@@ -179,7 +177,7 @@ auto Queue<QueueClass, T>::dequeue() noexcept -> DequeueQueryResultT
   \exception OverflowError No description.
   */
 template <typename QueueClass, std::movable T> inline
-auto Queue<QueueClass, T>::enqueue(ConstReference value) -> EnqueueQueryResultT
+auto Queue<QueueClass, T>::enqueue(ConstReference value) -> std::optional<size_type>
 {
   auto& q = ref();
   return q.enqueue(value);
@@ -193,10 +191,38 @@ auto Queue<QueueClass, T>::enqueue(ConstReference value) -> EnqueueQueryResultT
   \exception OverflowError No description.
   */
 template <typename QueueClass, std::movable T> inline
-auto Queue<QueueClass, T>::enqueue(RReference value) -> EnqueueQueryResultT
+auto Queue<QueueClass, T>::enqueue(RReference value) -> std::optional<size_type>
 {
   auto& q = ref();
   return q.enqueue(std::move(value));
+}
+
+/*!
+  \details No detailed description
+
+  \param [in] value No description.
+  \return No description
+  \exception OverflowError No description.
+  */
+template <typename QueueClass, std::movable T> inline
+auto Queue<QueueClass, T>::get(const size_type index) noexcept -> Reference
+{
+  auto& q = ref();
+  return q.get(index);
+}
+
+/*!
+  \details No detailed description
+
+  \param [in] value No description.
+  \return No description
+  \exception OverflowError No description.
+  */
+template <typename QueueClass, std::movable T> inline
+auto Queue<QueueClass, T>::get(const size_type index) const noexcept -> ConstReference
+{
+  const auto& q = ref();
+  return q.get(index);
 }
 
 /*!
@@ -207,9 +233,7 @@ auto Queue<QueueClass, T>::enqueue(RReference value) -> EnqueueQueryResultT
 template <typename QueueClass, std::movable T> inline
 constexpr bool Queue<QueueClass, T>::isBounded() noexcept
 {
-  const size_type c = capacityMax();
-  const bool result = c < kUnboundedCapacityMax;
-  return result;
+  return QueueT::isBounded();
 }
 
 /*!
@@ -233,8 +257,7 @@ template <typename QueueClass, std::movable T> inline
 bool Queue<QueueClass, T>::isEmpty() const noexcept
 {
   const auto& q = ref();
-  const bool result = q.isEmpty();
-  return result;
+  return q.isEmpty();
 }
 
 /*!
@@ -258,8 +281,7 @@ template <typename QueueClass, std::movable T> inline
 auto Queue<QueueClass, T>::size() const noexcept -> size_type
 {
   const auto& q = ref();
-  const size_type s = q.size();
-  return s;
+  return q.size();
 }
 
 /*!

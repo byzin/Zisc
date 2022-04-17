@@ -29,27 +29,26 @@ namespace zisc {
 
   No detailed description.
 
-  \tparam ValueT No description.
+  \tparam T No description.
   */
-template <HashValue ValueT>
-class Fnv1aHashEngine : public HashEngine<Fnv1aHashEngine<ValueT>, ValueT>
+template <HashValue T>
+class Fnv1aHashEngine : public HashEngine<Fnv1aHashEngine<T>, T>
 {
  public:
-  using BaseEngine = HashEngine<Fnv1aHashEngine, ValueT>;
-  using ValueType = typename BaseEngine::ValueType;
+  using BaseEngineT = HashEngine<Fnv1aHashEngine, T>;
+  using ValueT = typename BaseEngineT::ValueT;
 
 
   //! Implementation of the hash function
   template <HashKeyElement Int8>
-  static constexpr ValueType hashValue(const Int8* seed,
-                                       const std::size_t n) noexcept;
+  static constexpr ValueT hashValue(const Int8* seed, const std::size_t n) noexcept;
  private:
 
   //!
-  static constexpr ValueType prime() noexcept;
+  static constexpr ValueT prime() noexcept;
 
   //!
-  static constexpr ValueType offset() noexcept;
+  static constexpr ValueT offset() noexcept;
 };
 
 // Type aliases

@@ -9,16 +9,45 @@ I would like to thank the following projects.
 * Correlated Multi-Jittered: [Correlated Multi-Jittered Sampling][cmj]
 * Lock-Free Bounded Queue: [A Scalable, Portable, and Memory-Efficient Lock-Free FIFO Queue][scalable_portable_lock_free_queue]
 
+#### flock ####
+
+[github][flock_gihub]
+
+MIT License
+
+Copyright (c) 2020-present
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
 [pcg]: http://www.pcg-random.org/
 [xoshiro]: http://xoshiro.di.unimi.it/
 [cmj]: https://graphics.pixar.com/library/MultiJitteredSampling/paper.pdf
 [scalable_portable_lock_free_queue]: https://arxiv.org/abs/1908.04511
+[flock_gihub]: https://github.com/cmuparlay/flock
 
 ### Submodules ###
 
 I would like to thank the following submodules too.
 
 #### GoogleTest ####
+
+[github][googletest_github]
 
 Copyright 2008, Google Inc.
 All rights reserved.
@@ -51,6 +80,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #### Doxygen dark theme ####
 
+[github][doxygen_dark_theme_github]
+
 MIT License
 
 Copyright (c) 2019 Tilen Majerle
@@ -72,3 +103,6 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+[googletest_github]: https://github.com/google/googletest
+[doxygen_dark_theme_github]: https://github.com/MaJerle/doxygen-dark-theme

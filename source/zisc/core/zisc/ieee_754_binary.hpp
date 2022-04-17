@@ -114,7 +114,7 @@ class Ieee754Binary
 
  public:
   //! Bit representation type
-  using BitType = typename ImplT::BitType;
+  using BitT = typename ImplT::BitT;
 
 
   //! Initialize a value with 0
@@ -125,7 +125,7 @@ class Ieee754Binary
   constexpr Ieee754Binary(const Float value) noexcept;
 
   //! Initialize a value with the given bits
-  constexpr Ieee754Binary(const BitType bits) noexcept;
+  constexpr Ieee754Binary(const BitT bits) noexcept;
 
 
   //! Return the value it's own
@@ -201,7 +201,7 @@ class Ieee754Binary
   // Bit manipulation
 
   //! Return the bits in which a floating point is encoded
-  constexpr BitType bits() const noexcept;
+  constexpr BitT bits() const noexcept;
 
   //! Return the bit length used in the interchange encoding
   static constexpr std::size_t bitSize() noexcept;
@@ -210,7 +210,7 @@ class Ieee754Binary
   static constexpr std::size_t exponentBias() noexcept;
 
   //! Return the exponent bit length
-  static constexpr BitType exponentBitMask() noexcept;
+  static constexpr BitT exponentBitMask() noexcept;
 
   //! Return the exponent bit length
   static constexpr std::size_t exponentBitSize() noexcept;
@@ -219,16 +219,16 @@ class Ieee754Binary
   static constexpr Ieee754BinaryFormat format() noexcept;
 
  //! Return the hidden bit of normal values
-  static constexpr BitType implicitBit() noexcept;
+  static constexpr BitT implicitBit() noexcept;
 
   //! Set the data to the given bits
-  constexpr void setBits(const BitType data) noexcept;
+  constexpr void setBits(const BitT data) noexcept;
 
   //! Return the sign bit mask
-  static constexpr BitType signBitMask() noexcept;
+  static constexpr BitT signBitMask() noexcept;
 
   //! Return the significand bit mask
-  static constexpr BitType significandBitMask() noexcept;
+  static constexpr BitT significandBitMask() noexcept;
 
   //! Return the significand bit length
   static constexpr std::size_t significandBitSize() noexcept;

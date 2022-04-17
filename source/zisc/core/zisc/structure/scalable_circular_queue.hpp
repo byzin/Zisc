@@ -20,12 +20,11 @@
 #include <concepts>
 #include <cstddef>
 #include <memory>
+#include <optional>
 #include <string_view>
 #include <type_traits>
 #include <vector>
 // Zisc
-#include "query_result.hpp"
-#include "query_value.hpp"
 #include "queue.hpp"
 #include "ring_buffer.hpp"
 #include "zisc/error.hpp"
@@ -48,23 +47,21 @@ class ScalableCircularQueue : public Queue<ScalableCircularQueue<T>, T>
 {
  public:
   // Type aliases
-  using BaseQueueType = Queue<ScalableCircularQueue<T>, T>;
-  using Type = typename BaseQueueType::Type;
-  using ConstType = typename BaseQueueType::ConstType;
-  using Reference = typename BaseQueueType::Reference;
-  using RReference = typename BaseQueueType::RReference;
-  using ConstReference = typename BaseQueueType::ConstReference;
-  using Pointer = typename BaseQueueType::Pointer;
-  using ConstPointer = typename BaseQueueType::ConstPointer;
-  using EnqueueQueryResultT = typename BaseQueueType::EnqueueQueryResultT;
-  using DequeueQueryResultT = typename BaseQueueType::DequeueQueryResultT;
+  using BaseQueueT = Queue<ScalableCircularQueue<T>, T>;
+  using ValueT = typename BaseQueueT::ValueT;
+  using ConstT = typename BaseQueueT::ConstT;
+  using Reference = typename BaseQueueT::Reference;
+  using RReference = typename BaseQueueT::RReference;
+  using ConstReference = typename BaseQueueT::ConstReference;
+  using Pointer = typename BaseQueueT::Pointer;
+  using ConstPointer = typename BaseQueueT::ConstPointer;
 
   // Type aliases for STL
-  using container_type = pmr::vector<Type>;
-  using value_type = typename BaseQueueType::value_type;
-  using size_type = typename BaseQueueType::size_type;
-  using reference = typename BaseQueueType::reference;
-  using const_reference = typename BaseQueueType::const_reference;
+  using container_type = pmr::vector<ValueT>;
+  using value_type = typename BaseQueueT::value_type;
+  using size_type = typename BaseQueueT::size_type;
+  using reference = typename BaseQueueT::reference;
+  using const_reference = typename BaseQueueT::const_reference;
 
 
   //! Create a queue
@@ -95,13 +92,19 @@ class ScalableCircularQueue : public Queue<ScalableCircularQueue<T>, T>
   const container_type& data() const noexcept;
 
   //! Take the first element of the queue
-  [[nodiscard]] DequeueQueryResultT dequeue() noexcept;
+  [[nodiscard]] std::optional<ValueT> dequeue() noexcept;
 
   //! Append the given element value to the end of the queue
-  [[nodiscard]] EnqueueQueryResultT enqueue(ConstReference value);
+  [[nodiscard]] std::optional<size_type> enqueue(ConstReference value);
 
   //! Append the given element value to the end of the queue
-  [[nodiscard]] EnqueueQueryResultT enqueue(RReference value);
+  [[nodiscard]] std::optional<size_type> enqueue(RReference value);
+
+  //! Return the value by the given index
+  Reference get(const size_type index) noexcept;
+
+  //! Return the value by the given index
+  ConstReference get(const size_type index) const noexcept;
 
   //! Check if the queue is concurrent
   static constexpr bool isConcurrent() noexcept;
@@ -121,7 +124,7 @@ class ScalableCircularQueue : public Queue<ScalableCircularQueue<T>, T>
  private:
   //! Append the given element value to the end of the queue
   template <typename ValueT>
-  [[nodiscard]] EnqueueQueryResultT enqueueImpl(ValueT&& value);
+  [[nodiscard]] std::optional<size_type> enqueueImpl(ValueT&& value);
 
 
   RingBuffer free_elements_;

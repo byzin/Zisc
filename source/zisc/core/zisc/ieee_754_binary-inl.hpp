@@ -197,7 +197,7 @@ constexpr Ieee754Binary<kFormat>::Ieee754Binary(const Float value) noexcept :
   \param [in] data No description.
   */
 template <Ieee754BinaryFormat kFormat> inline
-constexpr Ieee754Binary<kFormat>::Ieee754Binary(const BitType bits) noexcept :
+constexpr Ieee754Binary<kFormat>::Ieee754Binary(const BitT bits) noexcept :
     impl_{bits}
 {
 }
@@ -475,16 +475,16 @@ constexpr auto Ieee754Binary<kFormat>::zero() noexcept -> Ieee754Binary
   \return No description
   */
 template <Ieee754BinaryFormat kFormat> inline
-constexpr auto Ieee754Binary<kFormat>::bits() const noexcept -> BitType
+constexpr auto Ieee754Binary<kFormat>::bits() const noexcept -> BitT
 {
   const auto data = impl().data();
   using DataT = std::remove_cvref_t<decltype(data)>;
   static_assert(std::is_trivially_copyable_v<DataT>,
                 "DataType of the impl isn't trivially copyable.");
-  if constexpr (std::is_same_v<BitType, DataT>)
+  if constexpr (std::is_same_v<BitT, DataT>)
     return data;
   else
-    return bit_cast<BitType>(data);
+    return bit_cast<BitT>(data);
 }
 
 /*!
@@ -518,7 +518,7 @@ constexpr std::size_t Ieee754Binary<kFormat>::exponentBias() noexcept
   \return No description
   */
 template <Ieee754BinaryFormat kFormat> inline
-constexpr auto Ieee754Binary<kFormat>::exponentBitMask() noexcept -> BitType
+constexpr auto Ieee754Binary<kFormat>::exponentBitMask() noexcept -> BitT
 {
   return SoftwareImplT::exponentBitMask();
 }
@@ -551,7 +551,7 @@ constexpr Ieee754BinaryFormat Ieee754Binary<kFormat>::format() noexcept
   \return No description
   */
 template <Ieee754BinaryFormat kFormat> inline
-constexpr auto Ieee754Binary<kFormat>::implicitBit() noexcept -> BitType
+constexpr auto Ieee754Binary<kFormat>::implicitBit() noexcept -> BitT
 {
   return SoftwareImplT::implicitBit();
 }
@@ -562,7 +562,7 @@ constexpr auto Ieee754Binary<kFormat>::implicitBit() noexcept -> BitType
   \param [in] data No description.
   */
 template <Ieee754BinaryFormat kFormat> inline
-constexpr void Ieee754Binary<kFormat>::setBits(const BitType data) noexcept
+constexpr void Ieee754Binary<kFormat>::setBits(const BitT data) noexcept
 {
   impl().setBits(data);
 }
@@ -573,7 +573,7 @@ constexpr void Ieee754Binary<kFormat>::setBits(const BitType data) noexcept
   \return No description
   */
 template <Ieee754BinaryFormat kFormat> inline
-constexpr auto Ieee754Binary<kFormat>::signBitMask() noexcept -> BitType
+constexpr auto Ieee754Binary<kFormat>::signBitMask() noexcept -> BitT
 {
   return SoftwareImplT::signBitMask();
 }
@@ -584,7 +584,7 @@ constexpr auto Ieee754Binary<kFormat>::signBitMask() noexcept -> BitType
   \return No description
   */
 template <Ieee754BinaryFormat kFormat> inline
-constexpr auto Ieee754Binary<kFormat>::significandBitMask() noexcept -> BitType
+constexpr auto Ieee754Binary<kFormat>::significandBitMask() noexcept -> BitT
 {
   return SoftwareImplT::significandBitMask();
 }
@@ -681,7 +681,7 @@ constexpr bool operator<(const Ieee754Binary<kFormat>& lhs,
   bool result = !(isNan(lhs) || isNan(rhs) || (lhs.isZero() && rhs.isZero()));
   if (result) {
     using BinaryT = Ieee754Binary<kFormat>;
-    using BitT = typename BinaryT::BitType;
+    using BitT = typename BinaryT::BitT;
     using SignedT = std::make_signed_t<BitT>;
     const auto get_signed = [](const BitT u) noexcept
     {

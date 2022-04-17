@@ -38,11 +38,11 @@ class Ieee754BinarySoftwareImpl
 {
  public:
   //! Bit representation type
-  using BitType = std::conditional_t<kFormat == Ieee754BinaryFormat::kHalf,   uint16b,
-                  std::conditional_t<kFormat == Ieee754BinaryFormat::kSingle, uint32b,
-                                                                              uint64b>>;
+  using BitT = std::conditional_t<kFormat == Ieee754BinaryFormat::kHalf,   uint16b,
+               std::conditional_t<kFormat == Ieee754BinaryFormat::kSingle, uint32b,
+                                                                           uint64b>>;
   //! Internal data type
-  using DataType = BitType;
+  using DataType = BitT;
 
 
   //! Initialize a value with 0
@@ -53,7 +53,7 @@ class Ieee754BinarySoftwareImpl
   constexpr Ieee754BinarySoftwareImpl(const Float value) noexcept;
 
   //! Initialize a value with the given bit data
-  constexpr Ieee754BinarySoftwareImpl(const BitType bits) noexcept;
+  constexpr Ieee754BinarySoftwareImpl(const BitT bits) noexcept;
 
 
   //! Return the negative of the value
@@ -74,49 +74,49 @@ class Ieee754BinarySoftwareImpl
   constexpr DataType data() const noexcept;
 
   //! Return the machine epsilon
-  static constexpr BitType epsilon() noexcept;
+  static constexpr BitT epsilon() noexcept;
 
   //! Return the infinity
-  static constexpr BitType infinity() noexcept;
+  static constexpr BitT infinity() noexcept;
 
   //! Check if the underlying value is finite
-  static constexpr bool isFinite(const BitType bits) noexcept;
+  static constexpr bool isFinite(const BitT bits) noexcept;
 
   //! Check if the underlying value is infinity
-  static constexpr bool isInf(const BitType bits) noexcept;
+  static constexpr bool isInf(const BitT bits) noexcept;
 
   //! Check if the underlying value is NaN 
-  static constexpr bool isNan(const BitType bits) noexcept;
+  static constexpr bool isNan(const BitT bits) noexcept;
 
   //! Check if the underlying value is normal
-  static constexpr bool isNormal(const BitType bits) noexcept;
+  static constexpr bool isNormal(const BitT bits) noexcept;
 
   //! Check if the underlying value is subnormal
-  static constexpr bool isSubnormal(const BitType bits) noexcept;
+  static constexpr bool isSubnormal(const BitT bits) noexcept;
 
   //! Check if the underlying value is zero
-  static constexpr bool isZero(const BitType bits) noexcept;
+  static constexpr bool isZero(const BitT bits) noexcept;
 
   //! Return the largest normal value
-  static constexpr BitType max() noexcept;
+  static constexpr BitT max() noexcept;
 
   //! Return the smallest normal value
-  static constexpr BitType min() noexcept;
+  static constexpr BitT min() noexcept;
 
   //! Return the positive one value
-  static constexpr BitType one() noexcept;
+  static constexpr BitT one() noexcept;
 
   //! Return a quiet NaN
-  static constexpr BitType quietNan() noexcept;
+  static constexpr BitT quietNan() noexcept;
 
   //! Return the largest possible rounding error in ULPs
-  static constexpr BitType roundError() noexcept;
+  static constexpr BitT roundError() noexcept;
 
   //! Return a signaling NaN
-  static constexpr BitType signalingNan() noexcept;
+  static constexpr BitT signalingNan() noexcept;
 
   //! Return the positive zero
-  static constexpr BitType zero() noexcept;
+  static constexpr BitT zero() noexcept;
 
   // Bit manipulation
 
@@ -127,7 +127,7 @@ class Ieee754BinarySoftwareImpl
   static constexpr std::size_t exponentBias() noexcept;
 
   //! Return the exponent bit length
-  static constexpr BitType exponentBitMask() noexcept;
+  static constexpr BitT exponentBitMask() noexcept;
 
   //! Return the exponent bit length
   static constexpr std::size_t exponentBitSize() noexcept;
@@ -136,39 +136,39 @@ class Ieee754BinarySoftwareImpl
   static constexpr Ieee754BinaryFormat format() noexcept;
 
   //! Return the biased exponent from the given bits
-  static constexpr BitType getBiasedExponent(const BitType bits) noexcept;
+  static constexpr BitT getBiasedExponent(const BitT bits) noexcept;
 
   //! Return the exponent from the given bits
-  static constexpr int getExponent(const BitType bits) noexcept;
+  static constexpr int getExponent(const BitT bits) noexcept;
 
   //! Return the exponent bits from the given bits
-  static constexpr BitType getExponentBits(const BitType bits) noexcept;
+  static constexpr BitT getExponentBits(const BitT bits) noexcept;
 
   //! Return the sign bit from the given bits
-  static constexpr BitType getSignBit(const BitType bits) noexcept;
+  static constexpr BitT getSignBit(const BitT bits) noexcept;
 
   //! Return the significand bits from the given bits
-  static constexpr BitType getSignificandBits(const BitType bits) noexcept;
+  static constexpr BitT getSignificandBits(const BitT bits) noexcept;
 
   //! Return the hidden bit of normal values
-  static constexpr BitType implicitBit() noexcept;
+  static constexpr BitT implicitBit() noexcept;
 
   //! Return the nevative of the given value
-  static constexpr BitType negateBits(const BitType bits) noexcept;
+  static constexpr BitT negateBits(const BitT bits) noexcept;
 
   //! Round the given value with the trailing bits
   template <Ieee754RoundingMode kMode, UnsignedInteger Integer>
-  static constexpr BitType round(const BitType bits,
+  static constexpr BitT round(const BitT bits,
                                  const Integer trailing_bits) noexcept;
 
   //! Set the data to the given bits
-  constexpr void setBits(const BitType bits) noexcept;
+  constexpr void setBits(const BitT bits) noexcept;
 
   //! Return the sign bit mask
-  static constexpr BitType signBitMask() noexcept;
+  static constexpr BitT signBitMask() noexcept;
 
   //! Return the significand bit mask
-  static constexpr BitType significandBitMask() noexcept;
+  static constexpr BitT significandBitMask() noexcept;
 
   //! Return the significand bit length
   static constexpr std::size_t significandBitSize() noexcept;
@@ -197,7 +197,7 @@ class Ieee754BinarySoftwareImpl
   // Bit manipulation
 
   //! Return the significand bits with implicit bit from the given bits
-  static constexpr BitType getRealSignificandBits(const BitType bits) noexcept;
+  static constexpr BitT getRealSignificandBits(const BitT bits) noexcept;
 
 
   DataType data_;

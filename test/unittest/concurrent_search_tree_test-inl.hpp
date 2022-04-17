@@ -24,6 +24,7 @@
 #include <iostream>
 #include <limits>
 #include <numeric>
+#include <optional>
 #include <random>
 #include <utility>
 #include <vector>
@@ -93,7 +94,7 @@ void SearchTreeTest::testConcurrentThroughputOp(
     const bool use_sparse,
     const bool use_zipfian,
     const double zipfian_param,
-    zisc::SearchTree<SearchTreeClass>* search_tree)
+    zisc::SearchTree<SearchTreeClass, zisc::uint64b>* search_tree)
 {
   std::mt19937_64 sampler{sampler_seed};
   const auto [source_list, input_list] = generateSearchTreeInputList(num_of_keys,
@@ -158,8 +159,8 @@ void SearchTreeTest::testConcurrentThroughputOp(
           if (end <= begin)
             break;
           for (std::size_t i = begin; i < end; ++i) {
-            zisc::QueryResult<zisc::uint64b> result = search_tree->contain(inputs[i]);
-            ASSERT_TRUE(result.isSuccess()) << "Key not found, i = " << inputs[i];
+            std::optional<zisc::uint64b> result = search_tree->contain(inputs[i]);
+            ASSERT_TRUE(result.has_value()) << "Key not found, i = " << inputs[i];
           }
         }
       });
@@ -232,7 +233,7 @@ void SearchTreeTest::testConcurrentThroughputTime(
     const bool use_sparse,
     const bool use_zipfian,
     const double zipfian_param,
-    zisc::SearchTree<SearchTreeClass>* search_tree)
+    zisc::SearchTree<SearchTreeClass, zisc::uint64b>* search_tree)
 {
   std::mt19937_64 sampler{sampler_seed};
   const auto [source_list, input_list] = generateSearchTreeInputList(2 * num_of_keys,
@@ -329,7 +330,7 @@ void SearchTreeTest::testConcurrentThroughputTimeImpl(
     const std::vector<zisc::uint64b>& input_list,
     const std::vector<Operation>& op_list,
     const std::size_t i,
-    zisc::SearchTree<SearchTreeClass>* search_tree,
+    zisc::SearchTree<SearchTreeClass, zisc::uint64b>* search_tree,
     std::vector<std::size_t>* total_list,
     std::vector<zisc::int64b>* added_list,
     std::atomic_flag* finish)
@@ -365,14 +366,14 @@ void SearchTreeTest::testConcurrentThroughputTimeImpl(
     }
     switch (op_list[j]) {
      case Operation::kAdd: {
-      const zisc::QueryResult<uint64b> result = search_tree->add(input_list[j]);
-      if (result.isSuccess())
+      const std::optional<uint64b> result = search_tree->add(input_list[j]);
+      if (result.has_value())
         ++added;
       break;
      }
      case Operation::kRemove: {
-      const zisc::QueryResult<uint64b> result = search_tree->remove(input_list[j]);
-      if (result.isSuccess())
+      const std::optional<uint64b> result = search_tree->remove(input_list[j]);
+      if (result.has_value())
         --added;
       break;
      }

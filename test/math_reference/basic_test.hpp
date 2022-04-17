@@ -49,7 +49,7 @@ constexpr Float makeNormal(const Float x) noexcept
   constexpr auto bias = cast<int>(Binary::exponentBias());
   const int expt = zisc::clamp(cast<int>(k * cast<Float>(bias)), -bias + 1, bias);
   // Significand
-  using BitT = typename Binary::BitType;
+  using BitT = typename Binary::BitT;
   using Fnv1aHash = zisc::Fnv1aHashEngine<BitT>;
   const BitT h = Fnv1aHash::hash(zisc::bit_cast<BitT>(x));
   const Float s = zisc::mapTo01<Float>(h);
@@ -398,7 +398,7 @@ template <std::floating_point Float> inline
 constexpr F3<Float> makeFmaInput(const Float x) noexcept
 {
   using Binary = zisc::BinaryFromBytes<sizeof(Float)>;
-  using BitT = typename Binary::BitType;
+  using BitT = typename Binary::BitT;
   using Fnv1aHash = zisc::Fnv1aHashEngine<BitT>;
 
   constexpr auto t = zisc::cast<Float>(2.0);
@@ -427,7 +427,7 @@ template <std::floating_point Float> inline
 constexpr F2<Float> makeFmodInput(const Float x) noexcept
 {
   using Binary = zisc::BinaryFromBytes<sizeof(Float)>;
-  using BitT = typename Binary::BitType;
+  using BitT = typename Binary::BitT;
   using Fnv1aHash = zisc::Fnv1aHashEngine<BitT>;
 
   constexpr auto t = zisc::cast<Float>(2.0);

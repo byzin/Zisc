@@ -38,7 +38,7 @@ template <> constexpr zisc::uint16b getSeed<zisc::uint16b>() {return 12345u;}
 template <typename GeneratorClass, typename ValueT>
 void generateRandomNumbers(PrnEngine<GeneratorClass, ValueT>* engine)
 {
-  using ValueType = typename GeneratorClass::ValueType;
+  using ValueType = typename GeneratorClass::ValueT;
   auto seed = getSeed<ValueType>();
   auto update_engine = [engine, &seed](std::uint32_t& s)
   {
@@ -67,7 +67,7 @@ void generateRandomNumbers(PrnEngine<GeneratorClass, ValueT>* engine)
 template <typename GeneratorClass>
 void runRngTest([[maybe_unused]] const std::string_view& name)
 {
-  using ValueType = typename GeneratorClass::ValueType;
+  using ValueType = typename GeneratorClass::ValueT;
   constexpr auto seed = getSeed<ValueType>();
   GeneratorClass engine{seed};
   generateRandomNumbers(&engine);

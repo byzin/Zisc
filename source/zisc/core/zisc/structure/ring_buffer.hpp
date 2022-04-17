@@ -50,6 +50,9 @@ class RingBuffer
   RingBuffer& operator=(RingBuffer&& other) noexcept;
 
 
+  //! Return the maximum possible capacity
+  static constexpr std::size_t capacityMax() noexcept;
+
   //! Clear indices
   void clear() noexcept;
 
@@ -57,13 +60,13 @@ class RingBuffer
   static constexpr uint64b overflowIndex() noexcept;
 
   //! Take the first element of the queue
-  uint64b dequeue(const bool nonempty) noexcept;
+  std::size_t dequeue(const bool nonempty) noexcept;
 
   //! Return the distance between head and tail
   std::size_t distance() const noexcept;
 
   //! Append the given element value to the end of the queue
-  bool enqueue(const uint64b index, const bool nonempty) noexcept;
+  bool enqueue(const std::size_t index, const bool nonempty) noexcept;
 
   //! Fill the buffer data
   void fill(const uint64b s, const uint64b e) noexcept;

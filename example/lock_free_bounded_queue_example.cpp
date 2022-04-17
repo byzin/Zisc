@@ -55,10 +55,8 @@ int main()
     std::cout << "  queue size: " << q.size() << ", elements [";
     for (std::size_t i = 0; i < values.size(); ++i) {
       const auto result = q.dequeue();
-      if (result.isSuccess()) {
-        const int value = result;
-        std::cout << value;
-      }
+      if (result.has_value())
+        std::cout << *result;
       if (i == (values.size() - 1))
         break;
       std::cout << ", ";
@@ -101,10 +99,8 @@ int main()
     {
       for (std::size_t i = 0; i < works_per_thread; ++i) {
         const auto result = q.dequeue();
-        if (result.isSuccess()) {
-          const int value = result;
-          results[value] = 1;
-        }
+        if (result.has_value())
+          results[*result] = 1;
       }
     };
     for (std::size_t i = 0; i < num_of_threads; ++i)

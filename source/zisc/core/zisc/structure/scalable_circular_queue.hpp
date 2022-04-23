@@ -106,6 +106,9 @@ class ScalableCircularQueue : public Queue<ScalableCircularQueue<T>, T>
   //! Return the value by the given index
   ConstReference get(const size_type index) const noexcept;
 
+  //! Check if the queue is bounded
+  static constexpr bool isBounded() noexcept;
+
   //! Check if the queue is concurrent
   static constexpr bool isConcurrent() noexcept;
 
@@ -135,9 +138,9 @@ class ScalableCircularQueue : public Queue<ScalableCircularQueue<T>, T>
 } // namespace zisc
 
 /*!
-  \example lock_free_bounded_queue_example.cpp
+  \example concurrent_bounded_queue_example.cpp
 
-  This is an example of how to use zisc::LockFreeQueue.
+  This is an example of how to use zisc::Queue.
   */
 
 #include "scalable_circular_queue-inl.hpp"

@@ -116,12 +116,12 @@ void DataStorage<T>::store(DataT&& data) noexcept
     else { // is_constructible
       auto p = ptr();
       std::destroy_at(p);
-      new (p) Type{std::forward<DataT>(data)};
+      ::new (p) Type{std::forward<DataT>(data)};
     }
   }
   else {
     if constexpr (std::is_assignable_v<T, DataT>) {
-      new (ptr()) Type{std::forward<DataT>(data)};
+      ::new (ptr()) Type{std::forward<DataT>(data)};
     }
     static_assert(!std::is_constructible_v<T, DataT>,
                   "The data isn't able to be constructible.");

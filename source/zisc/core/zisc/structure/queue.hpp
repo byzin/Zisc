@@ -170,7 +170,7 @@ class Queue : private NonCopyable<Queue<QueueClass, T>>
 } // namespace zisc
 
 /*!
-  \example lock_free_bounded_queue_example.cpp
+  \example concurrent_bounded_queue_example.cpp
 
   This is an example of how to use zisc::Queue.
   */

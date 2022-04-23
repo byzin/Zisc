@@ -151,8 +151,7 @@ SearchTreeTest::generateSearchTreeInputList(const std::size_t num_of_keys,
     auto last = std::unique(sources.begin(), sources.end());
     sources.erase(last, sources.end());
     std::shuffle(sources.begin(), sources.end(), sampler);
-    std::transform(sources.begin(), sources.end(), sources.begin(),
-                   [](const uint64b in){return in + 1;});
+    std::for_each(sources.begin(), sources.end(), [](uint64b& in){++in;});
   }
   else {
     sources.resize(num_of_keys);
@@ -166,20 +165,18 @@ SearchTreeTest::generateSearchTreeInputList(const std::size_t num_of_keys,
   if (use_zipfian) {
     const std::size_t n = inputs.size();
     const Zipfian z{n, zipfian_param};
-    std::transform(inputs.begin(), inputs.end(), inputs.begin(),
-                   [&z, &sources](const uint64b in)
+    std::for_each(inputs.begin(), inputs.end(), [&z, &sources](uint64b& in)
     {
       const std::size_t index = z(in);
-      return sources[index];
+      in = sources[index];
     });
   }
   else {
     const std::size_t n = inputs.size();
-    std::transform(inputs.begin(), inputs.end(), inputs.begin(),
-                   [n, &sources](const uint64b in)
+    std::for_each(inputs.begin(), inputs.end(), [n, &sources](uint64b& in)
     {
       const std::size_t index = zisc::Fnv1aHash64::hash(in) % n;
-      return sources[index];
+      in = sources[index];
     });
   }
 
@@ -204,8 +201,8 @@ auto SearchTreeTest::generateSearchTreeOpList(
     for (zisc::uint64b i = 0; i < num_of_samples; ++i) {
       const zisc::uint64b h = zisc::Fnv1aHash64::hash(num_of_samples + i);
       const Operation op = (h % count == 0) ? Operation::kAdd :
-                                     (h % count == 1) ? Operation::kRemove
-                                                      : Operation::kContain;
+                           (h % count == 1) ? Operation::kRemove
+                                            : Operation::kContain;
       op_list[i] = op;
     }
   }

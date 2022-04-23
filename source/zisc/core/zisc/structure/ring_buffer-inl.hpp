@@ -523,7 +523,7 @@ void RingBuffer::initialize() noexcept
   for (std::size_t i = 0; i < size(); ++i) {
     using AtomicT = std::remove_cvref_t<decltype(getIndex(i))>;
     auto mem = std::addressof(getIndex(i));
-    ::new(mem) AtomicT{};
+    ::new (mem) AtomicT{};
   }
 
   if (memory_.size() < 3)
@@ -533,19 +533,19 @@ void RingBuffer::initialize() noexcept
   {
     using AtomicT = std::remove_cvref_t<decltype(head())>;
     auto mem = std::addressof(head());
-    ::new(mem) AtomicT{};
+    ::new (mem) AtomicT{};
   }
   // Threshold
   {
     using AtomicT = std::remove_cvref_t<decltype(threshold())>;
     auto mem = std::addressof(threshold());
-    ::new(mem) AtomicT{};
+    ::new (mem) AtomicT{};
   }
   // Tail
   {
     using AtomicT = std::remove_cvref_t<decltype(tail())>;
     auto mem = std::addressof(tail());
-    ::new(mem) AtomicT{};
+    ::new (mem) AtomicT{};
   }
 }
 

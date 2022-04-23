@@ -222,6 +222,17 @@ auto ScalableCircularQueue<T>::get(const size_type index) const noexcept -> Cons
   \return No description
   */
 template <std::movable T> inline
+constexpr bool ScalableCircularQueue<T>::isBounded() noexcept
+{
+  return true;
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+template <std::movable T> inline
 constexpr bool ScalableCircularQueue<T>::isConcurrent() noexcept
 {
   return true;

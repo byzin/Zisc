@@ -1,5 +1,5 @@
 /*!
-  \file lock_free_bounded_queue_example.cpp
+  \file concurrent_bounded_queue_example.cpp
   \author Sho Ikeda
 
   Copyright (c) 2015-2022 Sho Ikeda
@@ -8,15 +8,18 @@
   */
 
 // Standard C++ library
+#include <algorithm>
 #include <atomic>
 #include <cstddef>
 #include <iostream>
 #include <memory>
+#include <optional>
 #include <string_view>
 #include <thread>
 #include <type_traits>
 #include <vector>
 // Zisc
+#include "zisc/error.hpp"
 #include "zisc/zisc_config.hpp"
 #include "zisc/memory/simple_memory_resource.hpp"
 #include "zisc/structure/queue.hpp"
@@ -45,23 +48,35 @@ int main()
   zisc::SimpleMemoryResource mem_resource;
   Queue q{&mem_resource};
 
+  static_assert(Queue::isBounded(), "The queue isn't bounded queue.");
+  static_assert(Queue::isConcurrent(), "The queue doesn't support concurrency.");
+
+  // Bounded queue
   {
     std::cout << "Enqueing values [3, 1, 4, 5, 0, 2]." << std::endl;
     std::vector<int> values{{3, 1, 4, 5, 0, 2}};
     q.setCapacity(values.size());
-    for (const int value : values) {
-      [[maybe_unused]] const auto result = q.enqueue(value);
+    try {
+      std::for_each(values.begin(), values.end(), [&q](const int& in)
+      {
+        [[maybe_unused]] const std::optional<std::size_t> result = q.enqueue(in);
+        ZISC_ASSERT(result.has_value(), "Enqueing failed. value=", in);
+      });
     }
-    std::cout << "  queue size: " << q.size() << ", elements [";
+    catch (const Queue::OverflowError& error) {
+      std::cerr << "  queue overflow happened. value=" << error.get() << std::endl;
+    }
+    std::cout << "  queue size: " << q.size() << std::endl;
+
+    std::cout << "Dequeing values [";
     for (std::size_t i = 0; i < values.size(); ++i) {
-      const auto result = q.dequeue();
+      const std::optional<int> result = q.dequeue();
       if (result.has_value())
         std::cout << *result;
-      if (i == (values.size() - 1))
-        break;
       std::cout << ", ";
     }
     std::cout << "]" << std::endl;
+    std::cout << "  queue size: " << q.size() << std::endl;
   }
 
   {
@@ -69,50 +84,62 @@ int main()
     static constexpr std::size_t works_per_thread = 262144;
     static constexpr std::size_t num_of_works = num_of_threads * works_per_thread;
 
-    std::cout << "Multiple producer: " << num_of_threads << " threads, "
-              << num_of_works << " int elements." << std::endl;
-    q.setCapacity(num_of_works);
-
+    // Threads
     std::vector<std::thread> workers;
     workers.reserve(num_of_threads);
 
-    std::atomic_size_t counter = 0;
-    auto enqueue_job = [&q, &counter]()
+    std::cout << "Multiple producer: " << num_of_threads << " threads, "
+              << num_of_works << " int elements." << std::endl;
+    q.setCapacity(num_of_works);
+    std::atomic_int worker_lock{-1};
+    std::atomic_size_t counter{0};
+    auto enqueue_job = [&q, &worker_lock, &counter]()
     {
+      // Wiat until all threads become ready
+      worker_lock.wait(-1, std::memory_order::acquire);
+      // Do actual jobs
       const std::size_t id = counter++;
       for (std::size_t i = 0; i < works_per_thread; ++i) {
         const int value = static_cast<int>(id * works_per_thread + i);
-        [[maybe_unused]] const auto result = q.enqueue(value);
+        [[maybe_unused]] const std::optional<std::size_t> result = q.enqueue(value);
       }
     };
     for (std::size_t i = 0; i < num_of_threads; ++i)
       workers.emplace_back(enqueue_job);
-    for (std::size_t i = 0; i < num_of_threads; ++i)
-      workers[i].join();
+    worker_lock.store(zisc::cast<int>(workers.size()), std::memory_order::release);
+    worker_lock.notify_all();
+    std::for_each(workers.begin(), workers.end(), [](std::thread& w){w.join();});
     workers.clear();
 
     std::cout << "Multiple consumer: " << num_of_threads << " threads, "
               << num_of_works << " int elements." << std::endl;
     std::vector<int> results;
     results.resize(num_of_works, 0);
-    auto dequeue_job = [&q, &results]() noexcept
+    worker_lock.store(-1, std::memory_order::release);
+    auto dequeue_job = [&q, &results, &worker_lock]() noexcept
     {
+      // Wiat until all threads become ready
+      worker_lock.wait(-1, std::memory_order::acquire);
+      // Do actual jobs
       for (std::size_t i = 0; i < works_per_thread; ++i) {
-        const auto result = q.dequeue();
+        const std::optional<int> result = q.dequeue();
         if (result.has_value())
           results[*result] = 1;
       }
     };
     for (std::size_t i = 0; i < num_of_threads; ++i)
       workers.emplace_back(dequeue_job);
-    for (std::size_t i = 0; i < num_of_threads; ++i)
-      workers[i].join();
+    worker_lock.store(zisc::cast<int>(workers.size()), std::memory_order::release);
+    worker_lock.notify_all();
+    std::for_each(workers.begin(), workers.end(), [](std::thread& w){w.join();});
+    workers.clear();
 
     // Validate results
-    for (std::size_t i = 0; i < num_of_works; ++i) {
-      if (results[i] == 0)
-        std::cout << "Multipe producer multiple consumer test failed." << std::endl;
-    }
+    std::for_each(results.begin(), results.end(), [](const int& result)
+    {
+      if (result == 0)
+        std::cerr << "  multipe producer multiple consumer test failed." << std::endl;
+    });
   }
 
   return 0;

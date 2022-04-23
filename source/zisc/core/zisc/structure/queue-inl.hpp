@@ -244,8 +244,7 @@ constexpr bool Queue<QueueClass, T>::isBounded() noexcept
 template <typename QueueClass, std::movable T> inline
 constexpr bool Queue<QueueClass, T>::isConcurrent() noexcept
 {
-  const bool result = QueueT::isConcurrent();
-  return result;
+  return QueueT::isConcurrent();
 }
 
 /*!

@@ -108,8 +108,8 @@ macro(setExampleProject)
              ${PROJECT_SOURCE_DIR}/csv_example.cpp)
   addExample(ErrorExample OFF
              ${PROJECT_SOURCE_DIR}/error_example.cpp)
-  addExample(LockFreeBoundedQueueExample OFF
-             ${PROJECT_SOURCE_DIR}/lock_free_bounded_queue_example.cpp)
+  addExample(ConcurrentBoundedQueueExample OFF
+             ${PROJECT_SOURCE_DIR}/concurrent_bounded_queue_example.cpp)
   addExample(PseudoRandomNumberEngineExample OFF
              ${PROJECT_SOURCE_DIR}/pseudo_random_number_engine_example.cpp)
   addExample(StopwatchExample OFF

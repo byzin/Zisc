@@ -26,9 +26,9 @@
 #include <numeric>
 #include <optional>
 #include <random>
+#include <thread>
 #include <utility>
 #include <vector>
-#include <thread>
 // GoogleTest
 #include "googletest.hpp"
 // Zisc
@@ -96,6 +96,8 @@ void SearchTreeTest::testConcurrentThroughputOp(
     const double zipfian_param,
     zisc::SearchTree<SearchTreeClass, zisc::uint64b>* search_tree)
 {
+  using zisc::uint64b;
+  static_assert(search_tree->isConcurrent(), "The tree doesn't support concurrency.");
   std::mt19937_64 sampler{sampler_seed};
   const auto [source_list, input_list] = generateSearchTreeInputList(num_of_keys,
                                                                      use_sparse,
@@ -113,22 +115,24 @@ void SearchTreeTest::testConcurrentThroughputOp(
     std::vector<std::thread> worker_list;
     worker_list.reserve(num_of_threads);
     // Insertion test
-    for (std::size_t i = 0; i < worker_list.size(); ++i) {
+    for (std::size_t i = 0; i < num_of_threads; ++i) {
       const auto& inputs = input_list;
-      worker_list.emplace([num_of_samples, &inputs, search_tree, &count, &worker_lock]()
+      worker_list.emplace_back([num_of_samples, &inputs, search_tree, &count, &worker_lock]()
       {
         // Wait this thread until all threads become ready
         worker_lock.wait(-1, std::memory_order::acquire);
         // Do the actual test
         while (true) {
-          const std::size_t index = count.fetch_add(1, std::memory_order_acq_rel);
+          const std::size_t index = count.fetch_add(1, std::memory_order::acq_rel);
           const std::size_t begin = index * batch_size;
-          const std::size_t end = (std::max)((index + 1) * batch_size, num_of_samples);
+          const std::size_t end = (std::min)((index + 1) * batch_size, num_of_samples);
           if (end <= begin)
             break;
-          for (std::size_t i = begin; i < end; ++i) {
-            [[maybe_unused]] auto result = search_tree->add(inputs[i]);
-          }
+          const std::size_t n = end - begin;
+          std::for_each_n(inputs.begin() + begin, n, [search_tree](const uint64b& in)
+          {
+            [[maybe_unused]] const auto result = search_tree->add(in);
+          });
         }
       });
     }
@@ -136,8 +140,7 @@ void SearchTreeTest::testConcurrentThroughputOp(
     worker_lock.store(zisc::cast<int>(worker_list.size()));
     worker_lock.notify_all();
     // Wait the test done
-    for (std::thread& worker : worker_list)
-      worker.join();
+    std::for_each_n(worker_list.begin(), num_of_threads, [](std::thread& w){w.join();});
     worker_list.clear();
 
     // Search test
@@ -145,23 +148,25 @@ void SearchTreeTest::testConcurrentThroughputOp(
     std::shuffle(sequence.begin(), sequence.end(), sampler);
     worker_lock.store(-1, std::memory_order::release);
     count.store(0, std::memory_order::release);
-    for (std::size_t i = 0; i < worker_list.size(); ++i) {
+    for (std::size_t i = 0; i < num_of_threads; ++i) {
       const auto& inputs = sequence;
-      worker_list.emplace([num_of_samples, &inputs, search_tree, &count, &worker_lock]()
+      worker_list.emplace_back([num_of_samples, &inputs, search_tree, &count, &worker_lock]()
       {
         // Wait this thread until all threads become ready
         worker_lock.wait(-1, std::memory_order::acquire);
         // Do the actual test
         while (true) {
-          const std::size_t index = count.fetch_add(1, std::memory_order_acq_rel);
+          const std::size_t index = count.fetch_add(1, std::memory_order::acq_rel);
           const std::size_t begin = index * batch_size;
-          const std::size_t end = (std::max)((index + 1) * batch_size, num_of_samples);
+          const std::size_t end = (std::min)((index + 1) * batch_size, num_of_samples);
           if (end <= begin)
             break;
-          for (std::size_t i = begin; i < end; ++i) {
-            std::optional<zisc::uint64b> result = search_tree->contain(inputs[i]);
-            ASSERT_TRUE(result.has_value()) << "Key not found, i = " << inputs[i];
-          }
+          const std::size_t n = end - begin;
+          std::for_each_n(inputs.begin() + begin, n, [search_tree](const uint64b& in)
+          {
+            const std::optional<std::size_t> result = search_tree->contain(in);
+            ASSERT_TRUE(result.has_value()) << "Key not found, input = " << in;
+          });
         }
       });
     }
@@ -169,30 +174,31 @@ void SearchTreeTest::testConcurrentThroughputOp(
     worker_lock.store(zisc::cast<int>(worker_list.size()));
     worker_lock.notify_all();
     // Wait the test done
-    for (std::thread& worker : worker_list)
-      worker.join();
+    std::for_each_n(worker_list.begin(), num_of_threads, [](std::thread& w){w.join();});
     worker_list.clear();
 
     // Delete test
     std::shuffle(sequence.begin(), sequence.end(), sampler);
     worker_lock.store(-1, std::memory_order::release);
     count.store(0, std::memory_order::release);
-    for (std::size_t i = 0; i < worker_list.size(); ++i) {
+    for (std::size_t i = 0; i < num_of_threads; ++i) {
       const auto& inputs = sequence;
-      worker_list.emplace([num_of_samples, &inputs, search_tree, &count, &worker_lock]()
+      worker_list.emplace_back([num_of_samples, &inputs, search_tree, &count, &worker_lock]()
       {
         // Wait this thread until all threads become ready
         worker_lock.wait(-1, std::memory_order::acquire);
         // Do the actual test
         while (true) {
-          const std::size_t index = count.fetch_add(1, std::memory_order_acq_rel);
+          const std::size_t index = count.fetch_add(1, std::memory_order::acq_rel);
           const std::size_t begin = index * batch_size;
-          const std::size_t end = (std::max)((index + 1) * batch_size, num_of_samples);
+          const std::size_t end = (std::min)((index + 1) * batch_size, num_of_samples);
           if (end <= begin)
             break;
-          for (std::size_t i = begin; i < end; ++i) {
-            [[maybe_unused]] auto result = search_tree->remove(inputs[i]);
-          }
+          const std::size_t n = end - begin;
+          std::for_each_n(inputs.begin() + begin, n, [search_tree](const uint64b& in)
+          {
+            [[maybe_unused]] const auto result = search_tree->remove(in);
+          });
         }
       });
     }
@@ -200,8 +206,7 @@ void SearchTreeTest::testConcurrentThroughputOp(
     worker_lock.store(zisc::cast<int>(worker_list.size()));
     worker_lock.notify_all();
     // Wait the test done
-    for (std::thread& worker : worker_list)
-      worker.join();
+    std::for_each_n(worker_list.begin(), num_of_threads, [](std::thread& w){w.join();});
     ASSERT_EQ(0, search_tree->size()) << "The search tree isn't empty.";
   }
 }
@@ -235,6 +240,8 @@ void SearchTreeTest::testConcurrentThroughputTime(
     const double zipfian_param,
     zisc::SearchTree<SearchTreeClass, zisc::uint64b>* search_tree)
 {
+  using zisc::uint64b;
+  static_assert(search_tree->isConcurrent(), "The tree doesn't support concurrency.");
   std::mt19937_64 sampler{sampler_seed};
   const auto [source_list, input_list] = generateSearchTreeInputList(2 * num_of_keys,
                                                                      use_sparse,
@@ -248,22 +255,24 @@ void SearchTreeTest::testConcurrentThroughputTime(
     ASSERT_EQ(0, search_tree->size()) << "The search tree isn't cleared.";
 
     // Initialize the search tree with the keys
-    for (std::size_t i = 0; i < num_of_keys; ++i)
-      [[maybe_unused]] auto result = search_tree->add(source_list[i]);
+    std::for_each_n(source_list.begin(), num_of_keys, [search_tree](const uint64b& in)
+    {
+      [[maybe_unused]] const auto result = search_tree->add(in);
+    });
     ASSERT_EQ(num_of_keys, search_tree->size()) << "The search tree addition failed.";
 
     // 
     std::vector<std::size_t> total_list;
-    total_list.resize(num_of_threads);
+    total_list.resize(num_of_threads, 0);
     std::vector<zisc::int64b> added_list;
-    added_list.resize(num_of_threads);
+    added_list.resize(num_of_threads, 0);
     std::atomic_flag finish{};
     std::atomic_int worker_lock{-1};
     std::vector<std::thread> worker_list;
     worker_list.reserve(num_of_threads);
-    for (std::size_t i = 0; i < worker_list.size(); ++i) {
+    for (std::size_t i = 0; i < num_of_threads; ++i) {
       const auto& inputs = input_list;
-      worker_list.emplace([num_of_threads, num_of_samples, trial_time, &inputs, &op_list, i, search_tree, &total_list, &added_list, &finish, &worker_lock]()
+      worker_list.emplace_back([num_of_threads, num_of_samples, trial_time, &inputs, &op_list, i, search_tree, &total_list, &added_list, &finish, &worker_lock]()
       {
         // Wait this thread until all threads become ready
         worker_lock.wait(-1, std::memory_order::acquire);
@@ -280,8 +289,7 @@ void SearchTreeTest::testConcurrentThroughputTime(
     worker_lock.notify_all();
 
     // Wait the test done
-    for (std::thread& worker : worker_list)
-      worker.join();
+    std::for_each_n(worker_list.begin(), num_of_threads, [](std::thread& w){w.join();});
     const auto end_time = Clock::now();
 
     if (finish.test(std::memory_order::acquire)) {
@@ -339,6 +347,9 @@ void SearchTreeTest::testConcurrentThroughputTimeImpl(
   using zisc::int64b;
   using zisc::uint64b;
 
+  const std::chrono::milliseconds trial_time_ms{trial_time};
+  const auto time_max = std::chrono::duration_cast<Clock::duration>(trial_time_ms);
+
   const auto start_time = Clock::now();
   const std::size_t mp = num_of_samples / num_of_threads;
   std::size_t j = i * mp;
@@ -351,7 +362,7 @@ void SearchTreeTest::testConcurrentThroughputTimeImpl(
       count = 0;
       const auto current_time = Clock::now();
       const int64b elapsed_time = calcElapsedTime(start_time, current_time).count();
-      if (trial_time < elapsed_time || finish->test(std::memory_order::acquire)) {
+      if (time_max.count() < elapsed_time || finish->test(std::memory_order::acquire)) {
         (*total_list)[i] = total;
         (*added_list)[i] = added;
         break;
@@ -366,13 +377,13 @@ void SearchTreeTest::testConcurrentThroughputTimeImpl(
     }
     switch (op_list[j]) {
      case Operation::kAdd: {
-      const std::optional<uint64b> result = search_tree->add(input_list[j]);
+      const std::optional<std::size_t> result = search_tree->add(input_list[j]);
       if (result.has_value())
         ++added;
       break;
      }
      case Operation::kRemove: {
-      const std::optional<uint64b> result = search_tree->remove(input_list[j]);
+      const std::optional<std::size_t> result = search_tree->remove(input_list[j]);
       if (result.has_value())
         --added;
       break;

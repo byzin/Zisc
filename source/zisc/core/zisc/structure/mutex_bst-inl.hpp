@@ -139,7 +139,7 @@ auto MutexBst<Key, T, Compare>::add(RReference value) -> std::optional<size_type
       node_index = index_stack_.back();
       index_stack_.pop_back();
       Pointer ptr = getMemory(node_index);
-      ptr = new(ptr) ValueT{std::move(value)};
+      ptr = ::new (ptr) ValueT{std::move(value)};
       list.emplace(pos, ptr);
     }
   }

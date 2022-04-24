@@ -20,7 +20,7 @@
 // Zisc
 #include "zisc/zisc_config.hpp"
 #include "zisc/memory/simple_memory_resource.hpp"
-#include "zisc/thread/thread_manager.hpp"
+#include "zisc/concurrency/thread_manager.hpp"
 
 int main()
 {

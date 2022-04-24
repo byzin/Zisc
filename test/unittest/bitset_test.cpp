@@ -22,7 +22,7 @@
 // Zisc
 #include "zisc/memory/simple_memory_resource.hpp"
 #include "zisc/memory/std_memory_resource.hpp"
-#include "zisc/thread/bitset.hpp"
+#include "zisc/concurrency/bitset.hpp"
 
 TEST(BitsetTest, ConstructionTest)
 {

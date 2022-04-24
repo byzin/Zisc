@@ -23,10 +23,10 @@
 #include "googletest.hpp"
 // Zisc
 #include "zisc/zisc_config.hpp"
+#include "zisc/concurrency/atomic.hpp"
+#include "zisc/concurrency/atomic_word.hpp"
 #include "zisc/memory/simple_memory_resource.hpp"
 #include "zisc/memory/std_memory_resource.hpp"
-#include "zisc/thread/atomic.hpp"
-#include "zisc/thread/atomic_word.hpp"
 
 namespace {
 

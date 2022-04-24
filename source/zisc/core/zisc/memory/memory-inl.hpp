@@ -27,7 +27,7 @@
 #include "zisc/bit.hpp"
 #include "zisc/utility.hpp"
 #include "zisc/zisc_config.hpp"
-#include "zisc/thread/atomic.hpp"
+#include "zisc/concurrency/atomic.hpp"
 
 namespace zisc {
 

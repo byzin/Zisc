@@ -27,8 +27,8 @@
 #include "googletest.hpp"
 // Zisc
 #include "zisc/zisc_config.hpp"
-#include "zisc/thread/atomic.hpp"
-#include "zisc/thread/atomic_word.hpp"
+#include "zisc/concurrency/atomic.hpp"
+#include "zisc/concurrency/atomic_word.hpp"
 
 namespace {
 

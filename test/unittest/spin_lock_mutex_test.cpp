@@ -18,9 +18,9 @@
 #include "googletest.hpp"
 // Zisc
 #include "zisc/zisc_config.hpp"
+#include "zisc/concurrency/spin_lock_mutex.hpp"
+#include "zisc/concurrency/thread_manager.hpp"
 #include "zisc/memory/simple_memory_resource.hpp"
-#include "zisc/thread/spin_lock_mutex.hpp"
-#include "zisc/thread/thread_manager.hpp"
 
 TEST(SpinLockMutexTest, LockTest)
 {

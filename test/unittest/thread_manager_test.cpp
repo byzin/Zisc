@@ -31,13 +31,13 @@
 // Zisc
 #include "zisc/algorithm.hpp"
 #include "zisc/non_copyable.hpp"
+#include "zisc/concurrency/atomic.hpp"
+#include "zisc/concurrency/future.hpp"
+#include "zisc/concurrency/thread_manager.hpp"
 #include "zisc/math/math.hpp"
 #include "zisc/memory/simple_memory_resource.hpp"
 #include "zisc/random/correlated_multi_jittered_engine.hpp"
 #include "zisc/random/pcg_engine.hpp"
-#include "zisc/thread/atomic.hpp"
-#include "zisc/thread/future.hpp"
-#include "zisc/thread/thread_manager.hpp"
 
 namespace {
 

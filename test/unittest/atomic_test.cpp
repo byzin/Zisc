@@ -23,9 +23,9 @@
 #include "googletest.hpp"
 // Zisc
 #include "zisc/zisc_config.hpp"
+#include "zisc/concurrency/atomic.hpp"
+#include "zisc/concurrency/thread_manager.hpp"
 #include "zisc/memory/simple_memory_resource.hpp"
-#include "zisc/thread/atomic.hpp"
-#include "zisc/thread/thread_manager.hpp"
 
 namespace  {
 

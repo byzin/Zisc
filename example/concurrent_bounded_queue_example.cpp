@@ -53,9 +53,10 @@ int main()
 
   // Bounded queue
   {
-    std::cout << "Enqueing values [3, 1, 4, 5, 0, 2]." << std::endl;
-    std::vector<int> values{{3, 1, 4, 5, 0, 2}};
-    q.setCapacity(values.size());
+    std::cout << "Enqueing values [3, 1, 8, 4, 5, 0, 7, 2, 6]" << std::endl;
+    std::vector<int> values{{3, 1, 8, 4, 5, 0, 7, 2, 6}};
+    q.setCapacity(values.size() - 1);
+    std::cout << "  queue capacity: " << q.capacity() << std::endl;
     try {
       std::for_each(values.begin(), values.end(), [&q](const int& in)
       {
@@ -64,7 +65,7 @@ int main()
       });
     }
     catch (const Queue::OverflowError& error) {
-      std::cerr << "  queue overflow happened. value=" << error.get() << std::endl;
+      std::cout << "  queue overflow happened. value=" << error.get() << std::endl;
     }
     std::cout << "  queue size: " << q.size() << std::endl;
 
@@ -73,7 +74,8 @@ int main()
       const std::optional<int> result = q.dequeue();
       if (result.has_value())
         std::cout << *result;
-      std::cout << ", ";
+      if (!q.isEmpty())
+        std::cout << ", ";
     }
     std::cout << "]" << std::endl;
     std::cout << "  queue size: " << q.size() << std::endl;

@@ -1,5 +1,5 @@
 /*!
-  \file scalable_circular_queue_test.cpp
+  \file mutex_queue_test.cpp
   \author Sho Ikeda
   \brief No brief description
 
@@ -26,12 +26,12 @@
 #include "zisc/utility.hpp"
 #include "zisc/zisc_config.hpp"
 #include "zisc/memory/simple_memory_resource.hpp"
-#include "zisc/structure/scalable_circular_queue.hpp"
+#include "zisc/structure/mutex_queue.hpp"
 // Test
 #include "concurrent_queue_test.hpp"
 #include "queue_test.hpp"
 
-TEST(ScalableCircularQueueTest, LockFreeTest)
+TEST(MutexQueueTest, LockFreeTest)
 {
   {
     std::atomic<zisc::int32b> v;
@@ -51,9 +51,9 @@ TEST(ScalableCircularQueueTest, LockFreeTest)
   }
 }
 
-TEST(ScalableCircularQueueTest, ConstructorTest)
+TEST(MutexQueueTest, ConstructorTest)
 {
-  using Queue = zisc::ScalableCircularQueue<int>;
+  using Queue = zisc::MutexQueue<int>;
 
   zisc::SimpleMemoryResource mem_resource;
   std::unique_ptr<Queue> q;
@@ -62,7 +62,7 @@ TEST(ScalableCircularQueueTest, ConstructorTest)
     Queue q1{&mem_resource};
     q = std::make_unique<Queue>(std::move(q1));
   }
-  ASSERT_EQ(1, q->capacity()) << "Constructing of ScalableCircularQueue failed.";
+  ASSERT_EQ(1, q->capacity()) << "Constructing of MutexQueue failed.";
 
   // test the constructor with power of 2 size
   std::size_t cap = 16;
@@ -70,58 +70,56 @@ TEST(ScalableCircularQueueTest, ConstructorTest)
     Queue q1{cap, &mem_resource};
     q = std::make_unique<Queue>(std::move(q1));
   }
-  ASSERT_EQ(cap, q->capacity()) << "Constructing of ScalableCircularQueue failed.";
+  ASSERT_EQ(cap, q->capacity()) << "Constructing of MutexQueue failed.";
 
   // test the constructor with non power of 2 size
   cap = 20;
   {
     *q = Queue{cap, &mem_resource};
   }
-  cap = 32;
-  ASSERT_EQ(cap, q->capacity()) << "Constructing of ScalableCircularQueue failed.";
+  ASSERT_EQ(cap, q->capacity()) << "Constructing of MutexQueue failed.";
 }
 
-TEST(ScalableCircularQueueTest, SimpleQueueTest)
+TEST(MutexQueueTest, SimpleQueueTest)
 {
-  using Queue = zisc::ScalableCircularQueue<int>;
+  using Queue = zisc::MutexQueue<int>;
   zisc::SimpleMemoryResource mem_resource;
   Queue q{&mem_resource};
   test::testSimpleBoundedQueue(std::addressof(q));
 }
 
-TEST(ScalableCircularQueueTest, MovableValueTest)
+TEST(MutexQueueTest, MovableValueTest)
 {
-  using Queue = zisc::ScalableCircularQueue<test::MovableQValue>;
+  using Queue = zisc::MutexQueue<test::MovableQValue>;
   zisc::SimpleMemoryResource mem_resource;
   Queue q{&mem_resource};
   test::testMovableValueQueue(std::addressof(q));
 }
 
-TEST(ScalableCircularQueueTest, TinyCapacityTest)
+TEST(MutexQueueTest, TinyCapacityTest)
 {
-  using Queue = zisc::ScalableCircularQueue<int>;
+  using Queue = zisc::MutexQueue<int>;
   zisc::SimpleMemoryResource mem_resource;
   Queue q{&mem_resource};
   test::testTinyCapacityQueue(std::addressof(q));
 }
 
-TEST(ScalableCircularQueueTest, ConcurrentOperationTest)
-{
-  constexpr std::size_t num_of_threads = test::QueueTest::kNumOfDefaultThreads;
-  constexpr std::size_t num_of_samples = test::QueueTest::kNumOfDefaultSamples;
-  constexpr std::size_t num_of_rounds = test::QueueTest::kNumOfDefaultRounds;
-  constexpr zisc::uint64b sampler_seed = test::QueueTest::kDefaultSamplerSeed;
-
-  using Queue = zisc::ScalableCircularQueue<zisc::uint64b>;
-  zisc::SimpleMemoryResource mem_resource;
-  Queue q{num_of_samples, &mem_resource};
-
-  test::QueueTest::testConcurrentThroughputOp(num_of_threads,
-                                              num_of_samples,
-                                              num_of_rounds,
-                                              sampler_seed,
-                                              std::addressof(q));
-}
+//TEST(MutexQueueTest, ConcurrentOperationTest)
+//{
+//  constexpr std::size_t num_of_threads = test::QueueTest::kNumOfDefaultThreads;
+//  constexpr std::size_t num_of_samples = test::QueueTest::kNumOfDefaultSamples;
+//  constexpr std::size_t num_of_rounds = test::QueueTest::kNumOfDefaultRounds;
+//  constexpr zisc::uint64b sampler_seed = test::QueueTest::kDefaultSamplerSeed;
+//
+//  using Queue = zisc::MutexQueue<zisc::uint64b>;
+//  zisc::SimpleMemoryResource mem_resource;
+//  Queue q{num_of_samples, &mem_resource};
+//  test::QueueTest::testConcurrentThroughputOp(num_of_threads,
+//                                              num_of_samples,
+//                                              num_of_rounds,
+//                                              sampler_seed,
+//                                              std::addressof(q));
+//}
 
 namespace {
 
@@ -132,10 +130,9 @@ void testConcurrentThroughputTime(const std::size_t num_of_threads)
   constexpr zisc::int64b trial_time = test::QueueTest::kDefaultTrialTime;
   constexpr zisc::uint64b sampler_seed = test::QueueTest::kDefaultSamplerSeed;
 
-  using Queue = zisc::ScalableCircularQueue<zisc::uint64b>;
+  using Queue = zisc::MutexQueue<zisc::uint64b>;
   zisc::SimpleMemoryResource mem_resource;
   Queue q{num_of_samples, &mem_resource};
-
   test::QueueTest::testConcurrentThroughputTime(num_of_threads,
                                                 num_of_samples,
                                                 num_of_rounds,
@@ -146,32 +143,32 @@ void testConcurrentThroughputTime(const std::size_t num_of_threads)
 
 } /* namespace */
 
-TEST(ScalableCircularQueueTest, ConcurrentThroughputTest4Threads)
+TEST(MutexQueueTest, ConcurrentThroughputTest4Threads)
 {
   ::testConcurrentThroughputTime(4);
 }
 
-TEST(ScalableCircularQueueTest, ConcurrentThroughputTest8Threads)
+TEST(MutexQueueTest, ConcurrentThroughputTest8Threads)
 {
   ::testConcurrentThroughputTime(8);
 }
 
-TEST(ScalableCircularQueueTest, ConcurrentThroughputTest16Threads)
+TEST(MutexQueueTest, ConcurrentThroughputTest16Threads)
 {
   ::testConcurrentThroughputTime(16);
 }
 
-TEST(ScalableCircularQueueTest, ConcurrentThroughputTest64Threads)
+TEST(MutexQueueTest, ConcurrentThroughputTest64Threads)
 {
   ::testConcurrentThroughputTime(64);
 }
 
-TEST(ScalableCircularQueueTest, ConcurrentThroughputTest256Threads)
+TEST(MutexQueueTest, ConcurrentThroughputTest256Threads)
 {
   ::testConcurrentThroughputTime(256);
 }
 
-TEST(ScalableCircularQueueTest, ConcurrentThroughputTest)
+TEST(MutexQueueTest, ConcurrentThroughputTest)
 {
   const std::size_t num_of_threads = std::thread::hardware_concurrency();
   std::cout << "## Number of threads: " << num_of_threads << std::endl;

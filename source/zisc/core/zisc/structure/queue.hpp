@@ -23,12 +23,13 @@
 #include <string_view>
 #include <type_traits>
 // Zisc
-#include "zisc/error.hpp"
 #include "zisc/non_copyable.hpp"
 #include "zisc/zisc_config.hpp"
-#include "zisc/memory/std_memory_resource.hpp"
 
 namespace zisc {
+
+// Forward declaration
+template <std::movable> class ContainerOverflowError;
 
 /*!
   \brief No brief description
@@ -60,47 +61,11 @@ class Queue : private NonCopyable<Queue<QueueClass, T>>
   using pointer = Pointer;
   using const_pointer = ConstPointer;
 
-  /*!
-    \brief No brief description
-
-    No detailed description.
-    */
-  class OverflowError : public SystemError
-  {
-   public:
-    //! Construct the lock free queue error
-    OverflowError(const std::string_view what_arg,
-                  pmr::memory_resource* mem_resource,
-                  ConstReference value);
-
-    //! Construct the lock free queue error
-    OverflowError(const std::string_view what_arg,
-                  pmr::memory_resource* mem_resource,
-                  RReference value);
-
-    //! Move data
-    OverflowError(OverflowError&& other);
-
-    //! Finalize the lock free queue error
-    ~OverflowError() noexcept override;
+  // Exception
+  using OverflowError = ContainerOverflowError<T>;
 
 
-    //! Move data
-    OverflowError& operator=(OverflowError&& other);
-
-
-    //! Return the overflowing value
-    Reference get() noexcept;
-
-    //! Return the overflowing value
-    ConstReference get() const noexcept;
-
-   private:
-    std::shared_ptr<ValueT> value_;
-  };
-
-
-  //! Return the maximum possible number of elements
+  //! Return the maximum possible number of elements can be queued
   size_type capacity() const noexcept;
 
   //! Return the maximum possible capacity if the queue is bounded
@@ -113,10 +78,8 @@ class Queue : private NonCopyable<Queue<QueueClass, T>>
   [[nodiscard]] std::optional<ValueT> dequeue() noexcept;
 
   //! Append the given element value to the end of the queue
-  [[nodiscard]] std::optional<size_type> enqueue(ConstReference value);
-
-  //! Append the given element value to the end of the queue
-  [[nodiscard]] std::optional<size_type> enqueue(RReference value);
+  template <typename ...Args> requires std::is_nothrow_constructible_v<T, Args...>
+  [[nodiscard]] std::optional<size_type> enqueue(Args&&... args);
 
   //! Return the value by the given index
   Reference get(const size_type index) noexcept;

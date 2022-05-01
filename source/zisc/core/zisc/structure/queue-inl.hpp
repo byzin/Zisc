@@ -22,107 +22,13 @@
 #include <memory>
 #include <optional>
 #include <string_view>
+#include <type_traits>
 #include <utility>
 // Zisc
-#include "zisc/error.hpp"
 #include "zisc/utility.hpp"
 #include "zisc/zisc_config.hpp"
-#include "zisc/memory/std_memory_resource.hpp"
 
 namespace zisc {
-
-/*!
-  \details No detailed description
-
-  \param [in] what_arg No description.
-  \param [in] value No description.
-  */
-template <typename QueueClass, std::movable T> inline
-Queue<QueueClass, T>::OverflowError::OverflowError(const std::string_view what_arg,
-                                                   pmr::memory_resource* mem_resource,
-                                                   ConstReference value)
-    : SystemError(ErrorCode::kBoundedQueueOverflow, what_arg),
-      value_{std::allocate_shared<ValueT>(
-          pmr::polymorphic_allocator<ValueT>{mem_resource},
-          value)}
-{
-}
-
-/*!
-  \details No detailed description
-
-  \param [in] what_arg No description.
-  \param [in] value No description.
-  */
-template <typename QueueClass, std::movable T> inline
-Queue<QueueClass, T>::OverflowError::OverflowError(const std::string_view what_arg,
-                                                   pmr::memory_resource* mem_resource,
-                                                   RReference value)
-    : SystemError(ErrorCode::kBoundedQueueOverflow, what_arg),
-      value_{std::allocate_shared<ValueT>(
-          pmr::polymorphic_allocator<ValueT>{mem_resource},
-          std::move(value))}
-{
-}
-
-/*!
-  \details No detailed description
-
-  \param [in,out] other No description.
-  */
-template <typename QueueClass, std::movable T> inline
-Queue<QueueClass, T>::OverflowError::OverflowError(OverflowError&& other) :
-    SystemError(std::move(other)),
-    value_{std::move(other.value_)}
-{
-}
-
-/*!
-  \details No detailed description
-  */
-template <typename QueueClass, std::movable T> inline
-Queue<QueueClass, T>::OverflowError::~OverflowError() noexcept
-{
-}
-
-/*!
-  \details No detailed description
-
-  \param [in,out] other No description.
-  \return No description
-  */
-template <typename QueueClass, std::movable T> inline
-auto Queue<QueueClass, T>::OverflowError::operator=(OverflowError&& other)
-    -> OverflowError&
-{
-  SystemError::operator=(std::move(other));
-  value_ = std::move(other.value_);
-  return *this;
-}
-
-/*!
-  \details No detailed description
-
-  \return No description
-  */
-template <typename QueueClass, std::movable T> inline
-auto Queue<QueueClass, T>::OverflowError::get() noexcept
-    -> Reference
-{
-  return *value_;
-}
-
-/*!
-  \details No detailed description
-
-  \return No description
-  */
-template <typename QueueClass, std::movable T> inline
-auto Queue<QueueClass, T>::OverflowError::get() const noexcept
-    -> ConstReference
-{
-  return *value_;
-}
 
 /*!
   \details No detailed description
@@ -172,15 +78,17 @@ auto Queue<QueueClass, T>::dequeue() noexcept -> std::optional<ValueT>
 /*!
   \details No detailed description
 
-  \param [in] value No description.
+  \tparam Args No description.
+  \param [in] args No description.
   \return No description
   \exception OverflowError No description.
   */
-template <typename QueueClass, std::movable T> inline
-auto Queue<QueueClass, T>::enqueue(ConstReference value) -> std::optional<size_type>
+template <typename QueueClass, std::movable T>
+template <typename ...Args> requires std::is_nothrow_constructible_v<T, Args...> inline
+auto Queue<QueueClass, T>::enqueue(Args&&... args) -> std::optional<size_type>
 {
   auto& q = ref();
-  return q.enqueue(value);
+  return q.enqueue(std::forward<Args>(args)...);
 }
 
 /*!
@@ -188,21 +96,6 @@ auto Queue<QueueClass, T>::enqueue(ConstReference value) -> std::optional<size_t
 
   \param [in] value No description.
   \return No description
-  \exception OverflowError No description.
-  */
-template <typename QueueClass, std::movable T> inline
-auto Queue<QueueClass, T>::enqueue(RReference value) -> std::optional<size_type>
-{
-  auto& q = ref();
-  return q.enqueue(std::move(value));
-}
-
-/*!
-  \details No detailed description
-
-  \param [in] value No description.
-  \return No description
-  \exception OverflowError No description.
   */
 template <typename QueueClass, std::movable T> inline
 auto Queue<QueueClass, T>::get(const size_type index) noexcept -> Reference
@@ -216,7 +109,6 @@ auto Queue<QueueClass, T>::get(const size_type index) noexcept -> Reference
 
   \param [in] value No description.
   \return No description
-  \exception OverflowError No description.
   */
 template <typename QueueClass, std::movable T> inline
 auto Queue<QueueClass, T>::get(const size_type index) const noexcept -> ConstReference
@@ -255,8 +147,8 @@ constexpr bool Queue<QueueClass, T>::isConcurrent() noexcept
 template <typename QueueClass, std::movable T> inline
 bool Queue<QueueClass, T>::isEmpty() const noexcept
 {
-  const auto& q = ref();
-  return q.isEmpty();
+  const bool result = size() == 0;
+  return result;
 }
 
 /*!

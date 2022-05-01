@@ -15,8 +15,6 @@
 #ifndef TEST_QUEUE_TEST_HPP
 #define TEST_QUEUE_TEST_HPP
 
-// Standard C++ library
-// GoogleTest
 // Zisc
 #include "zisc/zisc_config.hpp"
 #include "zisc/structure/queue.hpp"

@@ -13,242 +13,247 @@
   */
 
 // Standard C++ library
-#include <array>
-#include <algorithm>
-#include <atomic>
 #include <cstddef>
 #include <iostream>
-#include <map>
 #include <memory>
-#include <random>
-#include <system_error>
 #include <thread>
-#include <tuple>
-#include <type_traits>
 #include <utility>
-#include <vector>
 // GoogleTest
 #include "googletest.hpp"
 // Zisc
-#include "zisc/error.hpp"
-#include "zisc/non_copyable.hpp"
-#include "zisc/stopwatch.hpp"
 #include "zisc/utility.hpp"
 #include "zisc/zisc_config.hpp"
 #include "zisc/memory/simple_memory_resource.hpp"
+#include "zisc/structure/map.hpp"
 #include "zisc/structure/mutex_bst.hpp"
-#include "zisc/structure/search_tree.hpp"
+// Test
+#include "concurrent_map_test.hpp"
+#include "map_test.hpp"
 
 TEST(MutexBstTest, ConstructorTest)
 {
-  using TreeImpl = zisc::MutexBst<int>;
-  using Tree = zisc::SearchTree<TreeImpl, int>;
-
-  static_assert(TreeImpl::isBounded(), "MutexBst isn't bounded tree.");
-  static_assert(TreeImpl::isConcurrent(), "MutexBst isn't bounded tree.");
-  static_assert(Tree::isBounded(), "MutexBst isn't bounded tree.");
-  static_assert(Tree::isConcurrent(), "MutexBst isn't bounded tree.");
+  using Map = zisc::MutexBst<int>;
 
   zisc::SimpleMemoryResource mem_resource;
-  std::unique_ptr<TreeImpl> tree_impl;
-  Tree* tree = nullptr;
+  std::unique_ptr<Map> map;
 
-  //
+  // test the map with default capacity
   {
-    TreeImpl tree_impl1{&mem_resource};
-    tree_impl = std::make_unique<TreeImpl>(std::move(tree_impl1));
+    Map map1{&mem_resource};
+    map = std::make_unique<Map>(std::move(map1));
   }
-  tree = tree_impl.get();
-  ASSERT_EQ(TreeImpl::defaultCapacity(), tree->capacity())
-      << "Constructing of MutexBst failed.";
+  ASSERT_EQ(1, map->capacity()) << "Constructing of MutexBst failed.";
 
-  // 
-  std::size_t cap = 4096;
+  // test the map with power of 2 size
+  std::size_t cap = 16;
   {
-    TreeImpl tree_impl1{cap, &mem_resource};
-    tree_impl = std::make_unique<TreeImpl>(std::move(tree_impl1));
+    Map map1{cap, &mem_resource};
+    map = std::make_unique<Map>(std::move(map1));
   }
-  tree = tree_impl.get();
-  ASSERT_EQ(cap, tree->capacity())
-      << "Constructing of MutexBst failed.";
+  ASSERT_EQ(cap, map->capacity()) << "Constructing of MutexBst failed.";
 
-  //
-  cap = 5000;
+  // test the map with non power of 2 size
+  cap = 20;
   {
-    *tree_impl = TreeImpl{cap, &mem_resource};
+    *map = Map{cap, &mem_resource};
   }
-  ASSERT_EQ(cap, tree->capacity())
-      << "Constructing of MutexBst failed.";
+  ASSERT_EQ(cap, map->capacity()) << "Constructing of MutexBst failed.";
 }
 
-TEST(MutexBstTest, OperationTest)
+TEST(MutexBstTest, SimpleMapTest)
 {
-  using TreeImpl = zisc::MutexBst<int>;
-  using Bst = zisc::SearchTree<TreeImpl, int>;
-
+  using Map = zisc::MutexBst<int>;
   zisc::SimpleMemoryResource mem_resource;
-  TreeImpl tree_impl{&mem_resource};
-  Bst* tree = std::addressof(tree_impl);
-
-  std::vector<int> value_list{{7, 6, 4, 8, 2, 1, 5, 3, 15, 100, 0}};
-  std::vector<int> value2_list{{10, 25000, -1}};
-
-  for (const int value : value_list) {
-    {
-      const bool result = tree->add(value).has_value();
-      ASSERT_TRUE(result) << "Adding value '" << value << "' into the bst failed.";
-    }
-    {
-      const bool result = tree->add(value).has_value();
-      ASSERT_FALSE(result) << "Adding value '" << value << "' into the bst failed.";
-    }
-  }
-
-  for (const int value : value_list) {
-    const bool result = tree->contain(value).has_value();
-    ASSERT_TRUE(result) << "Quering value '" << value << "' from the bst failed.";
-  }
-  for (const int value : value2_list) {
-    const bool result = tree->contain(value).has_value();
-    ASSERT_FALSE(result) << "Quering value '" << value << "' from the bst failed.";
-  }
-
-  for (const int value : value_list) {
-    const bool result = tree->add(value).has_value();
-    ASSERT_FALSE(result) << "Adding value '" << value << "' into the bst failed.";
-  }
-
-  for (const int value : value_list) {
-    {
-      const bool result = tree->remove(value).has_value();
-      ASSERT_TRUE(result) << "Removing value '" << value << "' from the bst failed.";
-    }
-    {
-      const bool result = tree->remove(value).has_value();
-      ASSERT_FALSE(result) << "Removing value '" << value << "' from the bst failed.";
-    }
-  }
-  for (const int value : value2_list) {
-    const bool result = tree->remove(value).has_value();
-    ASSERT_FALSE(result) << "Removing value '" << value << "' from the bst failed.";
-  }
-
-  for (const int value : value_list) {
-    const bool result = tree->contain(value).has_value();
-    ASSERT_FALSE(result) << "Quering value '" << value << "' from the bst failed.";
-  }
-
-  for (const int value : value_list) {
-    const bool result = tree->remove(value).has_value();
-    ASSERT_FALSE(result) << "Removing value '" << value << "' from the bst failed.";
-  }
-
-  for (const int value : value_list) {
-    const bool result = tree->add(value).has_value();
-    ASSERT_TRUE(result) << "Adding value '" << value << "' into the bst failed.";
-  }
+  Map map{&mem_resource};
+  test::testSimpleBoundedMap(std::addressof(map));
 }
 
-TEST(MutexBstTest, AddRemoveTest)
+TEST(MutexBstTest, MovableValueTest)
 {
-  using TreeImpl = zisc::MutexBst<int>;
-  using Tree = zisc::SearchTree<TreeImpl, int>;
-
-  const std::array<int, 16> candidate_list{{-171717, -1000, -1, 0, 1, 3, 4, 9, 15, 16, 100, 2000, 10300, 50000, 360000, (std::numeric_limits<int>::max)()}};
-
-  std::mt19937_64 rand_engine{123'567'789};
-  std::uniform_int_distribution<std::size_t> sampler1{0, 1};
-  std::uniform_int_distribution<std::size_t> sampler2{0, candidate_list.size() - 1};
-
-  std::map<int, bool> value_list;
-  for (const auto candidate : candidate_list)
-    value_list[candidate] = false;
-
+  using Map = zisc::MutexBst<int, test::MovableMValue>;
   zisc::SimpleMemoryResource mem_resource;
-  TreeImpl tree_impl{candidate_list.size() * 2, &mem_resource};
-  Tree* tree = std::addressof(tree_impl);
-
-  constexpr std::size_t n = 30'000'000;
-  for (std::size_t i = 0; i < n; ++i) {
-    const std::size_t op = sampler1(rand_engine);
-
-    const std::size_t index = sampler2(rand_engine);
-    const int candidate = candidate_list[index];
-    auto& flag = value_list[candidate];
-
-    bool result = false;
-    if (op == 0) { // Add
-      const auto r = tree->add(candidate);
-      result = r.has_value();
-      if (flag) {
-        ASSERT_FALSE(result) << "BST add operation failed.";
-      }
-      else {
-        ASSERT_TRUE(result) << "BST add operation failed.";
-        flag = true;
-      }
-    }
-    else { // Remove
-      const auto r = tree->remove(candidate);
-      result = r.has_value();
-      if (flag) {
-        ASSERT_TRUE(result) << "BST remove operation failed.";
-        flag = false;
-      }
-      else {
-        ASSERT_FALSE(result) << "BST remove operation failed.";
-      }
-    }
-
-    for (auto v : value_list) {
-      const bool r = tree->contain(v.first).has_value();
-      if (v.second)
-        ASSERT_TRUE(r) << "BST contain(" << v.first << ") operation failed.";
-      else
-        ASSERT_FALSE(r) << "BST contain(" << v.first << ") operation failed.";
-    }
-  }
+  Map map{&mem_resource};
+  test::testMovableValueMap(std::addressof(map));
 }
 
-TEST(MutexBstTest, MultithreadTest)
+TEST(MutexBstTest, TinyCapacityTest)
 {
-  using TreeImpl = zisc::MutexBst<int>;
-  using Tree = zisc::SearchTree<TreeImpl, int>;
-
-  const std::size_t num_threads = 32;
-  std::vector<std::thread> thread_list;
-  thread_list.reserve(num_threads);
-
-  constexpr int iMin = (std::numeric_limits<int>::min)();
-  constexpr int iMax = (std::numeric_limits<int>::max)();
-  const std::array<int, 16> candidate_list{{iMin, -600000, -599999, -1000, -524, -10, -2, 0, 4, 15, 89, 100, 5120, 800000, 123456789, iMax}};
-
+  using Map = zisc::MutexBst<int>;
   zisc::SimpleMemoryResource mem_resource;
-  TreeImpl tree_impl{candidate_list.size() * 2, &mem_resource};
-  Tree* tree = std::addressof(tree_impl);
+  Map map{&mem_resource};
+  test::testTinyCapacityMap(std::addressof(map));
+}
 
-  for (std::size_t i = 0; i < num_threads; ++i) {
-    std::mt19937_64 rand_engine{123'456'789 * i};
-    auto task = [rand_engine, &candidate_list, tree]() mutable
-    {
-      std::uniform_int_distribution<std::size_t> sampler1{0, 1};
-      std::uniform_int_distribution<std::size_t> sampler2{0, candidate_list.size() - 1};
-      constexpr std::size_t n = 20'000'0;
-      for (std::size_t j = 0; j < n; ++j) {
-        const std::size_t op = sampler1(rand_engine);
-        const std::size_t index = sampler2(rand_engine);
-        const int candidate = candidate_list[index];
-        if (op == 0) { // Add
-          [[maybe_unused]] const auto result = tree->add(candidate);
-        }
-        else {
-          [[maybe_unused]] const auto result = tree->remove(candidate);
-        }
-      }
-    };
-    thread_list.emplace_back(std::move(task));
-  }
+TEST(MutexBstTest, ConcurrentOperationTest1)
+{
+  constexpr std::size_t num_of_threads = test::MapTest::kNumOfDefaultThreads;
+  constexpr std::size_t num_of_samples = test::MapTest::kNumOfDefaultSamples;
+  constexpr std::size_t num_of_keys = test::MapTest::kNumOfDefaultKeys;
+  constexpr std::size_t num_of_rounds = test::MapTest::kNumOfDefaultRounds;
+  constexpr zisc::uint64b sampler_seed = test::MapTest::kDefaultSamplerSeed;
+  constexpr bool use_sparse = false;
+  constexpr bool use_zipfian = false;
+  constexpr double zipfian_param = 0.0;
 
-  for (auto& worker : thread_list)
-    worker.join();
+  using Map = zisc::MutexBst<zisc::uint64b>;
+  zisc::SimpleMemoryResource mem_resource;
+  Map map{num_of_samples, &mem_resource};
+  test::MapTest::testConcurrentThroughputOp(num_of_threads,
+                                            num_of_samples,
+                                            num_of_keys,
+                                            num_of_rounds,
+                                            sampler_seed,
+                                            use_sparse,
+                                            use_zipfian,
+                                            zipfian_param,
+                                            std::addressof(map));
+}
+
+TEST(MutexBstTest, ConcurrentOperationTest2)
+{
+  constexpr std::size_t num_of_threads = test::MapTest::kNumOfDefaultThreads;
+  constexpr std::size_t num_of_samples = test::MapTest::kNumOfDefaultSamples;
+  constexpr std::size_t num_of_keys = test::MapTest::kNumOfDefaultKeys;
+  constexpr std::size_t num_of_rounds = test::MapTest::kNumOfDefaultRounds;
+  constexpr zisc::uint64b sampler_seed = test::MapTest::kDefaultSamplerSeed;
+  constexpr bool use_sparse = true;
+  constexpr bool use_zipfian = true;
+  constexpr double zipfian_param = 0.9;
+
+  using Map = zisc::MutexBst<zisc::uint64b>;
+  zisc::SimpleMemoryResource mem_resource;
+  Map map{num_of_samples, &mem_resource};
+  test::MapTest::testConcurrentThroughputOp(num_of_threads,
+                                            num_of_samples,
+                                            num_of_keys,
+                                            num_of_rounds,
+                                            sampler_seed,
+                                            use_sparse,
+                                            use_zipfian,
+                                            zipfian_param,
+                                            std::addressof(map));
+}
+
+namespace {
+
+void testConcurrentThroughputTime1(const std::size_t num_of_threads)
+{
+  constexpr std::size_t num_of_samples = test::MapTest::kNumOfDefaultSamples;
+  constexpr std::size_t num_of_keys = test::MapTest::kNumOfDefaultKeys;
+  constexpr std::size_t num_of_rounds = test::MapTest::kNumOfDefaultRounds;
+  constexpr std::size_t update_percent = test::MapTest::kDefaultUpdatePercent;
+  constexpr zisc::int64b trial_time = test::MapTest::kDefaultTrialTime;
+  constexpr zisc::uint64b sampler_seed = test::MapTest::kDefaultSamplerSeed;
+  constexpr bool use_sparse = false;
+  constexpr bool use_zipfian = false;
+  constexpr double zipfian_param = 0.0;
+
+  using Map = zisc::MutexBst<zisc::uint64b>;
+  zisc::SimpleMemoryResource mem_resource;
+  Map map{num_of_samples, &mem_resource};
+  test::MapTest::testConcurrentThroughputTime(num_of_threads,
+                                              num_of_samples,
+                                              num_of_keys,
+                                              num_of_rounds,
+                                              update_percent,
+                                              trial_time,
+                                              sampler_seed,
+                                              use_sparse,
+                                              use_zipfian,
+                                              zipfian_param,
+                                              std::addressof(map));
+}
+
+void testConcurrentThroughputTime2(const std::size_t num_of_threads)
+{
+  constexpr std::size_t num_of_samples = test::MapTest::kNumOfDefaultSamples;
+  constexpr std::size_t num_of_keys = test::MapTest::kNumOfDefaultKeys;
+  constexpr std::size_t num_of_rounds = test::MapTest::kNumOfDefaultRounds;
+  constexpr std::size_t update_percent = test::MapTest::kDefaultUpdatePercent;
+  constexpr zisc::int64b trial_time = test::MapTest::kDefaultTrialTime;
+  constexpr zisc::uint64b sampler_seed = test::MapTest::kDefaultSamplerSeed;
+  constexpr bool use_sparse = true;
+  constexpr bool use_zipfian = true;
+  constexpr double zipfian_param = 0.9;
+
+  using Map = zisc::MutexBst<zisc::uint64b>;
+  zisc::SimpleMemoryResource mem_resource;
+  Map map{num_of_samples, &mem_resource};
+  test::MapTest::testConcurrentThroughputTime(num_of_threads,
+                                              num_of_samples,
+                                              num_of_keys,
+                                              num_of_rounds,
+                                              update_percent,
+                                              trial_time,
+                                              sampler_seed,
+                                              use_sparse,
+                                              use_zipfian,
+                                              zipfian_param,
+                                              std::addressof(map));
+}
+
+} /* namespace */
+
+TEST(MutexBstTest, ConcurrentThroughput1Test4Threads)
+{
+  ::testConcurrentThroughputTime1(4);
+}
+
+TEST(MutexBstTest, ConcurrentThroughput2Test4Threads)
+{
+  ::testConcurrentThroughputTime2(4);
+}
+
+TEST(MutexBstTest, ConcurrentThroughput1Test8Threads)
+{
+  ::testConcurrentThroughputTime1(8);
+}
+
+TEST(MutexBstTest, ConcurrentThroughput2Test8Threads)
+{
+  ::testConcurrentThroughputTime2(8);
+}
+
+TEST(MutexBstTest, ConcurrentThroughput1Test16Threads)
+{
+  ::testConcurrentThroughputTime1(16);
+}
+
+TEST(MutexBstTest, ConcurrentThroughput2Test16Threads)
+{
+  ::testConcurrentThroughputTime2(16);
+}
+
+TEST(MutexBstTest, ConcurrentThroughput1Test64Threads)
+{
+  ::testConcurrentThroughputTime1(64);
+}
+
+TEST(MutexBstTest, ConcurrentThroughput2Test64Threads)
+{
+  ::testConcurrentThroughputTime2(64);
+}
+
+TEST(MutexBstTest, ConcurrentThroughput1Test256Threads)
+{
+  ::testConcurrentThroughputTime1(256);
+}
+
+TEST(MutexBstTest, ConcurrentThroughput2Test256Threads)
+{
+  ::testConcurrentThroughputTime2(256);
+}
+
+TEST(MutexBstTest, ConcurrentThroughput1TestThreads)
+{
+  const std::size_t num_of_threads = std::thread::hardware_concurrency();
+  std::cout << "## Number of threads: " << num_of_threads << std::endl;
+  ::testConcurrentThroughputTime1(num_of_threads);
+}
+
+TEST(MutexBstTest, ConcurrentThroughput2TestThreads)
+{
+  const std::size_t num_of_threads = std::thread::hardware_concurrency();
+  std::cout << "## Number of threads: " << num_of_threads << std::endl;
+  ::testConcurrentThroughputTime2(num_of_threads);
 }

@@ -17,6 +17,7 @@
 
 #include "data_storage.hpp"
 // Standard C++ library
+#include <concepts>
 #include <memory>
 #include <type_traits>
 #include <utility>
@@ -28,9 +29,13 @@ namespace zisc {
 /*!
   \details No detailed description
   */
-template <typename T> inline
+template <std::movable T> inline
 DataStorage<T>::DataStorage() noexcept
 {
+  static_assert(sizeof(StorageT) == sizeof(T),
+                "The storage size isn't correct.");
+  static_assert(std::alignment_of_v<StorageT> == std::alignment_of_v<T>,
+                "The storage alignment isn't correct.");
 }
 
 /*!
@@ -38,10 +43,24 @@ DataStorage<T>::DataStorage() noexcept
 
   \param [in] other No description.
   */
-template <typename T> inline
+template <std::movable T> inline
 DataStorage<T>::DataStorage(DataStorage&& other) noexcept
 {
-  store(std::move(other.get()));
+  set(std::move(other.get()));
+  other.destroy();
+}
+
+/*!
+  \details No detailed description
+
+  \tparam Args No description.
+  \param [in] args No description.
+  */
+template <std::movable T>
+template <typename ...Args> requires std::is_nothrow_constructible_v<T, Args...> inline
+DataStorage<T>::DataStorage(Args&&... args) noexcept
+{
+  set(std::forward<Args>(args)...);
 }
 
 /*!
@@ -50,25 +69,49 @@ DataStorage<T>::DataStorage(DataStorage&& other) noexcept
   \param [in] other No description.
   \return No description
   */
-template <typename T> inline
+template <std::movable T> inline
 auto DataStorage<T>::operator=(DataStorage&& other) noexcept -> DataStorage&
 {
-  store(std::move(other.get()));
+  set(std::move(other.get()));
+  other.destroy();
   return *this;
 }
 
 /*!
   \details No detailed description
+
+  \return No description
   */
-template <typename T> inline
+template <std::movable T> inline
+auto DataStorage<T>::operator*() noexcept -> Reference
+{
+  return get();
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+template <std::movable T> inline
+auto DataStorage<T>::operator*() const noexcept -> ConstReference
+{
+  return get();
+}
+
+/*!
+  \details No detailed description
+  */
+template <std::movable T> inline
 void DataStorage<T>::destroy() noexcept
 {
-  if constexpr (std::is_same_v<Type, StorageT>) {
+  if constexpr (kTCanBeStorageT)
     storage_ = StorageT{};
-  }
-  else if constexpr (std::is_destructible_v<Type>) {
-    std::destroy_at(ptr());
-  }
+  else if constexpr (std::is_nothrow_destructible_v<ValueT>)
+    std::destroy_at(memory());
+  else
+    static_assert(std::is_nothrow_destructible_v<ValueT>,
+                  "Destructor with exception isn't supported yet.");
 }
 
 /*!
@@ -76,13 +119,13 @@ void DataStorage<T>::destroy() noexcept
 
   \return No description
   */
-template <typename T> inline
+template <std::movable T> inline
 auto DataStorage<T>::get() noexcept -> Reference
 {
-  if constexpr (std::is_same_v<Type, StorageT>)
+  if constexpr (kTCanBeStorageT)
     return storage_;
   else
-    return *reinterp<Pointer>(ptr());
+    return *memory();
 }
 
 /*!
@@ -90,70 +133,64 @@ auto DataStorage<T>::get() noexcept -> Reference
 
   \return No description
   */
-template <typename T> inline
+template <std::movable T> inline
 auto DataStorage<T>::get() const noexcept -> ConstReference
 {
-  if constexpr (std::is_same_v<Type, StorageT>)
+  if constexpr (kTCanBeStorageT)
     return storage_;
   else
-    return *reinterp<ConstPointer>(ptr());
+    return *memory();
 }
 
 /*!
   \details No detailed description
 
-  \tparam DataT No description.
-  \param [in] data No description.
+  \return No description
   */
-template <typename T> template <typename DataT> inline
-void DataStorage<T>::store(DataT&& data) noexcept
-    requires (std::is_constructible_v<T, DataT> || std::is_assignable_v<T, DataT>)
+template <std::movable T> inline
+auto DataStorage<T>::memory() noexcept -> Pointer
 {
-  if constexpr (std::is_same_v<Type, StorageT>) {
-    if constexpr (std::is_assignable_v<T, DataT>) {
-      storage_ = std::forward<DataT>(data);
-    }
-    else { // is_constructible
-      auto p = ptr();
-      std::destroy_at(p);
-      ::new (p) Type{std::forward<DataT>(data)};
-    }
+  auto* ptr = std::addressof(storage_);
+  if constexpr (kTCanBeStorageT)
+    return ptr;
+  else
+    return reinterp<Pointer>(ptr);
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+template <std::movable T> inline
+auto DataStorage<T>::memory() const noexcept -> ConstPointer
+{
+  const auto* ptr = std::addressof(storage_);
+  if constexpr (kTCanBeStorageT)
+    return ptr;
+  else
+    return reinterp<ConstPointer>(ptr);
+}
+
+/*!
+  \details No detailed description
+
+  \tparam Args No description.
+  \param [in] args No description.
+  */
+template <std::movable T>
+template <typename ...Args> requires std::is_nothrow_constructible_v<T, Args...> inline
+auto DataStorage<T>::set(Args&&... args) noexcept -> Pointer
+{
+  Pointer ptr = nullptr;
+  if constexpr (kTCanBeStorageT) {
+    storage_ = ValueT{std::forward<Args>(args)...};
+    ptr = std::addressof(storage_);
   }
   else {
-    if constexpr (std::is_assignable_v<T, DataT>) {
-      ::new (ptr()) Type{std::forward<DataT>(data)};
-    }
-    static_assert(!std::is_constructible_v<T, DataT>,
-                  "The data isn't able to be constructible.");
+    ptr = ::new (memory()) ValueT{std::forward<Args>(args)...};
   }
-}
-
-/*!
-  \details No detailed description
-
-  \return No description
-  */
-template <typename T> inline
-auto DataStorage<T>::ptr() noexcept -> Pointer
-{
-  if constexpr (std::is_same_v<Type, StorageT>)
-    return std::addressof(storage_);
-  else
-    return *reinterp<Pointer>(&storage_);
-}
-
-/*!
-  \details No detailed description
-
-  \return No description
-  */
-template <typename T> inline
-auto DataStorage<T>::ptr() const noexcept -> ConstPointer
-{
-  if constexpr (std::is_same_v<Type, StorageT>)
-    return std::addressof(storage_);
-  else
-    return *reinterp<ConstPointer>(&storage_);
+  return ptr;
 }
 
 } // namespace zisc

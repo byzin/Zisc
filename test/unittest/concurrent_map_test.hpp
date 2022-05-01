@@ -1,5 +1,5 @@
 /*!
-  \file concurrent_search_tree_test.hpp
+  \file concurrent_map_test.hpp
   \author Sho Ikeda
   \brief No brief description
 
@@ -12,8 +12,8 @@
   http://opensource.org/licenses/mit-license.php
   */
 
-#ifndef TEST_CONCURRENT_SEARCH_TREE_TEST_HPP
-#define TEST_CONCURRENT_SEARCH_TREE_TEST_HPP
+#ifndef TEST_CONCURRENT_MAP_TEST_HPP
+#define TEST_CONCURRENT_MAP_TEST_HPP
 
 // Standard C++ library
 #include <chrono>
@@ -24,7 +24,7 @@
 #include <vector>
 // Zisc
 #include "zisc/zisc_config.hpp"
-#include "zisc/structure/search_tree.hpp"
+#include "zisc/structure/map.hpp"
 
 namespace test {
 
@@ -74,11 +74,11 @@ class Zipfian
 
   No detailed description.
   */
-class SearchTreeTest
+class MapTest
 {
  public:
   //
-  template <typename SearchTreeClass>
+  template <typename MapClass>
   static void testConcurrentThroughputOp(
       const std::size_t num_of_threads,
       const std::size_t num_of_samples,
@@ -88,10 +88,10 @@ class SearchTreeTest
       const bool use_sparse,
       const bool use_zipfian,
       const double zipfian_param,
-      zisc::SearchTree<SearchTreeClass, zisc::uint64b>* search_tree);
+      zisc::Map<MapClass, zisc::uint64b>* map);
 
   //
-  template <typename SearchTreeClass>
+  template <typename MapClass>
   static void testConcurrentThroughputTime(
       const std::size_t num_of_threads,
       const std::size_t num_of_samples,
@@ -103,7 +103,16 @@ class SearchTreeTest
       const bool use_sparse,
       const bool use_zipfian,
       const double zipfian_param,
-      zisc::SearchTree<SearchTreeClass, zisc::uint64b>* search_tree);
+      zisc::Map<MapClass, zisc::uint64b>* map);
+
+
+  static constexpr std::size_t kNumOfDefaultThreads = 128;
+  static constexpr std::size_t kNumOfDefaultKeys = 100'000;
+  static constexpr std::size_t kNumOfDefaultSamples = 20'000'000;
+  static constexpr std::size_t kNumOfDefaultRounds = 4;
+  static constexpr std::size_t kDefaultUpdatePercent = 50;
+  static constexpr zisc::int64b kDefaultTrialTime = 10'000; // in milliseconds
+  static constexpr zisc::uint64b kDefaultSamplerSeed = 123'456'789u;
 
  private:
   /*!
@@ -131,19 +140,20 @@ class SearchTreeTest
 
   //
   static std::tuple<std::vector<zisc::uint64b>, std::vector<zisc::uint64b>>
-  generateSearchTreeInputList(const std::size_t num_of_keys,
-                              const bool use_sparse,
-                              const bool use_zipfian,
-                              const double zipfian_param,
-                              std::mt19937_64& sampler);
+  generateMapInputList(const std::size_t num_of_samples,
+                       const std::size_t num_of_keys,
+                       const bool use_sparse,
+                       const bool use_zipfian,
+                       const double zipfian_param,
+                       std::mt19937_64& sampler);
 
   //
-  static std::vector<Operation> generateSearchTreeOpList(
+  static std::vector<Operation> generateMapOpList(
       const std::size_t num_of_samples,
       const std::size_t update_percent);
 
   //
-  template <typename SearchTreeClass>
+  template <typename MapClass>
   static void testConcurrentThroughputTimeImpl(
       const std::size_t num_of_threads,
       const std::size_t num_of_samples,
@@ -151,7 +161,7 @@ class SearchTreeTest
       const std::vector<zisc::uint64b>& input_list,
       const std::vector<Operation>& op_list,
       const std::size_t i,
-      zisc::SearchTree<SearchTreeClass, zisc::uint64b>* search_tree,
+      zisc::Map<MapClass, zisc::uint64b>* map,
       std::vector<std::size_t>* total_list,
       std::vector<zisc::int64b>* added_list,
       std::atomic_flag* finish);
@@ -159,6 +169,6 @@ class SearchTreeTest
 
 } /* namespace test */
 
-#include "concurrent_search_tree_test-inl.hpp"
+#include "concurrent_map_test-inl.hpp"
 
-#endif /* TEST_CONCURRENT_SEARCH_TREE_TEST_HPP */
+#endif /* TEST_CONCURRENT_MAP_TEST_HPP */

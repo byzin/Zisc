@@ -17,9 +17,12 @@
 
 #include "queue_test.hpp"
 // Standard C++ library
+#include <algorithm>
+#include <array>
 #include <cstddef>
 #include <iostream>
 #include <memory>
+#include <random>
 #include <optional>
 #include <system_error>
 #include <type_traits>
@@ -49,11 +52,20 @@ void testSimpleBoundedQueue(zisc::Queue<QueueClass, int>* queue)
   queue->clear();
   ASSERT_TRUE(queue->isEmpty()) << "The queue isn't empty.";
 
+  // Create input values
+  constexpr std::size_t n = 64;
+  std::mt19937_64 sampler{123'456'789};
+  std::array<int, n> vlist;
+  std::iota(vlist.begin(), vlist.end(), 0);
+  std::shuffle(vlist.begin(), vlist.end(), sampler);
+
+  // Set capacity test
+  queue->setCapacity(vlist.size());
+  ASSERT_EQ(vlist.size(), queue->capacity()) << "Initializing queue capacity failed.";
+  ASSERT_TRUE(queue->isEmpty()) << "The queue isn't empty.";
+
   // Enqueue test
-  queue->setCapacity(8);
-  ASSERT_EQ(8, queue->capacity()) << "The initial queue capacity isn't 1.";
   const char* message = "Enqueuing failed.";
-  ASSERT_TRUE(queue->isEmpty()) << message;
   auto test_enqueue = [queue, message](const int value)
   {
     const std::optional<std::size_t> result = queue->enqueue(value);
@@ -61,45 +73,35 @@ void testSimpleBoundedQueue(zisc::Queue<QueueClass, int>* queue)
     const std::size_t storage_id = *result;
     ASSERT_EQ(value, queue->get(storage_id)) << message;
   };
-  test_enqueue(7);
-  test_enqueue(6);
-  test_enqueue(4);
-  test_enqueue(8);
-  test_enqueue(2);
-  test_enqueue(1);
-  test_enqueue(5);
-  test_enqueue(3);
-  ASSERT_EQ(8, queue->size()) << message;
-  ASSERT_FALSE(queue->isEmpty()) << "The queue is empty.";
+  std::for_each(vlist.begin(), vlist.end(), test_enqueue);
+  ASSERT_EQ(vlist.size(), queue->size()) << message;
+  ASSERT_FALSE(queue->isEmpty()) << "The queue is still empty.";
 
   // Enqueue overflow test
+  using OverflowError = typename Queue::OverflowError;
   auto enqueue_overflow = [queue](const int value)
   {
     try {
       [[maybe_unused]] const std::optional<std::size_t> result = queue->enqueue(value);
     }
-    catch (const typename Queue::OverflowError& error) {
+    catch (const OverflowError& error) {
       ASSERT_EQ(value, error.get()) << "The enqueue exception failed.";
+      std::cout << error.what() << " value: " << error.get() << std::endl;
       throw;
     }
   };
-  ASSERT_THROW(enqueue_overflow(9), typename Queue::OverflowError) << message;
+  constexpr int overflow_value = zisc::cast<int>(vlist.size());
+  ASSERT_THROW(enqueue_overflow(overflow_value), OverflowError) << message;
 
   // Dequeue test
   message = "Dequeuing failed.";
-  auto test_dequeue = [message](const std::optional<int>& result, const int expected)
+  auto test_dequeue = [queue, message](const int expected)
   {
+    const std::optional<int> result = queue->dequeue();
     ASSERT_TRUE(result.has_value()) << message;
     ASSERT_EQ(expected, *result) << message << " Expected: " << expected;
   };
-  test_dequeue(queue->dequeue(), 7);
-  test_dequeue(queue->dequeue(), 6);
-  test_dequeue(queue->dequeue(), 4);
-  test_dequeue(queue->dequeue(), 8);
-  test_dequeue(queue->dequeue(), 2);
-  test_dequeue(queue->dequeue(), 1);
-  test_dequeue(queue->dequeue(), 5);
-  test_dequeue(queue->dequeue(), 3);
+  std::for_each(vlist.begin(), vlist.end(), test_dequeue);
   ASSERT_TRUE(queue->isEmpty()) << "The queue isn't empty.";
 
   // Empty dequeue test
@@ -110,18 +112,19 @@ void testSimpleBoundedQueue(zisc::Queue<QueueClass, int>* queue)
 
   // Clear queue test
   {
-    const std::optional<std::size_t> result = queue->enqueue(1);
-    ASSERT_TRUE(result.has_value()) << "Enqueuing failed.";
-    ASSERT_FALSE(queue->isEmpty()) << "The queue is empty.";
+    message = "Cleaning queue data failed.";
+    ASSERT_TRUE(queue->isEmpty()) << message;
+    std::for_each(vlist.begin(), vlist.end(), test_enqueue);
+    ASSERT_FALSE(queue->isEmpty()) << message;
     queue->clear();
-    ASSERT_TRUE(queue->isEmpty()) << "The queue isn't empty.";
+    ASSERT_TRUE(queue->isEmpty()) << message;
   }
 }
 
 class MovableQValue : public zisc::NonCopyable<MovableQValue>
 {
  public:
-  MovableQValue() noexcept = default;
+  MovableQValue() = delete;
 
   MovableQValue(const int v) : value_{v} {}
 
@@ -162,11 +165,20 @@ void testMovableValueQueue(zisc::Queue<QueueClass, MovableQValue>* queue)
   queue->clear();
   ASSERT_TRUE(queue->isEmpty()) << "The queue isn't empty.";
 
+  // Create input values
+  constexpr std::size_t n = 64;
+  std::mt19937_64 sampler{123'456'789};
+  std::array<int, n> vlist;
+  std::iota(vlist.begin(), vlist.end(), 0);
+  std::shuffle(vlist.begin(), vlist.end(), sampler);
+
+  // Set capacity test
+  queue->setCapacity(vlist.size());
+  ASSERT_EQ(vlist.size(), queue->capacity()) << "Initializing queue capacity failed.";
+  ASSERT_TRUE(queue->isEmpty()) << "The queue isn't empty.";
+
   // Enqueue test
-  queue->setCapacity(8);
-  ASSERT_EQ(8, queue->capacity()) << "The initial queue capacity isn't 1.";
   const char* message = "Enqueuing failed.";
-  ASSERT_TRUE(queue->isEmpty()) << message;
   auto test_enqueue = [queue, message](const int value)
   {
     const std::optional<std::size_t> result = queue->enqueue(Movable{value});
@@ -174,48 +186,37 @@ void testMovableValueQueue(zisc::Queue<QueueClass, MovableQValue>* queue)
     const std::size_t storage_id = *result;
     ASSERT_EQ(value, static_cast<int>(queue->get(storage_id))) << message;
   };
-  test_enqueue(1);
-  test_enqueue(5);
-  test_enqueue(3);
-  test_enqueue(8);
-  test_enqueue(2);
-  test_enqueue(7);
-  test_enqueue(6);
-  test_enqueue(4);
-  ASSERT_EQ(8, queue->size()) << message;
-  ASSERT_FALSE(queue->isEmpty()) << "The queue is empty.";
+  std::for_each(vlist.begin(), vlist.end(), test_enqueue);
+  ASSERT_EQ(vlist.size(), queue->size()) << message;
+  ASSERT_FALSE(queue->isEmpty()) << "The queue is still empty.";
 
   // Enqueue overflow test
+  using OverflowError = typename Queue::OverflowError;
   auto enqueue_overflow = [queue](const int value)
   {
     try {
       [[maybe_unused]] const std::optional<std::size_t> result = queue->enqueue(Movable{value});
     }
-    catch (typename Queue::OverflowError& error) {
-      Movable r = std::move(error.get());
-      ASSERT_EQ(value, static_cast<int>(r)) << "The enqueue exception failed.";
-      std::cout << error.what() << " value: " << static_cast<int>(r) << std::endl;
+    catch (const OverflowError& error) {
+      const int v = static_cast<int>(error.get());
+      ASSERT_EQ(value, v) << "The enqueue exception failed.";
+      std::cout << error.what() << " value: " << v << std::endl;
       throw;
     }
   };
-  ASSERT_THROW(enqueue_overflow(9), typename Queue::OverflowError) << message;
+  constexpr int overflow_value = zisc::cast<int>(vlist.size());
+  ASSERT_THROW(enqueue_overflow(overflow_value), OverflowError) << message;
 
   // Dequeue test
   message = "Dequeuing failed.";
-  const auto test_dequeue = [message](const std::optional<Movable>& result,
-                                      const int expected)
+  const auto test_dequeue = [queue, message](const int expected)
   {
+    const std::optional<Movable>& result = queue->dequeue();
     ASSERT_TRUE(result.has_value()) << message;
     const Movable& v = *result;
     ASSERT_EQ(expected, static_cast<int>(v)) << message << " Expected: " << expected;
   };
-  test_dequeue(queue->dequeue(), 1);
-  test_dequeue(queue->dequeue(), 5); test_dequeue(queue->dequeue(), 3);
-  test_dequeue(queue->dequeue(), 8);
-  test_dequeue(queue->dequeue(), 2);
-  test_dequeue(queue->dequeue(), 7);
-  test_dequeue(queue->dequeue(), 6);
-  test_dequeue(queue->dequeue(), 4);
+  std::for_each(vlist.begin(), vlist.end(), test_dequeue);
 
   // Empty dequeue test
   {
@@ -225,11 +226,13 @@ void testMovableValueQueue(zisc::Queue<QueueClass, MovableQValue>* queue)
 
   // Clear queue test
   {
+    message = "Cleaning queue data failed.";
+    ASSERT_TRUE(queue->isEmpty()) << message;
     const std::optional<std::size_t> result = queue->enqueue(Movable{1});
-    ASSERT_TRUE(result.has_value()) << "Enqueuing failed.";
-    ASSERT_FALSE(queue->isEmpty()) << "The queue is empty.";
+    ASSERT_TRUE(result.has_value()) << message;
+    ASSERT_FALSE(queue->isEmpty()) << message;
     queue->clear();
-    ASSERT_TRUE(queue->isEmpty()) << "The queue isn't empty.";
+    ASSERT_TRUE(queue->isEmpty()) << message;
   }
 }
 

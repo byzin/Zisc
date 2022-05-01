@@ -1,5 +1,5 @@
 /*!
-  \file concurrent_search_tree_test.cpp
+  \file concurrent_map_test.cpp
   \author Sho Ikeda
   \brief No brief description
 
@@ -12,7 +12,7 @@
   http://opensource.org/licenses/mit-license.php
   */
 
-#include "concurrent_search_tree_test.hpp"
+#include "concurrent_map_test.hpp"
 // Standard C++ library
 #include <atomic>
 #include <chrono>
@@ -32,7 +32,7 @@
 #include "zisc/zisc_config.hpp"
 #include "zisc/hash/fnv_1a_hash_engine.hpp"
 #include "zisc/math/math.hpp"
-#include "zisc/structure/search_tree.hpp"
+#include "zisc/structure/map.hpp"
 
 namespace test {
 
@@ -100,7 +100,7 @@ double Zipfian::zeta(const std::size_t cur_num, const double theta) noexcept
   \param [in] end_time No description.
   \return No description
   */
-std::chrono::microseconds SearchTreeTest::calcElapsedTime(
+std::chrono::microseconds MapTest::calcElapsedTime(
     const Clock::time_point start_time,
     const Clock::time_point end_time) noexcept
 {
@@ -115,8 +115,8 @@ std::chrono::microseconds SearchTreeTest::calcElapsedTime(
   \param [in] elapsed_time No description.
   \return No description
   */
-double SearchTreeTest::calcMops(const std::size_t total_op,
-                                const std::chrono::microseconds elapsed_time) noexcept
+double MapTest::calcMops(const std::size_t total_op,
+                         const std::chrono::microseconds elapsed_time) noexcept
 {
   const double mops = zisc::cast<double>(total_op) /
                       zisc::cast<double>(elapsed_time.count());
@@ -133,11 +133,12 @@ double SearchTreeTest::calcMops(const std::size_t total_op,
   \return No description
   */
 std::tuple<std::vector<zisc::uint64b>, std::vector<zisc::uint64b>>
-SearchTreeTest::generateSearchTreeInputList(const std::size_t num_of_keys,
-                                            const bool use_sparse,
-                                            const bool use_zipfian,
-                                            const double zipfian_param,
-                                            std::mt19937_64& sampler)
+MapTest::generateMapInputList(const std::size_t num_of_samples,
+                              const std::size_t num_of_keys,
+                              const bool use_sparse,
+                              const bool use_zipfian,
+                              const double zipfian_param,
+                              std::mt19937_64& sampler)
 {
   using zisc::uint64b;
   std::vector<uint64b> sources;
@@ -150,7 +151,9 @@ SearchTreeTest::generateSearchTreeInputList(const std::size_t num_of_keys,
     std::sort(sources.begin(), sources.end());
     auto last = std::unique(sources.begin(), sources.end());
     sources.erase(last, sources.end());
+    ZISC_ASSERT(num_of_keys <= sources.size(), "The number of source isn't enough.");
     std::shuffle(sources.begin(), sources.end(), sampler);
+    sources.erase(sources.begin() + num_of_keys, sources.end());
     std::for_each(sources.begin(), sources.end(), [](uint64b& in){++in;});
   }
   else {
@@ -160,10 +163,10 @@ SearchTreeTest::generateSearchTreeInputList(const std::size_t num_of_keys,
   }
 
   std::vector<uint64b> inputs;
-  inputs.resize(sources.size());
+  inputs.resize(num_of_samples);
   std::iota(inputs.begin(), inputs.end(), 0);
   if (use_zipfian) {
-    const std::size_t n = inputs.size();
+    const std::size_t n = sources.size();
     const Zipfian z{n, zipfian_param};
     std::for_each(inputs.begin(), inputs.end(), [&z, &sources](uint64b& in)
     {
@@ -172,13 +175,16 @@ SearchTreeTest::generateSearchTreeInputList(const std::size_t num_of_keys,
     });
   }
   else {
-    const std::size_t n = inputs.size();
-    std::for_each(inputs.begin(), inputs.end(), [n, &sources](uint64b& in)
+    std::for_each(inputs.begin(), inputs.end(), [&sources](uint64b& in)
     {
+      const std::size_t n = sources.size();
       const std::size_t index = zisc::Fnv1aHash64::hash(in) % n;
       in = sources[index];
     });
   }
+
+  ZISC_ASSERT(sources.size() == num_of_keys, "The number of source isn't enough.");
+  ZISC_ASSERT(inputs.size() == num_of_samples, "The number of input isn't enough.");
 
   return std::make_tuple(std::move(sources), std::move(inputs));
 }
@@ -190,9 +196,9 @@ SearchTreeTest::generateSearchTreeInputList(const std::size_t num_of_keys,
   \param [in] update_percent No description.
   \return No description
   */
-auto SearchTreeTest::generateSearchTreeOpList(
-    const std::size_t num_of_samples,
-    const std::size_t update_percent) -> std::vector<Operation>
+auto MapTest::generateMapOpList(const std::size_t num_of_samples,
+                                const std::size_t update_percent)
+    -> std::vector<Operation>
 {
   std::vector<Operation> op_list;
   op_list.resize(num_of_samples, Operation::kContain);

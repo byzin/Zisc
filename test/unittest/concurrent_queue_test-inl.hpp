@@ -232,7 +232,7 @@ void QueueTest::testConcurrentThroughputTime(
     }
   }
   average_throughput /= zisc::cast<double>(num_of_rounds);
-  std::cout << "average throughput=" << std::scientific << average_throughput
+  std::cout << "  avg throughput=" << std::scientific << average_throughput
             << " (Mop/s)." << std::endl;
 }
 

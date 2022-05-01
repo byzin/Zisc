@@ -49,7 +49,7 @@ class QueueTest
 
 
   static constexpr std::size_t kNumOfDefaultThreads = 128;
-  static constexpr std::size_t kNumOfDefaultSamples = 10'000'000;
+  static constexpr std::size_t kNumOfDefaultSamples = 20'000'000;
   static constexpr std::size_t kNumOfDefaultRounds = 4;
   static constexpr zisc::int64b kDefaultTrialTime = 10'000; // in milliseconds
   static constexpr zisc::uint64b kDefaultSamplerSeed = 123'456'789u;

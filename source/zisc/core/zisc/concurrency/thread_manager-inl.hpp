@@ -42,6 +42,7 @@
 #include "zisc/utility.hpp"
 #include "zisc/zisc_config.hpp"
 #include "zisc/memory/std_memory_resource.hpp"
+#include "zisc/structure/mutex_bst.hpp"
 #include "zisc/structure/scalable_circular_queue.hpp"
 
 namespace zisc {
@@ -164,7 +165,7 @@ ThreadManager::ThreadManager(const int64b num_of_threads,
     num_of_active_workers_{0},
     worker_lock_{-1},
     task_queue_{defaultCapacity(), mem_resource},
-    task_id_tree_{defaultCapacity(), mem_resource},
+    task_id_set_{defaultCapacity(), mem_resource},
     worker_list_{decltype(worker_list_)::allocator_type{mem_resource}},
     worker_id_list_{decltype(worker_id_list_)::allocator_type{mem_resource}},
     task_storage_list_{decltype(task_storage_list_)::allocator_type{mem_resource}}
@@ -242,7 +243,7 @@ inline
 std::size_t ThreadManager::capacity() const noexcept
 {
   const std::size_t cap = taskQueue().capacity();
-  ZISC_ASSERT(cap <= taskIdTree().capacity(), "The task ID tree cap is less than cap.");
+  ZISC_ASSERT(cap <= taskIdSet().capacity(), "The task ID tree cap is less than cap.");
   return cap;
 }
 
@@ -260,7 +261,7 @@ void ThreadManager::clear() noexcept
               "Some worker threads are stil active.");
   total_queued_task_ids_.store(0, std::memory_order::release);
   taskQueue().clear();
-  taskIdTree().clear();
+  taskIdSet().clear();
 }
 
 /*!
@@ -436,7 +437,7 @@ inline
 void ThreadManager::setCapacity(const std::size_t cap) noexcept
 {
   taskQueue().setCapacity(cap);
-  taskIdTree().setCapacity(cap);
+  taskIdSet().setCapacity(cap);
   task_storage_list_.resize(cap);
   ZISC_ASSERT(cap <= task_storage_list_.capacity(), "Allocating task mem failed.");
   clear();
@@ -785,7 +786,7 @@ auto ThreadManager::enqueueImpl(TaskData& task,
     {
       if constexpr (kIsLoopTask || std::is_void_v<ReturnT>)
         setResult<ReturnT>(0);
-      [[maybe_unused]] const auto storage_id = manager_->taskIdTree().remove(id());
+      [[maybe_unused]] const auto storage_id = manager_->taskIdSet().remove(id());
       ZISC_ASSERT(storage_id.has_value(), "The given id isn't in the task tree.");
     }
     //! Run a task
@@ -851,7 +852,7 @@ auto ThreadManager::enqueueImpl(TaskData& task,
 
   // Issue a task ID
   const int64b task_id = issueTaskId();
-  const auto storage_id = taskIdTree().add(task_id);
+  const auto storage_id = taskIdSet().add(task_id);
   ZISC_ASSERT(storage_id.has_value(), "Registering the task ID failed: id=", task_id);
 
   // Create a shared task
@@ -968,8 +969,8 @@ int64b ThreadManager::getCurrentThreadId() const noexcept
 inline
 void ThreadManager::initialize(const int64b num_of_threads) noexcept
 {
-  static_assert(TaskQueue::isConcurrent(), "TaskQueue isn't concurrent.");
-  static_assert(TaskIdTree::isConcurrent(), "TaskIdTree isn't concurrent.");
+  static_assert(TaskQueue::isConcurrent(), "TaskQueue doesn't support concurrency.");
+  static_assert(TaskIdSet::isConcurrent(), "TaskIdSet doesn't support concurrency.");
   createWorkers(num_of_threads);
   setCapacity(defaultCapacity());
 }
@@ -1034,9 +1035,9 @@ SharedTask ThreadManager::makeSharedTask(const std::size_t storage_index,
   \return No description
   */
 inline
-auto ThreadManager::taskIdTree() noexcept -> TaskIdTree&
+auto ThreadManager::taskIdSet() noexcept -> TaskIdSet&
 {
-  return task_id_tree_;
+  return task_id_set_;
 }
 
 /*!
@@ -1045,9 +1046,9 @@ auto ThreadManager::taskIdTree() noexcept -> TaskIdTree&
   \return No description
   */
 inline
-auto ThreadManager::taskIdTree() const noexcept -> const TaskIdTree&
+auto ThreadManager::taskIdSet() const noexcept -> const TaskIdSet&
 {
-  return task_id_tree_;
+  return task_id_set_;
 }
 
 /*!
@@ -1088,11 +1089,11 @@ void ThreadManager::waitForParent(const int64b task_id,
       flag = true;
     }
     else if (parent_task_id == kAllPrecedences) {
-      const auto min_key = taskIdTree().findMinKey();
+      const auto min_key = taskIdSet().findMinKey();
       flag = !min_key.has_value() || (*(min_key.value()) == task_id);
     }
     else {
-      const auto result = taskIdTree().contain(parent_task_id);
+      const auto result = taskIdSet().contain(parent_task_id);
       flag = !result.has_value();
     }
     if (flag)

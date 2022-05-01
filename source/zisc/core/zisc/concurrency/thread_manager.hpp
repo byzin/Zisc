@@ -34,10 +34,10 @@
 #include "zisc/non_copyable.hpp"
 #include "zisc/zisc_config.hpp"
 #include "zisc/memory/std_memory_resource.hpp"
+#include "zisc/structure/map.hpp"
 #include "zisc/structure/mutex_bst.hpp"
 #include "zisc/structure/queue.hpp"
 #include "zisc/structure/scalable_circular_queue.hpp"
-#include "zisc/structure/search_tree.hpp"
 
 namespace zisc {
 
@@ -275,8 +275,8 @@ class ThreadManager : private NonCopyable<ThreadManager>
   // Type aliases
   using TaskQueueImpl = ScalableCircularQueue<WorkerTask>;
   using TaskQueue = Queue<TaskQueueImpl, WorkerTask>;
-  using TaskIdTreeImpl = MutexBst<int64b>;
-  using TaskIdTree = SearchTree<TaskIdTreeImpl, int64b>;
+  using TaskIdSetImpl = MutexBst<int64b>;
+  using TaskIdSet = Map<TaskIdSetImpl, int64b>;
   using WorkerLock = AtomicWord<Config::isAtomicOsSpecifiedWaitUsed()>;
 
 
@@ -340,10 +340,10 @@ class ThreadManager : private NonCopyable<ThreadManager>
   static auto makeTaskData(Func&& func) noexcept;
 
   //! Return the task ID tree
-  TaskIdTree& taskIdTree() noexcept;
+  TaskIdSet& taskIdSet() noexcept;
 
   //! Return the task ID tree
-  const TaskIdTree& taskIdTree() const noexcept;
+  const TaskIdSet& taskIdSet() const noexcept;
 
   //! Return the task queue
   TaskQueue& taskQueue() noexcept;
@@ -368,12 +368,12 @@ class ThreadManager : private NonCopyable<ThreadManager>
   alignas(kCacheLineSize) WorkerLock worker_lock_;
   [[maybe_unused]] Padding<kCacheLineSize - sizeof(worker_lock_)> pad3_;
   TaskQueueImpl task_queue_;
-  TaskIdTreeImpl task_id_tree_;
+  TaskIdSetImpl task_id_set_;
   pmr::vector<std::thread> worker_list_;
   pmr::vector<std::thread::id> worker_id_list_;
   pmr::vector<TaskResource> task_storage_list_;
   using Pad4 = Padding<kCacheLineSize - ((sizeof(task_queue_) +
-                                          sizeof(task_id_tree_) +
+                                          sizeof(task_id_set_) +
                                           sizeof(worker_list_) +
                                           sizeof(worker_id_list_) +
                                           sizeof(task_storage_list_)) % kCacheLineSize)>; 

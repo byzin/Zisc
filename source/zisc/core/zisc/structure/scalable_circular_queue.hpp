@@ -21,6 +21,7 @@
 #include <cstddef>
 #include <memory>
 #include <optional>
+#include <span>
 #include <string_view>
 #include <type_traits>
 #include <vector>
@@ -29,6 +30,7 @@
 #include "ring_buffer.hpp"
 #include "zisc/error.hpp"
 #include "zisc/zisc_config.hpp"
+#include "zisc/memory/data_storage.hpp"
 #include "zisc/memory/std_memory_resource.hpp"
 
 namespace zisc {
@@ -57,7 +59,6 @@ class ScalableCircularQueue : public Queue<ScalableCircularQueue<T>, T>
   using ConstPointer = typename BaseQueueT::ConstPointer;
 
   // Type aliases for STL
-  using container_type = pmr::vector<ValueT>;
   using value_type = typename BaseQueueT::value_type;
   using size_type = typename BaseQueueT::size_type;
   using reference = typename BaseQueueT::reference;
@@ -74,12 +75,15 @@ class ScalableCircularQueue : public Queue<ScalableCircularQueue<T>, T>
   //! Move a data
   ScalableCircularQueue(ScalableCircularQueue&& other) noexcept;
 
+  //! Destroy the queue
+  ~ScalableCircularQueue() noexcept;
+
 
   //! Move a queue
   ScalableCircularQueue& operator=(ScalableCircularQueue&& other) noexcept;
 
 
-  //! Return the maximum possible number of elements
+  //! Return the maximum possible number of elements can be queued
   size_type capacity() const noexcept;
 
   //! Return the maximum possible capacity
@@ -89,16 +93,14 @@ class ScalableCircularQueue : public Queue<ScalableCircularQueue<T>, T>
   void clear() noexcept;
 
   //! Return the direct access to the underlying array
-  const container_type& data() const noexcept;
+  std::span<ConstT> data() const noexcept;
 
   //! Take the first element of the queue
   [[nodiscard]] std::optional<ValueT> dequeue() noexcept;
 
   //! Append the given element value to the end of the queue
-  [[nodiscard]] std::optional<size_type> enqueue(ConstReference value);
-
-  //! Append the given element value to the end of the queue
-  [[nodiscard]] std::optional<size_type> enqueue(RReference value);
+  template <typename ...Args> requires std::is_nothrow_constructible_v<T, Args...>
+  [[nodiscard]] std::optional<size_type> enqueue(Args&&... args);
 
   //! Return the value by the given index
   Reference get(const size_type index) noexcept;
@@ -112,27 +114,34 @@ class ScalableCircularQueue : public Queue<ScalableCircularQueue<T>, T>
   //! Check if the queue is concurrent
   static constexpr bool isConcurrent() noexcept;
 
-  //! Check whether the queue is empty
-  bool isEmpty() const noexcept;
-
   //! Return a pointer to the underlying memory resource
   pmr::memory_resource* resource() const noexcept;
 
   //! Change the maximum possible number of elements. The queued data is cleared
-  void setCapacity(const size_type cap) noexcept;
+  void setCapacity(size_type cap) noexcept;
 
   //! Return the number of elements
   size_type size() const noexcept;
 
  private:
-  //! Append the given element value to the end of the queue
-  template <typename ValueT>
-  [[nodiscard]] std::optional<size_type> enqueueImpl(ValueT&& value);
+  using StorageT = DataStorage<ValueT>;
+  using ConstStorageT = std::add_const_t<StorageT>;
+  using StorageRef = std::add_lvalue_reference_t<StorageT>;
+  using ConstStorageRef = std::add_lvalue_reference_t<ConstStorageT>;
+  using StoragePtr = std::add_pointer_t<StorageT>;
+  using ConstStoragePtr = std::add_pointer_t<ConstStorageT>;
+
+
+  //! Return the storage by the given index
+  StorageRef getStorage(const size_type index) noexcept;
+
+  //! Return the storage by the given index
+  ConstStorageRef getStorage(const size_type index) const noexcept;
 
 
   RingBuffer free_elements_;
   RingBuffer allocated_elements_;
-  container_type elements_;
+  pmr::vector<StorageT> elements_;
 };
 
 } // namespace zisc

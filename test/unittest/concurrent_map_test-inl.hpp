@@ -1,5 +1,5 @@
 /*!
-  \file concurrent_search_tree_test-inl.hpp
+  \file concurrent_map_test-inl.hpp
   \author Sho Ikeda
   \brief No brief description
 
@@ -12,10 +12,10 @@
   http://opensource.org/licenses/mit-license.php
   */
 
-#ifndef TEST_CONCURRENT_SEARCH_TREE_TEST_INL_HPP
-#define TEST_CONCURRENT_SEARCH_TREE_TEST_INL_HPP
+#ifndef TEST_CONCURRENT_MAP_TEST_INL_HPP
+#define TEST_CONCURRENT_MAP_TEST_INL_HPP
 
-#include "concurrent_search_tree_test.hpp"
+#include "concurrent_map_test.hpp"
 // Standard C++ library
 #include <algorithm>
 #include <atomic>
@@ -27,13 +27,14 @@
 #include <optional>
 #include <random>
 #include <thread>
+#include <type_traits>
 #include <utility>
 #include <vector>
 // GoogleTest
 #include "googletest.hpp"
 // Zisc
 #include "zisc/zisc_config.hpp"
-#include "zisc/structure/search_tree.hpp"
+#include "zisc/structure/map.hpp"
 
 namespace test {
 
@@ -73,7 +74,7 @@ constexpr double Zipfian::zipfianConst() noexcept
 /*!
   \details No detailed description
 
-  \tparam SearchTreeClass No description.
+  \tparam MapClass No description.
   \param [in] num_of_threads No description.
   \param [in] num_of_samples No description.
   \param [in] num_of_keys No description.
@@ -81,11 +82,11 @@ constexpr double Zipfian::zipfianConst() noexcept
   \param [in] use_sparse No description.
   \param [in] use_zipfian No description.
   \param [in] zipfian_param No description.
-  \param [out] search_tree No description.
+  \param [out] map No description.
   \return No description
   */
-template <typename SearchTreeClass> inline
-void SearchTreeTest::testConcurrentThroughputOp(
+template <typename MapClass> inline
+void MapTest::testConcurrentThroughputOp(
     const std::size_t num_of_threads,
     const std::size_t num_of_samples,
     const std::size_t num_of_keys,
@@ -94,19 +95,21 @@ void SearchTreeTest::testConcurrentThroughputOp(
     const bool use_sparse,
     const bool use_zipfian,
     const double zipfian_param,
-    zisc::SearchTree<SearchTreeClass, zisc::uint64b>* search_tree)
+    zisc::Map<MapClass, zisc::uint64b>* map)
 {
   using zisc::uint64b;
-  static_assert(search_tree->isConcurrent(), "The tree doesn't support concurrency.");
+  using Map = std::remove_cvref_t<decltype(*map)>;
+  static_assert(Map::isConcurrent(), "The tree doesn't support concurrency.");
   std::mt19937_64 sampler{sampler_seed};
-  const auto [source_list, input_list] = generateSearchTreeInputList(num_of_keys,
-                                                                     use_sparse,
-                                                                     use_zipfian,
-                                                                     zipfian_param,
-                                                                     sampler);
+  const auto [source_list, input_list] = generateMapInputList(num_of_samples,
+                                                              num_of_keys,
+                                                              use_sparse,
+                                                              use_zipfian,
+                                                              zipfian_param,
+                                                              sampler);
   for (std::size_t round = 0; round < num_of_rounds; ++round) {
-    search_tree->clear();
-    ASSERT_EQ(0, search_tree->size()) << "The search tree isn't cleared.";
+    map->clear();
+    ASSERT_EQ(0, map->size()) << "The search tree isn't cleared.";
 
     constexpr std::size_t batch_size = 64;
     // 
@@ -117,7 +120,7 @@ void SearchTreeTest::testConcurrentThroughputOp(
     // Insertion test
     for (std::size_t i = 0; i < num_of_threads; ++i) {
       const auto& inputs = input_list;
-      worker_list.emplace_back([num_of_samples, &inputs, search_tree, &count, &worker_lock]()
+      worker_list.emplace_back([num_of_samples, &inputs, map, &count, &worker_lock]()
       {
         // Wait this thread until all threads become ready
         worker_lock.wait(-1, std::memory_order::acquire);
@@ -129,9 +132,9 @@ void SearchTreeTest::testConcurrentThroughputOp(
           if (end <= begin)
             break;
           const std::size_t n = end - begin;
-          std::for_each_n(inputs.begin() + begin, n, [search_tree](const uint64b& in)
+          std::for_each_n(inputs.begin() + begin, n, [map](const uint64b& in)
           {
-            [[maybe_unused]] const auto result = search_tree->add(in);
+            [[maybe_unused]] const auto result = map->add(in);
           });
         }
       });
@@ -150,7 +153,7 @@ void SearchTreeTest::testConcurrentThroughputOp(
     count.store(0, std::memory_order::release);
     for (std::size_t i = 0; i < num_of_threads; ++i) {
       const auto& inputs = sequence;
-      worker_list.emplace_back([num_of_samples, &inputs, search_tree, &count, &worker_lock]()
+      worker_list.emplace_back([num_of_samples, &inputs, map, &count, &worker_lock]()
       {
         // Wait this thread until all threads become ready
         worker_lock.wait(-1, std::memory_order::acquire);
@@ -162,13 +165,22 @@ void SearchTreeTest::testConcurrentThroughputOp(
           if (end <= begin)
             break;
           const std::size_t n = end - begin;
-          std::for_each_n(inputs.begin() + begin, n, [search_tree](const uint64b& in)
+          std::for_each_n(inputs.begin() + begin, n, [map](const uint64b& in)
           {
-            const std::optional<std::size_t> result = search_tree->contain(in);
-            ASSERT_TRUE(result.has_value()) << "Key not found, input = " << in;
+            const std::optional<std::size_t> result = map->contain(in);
+            ASSERT_TRUE(result.has_value()) << "Key not found, input=" << in;
+            const std::size_t index = *result;
+            ASSERT_EQ(in, map->get(index)) << "Map construction failed, input=" << in;
           });
         }
       });
+    }
+    // Find min value
+    {
+      const auto expected = std::min_element(sequence.begin(), sequence.end());
+      const auto result = map->findMinKey();
+      ASSERT_TRUE(result.has_value()) << "Finding min element failed.";
+      ASSERT_EQ(*expected, **result) << "Finding min element failed.";
     }
     // Start the test, notify all threads
     worker_lock.store(zisc::cast<int>(worker_list.size()));
@@ -183,7 +195,7 @@ void SearchTreeTest::testConcurrentThroughputOp(
     count.store(0, std::memory_order::release);
     for (std::size_t i = 0; i < num_of_threads; ++i) {
       const auto& inputs = sequence;
-      worker_list.emplace_back([num_of_samples, &inputs, search_tree, &count, &worker_lock]()
+      worker_list.emplace_back([num_of_samples, &inputs, map, &count, &worker_lock]()
       {
         // Wait this thread until all threads become ready
         worker_lock.wait(-1, std::memory_order::acquire);
@@ -195,9 +207,9 @@ void SearchTreeTest::testConcurrentThroughputOp(
           if (end <= begin)
             break;
           const std::size_t n = end - begin;
-          std::for_each_n(inputs.begin() + begin, n, [search_tree](const uint64b& in)
+          std::for_each_n(inputs.begin() + begin, n, [map](const uint64b& in)
           {
-            [[maybe_unused]] const auto result = search_tree->remove(in);
+            [[maybe_unused]] const auto result = map->remove(in);
           });
         }
       });
@@ -207,14 +219,14 @@ void SearchTreeTest::testConcurrentThroughputOp(
     worker_lock.notify_all();
     // Wait the test done
     std::for_each_n(worker_list.begin(), num_of_threads, [](std::thread& w){w.join();});
-    ASSERT_EQ(0, search_tree->size()) << "The search tree isn't empty.";
+    ASSERT_EQ(0, map->size()) << "The search tree isn't empty.";
   }
 }
 
 /*!
   \details No detailed description
 
-  \tparam SearchTreeClass No description.
+  \tparam MapClass No description.
   \param [in] num_of_threads No description.
   \param [in] num_of_samples No description.
   \param [in] num_of_keys No description.
@@ -223,11 +235,11 @@ void SearchTreeTest::testConcurrentThroughputOp(
   \param [in] use_sparse No description.
   \param [in] use_zipfian No description.
   \param [in] zipfian_param No description.
-  \param [out] search_tree No description.
+  \param [out] map No description.
   \return No description
   */
-template <typename SearchTreeClass> inline
-void SearchTreeTest::testConcurrentThroughputTime(
+template <typename MapClass> inline
+void MapTest::testConcurrentThroughputTime(
     const std::size_t num_of_threads,
     const std::size_t num_of_samples,
     const std::size_t num_of_keys,
@@ -238,28 +250,30 @@ void SearchTreeTest::testConcurrentThroughputTime(
     const bool use_sparse,
     const bool use_zipfian,
     const double zipfian_param,
-    zisc::SearchTree<SearchTreeClass, zisc::uint64b>* search_tree)
+    zisc::Map<MapClass, zisc::uint64b>* map)
 {
   using zisc::uint64b;
-  static_assert(search_tree->isConcurrent(), "The tree doesn't support concurrency.");
+  using Map = std::remove_cvref_t<decltype(*map)>;
+  static_assert(Map::isConcurrent(), "The tree doesn't support concurrency.");
   std::mt19937_64 sampler{sampler_seed};
-  const auto [source_list, input_list] = generateSearchTreeInputList(2 * num_of_keys,
-                                                                     use_sparse,
-                                                                     use_zipfian,
-                                                                     zipfian_param,
-                                                                     sampler);
-  const auto op_list = generateSearchTreeOpList(num_of_samples, update_percent);
+  const auto [source_list, input_list] = generateMapInputList(num_of_samples,
+                                                              2 * num_of_keys,
+                                                              use_sparse,
+                                                              use_zipfian,
+                                                              zipfian_param,
+                                                              sampler);
+  const auto op_list = generateMapOpList(num_of_samples, update_percent);
   double average_throughput = 0.0;
   for (std::size_t round = 0; round < num_of_rounds; ++round) {
-    search_tree->clear();
-    ASSERT_EQ(0, search_tree->size()) << "The search tree isn't cleared.";
+    map->clear();
+    ASSERT_EQ(0, map->size()) << "The search tree isn't cleared.";
 
     // Initialize the search tree with the keys
-    std::for_each_n(source_list.begin(), num_of_keys, [search_tree](const uint64b& in)
+    std::for_each_n(source_list.begin(), num_of_keys, [map](const uint64b& in)
     {
-      [[maybe_unused]] const auto result = search_tree->add(in);
+      [[maybe_unused]] const auto result = map->add(in);
     });
-    ASSERT_EQ(num_of_keys, search_tree->size()) << "The search tree addition failed.";
+    ASSERT_EQ(num_of_keys, map->size()) << "The search tree addition failed.";
 
     // 
     std::vector<std::size_t> total_list;
@@ -272,14 +286,14 @@ void SearchTreeTest::testConcurrentThroughputTime(
     worker_list.reserve(num_of_threads);
     for (std::size_t i = 0; i < num_of_threads; ++i) {
       const auto& inputs = input_list;
-      worker_list.emplace_back([num_of_threads, num_of_samples, trial_time, &inputs, &op_list, i, search_tree, &total_list, &added_list, &finish, &worker_lock]()
+      worker_list.emplace_back([num_of_threads, num_of_samples, trial_time, &inputs, &op_list, i, map, &total_list, &added_list, &finish, &worker_lock]()
       {
         // Wait this thread until all threads become ready
         worker_lock.wait(-1, std::memory_order::acquire);
         // Do the actual test
         testConcurrentThroughputTimeImpl(num_of_threads, num_of_samples, trial_time,
                                          inputs, op_list, i,
-                                         search_tree, &total_list, &added_list, &finish);
+                                         map, &total_list, &added_list, &finish);
       });
     }
 
@@ -299,7 +313,7 @@ void SearchTreeTest::testConcurrentThroughputTime(
     }
     {
       const zisc::int64b updates = std::reduce(added_list.begin(), added_list.end());
-      ASSERT_EQ(num_of_keys + updates, search_tree->size()) << "Search tree operation failed.";
+      ASSERT_EQ(num_of_keys + updates, map->size()) << "Search tree operation failed.";
     }
     {
       const std::chrono::microseconds time = calcElapsedTime(start_time, end_time);
@@ -311,34 +325,34 @@ void SearchTreeTest::testConcurrentThroughputTime(
     }
   }
   average_throughput /= zisc::cast<double>(num_of_rounds);
-  std::cout << "average throughput=" << std::scientific << average_throughput
+  std::cout << "  avg throughput=" << std::scientific << average_throughput
             << " (Mop/s)." << std::endl;
 }
 
 /*!
   \details No detailed description
 
-  \tparam SearchTreeClass No description.
+  \tparam MapClass No description.
   \param [in] num_of_threads No description.
   \param [in] num_of_samples No description.
   \param [in] trial_time No description.
   \param [in] input_list No description.
   \param [in] op_list No description.
   \param [in] i No description.
-  \param [out] search_tree No description.
+  \param [out] map No description.
   \param [out] total_list No description.
   \param [out] added_list No description.
   \param [out] finish No description.
   */
-template <typename SearchTreeClass> inline
-void SearchTreeTest::testConcurrentThroughputTimeImpl(
+template <typename MapClass> inline
+void MapTest::testConcurrentThroughputTimeImpl(
     const std::size_t num_of_threads,
     const std::size_t num_of_samples,
     const zisc::int64b trial_time,
     const std::vector<zisc::uint64b>& input_list,
     const std::vector<Operation>& op_list,
     const std::size_t i,
-    zisc::SearchTree<SearchTreeClass, zisc::uint64b>* search_tree,
+    zisc::Map<MapClass, zisc::uint64b>* map,
     std::vector<std::size_t>* total_list,
     std::vector<zisc::int64b>* added_list,
     std::atomic_flag* finish)
@@ -352,11 +366,8 @@ void SearchTreeTest::testConcurrentThroughputTimeImpl(
 
   const auto start_time = Clock::now();
   const std::size_t mp = num_of_samples / num_of_threads;
-  std::size_t j = i * mp;
-  std::size_t count = 0;
-  std::size_t total = 0;
   int64b added = 0;
-  while (true) {
+  for (std::size_t j = i * mp, count = 0, total = 0; ; ++j, ++count, ++total) {
     // Every once in a while check if time is over
     if (count == 100) {
       count = 0;
@@ -375,32 +386,30 @@ void SearchTreeTest::testConcurrentThroughputTimeImpl(
       (*added_list)[i] = added;
       break;
     }
+    const zisc::uint64b value = input_list[j];
     switch (op_list[j]) {
      case Operation::kAdd: {
-      const std::optional<std::size_t> result = search_tree->add(input_list[j]);
+      const std::optional<std::size_t> result = map->add(value);
       if (result.has_value())
         ++added;
       break;
      }
      case Operation::kRemove: {
-      const std::optional<std::size_t> result = search_tree->remove(input_list[j]);
+      const std::optional<std::size_t> result = map->remove(value);
       if (result.has_value())
         --added;
       break;
      }
      case Operation::kContain: {
-      [[maybe_unused]] const auto result = search_tree->contain(input_list[i]);
+      [[maybe_unused]] const auto result = map->contain(value);
       break;
      }
      default:
       break;
     }
-    ++j;
-    ++count;
-    ++total;
   }
 }
 
 } /* namespace test */
 
-#endif /* TEST_CONCURRENT_SEARCH_TREE_TEST_INL_HPP */
+#endif /* TEST_CONCURRENT_MAP_TEST_INL_HPP */

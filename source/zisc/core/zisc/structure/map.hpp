@@ -1,5 +1,5 @@
 /*!
-  \file search_tree.hpp
+  \file map.hpp
   \author Sho Ikeda
   \brief No brief description
 
@@ -12,8 +12,8 @@
   http://opensource.org/licenses/mit-license.php
   */
 
-#ifndef ZISC_SEARCH_TREE_HPP
-#define ZISC_SEARCH_TREE_HPP
+#ifndef ZISC_MAP_HPP
+#define ZISC_MAP_HPP
 
 // Standard C++ library
 #include <concepts>
@@ -29,7 +29,10 @@
 
 namespace zisc {
 
-//! Specify a type is a value type of search tree
+// Forward declaration
+template <std::movable> class ContainerOverflowError;
+
+//! Specify a type of a mapped value
 template <typename Type>
 concept MappedValue = std::is_void_v<Type> || std::movable<Type>;
 
@@ -38,16 +41,16 @@ concept MappedValue = std::is_void_v<Type> || std::movable<Type>;
 
   No detailed description.
 
-  \tparam SearchTreeClass No description.
+  \tparam MapClass No description.
   \tparam Key No description.
   \tparam T No description.
   \tparam Compare No description.
   */
-template <typename SearchTreeClass,
+template <typename MapClass,
           std::movable Key,
           MappedValue T = void,
           std::invocable<Key, Key> Compare = std::less<Key>>
-class SearchTree : private NonCopyable<SearchTree<SearchTreeClass, Key, T, Compare>>
+class Map : private NonCopyable<Map<MapClass, Key, T, Compare>>
 {
  public:
   // Type aliases
@@ -76,12 +79,14 @@ class SearchTree : private NonCopyable<SearchTree<SearchTreeClass, Key, T, Compa
   using pointer = Pointer;
   using const_pointer = ConstPointer;
 
+  // Exception
+  using OverflowError = ContainerOverflowError<ValueT>;
 
-  //! Insert the given value into the search tree
-  [[nodiscard]] std::optional<size_type> add(ConstReference value);
 
-  //! Insert the given value into the search tree
-  [[nodiscard]] std::optional<size_type> add(RReference value);
+  //! Insert the given value into the map
+  template <typename ...Args>
+  [[nodiscard]] std::optional<size_type> add(Args&&... args)
+      requires std::is_nothrow_constructible_v<ValueT, Args...>;
 
   //! Return the maximum possible number of elements
   size_type capacity() const noexcept;
@@ -92,13 +97,13 @@ class SearchTree : private NonCopyable<SearchTree<SearchTreeClass, Key, T, Compa
   //! Clear the contents
   void clear() noexcept;
 
-  //! Check if the given value is contained in the search tree
+  //! Check if the given value is contained in the map
   [[nodiscard]] std::optional<size_type> contain(ConstKeyT& key) const noexcept;
 
-  //! Find the minimum key in the search tree
+  //! Find the minimum key in the map
   [[nodiscard]] std::optional<Pointer> findMinKey() noexcept;
 
-  //! Find the minimum key in the search tree
+  //! Find the minimum key in the map
   [[nodiscard]] std::optional<ConstPointer> findMinKey() const noexcept;
 
   //! Retrun the value by the given index
@@ -107,54 +112,57 @@ class SearchTree : private NonCopyable<SearchTree<SearchTreeClass, Key, T, Compa
   //! Retrun the value by the given index
   ConstReference get(const size_type index) const noexcept;
 
-  //! Check if the search tree is bounded
+  //! Check if the map is bounded
   static constexpr bool isBounded() noexcept;
 
-  //! Check if the search tree is concurrent
+  //! Check if the map is concurrent
   static constexpr bool isConcurrent() noexcept;
 
-  //! Remove the value from the search tree
+  //! Check whether the map is empty
+  bool isEmpty() const noexcept;
+
+  //! Remove the value from the map
   [[nodiscard]] std::optional<size_type> remove(ConstKeyT& key);
 
-  //! Change the maximum possible number of elements. The search tree will be cleared
+  //! Change the maximum possible number of elements. The map will be cleared
   void setCapacity(const size_type cap) noexcept;
 
-  //! Return the number of elements in the search tree
+  //! Return the number of elements in the map
   size_type size() const noexcept;
 
  protected:
   // Type aliases
-  using SearchTreeT = std::remove_volatile_t<SearchTreeClass>;
-  using ConstSearchTreeT = std::add_const_t<SearchTreeT>;
-  using SearchTreePtr = std::add_pointer_t<SearchTreeT>;
-  using ConstSearchTreePtr = std::add_pointer_t<ConstSearchTreeT>;
-  using SearchTreeReference = std::add_lvalue_reference_t<SearchTreeT>;
-  using ConstSearchTreeReference = std::add_lvalue_reference_t<ConstSearchTreeT>;
+  using MapT = std::remove_volatile_t<MapClass>;
+  using ConstMapT = std::add_const_t<MapT>;
+  using MapPtr = std::add_pointer_t<MapT>;
+  using ConstMapPtr = std::add_pointer_t<ConstMapT>;
+  using MapReference = std::add_lvalue_reference_t<MapT>;
+  using ConstMapReference = std::add_lvalue_reference_t<ConstMapT>;
 
 
-  //! Create a search tree
-  SearchTree() noexcept;
-
-  //! Move a data
-  SearchTree(const SearchTree& other) noexcept;
-
+  //! Create a map
+  Map() noexcept;
 
   //! Move a data
-  SearchTree& operator=(const SearchTree& other) noexcept;
+  Map(const Map& other) noexcept;
+
+
+  //! Move a data
+  Map& operator=(const Map& other) noexcept;
 
 
   //! Get the key from the given value
   static ConstKeyT& getKey(ConstReference value) noexcept;
 
-  //! Return the reference to the search tree class
-  SearchTreeReference ref() noexcept;
+  //! Return the reference to the map class
+  MapReference ref() noexcept;
 
-  //! Return the reference to the search tree class
-  ConstSearchTreeReference ref() const noexcept;
+  //! Return the reference to the map class
+  ConstMapReference ref() const noexcept;
 };
 
 } // namespace zisc
 
-#include "search_tree-inl.hpp"
+#include "map-inl.hpp"
 
-#endif // ZISC_SEARCH_TREE_HPP
+#endif // ZISC_MAP_HPP

@@ -18,9 +18,11 @@
 #include "simple_memory_resource.hpp"
 // Standard C++ library
 #include <algorithm>
+#include <bit>
 #include <cstddef>
 #include <cstdlib>
 #include <memory>
+#include <tuple>
 #include <type_traits>
 #include <utility>
 // Zisc
@@ -74,27 +76,24 @@ SimpleMemoryResource& SimpleMemoryResource::operator=(
   */
 inline
 void* SimpleMemoryResource::allocateMemory(const std::size_t size,
-                                           const std::size_t alignment) noexcept
+                                           const std::size_t alignment)
 {
-  constexpr std::size_t halignment = std::alignment_of_v<Header>;
-  const std::size_t alloc_alignment = (std::max)(alignment, halignment);
-  const std::size_t dsize = ((size + alloc_alignment - 1) / alloc_alignment) * alloc_alignment;
-  ZISC_ASSERT(dsize % alloc_alignment == 0,
-              "The data size isn't an integral multiple of the alignment.");
-  const std::size_t hsize = (std::max)(sizeof(Header), alloc_alignment);
-  ZISC_ASSERT(hsize % alloc_alignment == 0,
-              "The header size isn't an integral multiple of the alignment.");
-
-  const std::size_t alloc_size = hsize + dsize;
+  // Allocate memory
+  const std::size_t alloc_alignment = calcAllocAlignment(alignment);
+  const auto [alloc_size, header_size] = calcAllocSize(size, alloc_alignment);
   void* ptr = aligned_alloc(alloc_alignment, alloc_size);
+  if (ptr == nullptr) {
+    const char* message = "Memory allocation failed.";
+    throw Memory::BadAlloc{alloc_size, alloc_alignment, message};
+  }
 
   // Get the pointer to the data
-  uint8b* data = static_cast<uint8b*>(ptr) + hsize;
+  std::byte* data = static_cast<std::byte*>(ptr) + header_size;
   ZISC_ASSERT(Memory::isAligned(data, alignment), "The data isn't aligned.");
   // Initialize header
   {
-    Header* header = getHeaderImpl<Header*>(data);
-    header->pointer_ = ptr;
+    Header* header = getHeaderInner(data);
+    header->pointer_ = static_cast<std::byte*>(ptr);
     header->size_ = alloc_size;
     header->alignment_ = alloc_alignment;
     memory_usage_.add(alloc_size);
@@ -106,15 +105,18 @@ void* SimpleMemoryResource::allocateMemory(const std::size_t size,
   \details No detailed description
 
   \param [in,out] data No description.
+  \param [in] data No description.
+  \param [in] data No description.
   */
 inline
-void SimpleMemoryResource::deallocateMemory(void* data,
-                                            const std::size_t /* size */,
-                                            const std::size_t /* alignment */) noexcept
+void SimpleMemoryResource::deallocateMemory(
+    void* data,
+    [[maybe_unused]] const std::size_t size,
+    [[maybe_unused]] const std::size_t alignment) noexcept
 {
-  Header* header = getHeaderImpl<Header*>(static_cast<uint8b*>(data));
+  Header* header = getHeaderInner(static_cast<std::byte*>(data));
   const std::size_t alloc_size = header->size_;
-  free(header->pointer_);
+  zisc::free(header->pointer_);
   memory_usage_.release(alloc_size);
 }
 
@@ -125,9 +127,15 @@ void SimpleMemoryResource::deallocateMemory(void* data,
   \return No description
   */
 inline
-auto SimpleMemoryResource::getHeader(const void* data) const noexcept -> const Header*
+auto SimpleMemoryResource::getHeader(const void* data) noexcept -> const Header*
 {
-  const Header* header = getHeaderImpl<const Header*>(static_cast<const uint8b*>(data));
+  constexpr std::size_t header_size = sizeof(Header);
+  static_assert(std::has_single_bit(header_size), "The header size isn't power of 2.");
+
+  const auto* data_ptr = static_cast<const std::byte*>(data);
+  const auto* header = reinterp<const Header*>(data_ptr - header_size);
+  [[maybe_unused]] constexpr std::size_t header_alignment = std::alignment_of_v<Header>;
+  ZISC_ASSERT(Memory::isAligned(header, header_alignment), "The header isn't aligned.");
   return header;
 }
 
@@ -167,20 +175,48 @@ std::size_t SimpleMemoryResource::peakMemoryUsage() const noexcept
 /*!
   \details No detailed description
 
+  \param [in] alignment No description.
+  \return No description
+  */
+inline
+std::size_t SimpleMemoryResource::calcAllocAlignment(const std::size_t alignment) noexcept
+{
+  constexpr std::size_t min_alignment = (std::max)(std::alignment_of_v<Header>,
+                                                   Memory::minAllocAlignment());
+  const std::size_t alloc_alignment = (std::max)(alignment, min_alignment);
+  return alloc_alignment;
+}
+
+/*!
+  \details No detailed description
+
+  \param [in] size No description.
+  \param [in] alignment No description.
+  \return No description
+  */
+inline
+auto SimpleMemoryResource::calcAllocSize(const std::size_t size,
+                                         const std::size_t alignment) noexcept
+    -> std::tuple<std::size_t, std::size_t>
+{
+  const std::size_t data_block = (size + alignment - 1) / alignment;
+  const std::size_t header_block = (sizeof(Header) + alignment - 1) / alignment;
+  const std::size_t alloc_size = (header_block + data_block) * alignment;
+  const std::size_t header_size = header_block * alignment;
+  return std::make_tuple(alloc_size, header_size);
+}
+
+/*!
+  \details No detailed description
+
   \param [in] data No description.
   \return No description
   */
-template <Pointer HeaderPtr, Pointer Type> inline
-HeaderPtr SimpleMemoryResource::getHeaderImpl(Type data) noexcept
+inline
+auto SimpleMemoryResource::getHeaderInner(void* data) noexcept -> Header*
 {
-  constexpr std::size_t size = sizeof(Header);
-  constexpr bool is_power_of_2 = (size & (size - 1)) == 0;
-  static_assert(is_power_of_2, "The size of Header isn't power of 2.");
-
-  HeaderPtr header = reinterp<HeaderPtr>(data - sizeof(Header));
-  [[maybe_unused]] constexpr std::size_t alignment = std::alignment_of_v<Header>;
-  ZISC_ASSERT(Memory::isAligned(header, alignment), "The header isn't aligned.");
-  return header;
+  const Header* header = getHeader(data);
+  return const_cast<Header*>(header);
 }
 
 } // namespace zisc

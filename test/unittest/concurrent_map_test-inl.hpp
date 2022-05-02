@@ -140,7 +140,7 @@ void MapTest::testConcurrentThroughputOp(
       });
     }
     // Start the test, notify all threads
-    worker_lock.store(zisc::cast<int>(worker_list.size()));
+    worker_lock.store(zisc::cast<int>(worker_list.size()), std::memory_order::release);
     worker_lock.notify_all();
     // Wait the test done
     std::for_each_n(worker_list.begin(), num_of_threads, [](std::thread& w){w.join();});
@@ -183,7 +183,7 @@ void MapTest::testConcurrentThroughputOp(
       ASSERT_EQ(*expected, **result) << "Finding min element failed.";
     }
     // Start the test, notify all threads
-    worker_lock.store(zisc::cast<int>(worker_list.size()));
+    worker_lock.store(zisc::cast<int>(worker_list.size()), std::memory_order::release);
     worker_lock.notify_all();
     // Wait the test done
     std::for_each_n(worker_list.begin(), num_of_threads, [](std::thread& w){w.join();});
@@ -215,7 +215,7 @@ void MapTest::testConcurrentThroughputOp(
       });
     }
     // Start the test, notify all threads
-    worker_lock.store(zisc::cast<int>(worker_list.size()));
+    worker_lock.store(zisc::cast<int>(worker_list.size()), std::memory_order::release);
     worker_lock.notify_all();
     // Wait the test done
     std::for_each_n(worker_list.begin(), num_of_threads, [](std::thread& w){w.join();});
@@ -299,7 +299,7 @@ void MapTest::testConcurrentThroughputTime(
 
     // Start the test, notify all threads
     const auto start_time = Clock::now();
-    worker_lock.store(zisc::cast<int>(worker_list.size()));
+    worker_lock.store(zisc::cast<int>(worker_list.size()), std::memory_order::release);
     worker_lock.notify_all();
 
     // Wait the test done

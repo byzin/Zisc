@@ -197,15 +197,13 @@ std::size_t Memory::Usage::total() const noexcept
   \return No description
   */
 inline
-void* Memory::allocate(const std::size_t alignment, const std::size_t size)
+void* Memory::allocate(const std::size_t alignment, const std::size_t size) noexcept
 {
-  const std::size_t psize = (std::max)(size, sizeof(void*));
-  const std::size_t palignment = (std::max)(alignment, std::alignment_of_v<void*>);
   void* ptr =
 #if defined(Z_WINDOWS)
-      alignedAllocWin(palignment, psize);
+      alignedAllocWin(alignment, size);
 #else // Z_WINDOWS
-      std::aligned_alloc(palignment, psize);
+      std::aligned_alloc(alignment, size);
 #endif // Z_WINDOWS
   return ptr;
 }
@@ -219,7 +217,7 @@ void* Memory::allocate(const std::size_t alignment, const std::size_t size)
   \return No description
   */
 template <std::size_t kN, typename Type> inline
-constexpr Type* Memory::assumeAligned(Type* ptr)
+constexpr Type* Memory::assumeAligned(Type* ptr) noexcept
 {
   Type* result =
 #if defined(Z_CLANG)
@@ -236,7 +234,7 @@ constexpr Type* Memory::assumeAligned(Type* ptr)
   \param [in,out] ptr No description.
   */
 inline
-void Memory::free(void* ptr)
+void Memory::free(void* ptr) noexcept
 {
 #if defined(Z_WINDOWS)
   freeWin(ptr);
@@ -266,6 +264,18 @@ bool Memory::isAligned(const void* data, const std::size_t alignment) noexcept
   \return No description
   */
 inline
+constexpr std::size_t Memory::minAllocAlignment() noexcept
+{
+  constexpr std::size_t alignment = std::alignment_of_v<void*>;
+  return alignment;
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+inline
 Memory::SystemMemoryStats Memory::retrieveSystemStats() noexcept
 {
   SystemMemoryStats stats = retrieveSystemStatsImpl();
@@ -280,7 +290,7 @@ Memory::SystemMemoryStats Memory::retrieveSystemStats() noexcept
   \return No description
   */
 inline
-void* aligned_alloc(const std::size_t alignment, const std::size_t size)
+void* aligned_alloc(const std::size_t alignment, const std::size_t size) noexcept
 {
   void* ptr = Memory::allocate(alignment, size);
   return ptr;
@@ -295,7 +305,7 @@ void* aligned_alloc(const std::size_t alignment, const std::size_t size)
   \return No description
   */
 template <std::size_t kN, typename Type> inline
-constexpr Type* assume_aligned(Type* ptr)
+constexpr Type* assume_aligned(Type* ptr) noexcept
 {
   Type* result = Memory::assumeAligned<kN>(ptr);
   return result;
@@ -307,7 +317,7 @@ constexpr Type* assume_aligned(Type* ptr)
   \param [in,out] ptr No description.
   */
 inline
-void free(void* ptr)
+void free(void* ptr) noexcept
 {
   Memory::free(ptr);
 }

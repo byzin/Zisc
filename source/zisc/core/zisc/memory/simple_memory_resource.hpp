@@ -18,6 +18,7 @@
 // Standard C++ library
 #include <cstddef>
 #include <memory>
+#include <tuple>
 // Zisc
 #include "memory.hpp"
 #include "std_memory_resource.hpp"
@@ -43,9 +44,9 @@ class SimpleMemoryResource : public pmr::memory_resource,
     */
   struct Header
   {
-    void* pointer_ = nullptr; //!< The header pointer of the allocated memory
+    std::byte* pointer_ = nullptr; //!< The header pointer of the allocated memory
     std::size_t size_ = 0; //!< The size of the allocated memory
-    std::size_t alignment_; //!< The alignment of the allocated memory
+    std::size_t alignment_ = 1; //!< The alignment of the allocated memory
     [[maybe_unused]] Padding<sizeof(std::size_t)> pad_;
   };
 
@@ -66,7 +67,7 @@ class SimpleMemoryResource : public pmr::memory_resource,
 
   //! Allocate memory
   void* allocateMemory(const std::size_t size,
-                       const std::size_t alignment) noexcept;
+                       const std::size_t alignment);
 
   //! Deallocate memory
   void deallocateMemory(void* data,
@@ -74,7 +75,7 @@ class SimpleMemoryResource : public pmr::memory_resource,
                         const std::size_t alignment) noexcept;
 
   //! Return the header info of the memory allocation
-  const Header* getHeader(const void* data) const noexcept;
+  static const Header* getHeader(const void* data) noexcept;
 
   //! Return the memory usage
   const Memory::Usage& memoryUsage() const noexcept;
@@ -86,6 +87,14 @@ class SimpleMemoryResource : public pmr::memory_resource,
   std::size_t peakMemoryUsage() const noexcept;
 
  private:
+  //! Calculate required alignment for allocation
+  static std::size_t calcAllocAlignment(const std::size_t alignment) noexcept;
+
+  //! Calculate required size for allocation
+  static std::tuple<std::size_t, std::size_t> calcAllocSize(
+      const std::size_t size,
+      const std::size_t alignment) noexcept;
+
   //! Allocate memory
   void* do_allocate(std::size_t size,
                     std::size_t alignment) override;
@@ -99,8 +108,7 @@ class SimpleMemoryResource : public pmr::memory_resource,
   bool do_is_equal(const pmr::memory_resource& other) const noexcept override;
 
   //! Return the header info of the memory allocation
-  template <Pointer HeaderPtr, Pointer Type>
-  static HeaderPtr getHeaderImpl(Type data) noexcept;
+  static Header* getHeaderInner(void* data) noexcept;
 
 
   Memory::Usage memory_usage_;

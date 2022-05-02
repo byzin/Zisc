@@ -16,6 +16,7 @@
 // Standard C++ library
 #include <cstddef>
 #include <memory>
+#include <new>
 // Zisc
 #include "zisc/zisc_config.hpp"
 
@@ -28,10 +29,17 @@ namespace zisc {
   \param [in] alignment No description.
   \return No description
   */
+/*!
+  \details No detailed description
+
+  \param [in] size No description.
+  \param [in] alignment No description.
+  \return No description
+  \exception std::bad_alloc No description.
+  */
 void* SimpleMemoryResource::do_allocate(std::size_t size, std::size_t alignment)
 {
-  void* data = allocateMemory(size, alignment);
-  return data;
+  return allocateMemory(size, alignment);
 }
 
 /*!

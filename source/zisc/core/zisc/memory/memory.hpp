@@ -17,6 +17,9 @@
 
 // Standard C++ library
 #include <cstddef>
+#include <new>
+#include <string>
+#include <string_view>
 
 namespace zisc {
 
@@ -30,6 +33,39 @@ namespace zisc {
 class Memory
 {
  public:
+  /*!
+    \brief No brief description
+
+    No detailed description.
+    */
+  class BadAlloc : public std::bad_alloc
+  {
+   public:
+    //! Create a new exception
+    BadAlloc(const std::size_t size,
+             const std::size_t alignment,
+             const std::string_view explanation);
+
+    //! Return the alignment that is failed to be allocated
+    std::size_t alignment() const noexcept;
+
+    //! Return the size that is failed to be allocated
+    std::size_t size() const noexcept;
+
+    //! Return the explanatory string
+    const char* what() const noexcept override;
+
+   private:
+    //! Return the explanatory string
+    static std::string explain(const std::size_t size,
+                               const std::size_t alignment,
+                               const std::string_view explanation);
+
+    std::string explanation_;
+    std::size_t size_;
+    std::size_t alignment_;
+  };
+
   /*!
     \brief The statistics of system memory
 
@@ -103,18 +139,21 @@ class Memory
 
   //! Allocate aligned memory
   [[nodiscard]]
-  static void* allocate(const std::size_t alignment, const std::size_t size);
+  static void* allocate(const std::size_t alignment, const std::size_t size) noexcept;
 
   //! Inform the compiler that a pointer is aligned
   template <std::size_t kN, typename Type>
   [[nodiscard]]
-  static constexpr Type* assumeAligned(Type* ptr);
+  static constexpr Type* assumeAligned(Type* ptr) noexcept;
 
   //! Deallocate previously allocated memory
-  static void free(void* ptr);
+  static void free(void* ptr) noexcept;
 
   //! Check if an address of the \a data is aligned at the \a alignment bytes
   static bool isAligned(const void* data, const std::size_t alignment) noexcept;
+
+  //! Return the minimum alignment guaranteed to be accepted by \a allocate method
+  static constexpr std::size_t minAllocAlignment() noexcept;
 
   //! Retrieve the system memory statistics
   static SystemMemoryStats retrieveSystemStats() noexcept;
@@ -122,10 +161,10 @@ class Memory
  private:
   //! Allocate aligned memory for Windows
   [[nodiscard]]
-  static void* alignedAllocWin(const std::size_t alignment, const std::size_t size);
+  static void* alignedAllocWin(const std::size_t alignment, const std::size_t size) noexcept;
 
   //! Deallocate previously allocated memory for Windows
-  static void freeWin(void* ptr);
+  static void freeWin(void* ptr) noexcept;
 
   //! Retrieve the system memory statistics
   static SystemMemoryStats retrieveSystemStatsImpl() noexcept;
@@ -135,15 +174,15 @@ class Memory
 
 //! Allocate aligned memory
 [[nodiscard]]
-void* aligned_alloc(const std::size_t alignment, const std::size_t size);
+void* aligned_alloc(const std::size_t alignment, const std::size_t size) noexcept;
 
 //! Inform the compiler that a pointer is aligned
 template <std::size_t kN, typename Type>
 [[nodiscard]]
-constexpr Type* assume_aligned(Type* ptr);
+constexpr Type* assume_aligned(Type* ptr) noexcept;
 
 //! Deallocate previously allocated memory
-void free(void* ptr);
+void free(void* ptr) noexcept;
 
 } // namespace zisc
 

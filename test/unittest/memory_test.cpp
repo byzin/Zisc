@@ -13,12 +13,14 @@
   */
 
 // Standard C++ library
+#include <algorithm>
 #include <array>
 #include <cstddef>
 #include <iostream>
 #include <iomanip>
 #include <limits>
 #include <memory>
+#include <span>
 // Googletest
 #include "googletest.hpp"
 // Zisc
@@ -85,28 +87,30 @@ TEST(MemoryTest, AlignmentTest)
 
 TEST(MemoryTest, AllocateTest)
 {
-  auto test_alloc = [](const std::size_t s)
-  {
+  for (std::size_t i = 0; i < 13; ++i) {
+    const std::size_t s = 1 << i; // Allocation size and alignment
     // Allocation test
     void* mem = zisc::aligned_alloc(s, s);
-    EXPECT_TRUE(mem != nullptr)
-        << "zisc::aligned_alloc(" << s << "," << s << ") failed.";
+    if (s < zisc::Memory::minAllocAlignment()) {
+      if (mem == nullptr)
+        std::cout << "zisc::aligned_alloc(" << s << "," << s << ") failed.";
+    }
+    else {
+      EXPECT_TRUE(mem != nullptr)
+          << "zisc::aligned_alloc(" << s << "," << s << ") failed.";
+    }
     if (mem == nullptr)
       return;
     // Alignment test
     EXPECT_TRUE(zisc::Memory::isAligned(mem, s))
         << "zisc::aligned_alloc(" << s << "," << s << ") failed.";
-    // Size test
-    zisc::uint8b* data = reinterpret_cast<zisc::uint8b*>(mem);
-    for (std::size_t i = 0; i < s; ++i)
-      data[i] = (std::numeric_limits<zisc::uint8b>::max)();
-
+    // Memory access test
+    std::span<std::byte> data{zisc::reinterp<std::byte*>(mem), s};
+    std::for_each(data.begin(), data.end(), [](std::byte& b)
+    {
+      b = std::byte{(std::numeric_limits<zisc::uint8b>::max)()};
+    });
+    // Deallocation test
     zisc::free(mem);
   };
-  test_alloc(1);
-  test_alloc(4);
-  test_alloc(16);
-  test_alloc(64);
-  test_alloc(1024);
-  test_alloc(4096);
 }

@@ -17,6 +17,9 @@
 #include <array>
 #include <cstddef>
 #include <limits>
+#include <new>
+#include <string>
+#include <string_view>
 // Zisc
 #include "zisc/error.hpp"
 #include "zisc/utility.hpp"
@@ -41,11 +44,77 @@ namespace zisc {
 
   \param [in] alignment No description.
   \param [in] size No description.
+  \param [in] explanation No description.
+  */
+Memory::BadAlloc::BadAlloc(const std::size_t size,
+                           const std::size_t alignment,
+                           const std::string_view explanation) :
+    explanation_{explain(size, alignment, explanation)},
+    size_{size},
+    alignment_{alignment}
+{
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+std::size_t Memory::BadAlloc::alignment() const noexcept
+{
+  return alignment_;
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+std::size_t Memory::BadAlloc::size() const noexcept
+{
+  return size_;
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+const char* Memory::BadAlloc::what() const noexcept
+{
+  return explanation_.data();
+}
+
+/*!
+  \details No detailed description
+
+  \param [in] alignment No description.
+  \param [in] size No description.
+  \param [in] explanation No description.
+  \return No description
+  */
+std::string Memory::BadAlloc::explain(const std::size_t size,
+                                      const std::size_t alignment,
+                                      const std::string_view explanation)
+{
+  constexpr std::size_t max_length = 2048;
+  std::array<char, max_length> e;
+  std::sprintf(e.data(), "%s size=%zu, alignment=%zu.\n", explanation.data(),
+                                                          size,
+                                                          alignment);
+  return std::string{e.data()};
+}
+
+/*!
+  \details No detailed description
+
+  \param [in] alignment No description.
+  \param [in] size No description.
   \return No description
   */
 [[nodiscard]]
 void* Memory::alignedAllocWin([[maybe_unused]] const std::size_t alignment,
-                              [[maybe_unused]] const std::size_t size)
+                              [[maybe_unused]] const std::size_t size) noexcept
 {
   void* ptr = nullptr;
 #if defined(Z_WINDOWS)
@@ -59,7 +128,7 @@ void* Memory::alignedAllocWin([[maybe_unused]] const std::size_t alignment,
 
   \param [out] ptr No description.
   */
-void Memory::freeWin([[maybe_unused]] void* ptr)
+void Memory::freeWin([[maybe_unused]] void* ptr) noexcept
 {
 #if defined(Z_WINDOWS)
   _aligned_free(ptr);

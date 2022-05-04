@@ -20,12 +20,12 @@
 #include "zisc/zisc_config.hpp"
 #include "zisc/concurrency/spin_lock_mutex.hpp"
 #include "zisc/concurrency/thread_manager.hpp"
-#include "zisc/memory/simple_memory_resource.hpp"
+#include "zisc/memory/alloc_free_resource.hpp"
 
 TEST(SpinLockMutexTest, LockTest)
 {
   zisc::SpinLockMutex locker{};
-  zisc::SimpleMemoryResource mem_resource;
+  zisc::AllocFreeResource mem_resource;
   zisc::ThreadManager thread_manager{&mem_resource};
 
   zisc::int64b value = 0;

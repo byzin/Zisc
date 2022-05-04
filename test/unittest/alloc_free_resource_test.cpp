@@ -1,5 +1,5 @@
 /*!
-  \file simple_memory_resource_test.cpp
+  \file alloc_free_resource_test.cpp
   \author Sho Ikeda
   \brief No brief description
 
@@ -29,7 +29,7 @@
 #include "zisc/concurrency/atomic.hpp"
 #include "zisc/concurrency/atomic_word.hpp"
 #include "zisc/memory/memory.hpp"
-#include "zisc/memory/simple_memory_resource.hpp"
+#include "zisc/memory/alloc_free_resource.hpp"
 #include "zisc/memory/std_memory_resource.hpp"
 
 namespace {
@@ -41,20 +41,18 @@ struct Data1
 
 }
 
-TEST(SimpleMemoryResourceTest, MemoryAllocationTest)
+TEST(AllocFreeResourceTest, MemoryAllocationTest)
 {
-  zisc::SimpleMemoryResource mem_resource;
-  ASSERT_EQ(0, mem_resource.totalMemoryUsage())
-      << "SimpleMemoryResource initialization failed.";
-  ASSERT_EQ(0, mem_resource.peakMemoryUsage())
-      << "SimpleMemoryResource initialization failed.";
+  zisc::AllocFreeResource mem_resource;
+  ASSERT_EQ(0, mem_resource.totalMemoryUsage()) << "Resource initialization failed.";
+  ASSERT_EQ(0, mem_resource.peakMemoryUsage()) << "Resource initialization failed.";
 
   using zisc::uint8b;
   using zisc::uint16b;
   using zisc::uint32b;
   using zisc::uint64b;
 
-  constexpr std::size_t header_s = sizeof(zisc::SimpleMemoryResource::Header);
+  constexpr std::size_t header_s = sizeof(zisc::AllocFreeResource::Header);
   std::size_t total = 0;
   std::size_t peak = 0;
 
@@ -117,30 +115,28 @@ TEST(SimpleMemoryResourceTest, MemoryAllocationTest)
   mem_resource.deallocate(p6, sizeof(long double), std::alignment_of_v<long double>);
 
   {
-    zisc::SimpleMemoryResource mem_resource1{std::move(mem_resource)};
-    zisc::SimpleMemoryResource mem_resource2;
+    zisc::AllocFreeResource mem_resource1{std::move(mem_resource)};
+    zisc::AllocFreeResource mem_resource2;
     mem_resource2 = std::move(mem_resource1);
     ASSERT_FALSE(mem_resource2.totalMemoryUsage());
     ASSERT_GE(mem_resource2.peakMemoryUsage(), peak);
   }
 }
 
-TEST(SimpleMemoryResourceTest, ResourceComparisonTest)
+TEST(AllocFreeResourceTest, ResourceComparisonTest)
 {
-  zisc::SimpleMemoryResource mem_resource1;
-  zisc::SimpleMemoryResource mem_resource2;
+  zisc::AllocFreeResource mem_resource1;
+  zisc::AllocFreeResource mem_resource2;
 
   ASSERT_TRUE(mem_resource1.is_equal(mem_resource1));
   ASSERT_FALSE(mem_resource1.is_equal(mem_resource2));
 }
 
-TEST(SimpleMemoryResourceTest, AlignmentTest)
+TEST(AllocFreeResourceTest, AlignmentTest)
 {
-  zisc::SimpleMemoryResource mem_resource;
-  ASSERT_EQ(0, mem_resource.totalMemoryUsage())
-      << "SimpleMemoryResource initialization failed.";
-  ASSERT_EQ(0, mem_resource.peakMemoryUsage())
-      << "SimpleMemoryResource initialization failed.";
+  zisc::AllocFreeResource mem_resource;
+  ASSERT_EQ(0, mem_resource.totalMemoryUsage()) << "Resource initialization failed.";
+  ASSERT_EQ(0, mem_resource.peakMemoryUsage()) << "Resource initialization failed.";
 
   for (std::size_t i = 0; i < 13; ++i) {
     const std::size_t alignment = 1 << i;
@@ -165,13 +161,11 @@ TEST(SimpleMemoryResourceTest, AlignmentTest)
   };
 }
 
-TEST(SimpleMemoryResource, MultiThreadTest)
+TEST(AllocFreeResource, MultiThreadTest)
 {
-  zisc::SimpleMemoryResource mem_resource;
-  ASSERT_EQ(0, mem_resource.totalMemoryUsage())
-      << "SimpleMemoryResource initialization failed.";
-  ASSERT_EQ(0, mem_resource.peakMemoryUsage())
-      << "SimpleMemoryResource initialization failed.";
+  zisc::AllocFreeResource mem_resource;
+  ASSERT_EQ(0, mem_resource.totalMemoryUsage()) << "Resource initialization failed.";
+  ASSERT_EQ(0, mem_resource.peakMemoryUsage()) << "Resource initialization failed.";
 
   constexpr std::size_t n_threads = 128;
   constexpr std::size_t loop = 10'000;

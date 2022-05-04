@@ -19,14 +19,14 @@
 #include <thread>
 // Zisc
 #include "zisc/zisc_config.hpp"
-#include "zisc/memory/simple_memory_resource.hpp"
+#include "zisc/memory/alloc_free_resource.hpp"
 #include "zisc/concurrency/thread_manager.hpp"
 
 int main()
 {
   // ThreadManager example
   std::cout << "## ThreadManager example" << std::endl;
-  zisc::SimpleMemoryResource mem_resource;
+  zisc::AllocFreeResource mem_resource;
   zisc::ThreadManager thread_manager{4, &mem_resource};
   auto task = [](const zisc::int64b thread_id)
   {

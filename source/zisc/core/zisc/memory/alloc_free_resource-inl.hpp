@@ -1,5 +1,5 @@
 /*!
-  \file simple_memory_resource-inl.hpp
+  \file alloc_free_resource-inl.hpp
   \author Sho Ikeda
   \brief No brief description
 
@@ -12,10 +12,10 @@
   http://opensource.org/licenses/mit-license.php
   */
 
-#ifndef ZISC_SIMPLE_MEMORY_RESOURCE_INL_HPP
-#define ZISC_SIMPLE_MEMORY_RESOURCE_INL_HPP
+#ifndef ZISC_ALLOC_FREE_RESOURCE_INL_HPP
+#define ZISC_ALLOC_FREE_RESOURCE_INL_HPP
 
-#include "simple_memory_resource.hpp"
+#include "alloc_free_resource.hpp"
 // Standard C++ library
 #include <algorithm>
 #include <bit>
@@ -38,7 +38,7 @@ namespace zisc {
   \details No detailed description
   */
 inline
-SimpleMemoryResource::SimpleMemoryResource() noexcept
+AllocFreeResource::AllocFreeResource() noexcept
 {
 }
 
@@ -48,7 +48,7 @@ SimpleMemoryResource::SimpleMemoryResource() noexcept
   \param [in] other No description.
   */
 inline
-SimpleMemoryResource::SimpleMemoryResource(SimpleMemoryResource&& other) noexcept
+AllocFreeResource::AllocFreeResource(AllocFreeResource&& other) noexcept
 {
   std::swap(memory_usage_, other.memory_usage_);
 }
@@ -60,8 +60,7 @@ SimpleMemoryResource::SimpleMemoryResource(SimpleMemoryResource&& other) noexcep
   \return No description
   */
 inline
-SimpleMemoryResource& SimpleMemoryResource::operator=(
-    SimpleMemoryResource&& other) noexcept
+AllocFreeResource& AllocFreeResource::operator=(AllocFreeResource&& other) noexcept
 {
   std::swap(memory_usage_, other.memory_usage_);
   return *this;
@@ -73,10 +72,11 @@ SimpleMemoryResource& SimpleMemoryResource::operator=(
   \param [in] size No description.
   \param [in] alignment No description.
   \return No description
+  \exception BadAlloc No description.
   */
 inline
-void* SimpleMemoryResource::allocateMemory(const std::size_t size,
-                                           const std::size_t alignment)
+void* AllocFreeResource::allocateMemory(const std::size_t size,
+                                        const std::size_t alignment)
 {
   // Allocate memory
   const std::size_t alloc_alignment = calcAllocAlignment(alignment);
@@ -84,7 +84,7 @@ void* SimpleMemoryResource::allocateMemory(const std::size_t size,
   void* ptr = aligned_alloc(alloc_alignment, alloc_size);
   if (ptr == nullptr) {
     const char* message = "Memory allocation failed.";
-    throw Memory::BadAlloc{alloc_size, alloc_alignment, message};
+    throw BadAlloc{alloc_size, alloc_alignment, message};
   }
 
   // Get the pointer to the data
@@ -109,7 +109,7 @@ void* SimpleMemoryResource::allocateMemory(const std::size_t size,
   \param [in] data No description.
   */
 inline
-void SimpleMemoryResource::deallocateMemory(
+void AllocFreeResource::deallocateMemory(
     void* data,
     [[maybe_unused]] const std::size_t size,
     [[maybe_unused]] const std::size_t alignment) noexcept
@@ -127,7 +127,7 @@ void SimpleMemoryResource::deallocateMemory(
   \return No description
   */
 inline
-auto SimpleMemoryResource::getHeader(const void* data) noexcept -> const Header*
+auto AllocFreeResource::getHeader(const void* data) noexcept -> const Header*
 {
   constexpr std::size_t header_size = sizeof(Header);
   static_assert(std::has_single_bit(header_size), "The header size isn't power of 2.");
@@ -145,7 +145,7 @@ auto SimpleMemoryResource::getHeader(const void* data) noexcept -> const Header*
   \return No description
   */
 inline
-const Memory::Usage& SimpleMemoryResource::memoryUsage() const noexcept
+const Memory::Usage& AllocFreeResource::memoryUsage() const noexcept
 {
   return memory_usage_;
 }
@@ -156,7 +156,7 @@ const Memory::Usage& SimpleMemoryResource::memoryUsage() const noexcept
   \return No description
   */
 inline
-std::size_t SimpleMemoryResource::totalMemoryUsage() const noexcept
+std::size_t AllocFreeResource::totalMemoryUsage() const noexcept
 {
   return memoryUsage().total();
 }
@@ -167,7 +167,7 @@ std::size_t SimpleMemoryResource::totalMemoryUsage() const noexcept
   \return No description
   */
 inline
-std::size_t SimpleMemoryResource::peakMemoryUsage() const noexcept
+std::size_t AllocFreeResource::peakMemoryUsage() const noexcept
 {
   return memoryUsage().peak();
 }
@@ -179,7 +179,7 @@ std::size_t SimpleMemoryResource::peakMemoryUsage() const noexcept
   \return No description
   */
 inline
-std::size_t SimpleMemoryResource::calcAllocAlignment(const std::size_t alignment) noexcept
+std::size_t AllocFreeResource::calcAllocAlignment(const std::size_t alignment) noexcept
 {
   constexpr std::size_t min_alignment = (std::max)(std::alignment_of_v<Header>,
                                                    Memory::minAllocAlignment());
@@ -195,8 +195,8 @@ std::size_t SimpleMemoryResource::calcAllocAlignment(const std::size_t alignment
   \return No description
   */
 inline
-auto SimpleMemoryResource::calcAllocSize(const std::size_t size,
-                                         const std::size_t alignment) noexcept
+auto AllocFreeResource::calcAllocSize(const std::size_t size,
+                                      const std::size_t alignment) noexcept
     -> std::tuple<std::size_t, std::size_t>
 {
   const std::size_t data_block = (size + alignment - 1) / alignment;
@@ -213,7 +213,7 @@ auto SimpleMemoryResource::calcAllocSize(const std::size_t size,
   \return No description
   */
 inline
-auto SimpleMemoryResource::getHeaderInner(void* data) noexcept -> Header*
+auto AllocFreeResource::getHeaderInner(void* data) noexcept -> Header*
 {
   const Header* header = getHeader(data);
   return const_cast<Header*>(header);
@@ -221,4 +221,4 @@ auto SimpleMemoryResource::getHeaderInner(void* data) noexcept -> Header*
 
 } // namespace zisc
 
-#endif // ZISC_SIMPLE_MEMORY_RESOURCE_INL_HPP
+#endif // ZISC_ALLOC_FREE_RESOURCE_INL_HPP

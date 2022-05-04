@@ -25,7 +25,7 @@
 // Zisc
 #include "zisc/utility.hpp"
 #include "zisc/zisc_config.hpp"
-#include "zisc/memory/simple_memory_resource.hpp"
+#include "zisc/memory/alloc_free_resource.hpp"
 #include "zisc/structure/mutex_queue.hpp"
 // Test
 #include "concurrent_queue_test.hpp"
@@ -55,7 +55,7 @@ TEST(MutexQueueTest, ConstructorTest)
 {
   using Queue = zisc::MutexQueue<int>;
 
-  zisc::SimpleMemoryResource mem_resource;
+  zisc::AllocFreeResource mem_resource;
   std::unique_ptr<Queue> q;
   // Test the constructor without size
   {
@@ -83,7 +83,7 @@ TEST(MutexQueueTest, ConstructorTest)
 TEST(MutexQueueTest, SimpleQueueTest)
 {
   using Queue = zisc::MutexQueue<int>;
-  zisc::SimpleMemoryResource mem_resource;
+  zisc::AllocFreeResource mem_resource;
   Queue q{&mem_resource};
   test::testSimpleBoundedQueue(std::addressof(q));
 }
@@ -91,7 +91,7 @@ TEST(MutexQueueTest, SimpleQueueTest)
 TEST(MutexQueueTest, MovableValueTest)
 {
   using Queue = zisc::MutexQueue<test::MovableQValue>;
-  zisc::SimpleMemoryResource mem_resource;
+  zisc::AllocFreeResource mem_resource;
   Queue q{&mem_resource};
   test::testMovableValueQueue(std::addressof(q));
 }
@@ -99,7 +99,7 @@ TEST(MutexQueueTest, MovableValueTest)
 TEST(MutexQueueTest, TinyCapacityTest)
 {
   using Queue = zisc::MutexQueue<int>;
-  zisc::SimpleMemoryResource mem_resource;
+  zisc::AllocFreeResource mem_resource;
   Queue q{&mem_resource};
   test::testTinyCapacityQueue(std::addressof(q));
 }
@@ -112,7 +112,7 @@ TEST(MutexQueueTest, TinyCapacityTest)
 //  constexpr zisc::uint64b sampler_seed = test::QueueTest::kDefaultSamplerSeed;
 //
 //  using Queue = zisc::MutexQueue<zisc::uint64b>;
-//  zisc::SimpleMemoryResource mem_resource;
+//  zisc::AllocFreeResource mem_resource;
 //  Queue q{num_of_samples, &mem_resource};
 //  test::QueueTest::testConcurrentThroughputOp(num_of_threads,
 //                                              num_of_samples,
@@ -131,7 +131,7 @@ void testConcurrentThroughputTime(const std::size_t num_of_threads)
   constexpr zisc::uint64b sampler_seed = test::QueueTest::kDefaultSamplerSeed;
 
   using Queue = zisc::MutexQueue<zisc::uint64b>;
-  zisc::SimpleMemoryResource mem_resource;
+  zisc::AllocFreeResource mem_resource;
   Queue q{num_of_samples, &mem_resource};
   test::QueueTest::testConcurrentThroughputTime(num_of_threads,
                                                 num_of_samples,

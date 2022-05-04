@@ -21,13 +21,13 @@
 #include <sstream>
 #include <utility>
 // Zisc
-#include "zisc/memory/simple_memory_resource.hpp"
+#include "zisc/memory/alloc_free_resource.hpp"
 #include "zisc/string/csv.hpp"
 
 TEST(CsvTest, MoveTest)
 {
   using Csv = zisc::Csv<std::string_view, int, double, bool>;
-  zisc::SimpleMemoryResource mem_resource;
+  zisc::AllocFreeResource mem_resource;
   std::unique_ptr<Csv> csv_ptr;
   {
     Csv csv{&mem_resource};
@@ -60,7 +60,7 @@ TEST(CsvTest, ParseCsvTest1)
     csv_text = std::istringstream{csv_output.str()};
   }
 
-  zisc::SimpleMemoryResource mem_resource;
+  zisc::AllocFreeResource mem_resource;
   Csv csv{&mem_resource};
   csv.append(csv_text);
 
@@ -94,7 +94,7 @@ TEST(CsvTest, ParseCsvTest2)
     csv_text = std::istringstream{csv_output.str()};
   }
 
-  zisc::SimpleMemoryResource mem_resource;
+  zisc::AllocFreeResource mem_resource;
   Csv csv{&mem_resource};
   csv.append(csv_text);
 

@@ -21,12 +21,12 @@
 #include "googletest.hpp"
 // Zisc
 #include "zisc/zisc_config.hpp"
-#include "zisc/memory/simple_memory_resource.hpp"
+#include "zisc/memory/alloc_free_resource.hpp"
 #include "zisc/memory/std_memory_resource.hpp"
 
 TEST(StdMemoryResourceTest, StringStreamTest)
 {
-  zisc::SimpleMemoryResource mem_resource;
+  zisc::AllocFreeResource mem_resource;
 
   {
     zisc::pmr::polymorphic_allocator<char> alloc{&mem_resource};
@@ -44,7 +44,7 @@ TEST(StdMemoryResourceTest, StringStreamTest)
 
 TEST(StdMemoryResourceTest, UniquePtrConstructionTest)
 {
-  zisc::SimpleMemoryResource mem_resource;
+  zisc::AllocFreeResource mem_resource;
 
   {
     // Constructor without parameter
@@ -94,7 +94,7 @@ TEST(StdMemoryResourceTest, UniquePtrDeletionTest)
     int* v_ = nullptr;
   };
 
-  zisc::SimpleMemoryResource mem_resource;
+  zisc::AllocFreeResource mem_resource;
   zisc::pmr::polymorphic_allocator<MemTest> alloc{&mem_resource};
 
   // Empty data

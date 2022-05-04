@@ -25,7 +25,7 @@
 #include "zisc/zisc_config.hpp"
 #include "zisc/concurrency/atomic.hpp"
 #include "zisc/concurrency/thread_manager.hpp"
-#include "zisc/memory/simple_memory_resource.hpp"
+#include "zisc/memory/alloc_free_resource.hpp"
 
 namespace  {
 
@@ -37,7 +37,7 @@ void testAtomicAddition()
   std::cout << "Atomic is lock-free: "
             << zisc::Atomic::isLockFree<Type>() << std::endl;
 
-  zisc::SimpleMemoryResource mem_resource;
+  zisc::AllocFreeResource mem_resource;
   zisc::ThreadManager thread_manager{100, &mem_resource};
   thread_manager.setCapacity(resolution);
 
@@ -72,7 +72,7 @@ void testAtomicSubtraction()
   std::cout << "Atomic is lock-free: "
             << zisc::Atomic::isLockFree<Type>() << std::endl;
 
-  zisc::SimpleMemoryResource mem_resource;
+  zisc::AllocFreeResource mem_resource;
   zisc::ThreadManager thread_manager{100, &mem_resource};
   thread_manager.setCapacity(resolution);
 
@@ -107,7 +107,7 @@ void testAtomicExchange()
   std::cout << "Atomic is lock-free: "
             << zisc::Atomic::isLockFree<Type>() << std::endl;
 
-  zisc::SimpleMemoryResource mem_resource;
+  zisc::AllocFreeResource mem_resource;
   zisc::ThreadManager thread_manager{100, &mem_resource};
   thread_manager.setCapacity(resolution);
 
@@ -143,7 +143,7 @@ void testAtomicIncrement()
   std::cout << "Atomic is lock-free: "
             << zisc::Atomic::isLockFree<Type>() << std::endl;
 
-  zisc::SimpleMemoryResource mem_resource;
+  zisc::AllocFreeResource mem_resource;
   zisc::ThreadManager thread_manager{100, &mem_resource};
   thread_manager.setCapacity(resolution);
 
@@ -177,7 +177,7 @@ void testAtomicDecrement()
   std::cout << "Atomic is lock-free: "
             << zisc::Atomic::isLockFree<Type>() << std::endl;
 
-  zisc::SimpleMemoryResource mem_resource;
+  zisc::AllocFreeResource mem_resource;
   zisc::ThreadManager thread_manager{100, &mem_resource};
   thread_manager.setCapacity(resolution);
 
@@ -211,7 +211,7 @@ void testAtomicMin()
   std::cout << "Atomic is lock-free: "
             << zisc::Atomic::isLockFree<Type>() << std::endl;
 
-  zisc::SimpleMemoryResource mem_resource;
+  zisc::AllocFreeResource mem_resource;
   zisc::ThreadManager thread_manager{100, &mem_resource};
   thread_manager.setCapacity(resolution);
 
@@ -240,7 +240,7 @@ void testAtomicMax()
   std::cout << "Atomic is lock-free: "
             << zisc::Atomic::isLockFree<Type>() << std::endl;
 
-  zisc::SimpleMemoryResource mem_resource;
+  zisc::AllocFreeResource mem_resource;
   zisc::ThreadManager thread_manager{100, &mem_resource};
   thread_manager.setCapacity(resolution);
 
@@ -269,7 +269,7 @@ void testAtomicCmpxchg()
   std::cout << "Atomic is lock-free: "
             << zisc::Atomic::isLockFree<Type>() << std::endl;
 
-  zisc::SimpleMemoryResource mem_resource;
+  zisc::AllocFreeResource mem_resource;
   zisc::ThreadManager thread_manager{100, &mem_resource};
   thread_manager.setCapacity(resolution);
 
@@ -308,7 +308,7 @@ void testAtomicAnd()
   std::cout << "Atomic is lock-free: "
             << zisc::Atomic::isLockFree<Type>() << std::endl;
 
-  zisc::SimpleMemoryResource mem_resource;
+  zisc::AllocFreeResource mem_resource;
   zisc::ThreadManager thread_manager{100, &mem_resource};
 
   Type value = std::numeric_limits<Type>::max();
@@ -336,7 +336,7 @@ void testAtomicOr()
   std::cout << "Atomic is lock-free: "
             << zisc::Atomic::isLockFree<Type>() << std::endl;
 
-  zisc::SimpleMemoryResource mem_resource;
+  zisc::AllocFreeResource mem_resource;
   zisc::ThreadManager thread_manager{100, &mem_resource};
 
   Type value = zisc::cast<Type>(0);

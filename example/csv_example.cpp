@@ -17,7 +17,7 @@
 #include <sstream>
 #include <string_view>
 // Zisc
-#include "zisc/memory/simple_memory_resource.hpp"
+#include "zisc/memory/alloc_free_resource.hpp"
 #include "zisc/string/csv.hpp"
 
 int main()
@@ -27,7 +27,7 @@ int main()
   std::cout << "## CSV example" << std::endl;
   std::istringstream csv_string{R"(1, 3.14, true, "Example1")"};
   std::cout << "  CSV text: " << csv_string.str() << std::endl;
-  zisc::SimpleMemoryResource mem_resource;
+  zisc::AllocFreeResource mem_resource;
   Csv csv{&mem_resource};
   csv.append(csv_string);
   const auto& record = csv.record(0);

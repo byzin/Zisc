@@ -21,7 +21,7 @@
 // Zisc
 #include "zisc/error.hpp"
 #include "zisc/zisc_config.hpp"
-#include "zisc/memory/simple_memory_resource.hpp"
+#include "zisc/memory/alloc_free_resource.hpp"
 #include "zisc/structure/queue.hpp"
 #include "zisc/structure/scalable_circular_queue.hpp"
 
@@ -45,7 +45,7 @@ int main()
   showAtomicProperties<zisc::uint64b>("uint64_t");
 
   using Queue = zisc::ScalableCircularQueue<int>;
-  zisc::SimpleMemoryResource mem_resource;
+  zisc::AllocFreeResource mem_resource;
   Queue q{&mem_resource};
 
   static_assert(Queue::isBounded(), "The queue isn't bounded queue.");

@@ -20,14 +20,14 @@
 // GoogleTest
 #include "googletest.hpp"
 // Zisc
-#include "zisc/memory/simple_memory_resource.hpp"
+#include "zisc/memory/alloc_free_resource.hpp"
 #include "zisc/memory/std_memory_resource.hpp"
 #include "zisc/concurrency/bitset.hpp"
 
 TEST(BitsetTest, ConstructionTest)
 {
   using Bitset = zisc::Bitset;
-  zisc::SimpleMemoryResource mem_resource;
+  zisc::AllocFreeResource mem_resource;
   {
     Bitset bits{&mem_resource};
     ASSERT_EQ(Bitset::defaultSize(), bits.size()) << "Bitset construction failed.";
@@ -51,7 +51,7 @@ TEST(BitsetTest, ConstructionTest)
 TEST(BitsetTest, BitManipulationTest)
 {
   using Bitset = zisc::Bitset;
-  zisc::SimpleMemoryResource mem_resource;
+  zisc::AllocFreeResource mem_resource;
   constexpr std::size_t n = 300;
   Bitset bits{n, &mem_resource};
 

@@ -35,7 +35,7 @@
 #include "zisc/concurrency/future.hpp"
 #include "zisc/concurrency/thread_manager.hpp"
 #include "zisc/math/math.hpp"
-#include "zisc/memory/simple_memory_resource.hpp"
+#include "zisc/memory/alloc_free_resource.hpp"
 #include "zisc/random/correlated_multi_jittered_engine.hpp"
 #include "zisc/random/pcg_engine.hpp"
 
@@ -107,7 +107,7 @@ struct MovableSetter2 : private zisc::NonCopyable<MovableSetter2>
 
 TEST(ThreadManagerTest, EnqueueSingleTaskTest)
 {
-  zisc::SimpleMemoryResource mem_resource;
+  zisc::AllocFreeResource mem_resource;
   {
     zisc::ThreadManager thread_manager{1, &mem_resource};
     std::size_t id_counter = 0;
@@ -425,7 +425,7 @@ struct MovableAdder2 : private zisc::NonCopyable<MovableAdder2>
 
 TEST(ThreadManagerTest, EnqueueLoopTaskTest)
 {
-  zisc::SimpleMemoryResource mem_resource;
+  zisc::AllocFreeResource mem_resource;
   {
     zisc::ThreadManager thread_manager{1, &mem_resource};
     std::size_t id_counter = 0;
@@ -710,7 +710,7 @@ TEST(ThreadManagerTest, EnqueueLoopTaskTest)
 
 TEST(ThreadManagerTest, EnqueueTaskExceptionTest)
 {
-  zisc::SimpleMemoryResource mem_resource;
+  zisc::AllocFreeResource mem_resource;
   {
     zisc::ThreadManager thread_manager{1, &mem_resource};
     ASSERT_EQ(1, thread_manager.numOfThreads());
@@ -767,7 +767,7 @@ int dtask1(const zisc::int64b /* id */) noexcept
 
 TEST(ThreadManagerTest, TaskDependencyTest)
 {
-  zisc::SimpleMemoryResource mem_resource;
+  zisc::AllocFreeResource mem_resource;
   {
     constexpr std::size_t nthreads = 256;
     constexpr std::size_t n = 32;
@@ -850,7 +850,7 @@ TEST(ThreadManagerTest, TaskDependencyTest)
 
 TEST(ThreadManagerTest, ExitWorkerRunningTest)
 {
-  zisc::SimpleMemoryResource mem_resource;
+  zisc::AllocFreeResource mem_resource;
   constexpr zisc::uint num_of_works = 1024;
   {
     std::vector<zisc::Future<void>> results;
@@ -953,7 +953,7 @@ static_assert(!std::is_default_constructible_v<MovableTestValue3>);
 
 TEST(ThreadManagerTest, GetValueTest)
 {
-  zisc::SimpleMemoryResource mem_resource;
+  zisc::AllocFreeResource mem_resource;
   zisc::ThreadManager thread_manager{1, &mem_resource};
 
   constexpr int expected = 100;
@@ -1040,7 +1040,7 @@ TEST(ThreadManagerTest, GetValueTest)
 
 TEST(ThreadManagerTest, ParallelTest)
 {
-  zisc::SimpleMemoryResource mem_resource;
+  zisc::AllocFreeResource mem_resource;
   {
     constexpr zisc::uint num_of_threads = 16;
     zisc::ThreadManager thread_manager{num_of_threads, &mem_resource};
@@ -1166,7 +1166,7 @@ TEST(ThreadManagerTest, ParallelTest)
 
 TEST(ThreadManagerTest, TaskStressTest)
 {
-  zisc::SimpleMemoryResource mem_resource;
+  zisc::AllocFreeResource mem_resource;
   {
     constexpr zisc::uint num_of_threads = 1024u;
     constexpr zisc::uint num_of_tasks = 4'000'000;
@@ -1200,7 +1200,7 @@ TEST(ThreadManagerTest, TaskStressTest)
 
 TEST(ThreadManagerTest, TaskStressPerformanceTest)
 {
-  zisc::SimpleMemoryResource mem_resource;
+  zisc::AllocFreeResource mem_resource;
   {
     constexpr zisc::uint num_of_threads = 0u;
     constexpr zisc::uint num_of_tasks = 4'000'000;
@@ -1240,7 +1240,7 @@ TEST(ThreadManagerTest, TaskStressPerformanceTest)
 
 TEST(ThreadManagerTest, LoopTaskStressTest)
 {
-  zisc::SimpleMemoryResource mem_resource;
+  zisc::AllocFreeResource mem_resource;
   {
     constexpr zisc::uint num_of_threads = 1024;
     constexpr zisc::uint num_of_tasks = 4'000'000;
@@ -1271,7 +1271,7 @@ TEST(ThreadManagerTest, LoopTaskStressTest)
 
 TEST(ThreadManagerTest, LoopTaskStressPerformanceTest)
 {
-  zisc::SimpleMemoryResource mem_resource;
+  zisc::AllocFreeResource mem_resource;
   {
     constexpr zisc::uint num_of_threads = 0u;
     constexpr zisc::uint num_of_tasks = 4'000'000;
@@ -1302,7 +1302,7 @@ TEST(ThreadManagerTest, LoopTaskStressPerformanceTest)
 
 TEST(ThreadManagerTest, LoopTaskStressPerformanceTest2)
 {
-  zisc::SimpleMemoryResource mem_resource;
+  zisc::AllocFreeResource mem_resource;
   {
     static constexpr zisc::uint num_of_threads = 0u;
     static constexpr zisc::uint tasks_per_thread = 1u << 5u;

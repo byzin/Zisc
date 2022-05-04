@@ -23,7 +23,7 @@
 // Zisc
 #include "zisc/utility.hpp"
 #include "zisc/zisc_config.hpp"
-#include "zisc/memory/simple_memory_resource.hpp"
+#include "zisc/memory/alloc_free_resource.hpp"
 #include "zisc/structure/map.hpp"
 #include "zisc/structure/mutex_bst.hpp"
 // Test
@@ -34,7 +34,7 @@ TEST(MutexBstTest, ConstructorTest)
 {
   using Map = zisc::MutexBst<int>;
 
-  zisc::SimpleMemoryResource mem_resource;
+  zisc::AllocFreeResource mem_resource;
   std::unique_ptr<Map> map;
 
   // test the map with default capacity
@@ -63,7 +63,7 @@ TEST(MutexBstTest, ConstructorTest)
 TEST(MutexBstTest, SimpleMapTest)
 {
   using Map = zisc::MutexBst<int>;
-  zisc::SimpleMemoryResource mem_resource;
+  zisc::AllocFreeResource mem_resource;
   Map map{&mem_resource};
   test::testSimpleBoundedMap(std::addressof(map));
 }
@@ -71,7 +71,7 @@ TEST(MutexBstTest, SimpleMapTest)
 TEST(MutexBstTest, MovableValueTest)
 {
   using Map = zisc::MutexBst<int, test::MovableMValue>;
-  zisc::SimpleMemoryResource mem_resource;
+  zisc::AllocFreeResource mem_resource;
   Map map{&mem_resource};
   test::testMovableValueMap(std::addressof(map));
 }
@@ -79,7 +79,7 @@ TEST(MutexBstTest, MovableValueTest)
 TEST(MutexBstTest, TinyCapacityTest)
 {
   using Map = zisc::MutexBst<int>;
-  zisc::SimpleMemoryResource mem_resource;
+  zisc::AllocFreeResource mem_resource;
   Map map{&mem_resource};
   test::testTinyCapacityMap(std::addressof(map));
 }
@@ -96,7 +96,7 @@ TEST(MutexBstTest, ConcurrentOperationTest1)
   constexpr double zipfian_param = 0.0;
 
   using Map = zisc::MutexBst<zisc::uint64b>;
-  zisc::SimpleMemoryResource mem_resource;
+  zisc::AllocFreeResource mem_resource;
   Map map{num_of_samples, &mem_resource};
   test::MapTest::testConcurrentThroughputOp(num_of_threads,
                                             num_of_samples,
@@ -121,7 +121,7 @@ TEST(MutexBstTest, ConcurrentOperationTest2)
   constexpr double zipfian_param = 0.9;
 
   using Map = zisc::MutexBst<zisc::uint64b>;
-  zisc::SimpleMemoryResource mem_resource;
+  zisc::AllocFreeResource mem_resource;
   Map map{num_of_samples, &mem_resource};
   test::MapTest::testConcurrentThroughputOp(num_of_threads,
                                             num_of_samples,
@@ -149,7 +149,7 @@ void testConcurrentThroughputTime1(const std::size_t num_of_threads)
   constexpr double zipfian_param = 0.0;
 
   using Map = zisc::MutexBst<zisc::uint64b>;
-  zisc::SimpleMemoryResource mem_resource;
+  zisc::AllocFreeResource mem_resource;
   Map map{num_of_samples, &mem_resource};
   test::MapTest::testConcurrentThroughputTime(num_of_threads,
                                               num_of_samples,
@@ -177,7 +177,7 @@ void testConcurrentThroughputTime2(const std::size_t num_of_threads)
   constexpr double zipfian_param = 0.9;
 
   using Map = zisc::MutexBst<zisc::uint64b>;
-  zisc::SimpleMemoryResource mem_resource;
+  zisc::AllocFreeResource mem_resource;
   Map map{num_of_samples, &mem_resource};
   test::MapTest::testConcurrentThroughputTime(num_of_threads,
                                               num_of_samples,

@@ -1,5 +1,5 @@
 /*!
-  \file simple_memory_resource.hpp
+  \file alloc_free_resource.hpp
   \author Sho Ikeda
   \brief No brief description
 
@@ -12,8 +12,8 @@
   http://opensource.org/licenses/mit-license.php
   */
 
-#ifndef ZISC_SIMPLE_MEMORY_RESOURCE_HPP
-#define ZISC_SIMPLE_MEMORY_RESOURCE_HPP
+#ifndef ZISC_ALLOC_FREE_RESOURCE_HPP
+#define ZISC_ALLOC_FREE_RESOURCE_HPP
 
 // Standard C++ library
 #include <cstddef>
@@ -33,10 +33,13 @@ namespace zisc {
 
   No detailed description.
   */
-class SimpleMemoryResource : public pmr::memory_resource,
-                             private NonCopyable<SimpleMemoryResource>
+class AllocFreeResource : public pmr::memory_resource,
+                          private NonCopyable<AllocFreeResource>
 {
  public:
+  // Exception
+  using BadAlloc = Memory::BadAlloc;
+
   /*!
     \brief No brief description
 
@@ -52,17 +55,17 @@ class SimpleMemoryResource : public pmr::memory_resource,
 
 
   // Create a memory resource
-  SimpleMemoryResource() noexcept;
+  AllocFreeResource() noexcept;
 
   //! Move a data
-  SimpleMemoryResource(SimpleMemoryResource&& other) noexcept;
+  AllocFreeResource(AllocFreeResource&& other) noexcept;
 
   //! Destroy the resource
-  ~SimpleMemoryResource() noexcept override = default;
+  ~AllocFreeResource() noexcept override = default;
 
 
   //! Move a data
-  SimpleMemoryResource& operator=(SimpleMemoryResource&& other) noexcept;
+  AllocFreeResource& operator=(AllocFreeResource&& other) noexcept;
 
 
   //! Allocate memory
@@ -116,6 +119,6 @@ class SimpleMemoryResource : public pmr::memory_resource,
 
 } // namespace zisc
 
-#include "simple_memory_resource-inl.hpp"
+#include "alloc_free_resource-inl.hpp"
 
-#endif // ZISC_SIMPLE_MEMORY_RESOURCE_HPP
+#endif // ZISC_ALLOC_FREE_RESOURCE_HPP

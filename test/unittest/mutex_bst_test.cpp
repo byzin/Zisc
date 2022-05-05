@@ -84,55 +84,55 @@ TEST(MutexBstTest, TinyCapacityTest)
   test::testTinyCapacityMap(std::addressof(map));
 }
 
-TEST(MutexBstTest, ConcurrentOperationTest1)
-{
-  constexpr std::size_t num_of_threads = test::MapTest::kNumOfDefaultThreads;
-  constexpr std::size_t num_of_samples = test::MapTest::kNumOfDefaultSamples;
-  constexpr std::size_t num_of_keys = test::MapTest::kNumOfDefaultKeys;
-  constexpr std::size_t num_of_rounds = test::MapTest::kNumOfDefaultRounds;
-  constexpr zisc::uint64b sampler_seed = test::MapTest::kDefaultSamplerSeed;
-  constexpr bool use_sparse = false;
-  constexpr bool use_zipfian = false;
-  constexpr double zipfian_param = 0.0;
+//TEST(MutexBstTest, ConcurrentOperationTest1)
+//{
+//  constexpr std::size_t num_of_threads = test::MapTest::kNumOfDefaultThreads;
+//  constexpr std::size_t num_of_samples = test::MapTest::kNumOfDefaultSamples;
+//  constexpr std::size_t num_of_keys = test::MapTest::kNumOfDefaultKeys;
+//  constexpr std::size_t num_of_rounds = test::MapTest::kNumOfDefaultRounds;
+//  constexpr zisc::uint64b sampler_seed = test::MapTest::kDefaultSamplerSeed;
+//  constexpr bool use_sparse = false;
+//  constexpr bool use_zipfian = false;
+//  constexpr double zipfian_param = 0.0;
+//
+//  using Map = zisc::MutexBst<zisc::uint64b>;
+//  zisc::AllocFreeResource mem_resource;
+//  Map map{num_of_samples, &mem_resource};
+//  test::MapTest::testConcurrentThroughputOp(num_of_threads,
+//                                            num_of_samples,
+//                                            num_of_keys,
+//                                            num_of_rounds,
+//                                            sampler_seed,
+//                                            use_sparse,
+//                                            use_zipfian,
+//                                            zipfian_param,
+//                                            std::addressof(map));
+//}
 
-  using Map = zisc::MutexBst<zisc::uint64b>;
-  zisc::AllocFreeResource mem_resource;
-  Map map{num_of_samples, &mem_resource};
-  test::MapTest::testConcurrentThroughputOp(num_of_threads,
-                                            num_of_samples,
-                                            num_of_keys,
-                                            num_of_rounds,
-                                            sampler_seed,
-                                            use_sparse,
-                                            use_zipfian,
-                                            zipfian_param,
-                                            std::addressof(map));
-}
-
-TEST(MutexBstTest, ConcurrentOperationTest2)
-{
-  constexpr std::size_t num_of_threads = test::MapTest::kNumOfDefaultThreads;
-  constexpr std::size_t num_of_samples = test::MapTest::kNumOfDefaultSamples;
-  constexpr std::size_t num_of_keys = test::MapTest::kNumOfDefaultKeys;
-  constexpr std::size_t num_of_rounds = test::MapTest::kNumOfDefaultRounds;
-  constexpr zisc::uint64b sampler_seed = test::MapTest::kDefaultSamplerSeed;
-  constexpr bool use_sparse = true;
-  constexpr bool use_zipfian = true;
-  constexpr double zipfian_param = 0.9;
-
-  using Map = zisc::MutexBst<zisc::uint64b>;
-  zisc::AllocFreeResource mem_resource;
-  Map map{num_of_samples, &mem_resource};
-  test::MapTest::testConcurrentThroughputOp(num_of_threads,
-                                            num_of_samples,
-                                            num_of_keys,
-                                            num_of_rounds,
-                                            sampler_seed,
-                                            use_sparse,
-                                            use_zipfian,
-                                            zipfian_param,
-                                            std::addressof(map));
-}
+//TEST(MutexBstTest, ConcurrentOperationTest2)
+//{
+//  constexpr std::size_t num_of_threads = test::MapTest::kNumOfDefaultThreads;
+//  constexpr std::size_t num_of_samples = test::MapTest::kNumOfDefaultSamples;
+//  constexpr std::size_t num_of_keys = test::MapTest::kNumOfDefaultKeys;
+//  constexpr std::size_t num_of_rounds = test::MapTest::kNumOfDefaultRounds;
+//  constexpr zisc::uint64b sampler_seed = test::MapTest::kDefaultSamplerSeed;
+//  constexpr bool use_sparse = true;
+//  constexpr bool use_zipfian = true;
+//  constexpr double zipfian_param = 0.9;
+//
+//  using Map = zisc::MutexBst<zisc::uint64b>;
+//  zisc::AllocFreeResource mem_resource;
+//  Map map{num_of_samples, &mem_resource};
+//  test::MapTest::testConcurrentThroughputOp(num_of_threads,
+//                                            num_of_samples,
+//                                            num_of_keys,
+//                                            num_of_rounds,
+//                                            sampler_seed,
+//                                            use_sparse,
+//                                            use_zipfian,
+//                                            zipfian_param,
+//                                            std::addressof(map));
+//}
 
 namespace {
 

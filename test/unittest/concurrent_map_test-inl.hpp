@@ -308,7 +308,7 @@ void MapTest::testConcurrentThroughputTime(
 
     if (finish.test(std::memory_order::acquire)) {
       const zisc::int64b time = calcElapsedTime(start_time, end_time).count() / 1000;
-      std::cout << "[Warning] out of samples, finished in " << time << " ms."
+      std::cout << "  [Warning] out of samples, finished in " << time << " ms."
                 << std::endl;
     }
     {

@@ -29,7 +29,7 @@ namespace zisc {
 /*!
   \details No detailed description
   */
-template <std::movable T> inline
+template <std::move_constructible T> inline
 DataStorage<T>::DataStorage() noexcept
 {
   static_assert(sizeof(StorageT) == sizeof(T),
@@ -43,7 +43,7 @@ DataStorage<T>::DataStorage() noexcept
 
   \param [in] other No description.
   */
-template <std::movable T> inline
+template <std::move_constructible T> inline
 DataStorage<T>::DataStorage(DataStorage&& other) noexcept
 {
   set(std::move(other.get()));
@@ -56,7 +56,7 @@ DataStorage<T>::DataStorage(DataStorage&& other) noexcept
   \tparam Args No description.
   \param [in] args No description.
   */
-template <std::movable T>
+template <std::move_constructible T>
 template <typename ...Args> requires std::is_nothrow_constructible_v<T, Args...> inline
 DataStorage<T>::DataStorage(Args&&... args) noexcept
 {
@@ -69,7 +69,7 @@ DataStorage<T>::DataStorage(Args&&... args) noexcept
   \param [in] other No description.
   \return No description
   */
-template <std::movable T> inline
+template <std::move_constructible T> inline
 auto DataStorage<T>::operator=(DataStorage&& other) noexcept -> DataStorage&
 {
   set(std::move(other.get()));
@@ -82,7 +82,7 @@ auto DataStorage<T>::operator=(DataStorage&& other) noexcept -> DataStorage&
 
   \return No description
   */
-template <std::movable T> inline
+template <std::move_constructible T> inline
 auto DataStorage<T>::operator*() noexcept -> Reference
 {
   return get();
@@ -93,7 +93,7 @@ auto DataStorage<T>::operator*() noexcept -> Reference
 
   \return No description
   */
-template <std::movable T> inline
+template <std::move_constructible T> inline
 auto DataStorage<T>::operator*() const noexcept -> ConstReference
 {
   return get();
@@ -102,7 +102,7 @@ auto DataStorage<T>::operator*() const noexcept -> ConstReference
 /*!
   \details No detailed description
   */
-template <std::movable T> inline
+template <std::move_constructible T> inline
 void DataStorage<T>::destroy() noexcept
 {
   if constexpr (kTCanBeStorageT)
@@ -119,7 +119,7 @@ void DataStorage<T>::destroy() noexcept
 
   \return No description
   */
-template <std::movable T> inline
+template <std::move_constructible T> inline
 auto DataStorage<T>::get() noexcept -> Reference
 {
   if constexpr (kTCanBeStorageT)
@@ -133,7 +133,7 @@ auto DataStorage<T>::get() noexcept -> Reference
 
   \return No description
   */
-template <std::movable T> inline
+template <std::move_constructible T> inline
 auto DataStorage<T>::get() const noexcept -> ConstReference
 {
   if constexpr (kTCanBeStorageT)
@@ -147,7 +147,7 @@ auto DataStorage<T>::get() const noexcept -> ConstReference
 
   \return No description
   */
-template <std::movable T> inline
+template <std::move_constructible T> inline
 auto DataStorage<T>::memory() noexcept -> Pointer
 {
   auto* ptr = std::addressof(storage_);
@@ -162,7 +162,7 @@ auto DataStorage<T>::memory() noexcept -> Pointer
 
   \return No description
   */
-template <std::movable T> inline
+template <std::move_constructible T> inline
 auto DataStorage<T>::memory() const noexcept -> ConstPointer
 {
   const auto* ptr = std::addressof(storage_);
@@ -178,7 +178,7 @@ auto DataStorage<T>::memory() const noexcept -> ConstPointer
   \tparam Args No description.
   \param [in] args No description.
   */
-template <std::movable T>
+template <std::move_constructible T>
 template <typename ...Args> requires std::is_nothrow_constructible_v<T, Args...> inline
 auto DataStorage<T>::set(Args&&... args) noexcept -> Pointer
 {

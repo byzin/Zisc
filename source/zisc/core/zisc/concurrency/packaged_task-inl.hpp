@@ -17,38 +17,15 @@
 
 #include "packaged_task.hpp"
 // Standard C++ library
-#include <atomic>
-#include <memory>
 #include <limits>
-#include <thread>
+#include <memory>
 #include <utility>
 // Zisc
-#include "atomic.hpp"
 #include "future.hpp"
-#include "spin_lock_mutex.hpp"
-#include "zisc/bit.hpp"
-#include "zisc/concepts.hpp"
-#include "zisc/error.hpp"
+#include "zisc/utility.hpp"
 #include "zisc/zisc_config.hpp"
 
 namespace zisc {
-
-/*!
-  \details No detailed description
-  */
-inline
-PackagedTask::PackagedTask() noexcept
-{
-  checkInitialFlagState();
-}
-
-/*!
-  \details No detailed description
-  */
-inline
-PackagedTask::~PackagedTask() noexcept
-{
-}
 
 /*!
   \details No detailed description
@@ -57,7 +34,7 @@ PackagedTask::~PackagedTask() noexcept
   \param [in] offset No description.
   */
 inline
-void PackagedTask::operator()(const int64b thread_id, const DiffType offset)
+void PackagedTask::operator()(const int64b thread_id, const DiffT offset)
 {
   run(thread_id, offset);
 }
@@ -68,24 +45,12 @@ void PackagedTask::operator()(const int64b thread_id, const DiffType offset)
   \tparam T No description.
   \return No description
   */
-template <NonReference T> inline
-Future<T>& PackagedTask::getFuture() noexcept
+template <typename T> inline
+auto PackagedTask::getFuture() noexcept -> UniqueFutureT<T>
 {
-  ZISC_ASSERT(hasFuture(), "A future isn't set.");
-  auto f = static_cast<Future<T>*>(future_);
-  return *f;
-}
-
-/*!
-  \details No detailed description
-
-  \return No description
-  */
-inline
-bool PackagedTask::hasFuture() const noexcept
-{
-  const bool result = future_ != nullptr;
-  return result;
+  using Pointer = typename UniqueFutureT<T>::pointer;
+  auto* data = reinterp<Pointer>(getFutureImpl());
+  return UniqueFutureT<T>{data};
 }
 
 /*!
@@ -144,171 +109,6 @@ PackagedTask::PackagedTask(const int64b task_id, const int64b parent_task_id) no
     id_{task_id},
     parent_id_{parent_task_id}
 {
-}
-
-/*!
-  \details No detailed description
-
-  \tparam T No description.
-  */
-template <NonReference T> inline
-void PackagedTask::destroy() noexcept
-{
-  auto is_ready = !isCompleted() && lock<T>();
-  if (is_ready) {
-    Future<T>& f = getFuture<T>();
-    unlink(&f);
-    unlock(&f);
-  }
-}
-
-/*!
-  \details No detailed description
-
-  \tparam T No description.
-  \param [in] result No description.
-  */
-template <NonReference T, NonReference ValueT> inline
-void PackagedTask::setResult(ValueT&& result) noexcept
-{
-  auto is_ready = !isCompleted() && lock<T>();
-  if (is_ready) {
-    Future<T>& f = getFuture<T>();
-    f.set(std::forward<ValueT>(result));
-    unlink(&f);
-    unlock(&f);
-  }
-}
-
-/*!
-  \details No detailed description
-
-  \return No description
-  */
-inline
-void PackagedTask::checkInitialFlagState() const noexcept
-{
-  ZISC_ASSERT(!lock_state_.test(), "The flag isn't initialized.");
-  ZISC_ASSERT(!is_completed_.test(), "The flag isn't initialized.");
-}
-
-/*!
-  \details No detailed description
-
-  \return No description
-  */
-inline
-bool PackagedTask::isCompleted() const noexcept
-{
-  const bool result = is_completed_.test(std::memory_order::acquire);
-  return result;
-}
-
-/*!
-  \details No detailed description
-
-  \return No description
-  */
-inline
-std::atomic_flag& PackagedTask::lockState() noexcept
-{
-  return lock_state_;
-}
-
-/*!
-  \details No detailed description
-
-  \return No description
-  */
-inline
-const std::atomic_flag& PackagedTask::lockState() const noexcept
-{
-  return lock_state_;
-}
-
-/*!
-  \details No detailed description
-
-  \tparam T No description.
-  */
-template <NonReference T> inline
-bool PackagedTask::lock() noexcept
-{
-  bool is_ready = false;
-  // Lock the task and future
-  bool retry = false;
-  while (!is_ready) {
-    if (retry)
-      std::this_thread::yield();
-
-    // Check if the task is locked
-    std::atomic_flag& task_lock = lockState();
-    const bool is_task_locked = task_lock.test_and_set(std::memory_order::acq_rel);
-    if (is_task_locked) {
-      retry = true;
-      continue;
-    }
-
-    // Terminate the set if a future is unlinked
-    if (!hasFuture()) {
-      task_lock.clear();
-      break;
-    }
-
-    // Check if the future is locked
-    std::atomic_flag& future_lock = getFuture<T>().lockState();
-    const bool is_future_locked = future_lock.test_and_set(std::memory_order::acq_rel);
-    if (is_future_locked) {
-      retry = true;
-      task_lock.clear();
-      continue;
-    }
-
-    is_ready = true;
-  }
-  return is_ready;
-}
-
-/*!
-  \details No detailed description
-
-  \param [in,out] f No description.
-  */
-inline
-void PackagedTask::setFuture(void* f) noexcept
-{
-  future_ = f;
-}
-
-/*!
-  \details No detailed description
-
-  \tparam T No description.
-  \param [in,out] f No description.
-  */
-template <NonReference T> inline
-void PackagedTask::unlink(Future<T>* f) noexcept
-{
-  f->is_completed_.test_and_set(std::memory_order::release);
-  is_completed_.test_and_set(std::memory_order::release);
-
-  f->linkWithTask(nullptr);
-  setFuture(nullptr);
-}
-
-/*!
-  \details No detailed description
-
-  \tparam T No description.
-  \param [in,out] f No description.
-  */
-template <NonReference T> inline
-void PackagedTask::unlock(Future<T>* f) noexcept
-{
-  std::atomic_flag& future_lock = f->lockState();
-  future_lock.clear(std::memory_order::release);
-  std::atomic_flag& task_lock = lockState();
-  task_lock.clear(std::memory_order::release);
 }
 
 } // namespace zisc

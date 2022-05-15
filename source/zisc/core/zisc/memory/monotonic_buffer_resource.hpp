@@ -48,10 +48,17 @@ class MonotonicBufferResource :
 
 
   //! Create a new resource
-  MonotonicBufferResource() noexcept;
+  MonotonicBufferResource(pmr::memory_resource* mem_resource) noexcept;
+
+  //! Move a data
+  MonotonicBufferResource(MonotonicBufferResource&& other) noexcept;
 
   //! Destroy the resource
   ~MonotonicBufferResource() noexcept override = default;
+
+
+  //! Move a data
+  MonotonicBufferResource& operator=(MonotonicBufferResource&& other) noexcept;
 
 
   //! Return the maximum possible available alignment
@@ -79,12 +86,6 @@ class MonotonicBufferResource :
   std::size_t size() const noexcept;
 
  private:
-  //! Return the pointer to the underlying storage
-  std::byte* storage() noexcept;
-
-  //! Return the pointer to the underlying storage
-  const std::byte* storage() const noexcept;
-
   //! Allocate memory
   void* do_allocate(std::size_t size,
                     std::size_t alignment) override;
@@ -97,19 +98,24 @@ class MonotonicBufferResource :
   //! Compare for equality with another memory resource
   bool do_is_equal(const pmr::memory_resource& other) const noexcept override;
 
+  //! Initialize the storage
+  void initialize(pmr::memory_resource* mem_resource) noexcept;
 
-  static constexpr std::size_t kCacheLineSize = Config::l1CacheLineSize();
-  static_assert(std::alignment_of_v<std::atomic_size_t> <= kCacheLineSize);
-  static constexpr std::size_t kAlignmentMax = (std::max)(kAlignment, kCacheLineSize);
-  static constexpr std::size_t kBlockSize = kAlignmentMax;
+  //! Return the pointer to the underlying storage
+  std::byte* storage() noexcept;
+
+  //! Return the pointer to the underlying storage
+  const std::byte* storage() const noexcept;
+
+
+  static constexpr std::size_t kBlockSize = kAlignment;
   static constexpr std::size_t kNumOfBlocks = (kSize + (kBlockSize - 1)) / kBlockSize;
-  using StorageT = std::aligned_storage_t<kNumOfBlocks * kBlockSize, kAlignmentMax>;
+  using StorageT = std::aligned_storage_t<kNumOfBlocks * kBlockSize, kAlignment>;
 
 
-  StorageT storage_;
-  std::atomic_size_t use_count_;
-  std::atomic_size_t size_;
-  [[maybe_unused]] Padding<kAlignmentMax - 2 * sizeof(std::atomic_size_t)> pad_;
+  pmr::unique_ptr<StorageT> storage_;
+  std::atomic_size_t use_count_ = 0;
+  std::atomic_size_t size_ = 0;
 };
 
 } /* namespace zisc */

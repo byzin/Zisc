@@ -16,18 +16,13 @@
 #define ZISC_PACKAGED_TASK_HPP
 
 // Standard C++ library
-#include <atomic>
 #include <memory>
 // Zisc
-#include "atomic.hpp"
-#include "zisc/concepts.hpp"
+#include "future.hpp"
 #include "zisc/non_copyable.hpp"
 #include "zisc/zisc_config.hpp"
 
 namespace zisc {
-
-// Forward declaration
-template <NonReference> class Future;
 
 /*!
   \brief No brief description
@@ -38,25 +33,24 @@ class PackagedTask : private NonCopyable<PackagedTask>
 {
  public:
   // Type aliases
-  using DiffType = Atomic::WordValueType;
+  using DiffT = int64b;
+  template <typename T>
+  using UniqueFutureT = std::unique_ptr<Future<T>>;
 
 
   //! Create a package with no task
-  PackagedTask() noexcept;
+  PackagedTask() noexcept = default;
 
   //! Destroy a task data
-  virtual ~PackagedTask() noexcept;
+  virtual ~PackagedTask() noexcept = default;
 
 
-  //! Run a underlying task
-  void operator()(const int64b thread_id, const DiffType offset);
+  //! Run the underlying task
+  void operator()(const int64b thread_id, const DiffT offset);
 
   //! Return the future of the underlying task
-  template <NonReference T>
-  Future<T>& getFuture() noexcept;
-
-  //! Check if the packaged task has a future
-  bool hasFuture() const noexcept;
+  template <typename T>
+  UniqueFutureT<T> getFuture() noexcept;
 
   //! Return the underlying task ID
   int64b id() const noexcept;
@@ -67,8 +61,8 @@ class PackagedTask : private NonCopyable<PackagedTask>
   //! Return the parent task ID
   int64b parentId() const noexcept;
 
-  //! Run a underlying task
-  virtual void run(const int64b thread_id, const DiffType offset) = 0;
+  //! Run the underlying task
+  virtual void run(const int64b thread_id, const DiffT offset) = 0;
 
   //! Check if the pacakge has a valid task
   bool valid() const noexcept;
@@ -78,52 +72,12 @@ class PackagedTask : private NonCopyable<PackagedTask>
   PackagedTask(const int64b task_id, const int64b parent_task_id) noexcept;
 
 
-  //! Destroy the task data
-  template <NonReference T>
-  void destroy() noexcept;
-
-  //! Set the result of the task execution
-  template <NonReference T, NonReference ValueT>
-  void setResult(ValueT&& result) noexcept;
+  //! Return the future of the underlying task
+  virtual void* getFutureImpl() noexcept = 0;
 
  private:
-  template <NonReference>
-  friend class Future;
-
-
-  //! Check initial flag state
-  void checkInitialFlagState() const noexcept;
-
-  //! Check if the task is completed
-  bool isCompleted() const noexcept;
-
-  //! Return the lock state
-  std::atomic_flag& lockState() noexcept;
-
-  //! Return the lock state
-  const std::atomic_flag& lockState() const noexcept;
-
-  //! Lock the task and future
-  template <NonReference T>
-  bool lock() noexcept;
-
-  //! Set a future for the underlying task
-  void setFuture(void* f) noexcept;
-
-  //! Unlink the task with the given future
-  template <NonReference T>
-  void unlink(Future<T>* f) noexcept;
-
-  //! Unlock the task and the given future
-  template <NonReference T>
-  void unlock(Future<T>* f) noexcept;
-
-
   int64b id_ = invalidId();
   int64b parent_id_ = invalidId();
-  void* future_ = nullptr;
-  std::atomic_flag lock_state_;
-  std::atomic_flag is_completed_;
 };
 
 // Type aliases

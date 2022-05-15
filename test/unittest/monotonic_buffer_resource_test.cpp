@@ -28,6 +28,7 @@
 #include "zisc/zisc_config.hpp"
 #include "zisc/memory/memory.hpp"
 #include "zisc/memory/monotonic_buffer_resource.hpp"
+#include "zisc/memory/alloc_free_resource.hpp"
 #include "zisc/memory/std_memory_resource.hpp"
 
 namespace {
@@ -53,11 +54,12 @@ class ResourceCreator
 
   MemResource* create()
   {
-    MemResource* data = ::new (data_) MemResource{};
+    MemResource* data = ::new (data_) MemResource{&resource_};
     return data;
   }
 
  private:
+  zisc::AllocFreeResource resource_;
   void* data_ = nullptr;
 };
 
@@ -71,8 +73,6 @@ TEST(MonotonicBufferResourceTest, AllocationTest)
   using MemResource = typename ResourceCreator::MemResource;
   ResourceCreator creator;
   MemResource* resource = creator.create();
-  ASSERT_TRUE(zisc::Memory::isAligned(resource, alignment_max))
-      << "The resource isn't aligned correctly.";
   ASSERT_LE(alignment_max, resource->alignment()) << "Resource initialization failed.";
   ASSERT_LE(capacity_max, resource->capacity()) << "Resource initialization failed.";
   ASSERT_FALSE(resource->isOccupied()) << "Resource initialization failed.";
@@ -131,8 +131,6 @@ TEST(MonotonicBufferResourceTest, AlignmentTest)
   using MemResource = typename ResourceCreator::MemResource;
   ResourceCreator creator;
   MemResource* resource = creator.create();
-  ASSERT_TRUE(zisc::Memory::isAligned(resource, alignment_max))
-      << "The resource isn't aligned correctly.";
   ASSERT_LE(alignment_max, resource->alignment()) << "Resource initialization failed.";
   ASSERT_LE(capacity_max, resource->capacity()) << "Resource initialization failed.";
   ASSERT_FALSE(resource->isOccupied()) << "Resource initialization failed.";
@@ -195,8 +193,6 @@ TEST(MonotonicBufferResourceTest, MultiThreadTest)
   using MemResource = typename ResourceCreator::MemResource;
   ResourceCreator creator;
   MemResource* resource = creator.create();
-  ASSERT_TRUE(zisc::Memory::isAligned(resource, alignment_max))
-      << "The resource isn't aligned correctly.";
   ASSERT_LE(alignment_max, resource->alignment()) << "Resource initialization failed.";
   ASSERT_LE(capacity_max, resource->capacity()) << "Resource initialization failed.";
   ASSERT_FALSE(resource->isOccupied()) << "Resource initialization failed.";

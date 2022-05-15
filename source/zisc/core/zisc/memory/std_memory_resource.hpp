@@ -213,13 +213,13 @@ class UniquePtrDeleter
 
 
   //! Create an empty
-  UniquePtrDeleter() noexcept;
+  UniquePtrDeleter() noexcept = default;
 
   //! Create a memory deleter
   UniquePtrDeleter(const polymorphic_allocator<Type>& alloc) noexcept;
 
   //! Move a data
-  UniquePtrDeleter(UniquePtrDeleter&& other) noexcept;
+  UniquePtrDeleter(UniquePtrDeleter&& other) noexcept = default;
 
   //! Move a data from a super class
   template <std::derived_from<Type> Derived>
@@ -227,7 +227,11 @@ class UniquePtrDeleter
 
 
   //! Move a data
-  UniquePtrDeleter& operator=(UniquePtrDeleter&& other) noexcept;
+  UniquePtrDeleter& operator=(UniquePtrDeleter&& other) noexcept = default;
+
+  //! Move a data from a super class
+  template <std::derived_from<Type> Derived>
+  UniquePtrDeleter& operator=(UniquePtrDeleter<Derived>&& other) noexcept;
 
   //! Delete the given pointer memory
   void operator()(Pointer memory) noexcept;

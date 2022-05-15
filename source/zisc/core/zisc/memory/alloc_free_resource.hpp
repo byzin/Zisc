@@ -55,7 +55,7 @@ class AllocFreeResource : public pmr::memory_resource,
 
 
   // Create a memory resource
-  AllocFreeResource() noexcept;
+  AllocFreeResource() noexcept = default;
 
   //! Move a data
   AllocFreeResource(AllocFreeResource&& other) noexcept;

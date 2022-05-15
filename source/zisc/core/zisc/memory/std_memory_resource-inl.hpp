@@ -29,14 +29,6 @@ namespace pmr {
 
 /*!
   \details No detailed description
-  */
-template <typename Type> inline
-UniquePtrDeleter<Type>::UniquePtrDeleter() noexcept
-{
-}
-
-/*!
-  \details No detailed description
 
   \param [in,out] alloc No description.
   */
@@ -44,17 +36,6 @@ template <typename Type> inline
 UniquePtrDeleter<Type>::UniquePtrDeleter(
     const zisc::pmr::polymorphic_allocator<Type>& alloc) noexcept :
         resource_{alloc.resource()}
-{
-}
-
-/*!
-  \details No detailed description
-
-  \param [in] other No description.
-  */
-template <typename Type> inline
-UniquePtrDeleter<Type>::UniquePtrDeleter(UniquePtrDeleter&& other) noexcept:
-    resource_{other.resource()}
 {
 }
 
@@ -75,8 +56,8 @@ UniquePtrDeleter<Type>::UniquePtrDeleter(UniquePtrDeleter<Derived>&& other) noex
 
   \param [in] other No description.
   */
-template <typename Type> inline
-auto UniquePtrDeleter<Type>::operator=(UniquePtrDeleter&& other) noexcept
+template <typename Type> template <std::derived_from<Type> Derived> inline
+auto UniquePtrDeleter<Type>::operator=(UniquePtrDeleter<Derived>&& other) noexcept
     -> UniquePtrDeleter&
 {
   resource_ = other.resource();
@@ -129,7 +110,7 @@ unique_ptr<Type> allocateUnique(const zisc::pmr::polymorphic_allocator<Type> all
   Pointer memory = a.allocate(n);
   a.construct(memory, std::forward<ArgTypes>(arguments)...);
 
-  unique_ptr<Type> p{memory, alloc};
+  unique_ptr<Type> p{memory, {alloc}};
   return p;
 }
 

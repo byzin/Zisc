@@ -28,8 +28,11 @@ template <typename Type>
 class NonCopyable
 {
  protected:
-  NonCopyable() {}
-  ~NonCopyable() {}
+  //
+  NonCopyable() noexcept = default;
+
+  //
+  ~NonCopyable() noexcept = default;
 
  private:
   //! Prohibit copy constructor

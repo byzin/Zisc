@@ -22,6 +22,7 @@
 #include <cstddef>
 #include <memory>
 #include <type_traits>
+#include <utility>
 // Zisc
 #include "memory.hpp"
 #include "std_memory_resource.hpp"
@@ -35,13 +36,24 @@ namespace zisc {
 
 /*!
   \details No detailed description
-
-  \return No description
   */
 template <std::size_t kSize, std::size_t kAlignment> inline
-MonotonicBufferResource<kSize, kAlignment>::MonotonicBufferResource() noexcept :
-    use_count_{0},
-    size_{0}
+MonotonicBufferResource<kSize, kAlignment>::MonotonicBufferResource(pmr::memory_resource* mem_resource) noexcept
+{
+  initialize(mem_resource);
+}
+
+/*!
+  \details No detailed description
+
+  \param [in,out] other No description.
+  */
+template <std::size_t kSize, std::size_t kAlignment> inline
+MonotonicBufferResource<kSize, kAlignment>::MonotonicBufferResource(MonotonicBufferResource&& other) noexcept :
+    pmr::memory_resource(std::move(other)),
+    storage_{std::move(other.storage_)},
+    use_count_{other.use_count_.load(std::memory_order::acquire)},
+    size_{other.size_.load(std::memory_order::acquire)}
 {
 }
 
@@ -56,6 +68,21 @@ constexpr std::size_t MonotonicBufferResource<kSize, kAlignment>::alignment() no
   constexpr std::size_t a = std::alignment_of_v<StorageT>;
   static_assert(std::has_single_bit(a), "The alignment isn't power of 2.");
   return a;
+}
+
+/*!
+  \details No detailed description
+
+  \param [in,out] other No description.
+  */
+template <std::size_t kSize, std::size_t kAlignment> inline
+auto MonotonicBufferResource<kSize, kAlignment>::operator=(MonotonicBufferResource&& other) noexcept -> MonotonicBufferResource&
+{
+  pmr::memory_resource::operator=(std::move(other));
+  storage_ = std::move(other.storage_);
+  use_count_ = other.use_count_.load(std::memory_order::acquire);
+  size_ = other.size_.load(std::memory_order::acquire);
+  return *this;
 }
 
 /*!
@@ -102,7 +129,7 @@ void* MonotonicBufferResource<kSize, kAlignment>::allocateMemory(
 template <std::size_t kSize, std::size_t kAlignment> inline
 constexpr std::size_t MonotonicBufferResource<kSize, kAlignment>::capacity() noexcept
 {
-  return sizeof(storage_);
+  return sizeof(StorageT);
 }
 
 /*!
@@ -162,6 +189,17 @@ std::size_t MonotonicBufferResource<kSize, kAlignment>::size() const noexcept
 
 /*!
   \details No detailed description
+  */
+template <std::size_t kSize, std::size_t kAlignment> inline
+void MonotonicBufferResource<kSize, kAlignment>::initialize(
+    pmr::memory_resource* mem_resource) noexcept
+{
+  pmr::polymorphic_allocator<StorageT> alloc{mem_resource};
+  storage_ = pmr::allocateUnique<StorageT>(alloc);
+}
+
+/*!
+  \details No detailed description
 
   \param [in] size No description.
   \param [in] alignment No description.
@@ -194,14 +232,15 @@ void MonotonicBufferResource<kSize, kAlignment>::do_deallocate(
 /*!
   \details No detailed description
 
-  \param [in] size No description.
-  \param [in] alignment No description.
+  \param [in] other No description.
+  \return No description
   */
 template <std::size_t kSize, std::size_t kAlignment> inline
 bool MonotonicBufferResource<kSize, kAlignment>::do_is_equal(
     const pmr::memory_resource& other) const noexcept
 {
-  const bool result = this == std::addressof(other);
+  const auto* other_mem = dynamic_cast<const MonotonicBufferResource*>(&other);
+  const bool result = (other_mem != nullptr) && (other_mem->storage() == storage());
   return result;
 }
 
@@ -214,7 +253,7 @@ template <std::size_t kSize, std::size_t kAlignment> inline
 std::byte* MonotonicBufferResource<kSize, kAlignment>::storage() noexcept
 {
   static_assert(sizeof(std::byte) == 1, "The size of std::byte isn't 1.");
-  return reinterp<std::byte*>(&storage_);
+  return reinterp<std::byte*>(storage_.get());
 }
 
 /*!
@@ -226,7 +265,7 @@ template <std::size_t kSize, std::size_t kAlignment> inline
 const std::byte* MonotonicBufferResource<kSize, kAlignment>::storage() const noexcept
 {
   static_assert(sizeof(std::byte) == 1, "The size of std::byte isn't 1.");
-  return reinterp<const std::byte*>(&storage_);
+  return reinterp<const std::byte*>(storage_.get());
 }
 
 } /* namespace zisc */

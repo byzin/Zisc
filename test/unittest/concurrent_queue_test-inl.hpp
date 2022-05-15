@@ -62,7 +62,7 @@ void QueueTest::testConcurrentThroughputOp(
 
   std::mt19937_64 sampler{sampler_seed};
   for (std::size_t round = 0; round < num_of_rounds; ++round) {
-    queue->clear();
+    // queue->clear(); The test must work wihtout the clear
     ASSERT_EQ(0, queue->size()) << "The queue isn't cleared.";
 
     constexpr std::size_t batch_size = 64;

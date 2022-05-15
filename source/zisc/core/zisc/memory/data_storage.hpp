@@ -31,7 +31,7 @@ namespace zisc {
 
   \tparam T No description.
   */
-template <std::movable T>
+template <std::move_constructible T>
 class DataStorage : private NonCopyable<DataStorage<T>>
 {
  public:
@@ -88,7 +88,8 @@ class DataStorage : private NonCopyable<DataStorage<T>>
   //! Check if T is able to be used as storage directly. Otherwise use aligned_storage
   static constexpr bool kTCanBeStorageT =
       std::is_nothrow_default_constructible_v<ValueT> &&
-      std::is_nothrow_destructible_v<ValueT>;
+      std::is_nothrow_destructible_v<ValueT> &&
+      std::is_nothrow_move_assignable_v<ValueT>;
 
 
   // Type aliases

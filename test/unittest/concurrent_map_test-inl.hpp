@@ -108,7 +108,7 @@ void MapTest::testConcurrentThroughputOp(
                                                               zipfian_param,
                                                               sampler);
   for (std::size_t round = 0; round < num_of_rounds; ++round) {
-    map->clear();
+    // map->clear(); The test must work without the clear
     ASSERT_EQ(0, map->size()) << "The search tree isn't cleared.";
 
     constexpr std::size_t batch_size = 64;

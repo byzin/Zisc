@@ -36,21 +36,14 @@ namespace zisc {
 
 /*!
   \details No detailed description
-  */
-inline
-AllocFreeResource::AllocFreeResource() noexcept
-{
-}
-
-/*!
-  \details No detailed description
 
   \param [in] other No description.
   */
 inline
-AllocFreeResource::AllocFreeResource(AllocFreeResource&& other) noexcept
+AllocFreeResource::AllocFreeResource(AllocFreeResource&& other) noexcept :
+    pmr::memory_resource(std::move(other))
 {
-  std::swap(memory_usage_, other.memory_usage_);
+  memory_usage_ = std::move(other.memory_usage_);
 }
 
 /*!
@@ -62,7 +55,8 @@ AllocFreeResource::AllocFreeResource(AllocFreeResource&& other) noexcept
 inline
 AllocFreeResource& AllocFreeResource::operator=(AllocFreeResource&& other) noexcept
 {
-  std::swap(memory_usage_, other.memory_usage_);
+  pmr::memory_resource::operator=(std::move(other));
+  memory_usage_ = std::move(other.memory_usage_);
   return *this;
 }
 

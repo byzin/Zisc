@@ -32,7 +32,6 @@
 // Zisc
 #include "zisc/algorithm.hpp"
 #include "zisc/non_copyable.hpp"
-#include "zisc/concurrency/atomic.hpp"
 #include "zisc/concurrency/future.hpp"
 #include "zisc/concurrency/thread_manager.hpp"
 #include "zisc/math/math.hpp"
@@ -120,7 +119,7 @@ TEST(ThreadManagerTest, EnqueueSingleTaskTest)
       // Enqueue a task
       const auto func = ::setGlobal1;
       auto result = thread_manager.enqueue(func);
-      ASSERT_TRUE(result.valid()) << "Task enqueueing failed.";
+      ASSERT_TRUE(result.isValid()) << "Task enqueueing failed.";
       ASSERT_EQ(id_counter++, result.id()) << "Task enqueueing failed.";
       result.wait();
       // Check result
@@ -133,7 +132,7 @@ TEST(ThreadManagerTest, EnqueueSingleTaskTest)
       ASSERT_FALSE(::global_value1.load(std::memory_order::acquire));
       // Enqueue a task
       auto result = thread_manager.enqueue(::setGlobal1);
-      ASSERT_TRUE(result.valid()) << "Task enqueueing failed.";
+      ASSERT_TRUE(result.isValid()) << "Task enqueueing failed.";
       ASSERT_EQ(id_counter++, result.id()) << "Task enqueueing failed.";
       result.wait();
       // Check result
@@ -148,7 +147,7 @@ TEST(ThreadManagerTest, EnqueueSingleTaskTest)
       // Enqueue a task
       const auto func = ::setGlobal2;
       auto result = thread_manager.enqueue(func);
-      ASSERT_TRUE(result.valid()) << "Task enqueueing failed.";
+      ASSERT_TRUE(result.isValid()) << "Task enqueueing failed.";
       ASSERT_EQ(id_counter++, result.id()) << "Task enqueueing failed.";
       result.wait();
       // Check result
@@ -161,7 +160,7 @@ TEST(ThreadManagerTest, EnqueueSingleTaskTest)
       ASSERT_FALSE(::global_value2.load(std::memory_order::acquire));
       // Enqueue a task
       auto result = thread_manager.enqueue(::setGlobal2);
-      ASSERT_TRUE(result.valid()) << "Task enqueueing failed.";
+      ASSERT_TRUE(result.isValid()) << "Task enqueueing failed.";
       ASSERT_EQ(id_counter++, result.id()) << "Task enqueueing failed.";
       result.wait();
       // Check result
@@ -176,7 +175,7 @@ TEST(ThreadManagerTest, EnqueueSingleTaskTest)
       // Enqueue a task
       const auto func = std::addressof(::setGlobal1);
       auto result = thread_manager.enqueue(func);
-      ASSERT_TRUE(result.valid()) << "Task enqueueing failed.";
+      ASSERT_TRUE(result.isValid()) << "Task enqueueing failed.";
       ASSERT_EQ(id_counter++, result.id()) << "Task enqueueing failed.";
       result.wait();
       // Check result
@@ -189,7 +188,7 @@ TEST(ThreadManagerTest, EnqueueSingleTaskTest)
       ASSERT_FALSE(::global_value1.load(std::memory_order::acquire));
       // Enqueue a task
       auto result = thread_manager.enqueue(std::addressof(::setGlobal1));
-      ASSERT_TRUE(result.valid()) << "Task enqueueing failed.";
+      ASSERT_TRUE(result.isValid()) << "Task enqueueing failed.";
       ASSERT_EQ(id_counter++, result.id()) << "Task enqueueing failed.";
       result.wait();
       // Check result
@@ -204,7 +203,7 @@ TEST(ThreadManagerTest, EnqueueSingleTaskTest)
       // Enqueue a task
       const auto func = std::addressof(::setGlobal2);
       auto result = thread_manager.enqueue(func);
-      ASSERT_TRUE(result.valid()) << "Task enqueueing failed.";
+      ASSERT_TRUE(result.isValid()) << "Task enqueueing failed.";
       ASSERT_EQ(id_counter++, result.id()) << "Task enqueueing failed.";
       result.wait();
       // Check result
@@ -217,7 +216,7 @@ TEST(ThreadManagerTest, EnqueueSingleTaskTest)
       ASSERT_FALSE(::global_value2.load(std::memory_order::acquire));
       // Enqueue a task
       auto result = thread_manager.enqueue(std::addressof(::setGlobal2));
-      ASSERT_TRUE(result.valid()) << "Task enqueueing failed.";
+      ASSERT_TRUE(result.isValid()) << "Task enqueueing failed.";
       ASSERT_EQ(id_counter++, result.id()) << "Task enqueueing failed.";
       result.wait();
       // Check result
@@ -231,7 +230,7 @@ TEST(ThreadManagerTest, EnqueueSingleTaskTest)
       ASSERT_FALSE(setter.value_.load(std::memory_order::acquire));
       // Enqueue a task
       auto result = thread_manager.enqueue(setter);
-      ASSERT_TRUE(result.valid()) << "Task enqueueing failed.";
+      ASSERT_TRUE(result.isValid()) << "Task enqueueing failed.";
       ASSERT_EQ(id_counter++, result.id()) << "Task enqueueing failed.";
       result.wait();
       // Check result
@@ -243,7 +242,7 @@ TEST(ThreadManagerTest, EnqueueSingleTaskTest)
       ::MovableSetter1 setter{};
       // Enqueue a task
       auto result = thread_manager.enqueue(std::move(setter));
-      ASSERT_TRUE(result.valid()) << "Task enqueueing failed.";
+      ASSERT_TRUE(result.isValid()) << "Task enqueueing failed.";
       ASSERT_EQ(id_counter++, result.id()) << "Task enqueueing failed.";
       const int value = result.get();
       // Check result
@@ -256,7 +255,7 @@ TEST(ThreadManagerTest, EnqueueSingleTaskTest)
       ASSERT_FALSE(setter.value_.load(std::memory_order::acquire));
       // Enqueue a task
       auto result = thread_manager.enqueue(setter);
-      ASSERT_TRUE(result.valid()) << "Task enqueueing failed.";
+      ASSERT_TRUE(result.isValid()) << "Task enqueueing failed.";
       ASSERT_EQ(id_counter++, result.id()) << "Task enqueueing failed.";
       result.wait();
       // Check result
@@ -268,7 +267,7 @@ TEST(ThreadManagerTest, EnqueueSingleTaskTest)
       ::MovableSetter2 setter{};
       // Enqueue a task
       auto result = thread_manager.enqueue(std::move(setter));
-      ASSERT_TRUE(result.valid()) << "Task enqueueing failed.";
+      ASSERT_TRUE(result.isValid()) << "Task enqueueing failed.";
       ASSERT_EQ(id_counter++, result.id()) << "Task enqueueing failed.";
       const int value = result.get();
       // Check result
@@ -285,7 +284,7 @@ TEST(ThreadManagerTest, EnqueueSingleTaskTest)
         ::setGlobal1();
       };
       auto result = thread_manager.enqueue(func);
-      ASSERT_TRUE(result.valid()) << "Task enqueueing failed.";
+      ASSERT_TRUE(result.isValid()) << "Task enqueueing failed.";
       ASSERT_EQ(id_counter++, result.id()) << "Task enqueueing failed.";
       result.wait();
       // Check result
@@ -302,7 +301,7 @@ TEST(ThreadManagerTest, EnqueueSingleTaskTest)
         ::setGlobal1();
       };
       auto result = thread_manager.enqueue(std::move(func));
-      ASSERT_TRUE(result.valid()) << "Task enqueueing failed.";
+      ASSERT_TRUE(result.isValid()) << "Task enqueueing failed.";
       ASSERT_EQ(id_counter++, result.id()) << "Task enqueueing failed.";
       result.wait();
       // Check result
@@ -320,7 +319,7 @@ TEST(ThreadManagerTest, EnqueueSingleTaskTest)
         ::setGlobal2(thread_id);
       };
       auto result = thread_manager.enqueue(func);
-      ASSERT_TRUE(result.valid()) << "Task enqueueing failed.";
+      ASSERT_TRUE(result.isValid()) << "Task enqueueing failed.";
       ASSERT_EQ(id_counter++, result.id()) << "Task enqueueing failed.";
       result.wait();
       // Check result
@@ -337,7 +336,7 @@ TEST(ThreadManagerTest, EnqueueSingleTaskTest)
         ::setGlobal2(thread_id);
       };
       auto result = thread_manager.enqueue(std::move(func));
-      ASSERT_TRUE(result.valid()) << "Task enqueueing failed.";
+      ASSERT_TRUE(result.isValid()) << "Task enqueueing failed.";
       ASSERT_EQ(id_counter++, result.id()) << "Task enqueueing failed.";
       result.wait();
       // Check result
@@ -395,9 +394,7 @@ struct MovableAdder1 : private zisc::NonCopyable<MovableAdder1>
   {
     global_value1.store(0, std::memory_order::release);
   }
-  MovableAdder1(MovableAdder1&&) noexcept
-  {
-  }
+  MovableAdder1(MovableAdder1&&) noexcept {}
   int operator()(const int value) noexcept
   {
     global_value1.fetch_add(value, std::memory_order::release);
@@ -411,9 +408,7 @@ struct MovableAdder2 : private zisc::NonCopyable<MovableAdder2>
   {
     global_value2.store(0, std::memory_order::release);
   }
-  MovableAdder2(MovableAdder2&&) noexcept
-  {
-  }
+  MovableAdder2(MovableAdder2&&) noexcept {}
   int operator()(std::list<int>::const_iterator ite,
                  [[maybe_unused]] const zisc::int64b thread_id) noexcept
   {
@@ -450,7 +445,7 @@ TEST(ThreadManagerTest, EnqueueLoopTaskTest)
       // Enqueue a task
       const auto func = ::addGlobal1;
       auto result = thread_manager.enqueueLoop(func, begin, end);
-      ASSERT_TRUE(result.valid()) << "Task enqueueing failed.";
+      ASSERT_TRUE(result.isValid()) << "Task enqueueing failed.";
       ASSERT_EQ(id_counter++, result.id()) << "Task enqueueing failed.";
       result.wait();
       // Check result
@@ -463,7 +458,7 @@ TEST(ThreadManagerTest, EnqueueLoopTaskTest)
       ASSERT_FALSE(::global_value1.load(std::memory_order::acquire));
       // Enqueue a task
       auto result = thread_manager.enqueueLoop(::addGlobal1, begin, end);
-      ASSERT_TRUE(result.valid()) << "Task enqueueing failed.";
+      ASSERT_TRUE(result.isValid()) << "Task enqueueing failed.";
       ASSERT_EQ(id_counter++, result.id()) << "Task enqueueing failed.";
       result.wait();
       // Check result
@@ -481,7 +476,7 @@ TEST(ThreadManagerTest, EnqueueLoopTaskTest)
       std::iota(l.begin(), l.end(), begin);
       const auto func = ::addGlobal2;
       auto result = thread_manager.enqueueLoop(func, l.begin(), l.end());
-      ASSERT_TRUE(result.valid()) << "Task enqueueing failed.";
+      ASSERT_TRUE(result.isValid()) << "Task enqueueing failed.";
       ASSERT_EQ(id_counter++, result.id()) << "Task enqueueing failed.";
       result.wait();
       // Check result
@@ -497,7 +492,7 @@ TEST(ThreadManagerTest, EnqueueLoopTaskTest)
       l.resize(zisc::cast<std::size_t>(end - begin), 0);
       std::iota(l.begin(), l.end(), begin);
       auto result = thread_manager.enqueueLoop(::addGlobal2, l.begin(), l.end());
-      ASSERT_TRUE(result.valid()) << "Task enqueueing failed.";
+      ASSERT_TRUE(result.isValid()) << "Task enqueueing failed.";
       ASSERT_EQ(id_counter++, result.id()) << "Task enqueueing failed.";
       result.wait();
       // Check result
@@ -512,7 +507,7 @@ TEST(ThreadManagerTest, EnqueueLoopTaskTest)
       // Enqueue a task
       const auto func = std::addressof(::addGlobal1);
       auto result = thread_manager.enqueueLoop(func, begin, end);
-      ASSERT_TRUE(result.valid()) << "Task enqueueing failed.";
+      ASSERT_TRUE(result.isValid()) << "Task enqueueing failed.";
       ASSERT_EQ(id_counter++, result.id()) << "Task enqueueing failed.";
       result.wait();
       // Check result
@@ -525,7 +520,7 @@ TEST(ThreadManagerTest, EnqueueLoopTaskTest)
       ASSERT_FALSE(::global_value1.load(std::memory_order::acquire));
       // Enqueue a task
       auto result = thread_manager.enqueueLoop(std::addressof(::addGlobal1), begin, end);
-      ASSERT_TRUE(result.valid()) << "Task enqueueing failed.";
+      ASSERT_TRUE(result.isValid()) << "Task enqueueing failed.";
       ASSERT_EQ(id_counter++, result.id()) << "Task enqueueing failed.";
       result.wait();
       // Check result
@@ -543,7 +538,7 @@ TEST(ThreadManagerTest, EnqueueLoopTaskTest)
       std::iota(l.begin(), l.end(), begin);
       const auto func = std::addressof(::addGlobal2);
       auto result = thread_manager.enqueueLoop(func, l.begin(), l.end());
-      ASSERT_TRUE(result.valid()) << "Task enqueueing failed.";
+      ASSERT_TRUE(result.isValid()) << "Task enqueueing failed.";
       ASSERT_EQ(id_counter++, result.id()) << "Task enqueueing failed.";
       result.wait();
       // Check result
@@ -559,7 +554,7 @@ TEST(ThreadManagerTest, EnqueueLoopTaskTest)
       l.resize(zisc::cast<std::size_t>(end - begin), 0);
       std::iota(l.begin(), l.end(), begin);
       auto result = thread_manager.enqueueLoop(std::addressof(::addGlobal2), l.begin(), l.end());
-      ASSERT_TRUE(result.valid()) << "Task enqueueing failed.";
+      ASSERT_TRUE(result.isValid()) << "Task enqueueing failed.";
       ASSERT_EQ(id_counter++, result.id()) << "Task enqueueing failed.";
       result.wait();
       // Check result
@@ -573,7 +568,7 @@ TEST(ThreadManagerTest, EnqueueLoopTaskTest)
       ASSERT_FALSE(adder.value_.load(std::memory_order::acquire));
       // Enqueue a task
       auto result = thread_manager.enqueueLoop(adder, begin, end);
-      ASSERT_TRUE(result.valid()) << "Task enqueueing failed.";
+      ASSERT_TRUE(result.isValid()) << "Task enqueueing failed.";
       ASSERT_EQ(id_counter++, result.id()) << "Task enqueueing failed.";
       result.wait();
       // Check result
@@ -586,7 +581,7 @@ TEST(ThreadManagerTest, EnqueueLoopTaskTest)
       ASSERT_FALSE(::global_value1.load(std::memory_order::acquire));
       // Enqueue a task
       auto result = thread_manager.enqueueLoop(std::move(adder), begin, end);
-      ASSERT_TRUE(result.valid()) << "Task enqueueing failed.";
+      ASSERT_TRUE(result.isValid()) << "Task enqueueing failed.";
       ASSERT_EQ(id_counter++, result.id()) << "Task enqueueing failed.";
       result.get();
       // Check result
@@ -603,7 +598,7 @@ TEST(ThreadManagerTest, EnqueueLoopTaskTest)
       l.resize(zisc::cast<std::size_t>(end - begin), 0);
       std::iota(l.begin(), l.end(), begin);
       auto result = thread_manager.enqueueLoop(adder, l.begin(), l.end());
-      ASSERT_TRUE(result.valid()) << "Task enqueueing failed.";
+      ASSERT_TRUE(result.isValid()) << "Task enqueueing failed.";
       ASSERT_EQ(id_counter++, result.id()) << "Task enqueueing failed.";
       result.wait();
       // Check result
@@ -619,7 +614,7 @@ TEST(ThreadManagerTest, EnqueueLoopTaskTest)
       l.resize(zisc::cast<std::size_t>(end - begin), 0);
       std::iota(l.begin(), l.end(), begin);
       auto result = thread_manager.enqueueLoop(std::move(adder), l.begin(), l.end());
-      ASSERT_TRUE(result.valid()) << "Task enqueueing failed.";
+      ASSERT_TRUE(result.isValid()) << "Task enqueueing failed.";
       ASSERT_EQ(id_counter++, result.id()) << "Task enqueueing failed.";
       result.get();
       // Check result
@@ -637,7 +632,7 @@ TEST(ThreadManagerTest, EnqueueLoopTaskTest)
         ::addGlobal1(value);
       };
       auto result = thread_manager.enqueueLoop(func, begin, end);
-      ASSERT_TRUE(result.valid()) << "Task enqueueing failed.";
+      ASSERT_TRUE(result.isValid()) << "Task enqueueing failed.";
       ASSERT_EQ(id_counter++, result.id()) << "Task enqueueing failed.";
       result.wait();
       // Check result
@@ -654,7 +649,7 @@ TEST(ThreadManagerTest, EnqueueLoopTaskTest)
         ::addGlobal1(value);
       };
       auto result = thread_manager.enqueueLoop(std::move(func), begin, end);
-      ASSERT_TRUE(result.valid()) << "Task enqueueing failed.";
+      ASSERT_TRUE(result.isValid()) << "Task enqueueing failed.";
       ASSERT_EQ(id_counter++, result.id()) << "Task enqueueing failed.";
       result.wait();
       // Check result
@@ -676,7 +671,7 @@ TEST(ThreadManagerTest, EnqueueLoopTaskTest)
       l.resize(zisc::cast<std::size_t>(end - begin), 0);
       std::iota(l.begin(), l.end(), begin);
       auto result = thread_manager.enqueueLoop(func, l.begin(), l.end());
-      ASSERT_TRUE(result.valid()) << "Task enqueueing failed.";
+      ASSERT_TRUE(result.isValid()) << "Task enqueueing failed.";
       ASSERT_EQ(id_counter++, result.id()) << "Task enqueueing failed.";
       result.wait();
       // Check result
@@ -697,7 +692,7 @@ TEST(ThreadManagerTest, EnqueueLoopTaskTest)
       l.resize(zisc::cast<std::size_t>(end - begin), 0);
       std::iota(l.begin(), l.end(), begin);
       auto result = thread_manager.enqueueLoop(std::move(func), l.begin(), l.end());
-      ASSERT_TRUE(result.valid()) << "Task enqueueing failed.";
+      ASSERT_TRUE(result.isValid()) << "Task enqueueing failed.";
       ASSERT_EQ(id_counter++, result.id()) << "Task enqueueing failed.";
       result.wait();
       // Check result
@@ -739,25 +734,49 @@ TEST(ThreadManagerTest, EnqueueTaskExceptionTest)
         worker_lock.store(1, std::memory_order::release);
         worker_lock.notify_all();
         //
-        const int b = zisc::cast<int>(error.beginOffset());
-        const int e = zisc::cast<int>(error.numOfIterations());
+        const int b = zisc::cast<int>(error.get().beginOffset());
+        const int e = zisc::cast<int>(error.get().numOfIterations());
         ASSERT_LE(zisc::cast<int>(cap), b);
         ASSERT_EQ(end, e);
-        auto& task1 = error.task();
-        result = std::move(task1.getFuture<void>());
-        for (auto it = error.beginOffset(); it < error.numOfIterations(); ++it)
+        auto& task1 = error.get().task();
+        result = std::move(*task1.getFuture<void>());
+        for (auto it = b; it < e; ++it)
           task1.run(zisc::ThreadManager::unmanagedThreadId(), it);
       }
       catch (...) {
         FAIL() << "This line must not be processed.";
       }
       ASSERT_EQ(0, result.id());
-      ASSERT_TRUE(result.valid());
+      ASSERT_TRUE(result.isValid());
       result.wait();
     }
   }
   ASSERT_EQ(0, mem_resource.totalMemoryUsage())
       << mem_resource.totalMemoryUsage() << " bytes isn't deallocated.";
+}
+
+TEST(ThreadManagerTest, EnqueueAlignedValueTest)
+{
+  zisc::AllocFreeResource mem_resource;
+  zisc::ThreadManager thread_manager{1, &mem_resource};
+  {
+    constexpr std::size_t alignment = zisc::Config::l1CacheLineSize();
+    struct alignas(alignment) Value1
+    {
+      int value_;
+    };
+    static_assert(std::alignment_of_v<Value1> == alignment);
+
+    Value1 v1 = {1};
+    auto task1 = [v1]()
+    {
+      return Value1{2 * v1.value_};
+    };
+
+    zisc::Future<Value1> result = thread_manager.enqueue(std::move(task1));
+    Value1 r1 = result.get();
+    ASSERT_EQ(2 * v1.value_, r1.value_) << "The aligned value test failed.";
+  }
 }
 
 namespace {
@@ -837,7 +856,6 @@ TEST(ThreadManagerTest, TaskDependencyTest)
     ASSERT_EQ(5, result6.id());
 
     // Any task (except task1) shouldn't be completed
-    ASSERT_FALSE(thread_manager.isEmpty()) << "The thread manager has no task.";
     EXPECT_EQ(0, task5()) << "Task synchronization failed.";
 
     ASSERT_EQ(10, result1.get()) << "First task failed.";
@@ -870,22 +888,17 @@ TEST(ThreadManagerTest, ExitWorkerRunningTest)
   zisc::AllocFreeResource mem_resource;
   constexpr zisc::uint num_of_works = 1024;
   {
-    std::vector<zisc::Future<void>> results;
-    results.reserve(num_of_works);
-    {
-      zisc::ThreadManager thread_manager{24, &mem_resource};
-      thread_manager.setCapacity(num_of_works);
-      ASSERT_EQ(num_of_works, thread_manager.capacity());
-      for (zisc::uint number = 0; number < num_of_works; ++number) {
-        auto task = [](const zisc::int64b)
-        {
-          const std::chrono::milliseconds wait_time{256};
-          std::this_thread::sleep_for(wait_time);
-        };
-        results.emplace_back(thread_manager.enqueue(std::move(task)));
-      }
+    zisc::ThreadManager thread_manager{24, &mem_resource};
+    thread_manager.setCapacity(num_of_works);
+    ASSERT_EQ(num_of_works, thread_manager.capacity());
+    for (zisc::uint number = 0; number < num_of_works; ++number) {
+      auto task = [](const zisc::int64b)
+      {
+        const std::chrono::milliseconds wait_time{256};
+        std::this_thread::sleep_for(wait_time);
+      };
+      [[maybe_unused]] zisc::Future<void> r = thread_manager.enqueue(std::move(task));
     }
-    std::for_each(results.begin(), results.end(), [](zisc::Future<void>& w){w.wait();});
   }
   ASSERT_EQ(0, mem_resource.totalMemoryUsage())
       << mem_resource.totalMemoryUsage() << " bytes isn't deallocated.";
@@ -990,7 +1003,7 @@ TEST(ThreadManagerTest, GetValueTest)
       ASSERT_FALSE(flag) << "The result value was already destructed.";
     }
     {
-      auto value = std::move(result.get());
+      ::MovableTestValue1 value = result.get();
       const int v = zisc::atomic_load(&value.value_, std::memory_order::acquire);
       ASSERT_EQ(expected, v) << "The get value test failed.";
     }
@@ -1017,7 +1030,7 @@ TEST(ThreadManagerTest, GetValueTest)
       ASSERT_FALSE(flag) << "The result value was already destructed.";
     }
     {
-      auto value = std::move(result.get());
+      ::MovableTestValue2 value = result.get();
       const int v = zisc::atomic_load(&value.value_, std::memory_order::acquire);
       ASSERT_EQ(expected, v) << "The get value test failed.";
     }
@@ -1042,7 +1055,7 @@ TEST(ThreadManagerTest, GetValueTest)
       ASSERT_FALSE(flag) << "The result value was already destructed.";
     }
     {
-      auto value = std::move(result.get());
+      ::MovableTestValue3 value = result.get();
       const int v = zisc::atomic_load(&value.value_, std::memory_order::acquire);
       ASSERT_EQ(expected, v) << "The get value test failed.";
     }
@@ -1212,15 +1225,12 @@ void testThreadManagerThroughput(const std::size_t num_of_samples,
     };
 
     // Do throughput test
-    using Future = zisc::Future<void>;
     constexpr std::size_t batch_size = 1 << 6;
     ASSERT_EQ(0, num_of_samples % batch_size);
-    std::vector<Future> result_list;
-    result_list.resize(num_of_samples / batch_size);
 
     using Clock = std::chrono::system_clock;
     const auto start_time = Clock::now();
-    for (std::size_t i = 0; i < result_list.size(); ++i) {
+    for (std::size_t i = 0; i < (num_of_samples / batch_size); ++i) {
       if ((i % 100) == 99) {
         const auto current_time = Clock::now();
         if (std::chrono::milliseconds{trial_time} < (current_time - start_time))
@@ -1231,9 +1241,12 @@ void testThreadManagerThroughput(const std::size_t num_of_samples,
       constexpr std::size_t end = batch_size;
       const auto dependency = has_task_dependencies ? ThreadManager::kAllPrecedences
                                                     : ThreadManager::kNoTask;
-      result_list[i] = thread_manager->enqueueLoop(task, begin, end, dependency);
+      [[maybe_unused]] zisc::Future<void> r = thread_manager->enqueueLoop(task,
+                                                                          begin,
+                                                                          end,
+                                                                          dependency);
     }
-    std::for_each(result_list.begin(), result_list.end(), [](Future& w){w.wait();});
+    thread_manager->waitForCompletion();
     const auto end_time = Clock::now();
 
     // Calc throughput
@@ -1274,9 +1287,9 @@ TEST(ThreadManagerTest, ConcurrentThroughputTest1)
   zisc::AllocFreeResource mem_resource;
   auto thread_manager = std::make_unique<zisc::ThreadManager>(&mem_resource);
 
-  constexpr std::size_t num_of_samples = 1 << 22;
+  constexpr std::size_t num_of_samples = 1 << 23;
   constexpr std::size_t num_of_rounds = 4;
-  constexpr zisc::int64b trial_time = 10'000; // milli seconds
+  constexpr zisc::int64b trial_time = 5'000; // milli seconds
 
   ::testThreadManagerThroughput(num_of_samples,
                                 num_of_rounds,
@@ -1290,9 +1303,9 @@ TEST(ThreadManagerTest, ConcurrentThroughputTest2)
   zisc::AllocFreeResource mem_resource;
   auto thread_manager = std::make_unique<zisc::ThreadManager>(&mem_resource);
 
-  constexpr std::size_t num_of_samples = 1 << 22;
+  constexpr std::size_t num_of_samples = 1 << 23;
   constexpr std::size_t num_of_rounds = 4;
-  constexpr zisc::int64b trial_time = 10'000; // milli seconds
+  constexpr zisc::int64b trial_time = 5'000; // milli seconds
 
   ::testThreadManagerThroughput(num_of_samples,
                                 num_of_rounds,

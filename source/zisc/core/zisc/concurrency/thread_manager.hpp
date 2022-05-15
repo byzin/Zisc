@@ -17,22 +17,23 @@
 
 // Standard C++ library
 #include <atomic>
+#include <concepts>
 #include <cstddef>
 #include <limits>
 #include <memory>
-#include <mutex>
+#include <optional>
 #include <thread>
 #include <type_traits>
 #include <utility>
 #include <vector>
 // Zisc
-#include "atomic.hpp"
-#include "atomic_word.hpp"
+#include "future.hpp"
 #include "packaged_task.hpp"
 #include "zisc/concepts.hpp"
 #include "zisc/error.hpp"
 #include "zisc/non_copyable.hpp"
 #include "zisc/zisc_config.hpp"
+#include "zisc/memory/monotonic_buffer_resource.hpp"
 #include "zisc/memory/std_memory_resource.hpp"
 #include "zisc/structure/map.hpp"
 #include "zisc/structure/mutex_bst.hpp"
@@ -42,11 +43,7 @@
 namespace zisc {
 
 // Forward declaration
-template <NonReference> class Future;
-class PackagedTask;
-
-// Type aliases
-using SharedTask = std::shared_ptr<PackagedTask>;
+template <std::movable> class ContainerOverflowError;
 
 /*!
   \brief ThreadManager class provides task parallel and data parallel thread pool
@@ -57,44 +54,32 @@ class ThreadManager : private NonCopyable<ThreadManager>
 {
  public:
   // Type aliases
-  using DiffType = PackagedTask::DiffType;
+  using DiffT = PackagedTask::DiffT;
   template <typename Func, typename ...Args>
-  using InvokeResult = std::remove_volatile_t<std::invoke_result_t<Func, Args...>>;
+  using InvokeResultT = std::remove_volatile_t<std::invoke_result_t<Func, Args...>>;
   template <typename Ite1, typename Ite2>
-  using CommonIte = std::common_type_t<std::remove_reference_t<Ite1>,
-                                       std::remove_reference_t<Ite2>>;
+  using CommonIteT = std::common_type_t<std::remove_reference_t<Ite1>,
+                                        std::remove_reference_t<Ite2>>;
 
 
+  // Exception
   /*!
     \brief No brief description
 
     No detailed description.
     */
-  class OverflowError : public SystemError
+  class TaskExceptionData
   {
    public:
-    //! Construct the queue error of the thread manager 
-    OverflowError(const std::string_view what_arg,
-                  SharedTask&& t,
-                  const DiffType begin_offset,
-                  const DiffType num_of_iterations);
-
-    //! Move data
-    OverflowError(OverflowError&& other);
-
-    //! Finalize the queue error
-    ~OverflowError() noexcept override;
+    //! Initialize the data
+    TaskExceptionData(SharedTask&& t, const DiffT offset, const DiffT n);
 
 
-    //! Move data
-    OverflowError& operator=(OverflowError&& other);
-
-
-    //! Return the offset of iterator
-    DiffType beginOffset() const noexcept;
+    //! Return the begin offset of the iterator
+    DiffT beginOffset() const noexcept;
 
     //! Return the number of iterations which the task should be ran
-    DiffType numOfIterations() const noexcept;
+    DiffT numOfIterations() const noexcept;
 
     //! Return the underlying task
     PackagedTask& task() noexcept;
@@ -104,16 +89,18 @@ class ThreadManager : private NonCopyable<ThreadManager>
 
    private:
     SharedTask task_;
-    DiffType begin_offset_;
-    DiffType num_of_iterations_;
+    DiffT begin_offset_;
+    DiffT num_of_iterations_;
   };
+  using OverflowError = ContainerOverflowError<TaskExceptionData>;
 
 
+  // Special parent ID flags
   static constexpr int64b kNoTask = (std::numeric_limits<int64b>::max)();
   static constexpr int64b kAllPrecedences = -1;
 
 
-  //! Create threads as many CPU threads as
+  //! Create threads as many as the number of supported concurrent CPU threads
   ThreadManager(pmr::memory_resource* mem_resource) noexcept;
 
   //! Create threads
@@ -124,6 +111,9 @@ class ThreadManager : private NonCopyable<ThreadManager>
   ~ThreadManager();
 
 
+  //! Return the maximum possible available alignment for task and return value
+  static constexpr std::size_t alignmentMax() noexcept;
+
   //! Return the maximum possible number of task items
   std::size_t capacity() const noexcept;
 
@@ -133,29 +123,31 @@ class ThreadManager : private NonCopyable<ThreadManager>
   //! Return the default capacity of the task item queue
   static constexpr std::size_t defaultCapacity() noexcept;
 
-  //! Run the given task on a worker thread in the manager
+  //! Run the given task on a worker thread in the thread pool
   template <Invocable Func>
-  Future<InvokeResult<Func>> enqueue(
-      Func&& task,
-      const int64b parent_task_id = kNoTask);
+  [[nodiscard]]
+  Future<InvokeResultT<Func>> enqueue(Func&& task,
+                                      const int64b parent_task_id = kNoTask);
 
-  //! Run the given task on a worker thread in the manager
+  //! Run the given task on a worker thread in the thread pool
   template <Invocable<int64b> Func>
-  Future<InvokeResult<Func, int64b>> enqueue(
-      Func&& task,
-      const int64b parent_task_id = kNoTask);
+  [[nodiscard]]
+  Future<InvokeResultT<Func, int64b>> enqueue(Func&& task,
+                                              const int64b parent_task_id = kNoTask);
 
-  //! Run tasks on the worker threads in the manager
+  //! Run tasks on the worker threads in the thread pool 
   template <typename Func, typename Ite1, typename Ite2>
-  requires Invocable<Func, ThreadManager::CommonIte<Ite1, Ite2>>
+  requires Invocable<Func, ThreadManager::CommonIteT<Ite1, Ite2>>
+  [[nodiscard]]
   Future<void> enqueueLoop(Func&& task,
                            Ite1&& begin,
                            Ite2&& end,
                            const int64b parent_task_id = kNoTask);
 
-  //! Run tasks on the worker threads in the manager
+  //! Run tasks on the worker threads in the thread pool
   template <typename Func, typename Ite1, typename Ite2>
-  requires Invocable<Func, ThreadManager::CommonIte<Ite1, Ite2>, int64b>
+  requires Invocable<Func, ThreadManager::CommonIteT<Ite1, Ite2>, int64b>
+  [[nodiscard]]
   Future<void> enqueueLoop(Func&& task,
                            Ite1&& begin,
                            Ite2&& end,
@@ -195,81 +187,32 @@ class ThreadManager : private NonCopyable<ThreadManager>
   {
    public:
     //! Create an empty task
-    WorkerTask() noexcept;
+    WorkerTask() noexcept = default;
 
     //! Create a task
-    template <typename TaskImpl>
-    WorkerTask(std::shared_ptr<TaskImpl>& task, const DiffType it_offset) noexcept;
+    WorkerTask(const SharedTask& task, const DiffT it_offset) noexcept;
 
     //! Move data
     WorkerTask(WorkerTask&& other) noexcept;
 
+    //! Destroy a task
+    ~WorkerTask() noexcept = default;
+
     //! Move data
     WorkerTask& operator=(WorkerTask&& other) noexcept;
 
-    //! Destroy a task
-    ~WorkerTask() noexcept;
+    //! Move data
+    void operator()(const int64b thread_id);
 
-    //! Check if this has a task
-    bool hasTask() const noexcept;
+    //! Check if the underlying task is valid
+    bool isValid() const noexcept;
 
     //! Run a task
     void run(const int64b thread_id);
 
    private:
-    DiffType it_offset_ = 0;
+    DiffT it_offset_ = 0;
     SharedTask task_;
-  };
-
-  //! Memory resource for task
-  class TaskResource : public pmr::memory_resource, private NonCopyable<TaskResource>
-  {
-   public:
-    //! Initialize the storage
-    TaskResource() noexcept;
-
-    //! Move data
-    TaskResource(TaskResource&& other) noexcept;
-
-    //! Destroy the storage
-    ~TaskResource() noexcept override;
-
-
-    //! Move data
-    TaskResource& operator=(TaskResource&& other) noexcept;
-
-
-    //! Return the storage offset for std::shared_ptr
-    static constexpr std::size_t offset() noexcept;
-
-    //! Return the alignment of the underlying storage
-    static constexpr std::size_t storageAlignment() noexcept;
-
-    //! Return the size of the underlying storage
-    static constexpr std::size_t storageSize() noexcept;
-
-    //! Return the storage size fot a task
-    static constexpr std::size_t taskSize() noexcept;
-
-   private:
-    static constexpr std::size_t kTaskSize = 64;
-    static constexpr std::size_t kOffset = 32;
-    using TaskStorage = std::aligned_storage_t<kTaskSize + kOffset,
-                                               std::alignment_of_v<std::max_align_t>>;
-
-
-    //! Allocate task memory
-    void* do_allocate(std::size_t size, std::size_t alignment) override;
-
-    //! Deallocate task memory
-    void do_deallocate(void* data, std::size_t size, std::size_t alignment) override;
-
-    //! Compare for equality with another memory resource
-    bool do_is_equal(const pmr::memory_resource& other) const noexcept override;
-
-
-    [[maybe_unused]] Padding<8> pad_;
-    TaskStorage storage_;
   };
 
   // Type aliases
@@ -277,27 +220,31 @@ class ThreadManager : private NonCopyable<ThreadManager>
   using TaskQueue = Queue<TaskQueueImpl, WorkerTask>;
   using TaskIdSetImpl = MutexBst<int64b>;
   using TaskIdSet = Map<TaskIdSetImpl, int64b>;
-  using WorkerLock = AtomicWord<Config::isAtomicOsSpecifiedWaitUsed()>;
 
 
   //! Increment the given iterator
   template <typename Ite, typename OffsetT>
   static Ite advance(Ite& it, const OffsetT offset) noexcept;
 
+  //! Create a shared task
+  template <typename Task, typename Data, typename Ite>
+  std::shared_ptr<Task> createSharedTask(const int64b parent_task_id,
+                                         Data&& data,
+                                         Ite&& ite);
+
   //! Create worker threads
   void createWorkers(const int64b num_of_threads) noexcept;
 
   //! Return the distance of given two iterators
   template <typename Ite1, typename Ite2>
-  static DiffType distance(Ite1&& begin, Ite2&& end) noexcept;
+  static DiffT distance(Ite1&& begin, Ite2&& end) noexcept;
 
   //! Do worker task
   void doWorkerTasks(const int64b thread_id);
 
   //! Run tasks on the worker threads in the manager
-  template <typename ReturnT, bool kIsLoopTask,
-            typename TaskData, typename Ite1, typename Ite2>
-  Future<ReturnT> enqueueImpl(TaskData& task,
+  template <typename ReturnT, bool kIsLoop, typename Data, typename Ite1, typename Ite2>
+  Future<ReturnT> enqueueImpl(Data&& task,
                               Ite1&& begin,
                               Ite2&& end,
                               const int64b parent_task_id);
@@ -306,38 +253,26 @@ class ThreadManager : private NonCopyable<ThreadManager>
   void exitWorkersRunning() noexcept;
 
   //! Fetch a task from the top of the queue
-  WorkerTask fetchTask() noexcept;
+  std::optional<WorkerTask> fetchTask() noexcept;
 
-  //! Finish a task
-  void finishTask(const int64b task_id) noexcept;
+  //! Return the actual available number of cores from the given hint s
+  static std::size_t getAvailableNumOfThreads(const int64b s) noexcept;
 
-  //! Return the actual number of cores
-  static std::size_t getActualNumOfThreads(const int64b s) noexcept;
-
-  //! Return the thread ID of the thread in which this method is called
+  //! Return the thread ID of the working thread
   int64b getCurrentThreadId() const noexcept;
 
   //! Return the function reference of the given function data
-  template <typename ...Types, typename TaskData>
-  static auto getTaskRef(TaskData&& data) noexcept;
+  template <typename ...Types, typename WrappedTask>
+  static auto getTask(WrappedTask&& data) noexcept;
+
+  template <typename Return, bool kIsLoop, typename Data, typename Ite1, typename Ite2>
+  static auto& getTaskImplType() noexcept;
 
   //! Initialize this thread manager
   void initialize(const int64b num_of_threads) noexcept;
 
-  //! Issue a task ID
+  //! Issue a new task ID
   int64b issueTaskId() noexcept;
-
-  //! Create a shared task
-  template <typename Task, typename TaskData, typename Ite>
-  SharedTask makeSharedTask(const std::size_t storage_index,
-                            const int64b task_id,
-                            const int64b parent_task_id,
-                            TaskData&& data,
-                            Ite&& ite) noexcept;
-
-  //! Return the func data
-  template <typename ...Types, Invocable<Types...> Func>
-  static auto makeTaskData(Func&& func) noexcept;
 
   //! Return the task ID tree
   TaskIdSet& taskIdSet() noexcept;
@@ -357,27 +292,34 @@ class ThreadManager : private NonCopyable<ThreadManager>
   //! Check if the workers (threads) are enable running
   bool workersAreEnabled() const noexcept;
 
+  //! Wrap task data for share between workers
+  template <typename ...Types, Invocable<Types...> Func>
+  static auto wrapTask(Func&& func) noexcept;
+
 
   static constexpr std::size_t kCacheLineSize = Config::l1CacheLineSize();
+  static constexpr std::size_t kAlignmentMax = kCacheLineSize;
+  static constexpr std::size_t kTaskStorageSize = 8 * kCacheLineSize;
+  using TaskResource = MonotonicBufferResource<kTaskStorageSize, kAlignmentMax>;
 
 
   alignas(kCacheLineSize) std::atomic<int64b> total_queued_task_ids_;
   [[maybe_unused]] Padding<kCacheLineSize - sizeof(total_queued_task_ids_)> pad1_;
+  alignas(kCacheLineSize) std::atomic<DiffT> num_of_tasks_;
+  [[maybe_unused]] Padding<kCacheLineSize - sizeof(num_of_tasks_)> pad2_;
   alignas(kCacheLineSize) std::atomic<int> num_of_active_workers_;
-  [[maybe_unused]] Padding<kCacheLineSize - sizeof(num_of_active_workers_)> pad2_;
-  alignas(kCacheLineSize) WorkerLock worker_lock_;
-  [[maybe_unused]] Padding<kCacheLineSize - sizeof(worker_lock_)> pad3_;
+  [[maybe_unused]] Padding<kCacheLineSize - sizeof(num_of_active_workers_)> pad3_;
   TaskQueueImpl task_queue_;
   TaskIdSetImpl task_id_set_;
   pmr::vector<std::thread> worker_list_;
   pmr::vector<std::thread::id> worker_id_list_;
   pmr::vector<TaskResource> task_storage_list_;
-  using Pad4 = Padding<kCacheLineSize - ((sizeof(task_queue_) +
-                                          sizeof(task_id_set_) +
-                                          sizeof(worker_list_) +
-                                          sizeof(worker_id_list_) +
-                                          sizeof(task_storage_list_)) % kCacheLineSize)>; 
-  [[maybe_unused]] Pad4 pad4_;
+  static constexpr std::size_t kManagerSize = sizeof(task_queue_) +
+                                              sizeof(task_id_set_) +
+                                              sizeof(worker_list_) +
+                                              sizeof(worker_id_list_) +
+                                              sizeof(task_storage_list_);
+  [[maybe_unused]] Padding<kCacheLineSize - (kManagerSize % kCacheLineSize)> pad4_;
 };
 
 } // namespace zisc

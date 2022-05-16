@@ -35,6 +35,9 @@
 !/source/zisc/core/zisc/*.hpp
 !/source/zisc/core/zisc/*.hpp.in
 !/source/zisc/core/zisc/*.cpp
+!/source/zisc/core/zisc/concurrency/
+!/source/zisc/core/zisc/concurrency/*.hpp
+!/source/zisc/core/zisc/concurrency/*.cpp
 !/source/zisc/core/zisc/internal/
 !/source/zisc/core/zisc/internal/*.hpp
 !/source/zisc/core/zisc/internal/*.hpp.in
@@ -48,18 +51,15 @@
 !/source/zisc/core/zisc/memory/
 !/source/zisc/core/zisc/memory/*.hpp
 !/source/zisc/core/zisc/memory/*.cpp
-!/source/zisc/core/zisc/data_structure/
-!/source/zisc/core/zisc/data_structure/*.hpp
-!/source/zisc/core/zisc/data_structure/*.cpp
 !/source/zisc/core/zisc/random/
 !/source/zisc/core/zisc/random/*.hpp
 !/source/zisc/core/zisc/random/*.cpp
 !/source/zisc/core/zisc/string/
 !/source/zisc/core/zisc/string/*.hpp
 !/source/zisc/core/zisc/string/*.cpp
-!/source/zisc/core/zisc/thread/
-!/source/zisc/core/zisc/thread/*.hpp
-!/source/zisc/core/zisc/thread/*.cpp
+!/source/zisc/core/zisc/structure/
+!/source/zisc/core/zisc/structure/*.hpp
+!/source/zisc/core/zisc/structure/*.cpp
 # Zisc cmake file
 !source/zisc/cmake/
 !source/zisc/cmake/*.cmake

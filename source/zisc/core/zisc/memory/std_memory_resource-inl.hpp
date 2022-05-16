@@ -45,10 +45,35 @@ UniquePtrDeleter<Type>::UniquePtrDeleter(
   \tparam Derived No description.
   \param [in] other No description.
   */
+template <typename Type> inline
+UniquePtrDeleter<Type>::UniquePtrDeleter(UniquePtrDeleter&& other) noexcept
+    : resource_{other.resource()}
+{
+}
+
+/*!
+  \details No detailed description
+
+  \tparam Derived No description.
+  \param [in] other No description.
+  */
 template <typename Type> template <std::derived_from<Type> Derived> inline
 UniquePtrDeleter<Type>::UniquePtrDeleter(UniquePtrDeleter<Derived>&& other) noexcept
     : resource_{other.resource()}
 {
+}
+
+/*!
+  \details No detailed description
+
+  \param [in] other No description.
+  */
+template <typename Type> inline
+auto UniquePtrDeleter<Type>::operator=(UniquePtrDeleter&& other) noexcept
+    -> UniquePtrDeleter&
+{
+  resource_ = other.resource();
+  return *this;
 }
 
 /*!

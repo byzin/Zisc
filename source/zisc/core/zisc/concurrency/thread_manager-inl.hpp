@@ -855,26 +855,22 @@ auto ThreadManager::enqueueImpl(Data&& task,
                                                 std::forward<Ite1>(begin));
 
   // Enqueue tasks
-  {
-    num_of_tasks_.fetch_add(num_of_tasks, std::memory_order::relaxed);
-    for (DiffT i = 0; i < num_of_tasks; ++i) {
-      WorkerTask worker_task{shared_task, i};
-      try {
-        [[maybe_unused]] const auto r = taskQueue().enqueue(std::move(worker_task));
-      }
-      catch ([[maybe_unused]] const TaskQueue::OverflowError& error) {
-        const DiffT rest = num_of_tasks - i;
-        num_of_tasks_.fetch_sub(rest, std::memory_order::relaxed);
-        num_of_tasks_.notify_all();
-        const char* message = "Task queue overflow happened.";
-        throw OverflowError{message,
-                            resource(),
-                            {std::move(shared_task), i, num_of_tasks}};
-      }
-      num_of_tasks_.notify_one();
+  num_of_tasks_.fetch_add(num_of_tasks, std::memory_order::relaxed);
+  for (DiffT i = 0; i < num_of_tasks; ++i) {
+    WorkerTask worker_task{shared_task, i};
+    try {
+      [[maybe_unused]] const auto r = taskQueue().enqueue(std::move(worker_task));
     }
-    if constexpr (kIsLoop)
+    catch ([[maybe_unused]] const TaskQueue::OverflowError& error) {
+      const DiffT rest = num_of_tasks - i;
+      num_of_tasks_.fetch_sub(rest, std::memory_order::relaxed);
       num_of_tasks_.notify_all();
+      const char* message = "Task queue overflow happened.";
+      throw OverflowError{message,
+                          resource(),
+                          {std::move(shared_task), i, num_of_tasks}};
+    }
+    num_of_tasks_.notify_one();
   }
 
   return shared_task->getFuture();

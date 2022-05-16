@@ -1289,7 +1289,7 @@ TEST(ThreadManagerTest, ConcurrentThroughputTest1)
 
   constexpr std::size_t num_of_samples = 1 << 23;
   constexpr std::size_t num_of_rounds = 4;
-  constexpr zisc::int64b trial_time = 5'000; // milli seconds
+  constexpr zisc::int64b trial_time = 2'500; // milli seconds
 
   ::testThreadManagerThroughput(num_of_samples,
                                 num_of_rounds,
@@ -1305,7 +1305,7 @@ TEST(ThreadManagerTest, ConcurrentThroughputTest2)
 
   constexpr std::size_t num_of_samples = 1 << 23;
   constexpr std::size_t num_of_rounds = 4;
-  constexpr zisc::int64b trial_time = 5'000; // milli seconds
+  constexpr zisc::int64b trial_time = 2'500; // milli seconds
 
   ::testThreadManagerThroughput(num_of_samples,
                                 num_of_rounds,

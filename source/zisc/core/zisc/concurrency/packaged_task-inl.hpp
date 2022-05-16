@@ -81,9 +81,10 @@ constexpr int64b PackagedTask::invalidId() noexcept
   \return No description
   */
 inline
-int64b PackagedTask::parentId() const noexcept
+bool PackagedTask::isValid() const noexcept
 {
-  return parent_id_;
+  const bool result = id() != invalidId();
+  return result;
 }
 
 /*!
@@ -92,10 +93,9 @@ int64b PackagedTask::parentId() const noexcept
   \return No description
   */
 inline
-bool PackagedTask::valid() const noexcept
+int64b PackagedTask::parentId() const noexcept
 {
-  const bool result = id() != invalidId();
-  return result;
+  return parent_id_;
 }
 
 /*!

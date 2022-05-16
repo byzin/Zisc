@@ -32,14 +32,6 @@ namespace zisc {
 
 /*!
   \details No detailed description
-  */
-template <typename ReturnT, typename ...ArgTypes> inline
-FunctionReference<ReturnT (ArgTypes...)>::FunctionReference() noexcept
-{
-}
-
-/*!
-  \details No detailed description
 
   \tparam Func No description.
   \param [in] func No description.

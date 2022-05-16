@@ -173,15 +173,6 @@ constexpr bool isSubnormal(const Float& x) noexcept
 
 /*!
   \details No detailed description
-  */
-template <Ieee754BinaryFormat kFormat> inline
-constexpr Ieee754Binary<kFormat>::Ieee754Binary() noexcept :
-    impl_{}
-{
-}
-
-/*!
-  \details No detailed description
 
   \param [in] value No description.
   */

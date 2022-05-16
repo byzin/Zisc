@@ -47,7 +47,7 @@ class FunctionReference<ReturnT (ArgTypes...)>
 
 
   //! Create an empry
-  FunctionReference() noexcept;
+  FunctionReference() noexcept = default;
 
   //! Create a reference to the given callable object
   template <InvocableR<ReturnT, ArgTypes...> Func>

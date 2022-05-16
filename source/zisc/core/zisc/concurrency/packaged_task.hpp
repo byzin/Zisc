@@ -58,14 +58,14 @@ class PackagedTask : private NonCopyable<PackagedTask>
   //! Return the invalid task ID
   static constexpr int64b invalidId() noexcept;
 
+  //! Check if the pacakge has a valid task
+  bool isValid() const noexcept;
+
   //! Return the parent task ID
   int64b parentId() const noexcept;
 
   //! Run the underlying task
   virtual void run(const int64b thread_id, const DiffT offset) = 0;
-
-  //! Check if the pacakge has a valid task
-  bool valid() const noexcept;
 
  protected:
   //! Create a package with the given task id

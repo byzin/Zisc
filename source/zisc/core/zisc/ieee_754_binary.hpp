@@ -118,7 +118,7 @@ class Ieee754Binary
 
 
   //! Initialize a value with 0
-  constexpr Ieee754Binary() noexcept;
+  constexpr Ieee754Binary() noexcept = default;
 
   //! Initialize a value with the given floating point value
   template <std::floating_point Float>

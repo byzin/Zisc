@@ -621,7 +621,6 @@ std::shared_ptr<Task> ThreadManager::createSharedTask(const int64b parent_task_i
                                         parent_id,
                                         std::move(promise),
                                         this);
-      task->setData(std::forward<Data>(data), std::forward<Ite>(ite));
     }
     catch (const Memory::BadAlloc& error) {
       if (alloc_trial_max == stack_index)
@@ -630,6 +629,7 @@ std::shared_ptr<Task> ThreadManager::createSharedTask(const int64b parent_task_i
     }
   }
   ZISC_ASSERT(task != nullptr, "The shared task is still null.");
+  task->setData(std::forward<Data>(data), std::forward<Ite>(ite));
 
   for (std::size_t i = 0; i < stack_index; ++i) {
     const int64b task_id = unused_id_stack[i];

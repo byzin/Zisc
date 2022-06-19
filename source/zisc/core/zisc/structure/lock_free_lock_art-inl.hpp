@@ -35,6 +35,8 @@
 #include "zisc/zisc_config.hpp"
 #include "zisc/memory/data_storage.hpp"
 #include "zisc/memory/std_memory_resource.hpp"
+#include "zisc/internal/flock/epoch.hpp"
+#include "zisc/internal/flock/lock.hpp"
 
 namespace zisc {
 

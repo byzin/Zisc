@@ -42,6 +42,9 @@
 !/source/zisc/core/zisc/internal/*.hpp
 !/source/zisc/core/zisc/internal/*.hpp.in
 !/source/zisc/core/zisc/internal/*.cpp
+!/source/zisc/core/zisc/internal/flock
+!/source/zisc/core/zisc/internal/flock/*.hpp
+!/source/zisc/core/zisc/internal/flock/*.cpp
 !/source/zisc/core/zisc/hash/
 !/source/zisc/core/zisc/hash/*.hpp
 !/source/zisc/core/zisc/hash/*.cpp

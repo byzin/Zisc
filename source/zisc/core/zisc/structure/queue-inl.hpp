@@ -214,7 +214,7 @@ auto Queue<QueueClass, T>::operator=([[maybe_unused]] const Queue& other) noexce
 template <typename QueueClass, std::movable T> inline
 auto Queue<QueueClass, T>::ref() noexcept -> QueueReference
 {
-  auto q = static_cast<QueuePtr>(this);
+  auto* q = static_cast<QueuePtr>(this);
   return *q;
 }
 
@@ -226,7 +226,7 @@ auto Queue<QueueClass, T>::ref() noexcept -> QueueReference
 template <typename QueueClass, std::movable T> inline
 auto Queue<QueueClass, T>::ref() const noexcept -> ConstQueueReference
 {
-  auto q = static_cast<ConstQueuePtr>(this);
+  const auto* q = static_cast<ConstQueuePtr>(this);
   return *q;
 }
 

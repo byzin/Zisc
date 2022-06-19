@@ -30,7 +30,7 @@ TEST(BitsetTest, ConstructionTest)
   zisc::AllocFreeResource mem_resource;
   {
     Bitset bits{&mem_resource};
-    ASSERT_EQ(Bitset::defaultSize(), bits.size()) << "Bitset construction failed.";
+    ASSERT_EQ(1, bits.size()) << "Bitset construction failed.";
   }
   {
     constexpr std::size_t n = 300;

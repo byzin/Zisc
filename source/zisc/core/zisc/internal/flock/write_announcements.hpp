@@ -21,12 +21,14 @@
 #include <memory>
 #include <vector>
 // Zisc
-#include "worker_info.hpp"
 #include "zisc/non_copyable.hpp"
 #include "zisc/zisc_config.hpp"
 #include "zisc/memory/std_memory_resource.hpp"
 
 namespace zisc::flock {
+
+// Forward declaration
+class WorkerInfo;
 
 /*!
   \brief No brief description
@@ -37,7 +39,8 @@ class WriteAnnouncements : private NonCopyable<WriteAnnouncements>
 {
  public:
   //! Create an announcements
-  WriteAnnouncements(pmr::memory_resource* mem_resource) noexcept;
+  WriteAnnouncements(const WorkerInfo& info,
+                     pmr::memory_resource* mem_resource) noexcept;
 
   //! Move a data
   WriteAnnouncements(WriteAnnouncements&& other) noexcept;
@@ -59,13 +62,15 @@ class WriteAnnouncements : private NonCopyable<WriteAnnouncements>
   //!
   static constexpr std::size_t stride() noexcept;
 
-  //! Set the worker info
-  void setWorkerInfo(const WorkerInfo& info) noexcept;
-
   //! Return the underlying worker info
   const WorkerInfo& workerInfo() const noexcept;
 
  private:
+  /*!
+    \brief No brief description
+
+    No detailed description.
+    */
   struct AtomicT
   {
     //! Create a atomic value
@@ -79,6 +84,10 @@ class WriteAnnouncements : private NonCopyable<WriteAnnouncements>
 
     std::atomic_size_t v_;
   };
+
+
+  //! Set the worker info
+  void setWorkerInfo(const WorkerInfo& info) noexcept;
 
 
   pmr::vector<AtomicT> announcement_;

@@ -14,6 +14,7 @@
 
 #include "concurrent_map_test.hpp"
 // Standard C++ library
+#include <algorithm>
 #include <atomic>
 #include <chrono>
 #include <cmath>
@@ -22,19 +23,106 @@
 #include <limits>
 #include <numeric>
 #include <random>
+#include <span>
+#include <thread>
 #include <tuple>
 #include <utility>
 #include <vector>
-#include <thread>
 // Zisc
 #include "zisc/algorithm.hpp"
 #include "zisc/error.hpp"
+#include "zisc/function_reference.hpp"
 #include "zisc/zisc_config.hpp"
 #include "zisc/hash/fnv_1a_hash_engine.hpp"
 #include "zisc/math/math.hpp"
 #include "zisc/structure/map.hpp"
 
 namespace test {
+
+/*!
+  \details No detailed description
+
+  \param [in] size No description.
+  */
+ThreadPool::ThreadPool(const std::size_t size)
+{
+  count_.store(size, std::memory_order::release);
+  worker_list_.reserve(size);
+  for (std::size_t i = 0; i < size; ++i) {
+    worker_list_.emplace_back([this, i]() noexcept
+    {
+      while (!flag_.test(std::memory_order::acquire)) {
+        if (func_)
+          func_(i);
+        count_.fetch_sub(1, std::memory_order::relaxed);
+        flag_.wait(false, std::memory_order::acquire);
+        count_.fetch_add(1, std::memory_order::relaxed);
+      }
+    });
+  }
+  waitForCompletion();
+  id_list_.reserve(size);
+  std::for_each_n(worker_list_.begin(), size, [this](const std::thread& worker)
+  {
+    id_list_.emplace_back(worker.get_id());
+  });
+}
+
+/*!
+  \details No detailed description
+  */
+ThreadPool::~ThreadPool() noexcept
+{
+  waitForCompletion();
+  func_.clear();
+  flag_.test_and_set(std::memory_order::acq_rel);
+  flag_.notify_all();
+  std::for_each_n(worker_list_.begin(), worker_list_.size(), [](std::thread& worker)
+  {
+    worker.join();
+  });
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+std::size_t ThreadPool::numOfThreads() const noexcept
+{
+  return worker_list_.size();
+}
+
+/*!
+  \details No detailed description
+
+  \param [in] func No description.
+  */
+void ThreadPool::run(Function func) noexcept
+{
+  waitForCompletion();
+  func_ = func;
+  flag_.notify_all();
+}
+
+/*!
+  \details No detailed description
+  */
+void ThreadPool::waitForCompletion() const noexcept
+{
+  while (0 < count_.load(std::memory_order::acquire))
+    std::this_thread::yield();
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+std::span<const std::thread::id> ThreadPool::workerIdList() const noexcept
+{
+  return id_list_;
+}
 
 /*!
   \details No detailed description

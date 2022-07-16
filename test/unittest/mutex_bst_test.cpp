@@ -96,9 +96,10 @@ TEST(MutexBstTest, TinyCapacityTest)
 //  constexpr double zipfian_param = 0.0;
 //
 //  using Map = zisc::MutexBst<zisc::uint64b>;
+//  test::ThreadPool thread_pool{num_of_threads};
 //  zisc::AllocFreeResource mem_resource;
 //  Map map{num_of_samples, &mem_resource};
-//  test::MapTest::testConcurrentThroughputOp(num_of_threads,
+//  test::MapTest::testConcurrentThroughputOp(thread_pool,
 //                                            num_of_samples,
 //                                            num_of_keys,
 //                                            num_of_rounds,
@@ -121,9 +122,10 @@ TEST(MutexBstTest, TinyCapacityTest)
 //  constexpr double zipfian_param = 0.9;
 //
 //  using Map = zisc::MutexBst<zisc::uint64b>;
+//  test::ThreadPool thread_pool{num_of_threads};
 //  zisc::AllocFreeResource mem_resource;
 //  Map map{num_of_samples, &mem_resource};
-//  test::MapTest::testConcurrentThroughputOp(num_of_threads,
+//  test::MapTest::testConcurrentThroughputOp(thread_pool,
 //                                            num_of_samples,
 //                                            num_of_keys,
 //                                            num_of_rounds,
@@ -149,9 +151,10 @@ void testConcurrentThroughputTime1(const std::size_t num_of_threads)
   constexpr double zipfian_param = 0.0;
 
   using Map = zisc::MutexBst<zisc::uint64b>;
+  test::ThreadPool thread_pool{num_of_threads};
   zisc::AllocFreeResource mem_resource;
   Map map{num_of_samples, &mem_resource};
-  test::MapTest::testConcurrentThroughputTime(num_of_threads,
+  test::MapTest::testConcurrentThroughputTime(thread_pool,
                                               num_of_samples,
                                               num_of_keys,
                                               num_of_rounds,
@@ -177,9 +180,10 @@ void testConcurrentThroughputTime2(const std::size_t num_of_threads)
   constexpr double zipfian_param = 0.9;
 
   using Map = zisc::MutexBst<zisc::uint64b>;
+  test::ThreadPool thread_pool{num_of_threads};
   zisc::AllocFreeResource mem_resource;
   Map map{num_of_samples, &mem_resource};
-  test::MapTest::testConcurrentThroughputTime(num_of_threads,
+  test::MapTest::testConcurrentThroughputTime(thread_pool,
                                               num_of_samples,
                                               num_of_keys,
                                               num_of_rounds,

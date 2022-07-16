@@ -17,12 +17,14 @@
 
 #include "log.hpp"
 // Standard C++ library
+#include <atomic>
 #include <concepts>
 #include <memory>
 #include <type_traits>
 #include <utility>
 // Zisc
 #include "definitions.hpp"
+#include "epoch_pool_impl.hpp"
 #include "log_array.hpp"
 #include "zisc/bit.hpp"
 #include "zisc/error.hpp"
@@ -35,20 +37,10 @@ namespace zisc::flock {
   \details No detailed description
   */
 inline
-Log::Log() noexcept : Log(nullptr, 0)
-{
-}
-
-/*!
-  \details No detailed description
-
-  \param [in] pa No description.
-  \param [in] c No description.
-  */
-inline
-Log::Log(LogArray* pa, const std::size_t c) noexcept :
-    values_{pa},
-    count_{c}
+Log::Log() noexcept :
+    log_array_pool_{nullptr},
+    values_{nullptr},
+    count_{0}
 {
 }
 
@@ -59,6 +51,7 @@ Log::Log(LogArray* pa, const std::size_t c) noexcept :
   */
 inline
 Log::Log(Log&& other) noexcept :
+    log_array_pool_{other.log_array_pool_},
     values_{other.values_},
     count_{other.count_}
 {
@@ -81,6 +74,7 @@ Log::~Log() noexcept
 inline
 Log& Log::operator=(Log&& other) noexcept
 {
+  log_array_pool_ = other.log_array_pool_;
   values_ = other.values_;
   count_ = other.count_;
   return *this;
@@ -107,7 +101,11 @@ auto Log::commitValue(Type&& value) noexcept -> CommitResultT<Type>
   ValueT old_value = l->load(std::memory_order::acquire);
   ValueT new_value = bit_cast<ValueT>(value);
   using T = std::remove_cvref_t<Type>;
-  CommitResultT<Type> result = ((old_value == nullptr) && l->compare_exchange_strong(old_value, new_value, std::memory_order::acq_rel, std::memory_order::acquire))
+  CommitResultT<Type> result = ((old_value == nullptr) &&
+                                l->compare_exchange_strong(old_value,
+                                                           new_value,
+                                                           std::memory_order::acq_rel,
+                                                           std::memory_order::acquire))
       ? std::make_pair(std::forward<Type>(value), true)
       : std::make_pair(bit_cast<T>(old_value), false);
   return result;
@@ -128,13 +126,17 @@ auto Log::commitValueSafe(Type&& value) noexcept -> CommitResultT<Type>
   if (isEmpty())
     return std::make_pair(std::forward<Type>(value), true);
 
-  const std::size_t set_bit = 1ull << 48ull;
+  constexpr std::size_t set_bit = 1ull << 48ull;
   EntryPtr l = nextEntry();
   using ValueT = EntryT::value_type;
   ValueT old_value = l->load(std::memory_order::acquire);
   ValueT new_value = bit_cast<ValueT>(bit_cast<std::size_t>(value) | set_bit);
   using T = std::remove_cvref_t<Type>;
-  CommitResultT<Type> result = ((old_value == nullptr) && l->compare_exchange_strong(old_value, new_value, std::memory_order::acq_rel, std::memory_order::acquire))
+  CommitResultT<Type> result = ((old_value == nullptr) &&
+                                l->compare_exchange_strong(old_value,
+                                                           new_value,
+                                                           std::memory_order::acq_rel,
+                                                           std::memory_order::acquire))
       ? std::make_pair(std::forward<Type>(value), true)
       : std::make_pair(bit_cast<T>(bit_cast<std::size_t>(old_value) & ~set_bit), false);
   return result;
@@ -193,7 +195,7 @@ std::invoke_result_t<Function> Log::doWith(Function&& func,
   }
   else {
     set(pa, c);
-    auto result = func();
+    ResultT result = func();
     set(hold_pa, hold_count);
     return result;
   }
@@ -222,16 +224,38 @@ auto Log::nextEntry() noexcept -> EntryPtr
   ZISC_ASSERT(!isEmpty(), "The log is empty.");
   if (count() == LogArray::length()) {
     count_ = 0;
-    LogArray* next = values_->next();
-    if (next != nullptr) {
-      values_ = next;
+    LogArray* next_array = values_->next().load(std::memory_order::acquire);
+    if (next_array != nullptr) {
+      values_ = next_array;
     }
-    else { // next == nullptr, try to commit a new log array
-      //! \todo
+    else { // next_array == nullptr, try to commit a new log array
+      LogArray* new_array = log_array_pool_->newObj();
+      if (values_->next().compare_exchange_strong(next_array,
+                                                  new_array,
+                                                  std::memory_order::acq_rel,
+                                                  std::memory_order::acquire)) {
+        values_ = new_array;
+      }
+      else {
+        values_ = next_array;
+        new_array->destroy(log_array_pool_);
+        log_array_pool_->destruct(new_array);
+      }
     }
   }
   EntryReference ref = (*values_)[count_++];
   return std::addressof(ref);
+}
+
+/*!
+  \details No detailed description
+
+  \param [in] log_array_pool No description.
+  */
+inline
+void Log::setLogArrayPool(MemoryPoolT* log_array_pool) noexcept
+{
+  log_array_pool_ = log_array_pool;
 }
 
 /*!

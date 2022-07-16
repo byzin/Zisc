@@ -22,17 +22,23 @@
 #include <span>
 #include <thread>
 #include <type_traits>
+#include <utility>
+#include <vector>
 // Zisc
 #include "zisc/error.hpp"
 #include "zisc/zisc_config.hpp"
+#include "zisc/memory/std_memory_resource.hpp"
 
 namespace zisc::flock {
 
 /*!
   \details No detailed description
+
+  \param [in,out] mem_resource No description.
   */
 inline
-WorkerInfo::WorkerInfo() noexcept
+WorkerInfo::WorkerInfo(pmr::memory_resource* mem_resource) noexcept :
+    thread_id_list_{decltype(thread_id_list_)::allocator_type{mem_resource}}
 {
 }
 
@@ -40,11 +46,38 @@ WorkerInfo::WorkerInfo() noexcept
   \details No detailed description
 
   \param [in] id_list No description.
+  \param [in,out] id_list No description.
   */
 inline
-WorkerInfo::WorkerInfo(const std::span<const std::thread::id> id_list) noexcept :
-    thread_id_list_{id_list}
+WorkerInfo::WorkerInfo(const std::span<const std::thread::id> id_list,
+                       pmr::memory_resource* mem_resource) noexcept :
+    WorkerInfo(mem_resource)
 {
+  setThreadIdList(id_list);
+}
+
+/*!
+  \details No detailed description
+
+  \param [in] other No description.
+  */
+inline
+WorkerInfo::WorkerInfo(WorkerInfo&& other) noexcept :
+    thread_id_list_{std::move(other.thread_id_list_)}
+{
+}
+
+/*!
+  \details No detailed description
+
+  \param [in] other No description.
+  \return No description
+  */
+inline
+WorkerInfo& WorkerInfo::operator=(WorkerInfo&& other) noexcept
+{
+  thread_id_list_ = std::move(other.thread_id_list_);
+  return *this;
 }
 
 /*!
@@ -75,6 +108,19 @@ inline
 std::size_t WorkerInfo::numOfWorkers() const noexcept
 {
   return thread_id_list_.size();
+}
+
+/*!
+  \details No detailed description
+
+  \param [in] id_list No description.
+  */
+inline
+void WorkerInfo::setThreadIdList(const std::span<const std::thread::id> list) noexcept
+{
+  thread_id_list_.resize(list.size());
+  std::copy_n(list.begin(), list.size(), thread_id_list_.begin());
+  std::sort(thread_id_list_.begin(), thread_id_list_.end());
 }
 
 /*!

@@ -32,12 +32,15 @@ namespace zisc::flock {
 /*!
   \details No detailed description
 
+  \param [in] info No description.
   \param [in] mem_resource No description.
   */
 inline
-WriteAnnouncements::WriteAnnouncements(pmr::memory_resource* mem_resource) noexcept :
+WriteAnnouncements::WriteAnnouncements(const WorkerInfo& info,
+                                       pmr::memory_resource* mem_resource) noexcept :
     announcement_{decltype(announcement_)::allocator_type{mem_resource}}
 {
+  setWorkerInfo(info);
 }
 
 /*!
@@ -119,18 +122,6 @@ constexpr std::size_t WriteAnnouncements::stride() noexcept
 /*!
   \details No detailed description
 
-  \param [in] info No description.
-  */
-inline
-void WriteAnnouncements::setWorkerInfo(const WorkerInfo& info) noexcept
-{
-  worker_info_ = &info;
-  announcement_.resize(WorkerInfo().numOfWorkers() * stride());
-}
-
-/*!
-  \details No detailed description
-
   \return No description
   */
 inline
@@ -171,6 +162,18 @@ auto WriteAnnouncements::AtomicT::operator=(AtomicT&& other) noexcept -> AtomicT
   const std::size_t v = other.v_.load(std::memory_order::acquire);
   v_.store(v, std::memory_order::release);
   return *this;
+}
+
+/*!
+  \details No detailed description
+
+  \param [in] info No description.
+  */
+inline
+void WriteAnnouncements::setWorkerInfo(const WorkerInfo& info) noexcept
+{
+  worker_info_ = &info;
+  announcement_.resize(workerInfo().numOfWorkers() * stride());
 }
 
 } /* namespace zisc::flock */

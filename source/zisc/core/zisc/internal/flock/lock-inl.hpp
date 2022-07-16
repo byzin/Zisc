@@ -23,6 +23,7 @@
 #include <numeric>
 #include <optional>
 #include <span>
+#include <thread>
 #include <type_traits>
 #include <utility>
 #include <vector>
@@ -30,9 +31,10 @@
 #include "descriptor.hpp"
 #include "epoch.hpp"
 #include "log.hpp"
+#include "memory_pool.hpp"
 #include "tag.hpp"
+#include "tagged_pool_impl.hpp"
 #include "worker_info.hpp"
-#include "write_announcements.hpp"
 #include "zisc/error.hpp"
 #include "zisc/non_copyable.hpp"
 #include "zisc/utility.hpp"
@@ -43,37 +45,10 @@ namespace zisc::flock {
 
 /*!
   \details No detailed description
-
-  \param [in] worker_info No description.
-  \param [in,out] mem_resource No description.
   */
-inline
-Lock::Lock(Epoch* epoch, pmr::memory_resource* mem_resource) noexcept :
-    log_list_{decltype(log_list_)::allocator_type{mem_resource}},
-    helping_list_{decltype(helping_list_)::allocator_type{mem_resource}},
-    current_id_list_{decltype(current_id_list_)::allocator_type{mem_resource}},
-    write_announcements_{mem_resource},
-    tag_{&write_announcements_},
-    lock_{0},
-    descriptor_pool_{epoch, mem_resource}
-{
-  initialize();
-}
-
-/*!
-  \details No detailed description
-
-  \param [in] other No description.
-  */
-inline
-Lock::Lock(Lock&& other) noexcept :
-    log_list_{std::move(other.log_list_)},
-    helping_list_{std::move(other.helping_list_)},
-    current_id_list_{std::move(other.current_id_list_)},
-    write_announcements_{std::move(other.write_announcements_)},
-    tag_{std::move(other.tag_)},
-    lock_{other.lock_.load(std::memory_order::acquire)},
-    descriptor_pool_{std::move(other.descriptor_pool_)}
+template <bool kIsHelpUsed> inline
+Lock<kIsHelpUsed>::Lock() noexcept :
+    lock_{TaggedT::init(nullptr)}
 {
 }
 
@@ -82,17 +57,60 @@ Lock::Lock(Lock&& other) noexcept :
 
   \param [in] other No description.
   */
-inline
-Lock& Lock::operator=(Lock&& other) noexcept
+template <bool kIsHelpUsed> inline
+Lock<kIsHelpUsed>::Lock(Lock&& other) noexcept :
+    lock_{other.lock_.load(std::memory_order::acquire)}
 {
-  log_list_ = std::move(other.log_list_);
-  helping_list_ = std::move(other.helping_list_);
-  current_id_list_ = std::move(other.current_id_list_);
-  write_announcements_ = std::move(other.write_announcements_);
-  tag_ = std::move(other.tag_);
+}
+
+/*!
+  \details No detailed description
+
+  \param [in] other No description.
+  */
+template <bool kIsHelpUsed> inline
+auto Lock<kIsHelpUsed>::operator=(Lock&& other) noexcept -> Lock&
+{
   lock_.store(other.lock_.load(std::memory_order::acquire), std::memory_order::release);
-  descriptor_pool_ = std::move(other.descriptor_pool_);
   return *this;
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+template <bool kIsHelpUsed> inline
+constexpr bool Lock<kIsHelpUsed>::isHelpUsed() noexcept
+{
+  return kIsHelpUsed;
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+template <bool kIsHelpUsed> inline
+bool Lock<kIsHelpUsed>::isLocked() const noexcept
+{
+  using HelpT = std::conditional_t<isHelpUsed(), Help, NoHelp>;
+  const EntryT le = lock_.load(std::memory_order::acquire);
+  return HelpT::isLocked(le);
+}
+
+/*!
+  \details No detailed description
+
+  \param [in] current_id No description.
+  \return No description
+  */
+template <bool kIsHelpUsed> inline
+bool Lock<kIsHelpUsed>::isSelfLocked(const std::size_t current_id) const noexcept
+{
+  using HelpT = std::conditional_t<isHelpUsed(), Help, NoHelp>;
+  const EntryT le = lock_.load(std::memory_order::acquire);
+  return HelpT::isSelfLocked(le, current_id);
 }
 
 /*!
@@ -100,23 +118,36 @@ Lock& Lock::operator=(Lock&& other) noexcept
 
   \tparam Thank No description.
   \param [in] func No description.
+  \param [in,out] epoch No description.
+  \param [in,out] write_announcements No description.
+  \param [in,out] log No description.
+  \param [in,out] current_id No description.
+  \param [in,out] helping No description.
+  \param [in,out] descriptor_pool No description.
   \param [in] try_only No description.
   \return No description
   */
-template <std::invocable Thank> inline
-bool Lock::tryLock(Thank&& func, const bool try_only) noexcept
+template <bool kIsHelpUsed> template <std::invocable Thank> inline
+bool Lock<kIsHelpUsed>::tryLock(Thank&& func,
+                                Epoch* epoch,
+                                WriteAnnouncements* write_announcements,
+                                Log* log,
+                                std::size_t* current_id,
+                                bool* helping,
+                                DescriptorPoolT* descriptor_pool,
+                                const bool try_only) noexcept
 {
   bool result = false;
   if (try_only) {
     const ResultOptionT<Thank> r = isHelpUsed()
-        ? tryLockHelp(std::forward<Thank>(func))
-        : tryLockNoHelp(std::forward<Thank>(func));
+        ? tryLockHelp(std::forward<Thank>(func), epoch, write_announcements, log, current_id, helping, descriptor_pool)
+        : tryLockNoHelp(std::forward<Thank>(func), *current_id);
     result = r.has_value() && cast<bool>(r.value());
   }
   else {
     const ResultT<Thank> r = isHelpUsed()
-        ? withLockHelp(std::forward<Thank>(func))
-        : withLockNoHelp(std::forward<Thank>(func));
+        ? withLockHelp(std::forward<Thank>(func), epoch, write_announcements, log, current_id, helping, descriptor_pool)
+        : withLockNoHelp(std::forward<Thank>(func), *current_id);
     result = cast<bool>(r);
   }
   return result;
@@ -127,23 +158,36 @@ bool Lock::tryLock(Thank&& func, const bool try_only) noexcept
 
   \tparam Thank No description.
   \param [in] func No description.
+  \param [in,out] epoch No description.
+  \param [in,out] write_announcements No description.
+  \param [in,out] log No description.
+  \param [in,out] current_id No description.
+  \param [in,out] helping No description.
+  \param [in,out] descriptor_pool No description.
   \param [in] try_only No description.
   \return No description
   */
-template <std::invocable Thank> inline
-auto Lock::tryLockResult(Thank&& func, const bool try_only) noexcept
+template <bool kIsHelpUsed> template <std::invocable Thank> inline
+auto Lock<kIsHelpUsed>::tryLockResult(Thank&& func,
+                                      Epoch* epoch,
+                                      WriteAnnouncements* write_announcements,
+                                      Log* log,
+                                      std::size_t* current_id,
+                                      bool* helping,
+                                      DescriptorPoolT* descriptor_pool,
+                                      const bool try_only) noexcept
     -> ResultOptionT<Thank>
 {
   ResultOptionT<Thank> result{};
   if (try_only) {
     result = isHelpUsed()
-        ? tryLockHelp(std::forward<Thank>(func))
-        : tryLockNoHelp(std::forward<Thank>(func));
+        ? tryLockHelp(std::forward<Thank>(func), epoch, write_announcements, log, current_id, helping, descriptor_pool)
+        : tryLockNoHelp(std::forward<Thank>(func), *current_id);
   }
   else {
     ResultT<Thank> r = isHelpUsed()
-        ? withLockHelp(std::forward<Thank>(func))
-        : withLockNoHelp(std::forward<Thank>(func));
+        ? withLockHelp(std::forward<Thank>(func), epoch, write_announcements, log, current_id, helping, descriptor_pool)
+        : withLockNoHelp(std::forward<Thank>(func), *current_id);
     result = std::make_optional(std::move(r));
   }
   return result;
@@ -152,29 +196,28 @@ auto Lock::tryLockResult(Thank&& func, const bool try_only) noexcept
 /*!
   \details No detailed description
 
-  \param [in] info No description.
+  \param [in] le No description.
+  \return No description
   */
-inline
-void Lock::setWorkerInfo(const WorkerInfo& info) noexcept
+template <bool kIsHelpUsed> inline
+bool Lock<kIsHelpUsed>::Help::isLocked(const EntryT le) noexcept
 {
-  log_list_.resize(info.numOfWorkers());
-  helping_list_.resize(info.numOfWorkers(), false);
-  current_id_list_.resize(info.numOfWorkers());
-  std::iota(current_id_list_.begin(), current_id_list_.end(), 0);
-  tag_.setLogList(log_list_, info);
-  write_announcements_.setWorkerInfo(info);
+  const bool result = TaggedT::value(le) != nullptr;
+  return result;
 }
 
 /*!
   \details No detailed description
 
   \param [in] le No description.
+  \param [in] current_id No description.
   \return No description
   */
-inline
-bool Lock::Help::isLocked(const EntryT le) noexcept
+template <bool kIsHelpUsed> inline
+bool Lock<kIsHelpUsed>::Help::isSelfLocked(const EntryT le,
+                                           const std::size_t current_id) noexcept
 {
-  const bool result = TagT::value(le) != nullptr;
+  const bool result = current_id == removeTag(le)->threadId();
   return result;
 }
 
@@ -184,10 +227,10 @@ bool Lock::Help::isLocked(const EntryT le) noexcept
   \param [in] le No description.
   \return No description
   */
-inline
-const Descriptor* Lock::Help::removeTag(const EntryT le) noexcept
+template <bool kIsHelpUsed> inline
+const Descriptor* Lock<kIsHelpUsed>::Help::removeTag(const EntryT le) noexcept
 {
-  const Descriptor* d = TagT::value(le);
+  const Descriptor* d = TaggedT::value(le);
   return d;
 }
 
@@ -195,29 +238,103 @@ const Descriptor* Lock::Help::removeTag(const EntryT le) noexcept
   \details No detailed description
 
   \param [in] le No description.
-  \param [in] info No description.
   \return No description
   */
-inline
-bool Lock::Help::isLockSelf(const EntryT le, const WorkerInfo& info) noexcept
+template <bool kIsHelpUsed> inline
+std::size_t Lock<kIsHelpUsed>::NoHelp::getProcid(const EntryT lock) noexcept
 {
-  const std::size_t thread_id = info.getCurrentWorkerId();
-  const bool result = thread_id == removeTag(le)->threadId();
+  const std::size_t result = (lock >> 32) & ((1ull << 16) - 1);
   return result;
 }
- 
+
+/*!
+  \details No detailed description
+
+  \param [in] le No description.
+  \return No description
+  */
+template <bool kIsHelpUsed> inline
+bool Lock<kIsHelpUsed>::NoHelp::isLocked(const EntryT le) noexcept
+{
+  const bool result = (le % 2) == 1;
+  return result;
+}
+
+/*!
+  \details No detailed description
+
+  \param [in] le No description.
+  \param [in] current_id No description.
+  \return No description
+  */
+template <bool kIsHelpUsed> inline
+bool Lock<kIsHelpUsed>::NoHelp::isSelfLocked(const EntryT le,
+                                             const std::size_t current_id) noexcept
+{
+  const bool result = (current_id + 1) == getProcid(le);
+  return result;
+}
+
+/*!
+  \details No detailed description
+
+  \param [in] le No description.
+  \return No description
+  */
+template <bool kIsHelpUsed> inline
+std::size_t Lock<kIsHelpUsed>::NoHelp::maskCnt(const EntryT lock) noexcept
+{
+  const std::size_t result = lock & ((1ull << 32) - 1);
+  return result;
+}
+
+/*!
+  \details No detailed description
+
+  \param [in] le No description.
+  \return No description
+  */
+template <bool kIsHelpUsed> inline
+std::size_t Lock<kIsHelpUsed>::NoHelp::releaseLock(const EntryT le) noexcept
+{
+  return maskCnt(le + 1);
+}
+
+/*!
+  \details No detailed description
+
+  \param [in] le No description.
+  \return No description
+  */
+template <bool kIsHelpUsed> inline
+std::size_t Lock<kIsHelpUsed>::NoHelp::takeLock(const EntryT le,
+                                                const std::size_t current_id) noexcept
+{
+  const std::size_t result = ((current_id + 1) << 32) | maskCnt(le + 1);
+  return result;
+}
+
 /*!
   \details No detailed description
 
   \param [in] old_value No description.
   \param [in] d No description.
+  \param [in,out] write_announcements No description.
+  \param [in,out] log No description.
   \return No description
   */
-inline
-bool Lock::cas(EntryT old_value, const Descriptor* d) noexcept
+template <bool kIsHelpUsed> inline
+bool Lock<kIsHelpUsed>::cas(EntryT old_value,
+                            const Descriptor* d,
+                            WriteAnnouncements* write_announcements,
+                            Log* log) noexcept
 {
   const EntryT current = read();
-  const bool result = (current == old_value) && tag_.cas(lock_, old_value, d);
+  const bool result = (current == old_value) && TaggedT::cas(lock_,
+                                                             old_value,
+                                                             d,
+                                                             write_announcements,
+                                                             log);
   return result;
 }
 
@@ -228,8 +345,8 @@ bool Lock::cas(EntryT old_value, const Descriptor* d) noexcept
   \param [in] d No description.
   \return No description
   */
-inline
-bool Lock::casSimple(EntryT old_value, const std::size_t value) noexcept
+template <bool kIsHelpUsed> inline
+bool Lock<kIsHelpUsed>::casSimple(EntryT old_value, const std::size_t value) noexcept
 {
   const bool result = lock_.compare_exchange_strong(old_value,
                                                     bit_cast<EntryT>(value),
@@ -243,115 +360,80 @@ bool Lock::casSimple(EntryT old_value, const std::size_t value) noexcept
 
   \param [in] d No description.
   */
-inline
-void Lock::clear(const Descriptor* d) noexcept
+template <bool kIsHelpUsed> inline
+void Lock<kIsHelpUsed>::clear(const Descriptor* d,
+                              WriteAnnouncements* write_announcements,
+                              Log* log) noexcept
 {
   EntryT current = lock_.load(std::memory_order::acquire);
-  if (tag_.value(current) == d) {
+  if (TaggedT::value(current) == d) {
     // true indicates this is ABA free since current cannot
     // be reused until all helpers are done with it.
-    tag_.cas(lock_, current, nullptr, true);
+    TaggedT::cas(lock_, current, nullptr, write_announcements, log, true);
   }
 }
 
 /*!
   \details No detailed description
 
+  \param [in] le No description.
+  \param [in,out] epoch No description.
+  \param [in,out] write_announcements No description.
+  \param [in,out] log No description.
+  \param [in,out] current_id No description.
+  \param [in,out] helping No description.
+  \param [in,out] descriptor_pool No description.
   \return No description
   */
-inline
-std::span<std::size_t> Lock::currentIdList() noexcept
+template <bool kIsHelpUsed> inline
+bool Lock<kIsHelpUsed>::helpDescriptor(EntryT le,
+                                       Epoch* epoch,
+                                       WriteAnnouncements* write_announcements,
+                                       Log* log,
+                                       std::size_t* current_id,
+                                       bool* helping,
+                                       DescriptorPoolT* descriptor_pool,
+                                       const bool recursive_help) noexcept
 {
-  return current_id_list_;
-}
-
-/*!
-  \details No detailed description
-
-  \return No description
-  */
-inline
-std::span<const std::size_t> Lock::currentIdList() const noexcept
-{
-  return current_id_list_;
-}
-
-/*!
-  \details No detailed description
-
-  \return No description
-  */
-inline
-Epoch& Lock::epoch() noexcept
-{
-  return *epoch_;
-}
-
-/*!
-  \details No detailed description
-
-  \return No description
-  */
-inline
-const Epoch& Lock::epoch() const noexcept
-{
-  return *epoch_;
-}
-
-inline
-bool Lock::helpDescriptor(EntryT le, const bool recursive_help) noexcept
-{
-  bool& helping = workerInfo().takeOut(helpingList());
-  if (!recursive_help && helping)
+  if (!recursive_help && *helping)
     return false;
 
-  const Descriptor* desc = Help::removeTag(le);
+  Descriptor* desc = const_cast<Descriptor*>(Help::removeTag(le));
   bool still_locked = read() == le;
   if (!still_locked)
     return false;
 
-  Epoch::ValueT my_epoch = epoch().getMyEpoch();
+  Epoch::ValueT my_epoch = epoch->getMyEpoch();
   Epoch::ValueT other_epoch = desc->epochNum();
   if (other_epoch < my_epoch)
-    epoch().setMyEpoch(other_epoch); // inherit epoch of helpee
+    epoch->setMyEpoch(other_epoch); // inherit epoch of helpee
 
-  std::size_t& current_id = workerInfo().takeOut(currentIdList());
-  const std::size_t my_id = current_id;
-  current_id = desc->threadId();
-  Descriptor* d = const_cast<Descriptor*>(desc);
-  descriptor_pool_.acquire(d);
+  const std::size_t my_id = *current_id;
+  *current_id = desc->threadId(); // inherit thread id of helpee
+  descriptor_pool->acquire(desc);
   still_locked = read() == le;
   if (still_locked) {
-    const bool hold_h = helping;
-    helping = true;
-    (*d)();
-    clear(d);
-    helping = hold_h;
+    const bool hold_h = *helping;
+    *helping = true;
+    (*desc)(log);
+    clear(desc, write_announcements, log);
+    *helping = hold_h;
   }
-  current_id = my_id; // reset thread id
-  epoch().setMyEpoch(my_epoch);
+  *current_id = my_id; // reset thread id
+  epoch->setMyEpoch(my_epoch); // reset to my epoch
   return still_locked;
 }
 
 /*!
   \details No detailed description
-  */
-inline
-void Lock::initialize() noexcept
-{
-}
 
-/*!
-  \details No detailed description
-
-  \return No description
+  \param [in] log No description.
   */
-inline
-auto Lock::load() noexcept -> EntryT
+template <bool kIsHelpUsed> inline
+auto Lock<kIsHelpUsed>::load(Log* log) const noexcept -> EntryT
 {
-  Log& log = workerInfo().takeOut(logList());
   const EntryT v = lock_.load(std::memory_order::acquire);
-  const EntryT result = log.commitValue(v).first;
+  const EntryT result = log->commitValue(v).first;
   return result;
 }
 
@@ -360,30 +442,8 @@ auto Lock::load() noexcept -> EntryT
 
   \return No description
   */
-inline
-std::span<Log> Lock::logList() noexcept
-{
-  return log_list_;
-}
-
-/*!
-  \details No detailed description
-
-  \return No description
-  */
-inline
-std::span<const Log> Lock::logList() const noexcept
-{
-  return log_list_;
-}
-
-/*!
-  \details No detailed description
-
-  \return No description
-  */
-inline
-auto Lock::read() const noexcept -> EntryT
+template <bool kIsHelpUsed> inline
+auto Lock<kIsHelpUsed>::read() const noexcept -> EntryT
 {
   const EntryT result = lock_.load(std::memory_order::acquire);
   return result;
@@ -392,60 +452,61 @@ auto Lock::read() const noexcept -> EntryT
 /*!
   \details No detailed description
 
-  \return No description
-  */
-inline
-const WorkerInfo& Lock::workerInfo() const noexcept
-{
-  return write_announcements_.workerInfo();
-}
-
-/*!
-  \details No detailed description
-
   \tparam Thunk No description.
   \param [in] func No description.
+  \param [in,out] epoch No description.
+  \param [in,out] write_announcements No description.
+  \param [in,out] log No description.
+  \param [in,out] current_id No description.
+  \param [in,out] helping No description.
+  \param [in,out] descriptor_pool No description.
   \return No description
   */
-template <std::invocable Thank> inline
-auto Lock::withLockHelp(Thank&& func) noexcept -> ResultT<Thank>
+template <bool kIsHelpUsed> template <std::invocable Thank> inline
+auto Lock<kIsHelpUsed>::withLockHelp(Thank&& func,
+                                     Epoch* epoch,
+                                     WriteAnnouncements* write_announcements,
+                                     Log* log,
+                                     std::size_t* current_id,
+                                     bool* helping,
+                                     DescriptorPoolT* descriptor_pool) noexcept
+    -> ResultT<Thank>
 {
   using ReturnT = ResultT<Thank>;
   static_assert(sizeof(ReturnT) <= 4 || std::is_pointer_v<ReturnT>,
                 "Result of tryLockResult must be a pointer or at most 4 bytes.");
   EntryT current = read();
 
-  auto [my_descriptor, i_own] = descriptor_pool_.newObjAcquired(this, func, current);
-  if (descriptor_pool_.isDone(my_descriptor)) { // if already retired, then done
-    ResultOptionT<Thank> r = descriptor_pool_.doneValueResult<ReturnT>(my_descriptor);
+  auto [my_desc, i_own] = descriptor_pool->newObjAcquired(func, current, *epoch, *current_id);
+  if (descriptor_pool->isDone(my_desc)) { // if already retired, then done
+    ResultOptionT<Thank> r = descriptor_pool->doneValueResult<ReturnT>(my_desc);
     ZISC_ASSERT(r.has_value(), ""); // with_lock is guaranteed to succeed
     return r.value();
   }
 
   bool locked = Help::isLocked(current);
-  Log& log = WorkerInfo().takeOut(logList());
   while (true) {
-    if (my_descriptor->isDone() || // already done
-        (Help::removeTag(current) == my_descriptor) || // already acquired
-        (!locked && cas(current, my_descriptor))) { // successfully acquired
-      // Run the body func with the log from my_descriptor
-      ReturnT result = log.doWith(&my_descriptor->logArray(), 0, [&func]()
+    if (my_desc->isDone() || // already done
+        (Help::removeTag(current) == my_desc) || // already acquired
+        (!locked && cas(current, my_desc, write_announcements, log))) { // successfully acquired
+      // Run the body func with the log from my_desc
+      ReturnT result = log->doWith(&my_desc->logArray(), 0, [&func]()
       {
         return func();
       });
 
       // Mark as done and clear the lock
-      my_descriptor->setDone(true);
-      clear(my_descriptor);
+      my_desc->setDone(true);
+      clear(my_desc, write_announcements, log);
 
       // Retire the descriptor saving the result in the enclosing descriptor is any
-      descriptor_pool_.retireAcquiredResult(my_descriptor,
+      descriptor_pool->retireAcquiredResult(my_desc,
                                             i_own,
                                             std::optional<ReturnT>(result));
       return result;
     }
     else if (locked) {
-      helpDescriptor(current);
+      helpDescriptor(current, epoch, write_announcements, log, current_id, helping, descriptor_pool);
     }
     current = read();
     locked = Help::isLocked(current);
@@ -455,18 +516,55 @@ auto Lock::withLockHelp(Thank&& func) noexcept -> ResultT<Thank>
 /*!
   \details No detailed description
 
-  \tparam Thank No description.
   \param [in] func No description.
   \return No description
   */
-template <std::invocable Thank> inline
-auto Lock::tryLockHelp(Thank&& func) noexcept -> ResultOptionT<Thank>
+template <bool kIsHelpUsed> template <std::invocable Thank> inline
+auto Lock<kIsHelpUsed>::withLockNoHelp(Thank&& func,
+                                       const std::size_t current_id) noexcept
+    -> ResultT<Thank>
+{
+  using ReturnT = ResultT<Thank>;
+  const std::size_t locked = current_id + 1;
+  while (true) {
+    EntryT current = read();
+    if ((Help::removeTag(current) == 0) && casSimple(current, locked)) {
+      ReturnT result = func();
+      lock_.store(0, std::memory_order::release);
+      return result;
+    }
+    std::this_thread::yield();
+  }
+}
+
+/*!
+  \details No detailed description
+
+  \tparam Thank No description.
+  \param [in] func No description.
+  \param [in,out] epoch No description.
+  \param [in,out] write_announcements No description.
+  \param [in,out] log No description.
+  \param [in,out] current_id No description.
+  \param [in,out] helping No description.
+  \param [in,out] descriptor_pool No description.
+  \return No description
+  */
+template <bool kIsHelpUsed> template <std::invocable Thank> inline
+auto Lock<kIsHelpUsed>::tryLockHelp(Thank&& func,
+                                    Epoch* epoch,
+                                    WriteAnnouncements* write_announcements,
+                                    Log* log,
+                                    std::size_t* current_id,
+                                    bool* helping,
+                                    DescriptorPoolT* descriptor_pool) noexcept
+    -> ResultOptionT<Thank>
 {
   ResultOptionT<Thank> result{};
   EntryT current = load();
 
   // check if reentrant lock (already locked by self)
-  if (Help::isLocked(current) && Help::isLockSelf(current, workerInfo())) {
+  if (Help::isLocked(current) && Help::isSelfLocked(current, *current_id)) {
     // If so, run without acquiring
     return std::make_optional(func());
   }
@@ -474,40 +572,67 @@ auto Lock::tryLockHelp(Thank&& func) noexcept -> ResultOptionT<Thank>
   // idempotent allocation of descriptor
   // storing current into descriptor saves one logging event since they are committed
   // together
-  auto [my_descriptor, i_own] = descriptor_pool_.newObjAcquired(this, func, current);
+  auto [my_desc, i_own] = descriptor_pool->newObjAcquired(func, current, *epoch, *current_id);
 
   // If descriptor is already retired, then done and return value
-  if (descriptor_pool_.isDone(my_descriptor))
-    return descriptor_pool_.doneValueResult<ResultT<Thank>>(my_descriptor);
+  if (descriptor_pool->isDone(my_desc))
+    return descriptor_pool->doneValueResult<ResultT<Thank>>(my_desc);
 
   // Retrieve agreed upon current for idempotence
-  // current = my_descriptor->current
+  // current = my_desc->current
   if (!Help::isLocked(current)) {
     // Use a CAS to try to acquire the lock
-    cas(current, my_descriptor);
+    cas(current, my_desc, write_announcements, log);
 
-    // Could be a load() without the my_descriptor->done test
+    // Could be a load() without the my_desc->done test
     // Using read() is an optimization to avoid a logging event
     current = read();
-    if (my_descriptor->isDone() || Help::removeTag(current) == my_descriptor) {
-      // Run func with log from my_descriptor
-      Log& log = WorkerInfo().takeOut(logList());
-      result = log.doWith(&my_descriptor->logArray(), 0, [&func]()
+    if (my_desc->isDone() || (Help::removeTag(current) == my_desc)) {
+      // Run func with log from my_desc
+      result = log->doWith(&my_desc->logArray(), 0, [&func]()
       {
         return func();
       });
 
       // Mark as done and clear the lock
-      my_descriptor->setDone(true);
-      clear(my_descriptor);
+      my_desc->setDone(true);
+      clear(my_desc, write_announcements, log);
     }
   }
   else {
-    helpDescriptor(current);
+    helpDescriptor(current, epoch, write_announcements, log, current_id, helping, descriptor_pool);
   }
 
   // Retire the thunk
-  descriptor_pool_.retireAcquiredResult(my_descriptor, i_own, result);
+  descriptor_pool->retireAcquiredResult(my_desc, i_own, result);
+  return result;
+}
+
+/*!
+  \details No detailed description
+
+  \param [in] func No description.
+  \param [in] epoch No description.
+  \return No description
+  */
+template <bool kIsHelpUsed> template <std::invocable Thank> inline
+auto Lock<kIsHelpUsed>::tryLockNoHelp(Thank&& func,
+                                      const std::size_t current_id) noexcept
+    -> ResultOptionT<Thank>
+{
+  ResultOptionT<Thank> result{};
+  EntryT current = load();
+  if (!NoHelp::isLocked(current)) { // unlocked
+    std::size_t new_l = NoHelp::takeLock(current, current_id);
+    if (casSimple(current_id, new_l)) { // try lock
+      auto result = func();
+      lock_.store(NoHelp::releaseLock(new_l), std::memory_order::release); // release
+      result = std::move(result);
+    }
+  }
+  else if (NoHelp::isSelfLocked(current, current_id)) { // reentry
+    result = func();
+  }
   return result;
 }
 

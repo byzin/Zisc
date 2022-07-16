@@ -31,7 +31,6 @@
 namespace zisc::flock {
 
 // Forward declaration
-class Lock;
 class Log;
 class WorkerInfo;
 
@@ -50,7 +49,8 @@ class Descriptor : private NonCopyable<Descriptor>
   //! Create a descriptor
   Descriptor(ThunkT func,
              const EntryT current,
-             const Epoch::ValueT epoch_num) noexcept;
+             const Epoch& epoch,
+             const std::size_t current_id) noexcept;
 
   //! Move a data
   Descriptor(Descriptor&& other) noexcept;
@@ -63,7 +63,7 @@ class Descriptor : private NonCopyable<Descriptor>
   Descriptor& operator=(Descriptor&& other) noexcept;
 
   //!
-  void operator()() noexcept;
+  void operator()(Log* log) noexcept;
 
 
   //! Return the underlying acquired flag
@@ -85,37 +85,23 @@ class Descriptor : private NonCopyable<Descriptor>
   const LogArray& logArray() const noexcept;
 
   //!
-  void run() noexcept;
+  void run(Log* log) noexcept;
 
   //!
   void setDone(const bool done) noexcept;
-
-  //!
-  void setLogList(std::span<Log> log_list, const WorkerInfo& info) noexcept;
 
   //! Return the underlying thread id
   std::size_t threadId() const noexcept;
 
  private:
-  //! Return the underlying log list
-  std::span<Log> logList() noexcept;
-
-  //! Return the underlying log list
-  std::span<const Log> logList() const noexcept;
-
   //! Initialize the descriptor
   void initialize(const bool acquired_flag) noexcept;
-
-  //! Return the underlying worker info
-  const WorkerInfo& workerInfo() const noexcept;
 
 
   ThunkT func_;
   EntryT current_;
   LogArray log_array_;
   Epoch::ValueT epoch_num_;
-  const WorkerInfo* worker_info_;
-  std::span<Log> log_list_;
   std::size_t thread_id_;
   std::atomic_flag acquired_; //!< indicates thunk is being helped, lives beyond the 'lifetime' of the descriptor
   bool done_;

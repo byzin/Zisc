@@ -44,6 +44,10 @@ class FixedArrayResource : public pmr::memory_resource,
 {
  public:
   // Type aliases
+  using ValueT = Type;
+  using ConstValueT = std::add_const_t<ValueT>;
+  using Pointer = std::add_pointer_t<ValueT>;
+  using ConstPointer = std::add_pointer_t<ConstValueT>;
   using BadAlloc = Memory::BadAlloc;
 
 
@@ -76,6 +80,12 @@ class FixedArrayResource : public pmr::memory_resource,
 
   //! Clear the usage status in the resource
   void clear() noexcept;
+
+  //! Return the underlying data pointer
+  Pointer data() noexcept;
+
+  //! Return the underlying data pointer
+  ConstPointer data() const noexcept;
 
   //! Deallocate memory
   void deallocateMemory(void* data,

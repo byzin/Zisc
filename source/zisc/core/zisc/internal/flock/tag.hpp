@@ -19,6 +19,7 @@
 #include <atomic>
 #include <cstddef>
 #include <span>
+#include <type_traits>
 // Zisc
 #include "zisc/zisc_config.hpp"
 
@@ -41,21 +42,26 @@ class Tag
 {
  public:
   // Type aliases
+  using ValueT = Type;
+  using ConstT = std::add_const_t<ValueT>;
+  using Pointer = std::add_pointer_t<ValueT>;
+  using ConstPointer = std::add_pointer_t<ConstT>;
+  using Reference = std::add_lvalue_reference_t<ValueT>;
+  using RReference = std::add_rvalue_reference_t<ValueT>;
+  using ConstReference = std::add_lvalue_reference_t<ConstT>;
   using IT = std::size_t;
-
-
-  //! Create a tag
-  Tag(WriteAnnouncements* write_announcements) noexcept;
 
 
   //!
   static IT add(const IT old_value, const IT new_value) noexcept;
 
   //!
-  bool cas(std::atomic<IT>& loc,
-           IT old_value,
-           const Type value,
-           const bool aba_free = false) noexcept;
+  static bool cas(std::atomic<IT>& loc,
+                  IT old_value,
+                  ConstReference value,
+                  WriteAnnouncements* write_announcements,
+                  Log* log,
+                  const bool aba_free = false) noexcept;
 
   //!
   static constexpr IT cntBit() noexcept;
@@ -70,19 +76,19 @@ class Tag
   static IT inc(const IT old_value) noexcept;
 
   //!
-  static IT init(const Type v) noexcept;
+  static IT init(ConstReference v) noexcept;
 
   //!
-  static IT next(const IT old_value, const Type new_value) noexcept;
+  static IT next(const IT old_value, ConstReference new_value) noexcept;
 
   //!
-  IT next(const IT old_value, const Type new_value, const IT addr) noexcept;
+  static IT next(const IT old_value,
+                 ConstReference new_value,
+                 const IT addr,
+                 WriteAnnouncements* write_announcements) noexcept;
 
   //!
   static constexpr IT panicBit() noexcept;
-
-  //!
-  void setLogList(std::span<Log> log_list, const WorkerInfo& info) noexcept;
 
   //! Return the number of bits to use for tag (including panic bit)
   static constexpr std::size_t tagBits() noexcept;
@@ -92,20 +98,6 @@ class Tag
 
   //!
   static constexpr IT topBit() noexcept;
-
- private:
-  //! Return the underlying log list
-  std::span<Log> logList() noexcept;
-
-  //! Return the underlying log list
-  std::span<const Log> logList() const noexcept;
-
-  //! Return the underlying worker info
-  const WorkerInfo& workerInfo() const noexcept;
-
-
-  std::span<Log> log_list_;
-  WriteAnnouncements* write_announcements_;
 };
 
 } /* namespace zisc::flock */

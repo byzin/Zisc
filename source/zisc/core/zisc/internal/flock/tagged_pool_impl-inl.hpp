@@ -77,6 +77,28 @@ void TaggedPoolImpl<xT>::acquire(Pointer p) noexcept
 
 /*!
   \details No detailed description
+
+  \return No description
+  */
+template <typename xT> inline
+std::size_t TaggedPoolImpl<xT>::capacity() const noexcept
+{
+  return pool_impl_.capacity();
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+template <typename xT> inline
+constexpr std::size_t TaggedPoolImpl<xT>::capacityMax() noexcept
+{
+  return EpochPoolImpl<xT>::capacityMax();
+}
+
+/*!
+  \details No detailed description
   */
 template <typename xT> inline
 void TaggedPoolImpl<xT>::clear() noexcept
@@ -93,6 +115,66 @@ template <typename xT> inline
 void TaggedPoolImpl<xT>::destruct(Pointer p) noexcept
 {
   pool_impl_.destruct(p);
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+template <typename xT> inline
+Epoch& TaggedPoolImpl<xT>::epoch() noexcept
+{
+  return pool_impl_.epoch();
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+template <typename xT> inline
+const Epoch& TaggedPoolImpl<xT>::epoch() const noexcept
+{
+  return pool_impl_.epoch();
+}
+
+/*!
+  \details No detailed description
+
+  \param [in] object No description.
+  \return No description
+  */
+template <typename xT> inline
+std::size_t TaggedPoolImpl<xT>::getIndex(ConstReference object) const noexcept
+{
+  return pool_impl_.getIndex(object);
+}
+
+/*!
+  \details No detailed description
+
+  \param [in] index No description.
+  \return No description
+  */
+template <typename xT> inline
+auto TaggedPoolImpl<xT>::getObject(const std::size_t index) noexcept
+    -> Reference
+{
+  return pool_impl_.getObject(index);
+}
+
+/*!
+  \details No detailed description
+
+  \param [in] index No description.
+  \return No description
+  */
+template <typename xT> inline
+auto TaggedPoolImpl<xT>::getObject(const std::size_t index) const noexcept
+    -> ConstReference
+{
+  return pool_impl_.getObject(index);
 }
 
 /*!
@@ -140,23 +222,23 @@ void TaggedPoolImpl<xT>::retire(Pointer p) noexcept
 /*!
   \details No detailed description
 
-  \param [in] info No description.
-  */
-template <typename xT> inline
-void TaggedPoolImpl<xT>::setWorkerInfo(const WorkerInfo& info) noexcept
-{
-  pool_impl_.setWorkerInfo(info);
-}
-
-/*!
-  \details No detailed description
-
   \param [in] n No description.
   */
 template <typename xT> inline
 void TaggedPoolImpl<xT>::shuffle(const std::size_t n) noexcept
 {
   pool_impl_.shuffle(n);
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+template <typename xT> inline
+std::size_t TaggedPoolImpl<xT>::size() const noexcept
+{
+  return pool_impl_.size();
 }
 
 /*!

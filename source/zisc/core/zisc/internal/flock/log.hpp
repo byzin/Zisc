@@ -28,6 +28,7 @@ namespace zisc::flock {
 
 // Forward declaration
 class LogArray;
+template <typename> class EpochPoolImpl;
 
 /*!
   \brief No brief description
@@ -57,13 +58,11 @@ class Log : private NonCopyable<Log>
   using ConstEntryReference = std::add_lvalue_reference_t<ConstEntryT>;
   template <typename Type>
   using CommitResultT = std::pair<std::remove_cvref_t<Type>, bool>;
+  using MemoryPoolT = EpochPoolImpl<LogArray>;
 
 
   //! Create a empty log
   Log() noexcept;
-
-  //! Create a empty log
-  Log(LogArray* pa, const std::size_t c) noexcept;
 
   //! Move data
   Log(Log&& other) noexcept;
@@ -105,7 +104,10 @@ class Log : private NonCopyable<Log>
   //!
   EntryPtr nextEntry() noexcept;
 
-  //!
+  //! Set a memory pool for log array
+  void setLogArrayPool(MemoryPoolT* log_array_pool) noexcept;
+
+  //! Skip a chunk of code if finished by another helper on the log
   template <std::invocable Function>
   bool skipIfDone(Function&& func) noexcept;
 
@@ -114,6 +116,7 @@ class Log : private NonCopyable<Log>
   void set(LogArray* pa, const std::size_t c) noexcept;
 
 
+  MemoryPoolT* log_array_pool_;
   LogArray* values_;
   std::size_t count_;
 };

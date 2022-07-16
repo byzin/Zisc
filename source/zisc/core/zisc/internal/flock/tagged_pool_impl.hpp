@@ -61,11 +61,32 @@ class TaggedPoolImpl : private NonCopyable<TaggedPoolImpl<xT>>
   //!
   void acquire(Pointer p) noexcept;
 
+  //! Return the capacity of objects in the pool
+  std::size_t capacity() const noexcept;
+
+  //! Return the capacity of objects in the pool
+  static constexpr std::size_t capacityMax() noexcept;
+
   //!
   void clear() noexcept;
 
   //!
   void destruct(Pointer p) noexcept;
+
+  //! Return the underlying epoch
+  Epoch& epoch() noexcept;
+
+  //! Return the underlying epoch
+  const Epoch& epoch() const noexcept;
+
+  //! Return the index of the given object in the pool
+  std::size_t getIndex(ConstReference object) const noexcept;
+
+  //! Return the pointer to an object by the index
+  Reference getObject(const std::size_t index) noexcept;
+
+  //! Return the pointer to an object by the index
+  ConstReference getObject(const std::size_t index) const noexcept;
 
   //!
   template <typename ...Args>
@@ -77,11 +98,11 @@ class TaggedPoolImpl : private NonCopyable<TaggedPoolImpl<xT>>
   //!
   void retire(Pointer p) noexcept;
 
-  //! Set the worker info
-  void setWorkerInfo(const WorkerInfo& info) noexcept;
-
   //!
   void shuffle(const std::size_t n) noexcept;
+
+  //! Return the number of allocated objects in the pool
+  std::size_t size() const noexcept;
 
   //! Return the underlying worker info
   const WorkerInfo& workerInfo() const noexcept;

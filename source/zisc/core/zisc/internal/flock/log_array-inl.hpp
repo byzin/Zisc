@@ -23,6 +23,7 @@
 #include <cstddef>
 #include <utility>
 // Zisc
+#include "epoch_pool_impl.hpp"
 #include "zisc/zisc_config.hpp"
 
 namespace zisc::flock {
@@ -46,6 +47,15 @@ inline
 LogArray::LogArray(LogArray&& other) noexcept
 {
   copy(other);
+}
+
+/*!
+  \details No detailed description
+  */
+inline
+LogArray::~LogArray() noexcept
+{
+  printf("LogArrayDestructor\n");
 }
 
 /*!
@@ -83,6 +93,22 @@ inline
 auto LogArray::operator[](const std::size_t index) const noexcept -> ConstEntryReference
 {
   return get(index);
+}
+
+/*!
+  \details No detailed description
+
+  \param [in] pool No description.
+  */
+inline
+void LogArray::destroy(MemoryPoolT* pool) noexcept
+{
+  LogArray* next_array = next().load(std::memory_order::acquire);
+  while (next_array != nullptr) {
+    LogArray* p = next_array;
+    next_array = p->next_.load(std::memory_order::acquire);
+    pool->destruct(p);
+  }
 }
 
 /*!
@@ -126,10 +152,9 @@ constexpr std::size_t LogArray::length() noexcept
   \return No description
   */
 inline
-LogArray* LogArray::next() noexcept
+std::atomic<LogArray*>& LogArray::next() noexcept
 {
-  LogArray* n = next_.load(std::memory_order::acquire);
-  return n;
+  return next_;
 }
 
 /*!
@@ -138,10 +163,9 @@ LogArray* LogArray::next() noexcept
   \return No description
   */
 inline
-const LogArray* LogArray::next() const noexcept
+const std::atomic<LogArray*>& LogArray::next() const noexcept
 {
-  const LogArray* n = next_.load(std::memory_order::acquire);
-  return n;
+  return next_;
 }
 
 /*!
@@ -160,14 +184,6 @@ void LogArray::copy(LogArray& other) noexcept
     LogArray* n = other.next_.load(std::memory_order::acquire);
     next_.store(n, std::memory_order::release);
   }
-}
-
-/*!
-  \details No detailed description
-  */
-inline
-void LogArray::destroy() noexcept
-{
 }
 
 /*!

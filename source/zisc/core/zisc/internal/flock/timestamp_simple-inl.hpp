@@ -42,8 +42,7 @@ auto TimestampSimple::getReadStamp() noexcept -> ValueT
   ValueT ts = stamp_.load(std::memory_order::acquire);
 
   // Delay to reduce contention
-  //for (volatile int i = 0; i < delayTime(); ++i)
-  //  ;
+  for (volatile int i = 0; i < delayTime(); ++i);
 
   // Only update timestamp if has not changed
   if (stamp_.load(std::memory_order::acquire) == ts)

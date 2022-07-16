@@ -27,6 +27,9 @@
 
 namespace zisc::flock {
 
+// Forward declaration
+template <typename> class EpochPoolImpl;
+
 /*!
   \brief No brief description
 
@@ -42,6 +45,7 @@ class LogArray : private NonCopyable<LogArray>
   using ConstEntryPtr = std::add_pointer<ConstEntryT>;
   using EntryReference = std::add_lvalue_reference_t<EntryT>;
   using ConstEntryReference = std::add_lvalue_reference_t<ConstEntryT>;
+  using MemoryPoolT = EpochPoolImpl<LogArray>;
 
 
   //! Create a log array
@@ -65,6 +69,9 @@ class LogArray : private NonCopyable<LogArray>
   ConstEntryReference operator[](const std::size_t index) const noexcept;
 
 
+  //! Destroy the log array
+  void destroy(MemoryPoolT* pool) noexcept;
+
   //!
   EntryReference get(const std::size_t index) noexcept;
 
@@ -75,17 +82,14 @@ class LogArray : private NonCopyable<LogArray>
   static constexpr std::size_t length() noexcept;
 
   //! Return the next array atomically
-  LogArray* next() noexcept;
+  std::atomic<LogArray*>& next() noexcept;
 
   //! Return the next array atomically
-  const LogArray* next() const noexcept;
+  const std::atomic<LogArray*>& next() const noexcept;
 
  private:
   //! Copy data
   void copy(LogArray& other) noexcept;
-
-  //! Destroy the log array
-  void destroy() noexcept;
 
   //! Initialize the log array
   void initialize() noexcept;

@@ -38,12 +38,15 @@ namespace zisc::flock {
   \tparam Type No description.
   \tparam PoolType No description.
   \param [in] epoch No description.
+  \param [in] log_list No description.
   \param [in,out] mem_resource No description.
   */
 template <typename Type, typename PoolType> inline
 MemoryPool<Type, PoolType>::MemoryPool(Epoch* epoch,
+                                       std::span<Log> log_list,
                                        pmr::memory_resource* mem_resource) noexcept :
-    pool_impl_{epoch, mem_resource}
+    pool_impl_{epoch, mem_resource},
+    log_list_{log_list}
 {
 }
 
@@ -81,6 +84,28 @@ template <typename Type, typename PoolType> inline
 void MemoryPool<Type, PoolType>::acquire(Pointer p) noexcept
 {
   pool_impl_.acquire(p);
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+template <typename Type, typename PoolType> inline
+std::size_t MemoryPool<Type, PoolType>::capacity() const noexcept
+{
+  return pool_impl_.capacity();
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+template <typename Type, typename PoolType> inline
+constexpr std::size_t MemoryPool<Type, PoolType>::capacityMax() noexcept
+{
+  return PoolT::capacityMax();
 }
 
 /*!
@@ -124,6 +149,66 @@ std::optional<RT> MemoryPool<Type, PoolType>::doneValueResult(Pointer p) noexcep
 /*!
   \details No detailed description
 
+  \return No description
+  */
+template <typename Type, typename PoolType> inline
+Epoch& MemoryPool<Type, PoolType>::epoch() noexcept
+{
+  return pool_impl_.epoch();
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+template <typename Type, typename PoolType> inline
+const Epoch& MemoryPool<Type, PoolType>::epoch() const noexcept
+{
+  return pool_impl_.epoch();
+}
+
+/*!
+  \details No detailed description
+
+  \param [in] object No description.
+  \return No description
+  */
+template <typename Type, typename PoolType> inline
+std::size_t MemoryPool<Type, PoolType>::getIndex(ConstReference object) const noexcept
+{
+  return pool_impl_.getIndex(object);
+}
+
+/*!
+  \details No detailed description
+
+  \param [in] index No description.
+  \return No description
+  */
+template <typename Type, typename PoolType> inline
+auto MemoryPool<Type, PoolType>::getObject(const std::size_t index) noexcept
+    -> Reference
+{
+  return pool_impl_.getObject(index);
+}
+
+/*!
+  \details No detailed description
+
+  \param [in] index No description.
+  \return No description
+  */
+template <typename Type, typename PoolType> inline
+auto MemoryPool<Type, PoolType>::getObject(const std::size_t index) const noexcept
+    -> ConstReference
+{
+  return pool_impl_.getObject(index);
+}
+
+/*!
+  \details No detailed description
+
   \param [in] p No description.
   \return No description
   */
@@ -131,6 +216,28 @@ template <typename Type, typename PoolType> inline
 bool MemoryPool<Type, PoolType>::isDone(Pointer p) noexcept
 {
   return isDoneFlag(p);
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+template <typename Type, typename PoolType> inline
+std::span<Log> MemoryPool<Type, PoolType>::logList() noexcept
+{
+  return log_list_;
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+template <typename Type, typename PoolType> inline
+std::span<const Log> MemoryPool<Type, PoolType>::logList() const noexcept
+{
+  return log_list_;
 }
 
 /*!
@@ -305,31 +412,9 @@ void MemoryPool<Type, PoolType>::retireAcquiredResult(Pointer p,
     pool_impl_.retire(p);
   }
   else if (le != nullptr) {
-    le->store(tagResult(result));
+    le->store(tagResult(result), std::memory_order::release);
     pool_impl_.retire(p);
   }
-}
-
-/*!
-  \details No detailed description
-
-  \param [in] log_list No description.
-  */
-template <typename Type, typename PoolType> inline
-void MemoryPool<Type, PoolType>::setLogList(std::span<Log> log_list) noexcept
-{
-  log_list_ = log_list;
-}
-
-/*!
-  \details No detailed description
-
-  \param [in] info No description.
-  */
-template <typename Type, typename PoolType> inline
-void MemoryPool<Type, PoolType>::setWorkerInfo(const WorkerInfo& info) noexcept
-{
-  pool_impl_.setWorkerInfo(info);
 }
 
 /*!
@@ -341,6 +426,17 @@ template <typename Type, typename PoolType> inline
 void MemoryPool<Type, PoolType>::shuffle(const std::size_t n) noexcept
 {
   pool_impl_.shuffle(n);
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+template <typename Type, typename PoolType> inline
+std::size_t MemoryPool<Type, PoolType>::size() const noexcept
+{
+  return pool_impl_.size();
 }
 
 /*!
@@ -386,28 +482,6 @@ std::optional<std::size_t> MemoryPool<Type, PoolType>::extractResult(Pointer p) 
 /*!
   \details No detailed description
 
-  \return No description
-  */
-template <typename Type, typename PoolType> inline
-std::span<Log> MemoryPool<Type, PoolType>::logList() noexcept
-{
-  return log_list_;
-}
-
-/*!
-  \details No detailed description
-
-  \return No description
-  */
-template <typename Type, typename PoolType> inline
-std::span<const Log> MemoryPool<Type, PoolType>::logList() const noexcept
-{
-  return log_list_;
-}
-
-/*!
-  \details No detailed description
-
   \param [in] p No description.
   \return No description
   */
@@ -415,7 +489,7 @@ std::span<const Log> MemoryPool<Type, PoolType>::logList() const noexcept
 template <typename Type, typename PoolType> inline
 bool MemoryPool<Type, PoolType>::isDoneFlag(Pointer p) noexcept
 {
-  const bool result = (bit_cast<std::size_t>(p) >> 48) > 0;
+  const bool result = 0 < (bit_cast<std::size_t>(p) >> 48);
   return result;
 }
 
@@ -430,7 +504,7 @@ void* MemoryPool<Type, PoolType>::tagBool(const bool result) noexcept
 {
   constexpr std::size_t p1 = 1ull << 48;
   constexpr std::size_t p2 = 2ull << 48;
-  auto* p = reinterp<void*>(result ? p1 : p2);
+  auto* p = bit_cast<void*>(result ? p1 : p2);
   return p;
 }
 
@@ -446,8 +520,8 @@ void* MemoryPool<Type, PoolType>::tagResult(const std::optional<TT> result) noex
 {
   constexpr std::size_t p1 = 1ull << 48;
   constexpr std::size_t p2 = 2ull << 48;
-  const std::size_t p = (!result.has_value()) ? p2 : (p1 | cast<std::size_t>(*result));
-  return reinterp<void*>(p);
+  const std::size_t p = (!result.has_value()) ? p2 : (p1 | bit_cast<std::size_t>(*result));
+  return bit_cast<void*>(p);
 }
 
 } /* namespace zisc::flock */

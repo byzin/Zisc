@@ -27,11 +27,7 @@
 // Zisc
 #include "definitions.hpp"
 #include "descriptor.hpp"
-#include "log.hpp"
-#include "memory_pool.hpp"
 #include "tag.hpp"
-#include "tagged_pool_impl.hpp"
-#include "write_announcements.hpp"
 #include "zisc/non_copyable.hpp"
 #include "zisc/memory/std_memory_resource.hpp"
 
@@ -39,14 +35,20 @@ namespace zisc::flock {
 
 // Forward declaration
 class Epoch;
-class WorkerInfo;
+template <typename> class EpochPoolImpl;
+class Log;
+class LogArray;
+template <typename, typename> class MemoryPool;
+template <typename> class TaggedPoolImpl;
+class WriteAnnouncements;
 
 /*!
   \brief No brief description
 
   No detailed description.
   */
-class Lock : private NonCopyable<Lock>
+template <bool kIsHelpUsed> 
+class Lock : private NonCopyable<Lock<kIsHelpUsed>>
 {
  public:
   // Type aliases
@@ -55,13 +57,16 @@ class Lock : private NonCopyable<Lock>
   using ResultT = std::invoke_result_t<Thank>;
   template <std::invocable Thank>
   using ResultOptionT = std::optional<ResultT<Thank>>;
+  using DescriptorPoolImplT = TaggedPoolImpl<Descriptor>;
+  using DescriptorPoolT = MemoryPool<Descriptor, DescriptorPoolImplT>;
+  using LogArrayPoolT = EpochPoolImpl<LogArray>;
 
 
   static constexpr bool kDefaultTryOnly = true;
 
 
   //! Create a lock
-  Lock(Epoch* epoch, pmr::memory_resource* mem_resource) noexcept;
+  Lock() noexcept;
 
   //! Move a data
   Lock(Lock&& other) noexcept;
@@ -74,119 +79,152 @@ class Lock : private NonCopyable<Lock>
   //!
   void clear() noexcept;
 
+  //! Check if the lock uses help
+  static constexpr bool isHelpUsed() noexcept;
+
   //!
   bool isLocked() const noexcept;
 
   //!
+  bool isSelfLocked(const std::size_t current_id) const noexcept;
+
+  //!
   template <std::invocable Thank>
-  bool tryLock(Thank&& func, const bool try_only = kDefaultTryOnly) noexcept;
+  bool tryLock(Thank&& func,
+               Epoch* epoch,
+               WriteAnnouncements* write_announcements,
+               Log* log,
+               std::size_t* current_id,
+               bool* helping,
+               DescriptorPoolT* descriptor_pool,
+               const bool try_only = kDefaultTryOnly) noexcept;
 
   //!
   template <std::invocable Thank>
   ResultOptionT<Thank> tryLockResult(Thank&& func,
+                                     Epoch* epoch,
+                                     WriteAnnouncements* write_announcements,
+                                     Log* log,
+                                     std::size_t* current_id,
+                                     bool* helping,
+                                     DescriptorPoolT* descriptor_pool,
                                      const bool try_only = kDefaultTryOnly) noexcept;
-
-  //! Check if the lock uses help
-  static constexpr bool isHelpUsed() noexcept;
-
-  //! Set worker info
-  void setWorkerInfo(const WorkerInfo& info) noexcept;
 
  private:
   // Type aliases
-  using TagT = Tag<const Descriptor*>;
-  using MemoryPoolImplT = TaggedPoolImpl<Descriptor>;
+  using TaggedT = Tag<const Descriptor*>;
 
 
-  // The EntryT for help is organized as
-  // The lowest 48 bits are a pointer to a descriptor if locked, or null if not
-  // Highest 16 bits is a tag to avoid ABA problem
+  /*!
+    \brief No brief description
+
+    The EntryT for help is organized as
+    The lowest 48 bits are a pointer to a descriptor if locked, or null if not
+    Highest 16 bits is a tag to avoid ABA problem
+    */
   struct Help
   {
     //!
     static bool isLocked(const EntryT le) noexcept;
 
     //!
-    static const Descriptor* removeTag(const EntryT le) noexcept;
+    static bool isSelfLocked(const EntryT le, const std::size_t current_id) noexcept;
 
     //!
-    static bool isLockSelf(const EntryT le, const WorkerInfo& info) noexcept;
+    static const Descriptor* removeTag(const EntryT le) noexcept;
+  };
+
+  /*!
+    \brief No brief description
+
+    The lock_entry for no_help is organized as
+    Lowest 32 bits are a count.  If odd then locked, if even then unlocked.
+    Next 16 bits are the processor id who has the lock, for checking for reentry
+    */
+  struct NoHelp
+  {
+    //!
+    static std::size_t getProcid(const EntryT lock) noexcept;
+
+    //!
+    static bool isLocked(const EntryT le) noexcept;
+
+    //!
+    static bool isSelfLocked(const EntryT le, const std::size_t current_id) noexcept;
+
+    //!
+    static std::size_t maskCnt(const EntryT lock) noexcept;
+
+    //!
+    static std::size_t releaseLock(const EntryT le) noexcept;
+
+    //!
+    static std::size_t takeLock(const EntryT le, const std::size_t current_id) noexcept;
   };
 
 
-  //!
-  bool cas(EntryT old_value, const Descriptor* d) noexcept;
+  //! Used to take lock for version with helping
+  bool cas(EntryT old_value,
+           const Descriptor* d,
+           WriteAnnouncements* write_announcements,
+           Log* log) noexcept;
 
-  //!
+  //! Used to take lock for version with no helping
   bool casSimple(EntryT old_value, const std::size_t value) noexcept;
 
   //!
-  void clear(const Descriptor* d) noexcept;
+  void clear(const Descriptor* d,
+             WriteAnnouncements* write_announcements,
+             Log* log) noexcept;
 
-  //! Return the current id list
-  std::span<std::size_t> currentIdList() noexcept;
-
-  //! Return the current id list
-  std::span<const std::size_t> currentIdList() const noexcept;
-
-  //! Return the underlying epoch
-  Epoch& epoch() noexcept;
-
-  //! Return the underlying epoch
-  const Epoch& epoch() const noexcept;
-
-  //!
-  bool helpDescriptor(EntryT le, const bool recursive_help = false) noexcept;
-
-  //! Return the underlying helping list
-  std::span<bool> helpingList() noexcept;
-
-  //! Return the underlying helping list
-  std::span<const bool> helpingList() const noexcept;
-
-  //! Initialize the lock
-  void initialize() noexcept;
+  //! Runs thunk in appropriate epoch and after it is acquired
+  bool helpDescriptor(EntryT le,
+                      Epoch* epoch,
+                      WriteAnnouncements* write_announcements,
+                      Log* log,
+                      std::size_t* current_id,
+                      bool* helping,
+                      DescriptorPoolT* descriptor_pool,
+                      const bool recursive_help = false) noexcept;
 
   //!
-  EntryT load() noexcept;
-
-  //! Return the underlying log list for workers
-  std::span<Log> logList() noexcept;
-
-  //! Return the underlying log list for workers
-  std::span<const Log> logList() const noexcept;
+  EntryT load(Log* log) const noexcept;
 
   //!
   EntryT read() const noexcept;
 
   //!
   template <std::invocable Thank>
-  ResultT<Thank> withLockHelp(Thank&& func) noexcept;
+  ResultT<Thank> withLockHelp(Thank&& func,
+                              Epoch* epoch,
+                              WriteAnnouncements* write_announcements,
+                              Log* log,
+                              std::size_t* current_id,
+                              bool* helping,
+                              DescriptorPoolT* descriptor_pool) noexcept;
 
   //!
   template <std::invocable Thank>
-  ResultT<Thank> withLockNoHelp(Thank&& func) noexcept;
-
-  //! Return the underlying worker info
-  const WorkerInfo& workerInfo() const noexcept;
+  ResultT<Thank> withLockNoHelp(Thank&& func,
+                                const std::size_t current_id) noexcept;
 
   //!
   template <std::invocable Thank>
-  ResultOptionT<Thank> tryLockHelp(Thank&& func) noexcept;
+  ResultOptionT<Thank> tryLockHelp(Thank&& func,
+                                   Epoch* epoch,
+                                   WriteAnnouncements* write_announcements,
+                                   Log* log,
+                                   std::size_t* current_id,
+                                   bool* helping,
+                                   DescriptorPoolT* descriptor_pool) noexcept;
 
   //!
   template <std::invocable Thank>
-  ResultOptionT<Thank> tryLockNoHelp(Thank&& func) noexcept;
+  ResultOptionT<Thank> tryLockNoHelp(Thank&& func,
+                                     const std::size_t current_id) noexcept;
 
 
-  pmr::vector<Log> log_list_;
-  pmr::vector<bool> helping_list_;
-  pmr::vector<std::size_t> current_id_list_;
-  WriteAnnouncements write_announcements_;
-  TagT tag_;
   std::atomic<EntryT> lock_;
-  MemoryPool<Descriptor, MemoryPoolImplT> descriptor_pool_;
-  Epoch* epoch_;
 };
 
 } /* namespace zisc::flock */

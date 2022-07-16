@@ -18,6 +18,7 @@
 #include "epoch_pool_impl.hpp"
 // Standard C++ library
 #include <algorithm>
+#include <iterator>
 #include <memory>
 #include <type_traits>
 #include <utility>
@@ -38,10 +39,11 @@ namespace zisc::flock {
 template <typename xT> inline
 EpochPoolImpl<xT>::EpochPoolImpl(Epoch* epoch,
                                  pmr::memory_resource* mem_resource) noexcept :
-    pool_list_{typename decltype(pool_list_)::allocator_type{mem_resource}},
+    epoch_{epoch},
+    pool_list_{epoch->workerInfo().numOfWorkers(),
+               typename decltype(pool_list_)::allocator_type{mem_resource}},
     type_resource_{mem_resource},
-    list_resource_{mem_resource},
-    epoch_{epoch}
+    list_resource_{mem_resource}
 {
 }
 
@@ -52,11 +54,10 @@ EpochPoolImpl<xT>::EpochPoolImpl(Epoch* epoch,
   */
 template <typename xT> inline
 EpochPoolImpl<xT>::EpochPoolImpl(EpochPoolImpl&& other) noexcept :
+    epoch_{other.epoch_},
     pool_list_{std::move(other.pool_list_)},
     type_resource_{std::move(other.type_resource_)},
-    list_resource_{std::move(other.list_resource_)},
-    epoch_{other.epoch_},
-    worker_info_{other.worker_info_}
+    list_resource_{std::move(other.list_resource_)}
 {
 }
 
@@ -68,11 +69,10 @@ EpochPoolImpl<xT>::EpochPoolImpl(EpochPoolImpl&& other) noexcept :
 template <typename xT> inline
 auto EpochPoolImpl<xT>::operator=(EpochPoolImpl&& other) noexcept -> EpochPoolImpl&
 {
+  epoch_ = other.epoch_;
   pool_list_ = std::move(other.pool_list_);
   type_resource_= std::move(other.type_resource_);
   list_resource_ = std::move(other.list_resource_);
-  epoch_ = other.epoch_;
-  worker_info_ = other.worker_info_;
   return *this;
 }
 
@@ -84,6 +84,30 @@ auto EpochPoolImpl<xT>::operator=(EpochPoolImpl&& other) noexcept -> EpochPoolIm
 template <typename xT> inline
 void EpochPoolImpl<xT>::acquire([[maybe_unused]] Pointer p) noexcept
 {
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+template <typename xT> inline
+std::size_t EpochPoolImpl<xT>::capacity() const noexcept
+{
+  const std::size_t c = type_resource_.countMax();
+  return c;
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+template <typename xT> inline
+constexpr std::size_t EpochPoolImpl<xT>::capacityMax() noexcept
+{
+  const std::size_t c = (std::numeric_limits<std::size_t>::max)();
+  return c;
 }
 
 /*!
@@ -119,6 +143,70 @@ void EpochPoolImpl<xT>::destruct(Pointer p) noexcept
 /*!
   \details No detailed description
 
+  \return No description
+  */
+template <typename xT> inline
+Epoch& EpochPoolImpl<xT>::epoch() noexcept
+{
+  return *epoch_;
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+template <typename xT> inline
+const Epoch& EpochPoolImpl<xT>::epoch() const noexcept
+{
+  return *epoch_;
+}
+
+/*!
+  \details No detailed description
+
+  \param [in] object No description.
+  \return No description
+  */
+template <typename xT> inline
+std::size_t EpochPoolImpl<xT>::getIndex(ConstReference object) const noexcept
+{
+  const auto index = cast<std::size_t>(std::distance(type_resource_.data(),
+                                                     std::addressof(object)));
+  return index;
+}
+
+/*!
+  \details No detailed description
+
+  \param [in] index No description.
+  \return No description
+  */
+template <typename xT> inline
+auto EpochPoolImpl<xT>::getObject(const std::size_t index) noexcept
+    -> Reference
+{
+  Pointer p = type_resource_.data() + index;
+  return *p;
+}
+
+/*!
+  \details No detailed description
+
+  \param [in] index No description.
+  \return No description
+  */
+template <typename xT> inline
+auto EpochPoolImpl<xT>::getObject(const std::size_t index) const noexcept
+    -> ConstReference
+{
+  ConstPointer p = type_resource_.data() + index;
+  return *p;
+}
+
+/*!
+  \details No detailed description
+
   \tparam Args No description.
   \param [in] args No description.
   \return No description
@@ -139,10 +227,8 @@ auto EpochPoolImpl<xT>::newObj(Args&&... args) noexcept -> Pointer
 template <typename xT> inline
 void EpochPoolImpl<xT>::reserve(const std::size_t size) noexcept
 {
-  constexpr std::size_t k = 8 * Config::l1CacheLineSize() * workerInfo().numOfWorkers();
-  constexpr std::size_t s = k * size;
-  type_resource_.setCountMax(s);
-  list_resource_.setCountMax(s);
+  type_resource_.setCountMax(size);
+  list_resource_.setCountMax(size);
 }
 
 /*!
@@ -178,24 +264,12 @@ void EpochPoolImpl<xT>::retire(Pointer p) noexcept
 /*!
   \details No detailed description
 
-  \param [in] info No description.
-  */
-template <typename xT> inline
-void EpochPoolImpl<xT>::setWorkerInfo(const WorkerInfo& info) noexcept
-{
-  worker_info_ = &info;
-  pool_list_.resize(info.numOfWorkers());
-}
-
-/*!
-  \details No detailed description
-
   \return No description
   */
 template <typename xT> inline
 const WorkerInfo& EpochPoolImpl<xT>::workerInfo() const noexcept
 {
-  return *worker_info_;
+  return epoch().workerInfo();
 }
 
 /*!
@@ -206,6 +280,17 @@ const WorkerInfo& EpochPoolImpl<xT>::workerInfo() const noexcept
 template <typename xT> inline
 void EpochPoolImpl<xT>::shuffle([[maybe_unused]] const std::size_t n) noexcept
 {
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+template <typename xT> inline
+std::size_t EpochPoolImpl<xT>::size() const noexcept
+{
+  return type_resource_.count();
 }
 
 /*!
@@ -223,28 +308,6 @@ void EpochPoolImpl<xT>::clearPool(Link* ptr) noexcept
     destruct(reinterp<Pointer>(tmp->value_));
     alloc.template delete_object<Link>(tmp);
   }
-}
-
-/*!
-  \details No detailed description
-
-  \return No description
-  */
-template <typename xT> inline
-Epoch& EpochPoolImpl<xT>::epoch() noexcept
-{
-  return *epoch_;
-}
-
-/*!
-  \details No detailed description
-
-  \return No description
-  */
-template <typename xT> inline
-const Epoch& EpochPoolImpl<xT>::epoch() const noexcept
-{
-  return *epoch_;
 }
 
 /*!

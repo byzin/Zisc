@@ -77,11 +77,32 @@ class EpochPoolImpl : private NonCopyable<EpochPoolImpl<xT>>
   //! Noop since epoch announce is used for the whole operation
   void acquire(Pointer p) noexcept;
 
+  //! Return the capacity of objects in the pool
+  std::size_t capacity() const noexcept;
+
+  //! Return the maximum possible capacity of objects in the pool
+  static constexpr std::size_t capacityMax() noexcept;
+
   //!
   void clear() noexcept;
 
   //!
   void destruct(Pointer p) noexcept;
+
+  //! Return the underlying epoch
+  Epoch& epoch() noexcept;
+
+  //! Return the underlying epoch
+  const Epoch& epoch() const noexcept;
+
+  //! Return the index of the given object in the pool
+  std::size_t getIndex(ConstReference object) const noexcept;
+
+  //! Return the pointer to an object by the index
+  Reference getObject(const std::size_t index) noexcept;
+
+  //! Return the pointer to an object by the index
+  ConstReference getObject(const std::size_t index) const noexcept;
 
   //!
   template <typename ...Args>
@@ -93,11 +114,11 @@ class EpochPoolImpl : private NonCopyable<EpochPoolImpl<xT>>
   //!
   void retire(Pointer p) noexcept;
 
-  //! Set the worker info
-  void setWorkerInfo(const WorkerInfo& info) noexcept;
-
   //!
   void shuffle(const std::size_t n) noexcept;
+
+  //! Return the number of allocated objects in the pool
+  std::size_t size() const noexcept;
 
   //! Return the underlying worker info
   const WorkerInfo& workerInfo() const noexcept;
@@ -116,12 +137,6 @@ class EpochPoolImpl : private NonCopyable<EpochPoolImpl<xT>>
   //!
   void clearPool(Link* ptr) noexcept;
 
-  //! Return the underlying epoch
-  Epoch& epoch() noexcept;
-
-  //! Return the underlying epoch
-  const Epoch& epoch() const noexcept;
-
   //! Return a list allocator with the underlying list resource
   pmr::polymorphic_allocator<Link> getListAllocator() noexcept;
 
@@ -129,11 +144,10 @@ class EpochPoolImpl : private NonCopyable<EpochPoolImpl<xT>>
   pmr::polymorphic_allocator<ValueT> getTypeAllocator() noexcept;
 
 
+  Epoch* epoch_;
   pmr::vector<OldCurrent> pool_list_;
   FixedArrayResource<ValueT> type_resource_;
   FixedArrayResource<Link> list_resource_;
-  Epoch* epoch_;
-  const WorkerInfo* worker_info_;
 };
 
 } /* namespace zisc::flock */

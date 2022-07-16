@@ -60,7 +60,9 @@ class MemoryPool : private NonCopyable<MemoryPool<Type, PoolType>>
 
 
   //! Create a memory pool
-  MemoryPool(Epoch* epoch, pmr::memory_resource* mem_resource) noexcept;
+  MemoryPool(Epoch* epoch,
+             std::span<Log> log_list,
+             pmr::memory_resource* mem_resource) noexcept;
 
   //! Move a data
   MemoryPool(MemoryPool&& other) noexcept;
@@ -76,6 +78,12 @@ class MemoryPool : private NonCopyable<MemoryPool<Type, PoolType>>
   //!
   void acquire(Pointer p) noexcept;
 
+  //! Return the capacity of objects in the pool
+  std::size_t capacity() const noexcept;
+
+  //! Return the maximum possible capacity of objects in the pool
+  static constexpr std::size_t capacityMax() noexcept;
+
   //!
   void clear() noexcept;
 
@@ -86,8 +94,29 @@ class MemoryPool : private NonCopyable<MemoryPool<Type, PoolType>>
   template <typename RT>
   std::optional<RT> doneValueResult(Pointer p) noexcept;
 
+  //! Return the underlying epoch
+  Epoch& epoch() noexcept;
+
+  //! Return the underlying epoch
+  const Epoch& epoch() const noexcept;
+
+  //! Return the index of the given object in the pool
+  std::size_t getIndex(ConstReference object) const noexcept;
+
+  //! Return the reference to an object by the index
+  Reference getObject(const std::size_t index) noexcept;
+
+  //! Return the reference to an object by the index
+  ConstReference getObject(const std::size_t index) const noexcept;
+
   //!
   bool isDone(Pointer p) noexcept;
+
+  //! Return the underlying log list
+  std::span<Log> logList() noexcept;
+
+  //! Return the underlying log list
+  std::span<const Log> logList() const noexcept;
 
   //!
   template <std::invocable<Type*> Func, typename ...Args>
@@ -118,14 +147,11 @@ class MemoryPool : private NonCopyable<MemoryPool<Type, PoolType>>
   template <typename TT>
   void retireAcquiredResult(Pointer p, LogEntry* le, const std::optional<TT> result) noexcept;
 
-  //! Set the log list
-  void setLogList(std::span<Log> log_list) noexcept;
-
-  //! Set the worker info
-  void setWorkerInfo(const WorkerInfo& info) noexcept;
-
   //!
   void shuffle(const std::size_t n) noexcept;
+
+  //! Return the number of allocated objects in the pool
+  std::size_t size() const noexcept;
 
   //! Return the underlying worker info
   const WorkerInfo& workerInfo() const noexcept;
@@ -136,12 +162,6 @@ class MemoryPool : private NonCopyable<MemoryPool<Type, PoolType>>
 
   //!
   std::optional<std::size_t> extractResult(Pointer p) noexcept;
-
-  //! Return the underlying log list
-  std::span<Log> logList() noexcept;
-
-  //! Return the underlying log list
-  std::span<const Log> logList() const noexcept;
 
   //!
   bool isDoneFlag(Pointer p) noexcept;

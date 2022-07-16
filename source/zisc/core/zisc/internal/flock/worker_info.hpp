@@ -19,8 +19,11 @@
 #include <span>
 #include <thread>
 #include <type_traits>
+#include <vector>
 // Zisc
+#include "zisc/non_copyable.hpp"
 #include "zisc/zisc_config.hpp"
+#include "zisc/memory/std_memory_resource.hpp"
 
 namespace zisc::flock {
 
@@ -32,11 +35,19 @@ namespace zisc::flock {
 class WorkerInfo
 {
  public:
-  //! Create empty info
-  WorkerInfo() noexcept;
+  //! Create a worker info
+  WorkerInfo(pmr::memory_resource* mem_resource) noexcept;
 
   //! Create a worker info
-  WorkerInfo(const std::span<const std::thread::id> id_list) noexcept;
+  WorkerInfo(const std::span<const std::thread::id> id_list,
+             pmr::memory_resource* mem_resource) noexcept;
+
+  //! Move data
+  WorkerInfo(WorkerInfo&& other) noexcept;
+
+
+  //! Move data
+  WorkerInfo& operator=(WorkerInfo&& other) noexcept;
 
 
   //! Return the current worker index
@@ -44,6 +55,9 @@ class WorkerInfo
 
   //! Return the number of workers
   std::size_t numOfWorkers() const noexcept;
+
+  //! Set thread ID list
+  void setThreadIdList(const std::span<const std::thread::id> list) noexcept;
 
   //! Take out one in the given list for current worker
   template <typename Type>
@@ -53,7 +67,7 @@ class WorkerInfo
   std::span<const std::thread::id> threadIdList() const noexcept;
 
  private:
-  std::span<const std::thread::id> thread_id_list_;
+  pmr::vector<std::thread::id> thread_id_list_;
 };
 
 } /* namespace zisc::flock */

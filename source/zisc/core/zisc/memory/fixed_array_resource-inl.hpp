@@ -166,6 +166,30 @@ void FixedArrayResource<Type>::clear() noexcept
 /*!
   \details No detailed description
 
+  \return No description
+  */
+template <typename Type> inline
+auto FixedArrayResource<Type>::data() noexcept -> Pointer
+{
+  auto* p = reinterp<Pointer>(storage_list_.data());
+  return p;
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+template <typename Type> inline
+auto FixedArrayResource<Type>::data() const noexcept -> ConstPointer
+{
+  const auto* p = reinterp<ConstPointer>(storage_list_.data());
+  return p;
+}
+
+/*!
+  \details No detailed description
+
   \param [in] size No description.
   \param [in] alignment No description.
   \return No description

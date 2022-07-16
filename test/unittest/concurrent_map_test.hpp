@@ -16,17 +16,60 @@
 #define TEST_CONCURRENT_MAP_TEST_HPP
 
 // Standard C++ library
+#include <atomic>
 #include <chrono>
 #include <cstddef>
 #include <random>
+#include <span>
+#include <thread>
 #include <tuple>
 #include <utility>
 #include <vector>
 // Zisc
+#include "zisc/function_reference.hpp"
 #include "zisc/zisc_config.hpp"
 #include "zisc/structure/map.hpp"
 
 namespace test {
+
+/*!
+  \brief No brief description
+
+  No detailed description.
+  */
+class ThreadPool
+{
+ public:
+  // Type aliases
+  using Function = zisc::FunctionReference<void (std::size_t)>;
+
+
+  //! Create a thread pool
+  ThreadPool(const std::size_t size);
+
+  //! Destroy the pool
+  ~ThreadPool() noexcept;
+
+
+  //! Return the number of workers
+  std::size_t numOfThreads() const noexcept;
+
+  //! Run the function
+  void run(Function func) noexcept;
+
+  //! Wait this thread until all workers finish jobs
+  void waitForCompletion() const noexcept;
+
+  //! Return the worker ID list
+  std::span<const std::thread::id> workerIdList() const noexcept;
+
+ private:
+  std::vector<std::thread> worker_list_;
+  std::vector<std::thread::id> id_list_;
+  Function func_;
+  std::atomic_size_t count_;
+  std::atomic_flag flag_;
+};
 
 /*!
   \brief No brief description
@@ -80,7 +123,7 @@ class MapTest
   //
   template <typename MapClass>
   static void testConcurrentThroughputOp(
-      const std::size_t num_of_threads,
+      ThreadPool& thread_pool,
       const std::size_t num_of_samples,
       const std::size_t num_of_keys,
       const std::size_t num_of_rounds,
@@ -93,7 +136,7 @@ class MapTest
   //
   template <typename MapClass>
   static void testConcurrentThroughputTime(
-      const std::size_t num_of_threads,
+      ThreadPool& thread_pool,
       const std::size_t num_of_samples,
       const std::size_t num_of_keys,
       const std::size_t num_of_rounds,

@@ -23,6 +23,8 @@
 #include <cstddef>
 #include <iterator>
 #include <memory>
+#include <span>
+#include <thread>
 #include <type_traits>
 #include <utility>
 #include <vector>
@@ -74,16 +76,17 @@ auto Epoch::AnnounceSlot::operator=(AnnounceSlot&& other) noexcept -> AnnounceSl
   \param [in,out] mem_resource No description.
   */
 inline
-Epoch::Epoch(TimestampPtr timestamp,
-             ValueT* done_stamp,
+Epoch::Epoch(const std::span<const std::thread::id> id_list,
+             TimestampPtr timestamp,
              pmr::memory_resource* mem_resource) noexcept :
     announcement_list_{decltype(announcement_list_)::allocator_type{mem_resource}},
-    worker_info_{nullptr},
+    worker_info_{id_list, mem_resource},
     timestamp_{timestamp},
-    done_stamp_{done_stamp},
     current_epoch_{0},
+    done_stamp_{-1},
     prev_stamp_{-1}
 {
+  initialize();
 }
 
 /*!
@@ -96,8 +99,8 @@ Epoch::Epoch(Epoch&& other) noexcept :
     announcement_list_{std::move(other.announcement_list_)},
     worker_info_{std::move(other.worker_info_)},
     timestamp_{std::move(other.timestamp_)},
-    done_stamp_{std::move(other.done_stamp_)},
     current_epoch_{other.current_epoch_.load(std::memory_order::acquire)},
+    done_stamp_{other.done_stamp_},
     prev_stamp_{other.prev_stamp_}
 {
 }
@@ -114,11 +117,11 @@ Epoch& Epoch::operator=(Epoch&& other) noexcept
   announcement_list_ = std::move(other.announcement_list_);
   worker_info_ = std::move(other.worker_info_);
   timestamp_ = std::move(other.timestamp_);
-  done_stamp_ = std::move(other.done_stamp_);
   {
     const ValueT v = other.current_epoch_.load(std::memory_order::acquire);
     current_epoch_.store(v, std::memory_order::release);
   }
+  done_stamp_ = other.done_stamp_;
   prev_stamp_ = other.prev_stamp_;
   return *this;
 }
@@ -173,19 +176,6 @@ void Epoch::setMyEpoch(const ValueT e) noexcept
 
 /*!
   \details No detailed description
-
-  \param [in] id_list No description.
-  */
-inline
-void Epoch::setWorkerInfo(const WorkerInfo& info) noexcept
-{
-  worker_info_ = &info;
-  announcement_list_.clear();
-  announcement_list_.resize(info.numOfWorkers());
-}
-
-/*!
-  \details No detailed description
   */
 inline
 void Epoch::unannounce() noexcept
@@ -202,12 +192,14 @@ void Epoch::updateEpoch() noexcept
 {
   ValueT e = getCurrent();
   bool all_there = true;
-  for (std::size_t j = 0; j < 2; ++j) { // do twice
+  for (std::size_t j = 0; all_there && (j < 2); ++j) { // do twice
     for (std::size_t i = 0; i < announcementList().size(); ++i) {
       const AnnounceSlot& slot = announcementList()[i];
       const ValueT v = slot.last_.load(std::memory_order::acquire);
-      if ((v != -1) && (v < e))
+      if ((v != -1) && (v < e)) {
         all_there = false;
+        break;
+      }
     }
   }
   if (all_there) {
@@ -215,7 +207,7 @@ void Epoch::updateEpoch() noexcept
     // we set done_stamp to the stamp from the previous epoch update
     const ValueT current_stamp = timestamp().getReadStamp();
     if (current_epoch_.compare_exchange_strong(e, e + 1, std::memory_order::acq_rel, std::memory_order::acquire)) {
-      *done_stamp_ = prev_stamp_;
+      done_stamp_ = prev_stamp_;
       prev_stamp_ = current_stamp;
     }
   }
@@ -229,7 +221,7 @@ void Epoch::updateEpoch() noexcept
 inline
 const WorkerInfo& Epoch::workerInfo() const noexcept
 {
-  return *worker_info_;
+  return worker_info_;
 }
 
 /*!
@@ -268,6 +260,16 @@ std::invoke_result_t<Thank> Epoch::with(Thank&& func) noexcept
   std::invoke_result_t<Thank> result = func();
   unannounce();
   return result;
+}
+
+/*!
+  \details No detailed description
+  */
+inline
+void Epoch::initialize() noexcept
+{
+  announcement_list_.clear();
+  announcement_list_.resize(workerInfo().numOfWorkers());
 }
 
 /*!

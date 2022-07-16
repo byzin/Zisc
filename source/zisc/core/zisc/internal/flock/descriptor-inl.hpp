@@ -39,18 +39,18 @@ namespace zisc::flock {
 
   \param [in] func No description.
   \param [in] current No description.
-  \param [in] epoch_num No description.
-  \param [in] thread_id No description.
+  \param [in] epoch No description.
+  \param [in] current_id No description.
   */
 inline
 Descriptor::Descriptor(ThunkT func,
                        const EntryT current,
-                       const Epoch::ValueT epoch_num) noexcept :
+                       const Epoch& epoch,
+                       const std::size_t current_id) noexcept :
     func_{func},
     current_{current},
-    epoch_num_{epoch_num},
-    worker_info_{nullptr},
-    thread_id_{(std::numeric_limits<std::size_t>::max)()},
+    epoch_num_{epoch.getMyEpoch()},
+    thread_id_{current_id},
     done_{false},
     freed_{false}
 {
@@ -68,8 +68,6 @@ Descriptor::Descriptor(Descriptor&& other) noexcept :
     current_{std::move(other.current_)},
     log_array_{std::move(other.log_array_)},
     epoch_num_{std::move(other.epoch_num_)},
-    worker_info_{std::move(other.worker_info_)},
-    log_list_{std::move(other.log_list_)},
     thread_id_{std::move(other.thread_id_)},
     done_{other.done_},
     freed_{other.freed_}
@@ -98,8 +96,6 @@ Descriptor& Descriptor::operator=(Descriptor&& other) noexcept
   current_ = std::move(other.current_);
   log_array_ = std::move(other.log_array_);
   epoch_num_ = std::move(other.epoch_num_);
-  worker_info_ = std::move(other.worker_info_);
-  log_list_ = std::move(other.log_list_);
   thread_id_ = std::move(other.thread_id_);
   done_ = other.done_;
   freed_ = other.freed_;
@@ -109,11 +105,13 @@ Descriptor& Descriptor::operator=(Descriptor&& other) noexcept
 
 /*!
   \details No detailed description
+
+  \param [in] log No description.
   */
 inline
-void Descriptor::operator()() noexcept
+void Descriptor::operator()(Log* log) noexcept
 {
-  run();
+  run(log);
 }
 
 /*!
@@ -186,11 +184,10 @@ const LogArray& Descriptor::logArray() const noexcept
   \details No detailed description
   */
 inline
-void Descriptor::run() noexcept
+void Descriptor::run(Log* log) noexcept
 {
   // run f using log based on lg_array
-  Log& log = workerInfo().takeOut(logList());
-  log.doWith(func_, &log_array_, 0);
+  log->doWith(func_, &log_array_, 0);
   done_ = true;
 }
 
@@ -208,48 +205,12 @@ void Descriptor::setDone(const bool done) noexcept
 /*!
   \details No detailed description
 
-  \param [in] log_list No description.
-  \param [in] info No description.
-  */
-inline
-void Descriptor::setLogList(std::span<Log> log_list, const WorkerInfo& info) noexcept
-{
-  worker_info_ = &info;
-  log_list_ = log_list;
-  thread_id_ = info.getCurrentWorkerId();
-}
-
-/*!
-  \details No detailed description
-
   \return No description
   */
 inline
 std::size_t Descriptor::threadId() const noexcept
 {
   return thread_id_;
-}
-
-/*!
-  \details No detailed description
-
-  \return No description
-  */
-inline
-std::span<Log> Descriptor::logList() noexcept
-{
-  return log_list_;
-}
-
-/*!
-  \details No detailed description
-
-  \return No description
-  */
-inline
-std::span<const Log> Descriptor::logList() const noexcept
-{
-  return log_list_;
 }
 
 /*!
@@ -264,17 +225,6 @@ void Descriptor::initialize(const bool acquired_flag) noexcept
     acquired().test_and_set(std::memory_order::release);
   else
     acquired().clear(std::memory_order::release);
-}
-
-/*!
-  \details No detailed description
-
-  \return No description
-  */
-inline
-const WorkerInfo& Descriptor::workerInfo() const noexcept
-{
-  return *worker_info_;
 }
 
 } /* namespace zisc::flock */

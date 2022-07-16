@@ -36,17 +36,6 @@ namespace zisc::flock {
 /*!
   \details No detailed description
 
-  \param [in] write_announcements No description.
-  */
-template <typename Type> inline
-Tag<Type>::Tag(WriteAnnouncements* write_announcements) noexcept :
-    write_announcements_{write_announcements}
-{
-}
-
-/*!
-  \details No detailed description
-
   \param [in] old_value No description.
   \param [in] new_value No description.
   \return No description
@@ -65,18 +54,21 @@ auto Tag<Type>::add(const IT old_value, const IT new_value) noexcept -> IT
   \param [in,out] loc No description.
   \param [in] old_value No description.
   \param [in] value No description.
+  \param [in,out] write_announcements No description.
+  \param [in,out] log No description.
   \param [in] aba_free No description.
   \return No description
   */
 template <typename Type> inline
 bool Tag<Type>::cas(std::atomic<IT>& loc,
                     IT old_value,
-                    const Type value,
+                    ConstReference value,
+                    WriteAnnouncements* write_announcements,
+                    Log* log,
                     const bool aba_free) noexcept
 {
   bool result = false;
-  Log& log = workerInfo().takeOut(logList());
-  if (log.isEmpty() || aba_free) {
+  if (log->isEmpty() || aba_free) {
     const IT new_value = next(old_value, value, bit_cast<IT>(&loc));
     result = loc.compare_exchange_strong(old_value,
                                          new_value,
@@ -85,8 +77,9 @@ bool Tag<Type>::cas(std::atomic<IT>& loc,
   }
   else {
     // Announce the location and tag been written
-    write_announcements_->set(add(old_value, bit_cast<IT>(&loc)));
-    log.skipIfDone([this, &loc, &old_value, &value, &result]() // skiip both for correctness, and efficiency
+    write_announcements->set(add(old_value, bit_cast<IT>(&loc)));
+    log->skipIfDone([&loc, &old_value, &value, &result]()
+    // skiip both for correctness, and efficiency
     {
       const IT new_value = next(old_value, value, bit_cast<IT>(&loc));
       result = loc.compare_exchange_strong(old_value,
@@ -95,7 +88,7 @@ bool Tag<Type>::cas(std::atomic<IT>& loc,
                                            std::memory_order::acquire);
     });
     // Unannounce the location
-    write_announcements_->clear();
+    write_announcements->clear();
   }
   return result;
 }
@@ -156,7 +149,7 @@ auto Tag<Type>::inc(const IT old_value) noexcept -> IT
   \return No description
   */
 template <typename Type> inline
-auto Tag<Type>::init(const Type v) noexcept -> IT
+auto Tag<Type>::init(ConstReference v) noexcept -> IT
 {
   const IT new_v = cntBit() | bit_cast<IT>(v);
   return new_v;
@@ -170,7 +163,7 @@ auto Tag<Type>::init(const Type v) noexcept -> IT
   \return No description
   */
 template <typename Type> inline
-auto Tag<Type>::next(const IT old_value, const Type new_value) noexcept -> IT
+auto Tag<Type>::next(const IT old_value, ConstReference new_value) noexcept -> IT
 {
   const IT v = cast<IT>(new_value) | inc(old_value);
   return v;
@@ -184,13 +177,16 @@ auto Tag<Type>::next(const IT old_value, const Type new_value) noexcept -> IT
   \return No description
   */
 template <typename Type> inline
-auto Tag<Type>::next(const IT old_value, const Type new_value, const IT addr) noexcept -> IT
+auto Tag<Type>::next(const IT old_value,
+                     ConstReference new_value,
+                     const IT addr,
+                     WriteAnnouncements* write_announcements) noexcept -> IT
 {
   IT new_count = inc(old_value);
   bool panic = false;
   if (((old_value & topBit()) != (new_count & topBit())) || // overflow, unlikely
       ((old_value & panicBit()) != 0)) [[unlikely]] { // panic bit set, unlikely
-    for (const IT ann : write_announcements_->scan()) { // check if we have to panic
+    for (const IT ann : write_announcements->scan()) { // check if we have to panic
       if ((ann & dataMask()) == (addr & dataMask()) && // same mutable_val obj
           (ann & topBit()) == (new_count & topBit()) &&
           (ann & cntMask()) >= (new_count & cntMask() & ~panicBit())) {
@@ -202,7 +198,7 @@ auto Tag<Type>::next(const IT old_value, const Type new_value, const IT addr) no
 
   IT value = bit_cast<IT>(new_value) | (new_count & ~panicBit());
   if (panic) [[unlikely]] {
-    pmr::vector<IT> announced_tags = write_announcements_->scan();
+    pmr::vector<IT> announced_tags = write_announcements->scan();
     while (true) { // loop until new_count is not announced
       bool announced = false;
       for (const IT ann : announced_tags) {
@@ -236,19 +232,6 @@ constexpr auto Tag<Type>::panicBit() noexcept -> IT
 /*!
   \details No detailed description
 
-  \param [in] log_list No description.
-  \param [in] info No description.
-  */
-template <typename Type> inline
-void Tag<Type>::setLogList(std::span<Log> log_list, const WorkerInfo& info) noexcept
-{
-  log_list_ = log_list;
-  write_announcements_->setWorkerInfo(info);
-}
-
-/*!
-  \details No detailed description
-
   \return No description
   */
 template <typename Type> inline
@@ -268,7 +251,7 @@ constexpr std::size_t Tag<Type>::tagBits() noexcept
 template <typename Type> inline
 Type Tag<Type>::value(const IT value) noexcept
 {
-  const auto v = bit_cast<Type>(value & dataMask());
+  const auto v = bit_cast<ValueT>(value & dataMask());
   return v;
 }
 
@@ -282,39 +265,6 @@ constexpr auto Tag<Type>::topBit() noexcept -> IT
 {
   const IT bit = 1ull << 63;
   return bit;
-}
-
-/*!
-  \details No detailed description
-
-  \return No description
-  */
-template <typename Type> inline
-std::span<Log> Tag<Type>::logList() noexcept
-{
-  return log_list_;
-}
-
-/*!
-  \details No detailed description
-
-  \return No description
-  */
-template <typename Type> inline
-std::span<const Log> Tag<Type>::logList() const noexcept
-{
-  return log_list_;
-}
-
-/*!
-  \details No detailed description
-
-  \return No description
-  */
-template <typename Type> inline
-const WorkerInfo& Tag<Type>::workerInfo() const noexcept
-{
-  return write_announcements_->workerInfo();
 }
 
 } /* namespace zisc::flock */

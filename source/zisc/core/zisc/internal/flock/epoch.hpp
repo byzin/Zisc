@@ -21,6 +21,7 @@
 #include <cstddef>
 #include <memory>
 #include <span>
+#include <thread>
 #include <type_traits>
 #include <vector>
 // Zisc
@@ -58,7 +59,12 @@ class Epoch : private NonCopyable<Epoch>
   using ConstTimestampReference = std::add_lvalue_reference_t<ConstTimestampT>;
   using ValueT = typename TimestampT::ValueT;
 
-  struct alignas(64) AnnounceSlot
+  /*!
+    \brief No brief description
+
+    No detailed description.
+    */
+  struct alignas(64) AnnounceSlot : private NonCopyable<AnnounceSlot>
   {
     //! Create a slot
     AnnounceSlot() noexcept;
@@ -70,13 +76,13 @@ class Epoch : private NonCopyable<Epoch>
     AnnounceSlot& operator=(AnnounceSlot&& other) noexcept;
 
     std::atomic<ValueT> last_{-1};
-    [[maybe_unused]] Padding<64 - sizeof(last_)> pad_;
+    [[maybe_unused]] Padding<64 - std::alignment_of_v<decltype(last_)>> pad_;
   };
 
 
   //! Create a epoch
-  Epoch(TimestampPtr timestamp,
-        ValueT* done_stamp,
+  Epoch(const std::span<const std::thread::id> id_list,
+        TimestampPtr timestamp,
         pmr::memory_resource* mem_resource) noexcept;
 
   //! Move a data
@@ -99,9 +105,6 @@ class Epoch : private NonCopyable<Epoch>
   //!
   void setMyEpoch(const ValueT e) noexcept;
 
-  //! Set the worker info used for the epoch operations
-  void setWorkerInfo(const WorkerInfo& info) noexcept;
-
   //!
   void unannounce() noexcept;
 
@@ -122,6 +125,9 @@ class Epoch : private NonCopyable<Epoch>
   //! Return the underlying announcement list
   std::span<const AnnounceSlot> announcementList() const noexcept;
 
+  //! Initialize the epoch
+  void initialize() noexcept;
+
   //! Return the underlying timestamp
   TimestampReference timestamp() noexcept;
 
@@ -130,10 +136,10 @@ class Epoch : private NonCopyable<Epoch>
 
 
   pmr::vector<AnnounceSlot> announcement_list_;
-  const WorkerInfo* worker_info_;
+  WorkerInfo worker_info_;
   TimestampPtr timestamp_;
-  ValueT* done_stamp_;
   std::atomic<ValueT> current_epoch_;
+  ValueT done_stamp_;
   ValueT prev_stamp_;
 };
 

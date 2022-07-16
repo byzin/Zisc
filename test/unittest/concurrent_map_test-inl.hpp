@@ -75,7 +75,7 @@ constexpr double Zipfian::zipfianConst() noexcept
   \details No detailed description
 
   \tparam MapClass No description.
-  \param [in] num_of_threads No description.
+  \param [in] thread_pool No description.
   \param [in] num_of_samples No description.
   \param [in] num_of_keys No description.
   \param [in] num_of_rounds No description.
@@ -87,7 +87,7 @@ constexpr double Zipfian::zipfianConst() noexcept
   */
 template <typename MapClass> inline
 void MapTest::testConcurrentThroughputOp(
-    const std::size_t num_of_threads,
+    ThreadPool& thread_pool,
     const std::size_t num_of_samples,
     const std::size_t num_of_keys,
     const std::size_t num_of_rounds,
@@ -115,66 +115,61 @@ void MapTest::testConcurrentThroughputOp(
     // 
     std::atomic_int worker_lock{-1};
     std::atomic_size_t count{0};
-    std::vector<std::thread> worker_list;
-    worker_list.reserve(num_of_threads);
     // Insertion test
-    for (std::size_t i = 0; i < num_of_threads; ++i) {
-      const auto& inputs = input_list;
-      worker_list.emplace_back([num_of_samples, &inputs, map, &count, &worker_lock]()
-      {
-        // Wait this thread until all threads become ready
-        worker_lock.wait(-1, std::memory_order::acquire);
-        // Do the actual test
-        while (true) {
-          const std::size_t index = count.fetch_add(1, std::memory_order::acq_rel);
-          const std::size_t begin = index * batch_size;
-          const std::size_t end = (std::min)((index + 1) * batch_size, num_of_samples);
-          if (end <= begin)
-            break;
-          const std::size_t n = end - begin;
-          std::for_each_n(inputs.begin() + begin, n, [map](const uint64b& in)
-          {
-            [[maybe_unused]] const auto result = map->add(in);
-          });
-        }
-      });
-    }
+    const auto& inputs1 = input_list;
+    const auto task1 = [num_of_samples, &inputs1, map, &count, &worker_lock](std::size_t)
+    {
+      // Wait this thread until all threads become ready
+      worker_lock.wait(-1, std::memory_order::acquire);
+      // Do the actual test
+      while (true) {
+        const std::size_t index = count.fetch_add(1, std::memory_order::acq_rel);
+        const std::size_t begin = index * batch_size;
+        const std::size_t end = (std::min)((index + 1) * batch_size, num_of_samples);
+        if (end <= begin)
+          break;
+        const std::size_t n = end - begin;
+        std::for_each_n(inputs1.begin() + begin, n, [map](const uint64b& in)
+        {
+          [[maybe_unused]] const auto result = map->add(in);
+        });
+      }
+    };
+    thread_pool.run(task1);
     // Start the test, notify all threads
-    worker_lock.store(zisc::cast<int>(worker_list.size()), std::memory_order::release);
+    worker_lock.store(zisc::cast<int>(thread_pool.numOfThreads()), std::memory_order::release);
     worker_lock.notify_all();
     // Wait the test done
-    std::for_each_n(worker_list.begin(), num_of_threads, [](std::thread& w){w.join();});
-    worker_list.clear();
+    thread_pool.waitForCompletion();
 
     // Search test
     auto sequence = input_list;
     std::shuffle(sequence.begin(), sequence.end(), sampler);
     worker_lock.store(-1, std::memory_order::release);
     count.store(0, std::memory_order::release);
-    for (std::size_t i = 0; i < num_of_threads; ++i) {
-      const auto& inputs = sequence;
-      worker_list.emplace_back([num_of_samples, &inputs, map, &count, &worker_lock]()
-      {
-        // Wait this thread until all threads become ready
-        worker_lock.wait(-1, std::memory_order::acquire);
-        // Do the actual test
-        while (true) {
-          const std::size_t index = count.fetch_add(1, std::memory_order::acq_rel);
-          const std::size_t begin = index * batch_size;
-          const std::size_t end = (std::min)((index + 1) * batch_size, num_of_samples);
-          if (end <= begin)
-            break;
-          const std::size_t n = end - begin;
-          std::for_each_n(inputs.begin() + begin, n, [map](const uint64b& in)
-          {
-            const std::optional<std::size_t> result = map->contain(in);
-            ASSERT_TRUE(result.has_value()) << "Key not found, input=" << in;
-            const std::size_t index = *result;
-            ASSERT_EQ(in, map->get(index)) << "Map construction failed, input=" << in;
-          });
-        }
-      });
-    }
+    const auto& inputs2 = sequence;
+    const auto task2 = [num_of_samples, &inputs2, map, &count, &worker_lock](std::size_t)
+    {
+      // Wait this thread until all threads become ready
+      worker_lock.wait(-1, std::memory_order::acquire);
+      // Do the actual test
+      while (true) {
+        const std::size_t index = count.fetch_add(1, std::memory_order::acq_rel);
+        const std::size_t begin = index * batch_size;
+        const std::size_t end = (std::min)((index + 1) * batch_size, num_of_samples);
+        if (end <= begin)
+          break;
+        const std::size_t n = end - begin;
+        std::for_each_n(inputs2.begin() + begin, n, [map](const uint64b& in)
+        {
+          const std::optional<std::size_t> result = map->contain(in);
+          ASSERT_TRUE(result.has_value()) << "Key not found, input=" << in;
+          const std::size_t index = *result;
+          ASSERT_EQ(in, map->get(index)) << "Map construction failed, input=" << in;
+        });
+      }
+    };
+    thread_pool.run(task2);
     // Find min value
     {
       const auto expected = std::min_element(sequence.begin(), sequence.end());
@@ -183,42 +178,40 @@ void MapTest::testConcurrentThroughputOp(
       ASSERT_EQ(*expected, **result) << "Finding min element failed.";
     }
     // Start the test, notify all threads
-    worker_lock.store(zisc::cast<int>(worker_list.size()), std::memory_order::release);
+    worker_lock.store(zisc::cast<int>(thread_pool.numOfThreads()), std::memory_order::release);
     worker_lock.notify_all();
     // Wait the test done
-    std::for_each_n(worker_list.begin(), num_of_threads, [](std::thread& w){w.join();});
-    worker_list.clear();
+    thread_pool.waitForCompletion();
 
     // Delete test
     std::shuffle(sequence.begin(), sequence.end(), sampler);
     worker_lock.store(-1, std::memory_order::release);
     count.store(0, std::memory_order::release);
-    for (std::size_t i = 0; i < num_of_threads; ++i) {
-      const auto& inputs = sequence;
-      worker_list.emplace_back([num_of_samples, &inputs, map, &count, &worker_lock]()
-      {
-        // Wait this thread until all threads become ready
-        worker_lock.wait(-1, std::memory_order::acquire);
-        // Do the actual test
-        while (true) {
-          const std::size_t index = count.fetch_add(1, std::memory_order::acq_rel);
-          const std::size_t begin = index * batch_size;
-          const std::size_t end = (std::min)((index + 1) * batch_size, num_of_samples);
-          if (end <= begin)
-            break;
-          const std::size_t n = end - begin;
-          std::for_each_n(inputs.begin() + begin, n, [map](const uint64b& in)
-          {
-            [[maybe_unused]] const auto result = map->remove(in);
-          });
-        }
-      });
-    }
+    const auto& inputs3 = sequence;
+    const auto task3 = [num_of_samples, &inputs3, map, &count, &worker_lock](std::size_t)
+    {
+      // Wait this thread until all threads become ready
+      worker_lock.wait(-1, std::memory_order::acquire);
+      // Do the actual test
+      while (true) {
+        const std::size_t index = count.fetch_add(1, std::memory_order::acq_rel);
+        const std::size_t begin = index * batch_size;
+        const std::size_t end = (std::min)((index + 1) * batch_size, num_of_samples);
+        if (end <= begin)
+          break;
+        const std::size_t n = end - begin;
+        std::for_each_n(inputs3.begin() + begin, n, [map](const uint64b& in)
+        {
+          [[maybe_unused]] const auto result = map->remove(in);
+        });
+      }
+    };
+    thread_pool.run(task3);
     // Start the test, notify all threads
-    worker_lock.store(zisc::cast<int>(worker_list.size()), std::memory_order::release);
+    worker_lock.store(zisc::cast<int>(thread_pool.numOfThreads()), std::memory_order::release);
     worker_lock.notify_all();
     // Wait the test done
-    std::for_each_n(worker_list.begin(), num_of_threads, [](std::thread& w){w.join();});
+    thread_pool.waitForCompletion();
     ASSERT_EQ(0, map->size()) << "The search tree isn't empty.";
   }
 }
@@ -227,7 +220,7 @@ void MapTest::testConcurrentThroughputOp(
   \details No detailed description
 
   \tparam MapClass No description.
-  \param [in] num_of_threads No description.
+  \param [in] thread_pool No description.
   \param [in] num_of_samples No description.
   \param [in] num_of_keys No description.
   \param [in] num_of_rounds No description.
@@ -240,7 +233,7 @@ void MapTest::testConcurrentThroughputOp(
   */
 template <typename MapClass> inline
 void MapTest::testConcurrentThroughputTime(
-    const std::size_t num_of_threads,
+    ThreadPool& thread_pool,
     const std::size_t num_of_samples,
     const std::size_t num_of_keys,
     const std::size_t num_of_rounds,
@@ -277,33 +270,31 @@ void MapTest::testConcurrentThroughputTime(
 
     // 
     std::vector<std::size_t> total_list;
-    total_list.resize(num_of_threads, 0);
+    total_list.resize(thread_pool.numOfThreads(), 0);
     std::vector<zisc::int64b> added_list;
-    added_list.resize(num_of_threads, 0);
+    added_list.resize(thread_pool.numOfThreads(), 0);
     std::atomic_flag finish{};
     std::atomic_int worker_lock{-1};
-    std::vector<std::thread> worker_list;
-    worker_list.reserve(num_of_threads);
-    for (std::size_t i = 0; i < num_of_threads; ++i) {
-      const auto& inputs = input_list;
-      worker_list.emplace_back([num_of_threads, num_of_samples, trial_time, &inputs, &op_list, i, map, &total_list, &added_list, &finish, &worker_lock]()
-      {
-        // Wait this thread until all threads become ready
-        worker_lock.wait(-1, std::memory_order::acquire);
-        // Do the actual test
-        testConcurrentThroughputTimeImpl(num_of_threads, num_of_samples, trial_time,
-                                         inputs, op_list, i,
-                                         map, &total_list, &added_list, &finish);
-      });
-    }
+    const auto& inputs = input_list;
+    const std::size_t num_of_threads = thread_pool.numOfThreads();
+    const auto task = [num_of_threads, num_of_samples, trial_time, &inputs, &op_list, map, &total_list, &added_list, &finish, &worker_lock](const std::size_t i) noexcept
+    {
+      // Wait this thread until all threads become ready
+      worker_lock.wait(-1, std::memory_order::acquire);
+      // Do the actual test
+      testConcurrentThroughputTimeImpl(num_of_threads, num_of_samples, trial_time,
+                                       inputs, op_list, i,
+                                       map, &total_list, &added_list, &finish);
+    };
+    thread_pool.run(task);
 
     // Start the test, notify all threads
     const auto start_time = Clock::now();
-    worker_lock.store(zisc::cast<int>(worker_list.size()), std::memory_order::release);
+    worker_lock.store(zisc::cast<int>(num_of_threads), std::memory_order::release);
     worker_lock.notify_all();
 
     // Wait the test done
-    std::for_each_n(worker_list.begin(), num_of_threads, [](std::thread& w){w.join();});
+    thread_pool.waitForCompletion();
     const auto end_time = Clock::now();
 
     if (finish.test(std::memory_order::acquire)) {

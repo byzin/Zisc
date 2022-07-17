@@ -46,17 +46,20 @@ namespace test {
   */
 ThreadPool::ThreadPool(const std::size_t size)
 {
-  count_.store(size, std::memory_order::release);
+  count_.store(static_cast<int>(size), std::memory_order::release);
+  block1_.store(0, std::memory_order::release);
   worker_list_.reserve(size);
   for (std::size_t i = 0; i < size; ++i) {
     worker_list_.emplace_back([this, i]() noexcept
     {
       while (!flag_.test(std::memory_order::acquire)) {
-        if (func_)
+        if (func_) {
           func_(i);
+        }
         count_.fetch_sub(1, std::memory_order::relaxed);
-        flag_.wait(false, std::memory_order::acquire);
-        count_.fetch_add(1, std::memory_order::relaxed);
+        block1_.wait(0, std::memory_order::acquire);
+        block1_.fetch_sub(1, std::memory_order::relaxed);
+        block2_.wait(false, std::memory_order::acquire);
       }
     });
   }
@@ -75,6 +78,8 @@ ThreadPool::~ThreadPool() noexcept
 {
   waitForCompletion();
   func_.clear();
+  block1_.store(-1, std::memory_order::release);
+  block2_.test_and_set(std::memory_order::acq_rel);
   flag_.test_and_set(std::memory_order::acq_rel);
   flag_.notify_all();
   std::for_each_n(worker_list_.begin(), worker_list_.size(), [](std::thread& worker)
@@ -102,7 +107,14 @@ void ThreadPool::run(Function func) noexcept
 {
   waitForCompletion();
   func_ = func;
-  flag_.notify_all();
+  block2_.clear(std::memory_order::release);
+  block1_.store(static_cast<int>(numOfThreads()), std::memory_order::release);
+  count_.store(static_cast<int>(numOfThreads()), std::memory_order::release);
+  block1_.notify_all();
+  while (0 < block1_.load(std::memory_order::acquire))
+    std::this_thread::yield();
+  block2_.test_and_set(std::memory_order::acq_rel);
+  block2_.notify_all();
 }
 
 /*!

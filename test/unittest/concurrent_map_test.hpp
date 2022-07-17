@@ -67,7 +67,9 @@ class ThreadPool
   std::vector<std::thread> worker_list_;
   std::vector<std::thread::id> id_list_;
   Function func_;
-  std::atomic_size_t count_;
+  std::atomic_int count_;
+  std::atomic_int block1_;
+  std::atomic_flag block2_;
   std::atomic_flag flag_;
 };
 

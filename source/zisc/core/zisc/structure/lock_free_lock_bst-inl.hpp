@@ -113,12 +113,14 @@ LockFreeLockBst<Key, T, Compare>::LockFreeLockBst(LockFreeLockBst&& other) noexc
     BaseMapT(std::move(other)),
     timestamp_{std::move(other.timestamp_)},
     epoch_{std::move(other.epoch_)},
+    write_announcements_{std::move(other.write_announcements_)},
     log_list_{std::move(other.log_list_)},
     current_id_list_{std::move(other.current_id_list_)},
     helping_list_{std::move(other.helping_list_)},
     log_array_pool_{std::move(other.log_array_pool_)},
     internal_pool_{std::move(other.internal_pool_)},
     leaf_pool_{std::move(other.leaf_pool_)},
+    descriptor_pool_{std::move(other.descriptor_pool_)},
     dummy_{std::move(other.dummy_)},
     root_{std::move(other.root_)}
 {
@@ -146,12 +148,14 @@ auto LockFreeLockBst<Key, T, Compare>::operator=(LockFreeLockBst&& other) noexce
   BaseMapT::operator=(std::move(other));
   timestamp_ = std::move(other.timestamp_);
   epoch_ = std::move(other.epoch_);
+  write_announcements_ = std::move(other.write_announcements_);
   log_list_ = std::move(other.log_list_);
   current_id_list_ = std::move(other.current_id_list_);
   helping_list_ = std::move(other.helping_list_);
   log_array_pool_ = std::move(other.log_array_pool_);
   internal_pool_ = std::move(other.internal_pool_);
   leaf_pool_ = std::move(other.leaf_pool_);
+  descriptor_pool_ = std::move(other.descriptor_pool_);
   dummy_ = std::move(other.dummy_);
   root_ = std::move(other.root_);
   return *this;
@@ -181,7 +185,7 @@ auto LockFreeLockBst<Key, T, Compare>::add(Args&&... args) -> std::optional<size
       {
         return addImpl(value, query);
       };
-      result = tryLock(query.p_, std::move(impl));
+      result = tryLock(query.p_, impl);
     }
     return result;
   };
@@ -245,11 +249,11 @@ auto LockFreeLockBst<Key, T, Compare>::contain(ConstKeyT& key) const noexcept
   auto thunk = [this, &key]() noexcept -> std::optional<size_type>
   {
     flock::Log& log = threadLog();
-    ConstNodePtrT c = root().rightChild(&log);
+    ConstNodePtrT c = root()->rightChild(&log);
     while (!c->isLeaf())
       c = compare(key, c) ? c->leftChild(&log) : c->rightChild(&log);
     const std::optional<size_type> index = equal(key, c)
-        ? std::make_optional(leaf_pool_.getIndex(*c))
+        ? std::make_optional(leaf_pool_.getIndex(*static_cast<const LeafNode*>(c)))
         : std::make_optional(invalidId());
     return index;
   };
@@ -268,12 +272,12 @@ auto LockFreeLockBst<Key, T, Compare>::findMinKey() noexcept
   auto thunk = [this]() noexcept -> std::optional<size_type>
   {
     flock::Log& log = threadLog();
-    ConstNodePtrT c = root().rightChild(&log);
+    ConstNodePtrT c = root()->rightChild(&log);
     while (!c->isLeaf()) {
       ConstNodePtrT l = c->leftChild(&log);
       c = (l != nullptr) ? l : c->rightChild(&log);
     }
-    return std::make_optional(leaf_pool_.getIndex(*c));
+    return std::make_optional(leaf_pool_.getIndex(*static_cast<const LeafNode*>(c)));
   };
   const std::optional<size_type> index = epoch_->with(std::move(thunk));
   std::optional<Pointer> result{};
@@ -296,12 +300,12 @@ auto LockFreeLockBst<Key, T, Compare>::findMinKey() const noexcept
   auto thunk = [this]() noexcept -> std::optional<size_type>
   {
     flock::Log& log = threadLog();
-    ConstNodePtrT c = root().rightChild(&log);
+    ConstNodePtrT c = root()->rightChild(&log);
     while (!c->isLeaf()) {
       ConstNodePtrT l = c->leftChild(&log);
       c = (l != nullptr) ? l : c->rightChild(&log);
     }
-    return std::make_optional(leaf_pool_.getIndex(*c));
+    return std::make_optional(leaf_pool_.getIndex(*static_cast<const LeafNode*>(c)));
   };
   const std::optional<size_type> index = epoch_->with(std::move(thunk));
   std::optional<ConstPointer> result{};
@@ -386,14 +390,14 @@ auto LockFreeLockBst<Key, T, Compare>::remove(ConstKeyT& key) -> std::optional<s
         {
           return removeImpl(key, query);
         };
-        return tryLock(query.p_, std::move(impl2));
+        return tryLock(query.p_, impl2);
       };
-      result = tryLock(query.gp_, std::move(impl));
+      result = tryLock(query.gp_, impl);
     }
     return result;
   };
   std::optional<size_type> result = epoch_->with(std::move(thank));
-  if (!result.has_value)
+  if (!result.has_value())
     result = invalidId();
   return result;
 }
@@ -797,9 +801,23 @@ auto LockFreeLockBst<Key, T, Compare>::addImpl(Reference value, FindQueryResult&
     NodePtrT new_l = leaf_pool_.newObj(std::move(value));
     NodePtrT new_p = compare(c->key(), key) ? internal_pool_.newObj(key, c, new_l)
                                             : internal_pool_.newObj(c->key(), new_l, c);
-    ptr->store(new_p, &log);
-    result = leaf_pool_.getIndex(*new_l);
+    ptr->store(new_p, &write_announcements_, &log);
+    result = leaf_pool_.getIndex(*static_cast<const LeafNode*>(new_l));
   }
+  return result;
+}
+
+/*!
+  \details No detailed description
+
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
+  */
+template <std::movable Key, MappedValue T, std::invocable<Key, Key> Compare> inline
+bool LockFreeLockBst<Key, T, Compare>::compare(ConstKeyT& lhs, ConstKeyT& rhs) noexcept
+{
+  const bool result = CompareT{}(lhs, rhs);
   return result;
 }
 
@@ -813,7 +831,20 @@ auto LockFreeLockBst<Key, T, Compare>::addImpl(Reference value, FindQueryResult&
 template <std::movable Key, MappedValue T, std::invocable<Key, Key> Compare> inline
 bool LockFreeLockBst<Key, T, Compare>::compare(ConstKeyT& lhs, ConstNodePtrT rhs) noexcept
 {
-  const bool result = CompareT{}(lhs, rhs->key());
+  return compare(lhs, rhs->key());
+}
+
+/*!
+  \details No detailed description
+
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
+  */
+template <std::movable Key, MappedValue T, std::invocable<Key, Key> Compare> inline
+bool LockFreeLockBst<Key, T, Compare>::equal(ConstKeyT& lhs, ConstKeyT& rhs) noexcept
+{
+  const bool result = !CompareT{}(lhs, rhs) && !CompareT{}(rhs, lhs);
   return result;
 }
 
@@ -827,8 +858,7 @@ bool LockFreeLockBst<Key, T, Compare>::compare(ConstKeyT& lhs, ConstNodePtrT rhs
 template <std::movable Key, MappedValue T, std::invocable<Key, Key> Compare> inline
 bool LockFreeLockBst<Key, T, Compare>::equal(ConstKeyT& lhs, ConstNodePtrT rhs) noexcept
 {
-  const bool result = !CompareT{}(lhs, rhs->key()) && !CompareT{}(rhs->key(), lhs);
-  return result;
+  return equal(lhs, rhs->key());
 }
 
 /*!
@@ -856,7 +886,7 @@ auto LockFreeLockBst<Key, T, Compare>::findLocation(NodePtrT root,
     is_p_left = compare(key, p);
     c = is_p_left ? p->leftChild(&log) : p->rightChild(&log);
   }
-  return {gp, p, c, is_gp_left, is_p_left};
+  return {gp, p, c, is_gp_left, is_p_left, {0}};
 }
 
 /*!
@@ -878,7 +908,7 @@ void LockFreeLockBst<Key, T, Compare>::initialize() noexcept
   std::fill_n(helping_list_.begin(), n, Boolean{});
 
   //
-  *root_ = InternalNode{KeyT{0}, nullptr, &dummy_};
+  *root_ = InternalNode{KeyT{0}, nullptr, dummy_.get()};
 }
 
 /*!
@@ -918,7 +948,7 @@ auto LockFreeLockBst<Key, T, Compare>::removeImpl(ConstKeyT& key,
 {
   auto* p = static_cast<InternalNode*>(query.p_);
   auto* gp = static_cast<InternalNode*>(query.gp_);
-  NodePtrMutableT* ptr = query.is_gp_left ? &gp->left_ : &gp->right_;
+  NodePtrMutableT* ptr = query.is_gp_left_ ? &gp->left_ : &gp->right_;
   std::optional<size_type> result{};
   flock::Log& log = threadLog();
   if (gp->is_removed_.load(&log) || (ptr->load(&log) != p))
@@ -930,9 +960,9 @@ auto LockFreeLockBst<Key, T, Compare>::removeImpl(ConstKeyT& key,
   if (rc != query.c_)
     return result;
   p->is_removed_ = true;
-  ptr->store(lc, &log); // shortcut
+  ptr->store(lc, &write_announcements_, &log); // shortcut
   internal_pool_.retire(p);
-  result = leaf_pool_.getIndex(*query.c_);
+  result = leaf_pool_.getIndex(*static_cast<const LeafNode*>(query.c_));
   leaf_pool_.retire(static_cast<LeafNode*>(query.c_));
   return result;
 }

@@ -29,6 +29,7 @@ namespace zisc::flock {
 
 // Forward declaration
 class Log;
+class WriteAnnouncements;
 
 /*!
   \brief No brief description
@@ -72,7 +73,7 @@ class Mutable : private NonCopyable<Type>
   ValueT read() const noexcept;
 
   //!
-  void store(ValueT value, Log* log) noexcept;
+  void store(ValueT value, WriteAnnouncements* write_announcements, Log* log) noexcept;
 
  private:
   // Type aliases

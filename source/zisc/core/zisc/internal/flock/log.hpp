@@ -21,6 +21,7 @@
 #include <utility>
 // Zisc
 #include "definitions.hpp"
+#include "zisc/concepts.hpp"
 #include "zisc/non_copyable.hpp"
 #include "zisc/zisc_config.hpp"
 
@@ -75,6 +76,22 @@ class Log : private NonCopyable<Log>
   Log& operator=(Log&& other) noexcept;
 
 
+  //! Convert type from T to Type
+  template <std::integral Type, std::integral T>
+  static constexpr Type cast(const T value) noexcept;
+
+  //! Convert type from T to Type
+  template <Pointer Type, Pointer T>
+  static constexpr Type cast(const T value) noexcept;
+
+  //! Convert type from T to Type
+  template <Pointer Type, std::integral T>
+  static constexpr Type cast(const T value) noexcept;
+
+  //! Convert type from T to Type
+  template <std::integral Type, Pointer T>
+  static constexpr Type cast(const T value) noexcept;
+
   //!
   template <typename Type>
   CommitResultT<Type> commitValue(Type&& value) noexcept;
@@ -94,9 +111,9 @@ class Log : private NonCopyable<Log>
 
   //!
   template <std::invocable Function>
-  std::invoke_result_t<Function> doWith(Function&& func,
-                                        LogArray* pa,
-                                        const std::size_t c) noexcept;
+  std::invoke_result_t<Function> doWith(LogArray* pa,
+                                        const std::size_t c,
+                                        Function&& func) noexcept;
 
   //! Check if the log is empty
   bool isEmpty() const noexcept;

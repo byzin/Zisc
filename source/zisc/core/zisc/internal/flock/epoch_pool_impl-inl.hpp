@@ -137,7 +137,8 @@ template <typename xT> inline
 void EpochPoolImpl<xT>::destruct(Pointer p) noexcept
 {
   pmr::polymorphic_allocator<ValueT> alloc = getTypeAllocator();
-  alloc.template delete_object<ValueT>(p);
+  std::destroy_at(p);
+  alloc.deallocate(p, 1);
 }
 
 /*!
@@ -215,7 +216,8 @@ template <typename xT> template <typename ...Args> inline
 auto EpochPoolImpl<xT>::newObj(Args&&... args) noexcept -> Pointer
 {
   pmr::polymorphic_allocator<ValueT> alloc = getTypeAllocator();
-  Pointer v = alloc.template new_object<ValueT>(std::forward<Args>(args)...);
+  Pointer v = alloc.allocate(1);
+  alloc.construct(v, std::forward<Args>(args)...);
   return v;
 }
 
@@ -239,7 +241,7 @@ void EpochPoolImpl<xT>::reserve(const std::size_t size) noexcept
 template <typename xT> inline
 void EpochPoolImpl<xT>::retire(Pointer p) noexcept
 {
-  OldCurrent& pool = workerInfo().takeOut(pool_list_);
+  OldCurrent& pool = workerInfo().template takeOut<OldCurrent>(pool_list_);
 
   if (pool.epoch_ < epoch().getCurrent()) {
     clearPool(pool.old_);
@@ -254,7 +256,8 @@ void EpochPoolImpl<xT>::retire(Pointer p) noexcept
 
   {
     pmr::polymorphic_allocator<Link> alloc = getListAllocator();
-    Link* link = alloc.template new_object<Link>();
+    Link* link = alloc.allocate(1);
+    alloc.construct(link);
     link->next_ = pool.current_;
     link->value_ = cast<void*>(p);
     pool.current_ = link;
@@ -306,7 +309,8 @@ void EpochPoolImpl<xT>::clearPool(Link* ptr) noexcept
     Link* tmp = ptr;
     ptr = ptr->next_;
     destruct(reinterp<Pointer>(tmp->value_));
-    alloc.template delete_object<Link>(tmp);
+    std::destroy_at(tmp);
+    alloc.deallocate(tmp, 1);
   }
 }
 

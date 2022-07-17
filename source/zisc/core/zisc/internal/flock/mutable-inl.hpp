@@ -117,9 +117,11 @@ auto Mutable<Type>::read() const noexcept -> ValueT
   \param [in] log No description.
   */
 template <Pointer Type> inline
-void Mutable<Type>::store(ValueT value, Log* log) noexcept
+void Mutable<Type>::store(ValueT value,
+                          WriteAnnouncements* write_announcements,
+                          Log* log) noexcept
 {
-  TaggedT::cas(value_, getValue(log), value);
+  TaggedT::cas(value_, getValue(log), value, write_announcements, log);
 }
 
 /*!

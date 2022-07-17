@@ -27,6 +27,7 @@
 #include "definitions.hpp"
 #include "log.hpp"
 #include "zisc/non_copyable.hpp"
+#include "zisc/utility.hpp"
 #include "zisc/zisc_config.hpp"
 #include "zisc/memory/std_memory_resource.hpp"
 
@@ -262,7 +263,7 @@ auto MemoryPool<Type, PoolType>::newInit(Func&& func, Args&&... args) noexcept
     func(x);
     return x;
   };
-  Pointer new_value = log.doWith(std::move(f), nullptr, 0);
+  Pointer new_value = log.doWith(nullptr, 0, std::move(f));
   std::pair<Pointer, bool> result = log.commitValue(new_value);
   if (!result.second)
     pool_impl_.destruct(new_value);
@@ -309,7 +310,7 @@ auto MemoryPool<Type, PoolType>::newObjAcquired(Args&&... args) noexcept
     LogEntry* l = log.currentEntry();
     if (!flag && !isDone(ptr)) {
       pool_impl_.acquire(ptr);
-      auto* p = reinterp<Pointer>(l->load(std::memory_order::acquire));
+      auto* p = Log::cast<Pointer>(l->load(std::memory_order::acquire));
       result = ResultT{p, nullptr};
     }
     else {
@@ -335,11 +336,11 @@ auto MemoryPool<Type, PoolType>::newObjFl(Args&&... args) noexcept
   // TODO: helpers might do lots of allocates and frees,
   // can potentially optimize by checking if a log value has already been
   // committed.
-  auto func = [this, ...args = std::forward<Args>(args)]() noexcept
+  auto func = [this, &args...]() noexcept
   {
     return pool_impl_.newObj(std::forward<Args>(args)...);
   };
-  Pointer new_value = log.doWith(std::move(func), nullptr, 0);
+  Pointer new_value = log.doWith(nullptr, 0, std::move(func));
   std::pair<Pointer, bool> result = log.commitValue(new_value);
   // If already allocated return back to pool
   if (!result.second)
@@ -459,7 +460,7 @@ const WorkerInfo& MemoryPool<Type, PoolType>::workerInfo() const noexcept
 template <typename Type, typename PoolType> inline
 bool MemoryPool<Type, PoolType>::extractBool(Pointer p) noexcept
 {
-  const bool result = (bit_cast<std::size_t>(p) >> 48) == 1ull;
+  const bool result = (Log::cast<std::size_t>(p) >> 48) == 1ull;
   return result;
 }
 
@@ -474,7 +475,7 @@ std::optional<std::size_t> MemoryPool<Type, PoolType>::extractResult(Pointer p) 
 {
   using ResultT = std::optional<std::size_t>;
   const ResultT result = extractBool(p)
-      ? ResultT{bit_cast<std::size_t>(p) & cast<std::size_t>((1ull << 48) - 1)}
+      ? ResultT{Log::cast<std::size_t>(p) & Log::cast<std::size_t>((1ull << 48) - 1)}
       : ResultT{};
   return result;
 }
@@ -489,7 +490,7 @@ std::optional<std::size_t> MemoryPool<Type, PoolType>::extractResult(Pointer p) 
 template <typename Type, typename PoolType> inline
 bool MemoryPool<Type, PoolType>::isDoneFlag(Pointer p) noexcept
 {
-  const bool result = 0 < (bit_cast<std::size_t>(p) >> 48);
+  const bool result = 0 < (Log::cast<std::size_t>(p) >> 48);
   return result;
 }
 
@@ -504,7 +505,7 @@ void* MemoryPool<Type, PoolType>::tagBool(const bool result) noexcept
 {
   constexpr std::size_t p1 = 1ull << 48;
   constexpr std::size_t p2 = 2ull << 48;
-  auto* p = bit_cast<void*>(result ? p1 : p2);
+  auto* p = Log::cast<void*>(result ? p1 : p2);
   return p;
 }
 
@@ -520,8 +521,8 @@ void* MemoryPool<Type, PoolType>::tagResult(const std::optional<TT> result) noex
 {
   constexpr std::size_t p1 = 1ull << 48;
   constexpr std::size_t p2 = 2ull << 48;
-  const std::size_t p = (!result.has_value()) ? p2 : (p1 | bit_cast<std::size_t>(*result));
-  return bit_cast<void*>(p);
+  const std::size_t p = (!result.has_value()) ? p2 : (p1 | cast<std::size_t>(**result));
+  return Log::cast<void*>(p);
 }
 
 } /* namespace zisc::flock */

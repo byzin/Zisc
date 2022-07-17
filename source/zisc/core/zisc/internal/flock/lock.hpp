@@ -28,6 +28,7 @@
 #include "definitions.hpp"
 #include "descriptor.hpp"
 #include "tag.hpp"
+#include "zisc/boolean.hpp"
 #include "zisc/non_copyable.hpp"
 #include "zisc/memory/std_memory_resource.hpp"
 
@@ -62,9 +63,6 @@ class Lock : private NonCopyable<Lock<kIsHelpUsed>>
   using LogArrayPoolT = EpochPoolImpl<LogArray>;
 
 
-  static constexpr bool kDefaultTryOnly = true;
-
-
   //! Create a lock
   Lock() noexcept;
 
@@ -95,9 +93,8 @@ class Lock : private NonCopyable<Lock<kIsHelpUsed>>
                WriteAnnouncements* write_announcements,
                Log* log,
                std::size_t* current_id,
-               bool* helping,
-               DescriptorPoolT* descriptor_pool,
-               const bool try_only = kDefaultTryOnly) noexcept;
+               Boolean* helping,
+               DescriptorPoolT* descriptor_pool) noexcept;
 
   //!
   template <std::invocable Thank>
@@ -106,9 +103,8 @@ class Lock : private NonCopyable<Lock<kIsHelpUsed>>
                                      WriteAnnouncements* write_announcements,
                                      Log* log,
                                      std::size_t* current_id,
-                                     bool* helping,
-                                     DescriptorPoolT* descriptor_pool,
-                                     const bool try_only = kDefaultTryOnly) noexcept;
+                                     Boolean* helping,
+                                     DescriptorPoolT* descriptor_pool) noexcept;
 
  private:
   // Type aliases
@@ -183,7 +179,7 @@ class Lock : private NonCopyable<Lock<kIsHelpUsed>>
                       WriteAnnouncements* write_announcements,
                       Log* log,
                       std::size_t* current_id,
-                      bool* helping,
+                      Boolean* helping,
                       DescriptorPoolT* descriptor_pool,
                       const bool recursive_help = false) noexcept;
 
@@ -195,32 +191,18 @@ class Lock : private NonCopyable<Lock<kIsHelpUsed>>
 
   //!
   template <std::invocable Thank>
-  ResultT<Thank> withLockHelp(Thank&& func,
-                              Epoch* epoch,
-                              WriteAnnouncements* write_announcements,
-                              Log* log,
-                              std::size_t* current_id,
-                              bool* helping,
-                              DescriptorPoolT* descriptor_pool) noexcept;
-
-  //!
-  template <std::invocable Thank>
-  ResultT<Thank> withLockNoHelp(Thank&& func,
-                                const std::size_t current_id) noexcept;
-
-  //!
-  template <std::invocable Thank>
   ResultOptionT<Thank> tryLockHelp(Thank&& func,
                                    Epoch* epoch,
                                    WriteAnnouncements* write_announcements,
                                    Log* log,
                                    std::size_t* current_id,
-                                   bool* helping,
+                                   Boolean* helping,
                                    DescriptorPoolT* descriptor_pool) noexcept;
 
   //!
   template <std::invocable Thank>
   ResultOptionT<Thank> tryLockNoHelp(Thank&& func,
+                                     Log* log,
                                      const std::size_t current_id) noexcept;
 
 

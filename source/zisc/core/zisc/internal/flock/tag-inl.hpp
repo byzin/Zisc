@@ -69,7 +69,7 @@ bool Tag<Type>::cas(std::atomic<IT>& loc,
 {
   bool result = false;
   if (log->isEmpty() || aba_free) {
-    const IT new_value = next(old_value, value, bit_cast<IT>(&loc));
+    const IT new_value = next(old_value, value, bit_cast<IT>(&loc), write_announcements);
     result = loc.compare_exchange_strong(old_value,
                                          new_value,
                                          std::memory_order::acq_rel,
@@ -78,10 +78,10 @@ bool Tag<Type>::cas(std::atomic<IT>& loc,
   else {
     // Announce the location and tag been written
     write_announcements->set(add(old_value, bit_cast<IT>(&loc)));
-    log->skipIfDone([&loc, &old_value, &value, &result]()
+    log->skipIfDone([&loc, &old_value, &value, &result, write_announcements]()
     // skiip both for correctness, and efficiency
     {
-      const IT new_value = next(old_value, value, bit_cast<IT>(&loc));
+      const IT new_value = next(old_value, value, bit_cast<IT>(&loc), write_announcements);
       result = loc.compare_exchange_strong(old_value,
                                            new_value,
                                            std::memory_order::acq_rel,

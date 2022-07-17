@@ -21,6 +21,7 @@
 #include <concepts>
 #include <cstddef>
 #include <limits>
+#include <optional>
 #include <span>
 // Zisc
 #include "definitions.hpp"
@@ -109,9 +110,9 @@ Descriptor& Descriptor::operator=(Descriptor&& other) noexcept
   \param [in] log No description.
   */
 inline
-void Descriptor::operator()(Log* log) noexcept
+std::optional<std::size_t> Descriptor::operator()(Log* log) noexcept
 {
-  run(log);
+  return run(log);
 }
 
 /*!
@@ -184,11 +185,12 @@ const LogArray& Descriptor::logArray() const noexcept
   \details No detailed description
   */
 inline
-void Descriptor::run(Log* log) noexcept
+std::optional<std::size_t> Descriptor::run(Log* log) noexcept
 {
   // run f using log based on lg_array
-  log->doWith(func_, &log_array_, 0);
+  std::optional<std::size_t> result = log->doWith(&log_array_, 0, func_);
   done_ = true;
+  return result;
 }
 
 /*!

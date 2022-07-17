@@ -27,6 +27,7 @@
 #include "epoch_pool_impl.hpp"
 #include "log_array.hpp"
 #include "zisc/bit.hpp"
+#include "zisc/concepts.hpp"
 #include "zisc/error.hpp"
 #include "zisc/utility.hpp"
 #include "zisc/zisc_config.hpp"
@@ -81,6 +82,68 @@ Log& Log::operator=(Log&& other) noexcept
 }
 
 /*!
+  \details No detailed description
+
+  \tparam Type No description.
+  \tparam T No description.
+  \param [in] value No description.
+  \return No description
+  */
+template <std::integral Type, std::integral T> inline
+constexpr Type Log::cast(const T value) noexcept
+{
+  return static_cast<Type>(value);
+}
+
+/*!
+  \details No detailed description
+
+  \tparam Type No description.
+  \tparam T No description.
+  \param [in] value No description.
+  \return No description
+  */
+template <Pointer Type, Pointer T> inline
+constexpr Type Log::cast(const T value) noexcept
+{
+  return static_cast<Type>(value);
+}
+
+/*!
+  \details No detailed description
+
+  \tparam Type No description.
+  \tparam T No description.
+  \param [in] value No description.
+  \return No description
+  */
+template <Pointer Type, std::integral T> inline
+constexpr Type Log::cast(const T value) noexcept
+{
+  if constexpr (sizeof(Type) == sizeof(T))
+    return bit_cast<Type>(value);
+  else
+    return bit_cast<Type>(static_cast<std::size_t>(value));
+}
+
+/*!
+  \details No detailed description
+
+  \tparam Type No description.
+  \tparam T No description.
+  \param [in] value No description.
+  \return No description
+  */
+template <std::integral Type, Pointer T> inline
+constexpr Type Log::cast(const T value) noexcept
+{
+  if constexpr (sizeof(Type) == sizeof(T))
+    return bit_cast<Type>(value);
+  else
+    return static_cast<Type>(bit_cast<std::size_t>(value));
+}
+
+/*!
   \details commits a value to the log, or returns existing value if already committed
   along with a false flag. Type must be convertible to void*
   initialized with null pointer, so should not commit a nullptr (or zero)
@@ -99,7 +162,7 @@ auto Log::commitValue(Type&& value) noexcept -> CommitResultT<Type>
   EntryPtr l = nextEntry();
   using ValueT = EntryT::value_type;
   ValueT old_value = l->load(std::memory_order::acquire);
-  ValueT new_value = bit_cast<ValueT>(value);
+  ValueT new_value = cast<ValueT>(value);
   using T = std::remove_cvref_t<Type>;
   CommitResultT<Type> result = ((old_value == nullptr) &&
                                 l->compare_exchange_strong(old_value,
@@ -107,7 +170,7 @@ auto Log::commitValue(Type&& value) noexcept -> CommitResultT<Type>
                                                            std::memory_order::acq_rel,
                                                            std::memory_order::acquire))
       ? std::make_pair(std::forward<Type>(value), true)
-      : std::make_pair(bit_cast<T>(old_value), false);
+      : std::make_pair(cast<T>(old_value), false);
   return result;
 }
 
@@ -121,7 +184,8 @@ auto Log::commitValue(Type&& value) noexcept -> CommitResultT<Type>
 template <typename Type> inline
 auto Log::commitValueSafe(Type&& value) noexcept -> CommitResultT<Type>
 {
-  static_assert(sizeof(Type) <= 6 || std::is_pointer_v<Type>,
+  using T = std::remove_cvref_t<Type>;
+  static_assert(sizeof(T) <= 6 || std::is_pointer_v<T>,
                 "Type for commit_value_safe must be a pointer or at most 6 bytes");
   if (isEmpty())
     return std::make_pair(std::forward<Type>(value), true);
@@ -130,15 +194,14 @@ auto Log::commitValueSafe(Type&& value) noexcept -> CommitResultT<Type>
   EntryPtr l = nextEntry();
   using ValueT = EntryT::value_type;
   ValueT old_value = l->load(std::memory_order::acquire);
-  ValueT new_value = bit_cast<ValueT>(bit_cast<std::size_t>(value) | set_bit);
-  using T = std::remove_cvref_t<Type>;
+  ValueT new_value = cast<ValueT>(cast<std::size_t>(value) | set_bit);
   CommitResultT<Type> result = ((old_value == nullptr) &&
                                 l->compare_exchange_strong(old_value,
                                                            new_value,
                                                            std::memory_order::acq_rel,
                                                            std::memory_order::acquire))
       ? std::make_pair(std::forward<Type>(value), true)
-      : std::make_pair(bit_cast<T>(bit_cast<std::size_t>(old_value) & ~set_bit), false);
+      : std::make_pair(cast<T>(cast<std::size_t>(old_value) & ~set_bit), false);
   return result;
 }
 
@@ -180,9 +243,9 @@ auto Log::currentEntry() const noexcept -> ConstEntryPtr
 }
 
 template <std::invocable Function> inline
-std::invoke_result_t<Function> Log::doWith(Function&& func,
-                                           LogArray* pa,
-                                           const std::size_t c) noexcept
+std::invoke_result_t<Function> Log::doWith(LogArray* pa,
+                                           const std::size_t c,
+                                           Function&& func) noexcept
 {
   LogArray* hold_pa = values_;
   const std::size_t hold_count = count();
@@ -277,7 +340,7 @@ bool Log::skipIfDone(Function&& func) noexcept
     if (l->load(std::memory_order::acquire) == nullptr) { // check that no already completed
       func();
       // mark as completed
-      auto* v = bit_cast<void*>(cast<std::size_t>(1));
+      auto* v = cast<void*>(1);
       l->store(v, std::memory_order::release);
       result = true;
     }

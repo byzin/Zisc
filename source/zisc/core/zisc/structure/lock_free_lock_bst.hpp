@@ -163,7 +163,7 @@ class LockFreeLockBst : public Map<LockFreeLockBst<Key, T, Compare>, Key, T, Com
   using NodePtrT = std::add_pointer_t<Node>;
   using ConstNodePtrT = std::add_pointer_t<ConstNodeT>;
   using NodePtrMutableT = flock::Mutable<NodePtrT>;
-  using LockT = flock::Lock<false>;
+  using LockT = flock::Lock<true>;
 
   /*!
     \brief Common header for internal nodes and leaves

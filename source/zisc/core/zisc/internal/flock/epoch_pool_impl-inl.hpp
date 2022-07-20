@@ -27,6 +27,7 @@
 #include "epoch.hpp"
 #include "worker_info.hpp"
 #include "zisc/zisc_config.hpp"
+#include "zisc/memory/memory.hpp"
 #include "zisc/memory/std_memory_resource.hpp"
 
 namespace zisc::flock {
@@ -123,6 +124,8 @@ void EpochPoolImpl<xT>::clear() noexcept
     p.old_ = nullptr;
     clearPool(p.current_);
     p.current_ = nullptr;
+    p.epoch_ = epoch().getCurrent();
+    p.count_ = 0;
   });
   type_resource_.clear();
   list_resource_.clear();
@@ -216,8 +219,14 @@ template <typename xT> template <typename ...Args> inline
 auto EpochPoolImpl<xT>::newObj(Args&&... args) noexcept -> Pointer
 {
   pmr::polymorphic_allocator<ValueT> alloc = getTypeAllocator();
-  Pointer v = alloc.allocate(1);
-  alloc.construct(v, std::forward<Args>(args)...);
+  Pointer v = nullptr;
+  try {
+    v = alloc.allocate(1);
+  }
+  catch ([[maybe_unused]] const Memory::BadAlloc& error) {
+  }
+  if (v != nullptr)
+    alloc.construct(v, std::forward<Args>(args)...);
   return v;
 }
 
@@ -243,18 +252,19 @@ void EpochPoolImpl<xT>::retire(Pointer p) noexcept
 {
   OldCurrent& pool = workerInfo().template takeOut<OldCurrent>(pool_list_);
 
-  if (pool.epoch_ < epoch().getCurrent()) {
+  const Epoch::ValueT current = epoch().getCurrent();
+  if (pool.epoch_ < current) {
     clearPool(pool.old_);
     pool.old_ = pool.current_;
     pool.current_ = nullptr;
-    pool.epoch_ = epoch().getCurrent();
+    pool.epoch_ = current;
   }
 
   // a heuristic
   if (++pool.count_ % (workerInfo().numOfWorkers() * 10) == 0)
     epoch().updateEpoch();
 
-  {
+  if (p != nullptr) {
     pmr::polymorphic_allocator<Link> alloc = getListAllocator();
     Link* link = alloc.allocate(1);
     alloc.construct(link);

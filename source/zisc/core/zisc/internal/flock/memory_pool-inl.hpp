@@ -260,12 +260,13 @@ auto MemoryPool<Type, PoolType>::newInit(Func&& func, Args&&... args) noexcept
   auto f = [this, &func, ...args = std::forward<Args>(args)]() noexcept
   {
     Pointer x = pool_impl_.newObj(std::forward<Args>(args)...);
-    func(x);
+    if (x != nullptr) [[likely]]
+      func(x);
     return x;
   };
   Pointer new_value = log.doWith(nullptr, 0, std::move(f));
   std::pair<Pointer, bool> result = log.commitValue(new_value);
-  if (!result.second)
+  if ((new_value != nullptr) && !result.second)
     pool_impl_.destruct(new_value);
   return result.first;
 }
@@ -343,7 +344,7 @@ auto MemoryPool<Type, PoolType>::newObjFl(Args&&... args) noexcept
   Pointer new_value = log.doWith(nullptr, 0, std::move(func));
   std::pair<Pointer, bool> result = log.commitValue(new_value);
   // If already allocated return back to pool
-  if (!result.second)
+  if ((new_value != nullptr) && !result.second)
     pool_impl_.destruct(new_value);
   return result;
 }

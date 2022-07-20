@@ -55,9 +55,7 @@ class Lock : private NonCopyable<Lock<kIsHelpUsed>>
   // Type aliases
   using EntryT = LockEntry;
   template <std::invocable Thank>
-  using ResultT = std::invoke_result_t<Thank>;
-  template <std::invocable Thank>
-  using ResultOptionT = std::optional<ResultT<Thank>>;
+  using ResultOptionalT = std::optional<std::invoke_result_t<Thank>>;
   using DescriptorPoolImplT = TaggedPoolImpl<Descriptor>;
   using DescriptorPoolT = MemoryPool<Descriptor, DescriptorPoolImplT>;
   using LogArrayPoolT = EpochPoolImpl<LogArray>;
@@ -88,23 +86,13 @@ class Lock : private NonCopyable<Lock<kIsHelpUsed>>
 
   //!
   template <std::invocable Thank>
-  bool tryLock(Thank&& func,
-               Epoch* epoch,
-               WriteAnnouncements* write_announcements,
-               Log* log,
-               std::size_t* current_id,
-               Boolean* helping,
-               DescriptorPoolT* descriptor_pool) noexcept;
-
-  //!
-  template <std::invocable Thank>
-  ResultOptionT<Thank> tryLockResult(Thank&& func,
-                                     Epoch* epoch,
-                                     WriteAnnouncements* write_announcements,
-                                     Log* log,
-                                     std::size_t* current_id,
-                                     Boolean* helping,
-                                     DescriptorPoolT* descriptor_pool) noexcept;
+  ResultOptionalT<Thank> tryLock(Thank&& func,
+                                 Epoch* epoch,
+                                 WriteAnnouncements* write_announcements,
+                                 Log* log,
+                                 std::size_t* current_id,
+                                 Boolean* helping,
+                                 DescriptorPoolT* descriptor_pool) noexcept;
 
  private:
   // Type aliases
@@ -191,19 +179,18 @@ class Lock : private NonCopyable<Lock<kIsHelpUsed>>
 
   //!
   template <std::invocable Thank>
-  ResultOptionT<Thank> tryLockHelp(Thank&& func,
-                                   Epoch* epoch,
-                                   WriteAnnouncements* write_announcements,
-                                   Log* log,
-                                   std::size_t* current_id,
-                                   Boolean* helping,
-                                   DescriptorPoolT* descriptor_pool) noexcept;
+  ResultOptionalT<Thank> tryLockHelp(Thank&& func,
+                                     Epoch* epoch,
+                                     WriteAnnouncements* write_announcements,
+                                     Log* log,
+                                     std::size_t* current_id,
+                                     Boolean* helping,
+                                     DescriptorPoolT* descriptor_pool) noexcept;
 
   //!
   template <std::invocable Thank>
-  ResultOptionT<Thank> tryLockNoHelp(Thank&& func,
-                                     Log* log,
-                                     const std::size_t current_id) noexcept;
+  ResultOptionalT<Thank> tryLockNoHelp(Thank&& func,
+                                       const std::size_t current_id) noexcept;
 
 
   std::atomic<EntryT> lock_;

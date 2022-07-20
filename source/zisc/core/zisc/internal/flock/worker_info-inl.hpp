@@ -25,6 +25,7 @@
 #include <utility>
 #include <vector>
 // Zisc
+#include "zisc/algorithm.hpp"
 #include "zisc/error.hpp"
 #include "zisc/zisc_config.hpp"
 #include "zisc/memory/std_memory_resource.hpp"
@@ -136,6 +137,8 @@ std::add_lvalue_reference_t<Type> WorkerInfo::takeOut(std::span<Type> list) cons
   ZISC_ASSERT(list.size() == numOfWorkers(),
               "The size of the list doesn't match with size of the worker info.");
   const std::size_t index = getCurrentWorkerId();
+  ZISC_ASSERT(isInBounds(index, 0u, numOfWorkers()),
+              "Current worker is out of the worker list.");
   return list[index];
 }
 

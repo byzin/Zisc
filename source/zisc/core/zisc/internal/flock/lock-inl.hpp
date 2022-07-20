@@ -128,47 +128,18 @@ bool Lock<kIsHelpUsed>::isSelfLocked(const std::size_t current_id) const noexcep
   \return No description
   */
 template <bool kIsHelpUsed> template <std::invocable Thank> inline
-bool Lock<kIsHelpUsed>::tryLock(Thank&& func,
+auto Lock<kIsHelpUsed>::tryLock(Thank&& func,
                                 Epoch* epoch,
                                 WriteAnnouncements* write_announcements,
                                 Log* log,
                                 std::size_t* current_id,
                                 Boolean* helping,
                                 DescriptorPoolT* descriptor_pool) noexcept
+    -> ResultOptionalT<Thank>
 {
-  const ResultOptionT<Thank> r = isHelpUsed()
+  ResultOptionalT<Thank> result = isHelpUsed()
       ? tryLockHelp(std::forward<Thank>(func), epoch, write_announcements, log, current_id, helping, descriptor_pool)
-      : tryLockNoHelp(std::forward<Thank>(func), log, *current_id);
-  const bool result = r.has_value() && cast<bool>(r.value());
-  return result;
-}
-
-/*!
-  \details No detailed description
-
-  \tparam Thank No description.
-  \param [in] func No description.
-  \param [in,out] epoch No description.
-  \param [in,out] write_announcements No description.
-  \param [in,out] log No description.
-  \param [in,out] current_id No description.
-  \param [in,out] helping No description.
-  \param [in,out] descriptor_pool No description.
-  \return No description
-  */
-template <bool kIsHelpUsed> template <std::invocable Thank> inline
-auto Lock<kIsHelpUsed>::tryLockResult(Thank&& func,
-                                      Epoch* epoch,
-                                      WriteAnnouncements* write_announcements,
-                                      Log* log,
-                                      std::size_t* current_id,
-                                      Boolean* helping,
-                                      DescriptorPoolT* descriptor_pool) noexcept
-    -> ResultOptionT<Thank>
-{
-  ResultOptionT<Thank> result = isHelpUsed()
-      ? tryLockHelp(std::forward<Thank>(func), epoch, write_announcements, log, current_id, helping, descriptor_pool)
-      : tryLockNoHelp(std::forward<Thank>(func), log, *current_id);
+      : tryLockNoHelp(std::forward<Thank>(func), *current_id);
   return result;
 }
 
@@ -449,11 +420,9 @@ auto Lock<kIsHelpUsed>::tryLockHelp(Thank&& func,
                                     std::size_t* current_id,
                                     Boolean* helping,
                                     DescriptorPoolT* descriptor_pool) noexcept
-    -> ResultOptionT<Thank>
+    -> ResultOptionalT<Thank>
 {
-  ResultOptionT<Thank> result{};
   EntryT current = load(log);
-
   // check if reentrant lock (already locked by self)
   if (Help::isLocked(current) && Help::isSelfLocked(current, *current_id)) {
     // If so, run without acquiring
@@ -466,9 +435,11 @@ auto Lock<kIsHelpUsed>::tryLockHelp(Thank&& func,
   auto [my_desc, i_own] = descriptor_pool->newObjAcquired(func, current, *epoch, *current_id);
 
   // If descriptor is already retired, then done and return value
+  using ResultT = typename ResultOptionalT<Thank>::value_type;
   if (descriptor_pool->isDone(my_desc))
-    return descriptor_pool->doneValueResult<ResultT<Thank>>(my_desc);
+    return descriptor_pool->doneValueResult<ResultT>(my_desc);
 
+  ResultOptionalT<Thank> result{};
   // Retrieve agreed upon current for idempotence
   // current = my_desc->current
   if (!Help::isLocked(current)) {
@@ -508,18 +479,17 @@ auto Lock<kIsHelpUsed>::tryLockHelp(Thank&& func,
   */
 template <bool kIsHelpUsed> template <std::invocable Thank> inline
 auto Lock<kIsHelpUsed>::tryLockNoHelp(Thank&& func,
-                                      Log* log,
                                       const std::size_t current_id) noexcept
-    -> ResultOptionT<Thank>
+    -> ResultOptionalT<Thank>
 {
-  ResultOptionT<Thank> result{};
-  EntryT current = load(log);
+  ResultOptionalT<Thank> result{};
+  EntryT current = read();
   if (!NoHelp::isLocked(current)) { // unlocked
     std::size_t new_l = NoHelp::takeLock(current, current_id);
-    if (casSimple(current_id, new_l)) { // try lock
-      auto result = func();
+    if (casSimple(current, new_l)) { // try lock
+      auto r = func();
       lock_.store(NoHelp::releaseLock(new_l), std::memory_order::release); // release
-      result = std::move(result);
+      result = std::move(r);
     }
   }
   else if (NoHelp::isSelfLocked(current, current_id)) { // reentry

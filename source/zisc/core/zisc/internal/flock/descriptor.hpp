@@ -19,7 +19,6 @@
 #include <atomic>
 #include <concepts>
 #include <cstddef>
-#include <optional>
 #include <span>
 // Zisc
 #include "definitions.hpp"
@@ -45,10 +44,10 @@ class Descriptor : private NonCopyable<Descriptor>
  public:
   // Type aliases
   using EntryT = LockEntry;
-  using ThunkT = FunctionReference<std::optional<std::size_t> ()>;
+  using ThankT = FunctionReference<void ()>;
 
   //! Create a descriptor
-  Descriptor(ThunkT func,
+  Descriptor(ThankT func,
              const EntryT current,
              const Epoch& epoch,
              const std::size_t current_id) noexcept;
@@ -64,7 +63,7 @@ class Descriptor : private NonCopyable<Descriptor>
   Descriptor& operator=(Descriptor&& other) noexcept;
 
   //!
-  std::optional<std::size_t> operator()(Log* log) noexcept;
+  void operator()(Log* log) noexcept;
 
 
   //! Return the underlying acquired flag
@@ -86,7 +85,7 @@ class Descriptor : private NonCopyable<Descriptor>
   const LogArray& logArray() const noexcept;
 
   //!
-  std::optional<std::size_t> run(Log* log) noexcept;
+  void run(Log* log) noexcept;
 
   //!
   void setDone(const bool done) noexcept;
@@ -99,7 +98,7 @@ class Descriptor : private NonCopyable<Descriptor>
   void initialize(const bool acquired_flag) noexcept;
 
 
-  ThunkT func_;
+  ThankT func_;
   EntryT current_;
   LogArray log_array_;
   Epoch::ValueT epoch_num_;

@@ -21,7 +21,6 @@
 #include <concepts>
 #include <cstddef>
 #include <limits>
-#include <optional>
 #include <span>
 // Zisc
 #include "definitions.hpp"
@@ -44,7 +43,7 @@ namespace zisc::flock {
   \param [in] current_id No description.
   */
 inline
-Descriptor::Descriptor(ThunkT func,
+Descriptor::Descriptor(ThankT func,
                        const EntryT current,
                        const Epoch& epoch,
                        const std::size_t current_id) noexcept :
@@ -110,9 +109,9 @@ Descriptor& Descriptor::operator=(Descriptor&& other) noexcept
   \param [in] log No description.
   */
 inline
-std::optional<std::size_t> Descriptor::operator()(Log* log) noexcept
+void Descriptor::operator()(Log* log) noexcept
 {
-  return run(log);
+  run(log);
 }
 
 /*!
@@ -185,12 +184,11 @@ const LogArray& Descriptor::logArray() const noexcept
   \details No detailed description
   */
 inline
-std::optional<std::size_t> Descriptor::run(Log* log) noexcept
+void Descriptor::run(Log* log) noexcept
 {
   // run f using log based on lg_array
-  std::optional<std::size_t> result = log->doWith(&log_array_, 0, func_);
+  log->doWith(&log_array_, 0, func_);
   done_ = true;
-  return result;
 }
 
 /*!

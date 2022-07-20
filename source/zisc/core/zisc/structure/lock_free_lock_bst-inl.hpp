@@ -42,6 +42,7 @@
 #include "zisc/internal/flock/memory_pool.hpp"
 #include "zisc/internal/flock/mutable.hpp"
 #include "zisc/internal/flock/write_once.hpp"
+#include "zisc/memory/memory.hpp"
 #include "zisc/memory/std_memory_resource.hpp"
 
 namespace zisc {
@@ -173,7 +174,7 @@ auto LockFreeLockBst<Key, T, Compare>::add(Args&&... args) -> std::optional<size
     requires std::is_nothrow_constructible_v<ValueT, Args...>
 {
   ValueT value{std::forward<Args>(args)...};
-  auto thank = [this, &value]() -> std::optional<size_type>
+  auto thank = [this, &value]() noexcept -> std::optional<size_type>
   {
     ConstKeyT& key = BaseMapT::getKey(value);
     std::optional<size_type> result{};
@@ -181,7 +182,7 @@ auto LockFreeLockBst<Key, T, Compare>::add(Args&&... args) -> std::optional<size
       FindQueryResult query = findLocation(root(), key);
       if (equal(key, query.c_))
         break;
-      auto impl = [this, &value, &query]() -> std::optional<size_type>
+      auto impl = [this, &value, &query]() noexcept -> std::optional<size_type>
       {
         return addImpl(value, query);
       };
@@ -190,8 +191,11 @@ auto LockFreeLockBst<Key, T, Compare>::add(Args&&... args) -> std::optional<size
     return result;
   };
   std::optional<size_type> result = epoch_->with(std::move(thank));
-  if (!result.has_value())
-    result = invalidId();
+  if (result.has_value() && (result.value() == overflowId())) {
+    using OverflowErr = typename BaseMapT::OverflowError;
+    const char* message = "Bst overflow happened.";
+    throw OverflowErr{message, resource(), std::move(value)};
+  }
   return result;
 }
 
@@ -254,7 +258,7 @@ auto LockFreeLockBst<Key, T, Compare>::contain(ConstKeyT& key) const noexcept
       c = compare(key, c) ? c->leftChild(&log) : c->rightChild(&log);
     const std::optional<size_type> index = equal(key, c)
         ? std::make_optional(leaf_pool_.getIndex(*static_cast<const LeafNode*>(c)))
-        : std::make_optional(invalidId());
+        : std::optional<size_type>{};
     return index;
   };
   return epoch_->with(std::move(thunk));
@@ -269,23 +273,7 @@ template <std::movable Key, MappedValue T, std::invocable<Key, Key> Compare> inl
 auto LockFreeLockBst<Key, T, Compare>::findMinKey() noexcept
     -> std::optional<Pointer>
 {
-  auto thunk = [this]() noexcept -> std::optional<size_type>
-  {
-    flock::Log& log = threadLog();
-    ConstNodePtrT c = root()->rightChild(&log);
-    while (!c->isLeaf()) {
-      ConstNodePtrT l = c->leftChild(&log);
-      c = (l != nullptr) ? l : c->rightChild(&log);
-    }
-    return std::make_optional(leaf_pool_.getIndex(*static_cast<const LeafNode*>(c)));
-  };
-  const std::optional<size_type> index = epoch_->with(std::move(thunk));
-  std::optional<Pointer> result{};
-  if (index.has_value() && (*index != invalidId())) {
-    const LeafNode& node = leaf_pool_.getObject(*index);
-    result = const_cast<Pointer>(&node.value_);
-  }
-  return result;
+  return findMinKeyImpl();
 }
 
 /*!
@@ -297,23 +285,7 @@ template <std::movable Key, MappedValue T, std::invocable<Key, Key> Compare> inl
 auto LockFreeLockBst<Key, T, Compare>::findMinKey() const noexcept
     -> std::optional<ConstPointer>
 {
-  auto thunk = [this]() noexcept -> std::optional<size_type>
-  {
-    flock::Log& log = threadLog();
-    ConstNodePtrT c = root()->rightChild(&log);
-    while (!c->isLeaf()) {
-      ConstNodePtrT l = c->leftChild(&log);
-      c = (l != nullptr) ? l : c->rightChild(&log);
-    }
-    return std::make_optional(leaf_pool_.getIndex(*static_cast<const LeafNode*>(c)));
-  };
-  const std::optional<size_type> index = epoch_->with(std::move(thunk));
-  std::optional<ConstPointer> result{};
-  if (index.has_value() && (*index != invalidId())) {
-    const LeafNode& node = leaf_pool_.getObject(*index);
-    result = &node.value_;
-  }
-  return result;
+  return findMinKeyImpl();
 }
 
 /*!
@@ -384,11 +356,11 @@ auto LockFreeLockBst<Key, T, Compare>::remove(ConstKeyT& key) -> std::optional<s
       if (!equal(key, query.c_) || ((prev_leaf != nullptr) && (prev_leaf != query.c_)))
         break;
       prev_leaf = query.c_;
-      auto impl = [this, &key, &query]() -> std::optional<size_type>
+      auto impl = [this, &query]() -> std::optional<size_type>
       {
-        auto impl2 = [this, &key, &query]() -> std::optional<size_type>
+        auto impl2 = [this, &query]() -> std::optional<size_type>
         {
-          return removeImpl(key, query);
+          return removeImpl(query);
         };
         return tryLock(query.p_, impl2);
       };
@@ -397,8 +369,6 @@ auto LockFreeLockBst<Key, T, Compare>::remove(ConstKeyT& key) -> std::optional<s
     return result;
   };
   std::optional<size_type> result = epoch_->with(std::move(thank));
-  if (!result.has_value())
-    result = invalidId();
   return result;
 }
 
@@ -787,7 +757,7 @@ auto LockFreeLockBst<Key, T, Compare>::LeafNode::key() const noexcept -> ConstKe
   \return No description
   */
 template <std::movable Key, MappedValue T, std::invocable<Key, Key> Compare> inline
-auto LockFreeLockBst<Key, T, Compare>::addImpl(Reference value, FindQueryResult& query)
+auto LockFreeLockBst<Key, T, Compare>::addImpl(Reference value, FindQueryResult& query) noexcept
     -> std::optional<size_type>
 {
   auto* p = static_cast<InternalNode*>(query.p_);
@@ -799,10 +769,16 @@ auto LockFreeLockBst<Key, T, Compare>::addImpl(Reference value, FindQueryResult&
   if (!p->is_removed_.load(&log) && (l_new == c)) {
     ConstKeyT& key = BaseMapT::getKey(value);
     NodePtrT new_l = leaf_pool_.newObj(std::move(value));
-    NodePtrT new_p = compare(c->key(), key) ? internal_pool_.newObj(key, c, new_l)
-                                            : internal_pool_.newObj(c->key(), new_l, c);
-    ptr->store(new_p, &write_announcements_, &log);
-    result = leaf_pool_.getIndex(*static_cast<const LeafNode*>(new_l));
+    if (new_l != nullptr) {
+      NodePtrT new_p = compare(c->key(), key)
+          ? internal_pool_.newObj(key, c, new_l)
+          : internal_pool_.newObj(c->key(), new_l, c);
+      ptr->store(new_p, &write_announcements_, &log);
+      result = leaf_pool_.getIndex(*static_cast<const LeafNode*>(new_l));
+    }
+    else {
+      result = overflowId();
+    }
   }
   return result;
 }
@@ -891,6 +867,36 @@ auto LockFreeLockBst<Key, T, Compare>::findLocation(NodePtrT root,
 
 /*!
   \details No detailed description
+
+  \return No description
+  */
+template <std::movable Key, MappedValue T, std::invocable<Key, Key> Compare> inline
+auto LockFreeLockBst<Key, T, Compare>::findMinKeyImpl() const noexcept
+    -> std::optional<Pointer>
+{
+  auto thunk = [this]() noexcept -> size_type
+  {
+    flock::Log& log = threadLog();
+    ConstNodePtrT c = root()->rightChild(&log);
+    while (!c->isLeaf()) {
+      ConstNodePtrT l = c->leftChild(&log);
+      c = (l != nullptr) ? l : c->rightChild(&log);
+    }
+    return (c->key() != maxKey())
+        ? leaf_pool_.getIndex(*static_cast<const LeafNode*>(c))
+        : invalidId();
+  };
+  const size_type index = epoch_->with(std::move(thunk));
+  std::optional<Pointer> result{};
+  if (index != invalidId()) {
+    const LeafNode& node = leaf_pool_.getObject(index);
+    result = const_cast<Pointer>(&node.value_);
+  }
+  return result;
+}
+
+/*!
+  \details No detailed description
   */
 template <std::movable Key, MappedValue T, std::invocable<Key, Key> Compare> inline
 void LockFreeLockBst<Key, T, Compare>::initialize() noexcept
@@ -919,8 +925,8 @@ void LockFreeLockBst<Key, T, Compare>::initialize() noexcept
 template <std::movable Key, MappedValue T, std::invocable<Key, Key> Compare> inline
 constexpr auto LockFreeLockBst<Key, T, Compare>::invalidId() noexcept -> size_type
 {
-  constexpr size_type invalid = (std::numeric_limits<size_type>::max)();
-  return invalid;
+  constexpr size_type id = (std::numeric_limits<size_type>::max)();
+  return id;
 }
 
 /*!
@@ -937,13 +943,24 @@ constexpr auto LockFreeLockBst<Key, T, Compare>::maxKey() noexcept -> KeyT
 /*!
   \details No detailed description
 
+  \return No description
+  */
+template <std::movable Key, MappedValue T, std::invocable<Key, Key> Compare> inline
+constexpr auto LockFreeLockBst<Key, T, Compare>::overflowId() noexcept -> size_type
+{
+  constexpr size_type id = invalidId() - 1;
+  return id;
+}
+
+/*!
+  \details No detailed description
+
   \param [in] key No description.
   \param [in] result No description.
   \return No description
   */
 template <std::movable Key, MappedValue T, std::invocable<Key, Key> Compare> inline
-auto LockFreeLockBst<Key, T, Compare>::removeImpl(ConstKeyT& key,
-                                                  FindQueryResult& query)
+auto LockFreeLockBst<Key, T, Compare>::removeImpl(FindQueryResult& query) noexcept
     -> std::optional<size_type>
 {
   auto* p = static_cast<InternalNode*>(query.p_);
@@ -1022,20 +1039,22 @@ flock::Log& LockFreeLockBst<Key, T, Compare>::threadLog() const noexcept
   */
 template <std::movable Key, MappedValue T, std::invocable<Key, Key> Compare>
 template <std::invocable Thank> inline
-bool LockFreeLockBst<Key, T, Compare>::tryLock(NodePtrT node, Thank&& func) noexcept
+auto LockFreeLockBst<Key, T, Compare>::tryLock(NodePtrT node, Thank&& func) noexcept
+    -> std::invoke_result_t<Thank>
 {
   const flock::WorkerInfo& info = epoch_->workerInfo();
   flock::Log& log = info.takeOut<flock::Log>(log_list_);
   std::size_t& current_id = info.takeOut<std::size_t>(current_id_list_);
   Boolean& helping = info.takeOut<Boolean>(helping_list_);
-  const bool result = node->lock()->tryLock(std::forward<Thank>(func),
-                                            epoch_.get(),
-                                            &write_announcements_,
-                                            &log,
-                                            &current_id,
-                                            &helping,
-                                            &descriptor_pool_);
-  return result;
+  using ReturnT = std::invoke_result_t<Thank>;
+  std::optional<ReturnT> result = node->lock()->tryLock(std::forward<Thank>(func),
+                                                        epoch_.get(),
+                                                        &write_announcements_,
+                                                        &log,
+                                                        &current_id,
+                                                        &helping,
+                                                        &descriptor_pool_);
+  return result.has_value() ? std::move(result.value()) : ReturnT{};
 }
 
 } // namespace zisc

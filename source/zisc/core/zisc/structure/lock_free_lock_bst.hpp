@@ -163,7 +163,7 @@ class LockFreeLockBst : public Map<LockFreeLockBst<Key, T, Compare>, Key, T, Com
   using NodePtrT = std::add_pointer_t<Node>;
   using ConstNodePtrT = std::add_pointer_t<ConstNodeT>;
   using NodePtrMutableT = flock::Mutable<NodePtrT>;
-  using LockT = flock::Lock<true>;
+  using LockT = flock::Lock<false>;
 
   /*!
     \brief Common header for internal nodes and leaves
@@ -328,7 +328,7 @@ class LockFreeLockBst : public Map<LockFreeLockBst<Key, T, Compare>, Key, T, Com
 
   //! Insert the given value into the bst
   [[nodiscard]] std::optional<size_type> addImpl(Reference value,
-                                                 FindQueryResult& query);
+                                                 FindQueryResult& query) noexcept;
 
   //! Compare the two keys
   static bool compare(ConstKeyT& lhs, ConstKeyT& rhs) noexcept;
@@ -345,6 +345,9 @@ class LockFreeLockBst : public Map<LockFreeLockBst<Key, T, Compare>, Key, T, Com
   //!
   FindQueryResult findLocation(NodePtrT root, ConstKeyT& key) const noexcept;
 
+  //! Find the minimum key in the bst
+  std::optional<Pointer> findMinKeyImpl() const noexcept;
+
   //! Initialize the node
   void initialize() noexcept;
 
@@ -354,9 +357,11 @@ class LockFreeLockBst : public Map<LockFreeLockBst<Key, T, Compare>, Key, T, Com
   //! Return the maximym key
   static constexpr KeyT maxKey() noexcept;
 
+  //! Return the overflow id
+  static constexpr size_type overflowId() noexcept;
+
   //! Remove the value from the bst
-  [[nodiscard]] std::optional<size_type> removeImpl(ConstKeyT& key,
-                                                    FindQueryResult& query);
+  [[nodiscard]] std::optional<size_type> removeImpl(FindQueryResult& query) noexcept;
 
   //! Remove nodes under the subtree
   void removeSubTree(NodePtrT root) noexcept;
@@ -372,7 +377,7 @@ class LockFreeLockBst : public Map<LockFreeLockBst<Key, T, Compare>, Key, T, Com
 
   //!
   template <std::invocable Thank>
-  bool tryLock(NodePtrT node, Thank&& func) noexcept;
+  std::invoke_result_t<Thank> tryLock(NodePtrT node, Thank&& func) noexcept;
 
 
   pmr::unique_ptr<TimestampT> timestamp_;

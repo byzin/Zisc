@@ -43,24 +43,21 @@ class ResourceCreator
   //
   ResourceCreator() noexcept
   {
-    data_ = zisc::aligned_alloc(std::alignment_of_v<MemResource>, sizeof(MemResource));
   }
 
   //
   ~ResourceCreator()
   {
-    zisc::free(data_);
   }
 
-  MemResource* create()
+  zisc::pmr::unique_ptr<MemResource> create()
   {
-    MemResource* data = ::new (data_) MemResource{&resource_};
-    return data;
+    zisc::pmr::polymorphic_allocator<MemResource> alloc{&resource_};
+    return zisc::pmr::allocateUnique<MemResource>(alloc, &resource_);
   }
 
  private:
   zisc::AllocFreeResource resource_;
-  void* data_ = nullptr;
 };
 
 } /* namespace */
@@ -72,7 +69,7 @@ TEST(MonotonicBufferResourceTest, AllocationTest)
   using ResourceCreator = ::ResourceCreator<capacity_max, alignment_max>;
   using MemResource = typename ResourceCreator::MemResource;
   ResourceCreator creator;
-  MemResource* resource = creator.create();
+  zisc::pmr::unique_ptr<MemResource> resource = creator.create();
   ASSERT_LE(alignment_max, resource->alignment()) << "Resource initialization failed.";
   ASSERT_LE(capacity_max, resource->capacity()) << "Resource initialization failed.";
   ASSERT_FALSE(resource->isOccupied()) << "Resource initialization failed.";
@@ -121,6 +118,8 @@ TEST(MonotonicBufferResourceTest, AllocationTest)
   resource->release();
   ASSERT_FALSE(resource->isOccupied()) << "Releasing the resource failed.";
   ASSERT_EQ(0, resource->size()) << "Releasing the resource failed.";
+
+  resource.reset();
 }
 
 TEST(MonotonicBufferResourceTest, AlignmentTest)
@@ -130,7 +129,7 @@ TEST(MonotonicBufferResourceTest, AlignmentTest)
   using ResourceCreator = ::ResourceCreator<capacity_max, alignment_max>;
   using MemResource = typename ResourceCreator::MemResource;
   ResourceCreator creator;
-  MemResource* resource = creator.create();
+  zisc::pmr::unique_ptr<MemResource> resource = creator.create();
   ASSERT_LE(alignment_max, resource->alignment()) << "Resource initialization failed.";
   ASSERT_LE(capacity_max, resource->capacity()) << "Resource initialization failed.";
   ASSERT_FALSE(resource->isOccupied()) << "Resource initialization failed.";
@@ -144,7 +143,7 @@ TEST(MonotonicBufferResourceTest, AlignmentTest)
     using Data = void*;
     std::array<Data, 4> data_list;
     // Allocation
-    std::for_each(data_list.begin(), data_list.end(), [alignment, resource](Data& data)
+    std::for_each(data_list.begin(), data_list.end(), [alignment, &resource](Data& data)
     {
       try {
         data = resource->allocate(alignment, alignment);
@@ -171,7 +170,7 @@ TEST(MonotonicBufferResourceTest, AlignmentTest)
       });
     });
     // Deallocatino
-    std::for_each(data_list.begin(), data_list.end(), [alignment, resource](Data data)
+    std::for_each(data_list.begin(), data_list.end(), [alignment, &resource](Data data)
     {
       resource->deallocate(data, alignment, alignment);
     });
@@ -181,6 +180,8 @@ TEST(MonotonicBufferResourceTest, AlignmentTest)
     ASSERT_FALSE(resource->isOccupied()) << "Releasing the resource failed.";
     ASSERT_EQ(0, resource->size()) << "Releasing the resource failed.";
   }
+
+  resource.reset();
 }
 
 TEST(MonotonicBufferResourceTest, MultiThreadTest)
@@ -192,7 +193,7 @@ TEST(MonotonicBufferResourceTest, MultiThreadTest)
   using ResourceCreator = ::ResourceCreator<capacity_max, alignment_max>;
   using MemResource = typename ResourceCreator::MemResource;
   ResourceCreator creator;
-  MemResource* resource = creator.create();
+  zisc::pmr::unique_ptr<MemResource> resource = creator.create();
   ASSERT_LE(alignment_max, resource->alignment()) << "Resource initialization failed.";
   ASSERT_LE(capacity_max, resource->capacity()) << "Resource initialization failed.";
   ASSERT_FALSE(resource->isOccupied()) << "Resource initialization failed.";
@@ -206,7 +207,7 @@ TEST(MonotonicBufferResourceTest, MultiThreadTest)
 
   // Allocation test
   for (std::size_t i = 0; i < n_threads; ++i) {
-    worker_list.emplace_back([i, resource, &data_list, &worker_lock]()
+    worker_list.emplace_back([i, &resource, &data_list, &worker_lock]()
     {
       // Wait the thread until all threads become ready
       worker_lock.wait(-1, std::memory_order::acquire);
@@ -246,7 +247,7 @@ TEST(MonotonicBufferResourceTest, MultiThreadTest)
   // Deallocation test
   worker_lock.store(-1, std::memory_order::release);
   for (std::size_t i = 0; i < n_threads; ++i) {
-    worker_list.emplace_back([i, resource, &data_list, &worker_lock]()
+    worker_list.emplace_back([i, &resource, &data_list, &worker_lock]()
     {
       // Wait the thread until all threads become ready
       worker_lock.wait(-1, std::memory_order::acquire);
@@ -270,4 +271,6 @@ TEST(MonotonicBufferResourceTest, MultiThreadTest)
   resource->release();
   ASSERT_FALSE(resource->isOccupied()) << "Releasing the resource failed.";
   ASSERT_EQ(0, resource->size()) << "Releasing the resource failed.";
+
+  resource.reset();
 }

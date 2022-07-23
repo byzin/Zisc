@@ -326,7 +326,7 @@ template <typename MapClass,
           std::invocable<Key, Key> Compare> inline
 auto Map<MapClass, Key, T, Compare>::ref() noexcept -> MapReference
 {
-  auto q = static_cast<MapPtr>(this);
+  auto* q = static_cast<MapPtr>(this);
   return *q;
 }
 
@@ -341,7 +341,7 @@ template <typename MapClass,
           std::invocable<Key, Key> Compare> inline
 auto Map<MapClass, Key, T, Compare>::ref() const noexcept -> ConstMapReference
 {
-  auto q = static_cast<ConstMapPtr>(this);
+  const auto* q = static_cast<ConstMapPtr>(this);
   return *q;
 }
 

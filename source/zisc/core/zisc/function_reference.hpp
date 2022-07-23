@@ -17,10 +17,9 @@
 
 // Standard C++ library
 #include <algorithm>
+#include <concepts>
 #include <cstddef>
 #include <type_traits>
-// Zisc
-#include "concepts.hpp"
 
 namespace zisc {
 
@@ -50,12 +49,12 @@ class FunctionReference<ReturnT (ArgTypes...)>
   FunctionReference() noexcept = default;
 
   //! Create a reference to the given callable object
-  template <InvocableR<ReturnT, ArgTypes...> Func>
+  template <std::invocable<ArgTypes...> Func>
   FunctionReference(Func&& func) noexcept;
 
 
   //! Create a reference to the given callable object
-  template <InvocableR<ReturnT, ArgTypes...> Func>
+  template <std::invocable<ArgTypes...> Func>
   FunctionReference& operator=(Func&& func) noexcept;
 
   //! Invoke a referenced callable object
@@ -66,7 +65,7 @@ class FunctionReference<ReturnT (ArgTypes...)>
 
 
   //! Create a reference to the given callable object
-  template <InvocableR<ReturnT, ArgTypes...> Func>
+  template <std::invocable<ArgTypes...> Func>
   FunctionReference& assign(Func&& func) noexcept;
 
   //! Clear the underlying reference to a callable object
@@ -92,7 +91,7 @@ class FunctionReference<ReturnT (ArgTypes...)>
   static constexpr Type forward(ArgRef<Type> arg) noexcept;
 
   //! Initialize with a callable object
-  template <InvocableR<ReturnT, ArgTypes...> Func>
+  template <std::invocable<ArgTypes...> Func>
   void initialize(Func&& func) noexcept;
 
   //! Invoke a referenced callable object 

@@ -37,7 +37,7 @@ namespace zisc {
   \param [in] func No description.
   */
 template <typename ReturnT, typename ...ArgTypes>
-template <InvocableR<ReturnT, ArgTypes...> Func> inline
+template <std::invocable<ArgTypes...> Func> inline
 FunctionReference<ReturnT (ArgTypes...)>::FunctionReference(Func&& func) noexcept
 {
   assign(func);
@@ -51,7 +51,7 @@ FunctionReference<ReturnT (ArgTypes...)>::FunctionReference(Func&& func) noexcep
   \return No description
   */
 template <typename ReturnT, typename ...ArgTypes>
-template <InvocableR<ReturnT, ArgTypes...> Func> inline
+template <std::invocable<ArgTypes...> Func> inline
 auto FunctionReference<ReturnT (ArgTypes...)>::operator=(Func&& func) noexcept -> FunctionReference&
 {
   return assign(std::forward<Func>(func));
@@ -89,7 +89,7 @@ FunctionReference<ReturnT (ArgTypes...)>::operator bool() const noexcept
   \return No description
   */
 template <typename ReturnT, typename ...ArgTypes>
-template <InvocableR<ReturnT, ArgTypes...> Func> inline
+template <std::invocable<ArgTypes...> Func> inline
 auto FunctionReference<ReturnT (ArgTypes...)>::assign(Func&& func) noexcept -> FunctionReference&
 {
   if constexpr (std::same_as<FunctionReference, std::remove_cvref_t<Func>>) {
@@ -160,7 +160,7 @@ constexpr Type FunctionReference<ReturnT (ArgTypes...)>::forward(ArgRef<Type> ar
   \param [in] func No description.
   */
 template <typename ReturnT, typename ...ArgTypes>
-template <InvocableR<ReturnT, ArgTypes...> Func> inline
+template <std::invocable<ArgTypes...> Func> inline
 void FunctionReference<ReturnT (ArgTypes...)>::initialize(Func&& func) noexcept
 {
   using Function = std::remove_volatile_t<std::remove_reference_t<Func>>;
@@ -215,7 +215,10 @@ auto FunctionReference<ReturnT (ArgTypes...)>::invokeFunctionPointer(
     ArgTypes... args) -> ReturnT
 {
   auto ptr = bit_cast<FuncPtr>(mem);
-  return std::invoke(ptr, forward<ArgTypes>(args)...);
+  if constexpr (std::is_void_v<ReturnT>)
+    std::invoke(ptr, forward<ArgTypes>(args)...);
+  else
+    return std::invoke(ptr, forward<ArgTypes>(args)...);
 }
 
 /*!
@@ -233,7 +236,10 @@ auto FunctionReference<ReturnT (ArgTypes...)>::invokeFunctor(
 {
   using FuncPtr = std::add_pointer_t<Functor>;
   auto ptr = bit_cast<FuncPtr>(mem);
-  return std::invoke(*ptr, forward<ArgTypes>(args)...);
+  if constexpr (std::is_void_v<ReturnT>)
+    std::invoke(*ptr, forward<ArgTypes>(args)...);
+  else
+    return std::invoke(*ptr, forward<ArgTypes>(args)...);
 }
 
 /*!

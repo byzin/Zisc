@@ -16,6 +16,8 @@
 #define ZISC_BITSET_HPP
 
 // Standard C++ library
+#include <atomic>
+#include <concepts>
 #include <cstddef>
 #include <memory>
 #include <type_traits>
@@ -36,12 +38,12 @@ class Bitset : private NonCopyable<Bitset>
 {
  public:
   // Types
-  using ValueType = uint64b;
-  using ConstType = std::add_const_t<ValueType>;
-  using Reference = std::add_lvalue_reference_t<ValueType>;
-  using ConstReference = std::add_lvalue_reference_t<ConstType>;
-  using Pointer = std::add_pointer_t<ValueType>;
-  using ConstPointer = std::add_pointer_t<ConstType>;
+  using BitT = uint64b;
+  using ConstT = std::add_const_t<BitT>;
+  using Reference = std::add_lvalue_reference_t<BitT>;
+  using ConstReference = std::add_lvalue_reference_t<ConstT>;
+  using Pointer = std::add_pointer_t<BitT>;
+  using ConstPointer = std::add_pointer_t<ConstT>;
 
 
   //! Create a bitset
@@ -70,8 +72,8 @@ class Bitset : private NonCopyable<Bitset>
   //! Return the number of bits set to true
   std::size_t count(const std::size_t begin, const std::size_t end) const noexcept;
 
-  //! Return the default size
-  static constexpr std::size_t defaultSize() noexcept;
+  //! Return the block at the pos
+  BitT getBlock(const std::size_t pos) const noexcept;
 
   //! Check if all bits are set to true
   bool isAll() const noexcept;
@@ -110,26 +112,50 @@ class Bitset : private NonCopyable<Bitset>
   bool testAndSet(const std::size_t pos, const bool value) noexcept;
 
  private:
-  //! Return the reference of a block
-  Reference getBlock(const std::size_t pos) noexcept;
+  // Type aliases
+  using AtomicT = std::atomic<BitT>;
+  using AConstT = std::add_const_t<AtomicT>;
+  using AReference = std::add_lvalue_reference_t<AtomicT>;
+  using AConstReference = std::add_lvalue_reference_t<AConstT>;
+  using APointer = std::add_pointer_t<AtomicT>;
+  using AConstPointer = std::add_pointer_t<AConstT>;
+
+  struct Wrapper
+  {
+    //! Create a wrapper
+    Wrapper() noexcept;
+
+    //! Move a data
+    Wrapper(Wrapper&& other) noexcept;
+
+    //! Move a data
+    Wrapper& operator=(Wrapper&& other) noexcept;
+
+    AtomicT value_;
+  };
+
 
   //! Return the reference of a block
-  ConstReference getBlock(const std::size_t pos) const noexcept;
+  AReference getBlockRef(const std::size_t pos) noexcept;
+
+  //! Return the reference of a block
+  AConstReference getBlockRef(const std::size_t pos) const noexcept;
 
   //!
   template <typename Func>
-  ValueType iterate(const std::size_t begin,
-                    const std::size_t end,
-                    Func func) const noexcept;
+  std::size_t iterate(const std::size_t begin,
+                      const std::size_t end,
+                      Func func) const noexcept
+  requires std::invocable<Func, ConstT, AConstReference, std::size_t&>;
 
   //! Make a bit mask
-  static ValueType makeMask(const std::size_t pos) noexcept;
+  static BitT makeMask(const std::size_t pos) noexcept;
 
   //! Make a bit mask
-  static ValueType makeMask(const std::size_t begin, const std::size_t end) noexcept;
+  static BitT makeMask(const std::size_t begin, const std::size_t end) noexcept;
 
 
-  pmr::vector<ValueType> block_list_;
+  pmr::vector<Wrapper> block_list_;
   std::size_t size_;
 };
 

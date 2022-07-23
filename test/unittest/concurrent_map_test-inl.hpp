@@ -95,7 +95,8 @@ void MapTest::testConcurrentThroughputOp(
     const bool use_sparse,
     const bool use_zipfian,
     const double zipfian_param,
-    zisc::Map<MapClass, zisc::uint64b>* map)
+    zisc::Map<MapClass, zisc::uint64b>* map,
+    const bool is_clear_needed)
 {
   using zisc::uint64b;
   using Map = std::remove_cvref_t<decltype(*map)>;
@@ -212,6 +213,8 @@ void MapTest::testConcurrentThroughputOp(
     worker_lock.notify_all();
     // Wait the test done
     thread_pool.waitForCompletion();
+    if (is_clear_needed)
+      map->clear();
     ASSERT_EQ(0, map->size()) << "The search tree isn't empty.";
   }
 }
@@ -243,7 +246,8 @@ void MapTest::testConcurrentThroughputTime(
     const bool use_sparse,
     const bool use_zipfian,
     const double zipfian_param,
-    zisc::Map<MapClass, zisc::uint64b>* map)
+    zisc::Map<MapClass, zisc::uint64b>* map,
+    const bool is_clear_needed)
 {
   using zisc::uint64b;
   using Map = std::remove_cvref_t<decltype(*map)>;
@@ -302,6 +306,7 @@ void MapTest::testConcurrentThroughputTime(
       std::cout << "  [Warning] out of samples, finished in " << time << " ms."
                 << std::endl;
     }
+    if (!is_clear_needed)
     {
       const zisc::int64b updates = std::reduce(added_list.begin(), added_list.end());
       ASSERT_EQ(num_of_keys + updates, map->size()) << "Search tree operation failed.";

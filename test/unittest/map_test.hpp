@@ -26,15 +26,18 @@ class MovableMValue;
 
 //!
 template <typename MapClass>
-void testSimpleBoundedMap(zisc::Map<MapClass, int>* map);
+void testSimpleBoundedMap(zisc::Map<MapClass, int>* map,
+                          const bool is_clear_needed = false);
 
 //!
 template <typename MapClass>
-void testMovableValueMap(zisc::Map<MapClass, int, MovableMValue>* map);
+void testMovableValueMap(zisc::Map<MapClass, int, MovableMValue>* map,
+                         const bool is_clear_needed = false);
 
 //!
 template <typename MapClass>
-void testTinyCapacityMap(zisc::Map<MapClass, int>* map);
+void testTinyCapacityMap(zisc::Map<MapClass, int>* map,
+                         const bool is_clear_needed = false);
 
 } /* namespace test */
 

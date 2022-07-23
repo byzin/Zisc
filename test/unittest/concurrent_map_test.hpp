@@ -133,7 +133,8 @@ class MapTest
       const bool use_sparse,
       const bool use_zipfian,
       const double zipfian_param,
-      zisc::Map<MapClass, zisc::uint64b>* map);
+      zisc::Map<MapClass, zisc::uint64b>* map,
+      const bool is_clear_needed = false);
 
   //
   template <typename MapClass>
@@ -148,7 +149,8 @@ class MapTest
       const bool use_sparse,
       const bool use_zipfian,
       const double zipfian_param,
-      zisc::Map<MapClass, zisc::uint64b>* map);
+      zisc::Map<MapClass, zisc::uint64b>* map,
+      const bool is_clear_needed = false);
 
 
   static constexpr std::size_t kNumOfDefaultThreads = 128;

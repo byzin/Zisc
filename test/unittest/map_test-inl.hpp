@@ -41,7 +41,8 @@ namespace test {
   \param [in,out] map No description.
   */
 template <typename MapClass> inline
-void testSimpleBoundedMap(zisc::Map<MapClass, int>* map)
+void testSimpleBoundedMap(zisc::Map<MapClass, int>* map,
+                          const bool is_clear_needed)
 {
   using Map = std::remove_cvref_t<decltype(*map)>;
   static_assert(Map::isBounded(), "The map isn't bounded map.");
@@ -124,6 +125,8 @@ void testSimpleBoundedMap(zisc::Map<MapClass, int>* map)
     ASSERT_TRUE(result.has_value()) << message;
   };
   std::for_each(vlist.begin(), vlist.end(), test_remove);
+  if (is_clear_needed)
+    map->clear();
   ASSERT_TRUE(map->isEmpty()) << message;
 
   // Remove overlap test
@@ -149,6 +152,8 @@ void testSimpleBoundedMap(zisc::Map<MapClass, int>* map)
 
   // Clean map data test
   message = "Cleaning map data failed.";
+  if (is_clear_needed)
+    map->clear();
   ASSERT_TRUE(map->isEmpty()) << message;
   std::for_each(vlist.begin(), vlist.end(), test_add);
   ASSERT_FALSE(map->isEmpty()) << message;
@@ -190,7 +195,8 @@ class MovableMValue : public zisc::NonCopyable<MovableMValue>
   \param [in,out] map No description.
   */
 template <typename MapClass> inline
-void testMovableValueMap(zisc::Map<MapClass, int, MovableMValue>* map)
+void testMovableValueMap(zisc::Map<MapClass, int, MovableMValue>* map,
+                         const bool is_clear_needed)
 {
   using Map = std::remove_cvref_t<decltype(*map)>;
   using Movable = MovableMValue;
@@ -281,6 +287,8 @@ void testMovableValueMap(zisc::Map<MapClass, int, MovableMValue>* map)
     ASSERT_TRUE(result.has_value()) << message;
   };
   std::for_each(vlist.begin(), vlist.end(), test_remove);
+  if (is_clear_needed)
+    map->clear();
   ASSERT_TRUE(map->isEmpty()) << message;
 
   // Remove overlap test
@@ -306,6 +314,8 @@ void testMovableValueMap(zisc::Map<MapClass, int, MovableMValue>* map)
 
   // Clean map data test
   message = "Cleaning map data failed.";
+  if (is_clear_needed)
+    map->clear();
   ASSERT_TRUE(map->isEmpty()) << message;
   std::for_each(vlist.begin(), vlist.end(), test_add);
   ASSERT_FALSE(map->isEmpty()) << message;
@@ -314,7 +324,8 @@ void testMovableValueMap(zisc::Map<MapClass, int, MovableMValue>* map)
 }
 
 template <typename MapClass> inline
-void testTinyCapacityMap(zisc::Map<MapClass, int>* map)
+void testTinyCapacityMap(zisc::Map<MapClass, int>* map,
+                         const bool is_clear_needed)
 {
   ASSERT_EQ(1, map->capacity()) << "Map capacity isn't 1.";
   constexpr std::size_t n = 65536;
@@ -339,6 +350,8 @@ void testTinyCapacityMap(zisc::Map<MapClass, int>* map)
       const std::optional<std::size_t> result = map->remove(value);
       ASSERT_TRUE(result.has_value()) << message;
     }
+    if (is_clear_needed)
+      map->clear();
     ASSERT_EQ(0, map->size()) << message;
     ASSERT_TRUE(map->isEmpty()) << message;
   }

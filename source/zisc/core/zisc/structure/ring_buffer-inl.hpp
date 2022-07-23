@@ -136,6 +136,12 @@ std::size_t RingBuffer::dequeue(const bool nonempty) noexcept
   int attempt = 0;
   bool flag = nonempty || (0 <= threshold().load(std::memory_order::acquire));
   bool again = false;
+  const bool is_overflow = head().load(std::memory_order::acquire) ==
+                           tail().load(std::memory_order::acquire);
+  if (nonempty && is_overflow) [[unlikely]] {
+    flag = false;
+    index = overflowIndex();
+  }
   while (flag) {
     const uint64b n = cast<uint64b>(size());
     if (!again) {
@@ -165,11 +171,6 @@ std::size_t RingBuffer::dequeue(const bool nonempty) noexcept
         again = ++attempt <= 10000;
         if (again)
           break;
-        if (nonempty) {
-          flag = false;
-          index = overflowIndex();
-          break;
-        }
         entry_new = head_cycle ^ ((~entry) & n);
       }
     } while ((diff(entry_cycle, head_cycle) < 0) &&

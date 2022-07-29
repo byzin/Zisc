@@ -118,7 +118,6 @@ auto MutexBst<Key, T, Compare>::operator=(MutexBst&& other) noexcept -> MutexBst
 template <std::movable Key, MappedValue T, std::invocable<Key, Key> Compare>
 template <typename ...Args> inline
 auto MutexBst<Key, T, Compare>::add(Args&&... args) -> std::optional<size_type>
-    requires std::is_nothrow_constructible_v<ValueT, Args...>
 {
   ValueT value{std::forward<Args>(args)...};
   ConstKeyT& key = BaseMapT::getKey(value);

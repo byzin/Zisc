@@ -93,8 +93,7 @@ class MutexBst : public Map<MutexBst<Key, T, Compare>, Key, T, Compare>
 
   //! Insert the given value into the bst
   template <typename ...Args>
-  [[nodiscard]] std::optional<size_type> add(Args&&... args)
-      requires std::is_nothrow_constructible_v<ValueT, Args...>;
+  [[nodiscard]] std::optional<size_type> add(Args&&... args);
 
   //! Return the maximum possible number of elements
   size_type capacity() const noexcept;

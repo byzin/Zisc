@@ -42,7 +42,6 @@ template <typename MapClass,
           std::invocable<Key, Key> Compare>
 template <typename ...Args> inline
 auto Map<MapClass, Key, T, Compare>::add(Args&&... args) -> std::optional<size_type>
-    requires std::is_nothrow_constructible_v<ValueT, Args...>
 {
   auto& map = ref();
   return map.add(std::forward<Args>(args)...);

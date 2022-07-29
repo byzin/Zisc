@@ -146,7 +146,7 @@ class Bitset : private NonCopyable<Bitset>
   std::size_t iterate(const std::size_t begin,
                       const std::size_t end,
                       Func func) const noexcept
-  requires std::invocable<Func, ConstT, AConstReference, std::size_t&>;
+  requires std::invocable<Func, Bitset::ConstT, Bitset::AConstReference, std::size_t&>;
 
   //! Make a bit mask
   static BitT makeMask(const std::size_t pos) noexcept;

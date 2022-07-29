@@ -411,7 +411,7 @@ template <typename Func> inline
 std::size_t Bitset::iterate(const std::size_t begin,
                             const std::size_t end,
                             Func func) const noexcept
-    requires std::invocable<Func, ConstT, AConstReference, std::size_t&>
+    requires std::invocable<Func, Bitset::ConstT, Bitset::AConstReference, std::size_t&>
 {
   constexpr std::size_t bits = blockBitSize();
   constexpr std::size_t bitmask = ~(bits - 1);

@@ -114,7 +114,8 @@ macro(Zisc_setZiscProject)
                                              ${zisc_linker_flags})
   target_compile_definitions(${PROJECT_NAME} PUBLIC ${platform_definitions}
                                                     ${cxx_definitions}
-                                                    ${zisc_definitions})
+                                                    ${zisc_definitions}
+                                             PRIVATE _CRT_SECURE_NO_WARNINGS)
   target_include_directories(${PROJECT_NAME} PUBLIC "${zisc_core_dir}"
                                                     "${PROJECT_BINARY_DIR}/include")
   Zisc_enableIpo(${PROJECT_NAME})

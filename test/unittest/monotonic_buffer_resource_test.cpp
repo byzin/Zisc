@@ -18,6 +18,7 @@
 #include <cstddef>
 #include <limits>
 #include <memory>
+#include <random>
 #include <span>
 #include <thread>
 #include <type_traits>

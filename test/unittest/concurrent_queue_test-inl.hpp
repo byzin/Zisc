@@ -23,6 +23,7 @@
 #include <cstddef>
 #include <iostream>
 #include <limits>
+#include <numeric>
 #include <optional>
 #include <random>
 #include <thread>

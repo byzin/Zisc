@@ -920,6 +920,13 @@ struct MovableTestValue1 : private zisc::NonCopyable<MovableTestValue1>
     if (flag_ != nullptr)
       zisc::atomic_store(flag_, 1, std::memory_order::release);
   }
+  MovableTestValue1& operator=(MovableTestValue1&& other) noexcept
+  {
+    std::swap(flag_, other.flag_);
+    const int v = zisc::atomic_load(&other.value_, std::memory_order::acquire);
+    zisc::atomic_store(&value_, v, std::memory_order::release);
+    return *this;
+  }
   int* flag_ = nullptr;
   int value_ = 0;
   [[maybe_unused]] int padding_ = 0;

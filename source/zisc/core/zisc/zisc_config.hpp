@@ -45,6 +45,27 @@ using Padding = std::aligned_storage_t<kSize, 1>;
 class Config
 {
  public:
+  /*!
+    \brief No brief description
+
+    No detailed description.
+    */
+  enum class Architecture : uint
+  {
+    kUnknown = 0,
+    kAmd64V1,
+    kAmd64V2,
+    kAmd64V3,
+    kAmd64V4
+  };
+
+
+  //! Return the target architecture of the build
+  static constexpr Architecture architecture() noexcept;
+
+  //! Return the target architecture name of the build
+  static constexpr std::string_view architectureName() noexcept;
+
   //! Return the value of the major component of the Zisc version number
   static constexpr int versionMajor() noexcept;
 
@@ -64,6 +85,10 @@ class Config
 
   // Atomic config
   static constexpr bool isAtomicOsSpecifiedWaitUsed() noexcept;
+
+ private:
+  //! Return the target architecture name of the build
+  static constexpr std::string_view architectureName(const Architecture arch) noexcept;
 };
 
 } // namespace zisc

@@ -89,7 +89,7 @@ template <Ieee754BinaryFormat kFormat>
 template <std::floating_point Float, Ieee754RoundingMode kRMode> inline
 constexpr Float Ieee754BinaryHardwareImpl<kFormat>::convertTo() const noexcept
 {
-  return cast<Float>(data().value_);
+  return static_cast<Float>(data().value_);
 }
 
 /*!

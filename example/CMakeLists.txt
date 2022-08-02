@@ -36,19 +36,23 @@ endfunction(getExampleWarningFlags)
 # Add an example
 function(addExample target save_dependency_list)
   set(example_source_files ${ARGN})
-  add_executable(${target} ${example_source_files})
   source_group(${PROJECT_NAME}/${target} FILES ${example_source_files})
-
-  #
-  set_target_properties(${target} PROPERTIES CXX_STANDARD 20
-                                             CXX_STANDARD_REQUIRED ON)
 
   include("${__zisc_dir__}/cmake/compiler.cmake")
   Zisc_getCxxWarningFlags(cxx_compile_warning_flags)
   getExampleWarningFlags(example_warning_flags)
+
+  #
+  add_executable(${target} ${example_source_files})
+  set_target_properties(${target} PROPERTIES CXX_STANDARD 20
+                                             CXX_STANDARD_REQUIRED ON)
   target_compile_options(${target} PRIVATE ${cxx_compile_warning_flags}
                                            ${example_warning_flags})
-  target_link_libraries(${target} PRIVATE Zisc)
+  # Check dependencies
+  Zisc_getArchitectureName(TRUE architecture)
+  Zisc_getArchitectureTargetName("Zisc" ${architecture} zisc_library)
+  Zisc_checkTarget(${zisc_library})
+  target_link_libraries(${target} PRIVATE ${zisc_library})
   Zisc_enableIpo(${target})
 
   #
@@ -93,9 +97,6 @@ macro(setExampleProject)
   include("${__zisc_dir__}/cmake/platform.cmake")
   Zisc_getPlatformFlags(platform_definitions)
   Zisc_setVariablesOnCMake(${platform_definitions})
-
-  # Check dependencies
-  Zisc_checkTarget(Zisc)
 
   # Build examples
   addExample(AlgorithmExample ON

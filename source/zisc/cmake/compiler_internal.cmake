@@ -111,15 +111,17 @@ function(Zisc_getSanitizerFlags compile_sanitizer_flags linker_sanitizer_flags)
 endfunction(Zisc_getSanitizerFlags)
 
 
-function(Zisc_getMsvcCompilerFlags cxx_compile_flags cxx_linker_flags cxx_definitions)
+function(Zisc_getMsvcCompilerFlags architecture cxx_compile_flags cxx_linker_flags cxx_definitions)
   set(compile_flags "")
   set(linker_flags "")
   set(definitions "")
 
-  # Optimization
-  list(APPEND compile_flags /favor:AMD64)
-  if(Z_ENABLE_HARDWARE_FEATURES)
-    list(APPEND compile_flags /arch:AVX2)
+  # Architecture optimization
+  if(architecture MATCHES "Amd64")
+    list(APPEND compile_flags /favor:AMD64)
+    if(architecture MATCHES "Amd64-v[34]")
+      list(APPEND compile_flags /arch:AVX2)
+    endif()
   endif()
 
   # Diagnostic
@@ -146,15 +148,21 @@ function(Zisc_getMsvcCompilerFlags cxx_compile_flags cxx_linker_flags cxx_defini
 endfunction(Zisc_getMsvcCompilerFlags)
 
 
-function(Zisc_getClangClCompilerFlags cxx_compile_flags cxx_linker_flags cxx_definitions)
+function(Zisc_getClangClCompilerFlags architecture cxx_compile_flags cxx_linker_flags cxx_definitions)
   set(compile_flags "")
   set(linker_flags "")
   set(definitions "")
 
-  # Optimization
-  if(Z_ENABLE_HARDWARE_FEATURES)
-    list(APPEND compile_flags /clang:-fno-math-errno)
-    list(APPEND compile_flags /clang:-march=x86-64-v3)
+  # Architecture optimization
+  if(architecture MATCHES "Amd64-v2")
+    list(APPEND compile_flags /clang:-fno-math-errno
+                              /clang:-march=x86-64-v2)
+  elseif(architecture MATCHES "Amd64-v3")
+    list(APPEND compile_flags /clang:-fno-math-errno
+                              /clang:-march=x86-64-v3)
+  elseif(architecture MATCHES "Amd64-v4")
+    list(APPEND compile_flags /clang:-fno-math-errno
+                              /clang:-march=x86-64-v4)
   endif()
   list(APPEND compile_flags /Qvec # Auto loop-vectorization
                             )
@@ -175,16 +183,21 @@ function(Zisc_getClangClCompilerFlags cxx_compile_flags cxx_linker_flags cxx_def
 endfunction(Zisc_getClangClCompilerFlags)
 
 
-function(Zisc_getClangCompilerFlags cxx_compile_flags cxx_linker_flags cxx_definitions)
+function(Zisc_getClangCompilerFlags architecture cxx_compile_flags cxx_linker_flags cxx_definitions)
   set(compile_flags "")
   set(linker_flags "")
   set(definitions "")
 
-  # Optimization
-  if(Z_ENABLE_HARDWARE_FEATURES)
+  # Architecture optimization
+  if(architecture MATCHES "Amd64-v2")
     list(APPEND compile_flags -fno-math-errno
-                              -march=x86-64-v3
-                              )
+                              -march=x86-64-v2)
+  elseif(architecture MATCHES "Amd64-v3")
+    list(APPEND compile_flags -fno-math-errno
+                              -march=x86-64-v3)
+  elseif(architecture MATCHES "Amd64-v4")
+    list(APPEND compile_flags -fno-math-errno
+                              -march=x86-64-v4)
   endif()
 
   if(Z_CLANG_USES_LLVM_TOOLS)
@@ -212,14 +225,21 @@ function(Zisc_getClangCompilerFlags cxx_compile_flags cxx_linker_flags cxx_defin
 endfunction(Zisc_getClangCompilerFlags)
 
 
-function(Zisc_getGccCompilerFlags cxx_compile_flags cxx_linker_flags cxx_definitions)
+function(Zisc_getGccCompilerFlags architecture cxx_compile_flags cxx_linker_flags cxx_definitions)
   set(compile_flags "")
   set(linker_flags "")
   set(definitions "")
 
-  # Optimization
-  if(Z_ENABLE_HARDWARE_FEATURES)
-    list(APPEND compile_flags -fno-math-errno -march=x86-64-v3)
+  # Architecture optimization
+  if(architecture MATCHES "Amd64-v2")
+    list(APPEND compile_flags -fno-math-errno
+                              -march=x86-64-v2)
+  elseif(architecture MATCHES "Amd64-v3")
+    list(APPEND compile_flags -fno-math-errno
+                              -march=x86-64-v3)
+  elseif(architecture MATCHES "Amd64-v4")
+    list(APPEND compile_flags -fno-math-errno
+                              -march=x86-64-v4)
   endif()
 
   # Sanitizer
@@ -333,6 +353,21 @@ function(Zisc_getGccWarningFlags compile_warning_flags)
   # Output variables
   set(${compile_warning_flags} ${warning_flags} PARENT_SCOPE)
 endfunction(Zisc_getGccWarningFlags)
+
+
+function(Zisc_getArchitectureNameAmd64 only_representative arch_name_list)
+  set(name_list "Amd64-v1")
+  if(Z_ENABLE_HARDWARE_FEATURES)
+    list(APPEND name_list "Amd64-v2" "Amd64-v3" "Amd64-v4")
+    if(only_representative)
+      list(GET name_list 2 representative) # v3
+      set(name_list ${representative})
+    endif()
+  endif()
+
+  # Output variables
+  set(${arch_name_list} ${name_list} PARENT_SCOPE)
+endfunction(Zisc_getArchitectureNameAmd64)
 
 
 #

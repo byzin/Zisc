@@ -25,7 +25,7 @@ function(Zisc_initCompilerOptions)
   set(description "Clang uses LLVM's build tools and libraries instead of platform specific tools.")
   Zisc_setBooleanOption(Z_CLANG_USES_LLVM_TOOLS OFF "${description}")
 
-  set(description "Enable recent hardware features if possible (e.g. SIMD, half precision floating point). Assume 'x86-64-v3' is supported on x86-64.")
+  set(description "Enable multiple hardware featured build.")
   Zisc_setBooleanOption(Z_ENABLE_HARDWARE_FEATURES OFF "${description}")
 
   set(description "Enable C++ address sanitizer (if compiler supports that).")
@@ -65,15 +65,15 @@ endfunction(Zisc_initCompilerOptions)
 
 
 # Get compile options
-function(Zisc_getCxxCompilerFlags cxx_compile_flags cxx_linker_flags cxx_definitions)
+function(Zisc_getCxxCompilerFlags architecture cxx_compile_flags cxx_linker_flags cxx_definitions)
   if(Z_GCC)
-    Zisc_getGccCompilerFlags(compile_flags linker_flags definitions)
+    Zisc_getGccCompilerFlags(${architecture} compile_flags linker_flags definitions)
   elseif(Z_CLANG AND Z_VISUAL_STUDIO)
-    Zisc_getClangClCompilerFlags(compile_flags linker_flags definitions)
+    Zisc_getClangClCompilerFlags(${architecture} compile_flags linker_flags definitions)
   elseif(Z_CLANG)
-    Zisc_getClangCompilerFlags(compile_flags linker_flags definitions)
+    Zisc_getClangCompilerFlags(${architecture} compile_flags linker_flags definitions)
   elseif(Z_MSVC)
-    Zisc_getMsvcCompilerFlags(compile_flags linker_flags definitions)
+    Zisc_getMsvcCompilerFlags(${architecture} compile_flags linker_flags definitions)
   endif()
 
   if(Z_ENABLE_HARDWARE_FEATURES)
@@ -110,6 +110,23 @@ function(Zisc_getCxxWarningFlags compile_warning_flags)
   # Output variables
   set(${compile_warning_flags} ${warning_flags} PARENT_SCOPE)
 endfunction(Zisc_getCxxWarningFlags)
+
+
+function(Zisc_getArchitectureName only_representative arch_name_list)
+  set(name_list "")
+  if(Z_AMD64)
+    Zisc_getArchitectureNameAmd64(${only_representative} name_list)
+  endif()
+
+
+  # Output variables
+  set(${arch_name_list} ${name_list} PARENT_SCOPE)
+endfunction(Zisc_getArchitectureName)
+
+
+function(Zisc_getArchitectureTargetName project_name arch_name target_name)
+  set(${target_name} "${project_name}-${arch_name}" PARENT_SCOPE)
+endfunction(Zisc_getArchitectureTargetName)
 
 
 #

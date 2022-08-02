@@ -72,9 +72,7 @@ template <Ieee754BinaryFormat> class Ieee754BinaryHardwareImpl;
 } // namespace zisc
 
 #include "internal/ieee_754_binary_software_impl.hpp"
-#if defined(Z_ENABLE_HARDWARE_FEATURES)
 #include "internal/ieee_754_binary_hardware_impl.hpp"
-#endif // Z_ENABLE_HARDWARE_FEATURES
 
 namespace zisc {
 
@@ -105,12 +103,15 @@ class Ieee754Binary
   // Implementation types
   using SoftwareImplT = Ieee754BinarySoftwareImpl<kFormat>;
   using HardwareImplT = Ieee754BinaryHardwareImpl<kFormat>;
+#if ZISC_HAS_HARDWARE_HALF_IMPL == 1
   using ImplT =
-#if defined(Z_ENABLE_HARDWARE_FEATURES) && ZISC_HAS_HARDWARE_HALF_IMPL
-      HardwareImplT;
-#else // Z_ENABLE_HARDWARE_FEATURES
-      SoftwareImplT;
-#endif // Z_ENABLE_HARDWARE_FEATURES
+      std::conditional_t<(Config::architecture() == Config::Architecture::kAmd64V3) ||
+                         (Config::architecture() == Config::Architecture::kAmd64V4),
+          HardwareImplT,
+          SoftwareImplT>;
+#else // ZISC_HAS_HARDWARE_HALF_IMPL
+  using ImplT = SoftwareImplT;
+#endif
 
  public:
   //! Bit representation type

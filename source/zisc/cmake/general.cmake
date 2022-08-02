@@ -104,6 +104,7 @@ function(Zisc_printSystemInfo message_prefix)
   message(STATUS "${message_prefix}Generator: ${CMAKE_GENERATOR}")
   message(STATUS "${message_prefix}Compiler ID: ${CMAKE_CXX_COMPILER_ID}")
   message(STATUS "${message_prefix}Compiler version: ${CMAKE_CXX_COMPILER_VERSION}")
+  message(STATUS "${message_prefix}Target architecture: ${CMAKE_SYSTEM_PROCESSOR}")
 endfunction(Zisc_printSystemInfo)
 
 

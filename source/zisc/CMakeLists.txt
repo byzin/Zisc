@@ -73,6 +73,10 @@ macro(Zisc_setZiscProject)
   Zisc_setVariablesOnCMake(${platform_definitions})
   Zisc_initZiscOptions()
 
+  # Find dependencies
+  set(THREADS_PREFER_PTHREAD_FLAG ON)
+  find_package(Threads REQUIRED)
+
   cmake_path(SET zisc_core_dir "${PROJECT_SOURCE_DIR}/core")
 
   # Make zisc configuration header file
@@ -85,46 +89,47 @@ macro(Zisc_setZiscProject)
   # Create Zisc library
   file(GLOB_RECURSE zisc_source_files ${zisc_core_dir}/zisc/*[.hpp|.cpp])
   list(APPEND zisc_source_files "${zisc_config_dir}/zisc_config-inl.hpp")
-  add_library(${PROJECT_NAME} STATIC "${zisc_source_files}")
   source_group(${PROJECT_NAME} FILES "${zisc_source_files}")
-
-  # Find dependencies
-  set(THREADS_PREFER_PTHREAD_FLAG ON)
-  find_package(Threads REQUIRED)
 
   # Compiler flags
   include("${PROJECT_SOURCE_DIR}/cmake/compiler.cmake")
   Zisc_initCompilerOptions()
-  set_target_properties(${PROJECT_NAME} PROPERTIES CXX_STANDARD 20
-                                                   CXX_STANDARD_REQUIRED ON)
-
-  Zisc_getCxxCompilerFlags(cxx_compile_flags cxx_linker_flags cxx_definitions)
   Zisc_getCxxWarningFlags(cxx_compile_warning_flags)
   Zisc_getZiscFlags(zisc_compile_flags zisc_linker_flags zisc_definitions)
   Zisc_getZiscWarningFlags(zisc_warning_flags)
-  target_compile_options(${PROJECT_NAME} PUBLIC ${cxx_compile_flags}
-                                                ${zisc_compile_flags}
-                                         PRIVATE ${cxx_compile_warning_flags}
-                                                 ${zisc_warning_flags})
-  target_link_libraries(${PROJECT_NAME} PUBLIC Threads::Threads)
-  if(Z_WINDOWS)
-    target_link_libraries(${PROJECT_NAME} PRIVATE Synchronization.lib)
-  endif()
-  target_link_options(${PROJECT_NAME} PUBLIC ${cxx_linker_flags}
-                                             ${zisc_linker_flags})
-  target_compile_definitions(${PROJECT_NAME} PUBLIC ${platform_definitions}
-                                                    ${cxx_definitions}
-                                                    ${zisc_definitions}
-                                             PRIVATE _CRT_SECURE_NO_WARNINGS)
-  target_include_directories(${PROJECT_NAME} PUBLIC "${zisc_core_dir}"
-                                                    "${PROJECT_BINARY_DIR}/include")
-  Zisc_enableIpo(${PROJECT_NAME})
+  # Get architecture
+  Zisc_getArchitectureName(FALSE arch_name_list)
+  foreach(architecture IN LISTS arch_name_list)
+    Zisc_getArchitectureTargetName(${PROJECT_NAME} ${architecture} library_name)
+    add_library(${library_name} STATIC "${zisc_source_files}")
+    Zisc_getCxxCompilerFlags(${architecture} cxx_compile_flags cxx_linker_flags cxx_definitions)
+    list(APPEND cxx_definitions ZISC_ARCHITECTURE_NAME=\"${architecture}\")
+    set_target_properties(${library_name} PROPERTIES CXX_STANDARD 20
+                                                     CXX_STANDARD_REQUIRED ON)
+    target_compile_options(${library_name} PUBLIC ${cxx_compile_flags}
+                                                  ${zisc_compile_flags}
+                                           PRIVATE ${cxx_compile_warning_flags}
+                                                   ${zisc_warning_flags})
+    target_link_libraries(${library_name} PUBLIC Threads::Threads)
+    if(Z_WINDOWS)
+      target_link_libraries(${library_name} PRIVATE Synchronization.lib)
+    endif()
+    target_link_options(${library_name} PUBLIC ${cxx_linker_flags}
+                                               ${zisc_linker_flags})
+    target_compile_definitions(${library_name} PUBLIC ${platform_definitions}
+                                                      ${cxx_definitions}
+                                                      ${zisc_definitions}
+                                               PRIVATE _CRT_SECURE_NO_WARNINGS)
+    target_include_directories(${library_name} PUBLIC "${zisc_core_dir}"
+                                                      "${PROJECT_BINARY_DIR}/include")
+    Zisc_enableIpo(${library_name})
 
-  #
-  set(clang_tidy_exclusion_checks readability-identifier-length
-                                  )
-  Zisc_setStaticAnalyzer(${PROJECT_NAME}
-                         CLANG_TIDY_EXCLUSION_CHECKS ${clang_tidy_exclusion_checks})
+    # Set analyzer
+    set(clang_tidy_exclusion_checks readability-identifier-length
+                                    )
+    Zisc_setStaticAnalyzer(${library_name}
+                           CLANG_TIDY_EXCLUSION_CHECKS ${clang_tidy_exclusion_checks})
+  endforeach(architecture)
 endmacro(Zisc_setZiscProject)
 
 

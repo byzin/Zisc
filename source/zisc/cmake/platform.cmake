@@ -26,6 +26,17 @@ function(Zisc_getPlatformFlags platform_definitions)
     message(WARNING "Unsupported system: ${CMAKE_SYSTEM_NAME}")
   endif()
 
+  # Detect target architecture
+  if((CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64") OR (CMAKE_SYSTEM_PROCESSOR STREQUAL "AMD64"))
+    set(architecture_definition Z_AMD64)
+  else()
+    set(unsupported_architecture ON)
+  endif()
+  list(APPEND definitions ${architecture_definition})
+  if(unsupported_architecture)
+    message(WARNING "Unsupported architecture: ${CMAKE_SYSTEM_PROCESSOR}")
+  endif()
+
   # Detect C++ compiler
   if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     set(compiler_definition Z_GCC)
@@ -60,7 +71,6 @@ function(Zisc_getPlatformFlags platform_definitions)
   if(unsupported_generator)
     message(WARNING "Unsupported generator: ${CMAKE_GENERATOR}")
   endif()
-
 
   # Detect build type
   if(CMAKE_BUILD_TYPE STREQUAL "Debug")

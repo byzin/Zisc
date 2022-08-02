@@ -24,14 +24,14 @@ function(getTestCompileFlags test_compile_flags test_linker_flags test_definitio
 endfunction(getTestCompileFlags)
 
 
-function(addGoogleTest googletest_path)
+function(addGoogleTest googletest_path zisc_library)
   cmake_path(SET source_dir NORMALIZE "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../source")
   include("${source_dir}/zisc/cmake/general.cmake")
   include("${source_dir}/zisc/cmake/compiler.cmake")
 
   Zisc_addGoogleTest("${googletest_path}" "${PROJECT_BINARY_DIR}/GoogleTest")
-  Zisc_populateTargetOptions(Zisc gtest)
-  Zisc_populateTargetOptions(Zisc gtest_main)
+  Zisc_populateTargetOptions(${zisc_library} gtest)
+  Zisc_populateTargetOptions(${zisc_library} gtest_main)
 endfunction(addGoogleTest)
 
 
@@ -95,9 +95,12 @@ macro(setTestProject)
   Zisc_getPlatformFlags(platform_definitions)
   Zisc_setVariablesOnCMake(${platform_definitions})
 
+  include("${__zisc_dir__}/cmake/compiler.cmake")
+  Zisc_getArchitectureName(TRUE architecture)
+  Zisc_getArchitectureTargetName("Zisc" ${architecture} zisc_library_name)
   # Check dependencies
-  Zisc_checkTarget(Zisc)
-  addGoogleTest("${PROJECT_SOURCE_DIR}/dependencies/googletest")
+  Zisc_checkTarget(${zisc_library_name})
+  addGoogleTest("${PROJECT_SOURCE_DIR}/dependencies/googletest" ${zisc_library_name})
   Zisc_checkTarget(gtest_main)
 
   # Create a symlink to the test resources
@@ -117,21 +120,21 @@ macro(setTestProject)
 
   # Create a unit test
   file(GLOB unittest_source_files ${PROJECT_SOURCE_DIR}/unittest/*[.hpp|.cpp])
-  add_executable(${PROJECT_NAME} ${unittest_source_files})
   source_group(${PROJECT_NAME} FILES ${unittest_source_files})
 
-  set_target_properties(${PROJECT_NAME} PROPERTIES CXX_STANDARD 20 
-                                                   CXX_STANDARD_REQUIRED ON)
 
   include("${__zisc_dir__}/cmake/compiler.cmake")
   Zisc_getCxxWarningFlags(cxx_compile_warning_flags)
   getTestCompileFlags(test_compile_flags test_linker_flags test_definitions)
   getTestWarningFlags(test_warning_flags)
+  add_executable(${PROJECT_NAME} ${unittest_source_files})
+  set_target_properties(${PROJECT_NAME} PROPERTIES CXX_STANDARD 20 
+                                                   CXX_STANDARD_REQUIRED ON)
   target_compile_options(${PROJECT_NAME} PRIVATE ${test_compile_flags}
                                                  ${cxx_compile_warning_flags}
                                                  ${test_warning_flags})
   target_link_libraries(${PROJECT_NAME} PRIVATE gtest_main
-                                                Zisc
+                                                ${zisc_library_name}
                                                 ${test_linker_flags})
   target_compile_definitions(${PROJECT_NAME} PRIVATE ${test_definitions})
   target_include_directories(${PROJECT_NAME} PRIVATE "${PROJECT_SOURCE_DIR}/math_reference")

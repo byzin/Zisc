@@ -20,14 +20,21 @@ macro(setDocumentProject)
   if(DOXYGEN_FOUND)
     # Check dependencies
     include("${__zisc_dir__}/cmake/general.cmake")
-    Zisc_checkTarget(Zisc)
+    include("${__zisc_dir__}/cmake/platform.cmake")
+    Zisc_getPlatformFlags(platform_definitions)
+    Zisc_setVariablesOnCMake(${platform_definitions})
+
+    include("${__zisc_dir__}/cmake/compiler.cmake")
+    Zisc_getArchitectureName(TRUE architecture)
+    Zisc_getArchitectureTargetName("Zisc" ${architecture} library_name)
+    Zisc_checkTarget(${library_name})
 
     include("${__zisc_dir__}/cmake/document.cmake")
 
     # Doxygen custom properties
     # Project
     set(DOXYGEN_PROJECT_NAME Zisc)
-    set(DOXYGEN_PROJECT_NUMBER 0.0.68)
+    set(DOXYGEN_PROJECT_NUMBER 0.0.71)
     set(DOXYGEN_PROJECT_BRIEF "Zisc provides commonly used C++ classes and functions.")
 
     # HTML
@@ -43,12 +50,12 @@ macro(setDocumentProject)
     set(DOXYGEN_EXAMPLE_RECURSIVE YES)
 
     # Compile flags
-    get_target_property(zisc_definitions Zisc COMPILE_DEFINITIONS)
+    get_target_property(zisc_definitions ${library_name} COMPILE_DEFINITIONS)
     if(zisc_definitions)
       set(DOXYGEN_PREDEFINED ${zisc_definitions})
     endif()
 
-    get_target_property(zisc_source_files Zisc SOURCES)
+    get_target_property(zisc_source_files ${library_name} SOURCES)
     Zisc_addDoxygenDoc(document ${PROJECT_BINARY_DIR}
       SOURCE_FILES_OR_DIRS "${__zisc_root_dir__}/README.md"
                            "${__zisc_root_dir__}/LICENSE.md"

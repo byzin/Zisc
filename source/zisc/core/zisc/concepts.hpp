@@ -47,18 +47,18 @@ concept CharPointer = std::is_pointer_v<Type> &&
 //! Specify a type is a std::basic_string type
 template <typename Type>
 concept StdString = requires (Type) {
-  std::same_as<std::basic_string<typename Type::value_type,
-                                 typename Type::traits_type,
-                                 typename Type::allocator_type>,
-               std::remove_cv_t<Type>>;
+  requires std::same_as<std::basic_string<typename Type::value_type,
+                                          typename Type::traits_type,
+                                          typename Type::allocator_type>,
+                        std::remove_cv_t<Type>>;
 };
 
 //! Specify a type is a std::basic_string_view type
 template <typename Type>
 concept StdStringView = requires (Type) {
-  std::same_as<std::basic_string_view<typename Type::value_type,
-                                      typename Type::traits_type>,
-               std::remove_cv_t<Type>>;
+  requires std::same_as<std::basic_string_view<typename Type::value_type,
+                                               typename Type::traits_type>,
+                        std::remove_cv_t<Type>>;
 };
 
 //! Specify a type is a string type

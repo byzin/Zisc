@@ -108,7 +108,7 @@ template <std::floating_point Float, Ieee754RoundingMode kRMode> inline
 constexpr Float Ieee754BinarySoftwareImpl<kFormat>::convertTo() const noexcept
 {
   const auto dst = convertTo<kBinFormatFromFloat<Float>, kRMode>();
-  return bit_cast<Float>(dst);
+  return zisc::bit_cast<Float>(dst);
 }
 
 /*!
@@ -576,7 +576,7 @@ constexpr auto Ieee754BinarySoftwareImpl<kFormat>::toBinary(const Float value) n
     -> Ieee754BinarySoftwareImpl<kBinFormatFromFloat<Float>>
 {
   using BinaryT = Ieee754BinarySoftwareImpl<kBinFormatFromFloat<Float>>;
-  const auto u = bit_cast<typename BinaryT::BitT>(value);
+  const auto u = zisc::bit_cast<typename BinaryT::BitT>(value);
   const BinaryT dst{u};
   return dst;
 }

@@ -102,7 +102,7 @@ void* MonotonicBufferResource<kSize, kAlignment>::allocateMemory(
   std::size_t next_usage = 0;
   std::size_t adjustment = 0;
   do {
-    const std::size_t address = bit_cast<std::size_t>(storage() + usage);
+    const std::size_t address = zisc::bit_cast<std::size_t>(storage() + usage);
     const std::size_t fraction = address & (alignment - 1);
     adjustment = (alignment - fraction) & (alignment - 1);
     const std::size_t alloc_size = adjustment + size;
@@ -145,9 +145,9 @@ void MonotonicBufferResource<kSize, kAlignment>::deallocateMemory(
     [[maybe_unused]] const std::size_t size,
     [[maybe_unused]] const std::size_t alignment) noexcept
 {
-  const auto begin = bit_cast<std::size_t>(storage());
-  const auto end = bit_cast<std::size_t>(storage() + capacity());
-  const auto address = bit_cast<std::size_t>(data);
+  const auto begin = zisc::bit_cast<std::size_t>(storage());
+  const auto end = zisc::bit_cast<std::size_t>(storage() + capacity());
+  const auto address = zisc::bit_cast<std::size_t>(data);
   ZISC_ASSERT(isInBounds(address, begin, end),
               "The data wasn't allocated by this allocator.");
   use_count_.fetch_sub(1, std::memory_order::relaxed);

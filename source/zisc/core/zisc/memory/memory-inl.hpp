@@ -129,7 +129,7 @@ void Memory::Usage::add(const std::size_t size) noexcept
 {
   const std::size_t old = atomic_fetch_add(&total_, size, std::memory_order::acq_rel);
   const std::size_t t = old + size;
-  atomic_fetch_max(&peak_, t, std::memory_order::relaxed);
+  atomic_fetch_max(&peak_, t, std::memory_order::release);
 }
 
 /*!
@@ -253,7 +253,7 @@ void Memory::free(void* ptr) noexcept
 inline
 bool Memory::isAligned(const void* data, const std::size_t alignment) noexcept
 {
-  const std::size_t address = bit_cast<std::size_t>(data);
+  const std::size_t address = zisc::bit_cast<std::size_t>(data);
   const bool result = (address & (alignment - 1)) == 0;
   return result;
 }

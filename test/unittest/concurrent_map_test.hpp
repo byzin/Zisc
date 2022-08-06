@@ -16,6 +16,7 @@
 #define TEST_CONCURRENT_MAP_TEST_HPP
 
 // Standard C++ library
+#include <atomic>
 #include <chrono>
 #include <cstddef>
 #include <random>

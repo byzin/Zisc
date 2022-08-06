@@ -214,7 +214,7 @@ auto FunctionReference<ReturnT (ArgTypes...)>::invokeFunctionPointer(
     FuncRefMemory mem,
     ArgTypes... args) -> ReturnT
 {
-  auto ptr = bit_cast<FuncPtr>(mem);
+  auto ptr = zisc::bit_cast<FuncPtr>(mem);
   if constexpr (std::is_void_v<ReturnT>)
     std::invoke(ptr, forward<ArgTypes>(args)...);
   else
@@ -235,7 +235,7 @@ auto FunctionReference<ReturnT (ArgTypes...)>::invokeFunctor(
     ArgTypes... args) -> ReturnT
 {
   using FuncPtr = std::add_pointer_t<Functor>;
-  auto ptr = bit_cast<FuncPtr>(mem);
+  auto ptr = zisc::bit_cast<FuncPtr>(mem);
   if constexpr (std::is_void_v<ReturnT>)
     std::invoke(*ptr, forward<ArgTypes>(args)...);
   else

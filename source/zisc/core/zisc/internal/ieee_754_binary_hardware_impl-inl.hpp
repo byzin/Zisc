@@ -56,7 +56,7 @@ constexpr Ieee754BinaryHardwareImpl<kFormat>::Ieee754BinaryHardwareImpl(const Fl
   */
 template <Ieee754BinaryFormat kFormat> inline
 constexpr Ieee754BinaryHardwareImpl<kFormat>::Ieee754BinaryHardwareImpl(const BitT bits) noexcept :
-    data_{bit_cast<DataType>(bits)}
+    data_{zisc::bit_cast<DataType>(bits)}
 {
 }
 
@@ -136,7 +136,7 @@ constexpr Ieee754BinaryFormat Ieee754BinaryHardwareImpl<kFormat>::format() noexc
 template <Ieee754BinaryFormat kFormat> inline
 constexpr void Ieee754BinaryHardwareImpl<kFormat>::setBits(const BitT bits) noexcept
 {
-  data_ = bit_cast<DataType>(bits);
+  data_ = zisc::bit_cast<DataType>(bits);
 }
 
 /*!

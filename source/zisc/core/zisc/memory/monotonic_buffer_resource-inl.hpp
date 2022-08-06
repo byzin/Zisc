@@ -145,9 +145,9 @@ void MonotonicBufferResource<kSize, kAlignment>::deallocateMemory(
     [[maybe_unused]] const std::size_t size,
     [[maybe_unused]] const std::size_t alignment) noexcept
 {
-  const auto begin = zisc::bit_cast<std::size_t>(storage());
-  const auto end = zisc::bit_cast<std::size_t>(storage() + capacity());
-  const auto address = zisc::bit_cast<std::size_t>(data);
+  [[maybe_unused]] const auto begin = zisc::bit_cast<std::size_t>(storage());
+  [[maybe_unused]] const auto end = zisc::bit_cast<std::size_t>(storage() + capacity());
+  [[maybe_unused]] const auto address = zisc::bit_cast<std::size_t>(data);
   ZISC_ASSERT(isInBounds(address, begin, end),
               "The data wasn't allocated by this allocator.");
   use_count_.fetch_sub(1, std::memory_order::relaxed);

@@ -29,6 +29,7 @@
 // Zisc
 #include "std_memory_resource.hpp"
 #include "zisc/algorithm.hpp"
+#include "zisc/error.hpp"
 #include "zisc/non_copyable.hpp"
 #include "zisc/utility.hpp"
 #include "zisc/zisc_config.hpp"
@@ -201,7 +202,7 @@ void FixedArrayResource<Type>::deallocateMemory(void* data,
 {
   auto* d = static_cast<StorageT*>(data);
   const auto index = cast<std::size_t>(std::distance(storage_list_.data(), d));
-  constexpr std::size_t begin = 0;
+  [[maybe_unused]] constexpr std::size_t begin = 0;
   ZISC_ASSERT(isInBounds(index, begin, countMax()), "The data is unmanaged data.");
   [[maybe_unused]] const bool had_ownership = used_list_.testAndSet(index, false);
   ZISC_ASSERT(had_ownership, "The ownership of the data was broken.");

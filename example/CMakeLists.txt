@@ -24,7 +24,8 @@ function(getExampleWarningFlags example_warning_flags)
       # list(APPEND warning_flags 
       #                           )
     elseif(Z_MSVC)
-      list(APPEND warning_flags /wd6326 # Potential comparison of a constant with another constant.
+      list(APPEND warning_flags /wd4267 # conversion from 'size_t' to '_To', possible loss of data.
+                                /wd6326 # Potential comparison of a constant with another constant.
                                 )
     endif()
   endif()

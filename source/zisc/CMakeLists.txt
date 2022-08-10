@@ -64,7 +64,7 @@ endfunction(Zisc_getZiscWarningFlags)
 #
 macro(Zisc_setZiscProject)
   set(project_description "Zisc provides commonly used C++ classes and functions.")
-  project(Zisc VERSION 0.0.71 DESCRIPTION "${project_description}" LANGUAGES CXX)
+  project(Zisc VERSION 0.0.72 DESCRIPTION "${project_description}" LANGUAGES CXX)
   message(STATUS "${PROJECT_NAME} version: ${PROJECT_VERSION}")
 
   include("${PROJECT_SOURCE_DIR}/cmake/general.cmake")

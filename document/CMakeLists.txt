@@ -34,7 +34,7 @@ macro(setDocumentProject)
     # Doxygen custom properties
     # Project
     set(DOXYGEN_PROJECT_NAME Zisc)
-    set(DOXYGEN_PROJECT_NUMBER 0.0.71)
+    set(DOXYGEN_PROJECT_NUMBER 0.0.72)
     set(DOXYGEN_PROJECT_BRIEF "Zisc provides commonly used C++ classes and functions.")
 
     # HTML

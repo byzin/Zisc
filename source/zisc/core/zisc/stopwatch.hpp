@@ -34,7 +34,7 @@ class Stopwatch : private NonCopyable<Stopwatch>
 {
  public:
   //! Clock type
-  using Clock = std::chrono::high_resolution_clock;
+  using Clock = std::chrono::steady_clock;
 
 
   //! Initialize
@@ -70,6 +70,11 @@ class Stopwatch : private NonCopyable<Stopwatch>
   void stop() noexcept;
 
  private:
+  /*!
+    \brief No brief description
+
+    No detailed description.
+    */
   enum class State : Clock::rep
   {
     Idle,

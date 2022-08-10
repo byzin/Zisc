@@ -38,6 +38,6 @@ int main()
   // Finish
   stopwatch.stop();
   std::cout << "Finish" << std::endl;
-  
+
   return 0;
 }

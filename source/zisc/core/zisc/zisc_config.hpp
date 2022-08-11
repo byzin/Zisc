@@ -63,6 +63,9 @@ class Config
   //! Return the target architecture of the build
   static constexpr Architecture architecture() noexcept;
 
+  //! Return the target architecture name of the given architecture
+  static constexpr std::string_view architectureName(const Architecture arch) noexcept;
+
   //! Return the target architecture name of the build
   static constexpr std::string_view architectureName() noexcept;
 
@@ -87,8 +90,6 @@ class Config
   static constexpr bool isAtomicOsSpecifiedWaitUsed() noexcept;
 
  private:
-  //! Return the target architecture name of the build
-  static constexpr std::string_view architectureName(const Architecture arch) noexcept;
 };
 
 } // namespace zisc

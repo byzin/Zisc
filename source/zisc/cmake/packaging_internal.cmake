@@ -74,14 +74,9 @@ endfunction(Zisc_getDependencyTreeImpl)
 function(Zisc_getDependencyTree target_path exclude_system exe_path dirs rpaths dependency_tree)
   include(GetPrerequisites)
 
-  is_file_executable("${target_path}" is_executable)
-  if(is_executable)
-    set(dep_list "")
-    set(level 0)
-    Zisc_getDependencyTreeImpl("${target_path}" "${target_path}" ${exclude_system} "${exe_path}" "${dirs}" "${rpaths}" ${level} dep_list dep_tree)
-  else()
-    message(WARNING "'${target_path}' isn't executable.")
-  endif()
+  set(dep_list "")
+  set(level 0)
+  Zisc_getDependencyTreeImpl("${target_path}" "${target_path}" ${exclude_system} "${exe_path}" "${dirs}" "${rpaths}" ${level} dep_list dep_tree)
 
   # Output value
   set(${dependency_tree} "${dep_tree}" PARENT_SCOPE)

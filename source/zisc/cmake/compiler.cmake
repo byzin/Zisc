@@ -224,6 +224,10 @@ function(Zisc_populateTargetOptions source_target dest_target)
   if(zisc_features)
     target_compile_features(${dest_target} PRIVATE ${zisc_features})
   endif()
+  get_target_property(zisc_includes ${source_target} INTERFACE_INCLUDE_DIRECTORIES)
+  if(zisc_includes)
+    target_include_directories(${dest_target} PRIVATE ${zisc_includes})
+  endif()
 endfunction(Zisc_populateTargetOptions)
 
 

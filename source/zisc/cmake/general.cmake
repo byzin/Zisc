@@ -19,6 +19,12 @@ macro(Zisc_setStringOption variable value doc_string)
 endmacro(Zisc_setStringOption)
 
 
+#
+macro(Zisc_setInternalValue variable value)
+  set("${variable}" ${value} CACHE INTERNAL "" FORCE)
+endmacro(Zisc_setInternalValue)
+
+
 # Prohibit building on all directories except debug and release directory.
 function(Zisc_restrictBuildDirectory build_dir)
   if(NOT PROJECT_BINARY_DIR MATCHES "${build_dir}(/*)?")

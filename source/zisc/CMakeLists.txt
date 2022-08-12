@@ -105,7 +105,8 @@ macro(Zisc_setZiscProject)
     Zisc_getCxxCompilerFlags(${architecture} cxx_compile_flags cxx_linker_flags cxx_definitions)
     list(APPEND cxx_definitions ZISC_ARCHITECTURE_NAME=\"${architecture}\")
     set_target_properties(${library_name} PROPERTIES CXX_STANDARD 20
-                                                     CXX_STANDARD_REQUIRED ON)
+                                                     CXX_STANDARD_REQUIRED ON
+                                                     POSITION_INDEPENDENT_CODE ON)
     target_compile_options(${library_name} PUBLIC ${cxx_compile_flags}
                                                   ${zisc_compile_flags}
                                            PRIVATE ${cxx_compile_warning_flags}

@@ -74,8 +74,10 @@ macro(Zisc_setZiscProject)
   Zisc_initZiscOptions()
 
   # Find dependencies
-  set(THREADS_PREFER_PTHREAD_FLAG ON)
-  find_package(Threads REQUIRED)
+  if(NOT TARGET Threads::Threads)
+    set(THREADS_PREFER_PTHREAD_FLAG ON)
+    find_package(Threads REQUIRED)
+  endif()
 
   cmake_path(SET zisc_core_dir "${PROJECT_SOURCE_DIR}/core")
 

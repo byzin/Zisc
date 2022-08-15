@@ -10,6 +10,7 @@
 // GoogleTest
 #include "googletest.hpp"
 // Zisc
+#include "zisc/export.hpp"
 #include "zisc/zisc_config.hpp"
 
 /*!
@@ -55,3 +56,15 @@ static_assert(false, "Zisc is built on unsupported OS.");
 #else
 static_assert(false, "Zisc is built with unsupported compiler.");
 #endif
+
+// Export test
+
+Z_EXPORT_C_FUNCTION
+void exportCTest([[maybe_unused]] const int value)
+{
+}
+
+Z_EXPORT_CXX_FUNCTION
+void exportCxxTest([[maybe_unused]] const int value)
+{
+}

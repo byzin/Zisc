@@ -14,11 +14,7 @@ set Z_SCRIPT_DIR=%~dp0
 
 @zisc_script_pre_commands@
 
-rem Move to the script directory and run the execution
-cd %Z_SCRIPT_DIR%
+rem Run the execution
 call %Z_SCRIPT_DIR%\@zisc_script_exec@ %*
-
-rem Back to current directory
-cd %Z_CURRENT_DIR%
 
 @zisc_script_post_commands@

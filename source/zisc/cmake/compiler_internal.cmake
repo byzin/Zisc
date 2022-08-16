@@ -119,8 +119,10 @@ function(Zisc_getMsvcCompilerFlags architecture cxx_compile_flags cxx_linker_fla
   # Architecture optimization
   if(architecture MATCHES "Amd64")
     list(APPEND compile_flags /favor:AMD64)
-    if(architecture MATCHES "Amd64-v[34]")
+    if(architecture MATCHES "Amd64-v3")
       list(APPEND compile_flags /arch:AVX2)
+    elseif(architecture MATCHES "Amd64-v4")
+      list(APPEND compile_flags /arch:AVX512)
     endif()
   endif()
 
@@ -154,7 +156,9 @@ function(Zisc_getClangClCompilerFlags architecture cxx_compile_flags cxx_linker_
   set(definitions "")
 
   # Architecture optimization
-  if(architecture MATCHES "Amd64-v2")
+  if(architecture MATCHES "Amd64-v1")
+    list(APPEND compile_flags /clang:-march=x86-64)
+  elseif(architecture MATCHES "Amd64-v2")
     list(APPEND compile_flags /clang:-fno-math-errno
                               /clang:-march=x86-64-v2)
   elseif(architecture MATCHES "Amd64-v3")
@@ -189,7 +193,9 @@ function(Zisc_getClangCompilerFlags architecture cxx_compile_flags cxx_linker_fl
   set(definitions "")
 
   # Architecture optimization
-  if(architecture MATCHES "Amd64-v2")
+  if(architecture MATCHES "Amd64-v1")
+    list(APPEND compile_flags -march=x86-64)
+  elseif(architecture MATCHES "Amd64-v2")
     list(APPEND compile_flags -fno-math-errno
                               -march=x86-64-v2)
   elseif(architecture MATCHES "Amd64-v3")
@@ -231,7 +237,9 @@ function(Zisc_getGccCompilerFlags architecture cxx_compile_flags cxx_linker_flag
   set(definitions "")
 
   # Architecture optimization
-  if(architecture MATCHES "Amd64-v2")
+  if(architecture MATCHES "Amd64-v1")
+    list(APPEND compile_flags -march=x86-64)
+  elseif(architecture MATCHES "Amd64-v2")
     list(APPEND compile_flags -fno-math-errno
                               -march=x86-64-v2)
   elseif(architecture MATCHES "Amd64-v3")

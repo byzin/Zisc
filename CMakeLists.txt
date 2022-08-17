@@ -33,17 +33,18 @@ endif()
 # Build Zisc
 add_subdirectory("${zisc_path}" "${PROJECT_BINARY_DIR}/Zisc")
 
-# Build examples
-if(ZISC_BUILD_EXAMPLES)
+if(PROJECT_IS_TOP_LEVEL OR ZISC_BUILD_EXAMPLES OR ZISC_BUILD_TESTS)
   include("${PROJECT_SOURCE_DIR}/cmake/project.cmake")
   setZiscAlias()
+endif()
+
+# Build examples
+if(ZISC_BUILD_EXAMPLES)
   add_subdirectory("${PROJECT_SOURCE_DIR}/example" "${PROJECT_BINARY_DIR}/Examples")
 endif()
 
 # Build unit test
 if(ZISC_BUILD_TESTS)
-  include("${PROJECT_SOURCE_DIR}/cmake/project.cmake")
-  setZiscAlias()
   addGoogleTest("${PROJECT_BINARY_DIR}/GoogleTest")
   enable_testing()
   add_subdirectory("${PROJECT_SOURCE_DIR}/test" "${PROJECT_BINARY_DIR}/UnitTest")
@@ -51,8 +52,6 @@ endif()
 
 if(PROJECT_IS_TOP_LEVEL)
   # Build documents
-  include("${PROJECT_SOURCE_DIR}/cmake/project.cmake")
-  setZiscAlias()
   add_subdirectory("${PROJECT_SOURCE_DIR}/document" "${PROJECT_BINARY_DIR}/Document")
 
   # Packaging

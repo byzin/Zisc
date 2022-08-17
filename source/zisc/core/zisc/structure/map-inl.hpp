@@ -92,7 +92,7 @@ void Map<MapClass, Key, T, Compare>::clear() noexcept
 /*!
   \details No detailed description
 
-  \param [in] value No description.
+  \param [in] key No description.
   \return No description
   */
 template <typename MapClass,
@@ -215,7 +215,7 @@ bool Map<MapClass, Key, T, Compare>::isEmpty() const noexcept
 /*!
   \details No detailed description
 
-  \param [in] value No description.
+  \param [in] key No description.
   \return No description
   */
 template <typename MapClass,
@@ -230,6 +230,8 @@ auto Map<MapClass, Key, T, Compare>::remove(ConstKeyT& key) -> std::optional<siz
 
 /*!
   \details No detailed description
+
+  \param [in] cap No description.
   */
 template <typename MapClass,
           std::movable Key,

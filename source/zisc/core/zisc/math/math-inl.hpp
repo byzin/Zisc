@@ -485,6 +485,7 @@ constexpr Float Math::atan(const Float x) noexcept
   \details No detailed description
 
   \tparam Float No description.
+  \param [in] y No description.
   \param [in] x No description.
   \return No description
   */

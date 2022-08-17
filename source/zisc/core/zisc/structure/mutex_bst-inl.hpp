@@ -112,7 +112,7 @@ auto MutexBst<Key, T, Compare>::operator=(MutexBst&& other) noexcept -> MutexBst
 /*!
   \details No detailed description
 
-  \param [in] value No description.
+  \param [in] args No description.
   \return No description
   */
 template <std::movable Key, MappedValue T, std::invocable<Key, Key> Compare>

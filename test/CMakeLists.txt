@@ -24,17 +24,6 @@ function(getTestCompileFlags test_compile_flags test_linker_flags test_definitio
 endfunction(getTestCompileFlags)
 
 
-function(addGoogleTest googletest_path zisc_library)
-  cmake_path(SET source_dir NORMALIZE "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../source")
-  include("${source_dir}/zisc/cmake/general.cmake")
-  include("${source_dir}/zisc/cmake/compiler.cmake")
-
-  Zisc_addGoogleTest("${googletest_path}" "${PROJECT_BINARY_DIR}/GoogleTest")
-  Zisc_populateTargetOptions(${zisc_library} gtest)
-  Zisc_populateTargetOptions(${zisc_library} gtest_main)
-endfunction(addGoogleTest)
-
-
 function(getMakeTestRunScriptCode target bin_dir lib_dir script_name output_dir code)
   # Set environment variables
   set(env_vars "")
@@ -96,14 +85,6 @@ macro(setTestProject)
   Zisc_getPlatformFlags(platform_definitions)
   Zisc_setVariablesOnCMake(${platform_definitions})
 
-  include("${__zisc_dir__}/cmake/compiler.cmake")
-  Zisc_getArchitectureName(TRUE architecture)
-  Zisc_getArchitectureTargetName("Zisc" ${architecture} zisc_library_name)
-  # Check dependencies
-  Zisc_checkTarget(${zisc_library_name})
-  addGoogleTest("${PROJECT_SOURCE_DIR}/dependencies/googletest" ${zisc_library_name})
-  Zisc_checkTarget(gtest_main)
-
   # Create a symlink to the test resources
   cmake_path(SET dst_resource_dir "${PROJECT_BINARY_DIR}/resources")
   file(COPY "${PROJECT_SOURCE_DIR}/resources" DESTINATION "${PROJECT_BINARY_DIR}")
@@ -134,8 +115,8 @@ macro(setTestProject)
   target_compile_options(${PROJECT_NAME} PRIVATE ${test_compile_flags}
                                                  ${cxx_compile_warning_flags}
                                                  ${test_warning_flags})
-  target_link_libraries(${PROJECT_NAME} PRIVATE gtest_main
-                                                ${zisc_library_name}
+  target_link_libraries(${PROJECT_NAME} PRIVATE Zisc::Zisc
+                                                GTest::gtest
                                                 ${test_linker_flags})
   target_compile_definitions(${PROJECT_NAME} PRIVATE ${test_definitions})
   target_include_directories(${PROJECT_NAME} PRIVATE "${PROJECT_SOURCE_DIR}/math_reference")

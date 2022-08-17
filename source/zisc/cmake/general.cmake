@@ -53,7 +53,6 @@ endfunction(Zisc_checkTarget)
 
 # Build GoogleTest libraries
 function(Zisc_addGoogleTest source_dir binary_dir)
-  message(STATUS "Add GoogleTest library.")
   Zisc_checkSubmodule("${source_dir}")
   set(BUILD_GMOCK OFF CACHE INTERNAL "" FORCE)
   set(INSTALL_GTEST OFF CACHE INTERNAL "" FORCE)

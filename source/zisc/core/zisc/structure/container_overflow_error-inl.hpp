@@ -34,7 +34,7 @@ namespace zisc {
   \details No detailed description
 
   \param [in] what_arg No description.
-  \param [in,out] memory_resource No description.
+  \param [in,out] mem_resource No description.
   \param [in] value No description.
   */
 template <std::movable T> inline
@@ -52,7 +52,7 @@ ContainerOverflowError<T>::ContainerOverflowError(const std::string_view what_ar
   \details No detailed description
 
   \param [in] what_arg No description.
-  \param [in,out] memory_resource No description.
+  \param [in,out] mem_resource No description.
   \param [in] value No description.
   */
 template <std::movable T> inline

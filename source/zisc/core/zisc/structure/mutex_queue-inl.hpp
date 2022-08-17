@@ -266,7 +266,7 @@ pmr::memory_resource* MutexQueue<T>::resource() const noexcept
 /*!
   \details No detailed description
 
-  \return No description
+  \param [in] cap No description.
   */
 template <std::movable T> inline
 void MutexQueue<T>::setCapacity(size_type cap) noexcept

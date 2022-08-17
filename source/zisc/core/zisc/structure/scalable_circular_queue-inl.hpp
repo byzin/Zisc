@@ -192,7 +192,7 @@ auto ScalableCircularQueue<T>::dequeue() noexcept -> std::optional<ValueT>
 /*!
   \details No detailed description
 
-  \param [in] value No description.
+  \param [in] args No description.
   \return No description
   \exception OverflowError No description.
   */

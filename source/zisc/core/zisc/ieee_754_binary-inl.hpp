@@ -185,7 +185,7 @@ constexpr Ieee754Binary<kFormat>::Ieee754Binary(const Float value) noexcept :
 /*!
   \details No detailed description
 
-  \param [in] data No description.
+  \param [in] bits No description.
   */
 template <Ieee754BinaryFormat kFormat> inline
 constexpr Ieee754Binary<kFormat>::Ieee754Binary(const BitT bits) noexcept :

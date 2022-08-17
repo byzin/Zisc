@@ -49,11 +49,7 @@ function(addExample target save_dependency_list)
                                              CXX_STANDARD_REQUIRED ON)
   target_compile_options(${target} PRIVATE ${cxx_compile_warning_flags}
                                            ${example_warning_flags})
-  # Check dependencies
-  Zisc_getArchitectureName(TRUE architecture)
-  Zisc_getArchitectureTargetName("Zisc" ${architecture} zisc_library)
-  Zisc_checkTarget(${zisc_library})
-  target_link_libraries(${target} PRIVATE ${zisc_library})
+  target_link_libraries(${target} PRIVATE Zisc::Zisc)
   Zisc_enableIpo(${target})
 
   #

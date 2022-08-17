@@ -94,7 +94,7 @@ auto Queue<QueueClass, T>::enqueue(Args&&... args) -> std::optional<size_type>
 /*!
   \details No detailed description
 
-  \param [in] value No description.
+  \param [in] index No description.
   \return No description
   */
 template <typename QueueClass, std::movable T> inline
@@ -107,7 +107,7 @@ auto Queue<QueueClass, T>::get(const size_type index) noexcept -> Reference
 /*!
   \details No detailed description
 
-  \param [in] value No description.
+  \param [in] index No description.
   \return No description
   */
 template <typename QueueClass, std::movable T> inline

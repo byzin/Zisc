@@ -50,6 +50,7 @@ SystemError::SystemError(const ErrorCode code) :
   \details No detailed description
 
   \param [in] code No description.
+  \param [in] what_arg No description.
   */
 inline
 SystemError::SystemError(const ErrorCode code, const std::string_view what_arg) :

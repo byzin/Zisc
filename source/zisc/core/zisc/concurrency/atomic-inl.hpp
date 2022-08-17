@@ -234,6 +234,7 @@ Type Atomic::decrement(Type* ptr, const std::memory_order order) noexcept
   \tparam Type No description.
   \param [in,out] ptr No description.
   \param [in] value No description.
+  \param [in] order No description.
   \return No description
   */
 template <TriviallyCopyable Type> inline
@@ -259,6 +260,7 @@ Type Atomic::min(Type* ptr, const Type value, const std::memory_order order) noe
   \tparam Type No description.
   \param [in,out] ptr No description.
   \param [in] value No description.
+  \param [in] order No description.
   \return No description
   */
 template <TriviallyCopyable Type> inline
@@ -327,6 +329,7 @@ Int Atomic::bitOr(Int* ptr, const Int value, const std::memory_order order) noex
   \tparam Int No description.
   \param [in,out] ptr No description.
   \param [in] value No description.
+  \param [in] order No description.
   \return No description
   */
 template <Integer Int> inline

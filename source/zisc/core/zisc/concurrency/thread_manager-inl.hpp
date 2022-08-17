@@ -53,8 +53,8 @@ namespace zisc {
   \details No detailed description
 
   \param [in] t No description.
-  \param [in] begin_offset No description.
-  \param [in] num_of_iterations No description.
+  \param [in] offset No description.
+  \param [in] n No description.
   */
 inline
 ThreadManager::TaskExceptionData::TaskExceptionData(SharedTask&& t,

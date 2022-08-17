@@ -24,6 +24,7 @@
   No detailed description.
 
   \param [in] code No description.
+  \param [out] output No description.
   */
 #define ERROR_CODE_STRING_CASE(code, output) case ErrorCode::k ## code : { \
                                                (output) = #code ## s; \

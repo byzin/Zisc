@@ -258,6 +258,8 @@ void Bitset::reset(const bool value) noexcept
 /*!
   \details No detailed description
 
+  \param [in] begin No description.
+  \param [in] end No description.
   \param [in] value No description.
   */
 inline

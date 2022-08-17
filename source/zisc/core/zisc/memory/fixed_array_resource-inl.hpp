@@ -191,9 +191,9 @@ auto FixedArrayResource<Type>::data() const noexcept -> ConstPointer
 /*!
   \details No detailed description
 
+  \param [in,out] data No description.
   \param [in] size No description.
   \param [in] alignment No description.
-  \return No description
   */
 template <typename Type> inline
 void FixedArrayResource<Type>::deallocateMemory(void* data,

@@ -99,8 +99,8 @@ void* AllocFreeResource::allocateMemory(const std::size_t size,
   \details No detailed description
 
   \param [in,out] data No description.
-  \param [in] data No description.
-  \param [in] data No description.
+  \param [in] size No description.
+  \param [in] alignment No description.
   */
 inline
 void AllocFreeResource::deallocateMemory(

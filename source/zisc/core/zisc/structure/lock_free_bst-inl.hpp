@@ -20,6 +20,7 @@
 #include <array>
 #include <atomic>
 #include <bit>
+#include <cmath>
 #include <concepts>
 #include <cstddef>
 #include <iterator>
@@ -32,6 +33,8 @@
 // Zisc
 #include "container_overflow_error.hpp"
 #include "map.hpp"
+#include "zisc/algorithm.hpp"
+#include "zisc/error.hpp"
 #include "zisc/non_copyable.hpp"
 #include "zisc/zisc_config.hpp"
 #include "zisc/memory/data_storage.hpp"
@@ -107,6 +110,7 @@ template <std::convertible_to<double> Key,
 auto LockFreeBst<Key, T, Compare>::operator=(LockFreeBst&& other) noexcept
     -> LockFreeBst&
 {
+  clear();
   node_pool_ = std::move(other.node_pool_);
   root_ = std::move(other.root_);
   index_pool_ = std::move(other.index_pool_);
@@ -126,19 +130,35 @@ template <std::convertible_to<double> Key,
 template <typename ...Args> inline
 auto LockFreeBst<Key, T, Compare>::add(Args&&... args) -> std::optional<size_type>
 {
-  const size_type index = issueNodeIndex();
-  NodePtr node = getNode(index);
-  node->setValue(ValueT{std::forward<Args>(args)...});
-  node->setLeftChild(NodeInfo{index, false, false, true});
+  NodePtr node = nullptr;
+  ValueT value{std::forward<Args>(args)...};
 
+  bool is_first_step = true;
   NodeInfo current{NodeInfo::root0Index()};
   NodeInfo prev{NodeInfo::root1Index()};
   size_type node_index = invalidId();
   while (true) {
-    const size_type dir = locate(prev, current, node->key());
+    const double k = is_first_step
+        ? static_cast<double>(BaseMapT::getKey(value))
+        : node->key(isRoot(node));
+    const size_type dir = locate(prev, current, k);
     if ((dir == 2) || (dir == invalidId())) [[unlikely]] {
-      returnNodeIndex(index);
+      if (!is_first_step)
+        returnNodeIndex(getIndex(node));
       break;
+    }
+
+    if (is_first_step) {
+      const size_type index = issueNodeIndex();
+      using OverflowErr = typename BaseMapT::OverflowError;
+      if (index == RingBuffer::overflowIndex()) {
+        const char* message = "Bst overflow happened.";
+        throw OverflowErr{message, resource(), std::move(value)};
+      }
+      node = getNode(index);
+      node->setValue(std::move(value));
+      node->setLeftChild(NodeInfo{index, false, false, true});
+      is_first_step = false;
     }
 
     NodeInfo r = getNode(current)->childP(dir);
@@ -149,7 +169,7 @@ auto LockFreeBst<Key, T, Compare>::add(Args&&... args) -> std::optional<size_typ
     const NodeInfo replacement{getIndex(node), false, false, false};
     const bool result = cas(&getNode(current)->child(dir), new_value, replacement);
     if (result) {
-      node_index = index;
+      node_index = getIndex(node);
       break;
     }
 
@@ -204,7 +224,14 @@ template <std::convertible_to<double> Key,
           std::invocable<Key, Key> Compare> inline
 void LockFreeBst<Key, T, Compare>::clear() noexcept
 {
-  //! \todo Implement
+  // Skip clear operation after moving data to other
+  if (node_pool_.empty())
+    return;
+
+  //! \todo destroy elements
+
+  index_pool_.full();
+  initialize();
 }
 
 /*!
@@ -330,11 +357,10 @@ auto LockFreeBst<Key, T, Compare>::remove(ConstKeyT& key) -> std::optional<size_
   NodeInfo prev{NodeInfo::root1Index()};
 
   size_type node_index = invalidId();
-  constexpr double eps = std::numeric_limits<double>::epsilon();
-  const size_type dir = locate(prev, current, static_cast<double>(key) - eps);
+  const size_type dir = locate(prev, current, keyMinusUlp(key));
   if (dir != invalidId()) [[likely]] {
     NodeInfo next = getNode(current)->childP(dir);
-    if (isEqual(static_cast<double>(key), getNode(next)->key())) {
+    if (equal(static_cast<double>(key), getNode(next)->key(isRoot(next)))) {
       const size_type next_index = next.index();
       const bool result = tryFlag(current, next, prev, true);
       if (result)
@@ -359,7 +385,7 @@ template <std::convertible_to<double> Key,
           std::invocable<Key, Key> Compare> inline
 pmr::memory_resource* LockFreeBst<Key, T, Compare>::resource() const noexcept
 {
-  auto alloc = node_pool_.get_alloc();
+  auto alloc = node_pool_.get_allocator();
   return alloc.resource();
 }
 
@@ -377,11 +403,11 @@ void LockFreeBst<Key, T, Compare>::setCapacity(size_type cap) noexcept
   cap = (std::max)(lowest_size, cap);
 
   const size_type cap_pow2 = std::bit_ceil(cap);
-  constexpr size_type cap_max = capacityMax();
-  if ((capacity() < cap_pow2) && (cap_pow2 <= cap_max)) {
+  if ((capacity() < cap_pow2) && (cap_pow2 <= capacityMax())) {
     clear();
+    node_pool_.clear();
     node_pool_.resize(cap_pow2);
-    index_pool_.setSize(cap_pow2);
+    index_pool_.setSize(cap_pow2 << 1);
   }
   clear();
 }
@@ -396,7 +422,9 @@ template <std::convertible_to<double> Key,
           std::invocable<Key, Key> Compare> inline
 auto LockFreeBst<Key, T, Compare>::size() const noexcept -> size_type
 {
-  return node_pool_.size();
+  const size_type d = index_pool_.distance();
+  const size_type s = index_pool_.size() >> 1;
+  return s - d;
 }
 
 /*!
@@ -599,7 +627,7 @@ template <std::convertible_to<double> Key,
 constexpr auto LockFreeBst<Key, T, Compare>::NodeInfo::root1Index() noexcept
     -> size_type
 {
-  const size_type index = indexMax() + 2;
+  const size_type index = root0Index() + 1;
   return index;
 }
 
@@ -621,6 +649,8 @@ auto LockFreeBst<Key, T, Compare>::NodeInfo::create(const size_type index,
                                                     const bool is_threaded) noexcept
     -> size_type
 {
+  [[maybe_unused]] constexpr size_type zero = 0;
+  ZISC_ASSERT(isInBounds(index, zero, invalidIndex()+1), "The index is out of range.");
   const size_type p = indexMask() & index;
   constexpr size_type shift = std::bit_width(indexMask());
   const size_type bits = (flag ? 0b001 : 0) |
@@ -712,12 +742,9 @@ template <std::convertible_to<double> Key,
 LockFreeBst<Key, T, Compare>::Node::Node(Node&& other) noexcept :
     child_{other.leftChildP(), other.rightChildP()},
     back_link_{other.backLinkP()},
-    pre_link_{other.preLink()}
+    pre_link_{other.preLink()},
+    key_{other.key_}
 {
-  if (isRoot())
-    key_ = other.key_;
-  else
-    value_ = std::move(other.value());
 }
 
 /*!
@@ -735,10 +762,7 @@ auto LockFreeBst<Key, T, Compare>::Node::operator=(Node&& other) noexcept -> Nod
   child_[1].store(other.rightChildP(), std::memory_order::release);
   back_link_.store(other.backLinkP(), std::memory_order::release);
   pre_link_ = other.preLink();
-  if (isRoot())
-    key_ = other.key_;
-  else
-    value_ = std::move(other.value());
+  key_ = other.key_;
   return *this;
 }
 
@@ -795,6 +819,7 @@ template <std::convertible_to<double> Key,
 auto LockFreeBst<Key, T, Compare>::Node::child(const size_type dir) noexcept
     -> std::atomic<NodeInfo>&
 {
+  ZISC_ASSERT(dir <= 1, "The dir is out of range.");
   return child_[dir];
 }
 
@@ -825,6 +850,7 @@ template <std::convertible_to<double> Key,
 auto LockFreeBst<Key, T, Compare>::Node::child(const size_type dir) const noexcept
     -> const std::atomic<NodeInfo>&
 {
+  ZISC_ASSERT(dir <= 1, "The dir is out of range.");
   return child_[dir];
 }
 
@@ -855,6 +881,7 @@ template <std::convertible_to<double> Key,
 auto LockFreeBst<Key, T, Compare>::Node::childP(const size_type dir) const noexcept
     -> NodeInfo
 {
+  ZISC_ASSERT(dir <= 1, "The dir is out of range.");
   const NodeInfo info = child_[dir].load(std::memory_order::acquire);
   return info;
 }
@@ -882,23 +909,9 @@ auto LockFreeBst<Key, T, Compare>::Node::childP(const ComparisonResult dir) cons
 template <std::convertible_to<double> Key,
           MappedValue T,
           std::invocable<Key, Key> Compare> inline
-bool LockFreeBst<Key, T, Compare>::Node::isRoot() const noexcept
+double LockFreeBst<Key, T, Compare>::Node::key(const bool is_root) const noexcept
 {
-  const bool is_root = leftChildP().isRoot() || rightChildP().isRoot();
-  return is_root;
-}
-
-/*!
-  \details No detailed description
-
-  \return No description
-  */
-template <std::convertible_to<double> Key,
-          MappedValue T,
-          std::invocable<Key, Key> Compare> inline
-double LockFreeBst<Key, T, Compare>::Node::key() const noexcept
-{
-  const double k = isRoot() ? key_ : BaseMapT::getKey(*value_);
+  const double k = is_root ? key_ : BaseMapT::getKey(*value_);
   return k;
 }
 
@@ -1199,11 +1212,12 @@ void LockFreeBst<Key, T, Compare>::cleanFlagNoThreaded(NodeInfo& prev,
       cleanMark(current, 0);
     }
     else {
-      const auto p_dir = compare(getNode(current)->key(), getNode(prev)->key());
+      const ComparisonResult p_dir = compare(getNode(current)->key(isRoot(current)),
+                                             getNode(prev)->key(isRoot(prev)));
       if (left.index() == current.index()) { // cat 1 node
         NodeInfo new_value{current.index(), true, false, false};
         const NodeInfo replacement{right, false, false};
-        cas(&getNode(pre_node)->child(p_dir), new_value, replacement);
+        cas(&getNode(prev)->child(p_dir), new_value, replacement);
         if (!right.isThreaded()) {
           NodePtr ref = getNode(right);
           ref->backLink().compare_exchange_weak(current,
@@ -1225,7 +1239,7 @@ void LockFreeBst<Key, T, Compare>::cleanFlagNoThreaded(NodeInfo& prev,
         }
         new_value = NodeInfo{current.index(), true, false, false};
         replacement = NodeInfo{pre_node.index(), false, false, right.isThreaded()};
-        cas(&getNode(pre_node)->child(p_dir), new_value, replacement);
+        cas(&getNode(prev)->child(p_dir), new_value, replacement);
         {
           NodePtr ref = getNode(pre_node);
           ref->backLink().compare_exchange_strong(current,
@@ -1235,14 +1249,15 @@ void LockFreeBst<Key, T, Compare>::cleanFlagNoThreaded(NodeInfo& prev,
         }
       }
       // The current is removed
-      index_pool_.enqueue(current.index(), true);
+      returnNodeIndex(current.index());
     }
   }
   else if (right.isThreaded() && right.flag()) {
     NodePtr del_node = getNode(right);
     NodeInfo parent = del_node->backLinkP();
     while (true) {
-      const ComparisonResult p_dir = compare(del_node->key(), getNode(parent)->key());
+      const ComparisonResult p_dir = compare(del_node->key(isRoot(del_node)),
+                                             getNode(parent)->key(isRoot(parent)));
       const NodeInfo temp = getNode(parent)->childP(p_dir);
       if (temp.isMarked()) {
         cleanMark(parent, static_cast<size_type>(p_dir));
@@ -1251,8 +1266,8 @@ void LockFreeBst<Key, T, Compare>::cleanFlagNoThreaded(NodeInfo& prev,
         break;
       }
       else {
-        NodeInfo new_value{right.index(), false, false, false};
-        const NodeInfo replacement{right.index(), true, false, false};
+        NodeInfo new_value{getIndex(del_node), false, false, false};
+        const NodeInfo replacement{getIndex(del_node), true, false, false};
         if (cas(&getNode(parent)->child(p_dir), new_value, replacement))
           break;
       }
@@ -1288,7 +1303,8 @@ void LockFreeBst<Key, T, Compare>::cleanFlagThreaded(NodeInfo& prev,
       cleanFlag(current, next, back_node, next.isThreaded());
 
       if (back.index() == next.index()) {
-        const auto p_dir = compare(getNode(prev)->key(), getNode(back_node)->key());
+        const auto p_dir = compare(getNode(prev)->key(isRoot(prev)),
+                                   getNode(back_node)->key(isRoot(back_node)));
         NodeInfo back_temp = back;
         NodeInfo back_child = getNode(back_temp)->childP(p_dir);
         prev = back_child;
@@ -1346,12 +1362,13 @@ void LockFreeBst<Key, T, Compare>::cleanMarkLeft(NodeInfo& current) noexcept
     cleanMark(pre_node, 0);
   }
   else if (right.isThreaded() && right.flag()) {
-    NodePtr del_node = getNode(right);
-    NodePtr del_node_pa = getNode(del_node->backLinkP());
+    NodeInfo del_node = right;
+    NodeInfo del_node_pa = getNode(del_node)->backLinkP();
     NodeInfo pre_parent = getNode(current)->backLinkP();
-    const ComparisonResult p_dir = compare(del_node->key(), del_node_pa->key());
-    const NodeInfo del_node_l = del_node->leftChildP();
-    const NodeInfo del_node_r = del_node->rightChildP();
+    const ComparisonResult p_dir = compare(getNode(del_node)->key(isRoot(del_node)),
+                                           getNode(del_node_pa)->key(isRoot(del_node_pa)));
+    const NodeInfo del_node_l = getNode(del_node)->leftChildP();
+    const NodeInfo del_node_r = getNode(del_node)->rightChildP();
     //
     NodeInfo new_value{current.index(), true, false, false};
     NodeInfo replacement{left, left.flag(), false};
@@ -1373,7 +1390,7 @@ void LockFreeBst<Key, T, Compare>::cleanMarkLeft(NodeInfo& current) noexcept
     //
     {
       NodePtr p = getNode(del_node_l);
-      p->backLink().compare_exchange_strong(right,
+      p->backLink().compare_exchange_strong(del_node,
                                             current,
                                             std::memory_order::acq_rel,
                                             std::memory_order::acquire);
@@ -1387,22 +1404,22 @@ void LockFreeBst<Key, T, Compare>::cleanMarkLeft(NodeInfo& current) noexcept
     //
     if (!del_node_r.isThreaded()) {
       NodePtr p = getNode(del_node_r);
-      p->backLink().compare_exchange_strong(right,
+      p->backLink().compare_exchange_strong(del_node,
                                             current,
                                             std::memory_order::acq_rel,
                                             std::memory_order::acquire);
     }
     //
     {
-      new_value = NodeInfo{getIndex(del_node), true, false, false};
+      new_value = NodeInfo{del_node.index(), true, false, false};
       replacement = NodeInfo{current.index(), false, false, false};
-      cas(&del_node_pa->child(p_dir), new_value, replacement);
+      cas(&getNode(del_node_pa)->child(p_dir), new_value, replacement);
     }
     //
     {
       NodePtr p = getNode(current);
       p->backLink().compare_exchange_strong(pre_parent,
-                                            del_node->backLinkP(),
+                                            del_node_pa,
                                             std::memory_order::acq_rel,
                                             std::memory_order::acquire);
     }
@@ -1420,12 +1437,12 @@ template <std::convertible_to<double> Key,
 void LockFreeBst<Key, T, Compare>::cleanMarkRight(NodeInfo& current) noexcept
 {
   const NodeInfo left = getNode(current)->leftChildP();
-  const NodeInfo right = getNode(current)->rightChildP();
   NodePtr del_node = getNode(current);
   while (true) {
     NodeInfo pre_node = del_node->preLink();
     NodeInfo parent = del_node->backLinkP();
-    const ComparisonResult p_dir = compare(del_node->key(), getNode(parent)->key());
+    const ComparisonResult p_dir = compare(del_node->key(isRoot(del_node)),
+                                           getNode(parent)->key(isRoot(parent)));
     const NodeInfo parent_child = getNode(parent)->childP(p_dir);
 
     // step 4 for category 1 and 2. Actually step 5: flag the incoming parent link
@@ -1488,6 +1505,23 @@ auto LockFreeBst<Key, T, Compare>::compare(const double lhs, const double rhs) n
 /*!
   \details No detailed description
 
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
+  */
+template <std::convertible_to<double> Key,
+          MappedValue T,
+          std::invocable<Key, Key> Compare> inline
+bool LockFreeBst<Key, T, Compare>::equal(const double lhs, const double rhs) noexcept
+{
+//  const bool result = !CompareT{}(lhs, rhs) && !CompareT{}(rhs, lhs);
+  const bool result = lhs == rhs;
+  return result;
+}
+
+/*!
+  \details No detailed description
+
   \param [in] index No description.
   \return No description
   */
@@ -1497,7 +1531,13 @@ template <std::convertible_to<double> Key,
 auto LockFreeBst<Key, T, Compare>::getIndex(ConstNodePtr node) const noexcept
     -> size_type
 {
-  const auto index = static_cast<size_type>(std::distance(node_pool_.data(), node));
+  const auto d = std::distance(node_pool_.data(), node);
+  using DiffT = std::remove_cvref_t<decltype(d)>;
+  [[maybe_unused]] constexpr DiffT begin = 0;
+  [[maybe_unused]] const auto end = static_cast<DiffT>(node_pool_.size());
+  ZISC_ASSERT(isInBounds(d, begin, end), "The node is out of the pool.");
+
+  const auto index = static_cast<size_type>(d);
   return index;
 }
 
@@ -1514,10 +1554,30 @@ auto LockFreeBst<Key, T, Compare>::getNode(const size_type index) noexcept
     -> NodePtr
 {
   using I = NodeInfo;
-  NodePtr node = ((index == I::root0Index()) || (index == I::root1Index()))
-      ? &root_[NodeInfo::root0Index() - index]
+  const bool is_root = (index == I::root0Index()) || (index == I::root1Index());
+  [[maybe_unused]] constexpr size_type begin = 0;
+  [[maybe_unused]] const size_type end = node_pool_.size();
+  ZISC_ASSERT(is_root || isInBounds(index, begin, end), "The index is out of the pool.");
+
+  NodePtr node = is_root
+      ? &root_[index - NodeInfo::root0Index()]
       : &node_pool_[index];
   return node;
+}
+
+/*!
+  \details No detailed description
+
+  \param [in] index No description.
+  \return No description
+  */
+template <std::convertible_to<double> Key,
+          MappedValue T,
+          std::invocable<Key, Key> Compare> inline
+auto LockFreeBst<Key, T, Compare>::getNode(const NodeInfo info) noexcept
+    -> NodePtr
+{
+  return getNode(info.index());
 }
 
 /*!
@@ -1533,10 +1593,30 @@ auto LockFreeBst<Key, T, Compare>::getNode(const size_type index) const noexcept
     -> ConstNodePtr
 {
   using I = NodeInfo;
-  ConstNodePtr node = ((index == I::root0Index()) || (index == I::root1Index()))
-      ? &root_[NodeInfo::root0Index() - index]
+  const bool is_root = (index == I::root0Index()) || (index == I::root1Index());
+  [[maybe_unused]] constexpr size_type begin = 0;
+  [[maybe_unused]] const size_type end = node_pool_.size();
+  ZISC_ASSERT(is_root || isInBounds(index, begin, end), "The index is out of the pool.");
+
+  ConstNodePtr node = is_root
+      ? &root_[index - NodeInfo::root0Index()]
       : &node_pool_[index];
   return node;
+}
+
+/*!
+  \details No detailed description
+
+  \param [in] index No description.
+  \return No description
+  */
+template <std::convertible_to<double> Key,
+          MappedValue T,
+          std::invocable<Key, Key> Compare> inline
+auto LockFreeBst<Key, T, Compare>::getNode(const NodeInfo info) const noexcept
+    -> ConstNodePtr
+{
+  return getNode(info.index());
 }
 
 /*!
@@ -1568,17 +1648,47 @@ void LockFreeBst<Key, T, Compare>::initialize() noexcept
 /*!
   \details No detailed description
 
-  \param [in] lhs No description.
-  \param [in] rhs No description.
+  \param [in] info No description.
   \return No description
   */
 template <std::convertible_to<double> Key,
           MappedValue T,
           std::invocable<Key, Key> Compare> inline
-bool LockFreeBst<Key, T, Compare>::isEqual(const double lhs, const double rhs) noexcept
+bool LockFreeBst<Key, T, Compare>::isRoot(const NodeInfo info) const noexcept
 {
-//  const bool result = !CompareT{}(lhs, rhs) && !CompareT{}(rhs, lhs);
-  const bool result = lhs == rhs;
+  return info.isRoot();
+}
+
+/*!
+  \details No detailed description
+
+  \param [in] info No description.
+  \return No description
+  */
+template <std::convertible_to<double> Key,
+          MappedValue T,
+          std::invocable<Key, Key> Compare> inline
+bool LockFreeBst<Key, T, Compare>::isRoot(ConstNodePtr node) const noexcept
+{
+  const bool result = (node == &root_[0]) || (node == &root_[1]);
+  return result;
+}
+
+/*!
+  \details No detailed description
+
+  \param [in] key No description.
+  \return No description
+  */
+template <std::convertible_to<double> Key,
+          MappedValue T,
+          std::invocable<Key, Key> Compare> inline
+double LockFreeBst<Key, T, Compare>::keyMinusUlp(ConstKeyT& key) noexcept
+{
+  const auto k = static_cast<double>(key);
+  ZISC_ASSERT(std::isfinite(k), "The key isn't finite.");
+  constexpr double eps = std::numeric_limits<double>::epsilon();
+  const double result = k - eps;
   return result;
 }
 
@@ -1593,6 +1703,7 @@ template <std::convertible_to<double> Key,
 auto LockFreeBst<Key, T, Compare>::issueNodeIndex() noexcept -> size_type
 {
   const size_type index = index_pool_.dequeue(true);
+  std::cout << "  issue index: " << index << std::endl;
   return index;
 }
 
@@ -1618,36 +1729,37 @@ auto LockFreeBst<Key, T, Compare>::locate(NodeInfo& prev,
     if (max_step_count < step_count++)
       break;
 
-    const ComparisonResult dir = compare(key, getNode(current)->key());
+    const ComparisonResult dir = compare(key, getNode(current)->key(isRoot(current)));
     if (dir == ComparisonResult::kIsEqual) {
       result = static_cast<size_type>(ComparisonResult::kIsEqual);
       break;
     }
-    else {
-      NodeInfo r = getNode(current)->childP(dir);
-      if (r.isMarked() && (dir == ComparisonResult::kIsGreater)) {
-        NodeInfo new_prev = getNode(prev)->backLinkP();
-        const_cast<LockFreeBst*>(this)->cleanMark(current, static_cast<size_type>(dir));
-        prev = new_prev;
-        const ComparisonResult p_dir = compare(key, getNode(prev)->key());
-        const NodeInfo temp = getNode(prev)->childP(p_dir);
-        current = temp;
-        continue;
-      }
-      if (r.isThreaded()) {
-        if ((dir == ComparisonResult::kIsLess) ||
-            (compare(key, getNode(r)->key()) == ComparisonResult::kIsLess)) {
-          result = static_cast<size_type>(dir);
-        }
-        else {
-          prev = current;
-          current = r;
-        }
+
+    NodeInfo r = getNode(current)->childP(dir);
+    if (r.isMarked() && (dir == ComparisonResult::kIsGreater)) {
+      NodeInfo new_prev = getNode(prev)->backLinkP();
+      const_cast<LockFreeBst*>(this)->cleanMark(current, static_cast<size_type>(dir));
+      prev = new_prev;
+      const ComparisonResult p_dir = compare(key, getNode(prev)->key(isRoot(prev)));
+      const NodeInfo temp = getNode(prev)->childP(p_dir);
+      current = temp;
+      continue;
+    }
+
+    if (r.isThreaded()) {
+      if ((dir == ComparisonResult::kIsLess) ||
+          (compare(key, getNode(r)->key(isRoot(r))) == ComparisonResult::kIsLess)) {
+        result = static_cast<size_type>(dir);
+        break;
       }
       else {
         prev = current;
         current = r;
       }
+    }
+    else {
+      prev = current;
+      current = r;
     }
   }
   return result;
@@ -1676,6 +1788,7 @@ template <std::convertible_to<double> Key,
           std::invocable<Key, Key> Compare> inline
 void LockFreeBst<Key, T, Compare>::returnNodeIndex(const size_type index) noexcept
 {
+  std::cout << "  return index: " << index << std::endl;
   index_pool_.enqueue(index, true);
 }
 
@@ -1698,7 +1811,8 @@ bool LockFreeBst<Key, T, Compare>::tryFlag(NodeInfo& prev,
 {
   bool flag = false;
   while (true) {
-    ComparisonResult p_dir = compare(getNode(current)->key(), getNode(prev)->key());
+    ComparisonResult p_dir = compare(getNode(current)->key(isRoot(current)),
+                                     getNode(prev)->key(isRoot(prev)));
     // current->key() and prev->key() will be same when they are pointing to
     // the same node. This is only possible by the threaded left-link
     p_dir = (p_dir == ComparisonResult::kIsEqual) ? ComparisonResult::kIsLess : p_dir;
@@ -1710,23 +1824,23 @@ bool LockFreeBst<Key, T, Compare>::tryFlag(NodeInfo& prev,
       flag = true;
       break;
     }
-    else {
-      NodeInfo temp = getNode(prev)->childP(p_dir);
-      if (temp.index() == current.index()) {
-        if (temp.flag())
-          break;
-        else if (temp.isMarked())
-          cleanMark(prev, static_cast<size_type>(p_dir));
-        prev = back; // back is provided as third parameter.
-                     // It helps to step back and restart
-        const auto new_p_dir = compare(getNode(current)->key(), getNode(prev)->key());
-        temp = getNode(prev)->childP(new_p_dir);
-        NodeInfo new_current{temp.index(), false, false, false};
-        locate(prev, new_current, getNode(current)->key());
-        if (new_current.index() != current.index())
-          break;
-        prev = getNode(prev)->backLinkP();
-      }
+
+    NodeInfo temp = getNode(prev)->childP(p_dir);
+    if (temp.index() == current.index()) {
+      if (temp.flag())
+        break;
+      else if (temp.isMarked())
+        cleanMark(prev, static_cast<size_type>(p_dir));
+      prev = back; // back is provided as third parameter.
+                   // It helps to step back and restart
+      const auto new_p_dir = compare(getNode(current)->key(isRoot(current)),
+                                     getNode(prev)->key(isRoot(prev)));
+      temp = getNode(prev)->childP(new_p_dir);
+      NodeInfo new_current{temp.index()};
+      locate(prev, new_current, getNode(current)->key(isRoot(current)));
+      if (new_current.index() != current.index())
+        break;
+      prev = getNode(prev)->backLinkP();
     }
   }
   return flag;

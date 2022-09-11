@@ -14,6 +14,7 @@
 
 // Standard C++ library
 #include <cstddef>
+#include <bit>
 #include <iostream>
 #include <memory>
 #include <thread>
@@ -57,6 +58,7 @@ TEST(LockFreeBstTest, ConstructorTest)
   {
     *map = Map{cap, &mem_resource};
   }
+  cap = std::bit_ceil(cap);
   ASSERT_EQ(cap, map->capacity()) << "Constructing of LockFreeBst failed.";
 }
 

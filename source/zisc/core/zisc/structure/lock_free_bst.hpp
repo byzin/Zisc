@@ -291,11 +291,8 @@ class LockFreeBst : public Map<LockFreeBst<Key, T, Compare>, Key, T, Compare>
     //!
     NodeInfo childP(const ComparisonResult dir) const noexcept;
 
-    //!
-    bool isRoot() const noexcept;
-
     //! Return the underlying key
-    double key() const noexcept;
+    double key(const bool is_root) const noexcept;
 
     //! Return the underlying left child
     std::atomic<NodeInfo>& leftChild() noexcept;
@@ -394,28 +391,37 @@ class LockFreeBst : public Map<LockFreeBst<Key, T, Compare>, Key, T, Compare>
   static ComparisonResult compare(const double lhs, const double rhs) noexcept;
 
   //!
+  static bool equal(const double lhs, const double rhs) noexcept;
+
+  //!
   size_type getIndex(ConstNodePtr node) const noexcept;
 
   //!
   NodePtr getNode(const size_type index) noexcept;
 
   //!
-  NodePtr getNode(const NodeInfo index) noexcept;
+  NodePtr getNode(const NodeInfo info) noexcept;
 
   //!
   ConstNodePtr getNode(const size_type index) const noexcept;
 
   //!
-  ConstNodePtr getNode(const NodeInfo index) const noexcept;
+  ConstNodePtr getNode(const NodeInfo info) const noexcept;
 
   //!
   void initialize() noexcept;
 
   //!
-  static bool isEqual(const double lhs, const double rhs) noexcept;
+  bool isRoot(const NodeInfo info) const noexcept;
+
+  //!
+  bool isRoot(ConstNodePtr node) const noexcept;
 
   //!
   size_type issueNodeIndex() noexcept;
+
+  //!
+  static double keyMinusUlp(ConstKeyT& key) noexcept;
 
   //!
   size_type locate(NodeInfo& prev,
@@ -437,29 +443,8 @@ class LockFreeBst : public Map<LockFreeBst<Key, T, Compare>, Key, T, Compare>
   //!
   void tryMark(NodeInfo& current, const size_type dir) noexcept;
 
-//  //! Compare the two keys
-//  static bool compare(ConstStoragePtr lhs, ConstKeyT& rhs) noexcept;
-//
-//  //! Compare the two keys of nodes
-//  static bool compareNode(ConstStoragePtr lhs, ConstStoragePtr rhs) noexcept;
-//
-//  //! Check if the two given keys are same
-//  static bool equal(ConstStoragePtr lhs, ConstKeyT& rhs) noexcept;
-//
-//  //! Return the index of the given node
-//  size_type getIndex(ConstStoragePtr node) const noexcept;
-//
-//  //! Return the storage by the given index
-//  StorageRef getStorage(const size_type index) noexcept;
-//
-//  //! Return the storage by the given index
-//  ConstStorageRef getStorage(const size_type index) const noexcept;
-
   //! Return the invalid id
   static constexpr size_type invalidId() noexcept;
-
-//  //! Issue a storage index from the index stack
-//  size_type issueStorageIndex() noexcept;
 
 
   pmr::vector<Node> node_pool_;

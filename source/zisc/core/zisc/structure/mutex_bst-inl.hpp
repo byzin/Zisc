@@ -170,7 +170,7 @@ constexpr auto MutexBst<Key, T, Compare>::capacityMax() noexcept -> size_type
 template <std::movable Key, MappedValue T, std::invocable<Key, Key> Compare> inline
 void MutexBst<Key, T, Compare>::clear() noexcept
 {
-  // Skip clear operation after moving data to ather 
+  // Skip clear operation after moving data to other 
   if (node_pool_.empty())
     return;
 

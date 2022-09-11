@@ -288,8 +288,7 @@ void ScalableCircularQueue<T>::setCapacity(size_type cap) noexcept
   cap = (std::max)(lowest_size, cap);
 
   const size_type cap_pow2 = std::bit_ceil(cap);
-  constexpr size_type cap_max = capacityMax();
-  if ((capacity() < cap_pow2) && (cap_pow2 <= cap_max)) {
+  if ((capacity() < cap_pow2) && (cap_pow2 <= capacityMax())) {
     clear();
     elements_.resize(cap_pow2);
     allocated_elements_.setSize(cap_pow2 << 1);

@@ -133,22 +133,21 @@ auto LockFreeBst<Key, T, Compare>::add(Args&&... args) -> std::optional<size_typ
   NodePtr node = nullptr;
   ValueT value{std::forward<Args>(args)...};
 
-  bool is_first_step = true;
   NodeInfo current{NodeInfo::root0Index()};
   NodeInfo prev{NodeInfo::root1Index()};
   size_type node_index = invalidId();
   while (true) {
-    const double k = is_first_step
-        ? static_cast<double>(BaseMapT::getKey(value))
-        : node->key(isRoot(node));
+    const double k =(node != nullptr)
+        ? node->key(isRoot(node))
+        : static_cast<double>(BaseMapT::getKey(value));
     const size_type dir = locate(prev, current, k);
     if ((dir == 2) || (dir == invalidId())) [[unlikely]] {
-      if (!is_first_step)
+      if (node != nullptr)
         returnNodeIndex(getIndex(node));
       break;
     }
 
-    if (is_first_step) {
+    if (node == nullptr) {
       const size_type index = issueNodeIndex();
       using OverflowErr = typename BaseMapT::OverflowError;
       if (index == RingBuffer::overflowIndex()) {
@@ -158,7 +157,6 @@ auto LockFreeBst<Key, T, Compare>::add(Args&&... args) -> std::optional<size_typ
       node = getNode(index);
       node->setValue(std::move(value));
       node->setLeftChild(NodeInfo{index, false, false, true});
-      is_first_step = false;
     }
 
     NodeInfo r = getNode(current)->childP(dir);
@@ -265,8 +263,19 @@ template <std::convertible_to<double> Key,
 auto LockFreeBst<Key, T, Compare>::findMinKey() noexcept
     -> std::optional<Pointer>
 {
-  //! \todo Implement
-  return std::optional<Pointer>{};
+  NodeInfo current{NodeInfo::root0Index()};
+  NodeInfo prev{NodeInfo::root1Index()};
+
+  size_type node_index = invalidId();
+  const size_type dir = findMinKeyImpl(prev, current);
+  if (dir != invalidId()) [[likely]] {
+    NodeInfo next = getNode(current)->childP(dir);
+    if (!isRoot(next))
+      node_index = next.index();
+  }
+  return (node_index != invalidId())
+      ? std::make_optional(&getNode(node_index)->value())
+      : std::optional<Pointer>{};
 }
 
 /*!
@@ -280,8 +289,19 @@ template <std::convertible_to<double> Key,
 auto LockFreeBst<Key, T, Compare>::findMinKey() const noexcept
     -> std::optional<ConstPointer>
 {
-  //! \todo Implement
-  return std::optional<ConstPointer>{};
+  NodeInfo current{NodeInfo::root0Index()};
+  NodeInfo prev{NodeInfo::root1Index()};
+
+  size_type node_index = invalidId();
+  const size_type dir = findMinKeyImpl(prev, current);
+  if (dir != invalidId()) [[likely]] {
+    NodeInfo next = getNode(current)->childP(dir);
+    if (!isRoot(next))
+      node_index = next.index();
+  }
+  return (node_index != invalidId())
+      ? std::make_optional(&getNode(node_index)->value())
+      : std::optional<ConstPointer>{};
 }
 
 /*!
@@ -1522,6 +1542,66 @@ bool LockFreeBst<Key, T, Compare>::equal(const double lhs, const double rhs) noe
 /*!
   \details No detailed description
 
+  \param [in,out] prev No description.
+  \param [in,out] current No description.
+  \return No description
+  */
+template <std::convertible_to<double> Key,
+          MappedValue T,
+          std::invocable<Key, Key> Compare> inline
+auto LockFreeBst<Key, T, Compare>::findMinKeyImpl(NodeInfo& prev,
+                                                  NodeInfo& current) const noexcept
+    -> size_type
+{
+  size_type step_count = 0;
+  size_type result = invalidId();
+  while (true) {
+    constexpr size_type max_step_count = 1 << 12;
+    if (max_step_count < step_count++)
+      break;
+
+    constexpr double inf = -std::numeric_limits<double>::infinity();
+    const ComparisonResult dir = equal(inf, getNode(current)->key(isRoot(current)))
+        ? ComparisonResult::kIsGreater
+        : ComparisonResult::kIsLess;
+
+    NodeInfo r = getNode(current)->childP(dir);
+    if (r.isMarked() && (dir == ComparisonResult::kIsGreater)) {
+      NodeInfo new_prev = getNode(prev)->backLinkP();
+      const_cast<LockFreeBst*>(this)->cleanMark(current, static_cast<size_type>(dir));
+      prev = new_prev;
+      const ComparisonResult p_dir = equal(inf, getNode(prev)->key(isRoot(prev)))
+          ? ComparisonResult::kIsGreater
+          : ComparisonResult::kIsLess;
+      const NodeInfo temp = getNode(prev)->childP(p_dir);
+      current = temp;
+      continue;
+    }
+
+    if (r.isThreaded()) {
+      const ComparisonResult p_dir = equal(inf, getNode(r)->key(isRoot(r)))
+          ? ComparisonResult::kIsGreater
+          : ComparisonResult::kIsLess;
+      if ((dir == ComparisonResult::kIsLess) || (p_dir == ComparisonResult::kIsLess)) {
+        result = static_cast<size_type>(dir);
+        break;
+      }
+      else {
+        prev = current;
+        current = r;
+      }
+    }
+    else {
+      prev = current;
+      current = r;
+    }
+  }
+  return result;
+}
+
+/*!
+  \details No detailed description
+
   \param [in] index No description.
   \return No description
   */
@@ -1687,7 +1767,8 @@ double LockFreeBst<Key, T, Compare>::keyMinusUlp(ConstKeyT& key) noexcept
 {
   const auto k = static_cast<double>(key);
   ZISC_ASSERT(std::isfinite(k), "The key isn't finite.");
-  constexpr double eps = std::numeric_limits<double>::epsilon();
+//  constexpr double eps = std::numeric_limits<double>::epsilon();
+  constexpr double eps = 0.5;
   const double result = k - eps;
   return result;
 }
@@ -1849,13 +1930,13 @@ bool LockFreeBst<Key, T, Compare>::tryFlag(NodeInfo& prev,
 /*!
   \details No detailed description
 
-  \param [in,out] current No description.
+  \param [in] current No description.
   \param [in] dir No description.
   */
 template <std::convertible_to<double> Key,
           MappedValue T,
           std::invocable<Key, Key> Compare> inline
-void LockFreeBst<Key, T, Compare>::tryMark(NodeInfo& current,
+void LockFreeBst<Key, T, Compare>::tryMark(NodeInfo current,
                                            const size_type dir) noexcept
 {
   while (true) {

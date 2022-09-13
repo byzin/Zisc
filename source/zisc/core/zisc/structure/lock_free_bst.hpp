@@ -393,6 +393,9 @@ class LockFreeBst : public Map<LockFreeBst<Key, T, Compare>, Key, T, Compare>
   //!
   static bool equal(const double lhs, const double rhs) noexcept;
 
+  //! Find the minimum key in the bst
+  size_type findMinKeyImpl(NodeInfo& prev, NodeInfo& current) const noexcept;
+
   //!
   size_type getIndex(ConstNodePtr node) const noexcept;
 
@@ -441,7 +444,7 @@ class LockFreeBst : public Map<LockFreeBst<Key, T, Compare>, Key, T, Compare>
                const bool is_threaded) noexcept;
 
   //!
-  void tryMark(NodeInfo& current, const size_type dir) noexcept;
+  void tryMark(NodeInfo current, const size_type dir) noexcept;
 
   //! Return the invalid id
   static constexpr size_type invalidId() noexcept;

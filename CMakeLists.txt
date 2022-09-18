@@ -9,7 +9,7 @@
 cmake_minimum_required(VERSION 3.22)
 
 
-project(ZiscProject VERSION 0.0.72 LANGUAGES CXX)
+project(ZiscProject VERSION 0.0.73 LANGUAGES CXX)
 
 cmake_path(SET zisc_path "${PROJECT_SOURCE_DIR}/source/zisc")
 if(PROJECT_IS_TOP_LEVEL)

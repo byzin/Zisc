@@ -84,19 +84,19 @@ TEST(FunctionReferenceTest, InvocationTest)
 
     // Function pointer
     {
-      FuncRef ref{::add};
+      const FuncRef ref{::add};
       ASSERT_EQ(::add(a, b), ref(a, b)) << "FunctionRef invocation failed.";
     }
     {
       FuncRef ref{std::addressof(::add)};
       ASSERT_EQ(::add(a, b), ref(a, b)) << "FunctionRef invocation failed.";
 
-      FuncRef ref2{ref};
+      const FuncRef ref2{ref};
       ASSERT_EQ(::add(a, b), ref2(a, b)) << "FunctionRef invocation failed.";
     }
     // Type conversion
     {
-      FuncRef ref{std::addressof(::addL)};
+      const FuncRef ref{std::addressof(::addL)};
       ASSERT_EQ(::addL(a, b), ref(a, b)) << "FunctionRef invocation failed.";
     }
     {
@@ -104,13 +104,13 @@ TEST(FunctionReferenceTest, InvocationTest)
       FuncRef2 ref{std::addressof(::addL)};
       ASSERT_EQ(::addL(a, b), ref(a, b)) << "FunctionRef invocation failed.";
 
-      FuncRef ref2{ref};
+      const FuncRef ref2{ref};
       ASSERT_EQ(::addL(a, b), ref2(a, b)) << "FunctionRef invocation failed.";
     }
     // Class with operator()
     {
       ::Adder adder{10};
-      FuncRef ref{adder};
+      const FuncRef ref{adder};
       ASSERT_EQ(adder(a, b), ref(a, b)) << "FunctionRef invocation failed.";
     }
     // Lambda
@@ -120,7 +120,7 @@ TEST(FunctionReferenceTest, InvocationTest)
       {
         return ::add(lhs, rhs) + c;
       };
-      FuncRef ref{adder};
+      const FuncRef ref{adder};
       ASSERT_EQ(adder(a, b), ref(a, b)) << "FunctionRef invocation failed.";
     }
   }
@@ -133,7 +133,7 @@ TEST(FunctionReferenceTest, InvocationTest)
 
     // Function pointer
     {
-      FuncRef ref{::add2};
+      const FuncRef ref{::add2};
       int expected = 0;
       ::add2(a, b, &expected);
       int result = 0;
@@ -148,7 +148,7 @@ TEST(FunctionReferenceTest, InvocationTest)
       ref(a, b, &result);
       ASSERT_EQ(expected, result) << "FunctionRef invocation failed.";
 
-      FuncRef ref2{ref};
+      const FuncRef ref2{ref};
       ref2(a, b, &result);
       ASSERT_EQ(expected, result) << "FunctionRef invocation failed.";
     }
@@ -161,14 +161,14 @@ TEST(FunctionReferenceTest, InvocationTest)
       ref(a, b, &result);
       ASSERT_EQ(expected, result) << "FunctionRef invocation failed.";
 
-      FuncRef ref2{ref};
+      const FuncRef ref2{ref};
       ref2(a, b, &result);
       ASSERT_EQ(expected, result) << "FunctionRef invocation failed.";
     }
     // Class with opeartor()
     {
       ::Adder2 adder{10};
-      FuncRef ref{adder};
+      const FuncRef ref{adder};
       int expected = 0;
       adder(a, b, &expected);
       int result = 0;
@@ -177,13 +177,13 @@ TEST(FunctionReferenceTest, InvocationTest)
     }
     // Lambda
     {
-      int c = 100;
-      auto adder = [c](const int lhs, const int rhs, int* result) noexcept
+      constexpr int c = 100;
+      auto adder = [](const int lhs, const int rhs, int* result) noexcept
       {
         ::add2(lhs, rhs, result);
         *result += c;
       };
-      FuncRef ref{adder};
+      const FuncRef ref{adder};
       int expected = 0;
       adder(a, b, &expected);
       int result = 0;
@@ -290,7 +290,7 @@ TEST(FunctionReferenceTest, ArgumentTest)
   {
     const FuncRef func_ref{func};
     Movable a{1};
-    NonCopyable b{2};
+    const NonCopyable b{2};
     NonCopyable c{3};
     Movable d{4};
     const int expected = a.value_ + b.value_ + c.value_ + d.value_;

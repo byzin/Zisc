@@ -29,7 +29,7 @@ template <typename Type>
 void showAtomicProperties(const std::string_view type_name) noexcept
 {
   using Atomic = std::atomic<Type>;
-  Atomic v;
+  const Atomic v;
   std::cout << "  std::atomic<" << type_name << ">: "
             << "size: " << sizeof(v) << ", "
             << "alignment: " << std::alignment_of_v<Atomic> << ", "

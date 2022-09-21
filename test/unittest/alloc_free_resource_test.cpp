@@ -125,8 +125,8 @@ TEST(AllocFreeResourceTest, MemoryAllocationTest)
 
 TEST(AllocFreeResourceTest, ResourceComparisonTest)
 {
-  zisc::AllocFreeResource mem_resource1;
-  zisc::AllocFreeResource mem_resource2;
+  const zisc::AllocFreeResource mem_resource1;
+  const zisc::AllocFreeResource mem_resource2;
 
   ASSERT_TRUE(mem_resource1.is_equal(mem_resource1));
   ASSERT_FALSE(mem_resource1.is_equal(mem_resource2));
@@ -149,7 +149,7 @@ TEST(AllocFreeResourceTest, AlignmentTest)
           << "Allocation with " << alignment << " alignment is failed.";
     }
     // Memory access test
-    std::span<std::byte> bytes{static_cast<std::byte*>(ptr), size};
+    const std::span<std::byte> bytes{static_cast<std::byte*>(ptr), size};
     std::for_each(bytes.begin(), bytes.end(), [](std::byte& in)
     {
       in = std::byte{(std::numeric_limits<zisc::uint8b>::max)()};
@@ -205,7 +205,7 @@ TEST(AllocFreeResource, MultiThreadTest)
           FAIL() << "Memory allocation failed. size=" << error.size() << ", alignment=" << error.alignment();
         }
         // Memory access test
-        std::span<std::byte> bytes{ptr, size};
+        const std::span<std::byte> bytes{ptr, size};
         std::for_each(bytes.begin(), bytes.end(), [](std::byte& in)
         {
           in = std::byte{(std::numeric_limits<zisc::uint8b>::max)()};
@@ -245,7 +245,7 @@ TEST(AllocFreeResource, MultiThreadTest)
       // Do the actual test
       for (std::size_t j = 0; j < loop; ++j) {
         const std::size_t index = i * loop + j;
-        Data& data = data_list[index];
+        const Data& data = data_list[index];
         const std::size_t size = data.size_;
         const std::size_t alignment = data.alignment_;
         mem_resource.deallocate(data.data_, size, alignment);

@@ -767,14 +767,14 @@ TEST(ThreadManagerTest, EnqueueAlignedValueTest)
     };
     static_assert(std::alignment_of_v<Value1> == alignment);
 
-    Value1 v1 = {1};
+    const Value1 v1 = {1};
     auto task1 = [v1]()
     {
       return Value1{2 * v1.value_};
     };
 
     zisc::Future<Value1> result = thread_manager.enqueue(std::move(task1));
-    Value1 r1 = result.get();
+    const Value1 r1 = result.get();
     ASSERT_EQ(2 * v1.value_, r1.value_) << "The aligned value test failed.";
   }
 }
@@ -897,7 +897,7 @@ TEST(ThreadManagerTest, ExitWorkerRunningTest)
         const std::chrono::milliseconds wait_time{256};
         std::this_thread::sleep_for(wait_time);
       };
-      [[maybe_unused]] zisc::Future<void> r = thread_manager.enqueue(std::move(task));
+      [[maybe_unused]] const zisc::Future<void> r = thread_manager.enqueue(std::move(task));
     }
   }
   ASSERT_EQ(0, mem_resource.totalMemoryUsage())
@@ -1010,7 +1010,7 @@ TEST(ThreadManagerTest, GetValueTest)
       ASSERT_FALSE(flag) << "The result value was already destructed.";
     }
     {
-      ::MovableTestValue1 value = result.get();
+      const ::MovableTestValue1 value = result.get();
       const int v = zisc::atomic_load(&value.value_, std::memory_order::acquire);
       ASSERT_EQ(expected, v) << "The get value test failed.";
     }
@@ -1037,7 +1037,7 @@ TEST(ThreadManagerTest, GetValueTest)
       ASSERT_FALSE(flag) << "The result value was already destructed.";
     }
     {
-      ::MovableTestValue2 value = result.get();
+      const ::MovableTestValue2 value = result.get();
       const int v = zisc::atomic_load(&value.value_, std::memory_order::acquire);
       ASSERT_EQ(expected, v) << "The get value test failed.";
     }
@@ -1062,7 +1062,7 @@ TEST(ThreadManagerTest, GetValueTest)
       ASSERT_FALSE(flag) << "The result value was already destructed.";
     }
     {
-      ::MovableTestValue3 value = result.get();
+      const ::MovableTestValue3 value = result.get();
       const int v = zisc::atomic_load(&value.value_, std::memory_order::acquire);
       ASSERT_EQ(expected, v) << "The get value test failed.";
     }
@@ -1134,7 +1134,7 @@ TEST(ThreadManagerTest, ParallelTest)
       });
 
       std::atomic_int worker_lock{-1};
-      Task task{[&id_list, &worker_lock](const zisc::uint, const zisc::int64b id)
+      const Task task{[&id_list, &worker_lock](const zisc::uint, const zisc::int64b id)
       {
         worker_lock.wait(-1, std::memory_order::acquire);
         id_list[id] = id;
@@ -1248,7 +1248,7 @@ void testThreadManagerThroughput(const std::size_t num_of_samples,
       constexpr std::size_t end = batch_size;
       const auto dependency = has_task_dependencies ? ThreadManager::kAllPrecedences
                                                     : ThreadManager::kNoTask;
-      [[maybe_unused]] zisc::Future<void> r = thread_manager->enqueueLoop(task,
+      [[maybe_unused]] const zisc::Future<void> r = thread_manager->enqueueLoop(task,
                                                                           begin,
                                                                           end,
                                                                           dependency);

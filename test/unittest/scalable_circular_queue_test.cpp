@@ -34,19 +34,19 @@
 TEST(ScalableCircularQueueTest, LockFreeTest)
 {
   {
-    std::atomic<zisc::int32b> v;
+    const std::atomic<zisc::int32b> v;
     EXPECT_TRUE(v.is_always_lock_free) << "std::atomic<int32_t> isn't lock free.";
   }
   {
-    std::atomic<zisc::uint32b> v;
+    const std::atomic<zisc::uint32b> v;
     EXPECT_TRUE(v.is_always_lock_free) << "std::atomic<uint32_t> isn't lock free.";
   }
   {
-    std::atomic<zisc::int64b> v;
+    const std::atomic<zisc::int64b> v;
     EXPECT_TRUE(v.is_always_lock_free) << "std::atomic<int64_t> isn't lock free.";
   }
   {
-    std::atomic<zisc::uint64b> v;
+    const std::atomic<zisc::uint64b> v;
     EXPECT_TRUE(v.is_always_lock_free) << "std::atomic<uint64_t> isn't lock free.";
   }
 }

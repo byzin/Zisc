@@ -39,7 +39,7 @@ namespace zisc {
   \param [in] code No description.
   \return No description
   */
-std::string getErrorCodeString(const ErrorCode code) noexcept
+std::string getErrorCodeString(const ErrorCode code)
 {
   using namespace std::string_literals;
   std::string code_string;

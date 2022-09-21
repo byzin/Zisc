@@ -432,7 +432,7 @@ TEST(Ieee754BinaryTest, Float2DoubleTest)
 
   auto to_bitset32 = [](const uint32b u)
   {
-    uint64b ul = zisc::cast<uint64b>(u);
+    const uint64b ul = zisc::cast<uint64b>(u);
     std::bitset<32> bits{ul};
     return bits;
   };

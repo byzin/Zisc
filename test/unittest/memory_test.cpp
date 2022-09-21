@@ -105,7 +105,7 @@ TEST(MemoryTest, AllocateTest)
     EXPECT_TRUE(zisc::Memory::isAligned(mem, s))
         << "zisc::aligned_alloc(" << s << "," << s << ") failed.";
     // Memory access test
-    std::span<std::byte> data{zisc::reinterp<std::byte*>(mem), s};
+    const std::span<std::byte> data{zisc::reinterp<std::byte*>(mem), s};
     std::for_each(data.begin(), data.end(), [](std::byte& b)
     {
       b = std::byte{(std::numeric_limits<zisc::uint8b>::max)()};

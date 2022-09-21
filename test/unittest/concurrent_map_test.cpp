@@ -203,7 +203,7 @@ auto MapTest::generateMapOpList(const std::size_t num_of_samples,
   std::vector<Operation> op_list;
   op_list.resize(num_of_samples, Operation::kContain);
   if (0 < update_percent) {
-    zisc::uint64b count = 2 * 100 / update_percent;
+    const zisc::uint64b count = 2 * 100 / update_percent;
     for (zisc::uint64b i = 0; i < num_of_samples; ++i) {
       const zisc::uint64b h = zisc::Fnv1aHash64::hash(num_of_samples + i);
       const Operation op = (h % count == 0) ? Operation::kAdd :

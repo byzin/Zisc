@@ -29,8 +29,8 @@ TEST(StdMemoryResourceTest, StringStreamTest)
   zisc::AllocFreeResource mem_resource;
 
   {
-    zisc::pmr::polymorphic_allocator<char> alloc{&mem_resource};
-    zisc::pmr::string init{zisc::pmr::string::allocator_type{alloc}};
+    const zisc::pmr::polymorphic_allocator<char> alloc{&mem_resource};
+    const zisc::pmr::string init{zisc::pmr::string::allocator_type{alloc}};
     zisc::pmr::stringstream code{init};
     code << "Zisc";
     code << "String";
@@ -95,16 +95,16 @@ TEST(StdMemoryResourceTest, UniquePtrDeletionTest)
   };
 
   zisc::AllocFreeResource mem_resource;
-  zisc::pmr::polymorphic_allocator<MemTest> alloc{&mem_resource};
+  const zisc::pmr::polymorphic_allocator<MemTest> alloc{&mem_resource};
 
   // Empty data
   {
-    zisc::pmr::unique_ptr<MemTest> ptr{};
+    const zisc::pmr::unique_ptr<MemTest> ptr{};
   }
 
   // Null pointer
   {
-    zisc::pmr::unique_ptr<MemTest> ptr{nullptr, alloc};
+    const zisc::pmr::unique_ptr<MemTest> ptr{nullptr, alloc};
   }
 
   ASSERT_FALSE(value);

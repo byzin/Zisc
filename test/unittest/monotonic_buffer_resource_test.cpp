@@ -53,7 +53,7 @@ class ResourceCreator
 
   zisc::pmr::unique_ptr<MemResource> create()
   {
-    zisc::pmr::polymorphic_allocator<MemResource> alloc{&resource_};
+    const zisc::pmr::polymorphic_allocator<MemResource> alloc{&resource_};
     return zisc::pmr::allocateUnique<MemResource>(alloc, &resource_);
   }
 
@@ -164,7 +164,7 @@ TEST(MonotonicBufferResourceTest, AlignmentTest)
     // Memory access test
     std::for_each(data_list.begin(), data_list.end(), [alignment](Data data)
     {
-      std::span<std::byte> bytes{static_cast<std::byte*>(data), alignment};
+      const std::span<std::byte> bytes{static_cast<std::byte*>(data), alignment};
       std::for_each(bytes.begin(), bytes.end(), [](std::byte& in)
       {
         in = std::byte{(std::numeric_limits<zisc::uint8b>::max)()};
@@ -213,7 +213,7 @@ TEST(MonotonicBufferResourceTest, MultiThreadTest)
       // Wait the thread until all threads become ready
       worker_lock.wait(-1, std::memory_order::acquire);
       // Do the actual test
-      std::uniform_int_distribution<std::size_t> distrib{0, 12};
+      const std::uniform_int_distribution<std::size_t> distrib{0, 12};
       for (std::size_t j = 0; j < loop; ++j) {
         const std::size_t index = i * loop + j;
         std::byte* ptr = nullptr;
@@ -226,7 +226,7 @@ TEST(MonotonicBufferResourceTest, MultiThreadTest)
           FAIL() << "Memory allocation failed. size=" << error.size() << ", alignment=" << error.alignment();
         }
         // Memory access test
-        std::span<std::byte> bytes{ptr, alignment_max};
+        const std::span<std::byte> bytes{ptr, alignment_max};
         std::for_each(bytes.begin(), bytes.end(), [](std::byte& in)
         {
           in = std::byte{(std::numeric_limits<zisc::uint8b>::max)()};

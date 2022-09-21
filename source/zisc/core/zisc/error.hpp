@@ -63,7 +63,7 @@ enum class ErrorCode : int
 };
 
 //! Return the string of the given error code
-std::string getErrorCodeString(const ErrorCode code) noexcept;
+std::string getErrorCodeString(const ErrorCode code);
 
 /*!
   \brief No brief description

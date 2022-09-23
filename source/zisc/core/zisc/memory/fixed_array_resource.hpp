@@ -48,7 +48,7 @@ class FixedArrayResource : public pmr::memory_resource,
   using ConstValueT = std::add_const_t<ValueT>;
   using Pointer = std::add_pointer_t<ValueT>;
   using ConstPointer = std::add_pointer_t<ConstValueT>;
-  using BadAlloc = Memory::BadAlloc;
+  using BadAllocT = Memory::BadAllocation;
 
 
   //! Create a resource

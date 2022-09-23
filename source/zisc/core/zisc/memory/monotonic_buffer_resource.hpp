@@ -44,7 +44,7 @@ class MonotonicBufferResource :
 {
  public:
   // Exception
-  using BadAlloc = Memory::BadAlloc;
+  using BadAllocT = Memory::BadAllocation;
 
 
   //! Create a new resource

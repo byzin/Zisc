@@ -28,7 +28,7 @@ namespace zisc {
   \param [in] size No description.
   \param [in] alignment No description.
   \return No description
-  \exception BadAlloc No description.
+  \exception BadAllocT No description.
   */
 void* AllocFreeResource::do_allocate(std::size_t size, std::size_t alignment)
 {

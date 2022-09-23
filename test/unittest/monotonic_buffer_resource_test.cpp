@@ -87,7 +87,7 @@ TEST(MonotonicBufferResourceTest, AllocationTest)
     try {
       data = resource->allocate(alignment, alignment);
     }
-    catch (const MemResource::BadAlloc& error) {
+    catch (const MemResource::BadAllocT& error) {
       FAIL() << "Allocation with " << alignment << " alignment is failed."
              << " exception: " << error.what()
              << " size=" << error.size() << ", alignment=" << error.alignment();
@@ -104,7 +104,7 @@ TEST(MonotonicBufferResourceTest, AllocationTest)
     [[maybe_unused]] void* data = resource->allocate(1, 1);
     FAIL() << "The allocation unexpectedly successed."; // Never go this line
   }
-  catch (const MemResource::BadAlloc& error) {
+  catch (const MemResource::BadAllocT& error) {
     std::cout << "## Bad allocation happened expectedly." << std::endl;
   }
   // Deallocation
@@ -149,7 +149,7 @@ TEST(MonotonicBufferResourceTest, AlignmentTest)
       try {
         data = resource->allocate(alignment, alignment);
       }
-      catch (const MemResource::BadAlloc& error) {
+      catch (const MemResource::BadAllocT& error) {
         FAIL() << "Allocation with " << alignment << " alignment is failed."
                << " exception: " << error.what()
                << " size=" << error.size() << ", alignment=" << error.alignment();
@@ -222,7 +222,7 @@ TEST(MonotonicBufferResourceTest, MultiThreadTest)
           data_list[index] = data;
           ptr = static_cast<std::byte*>(data);
         }
-        catch (const zisc::Memory::BadAlloc& error) {
+        catch (const zisc::Memory::BadAllocation& error) {
           FAIL() << "Memory allocation failed. size=" << error.size() << ", alignment=" << error.alignment();
         }
         // Memory access test

@@ -66,7 +66,7 @@ AllocFreeResource& AllocFreeResource::operator=(AllocFreeResource&& other) noexc
   \param [in] size No description.
   \param [in] alignment No description.
   \return No description
-  \exception BadAlloc No description.
+  \exception BadAllocT No description.
   */
 inline
 void* AllocFreeResource::allocateMemory(const std::size_t size,
@@ -78,7 +78,7 @@ void* AllocFreeResource::allocateMemory(const std::size_t size,
   void* ptr = aligned_alloc(alloc_alignment, alloc_size);
   if (ptr == nullptr) {
     const char* message = "Memory allocation failed.";
-    throw BadAlloc{alloc_size, alloc_alignment, message};
+    throw BadAllocT{alloc_size, alloc_alignment, message};
   }
 
   // Get the pointer to the data

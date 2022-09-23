@@ -38,13 +38,13 @@ class Memory
 
     No detailed description.
     */
-  class BadAlloc : public std::bad_alloc
+  class BadAllocation : public std::bad_alloc
   {
    public:
     //! Create a new exception
-    BadAlloc(const std::size_t size,
-             const std::size_t alignment,
-             const std::string_view explanation);
+    BadAllocation(const std::size_t size,
+                  const std::size_t alignment,
+                  const std::string_view explanation);
 
     //! Return the alignment that is failed to be allocated
     std::size_t alignment() const noexcept;

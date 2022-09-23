@@ -64,7 +64,7 @@ TEST(FixedArrayResourceTest, MemoryAllocationTest)
       [[maybe_unused]] void* d = mem_resource.allocate(size_max, alignment_max);
       FAIL() << "The allocation unexpectedly succeeded."; // Never go this line
     }
-    catch (const zisc::Memory::BadAlloc& error) {
+    catch (const zisc::Memory::BadAllocation& error) {
       std::cout << "## Bad allocation happened expectedly." << std::endl;
       ASSERT_EQ(size_max, error.size());
       ASSERT_EQ(alignment_max, error.alignment());
@@ -111,7 +111,7 @@ TEST(FixedArrayResourceTest, MemoryAllocationSizeTest)
       [[maybe_unused]] void* data = mem_resource.allocate(size, alignment);
       FAIL() << "The allocation unexpectedly succeeded."; // Never go this line
     }
-    catch (const zisc::Memory::BadAlloc& error) {
+    catch (const zisc::Memory::BadAllocation& error) {
       std::cout << "## Bad allocation happened expectedly." << std::endl;
       ASSERT_EQ(size, error.size());
       ASSERT_EQ(alignment, error.alignment());
@@ -151,7 +151,7 @@ TEST(FixedArrayResourceTest, MultiThreadTest)
           const std::size_t index = i * loop + j;
           data_list[index] = data;
         }
-        catch (const zisc::Memory::BadAlloc& error) {
+        catch (const zisc::Memory::BadAllocation& error) {
           FAIL() << "Memory allocation failed.";
         }
       }

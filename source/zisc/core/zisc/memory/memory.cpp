@@ -46,9 +46,9 @@ namespace zisc {
   \param [in] size No description.
   \param [in] explanation No description.
   */
-Memory::BadAlloc::BadAlloc(const std::size_t size,
-                           const std::size_t alignment,
-                           const std::string_view explanation) :
+Memory::BadAllocation::BadAllocation(const std::size_t size,
+                                     const std::size_t alignment,
+                                     const std::string_view explanation) :
     explanation_{explain(size, alignment, explanation)},
     size_{size},
     alignment_{alignment}
@@ -60,7 +60,7 @@ Memory::BadAlloc::BadAlloc(const std::size_t size,
 
   \return No description
   */
-std::size_t Memory::BadAlloc::alignment() const noexcept
+std::size_t Memory::BadAllocation::alignment() const noexcept
 {
   return alignment_;
 }
@@ -70,7 +70,7 @@ std::size_t Memory::BadAlloc::alignment() const noexcept
 
   \return No description
   */
-std::size_t Memory::BadAlloc::size() const noexcept
+std::size_t Memory::BadAllocation::size() const noexcept
 {
   return size_;
 }
@@ -80,7 +80,7 @@ std::size_t Memory::BadAlloc::size() const noexcept
 
   \return No description
   */
-const char* Memory::BadAlloc::what() const noexcept
+const char* Memory::BadAllocation::what() const noexcept
 {
   return explanation_.data();
 }
@@ -93,9 +93,9 @@ const char* Memory::BadAlloc::what() const noexcept
   \param [in] explanation No description.
   \return No description
   */
-std::string Memory::BadAlloc::explain(const std::size_t size,
-                                      const std::size_t alignment,
-                                      const std::string_view explanation)
+std::string Memory::BadAllocation::explain(const std::size_t size,
+                                           const std::size_t alignment,
+                                           const std::string_view explanation)
 {
   constexpr std::size_t max_length = 2048;
   std::array<char, max_length> e;

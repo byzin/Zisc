@@ -622,7 +622,7 @@ std::shared_ptr<Task> ThreadManager::createSharedTask(const int64b parent_task_i
                                         std::move(promise),
                                         this);
     }
-    catch (const Memory::BadAlloc& error) {
+    catch (const Memory::BadAllocation& error) {
       if (alloc_trial_max == stack_index)
         throw;
       unused_id_stack[stack_index++] = task_id;

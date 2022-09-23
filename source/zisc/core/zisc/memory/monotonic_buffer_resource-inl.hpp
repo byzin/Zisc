@@ -91,7 +91,7 @@ auto MonotonicBufferResource<kSize, kAlignment>::operator=(MonotonicBufferResour
   \param [in] size No description.
   \param [in] alignment No description.
   \return No description
-  \exception BadAlloc No description.
+  \exception BadAllocT No description.
   */
 template <std::size_t kSize, std::size_t kAlignment> inline
 void* MonotonicBufferResource<kSize, kAlignment>::allocateMemory(
@@ -109,7 +109,7 @@ void* MonotonicBufferResource<kSize, kAlignment>::allocateMemory(
     next_usage = usage + alloc_size;
     if (capacity() < next_usage) {
       const char* message = "Memory allocation failed.";
-      throw BadAlloc{alloc_size, alignment, message};
+      throw BadAllocT{alloc_size, alignment, message};
     }
   } while (!size_.compare_exchange_strong(usage,
                                           next_usage,
@@ -204,7 +204,7 @@ void MonotonicBufferResource<kSize, kAlignment>::initialize(
   \param [in] size No description.
   \param [in] alignment No description.
   \return No description
-  \exception BadAlloc No description.
+  \exception BadAllocT No description.
   */
 template <std::size_t kSize, std::size_t kAlignment> inline
 void* MonotonicBufferResource<kSize, kAlignment>::do_allocate(

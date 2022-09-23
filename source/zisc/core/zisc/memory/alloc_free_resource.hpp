@@ -38,7 +38,7 @@ class AllocFreeResource : public pmr::memory_resource,
 {
  public:
   // Exception
-  using BadAlloc = Memory::BadAlloc;
+  using BadAllocT = Memory::BadAllocation;
 
   /*!
     \brief No brief description

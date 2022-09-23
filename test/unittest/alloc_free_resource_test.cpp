@@ -201,7 +201,7 @@ TEST(AllocFreeResource, MultiThreadTest)
           data_list[index] = {data, size, alignment};
           ptr = static_cast<std::byte*>(data);
         }
-        catch (const zisc::Memory::BadAlloc& error) {
+        catch (const zisc::Memory::BadAllocation& error) {
           FAIL() << "Memory allocation failed. size=" << error.size() << ", alignment=" << error.alignment();
         }
         // Memory access test

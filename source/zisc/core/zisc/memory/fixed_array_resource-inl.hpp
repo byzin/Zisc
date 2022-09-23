@@ -98,6 +98,7 @@ constexpr std::size_t FixedArrayResource<Type>::alignmentMax() noexcept
   \param [in] size No description.
   \param [in] alignment No description.
   \return No description
+  \exception BadAllocT No description.
   */
 template <typename Type> inline
 void* FixedArrayResource<Type>::allocateMemory(const std::size_t size,
@@ -108,7 +109,7 @@ void* FixedArrayResource<Type>::allocateMemory(const std::size_t size,
     const char* message = (sizeMax() < size)
         ? "The required size exceeds the maximum available size in the resource."
         : "The required alignment exceeds the maximum available alignment";
-    throw BadAlloc{size, alignment, message};
+    throw BadAllocT{size, alignment, message};
   }
 
   // Issue an index hint for finding a free storage
@@ -116,7 +117,7 @@ void* FixedArrayResource<Type>::allocateMemory(const std::size_t size,
   if (countMax() <= index) {
     count_.fetch_sub(1, std::memory_order::relaxed);
     const char* message = "The number of allocation count exceeded the limit.";
-    throw BadAlloc{size, alignment, message};
+    throw BadAllocT{size, alignment, message};
   }
   index = permuteIndex(index);
 
@@ -124,7 +125,7 @@ void* FixedArrayResource<Type>::allocateMemory(const std::size_t size,
   index = findAndGetOwnership(index);
   if (index == invalidIndex()) {
     const char* message = "Fatal error. Appropriate storage not found.";
-    throw BadAlloc{size, alignment, message};
+    throw BadAllocT{size, alignment, message};
   }
 
   return std::addressof(storage_list_[index]);

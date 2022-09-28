@@ -21,6 +21,7 @@
 #include <array>
 #include <cstddef>
 #include <iostream>
+#include <iterator>
 #include <numeric>
 #include <optional>
 #include <random>
@@ -49,6 +50,16 @@ void testSimpleBoundedMap(zisc::Map<MapClass, int>* map)
   ASSERT_EQ(1, map->capacity()) << "The initial map capacity isn't 1.";
   map->clear();
   ASSERT_TRUE(map->isEmpty()) << "The map isn't empty.";
+
+  // Check iterator
+  using Iterator = decltype(map->begin());
+  static_assert(std::is_same_v<std::ptrdiff_t,
+                               std::iter_difference_t<Iterator>>);
+  static_assert(std::is_same_v<std::forward_iterator_tag,
+                               typename Iterator::iterator_category>);
+  static_assert(std::is_same_v<std::forward_iterator_tag,
+                               typename Iterator::iterator_concept>);
+  ASSERT_EQ(map->begin(), map->end()) << "Iterator is wrong.";
 
   // Create input values
   constexpr std::size_t n = 64;
@@ -116,6 +127,26 @@ void testSimpleBoundedMap(zisc::Map<MapClass, int>* map)
     ASSERT_EQ(min_value, **result) << message;
   }
 
+  // Check iterator
+  {
+    std::array vlist3 = vlist;
+    std::sort(vlist3.begin(), vlist3.end());
+    std::size_t index = 0;
+    for (auto ite = map->begin(); ite != map->end();) {
+      ASSERT_EQ(vlist3[index++], *ite) << "Iterator is wrong.";
+      ++ite;
+    }
+  }
+  {
+    std::array vlist3 = vlist;
+    std::sort(vlist3.begin(), vlist3.end());
+    std::size_t index = 0;
+    for (auto ite = map->begin(); ite != map->end();) {
+      auto i = ite++;
+      ASSERT_EQ(vlist3[index++], *i) << "Iterator is wrong.";
+    }
+  }
+
   // Remove test
   message = "Removing value failed.";
   auto test_remove = [map, message](const int value)
@@ -146,6 +177,9 @@ void testSimpleBoundedMap(zisc::Map<MapClass, int>* map)
     const auto result = map->findMinKey();
     ASSERT_FALSE(result.has_value()) << message;
   }
+
+  // Check iterator
+  ASSERT_EQ(map->begin(), map->end()) << "Iterator is wrong.";
 
   // Clean map data test
   message = "Cleaning map data failed.";
@@ -179,6 +213,11 @@ class MovableMValue : public zisc::NonCopyable<MovableMValue>
     return value_;
   }
 
+  int value() const noexcept
+  {
+    return value_;
+  }
+
  private:
   int value_ = -1;
 };
@@ -199,6 +238,16 @@ void testMovableValueMap(zisc::Map<MapClass, int, MovableMValue>* map)
   ASSERT_EQ(1, map->capacity()) << "The initial map capacity isn't 1.";
   map->clear();
   ASSERT_TRUE(map->isEmpty()) << "The map isn't empty.";
+
+  // Check iterator
+  using Iterator = decltype(map->begin());
+  static_assert(std::is_same_v<std::ptrdiff_t,
+                               std::iter_difference_t<Iterator>>);
+  static_assert(std::is_same_v<std::forward_iterator_tag,
+                               typename Iterator::iterator_category>);
+  static_assert(std::is_same_v<std::forward_iterator_tag,
+                               typename Iterator::iterator_concept>);
+  ASSERT_EQ(map->begin(), map->end()) << "Iterator is wrong.";
 
   // Create input values
   constexpr std::size_t n = 64;
@@ -271,6 +320,26 @@ void testMovableValueMap(zisc::Map<MapClass, int, MovableMValue>* map)
     ASSERT_TRUE(result.has_value()) << message;
     ASSERT_EQ(min_value, r->first) << message;
     ASSERT_EQ(min_value, static_cast<int>(r->second)) << message;
+  }
+
+  // Check iterator
+  {
+    std::array vlist3 = vlist;
+    std::sort(vlist3.begin(), vlist3.end());
+    std::size_t index = 0;
+    for (auto ite = map->begin(); ite != map->end();) {
+      ASSERT_EQ(vlist3[index++], ite->second.value()) << "Iterator is wrong.";
+      ++ite;
+    }
+  }
+  {
+    std::array vlist3 = vlist;
+    std::sort(vlist3.begin(), vlist3.end());
+    std::size_t index = 0;
+    for (auto ite = map->begin(); ite != map->end();) {
+      auto i = ite++;
+      ASSERT_EQ(vlist3[index++], i->second.value()) << "Iterator is wrong.";
+    }
   }
 
   // Remove test

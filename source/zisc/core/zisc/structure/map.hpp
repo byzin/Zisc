@@ -83,6 +83,19 @@ class Map : private NonCopyable<Map<MapClass, Key, T, Compare>>
   using OverflowError = ContainerOverflowError<ValueT>;
 
 
+  //! Return an iterator to the beginning
+  auto begin() noexcept;
+
+  //! Return an iterator to the beginning
+  auto cbegin() const noexcept;
+
+  //! Return an iterator to the end
+  auto end() noexcept;
+
+  //! Return an iterator to the end
+  auto cend() const noexcept;
+
+
   //! Insert the given value into the map
   template <typename ...Args>
   [[nodiscard]] std::optional<size_type> add(Args&&... args);

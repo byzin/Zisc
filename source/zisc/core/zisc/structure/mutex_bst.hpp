@@ -26,6 +26,7 @@
 #include <vector>
 // Zisc
 #include "map.hpp"
+#include "mutex_bst_iterator.hpp"
 #include "zisc/zisc_config.hpp"
 #include "zisc/memory/data_storage.hpp"
 #include "zisc/memory/std_memory_resource.hpp"
@@ -60,6 +61,8 @@ class MutexBst : public Map<MutexBst<Key, T, Compare>, Key, T, Compare>
   using ConstReference = typename BaseMapT::ConstReference;
   using Pointer = typename BaseMapT::Pointer;
   using ConstPointer = typename BaseMapT::ConstPointer;
+  using Iterator = MutexBstIterator<Key, T>;
+  using ConstIterator = MutexBstIterator<ConstKeyT, std::add_const_t<T>>;
 
   // Type aliases for STL
   using key_type = typename BaseMapT::key_type;
@@ -72,6 +75,8 @@ class MutexBst : public Map<MutexBst<Key, T, Compare>, Key, T, Compare>
   using const_reference = typename BaseMapT::const_reference;
   using pointer = typename BaseMapT::pointer;
   using const_pointer = typename BaseMapT::const_pointer;
+  using iterator = Iterator;
+  using const_iterator = ConstIterator;
 
 
   //! Create a bst
@@ -89,6 +94,19 @@ class MutexBst : public Map<MutexBst<Key, T, Compare>, Key, T, Compare>
 
   //! Move a data
   MutexBst& operator=(MutexBst&& other) noexcept;
+
+
+  //! Return an iterator to the beginning
+  Iterator begin() noexcept;
+
+  //! Return an iterator to the beginning
+  ConstIterator cbegin() const noexcept;
+
+  //! Return an iterator to the end
+  Iterator end() noexcept;
+
+  //! Return an iterator to the end
+  ConstIterator cend() const noexcept;
 
 
   //! Insert the given value into the bst

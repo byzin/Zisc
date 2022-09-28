@@ -31,6 +31,66 @@ namespace zisc {
 /*!
   \details No detailed description
 
+  \return No description
+  */
+template <typename MapClass,
+          std::movable Key,
+          MappedValue T,
+          std::invocable<Key, Key> Compare> inline
+auto Map<MapClass, Key, T, Compare>::begin() noexcept
+{
+  auto& map = ref();
+  return map.begin();
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+template <typename MapClass,
+          std::movable Key,
+          MappedValue T,
+          std::invocable<Key, Key> Compare> inline
+auto Map<MapClass, Key, T, Compare>::cbegin() const noexcept
+{
+  auto& map = ref();
+  return map.cbegin();
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+template <typename MapClass,
+          std::movable Key,
+          MappedValue T,
+          std::invocable<Key, Key> Compare> inline
+auto Map<MapClass, Key, T, Compare>::end() noexcept
+{
+  auto& map = ref();
+  return map.end();
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+template <typename MapClass,
+          std::movable Key,
+          MappedValue T,
+          std::invocable<Key, Key> Compare> inline
+auto Map<MapClass, Key, T, Compare>::cend() const noexcept
+{
+  auto& map = ref();
+  return map.cend();
+}
+
+/*!
+  \details No detailed description
+
   \tparam Args No description.
   \param [in] args No description.
   \return No description

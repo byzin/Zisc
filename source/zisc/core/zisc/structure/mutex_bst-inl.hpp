@@ -31,6 +31,8 @@
 // Zisc
 #include "container_overflow_error.hpp"
 #include "map.hpp"
+#include "mutex_bst_iterator.hpp"
+#include "zisc/bit.hpp"
 #include "zisc/utility.hpp"
 #include "zisc/zisc_config.hpp"
 #include "zisc/memory/data_storage.hpp"
@@ -107,6 +109,54 @@ auto MutexBst<Key, T, Compare>::operator=(MutexBst&& other) noexcept -> MutexBst
   node_pool_ = std::move(other.node_pool_);
   node_list_ = std::move(other.node_list_);
   return *this;
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+template <std::movable Key, MappedValue T, std::invocable<Key, Key> Compare> inline
+auto MutexBst<Key, T, Compare>::begin() noexcept -> Iterator
+{
+  using PointerPtr = typename Iterator::PointerPtr;
+  return Iterator{::zisc::bit_cast<PointerPtr>(&node_list_[0])};
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+template <std::movable Key, MappedValue T, std::invocable<Key, Key> Compare> inline
+auto MutexBst<Key, T, Compare>::cbegin() const noexcept -> ConstIterator
+{
+  using PointerPtr = typename ConstIterator::PointerPtr;
+  return ConstIterator{::zisc::bit_cast<PointerPtr>(&node_list_[0])};
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+template <std::movable Key, MappedValue T, std::invocable<Key, Key> Compare> inline
+auto MutexBst<Key, T, Compare>::end() noexcept -> Iterator
+{
+  using PointerPtr = typename Iterator::PointerPtr;
+  return Iterator{::zisc::bit_cast<PointerPtr>(&node_list_[node_list_.size()])};
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+template <std::movable Key, MappedValue T, std::invocable<Key, Key> Compare> inline
+auto MutexBst<Key, T, Compare>::cend() const noexcept -> ConstIterator
+{
+  using PointerPtr = typename ConstIterator::PointerPtr;
+  return ConstIterator{::zisc::bit_cast<PointerPtr>(&node_list_[node_list_.size()])};
 }
 
 /*!

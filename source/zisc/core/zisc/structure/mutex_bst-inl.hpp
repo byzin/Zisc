@@ -120,7 +120,7 @@ template <std::movable Key, MappedValue T, std::invocable<Key, Key> Compare> inl
 auto MutexBst<Key, T, Compare>::begin() noexcept -> Iterator
 {
   using PointerPtr = typename Iterator::PointerPtr;
-  return Iterator{::zisc::bit_cast<PointerPtr>(&node_list_[0])};
+  return Iterator{zisc::bit_cast<PointerPtr>(&node_list_[0])};
 }
 
 /*!
@@ -132,7 +132,7 @@ template <std::movable Key, MappedValue T, std::invocable<Key, Key> Compare> inl
 auto MutexBst<Key, T, Compare>::cbegin() const noexcept -> ConstIterator
 {
   using PointerPtr = typename ConstIterator::PointerPtr;
-  return ConstIterator{::zisc::bit_cast<PointerPtr>(&node_list_[0])};
+  return ConstIterator{zisc::bit_cast<PointerPtr>(&node_list_[0])};
 }
 
 /*!
@@ -144,7 +144,7 @@ template <std::movable Key, MappedValue T, std::invocable<Key, Key> Compare> inl
 auto MutexBst<Key, T, Compare>::end() noexcept -> Iterator
 {
   using PointerPtr = typename Iterator::PointerPtr;
-  return Iterator{::zisc::bit_cast<PointerPtr>(&node_list_[node_list_.size()])};
+  return Iterator{zisc::bit_cast<PointerPtr>(&node_list_[node_list_.size()])};
 }
 
 /*!
@@ -156,7 +156,7 @@ template <std::movable Key, MappedValue T, std::invocable<Key, Key> Compare> inl
 auto MutexBst<Key, T, Compare>::cend() const noexcept -> ConstIterator
 {
   using PointerPtr = typename ConstIterator::PointerPtr;
-  return ConstIterator{::zisc::bit_cast<PointerPtr>(&node_list_[node_list_.size()])};
+  return ConstIterator{zisc::bit_cast<PointerPtr>(&node_list_[node_list_.size()])};
 }
 
 /*!

@@ -40,9 +40,9 @@ class DataStorage : private NonCopyable<DataStorage<T>>
   using ConstT = std::add_const_t<ValueT>;
   using Reference = std::add_lvalue_reference_t<ValueT>;
   using RReference = std::add_rvalue_reference_t<ValueT>;
-  using ConstReference = std::add_lvalue_reference_t<ConstT>;
+  using ConstReference = std::add_const_t<std::add_lvalue_reference_t<ConstT>>;
   using Pointer = std::add_pointer_t<ValueT>;
-  using ConstPointer = std::add_pointer_t<ConstT>;
+  using ConstPointer = std::add_const_t<std::add_pointer_t<ConstT>>;
 
 
   //! Create a storage without initialization

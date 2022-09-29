@@ -41,9 +41,9 @@ class Bitset : private NonCopyable<Bitset>
   using BitT = uint64b;
   using ConstT = std::add_const_t<BitT>;
   using Reference = std::add_lvalue_reference_t<BitT>;
-  using ConstReference = std::add_lvalue_reference_t<ConstT>;
+  using ConstReference = std::add_const_t<std::add_lvalue_reference_t<ConstT>>;
   using Pointer = std::add_pointer_t<BitT>;
-  using ConstPointer = std::add_pointer_t<ConstT>;
+  using ConstPointer = std::add_const_t<std::add_pointer_t<ConstT>>;
 
 
   //! Create a bitset

@@ -22,8 +22,6 @@
 #include <iterator>
 #include <type_traits>
 #include <utility>
-// Zisc
-#include "zisc/bit.hpp"
 
 namespace zisc {
 
@@ -125,7 +123,7 @@ auto MutexBstIterator<Key, T>::get() noexcept -> PointerPtr
 template <typename Key, typename T> inline
 auto MutexBstIterator<Key, T>::get() const noexcept -> ConstPointerPtr
 {
-  return ::zisc::bit_cast<ConstPointerPtr>(ptr_);
+  return ptr_;
 }
 
 /*!

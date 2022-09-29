@@ -63,9 +63,9 @@ class Map : private NonCopyable<Map<MapClass, Key, T, Compare>>
   using CompareT = std::remove_volatile_t<Compare>;
   using Reference = std::add_lvalue_reference_t<ValueT>;
   using RReference = std::add_rvalue_reference_t<ValueT>;
-  using ConstReference = std::add_lvalue_reference_t<ConstValueT>;
+  using ConstReference = std::add_const_t<std::add_lvalue_reference_t<ConstValueT>>;
   using Pointer = std::add_pointer_t<ValueT>;
-  using ConstPointer = std::add_pointer_t<ConstValueT>;
+  using ConstPointer = std::add_const_t<std::add_pointer_t<ConstValueT>>;
 
   // Type aliases for STL
   using key_type = KeyT;

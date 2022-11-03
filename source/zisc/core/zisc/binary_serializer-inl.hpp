@@ -36,12 +36,12 @@ inline
 std::streamsize BinarySerializer::getDistance(std::istream* data_stream) noexcept
 {
   std::streamsize distance = 0;
-  const auto pos = data_stream->tellg();
+  const std::istream::pos_type pos = data_stream->tellg();
   if (pos != -1) {
-    const auto state = data_stream->rdstate();
+    const std::istream::iostate state = data_stream->rdstate();
     // Get the end position
     data_stream->seekg(0, std::ios_base::end);
-    const auto end = data_stream->tellg();
+    const std::istream::pos_type end = data_stream->tellg();
     // Back to current position
     data_stream->clear(state);
     data_stream->seekg(pos, std::ios_base::beg);

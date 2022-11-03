@@ -203,7 +203,7 @@ template <std::unsigned_integral T, XoshiroMethod kMethod> template <T k> inline
 auto XoshiroEngine<T, kMethod>::rotateLeft(const ValueT x) noexcept -> ValueT
 {
   constexpr ValueT bit_size = std::numeric_limits<ValueT>::digits;
-  const auto result = cast<ValueT>((x << k) | (x >> (bit_size - k)));
+  const ValueT result = cast<ValueT>((x << k) | (x >> (bit_size - k)));
   return result;
 }
 

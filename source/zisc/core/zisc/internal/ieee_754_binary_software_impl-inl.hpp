@@ -699,9 +699,10 @@ constexpr auto Ieee754BinarySoftwareImpl<kFormat>::scaledUp() const noexcept
                            (dst_sig_size - sig_size);
     const BitT exp_bits = getExponentBits(data());
     if (exp_bits == 0) { // Subnormal case
-      constexpr auto imp_expt = std::bit_width(DstBinaryT::implicitBit());
-      const auto bit_expt = std::bit_width(dst_sig_bits);
-      const DstBitT expt_diff = imp_expt - bit_expt;
+      using DstBitT = typename DstBinaryT::BitT;
+      constexpr DstBitT imp_expt = std::bit_width(DstBinaryT::implicitBit());
+      const DstBitT bit_expt = std::bit_width(dst_sig_bits);
+      const DstBitT expt_diff = zisc::cast<DstBitT>(imp_expt) - bit_expt;
       dst_expt = (1 + dst_expt) - expt_diff;
       dst_sig_bits = cast<DstBitT>(dst_sig_bits << expt_diff);
       dst_sig_bits = DstBinaryT::getSignificandBits(dst_sig_bits);

@@ -69,7 +69,7 @@ Stopwatch& Stopwatch::operator=(Stopwatch&& other) noexcept
 inline
 auto Stopwatch::elapsedTime() const noexcept -> Clock::duration
 {
-  auto time = elapsed_time_;
+  Clock::duration time = elapsed_time_;
   if (isRunning())
     time += elapsedRunningTime();
   return time;
@@ -116,7 +116,7 @@ bool Stopwatch::isRunning() const noexcept
 inline
 auto Stopwatch::pause() noexcept -> Clock::duration
 {
-  auto time = Clock::duration::zero();
+  Clock::duration time = Clock::duration::zero();
   if (isRunning()) {
     time = elapsedRunningTime();
     elapsed_time_ += time;
@@ -153,8 +153,8 @@ void Stopwatch::stop() noexcept
 inline
 auto Stopwatch::elapsedRunningTime() const noexcept -> Clock::duration
 {
-  const auto current_time = Clock::now();
-  const auto time = current_time - start_time_;
+  const Clock::time_point current_time = Clock::now();
+  const Clock::duration time = current_time - start_time_;
   return time;
 }
 

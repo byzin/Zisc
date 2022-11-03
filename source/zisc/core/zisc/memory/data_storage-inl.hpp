@@ -150,7 +150,7 @@ auto DataStorage<T>::get() const noexcept -> ConstReference
 template <std::move_constructible T> inline
 auto DataStorage<T>::memory() noexcept -> Pointer
 {
-  auto* ptr = std::addressof(storage_);
+  StorageT* ptr = std::addressof(storage_);
   if constexpr (kTCanBeStorageT)
     return ptr;
   else
@@ -165,7 +165,7 @@ auto DataStorage<T>::memory() noexcept -> Pointer
 template <std::move_constructible T> inline
 auto DataStorage<T>::memory() const noexcept -> ConstPointer
 {
-  const auto* ptr = std::addressof(storage_);
+  const StorageT* ptr = std::addressof(storage_);
   if constexpr (kTCanBeStorageT)
     return ptr;
   else

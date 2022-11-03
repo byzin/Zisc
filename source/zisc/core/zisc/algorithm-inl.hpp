@@ -66,7 +66,8 @@ constexpr std::common_type_t<Type, LowerType, UpperType> Algorithm::clamp(
     const LowerType lower, 
     const UpperType upper) noexcept
 {
-  const auto y = (min)((max)(value, lower), upper);
+  using ResultT = std::common_type_t<Type, LowerType, UpperType>;
+  const ResultT y = (min)((max)(value, lower), upper);
   return y;
 }
 
@@ -83,7 +84,7 @@ constexpr Float Algorithm::invert(const Float x) noexcept
   constexpr Float zero = cast<Float>(0.0);
   constexpr Float one = cast<Float>(1.0);
   constexpr Float m = (std::numeric_limits<Float>::max)();
-  const auto y = (x != zero) ? one / x : m;
+  const Float y = (x != zero) ? one / x : m;
   return y;
 }
 
@@ -109,7 +110,7 @@ constexpr bool Algorithm::isInBounds(const Type& value,
                                      const LowerType& lower, 
                                      const UpperType& upper) noexcept
 {
-  const auto result = ((kIsLeftClosed) ? !(value < lower) : (lower < value)) &&
+  const bool result = ((kIsLeftClosed) ? !(value < lower) : (lower < value)) &&
                       ((kIsRightClosed) ? !(upper < value) : (value < upper));
   return result;
 }
@@ -130,7 +131,7 @@ constexpr bool Algorithm::isInOpenBounds(const Type& value,
                                          const LowerType& lower, 
                                          const UpperType& upper) noexcept
 {
-  const auto result = isInBounds<false, false>(value, lower, upper);
+  const bool result = isInBounds<false, false>(value, lower, upper);
   return result;
 }
 
@@ -150,7 +151,7 @@ constexpr bool Algorithm::isInClosedBounds(const Type& value,
                                            const LowerType& lower, 
                                            const UpperType& upper) noexcept
 {
-  const auto result = isInBounds<true, true>(value, lower, upper);
+  const bool result = isInBounds<true, true>(value, lower, upper);
   return result;
 }
 
@@ -252,7 +253,7 @@ template <Integer Int> inline
 constexpr bool Algorithm::isOdd(const Int x) noexcept
 {
   constexpr auto lsb = cast<Int>(0b01);
-  const auto result = ((x & lsb) == lsb);
+  const bool result = ((x & lsb) == lsb);
   return result;
 }
 
@@ -288,7 +289,8 @@ constexpr std::common_type_t<Type, LowerType, UpperType> clamp(
     const LowerType lower, 
     const UpperType upper) noexcept
 {
-  const auto y = Algorithm::clamp(value, lower, upper);
+  using ResultT = std::common_type_t<Type, LowerType, UpperType>;
+  const ResultT y = Algorithm::clamp(value, lower, upper);
   return y;
 }
 
@@ -302,7 +304,7 @@ constexpr std::common_type_t<Type, LowerType, UpperType> clamp(
 template <std::floating_point Float> inline
 constexpr Float invert(const Float x) noexcept
 {
-  const auto y = Algorithm::invert(x);
+  const Float y = Algorithm::invert(x);
   return y;
 }
 
@@ -350,7 +352,7 @@ constexpr const std::common_type_t<Type1, Type2>& min(const Type1& a,
 template <Arithmetic Arith> inline
 constexpr bool signbit(const Arith x) noexcept
 {
-  const auto result = Algorithm::isNegative(x);
+  const bool result = Algorithm::isNegative(x);
   return result;
 }
 
@@ -376,7 +378,7 @@ constexpr bool isInBounds(const Type& value,
                           const LowerType& lower, 
                           const UpperType& upper) noexcept
 {
-  const auto result = Algorithm::isInBounds<kIsLeftClosed,
+  const bool result = Algorithm::isInBounds<kIsLeftClosed,
                                             kIsRightClosed,
                                             Type,
                                             LowerType,
@@ -400,7 +402,7 @@ constexpr bool isInOpenBounds(const Type& value,
                               const LowerType& lower, 
                               const UpperType& upper) noexcept
 {
-  const auto result = isInBounds<false, false>(value, lower, upper);
+  const bool result = isInBounds<false, false>(value, lower, upper);
   return result;
 }
 
@@ -420,7 +422,7 @@ constexpr bool isInClosedBounds(const Type& value,
                                 const LowerType& lower, 
                                 const UpperType& upper) noexcept
 {
-  const auto result = isInBounds<true, true>(value, lower, upper);
+  const bool result = isInBounds<true, true>(value, lower, upper);
   return result;
 }
 
@@ -441,7 +443,7 @@ constexpr std::array<std::common_type_t<Int1, Int2, Int3>, 2> divideRange(
     const Int2 num_of_division,
     const Int3 index) noexcept
 {
-  const auto result = Algorithm::divideRange(range, num_of_division, index);
+  const std::array result = Algorithm::divideRange(range, num_of_division, index);
   return result;
 }
 
@@ -455,7 +457,7 @@ constexpr std::array<std::common_type_t<Int1, Int2, Int3>, 2> divideRange(
 template <Integer Int> inline
 constexpr bool isOdd(const Int x) noexcept
 {
-  const auto result = Algorithm::isOdd(x);
+  const bool result = Algorithm::isOdd(x);
   return result;
 }
 

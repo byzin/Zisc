@@ -409,7 +409,7 @@ int64b ThreadManager::numOfThreads() const noexcept
 inline
 pmr::memory_resource* ThreadManager::resource() const noexcept
 {
-  auto mem_resource = worker_list_.get_allocator().resource();
+  pmr::memory_resource* mem_resource = worker_list_.get_allocator().resource();
   return mem_resource;
 }
 
@@ -557,7 +557,7 @@ void ThreadManager::WorkerTask::run(const int64b thread_id)
 template <typename Ite, typename OffsetT> inline
 Ite ThreadManager::advance(Ite& begin, const OffsetT offset) noexcept
 {
-  auto ite = begin;
+  Ite ite = begin;
   if constexpr (std::is_arithmetic_v<Ite>)
     ite += cast<Ite>(offset);
   else
@@ -589,7 +589,7 @@ std::shared_ptr<Task> ThreadManager::createSharedTask(const int64b parent_task_i
   while (!task) {
     // Issue a task ID
     const int64b task_id = issueTaskId();
-    const auto storage_id = taskIdSet().add(task_id);
+    const std::optional storage_id = taskIdSet().add(task_id);
     ZISC_ASSERT(storage_id.has_value(), "Registering the ID failed: id=", task_id);
 
     // Check resource
@@ -633,7 +633,7 @@ std::shared_ptr<Task> ThreadManager::createSharedTask(const int64b parent_task_i
 
   for (std::size_t i = 0; i < stack_index; ++i) {
     const int64b task_id = unused_id_stack[i];
-    [[maybe_unused]] const auto storage_id = taskIdSet().remove(task_id);
+    [[maybe_unused]] const std::optional storage_id = taskIdSet().remove(task_id);
     ZISC_ASSERT(storage_id.has_value(), "Removing the ID failed: id=", task_id);
   }
 
@@ -767,7 +767,7 @@ auto& ThreadManager::getTaskImplType() noexcept
     {
       if constexpr (kIsLoop)
         promise_.set_value();
-      [[maybe_unused]] const auto storage_id = manager_->taskIdSet().remove(id());
+      [[maybe_unused]] const std::optional storage_id = manager_->taskIdSet().remove(id());
       ZISC_ASSERT(storage_id.has_value(), "The given id isn't in the task tree.");
     }
 
@@ -802,7 +802,7 @@ auto& ThreadManager::getTaskImplType() noexcept
     // Return the future of the underlying promise
     void* getFutureImpl() noexcept override
     {
-      auto f = std::make_unique<Future<ReturnT>>(getFuture());
+      std::unique_ptr f = std::make_unique<Future<ReturnT>>(getFuture());
       return f.release();
     }
 
@@ -850,16 +850,16 @@ auto ThreadManager::enqueueImpl(Data&& task,
 
   // Create a shared task
   using TaskImpl = std::remove_cvref_t<decltype(getTaskImplType<ReturnT, kIsLoop, Data, Ite1, Ite2>())>;
-  auto shared_task = createSharedTask<TaskImpl>(parent_task_id,
-                                                std::forward<Data>(task),
-                                                std::forward<Ite1>(begin));
+  std::shared_ptr shared_task = createSharedTask<TaskImpl>(parent_task_id,
+                                                           std::forward<Data>(task),
+                                                           std::forward<Ite1>(begin));
 
   // Enqueue tasks
   num_of_tasks_.fetch_add(num_of_tasks, std::memory_order::relaxed);
   for (DiffT i = 0; i < num_of_tasks; ++i) {
     WorkerTask worker_task{shared_task, i};
     try {
-      [[maybe_unused]] const auto r = taskQueue().enqueue(std::move(worker_task));
+      [[maybe_unused]] const std::optional r = taskQueue().enqueue(std::move(worker_task));
     }
     catch ([[maybe_unused]] const TaskQueue::OverflowError& error) {
       const DiffT rest = num_of_tasks - i;
@@ -927,7 +927,7 @@ std::size_t ThreadManager::getAvailableNumOfThreads(const int64b s) noexcept
 inline
 int64b ThreadManager::getCurrentThreadId() const noexcept
 {
-  const auto id = std::this_thread::get_id();
+  const std::thread::id id = std::this_thread::get_id();
   const auto t = std::lower_bound(worker_id_list_.begin(), worker_id_list_.end(), id);
   const bool result = (t != worker_id_list_.end()) && (*t == id);
   const int64b thread_id = result ? std::distance(worker_id_list_.begin(), t)
@@ -1021,11 +1021,11 @@ void ThreadManager::waitForParent(const int64b task_id,
       flag = true;
     }
     else if (parent_task_id == kAllPrecedences) {
-      const auto min_key = taskIdSet().findMinKey();
+      const std::optional min_key = taskIdSet().findMinKey();
       flag = !min_key.has_value() || (*(min_key.value()) == task_id);
     }
     else {
-      const auto result = taskIdSet().contain(parent_task_id);
+      const std::optional result = taskIdSet().contain(parent_task_id);
       flag = !result.has_value();
     }
     if (flag)

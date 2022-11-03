@@ -120,7 +120,7 @@ void Csv<Type, Types...>::append(std::istream& csv) noexcept
   constexpr std::size_t n = kMaxNumCharsPerLine;
   for (csv.getline(s, n); !csv.eof(); csv.getline(s, n)) {
     std::string_view line{s};
-    auto cxx_record = parseCsvLine(line);
+    const RecordType cxx_record = parseCsvLine(line);
     data_.emplace_back(std::move(cxx_record));
   }
 }
@@ -203,8 +203,8 @@ template <typename Type, typename ...Types> template <std::size_t column> inline
 auto Csv<Type, Types...>::get(const std::size_t row) const noexcept
     -> const FieldType<column>
 {
-  const auto& record = this->record(row);
-  const auto& field = std::get<column>(record);
+  const RecordType& record = this->record(row);
+  const std::tuple_element_t<column, RecordType>& field = std::get<column>(record);
   using FieldT = FieldType<column>;
   if constexpr (CharPointer<FieldT>) {
     static_assert(String<InnerFieldType<column>>);
@@ -436,7 +436,7 @@ auto Csv<Type, Types...>::toCxxRecord(const pmr::cmatch& result,
                                       std::index_sequence<indices...>) noexcept
     -> RecordType
 {
-  auto cxx_record = std::make_tuple(toCxxField<indices>(result)...);
+  const RecordType cxx_record = std::make_tuple(toCxxField<indices>(result)...);
   return cxx_record;
 }
 
@@ -452,7 +452,7 @@ auto Csv<Type, Types...>::toCxxField(const pmr::cmatch& result) noexcept
     -> InnerFieldType<index>
 {
   using FieldT = InnerFieldType<index>;
-  const auto& match = result[index + 1];
+  pmr::cmatch::const_reference match = result[index + 1];
   const auto fieldsize = cast<std::size_t>(std::distance(match.first, match.second));
   std::string_view field{match.first, fieldsize};
   auto cxx_field = toCxxType<FieldT>(field);

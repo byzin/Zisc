@@ -38,7 +38,7 @@ namespace zisc {
 template <typename QueueClass, std::movable T> inline
 auto Queue<QueueClass, T>::capacity() const noexcept -> size_type
 {
-  const auto& q = ref();
+  ConstQueueReference q = ref();
   return q.capacity();
 }
 
@@ -59,7 +59,7 @@ constexpr auto Queue<QueueClass, T>::capacityMax() noexcept -> size_type
 template <typename QueueClass, std::movable T> inline
 void Queue<QueueClass, T>::clear() noexcept
 {
-  auto& q = ref();
+  QueueReference q = ref();
   q.clear();
 }
 
@@ -71,7 +71,7 @@ void Queue<QueueClass, T>::clear() noexcept
 template <typename QueueClass, std::movable T> inline
 auto Queue<QueueClass, T>::dequeue() noexcept -> std::optional<ValueT>
 {
-  auto& q = ref();
+  QueueReference q = ref();
   return q.dequeue();
 }
 
@@ -87,7 +87,7 @@ template <typename QueueClass, std::movable T>
 template <typename ...Args> requires std::is_nothrow_constructible_v<T, Args...> inline
 auto Queue<QueueClass, T>::enqueue(Args&&... args) -> std::optional<size_type>
 {
-  auto& q = ref();
+  QueueReference q = ref();
   return q.enqueue(std::forward<Args>(args)...);
 }
 
@@ -100,7 +100,7 @@ auto Queue<QueueClass, T>::enqueue(Args&&... args) -> std::optional<size_type>
 template <typename QueueClass, std::movable T> inline
 auto Queue<QueueClass, T>::get(const size_type index) noexcept -> Reference
 {
-  auto& q = ref();
+  QueueReference q = ref();
   return q.get(index);
 }
 
@@ -113,7 +113,7 @@ auto Queue<QueueClass, T>::get(const size_type index) noexcept -> Reference
 template <typename QueueClass, std::movable T> inline
 auto Queue<QueueClass, T>::get(const size_type index) const noexcept -> ConstReference
 {
-  const auto& q = ref();
+  ConstQueueReference q = ref();
   return q.get(index);
 }
 
@@ -159,7 +159,7 @@ bool Queue<QueueClass, T>::isEmpty() const noexcept
 template <typename QueueClass, std::movable T> inline
 void Queue<QueueClass, T>::setCapacity(const size_type cap) noexcept
 {
-  auto& q = ref();
+  QueueReference q = ref();
   q.setCapacity(cap);
 }
 
@@ -171,7 +171,7 @@ void Queue<QueueClass, T>::setCapacity(const size_type cap) noexcept
 template <typename QueueClass, std::movable T> inline
 auto Queue<QueueClass, T>::size() const noexcept -> size_type
 {
-  const auto& q = ref();
+  ConstQueueReference q = ref();
   return q.size();
 }
 

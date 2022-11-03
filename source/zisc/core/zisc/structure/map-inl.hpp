@@ -39,7 +39,7 @@ template <typename MapClass,
           std::invocable<Key, Key> Compare> inline
 auto Map<MapClass, Key, T, Compare>::begin() noexcept
 {
-  auto& map = ref();
+  MapReference map = ref();
   return map.begin();
 }
 
@@ -54,7 +54,7 @@ template <typename MapClass,
           std::invocable<Key, Key> Compare> inline
 auto Map<MapClass, Key, T, Compare>::cbegin() const noexcept
 {
-  auto& map = ref();
+  ConstMapReference map = ref();
   return map.cbegin();
 }
 
@@ -69,7 +69,7 @@ template <typename MapClass,
           std::invocable<Key, Key> Compare> inline
 auto Map<MapClass, Key, T, Compare>::end() noexcept
 {
-  auto& map = ref();
+  MapReference map = ref();
   return map.end();
 }
 
@@ -84,7 +84,7 @@ template <typename MapClass,
           std::invocable<Key, Key> Compare> inline
 auto Map<MapClass, Key, T, Compare>::cend() const noexcept
 {
-  auto& map = ref();
+  ConstMapReference map = ref();
   return map.cend();
 }
 
@@ -103,7 +103,7 @@ template <typename MapClass,
 template <typename ...Args> inline
 auto Map<MapClass, Key, T, Compare>::add(Args&&... args) -> std::optional<size_type>
 {
-  auto& map = ref();
+  MapReference map = ref();
   return map.add(std::forward<Args>(args)...);
 }
 
@@ -118,7 +118,7 @@ template <typename MapClass,
           std::invocable<Key, Key> Compare> inline
 auto Map<MapClass, Key, T, Compare>::capacity() const noexcept -> size_type
 {
-  auto& map = ref();
+  ConstMapReference map = ref();
   return map.capacity();
 }
 
@@ -145,7 +145,7 @@ template <typename MapClass,
           std::invocable<Key, Key> Compare> inline
 void Map<MapClass, Key, T, Compare>::clear() noexcept
 {
-  auto& map = ref();
+  MapReference map = ref();
   map.clear();
 }
 
@@ -162,7 +162,7 @@ template <typename MapClass,
 auto Map<MapClass, Key, T, Compare>::contain(ConstKeyT& key) const noexcept
     -> std::optional<size_type>
 {
-  auto& map = ref();
+  ConstMapReference map = ref();
   return map.contain(key);
 }
 
@@ -177,7 +177,7 @@ template <typename MapClass,
           std::invocable<Key, Key> Compare> inline
 auto Map<MapClass, Key, T, Compare>::findMinKey() noexcept -> std::optional<Pointer>
 {
-  auto& map = ref();
+  MapReference map = ref();
   return map.findMinKey();
 }
 
@@ -193,7 +193,7 @@ template <typename MapClass,
 auto Map<MapClass, Key, T, Compare>::get(const size_type index) noexcept
     -> Reference
 {
-  auto& map = ref();
+  MapReference map = ref();
   return map.get(index);
 }
 
@@ -209,7 +209,7 @@ template <typename MapClass,
 auto Map<MapClass, Key, T, Compare>::get(const size_type index) const noexcept
     -> ConstReference
 {
-  auto& map = ref();
+  ConstMapReference map = ref();
   return map.get(index);
 }
 
@@ -225,7 +225,7 @@ template <typename MapClass,
 auto Map<MapClass, Key, T, Compare>::findMinKey() const noexcept
     -> std::optional<ConstPointer>
 {
-  auto& map = ref();
+  ConstMapReference map = ref();
   return map.findMinKey();
 }
 
@@ -284,7 +284,7 @@ template <typename MapClass,
           std::invocable<Key, Key> Compare> inline
 auto Map<MapClass, Key, T, Compare>::remove(ConstKeyT& key) -> std::optional<size_type>
 {
-  auto& map = ref();
+  MapReference map = ref();
   return map.remove(key);
 }
 
@@ -299,7 +299,7 @@ template <typename MapClass,
           std::invocable<Key, Key> Compare> inline
 void Map<MapClass, Key, T, Compare>::setCapacity(const size_type cap) noexcept
 {
-  auto& map = ref();
+  MapReference map = ref();
   map.setCapacity(cap);
 }
 
@@ -314,7 +314,7 @@ template <typename MapClass,
           std::invocable<Key, Key> Compare> inline
 auto Map<MapClass, Key, T, Compare>::size() const noexcept -> size_type
 {
-  auto& map = ref();
+  ConstMapReference map = ref();
   return map.size();
 }
 

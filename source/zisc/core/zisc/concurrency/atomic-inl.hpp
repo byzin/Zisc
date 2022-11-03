@@ -224,7 +224,7 @@ template <TriviallyCopyable Type> inline
 Type Atomic::decrement(Type* ptr, const std::memory_order order) noexcept
 {
   constexpr Type one = cast<Type>(1);
-  const auto old = sub(ptr, one, order);
+  const Type old = sub(ptr, one, order);
   return old;
 }
 

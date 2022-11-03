@@ -430,22 +430,22 @@ void RingBuffer::destroy() noexcept
 
   // Indices
   if (0 < size()) {
-    auto mem = std::addressof(getIndex(0));
+    std::atomic<uint64b>* mem = std::addressof(getIndex(0));
     std::destroy_n(mem, size());
   }
   // Head
   {
-    auto mem = std::addressof(head());
+    std::atomic<uint64b>* mem = std::addressof(head());
     std::destroy_at(mem);
   }
   // Threshold
   {
-    auto mem = std::addressof(threshold());
+    std::atomic<int64b>* mem = std::addressof(threshold());
     std::destroy_at(mem);
   }
   // Tail
   {
-    auto mem = std::addressof(tail());
+    std::atomic<uint64b>* mem = std::addressof(tail());
     std::destroy_at(mem);
   }
 }
@@ -472,7 +472,7 @@ int64b RingBuffer::diff(const uint64b lhs, const uint64b rhs) const noexcept
 inline
 std::atomic<uint64b>& RingBuffer::getIndex(const std::size_t index) noexcept
 {
-  auto mem = std::addressof(memory_[3]);
+  MemChunk* mem = std::addressof(memory_[3]);
   auto indices = reinterp<std::atomic<uint64b>*>(mem);
   return indices[index];
 }
@@ -485,7 +485,7 @@ std::atomic<uint64b>& RingBuffer::getIndex(const std::size_t index) noexcept
 inline
 const std::atomic<uint64b>& RingBuffer::getIndex(const std::size_t index) const noexcept
 {
-  auto mem = std::addressof(memory_[3]);
+  const MemChunk* mem = std::addressof(memory_[3]);
   auto indices = reinterp<const std::atomic<uint64b>*>(mem);
   return indices[index];
 }
@@ -498,7 +498,7 @@ const std::atomic<uint64b>& RingBuffer::getIndex(const std::size_t index) const 
 inline
 std::atomic<uint64b>& RingBuffer::head() noexcept
 {
-  auto mem = std::addressof(memory_[0]);
+  MemChunk* mem = std::addressof(memory_[0]);
   return *reinterp<std::atomic<uint64b>*>(mem);
 }
 
@@ -510,7 +510,7 @@ std::atomic<uint64b>& RingBuffer::head() noexcept
 inline
 const std::atomic<uint64b>& RingBuffer::head() const noexcept
 {
-  auto mem = std::addressof(memory_[0]);
+  const MemChunk* mem = std::addressof(memory_[0]);
   return *reinterp<const std::atomic<uint64b>*>(mem);
 }
 
@@ -523,7 +523,7 @@ void RingBuffer::initialize() noexcept
   // Indices
   for (std::size_t i = 0; i < size(); ++i) {
     using AtomicT = std::remove_cvref_t<decltype(getIndex(i))>;
-    auto mem = std::addressof(getIndex(i));
+    std::atomic<uint64b>* mem = std::addressof(getIndex(i));
     ::new (mem) AtomicT{};
   }
 
@@ -533,19 +533,19 @@ void RingBuffer::initialize() noexcept
   // Head
   {
     using AtomicT = std::remove_cvref_t<decltype(head())>;
-    auto mem = std::addressof(head());
+    std::atomic<uint64b>* mem = std::addressof(head());
     ::new (mem) AtomicT{};
   }
   // Threshold
   {
     using AtomicT = std::remove_cvref_t<decltype(threshold())>;
-    auto mem = std::addressof(threshold());
+    std::atomic<int64b>* mem = std::addressof(threshold());
     ::new (mem) AtomicT{};
   }
   // Tail
   {
     using AtomicT = std::remove_cvref_t<decltype(tail())>;
-    auto mem = std::addressof(tail());
+    std::atomic<uint64b>* mem = std::addressof(tail());
     ::new (mem) AtomicT{};
   }
 }
@@ -602,7 +602,7 @@ uint64b RingBuffer::permuteIndexImpl(const uint64b index,
 inline
 std::atomic<uint64b>& RingBuffer::tail() noexcept
 {
-  auto mem = std::addressof(memory_[2]);
+  MemChunk* mem = std::addressof(memory_[2]);
   return *reinterp<std::atomic<uint64b>*>(mem);
 }
 
@@ -614,7 +614,7 @@ std::atomic<uint64b>& RingBuffer::tail() noexcept
 inline
 const std::atomic<uint64b>& RingBuffer::tail() const noexcept
 {
-  auto mem = std::addressof(memory_[2]);
+  const MemChunk* mem = std::addressof(memory_[2]);
   return *reinterp<const std::atomic<uint64b>*>(mem);
 }
 
@@ -626,7 +626,7 @@ const std::atomic<uint64b>& RingBuffer::tail() const noexcept
 inline
 std::atomic<int64b>& RingBuffer::threshold() noexcept
 {
-  auto mem = std::addressof(memory_[1]);
+  MemChunk* mem = std::addressof(memory_[1]);
   return *reinterp<std::atomic<int64b>*>(mem);
 }
 
@@ -638,7 +638,7 @@ std::atomic<int64b>& RingBuffer::threshold() noexcept
 inline
 const std::atomic<int64b>& RingBuffer::threshold() const noexcept
 {
-  auto mem = std::addressof(memory_[1]);
+  const MemChunk* mem = std::addressof(memory_[1]);
   return *reinterp<const std::atomic<int64b>*>(mem);
 }
 

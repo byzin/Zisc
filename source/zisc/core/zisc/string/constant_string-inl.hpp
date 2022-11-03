@@ -268,7 +268,7 @@ constexpr BasicConstantString<Char, kN1 + kN2 - 1> operator+(
     const BasicConstantString<Char, kN1>& lhs,
     const BasicConstantString<Char, kN2>& rhs) noexcept
 {
-  const auto result = concatenate(lhs, rhs);
+  const BasicConstantString<Char, kN1 + kN2 - 1> result = concatenate(lhs, rhs);
   return result;
 }
 
@@ -287,7 +287,7 @@ constexpr BasicConstantString<Char, kN1 + kN2 - 1> operator+(
     const Char (&lhs)[kN1],
     const BasicConstantString<Char, kN2>& rhs) noexcept
 {
-  const auto result = concatenate(lhs, rhs);
+  const BasicConstantString<Char, kN1 + kN2 - 1> result = concatenate(lhs, rhs);
   return result;
 }
 
@@ -306,7 +306,7 @@ constexpr BasicConstantString<Char, kN1 + kN2 - 1> operator+(
     const BasicConstantString<Char, kN1>& lhs,
     const Char (&rhs)[kN2]) noexcept
 {
-  const auto result = concatenate(lhs, rhs);
+  const BasicConstantString<Char, kN1 + kN2 - 1> result = concatenate(lhs, rhs);
   return result;
 }
 
@@ -486,8 +486,8 @@ constexpr BasicConstantString<Char, kN1 + kN2 - 1> concatenate(
     const Char (&lhs)[kN1],
     const BasicConstantString<Char, kN2>& rhs) noexcept
 {
-  const auto l = toString(lhs);
-  const auto result = concatenate(l, rhs);
+  const BasicConstantString<Char, kN1> l = toString(lhs);
+  const BasicConstantString<Char, kN1 + kN2 - 1> result = concatenate(l, rhs);
   return result;
 }
 
@@ -506,8 +506,8 @@ constexpr BasicConstantString<Char, kN1 + kN2 - 1> concatenate(
     const BasicConstantString<Char, kN1>& lhs,
     const Char (&rhs)[kN2]) noexcept 
 {
-  const auto r = toString(rhs);
-  const auto result = concatenate(lhs, r);
+  const BasicConstantString<Char, kN2> r = toString(rhs);
+  const BasicConstantString<Char, kN1 + kN2 - 1> result = concatenate(lhs, r);
   return result;
 }
 

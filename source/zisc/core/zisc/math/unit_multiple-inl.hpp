@@ -145,10 +145,10 @@ constexpr auto UnitMultiple<kBase, kExponent>::exponent() noexcept -> Type
 template <int64b kBase, int64b kExponent> template <int64b kToExponent> inline
 constexpr UnitMultiple<kBase, kToExponent> UnitMultiple<kBase, kExponent>::cast() const noexcept
 {
-  auto v = value();
+  FractionType v = value();
   constexpr auto exponent_diff = kToExponent - exponent();
   if constexpr (exponent_diff != 0) {
-    constexpr auto k = (0 < exponent_diff)
+    constexpr FractionType k = (0 < exponent_diff)
         ? FractionType{1, zisc::pow(base(), exponent_diff)}
         : FractionType{zisc::pow(base(), -exponent_diff), 1};
     v = k * v;
@@ -229,7 +229,8 @@ constexpr UnitMultiple<kBase, (std::min)(kExponent1, kExponent2)> operator+(
     const UnitMultiple<kBase, kExponent2>& rhs) noexcept
 {
   using Multiple = UnitMultiple<kBase, (std::min)(kExponent1, kExponent2)>;
-  const auto result = Multiple{lhs}.value() + Multiple{rhs}.value();
+  using FracType = typename Multiple::FractionType;
+  const FracType result = Multiple{lhs}.value() + Multiple{rhs}.value();
   return Multiple{result};
 }
 
@@ -249,7 +250,8 @@ constexpr UnitMultiple<kBase, (std::min)(kExponent1, kExponent2)> operator-(
     const UnitMultiple<kBase, kExponent2>& rhs) noexcept
 {
   using Multiple = UnitMultiple<kBase, (std::min)(kExponent1, kExponent2)>;
-  const auto result = Multiple{lhs}.value() - Multiple{rhs}.value();
+  using FracType = typename Multiple::FractionType;
+  const FracType result = Multiple{lhs}.value() - Multiple{rhs}.value();
   return Multiple{result};
 }
 
@@ -270,7 +272,7 @@ constexpr UnitMultiple<kBase, kExponent> operator*(
 {
   using Multiple = UnitMultiple<kBase, kExponent>;
   using FracType = typename Multiple::FractionType;
-  const auto result = lhs.value() * FracType{cast<typename FracType::Type>(rhs)};
+  const FracType result = lhs.value() * FracType{cast<typename FracType::Type>(rhs)};
   return Multiple{result};
 }
 
@@ -309,7 +311,7 @@ constexpr UnitMultiple<kBase, kExponent> operator/(
 {
   using Multiple = UnitMultiple<kBase, kExponent>;
   using FracType = typename Multiple::FractionType;
-  const auto result = lhs.value() / FracType{cast<typename FracType::Type>(rhs)};
+  const FracType result = lhs.value() / FracType{cast<typename FracType::Type>(rhs)};
   return Multiple{result};
 }
 
@@ -329,7 +331,7 @@ constexpr bool operator==(
     const UnitMultiple<kBase, kExponent2>& rhs) noexcept
 {
   using Multiple = UnitMultiple<kBase, (std::min)(kExponent1, kExponent2)>;
-  const auto result = Multiple{lhs}.value() == Multiple{rhs}.value();
+  const bool result = Multiple{lhs}.value() == Multiple{rhs}.value();
   return result;
 }
 
@@ -368,7 +370,7 @@ constexpr bool operator<(
     const UnitMultiple<kBase, kExponent2>& rhs) noexcept
 {
   using Multiple = UnitMultiple<kBase, (std::min)(kExponent1, kExponent2)>;
-  const auto result = Multiple{lhs}.value() < Multiple{rhs}.value();
+  const bool result = Multiple{lhs}.value() < Multiple{rhs}.value();
   return result;
 }
 
@@ -388,7 +390,7 @@ constexpr bool operator<=(
     const UnitMultiple<kBase, kExponent2>& rhs) noexcept
 {
   using Multiple = UnitMultiple<kBase, (std::min)(kExponent1, kExponent2)>;
-  const auto result = Multiple{lhs}.value() <= Multiple{rhs}.value();
+  const bool result = Multiple{lhs}.value() <= Multiple{rhs}.value();
   return result;
 }
 

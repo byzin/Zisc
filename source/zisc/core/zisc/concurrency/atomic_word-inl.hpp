@@ -158,7 +158,7 @@ constexpr bool AtomicWord<kOsSpecified>::isSpecialized() noexcept
 template <bool kOsSpecified> inline
 Atomic::WordValueType AtomicWord<kOsSpecified>::load(const std::memory_order order) const noexcept
 {
-  const auto result = atomic_load(&word_, order);
+  const Atomic::WordValueType result = atomic_load(&word_, order);
   return result;
 }
 

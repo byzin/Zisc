@@ -676,7 +676,7 @@ constexpr bool operator<(const Ieee754Binary<kFormat>& lhs,
     using SignedT = std::make_signed_t<BitT>;
     const auto get_signed = [](const BitT u) noexcept
     {
-      constexpr auto m = BinaryT::signBitMask();
+      constexpr BitT m = BinaryT::signBitMask();
       SignedT s = cast<SignedT>(u & ~m);
       s = ((u & m) == 0) ? s : -s;
       return s;

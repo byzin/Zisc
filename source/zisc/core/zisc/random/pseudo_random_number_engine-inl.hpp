@@ -118,7 +118,7 @@ Float PseudoRandomNumberEngine<GeneratorClass, T>::generate01() noexcept
   // Generate a integer random number
   const ValueT x = generate();
   // Map to a [0, 1) float
-  const auto y = mapTo01<Float>(x);
+  const Float y = mapTo01<Float>(x);
   return y;
 }
 

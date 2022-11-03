@@ -114,7 +114,7 @@ constexpr std::size_t Bitset::blockBitSize() noexcept
 inline
 std::size_t Bitset::count() const noexcept
 {
-  const auto c = count(0, size());
+  const std::size_t c = count(0, size());
   return c;
 }
 
@@ -367,7 +367,7 @@ Bitset::Wrapper::Wrapper(Wrapper&& other) noexcept :
 inline
 auto Bitset::Wrapper::operator=(Wrapper&& other) noexcept -> Wrapper&
 {
-  const auto v = other.value_.load(std::memory_order::acquire);
+  const BitT v = other.value_.load(std::memory_order::acquire);
   value_.store(v, std::memory_order::release);
   return *this;
 }

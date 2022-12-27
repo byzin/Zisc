@@ -99,9 +99,9 @@ std::string Memory::BadAllocation::explain(const std::size_t size,
 {
   constexpr std::size_t max_length = 2048;
   std::array<char, max_length> e;
-  std::sprintf(e.data(), "%s size=%zu, alignment=%zu.\n", explanation.data(),
-                                                          size,
-                                                          alignment);
+  std::snprintf(e.data(), max_length, "%s size=%zu, alignment=%zu.\n", explanation.data(),
+                                                                       size,
+                                                                       alignment);
   return std::string{e.data()};
 }
 

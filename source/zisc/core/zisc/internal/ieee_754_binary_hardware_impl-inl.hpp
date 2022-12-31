@@ -30,15 +30,6 @@ namespace zisc {
 
 /*!
   \details No detailed description
-  */
-template <Ieee754BinaryFormat kFormat> inline
-constexpr Ieee754BinaryHardwareImpl<kFormat>::Ieee754BinaryHardwareImpl() noexcept :
-    data_{static_cast<typename DataType::T>(0.0)}
-{
-}
-
-/*!
-  \details No detailed description
 
   \tparam Float No description.
   \param [in] value No description.

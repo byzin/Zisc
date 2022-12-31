@@ -32,15 +32,6 @@ namespace zisc {
 
 /*!
   \details No detailed description
-  */
-template <Ieee754BinaryFormat kFormat> inline
-constexpr Ieee754BinarySoftwareImpl<kFormat>::Ieee754BinarySoftwareImpl() noexcept :
-    data_{0}
-{
-}
-
-/*!
-  \details No detailed description
 
   \param [in] value No description.
   */

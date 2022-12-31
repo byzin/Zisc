@@ -29,6 +29,14 @@
 
 namespace zisc {
 
+// Type check
+static_assert(std::is_standard_layout_v<Binary16>);
+static_assert(std::is_trivial_v<Binary16>);
+static_assert(std::is_standard_layout_v<Binary32>);
+static_assert(std::is_trivial_v<Binary32>);
+static_assert(std::is_standard_layout_v<Binary64>);
+static_assert(std::is_trivial_v<Binary64>);
+
 /*!
   \details No detailed description
 

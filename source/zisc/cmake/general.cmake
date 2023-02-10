@@ -62,6 +62,7 @@ function(Zisc_addGoogleTest source_dir binary_dir)
   set(gtest_disable_pthreads ON CACHE INTERNAL "" FORCE)
   set(gtest_hide_internal_symbols ON CACHE INTERNAL "" FORCE)
   add_subdirectory("${source_dir}" "${binary_dir}" EXCLUDE_FROM_ALL)
+  include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/platform.cmake")
   set_target_properties(gtest
       PROPERTIES
       RUNTIME_OUTPUT_DIRECTORY "${binary_dir}/bin"
@@ -74,6 +75,13 @@ function(Zisc_addGoogleTest source_dir binary_dir)
       LIBRARY_OUTPUT_DIRECTORY "${binary_dir}/lib"
       ARCHIVE_OUTPUT_DIRECTORY "${binary_dir}/lib"
       PDB_OUTPUT_DIRECTORY "${binary_dir}/bin")
+  # Set warning
+  Zisc_getPlatformFlags(platform_definitions)
+  Zisc_setVariablesOnCMake(${platform_definitions})
+  if(Z_CLANG)
+    target_compile_options(gtest PRIVATE -Wno-implicit-int-float-conversion)
+    target_compile_options(gtest_main PRIVATE -Wno-implicit-int-float-conversion)
+  endif()
 endfunction(Zisc_addGoogleTest)
 
 

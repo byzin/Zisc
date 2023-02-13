@@ -87,8 +87,8 @@ TEST(MemoryTest, AlignmentTest)
 
 TEST(MemoryTest, AllocateTest)
 {
-  for (int i = 0; i < 13; ++i) {
-    const auto s = static_cast<std::size_t>(1 << i); // Allocation size and alignment
+  for (std::size_t i = 0; i < 13; ++i) {
+    const std::size_t s = 1 << i; // Allocation size and alignment
     // Allocation test
     void* mem = zisc::aligned_alloc(s, s);
     if (s < zisc::Memory::minAllocAlignment()) {

@@ -138,8 +138,8 @@ TEST(AllocFreeResourceTest, AlignmentTest)
   ASSERT_EQ(0, mem_resource.totalMemoryUsage()) << "Resource initialization failed.";
   ASSERT_EQ(0, mem_resource.peakMemoryUsage()) << "Resource initialization failed.";
 
-  for (std::size_t i = 0; i < 13; ++i) {
-    const std::size_t alignment = 1 << i;
+  for (int i = 0; i < 13; ++i) {
+    const auto alignment = static_cast<std::size_t>(1 << i);
     std::size_t size = 3 * alignment;
     // Allocation
     void* ptr = mem_resource.allocate(size, alignment);
@@ -190,9 +190,9 @@ TEST(AllocFreeResource, MultiThreadTest)
       worker_lock.wait(-1, std::memory_order::acquire);
       // Do the actual test
       std::mt19937_64 sampler{i};
-      std::uniform_int_distribution<std::size_t> distrib{0, 12};
+      std::uniform_int_distribution<int> distrib{0, 12};
       for (std::size_t j = 0; j < loop; ++j) {
-        const std::size_t alignment = 1 << distrib(sampler);
+        const auto alignment = static_cast<std::size_t>(1 << distrib(sampler));
         const std::size_t size = 3 * alignment;
         const std::size_t index = i * loop + j;
         std::byte* ptr = nullptr;

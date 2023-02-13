@@ -48,6 +48,10 @@ FixedArrayResource<Type>::FixedArrayResource(pmr::memory_resource* mem_resource)
     storage_list_{typename decltype(storage_list_)::allocator_type{mem_resource}},
     used_list_{mem_resource}
 {
+  static_assert(alignof(decltype(count_)) % alignof(decltype(storage_list_)) == 0);
+  static_assert(alignof(decltype(storage_list_)) == alignof(decltype(used_list_)));
+  static_assert(sizeof(count_) + sizeof(pad1_) == kCacheLineSize);
+  static_assert(sizeof(storage_list_) + sizeof(used_list_) + sizeof(pad2_) == kCacheLineSize);
   setCountMax(1);
 }
 
@@ -87,8 +91,8 @@ auto FixedArrayResource<Type>::operator=(FixedArrayResource&& other) noexcept
 template <typename Type> inline
 constexpr std::size_t FixedArrayResource<Type>::alignmentMax() noexcept
 {
-  static_assert(std::alignment_of_v<StorageT> == std::alignment_of_v<Type>);
-  const std::size_t s = std::alignment_of_v<StorageT>;
+  static_assert(alignof(StorageT) == alignof(Type));
+  const std::size_t s = alignof(StorageT);
   return s;
 }
 

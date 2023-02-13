@@ -65,7 +65,7 @@ zisc::uint64b Zipfian::operator()(const std::size_t i) const noexcept
   const zisc::uint64b m = (std::numeric_limits<zisc::uint64b>::max)();
   const double u = zisc::cast<double>(r) / zisc::cast<double>(m);
   const double uz = u * zeta_n_;
-  const double result =
+  const zisc::uint64b result =
       (uz < 1.0)
           ? 0 :
       (uz < 1.0 + std::pow(0.5, theta_))

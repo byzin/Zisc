@@ -374,7 +374,7 @@ std::size_t RingBuffer::calcMemChunkSize(const std::size_t s) const noexcept
   {
     static_assert(sizeof(AtomicT) <= sizeof(MemChunk));
     static_assert(sizeof(MemChunk) % sizeof(AtomicT) == 0);
-    static_assert(std::alignment_of_v<AtomicT> <= std::alignment_of_v<MemChunk>);
+    static_assert(alignof(AtomicT) <= alignof(MemChunk));
     l += 3;
   }
   // Indices size

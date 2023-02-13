@@ -104,7 +104,7 @@ TEST(MonotonicBufferResourceTest, AllocationTest)
     [[maybe_unused]] void* data = resource->allocate(1, 1);
     FAIL() << "The allocation unexpectedly successed."; // Never go this line
   }
-  catch (const MemResource::BadAllocT& error) {
+  catch ([[maybe_unused]] const MemResource::BadAllocT& error) {
     std::cout << "## Bad allocation happened expectedly." << std::endl;
   }
   // Deallocation
@@ -136,8 +136,8 @@ TEST(MonotonicBufferResourceTest, AlignmentTest)
   ASSERT_FALSE(resource->isOccupied()) << "Resource initialization failed.";
   ASSERT_EQ(0, resource->size()) << "Resource initialization failed.";
 
-  for (std::size_t i = 0; i < 13; ++i) {
-    const std::size_t alignment = 1 << i;
+  for (int i = 0; i < 13; ++i) {
+    const auto alignment = static_cast<std::size_t>(1 << i);
     ASSERT_LE(alignment, resource->alignment())
         << "The resource alignment isn't enough.";
 

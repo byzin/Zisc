@@ -266,7 +266,7 @@ bool Memory::isAligned(const void* data, const std::size_t alignment) noexcept
 inline
 constexpr std::size_t Memory::minAllocAlignment() noexcept
 {
-  constexpr std::size_t alignment = std::alignment_of_v<void*>;
+  constexpr std::size_t alignment = alignof(void*);
   return alignment;
 }
 

@@ -65,7 +65,7 @@ MonotonicBufferResource<kSize, kAlignment>::MonotonicBufferResource(MonotonicBuf
 template <std::size_t kSize, std::size_t kAlignment> inline
 constexpr std::size_t MonotonicBufferResource<kSize, kAlignment>::alignment() noexcept
 {
-  constexpr std::size_t a = std::alignment_of_v<StorageT>;
+  constexpr std::size_t a = alignof(StorageT);
   static_assert(std::has_single_bit(a), "The alignment isn't power of 2.");
   return a;
 }

@@ -622,7 +622,7 @@ std::shared_ptr<Task> ThreadManager::createSharedTask(const int64b parent_task_i
                                         std::move(promise),
                                         this);
     }
-    catch (const Memory::BadAllocation& error) {
+    catch ([[maybe_unused]] const Memory::BadAllocation& error) {
       if (alloc_trial_max == stack_index)
         throw;
       unused_id_stack[stack_index++] = task_id;
@@ -772,7 +772,7 @@ auto& ThreadManager::getTaskImplType() noexcept
     }
 
     //! Run a task
-    void run(const int64b thread_id, const DiffT it_offset) override
+    void run(const int64b thread_id, [[maybe_unused]] const DiffT it_offset) override
     {
       manager_->waitForParent(id(), parentId());
       if constexpr (kIsLoop) { // Loop task

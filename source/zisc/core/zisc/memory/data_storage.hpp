@@ -95,7 +95,7 @@ class DataStorage : private NonCopyable<DataStorage<T>>
   // Type aliases
   using StorageT = std::conditional_t<kTCanBeStorageT,
       ValueT,
-      std::aligned_storage_t<sizeof(ValueT), std::alignment_of_v<ValueT>>>;
+      std::aligned_storage_t<sizeof(ValueT), alignof(ValueT)>>;
 
 
   StorageT storage_;

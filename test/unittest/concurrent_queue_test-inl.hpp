@@ -193,8 +193,8 @@ void QueueTest::testConcurrentThroughputTime(
     sampler_list.reserve(num_of_threads);
     for (std::size_t i = 0; i < num_of_threads; ++i) {
       const std::size_t t = num_of_threads * round + i;
-      const uint64b sampler_seed = zisc::Fnv1aHash64::hash(zisc::cast<uint64b>(t));
-      sampler_list.emplace_back(sampler_seed);
+      const uint64b sampler_seed2 = zisc::Fnv1aHash64::hash(zisc::cast<uint64b>(t));
+      sampler_list.emplace_back(sampler_seed2);
     }
 
     //

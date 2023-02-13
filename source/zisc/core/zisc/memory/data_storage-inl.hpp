@@ -32,10 +32,8 @@ namespace zisc {
 template <std::move_constructible T> inline
 DataStorage<T>::DataStorage() noexcept
 {
-  static_assert(sizeof(StorageT) == sizeof(T),
-                "The storage size isn't correct.");
-  static_assert(std::alignment_of_v<StorageT> == std::alignment_of_v<T>,
-                "The storage alignment isn't correct.");
+  static_assert(sizeof(StorageT) == sizeof(T), "The storage size isn't correct.");
+  static_assert(alignof(StorageT) == alignof(T), "The storage alignment isn't correct.");
 }
 
 /*!

@@ -151,7 +151,7 @@ TEST(FixedArrayResourceTest, MultiThreadTest)
           const std::size_t index = i * loop + j;
           data_list[index] = data;
         }
-        catch (const zisc::Memory::BadAllocation& error) {
+        catch ([[maybe_unused]] const zisc::Memory::BadAllocation& error) {
           FAIL() << "Memory allocation failed.";
         }
       }

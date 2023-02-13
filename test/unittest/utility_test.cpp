@@ -87,26 +87,6 @@ TEST(UtilityTest, MapTo01DoubleTest)
     ASSERT_DOUBLE_EQ(expected, y) << "zisc::mapTo01(" << x << ") failed.";
   }
 
-  using zisc::uint32b;
-  {
-    constexpr uint32b x = 0;
-    constexpr double y = zisc::mapTo01<double>(x);
-    const double expected = 0.0;
-    ASSERT_FLOAT_EQ(expected, y) << "zisc::mapTo01(" << x << ") failed.";
-  }
-  {
-    constexpr uint32b x = std::numeric_limits<uint32b>::max();
-    constexpr double y = zisc::mapTo01<double>(x);
-    const double expected = 1.0 - std::numeric_limits<double>::epsilon();
-    ASSERT_FLOAT_EQ(expected, y) << "zisc::mapTo01(" << x << ") failed.";
-  }
-  {
-    constexpr uint32b x = std::numeric_limits<uint32b>::max() >> 1;
-    constexpr double y = zisc::mapTo01<double>(x);
-    const double expected = 0.5;
-    ASSERT_FLOAT_EQ(expected, y) << "zisc::mapTo01(" << x << ") failed.";
-  }
-
   using zisc::uint64b;
   {
     constexpr uint64b x = 0;

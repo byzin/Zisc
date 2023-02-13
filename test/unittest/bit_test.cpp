@@ -496,42 +496,42 @@ void testBitWidth()
   using zisc::cast;
   {
     constexpr Integer x = 0b0000;
-    constexpr Integer result = std::bit_width(x);
+    constexpr auto result = static_cast<Integer>(std::bit_width(x));
     ASSERT_FALSE(result) << "std::bit_width(" << x << ") failed.";
   }
   {
     constexpr Integer x = 0b0001;
-    constexpr Integer result = std::bit_width(x);
+    constexpr auto result = static_cast<Integer>(std::bit_width(x));
     ASSERT_EQ(cast<Integer>(1), result) << "std::bit_width(" << x << ") failed.";
   }
   {
     constexpr Integer x = 0b0010;
-    constexpr Integer result = std::bit_width(x);
+    constexpr auto result = static_cast<Integer>(std::bit_width(x));
     ASSERT_EQ(cast<Integer>(2), result) << "std::bit_width(" << x << ") failed.";
   }
   {
     constexpr Integer x = 0b0011;
-    constexpr Integer result = std::bit_width(x);
+    constexpr auto result = static_cast<Integer>(std::bit_width(x));
     ASSERT_EQ(cast<Integer>(2), result) << "std::bit_width(" << x << ") failed.";
   }
   {
     constexpr Integer x = 0b0100;
-    constexpr Integer result = std::bit_width(x);
+    constexpr auto result = static_cast<Integer>(std::bit_width(x));
     ASSERT_EQ(cast<Integer>(3), result) << "std::bit_width(" << x << ") failed.";
   }
   {
     constexpr Integer x = 0b0101;
-    constexpr Integer result = std::bit_width(x);
+    constexpr auto result = static_cast<Integer>(std::bit_width(x));
     ASSERT_EQ(cast<Integer>(3), result) << "std::bit_width(" << x << ") failed.";
   }
   {
     constexpr Integer x = 0b0110;
-    constexpr Integer result = std::bit_width(x);
+    constexpr auto result = static_cast<Integer>(std::bit_width(x));
     ASSERT_EQ(cast<Integer>(3), result) << "std::bit_width(" << x << ") failed.";
   }
   {
     constexpr Integer x = 0b0111;
-    constexpr Integer result = std::bit_width(x);
+    constexpr auto result = static_cast<Integer>(std::bit_width(x));
     ASSERT_EQ(cast<Integer>(3), result) << "std::bit_width(" << x << ") failed.";
   }
 }

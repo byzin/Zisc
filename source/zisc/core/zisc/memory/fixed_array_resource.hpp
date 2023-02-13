@@ -100,7 +100,7 @@ class FixedArrayResource : public pmr::memory_resource,
 
  private:
   // Type aliases
-  using StorageT = std::aligned_storage_t<sizeof(Type), std::alignment_of_v<Type>>;
+  using StorageT = std::aligned_storage_t<sizeof(Type), alignof(Type)>;
 
 
   static constexpr std::size_t kCacheLineSize = Config::l1CacheLineSize();
@@ -133,7 +133,7 @@ class FixedArrayResource : public pmr::memory_resource,
   [[maybe_unused]] Padding<kCacheLineSize - sizeof(count_)> pad1_;
   pmr::vector<StorageT> storage_list_;
   Bitset used_list_;
-  [[maybe_unused]] Padding<kCacheLineSize - sizeof(storage_list_) - sizeof(used_list_)> pad2_;
+  [[maybe_unused]] Padding<kCacheLineSize - (sizeof(storage_list_) + sizeof(used_list_))> pad2_;
 };
 
 } /* namespace zisc */

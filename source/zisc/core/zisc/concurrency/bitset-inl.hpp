@@ -50,7 +50,7 @@ Bitset::Bitset(pmr::memory_resource* mem_resource) noexcept :
   */
 inline
 Bitset::Bitset(const std::size_t s, pmr::memory_resource* mem_resource) noexcept :
-    block_list_{decltype(block_list_)::allocator_type{mem_resource}}
+    chunk_list_{decltype(chunk_list_)::allocator_type{mem_resource}}
 {
   setSize(s);
 }
@@ -62,7 +62,7 @@ Bitset::Bitset(const std::size_t s, pmr::memory_resource* mem_resource) noexcept
   */
 inline
 Bitset::Bitset(Bitset&& other) noexcept :
-    block_list_{std::move(other.block_list_)},
+    chunk_list_{std::move(other.chunk_list_)},
     size_{other.size_}
 {
 }
@@ -76,7 +76,7 @@ Bitset::Bitset(Bitset&& other) noexcept :
 inline
 Bitset& Bitset::operator=(Bitset&& other) noexcept
 {
-  block_list_ = std::move(other.block_list_);
+  chunk_list_ = std::move(other.chunk_list_);
   size_ = other.size_;
   return *this;
 }
@@ -102,7 +102,19 @@ bool Bitset::operator[](const std::size_t pos) const noexcept
 inline
 constexpr std::size_t Bitset::blockBitSize() noexcept
 {
-  const std::size_t s = std::numeric_limits<BitT>::digits;
+  const std::size_t s = 8 * sizeof(AtomicT);
+  return s;
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+inline
+constexpr std::size_t Bitset::chunkBitSize() noexcept
+{
+  const std::size_t s = 8 * sizeof(Chunk);
   return s;
 }
 
@@ -146,7 +158,7 @@ std::size_t Bitset::count(const std::size_t begin, const std::size_t end) const 
   \return No description
   */
 inline
-auto Bitset::getBlock(const std::size_t pos) const noexcept -> BitT
+auto Bitset::getBlockBits(const std::size_t pos) const noexcept -> BitT
 {
   AConstReference block = getBlockRef(pos);
   return block.load(std::memory_order::acquire);
@@ -291,9 +303,9 @@ void Bitset::reset(const std::size_t begin, const std::size_t end, const bool va
 inline
 void Bitset::setSize(const std::size_t s) noexcept
 {
-  constexpr std::size_t bits = blockBitSize();
-  const std::size_t s64 = (s + (bits - 1)) / bits;
-  block_list_.resize(s64);
+  constexpr std::size_t bits = chunkBitSize();
+  const std::size_t n = (s + (bits - 1)) / bits;
+  chunk_list_.resize(n);
   size_ = s;
   reset();
 }
@@ -348,28 +360,46 @@ bool Bitset::testAndSet(const std::size_t pos, const bool value) noexcept
   \details No detailed description
   */
 inline
-Bitset::Wrapper::Wrapper() noexcept
+Bitset::Chunk::Chunk() noexcept
 {
 }
 
 /*!
   \details No detailed description
+
+  \param [in] other No description.
   */
 inline
-Bitset::Wrapper::Wrapper(Wrapper&& other) noexcept :
-    value_{other.value_.load(std::memory_order::acquire)}
+Bitset::Chunk::Chunk(Chunk&& other) noexcept
 {
+  set(other);
 }
 
 /*!
   \details No detailed description
+
+  \param [in] other No description.
+  \return No description
   */
 inline
-auto Bitset::Wrapper::operator=(Wrapper&& other) noexcept -> Wrapper&
+auto Bitset::Chunk::operator=(Chunk&& other) noexcept -> Chunk&
 {
-  const BitT v = other.value_.load(std::memory_order::acquire);
-  value_.store(v, std::memory_order::release);
+  set(other);
   return *this;
+}
+
+/*!
+  \details No detailed description
+
+  \param [in] other No description.
+  */
+inline
+void Bitset::Chunk::set(const Chunk& other) noexcept
+{
+  for (std::size_t i = 0; i < block_list_.size(); ++i) {
+    const BitT v = other.block_list_[i].load(std::memory_order::acquire);
+    block_list_[i].store(v, std::memory_order::release);
+  }
 }
 
 /*!
@@ -381,9 +411,10 @@ auto Bitset::Wrapper::operator=(Wrapper&& other) noexcept -> Wrapper&
 inline
 auto Bitset::getBlockRef(const std::size_t pos) noexcept -> AReference
 {
-  constexpr std::size_t bits = blockBitSize();
-  const std::size_t i = pos / bits;
-  return block_list_[i].value_;
+  const std::size_t chunk_index = pos / chunkBitSize();
+  Chunk& chunk = chunk_list_[chunk_index];
+  const std::size_t block_index = (pos % chunkBitSize()) / blockBitSize();
+  return chunk.block_list_[block_index];
 }
 
 /*!
@@ -395,9 +426,10 @@ auto Bitset::getBlockRef(const std::size_t pos) noexcept -> AReference
 inline
 auto Bitset::getBlockRef(const std::size_t pos) const noexcept -> AConstReference
 {
-  constexpr std::size_t bits = blockBitSize();
-  const std::size_t i = pos / bits;
-  return block_list_[i].value_;
+  const std::size_t chunk_index = pos / chunkBitSize();
+  const Chunk& chunk = chunk_list_[chunk_index];
+  const std::size_t block_index = (pos % chunkBitSize()) / blockBitSize();
+  return chunk.block_list_[block_index];
 }
 
 /*!

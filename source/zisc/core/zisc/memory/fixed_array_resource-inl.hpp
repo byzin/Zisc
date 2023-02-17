@@ -303,7 +303,7 @@ std::size_t FixedArrayResource<Type>::findAndGetOwnership(const std::size_t star
   for (std::size_t block_count = 0; block_count < end;) {
     ZISC_ASSERT((index % block_bits) == 0, "The index isn't block aligned: ", index);
     // Find a candidate position
-    const BitT block = used_list_.getBlock(index) | mask;
+    const BitT block = used_list_.getBlockBits(index) | mask;
     const std::size_t n_used = std::countr_one(block);
     const std::size_t candidate = index + n_used;
     if ((n_used != block_bits) && (candidate < n)) {

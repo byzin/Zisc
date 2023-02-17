@@ -16,6 +16,7 @@
 #define ZISC_BITSET_HPP
 
 // Standard C++ library
+#include <array>
 #include <atomic>
 #include <concepts>
 #include <cstddef>
@@ -66,14 +67,17 @@ class Bitset : private NonCopyable<Bitset>
   //! Return the bit size of a block
   static constexpr std::size_t blockBitSize() noexcept;
 
+  //! Return the bit size of a chunk
+  static constexpr std::size_t chunkBitSize() noexcept;
+
   //! Return the number of bits set to true
   std::size_t count() const noexcept;
 
   //! Return the number of bits set to true
   std::size_t count(const std::size_t begin, const std::size_t end) const noexcept;
 
-  //! Return the block at the pos
-  BitT getBlock(const std::size_t pos) const noexcept;
+  //! Return the bits of the block at the pos
+  BitT getBlockBits(const std::size_t pos) const noexcept;
 
   //! Check if all bits are set to true
   bool isAll() const noexcept;
@@ -113,25 +117,36 @@ class Bitset : private NonCopyable<Bitset>
 
  private:
   // Type aliases
-  using AtomicT = std::atomic<BitT>;
+  using AtomicT = std::atomic<BitT>; //!< The type of block in a chunk
   using AConstT = std::add_const_t<AtomicT>;
   using AReference = std::add_lvalue_reference_t<AtomicT>;
   using AConstReference = std::add_lvalue_reference_t<AConstT>;
   using APointer = std::add_pointer_t<AtomicT>;
   using AConstPointer = std::add_pointer_t<AConstT>;
 
-  struct Wrapper
+
+  static constexpr std::size_t kChunkAlignment = 2 * Config::l1CacheLineSize();
+
+
+  //! Represent a block in the bitset
+  struct alignas(kChunkAlignment) Chunk
   {
-    //! Create a wrapper
-    Wrapper() noexcept;
+    //! Create a chunk
+    Chunk() noexcept;
 
     //! Move a data
-    Wrapper(Wrapper&& other) noexcept;
+    Chunk(Chunk&& other) noexcept;
 
     //! Move a data
-    Wrapper& operator=(Wrapper&& other) noexcept;
+    Chunk& operator=(Chunk&& other) noexcept;
 
-    AtomicT value_;
+    //! Copy the bits
+    void set(const Chunk& other) noexcept;
+
+    static_assert(kChunkAlignment % sizeof(AtomicT) == 0);
+    static constexpr std::size_t kN = kChunkAlignment / sizeof(AtomicT);
+
+    std::array<AtomicT, kN> block_list_;
   };
 
 
@@ -155,7 +170,7 @@ class Bitset : private NonCopyable<Bitset>
   static BitT makeMask(const std::size_t begin, const std::size_t end) noexcept;
 
 
-  pmr::vector<Wrapper> block_list_;
+  pmr::vector<Chunk> chunk_list_;
   std::size_t size_;
 };
 

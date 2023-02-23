@@ -22,6 +22,7 @@
 #include <memory>
 #include <utility>
 // Zisc
+#include "zisc/bit.hpp"
 #include "zisc/utility.hpp"
 #include "zisc/zisc_config.hpp"
 
@@ -76,7 +77,7 @@ constexpr int64b PackagedTask::invalidId() noexcept
 inline
 bool PackagedTask::isNeededToWaitForPrecedence() const noexcept
 {
-  const bool flag = std::signbit(info_);
+  const bool flag = std::signbit(bit_cast<double>(info_));
   return flag;
 }
 

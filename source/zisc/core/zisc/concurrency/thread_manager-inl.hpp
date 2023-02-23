@@ -21,6 +21,7 @@
 #include <array>
 #include <atomic>
 #include <bit>
+#include <concepts>
 #include <cstddef>
 #include <functional>
 #include <future>
@@ -29,12 +30,10 @@
 #include <memory>
 #include <optional>
 #include <thread>
-#include <tuple>
 #include <type_traits>
 #include <utility>
 #include <vector>
 // Zisc
-#include "future.hpp"
 #include "packaged_task.hpp"
 #include "zisc/concepts.hpp"
 #include "zisc/error.hpp"
@@ -44,7 +43,6 @@
 #include "zisc/memory/memory.hpp"
 #include "zisc/memory/monotonic_buffer_resource.hpp"
 #include "zisc/memory/std_memory_resource.hpp"
-#include "zisc/structure/map.hpp"
 #include "zisc/structure/queue.hpp"
 
 namespace zisc {
@@ -57,7 +55,7 @@ namespace zisc {
   \param [in] n No description.
   */
 inline
-ThreadManager::TaskExceptionData::TaskExceptionData(SharedTask&& t,
+ThreadManager::TaskExceptionData::TaskExceptionData(SharedTaskT&& t,
                                                     const DiffT offset,
                                                     const DiffT n) :
     task_{std::move(t)},
@@ -93,10 +91,12 @@ auto ThreadManager::TaskExceptionData::numOfIterations() const noexcept -> DiffT
 
   \return No description
   */
-inline
-PackagedTask& ThreadManager::TaskExceptionData::task() noexcept
+template <typename Type> inline
+PackagedTaskType<Type>& ThreadManager::TaskExceptionData::task() noexcept
 {
-  return *task_;
+  auto* t = dynamic_cast<PackagedTaskType<Type>*>(task_.get());
+  ZISC_ASSERT(t != nullptr, "The dynamic cast of the packaged task failed.");
+  return *t;
 }
 
 /*!
@@ -104,10 +104,12 @@ PackagedTask& ThreadManager::TaskExceptionData::task() noexcept
 
   \return No description
   */
-inline
-const PackagedTask& ThreadManager::TaskExceptionData::task() const noexcept
+template <typename Type> inline
+const PackagedTaskType<Type>& ThreadManager::TaskExceptionData::task() const noexcept
 {
-  return *task_;
+  const auto* t = dynamic_cast<const PackagedTaskType<Type>*>(task_.get());
+  ZISC_ASSERT(t != nullptr, "The dynamic cast of the packaged task failed.");
+  return *t;
 }
 
 /*!
@@ -130,11 +132,11 @@ ThreadManager::ThreadManager(pmr::memory_resource* mem_resource) noexcept :
 inline
 ThreadManager::ThreadManager(const int64b num_of_threads,
                              pmr::memory_resource* mem_resource) noexcept :
-    total_queued_task_ids_{0},
+    task_id_count_{0},
     num_of_tasks_{0},
     num_of_active_workers_{0},
     task_queue_{defaultCapacity(), mem_resource},
-    task_id_set_{defaultCapacity(), mem_resource},
+    task_status_list_{taskStatusSize(), mem_resource},
     worker_list_{decltype(worker_list_)::allocator_type{mem_resource}},
     worker_id_list_{decltype(worker_id_list_)::allocator_type{mem_resource}},
     task_storage_list_{decltype(task_storage_list_)::allocator_type{mem_resource}}
@@ -222,9 +224,7 @@ constexpr std::size_t ThreadManager::alignmentMax() noexcept
 inline
 std::size_t ThreadManager::capacity() const noexcept
 {
-  const std::size_t cap1 = taskQueue().capacity();
-  const std::size_t cap2 = taskIdSet().capacity();
-  const std::size_t cap = (std::min)(cap1, cap2);
+  const std::size_t cap = taskQueue().capacity();
   return cap;
 }
 
@@ -238,9 +238,9 @@ void ThreadManager::clear() noexcept
     waitForCompletion();
   ZISC_ASSERT(num_of_active_workers_.load(std::memory_order::acquire) == 0,
               "Some worker threads are stil active.");
-  total_queued_task_ids_.store(0, std::memory_order::release);
+  task_id_count_.store(0, std::memory_order::release);
   taskQueue().clear();
-  taskIdSet().clear();
+  taskStatusList().reset();
 }
 
 /*!
@@ -260,12 +260,12 @@ constexpr std::size_t ThreadManager::defaultCapacity() noexcept
 
   \tparam Func No description.
   \param [in] task No description.
-  \param [in] parent_task_id No description.
+  \param [in] wait_for_precedence No description.
   \return No description
   */
 template <Invocable Func> inline
-auto ThreadManager::enqueue(Func&& task, const int64b parent_task_id)
-    -> Future<InvokeResultT<Func>>
+auto ThreadManager::enqueue(Func&& task, const bool wait_for_precedence)
+    -> std::future<InvokeResultT<Func>>
 {
   using ReturnT = InvokeResultT<Func>;
   auto t = wrapTask(std::forward<Func>(task));
@@ -274,11 +274,10 @@ auto ThreadManager::enqueue(Func&& task, const int64b parent_task_id)
     auto func = getTask(data);
     return std::invoke(func);
   };
-  using FutureT = Future<InvokeResultT<Func>>;
-  FutureT result = enqueueImpl<ReturnT, false>(std::move(wrapped_task),
-                                               0,
-                                               1,
-                                               parent_task_id);
+  std::future result = enqueueImpl<ReturnT, false>(std::move(wrapped_task),
+                                                   0,
+                                                   1,
+                                                   wait_for_precedence);
   return result;
 }
 
@@ -287,20 +286,19 @@ auto ThreadManager::enqueue(Func&& task, const int64b parent_task_id)
 
   \tparam Func No description.
   \param [in] task No description.
-  \param [in] parent_task_id No description.
+  \param [in] wait_for_precedence No description.
   \return No description
   */
 template <Invocable<int64b> Func> inline
-auto ThreadManager::enqueue(Func&& task, const int64b parent_task_id)
-    -> Future<InvokeResultT<Func, int64b>>
+auto ThreadManager::enqueue(Func&& task, const bool wait_for_precedence)
+    -> std::future<InvokeResultT<Func, int64b>>
 {
   using ReturnT = InvokeResultT<Func, int64b>;
   auto wrapped_task = wrapTask<int64b>(std::forward<Func>(task));
-  using FutureT = Future<InvokeResultT<Func, int64b>>;
-  FutureT result = enqueueImpl<ReturnT, false>(std::move(wrapped_task),
-                                               0,
-                                               1,
-                                               parent_task_id);
+  std::future result = enqueueImpl<ReturnT, false>(std::move(wrapped_task),
+                                                   0,
+                                                   1,
+                                                   wait_for_precedence);
   return result;
 }
 
@@ -313,7 +311,7 @@ auto ThreadManager::enqueue(Func&& task, const int64b parent_task_id)
   \param [in] task No description.
   \param [in] begin No description.
   \param [in] end No description.
-  \param [in] parent_task_id No description.
+  \param [in] wait_for_precedence No description.
   \return No description
   */
 template <typename Func, typename Ite1, typename Ite2>
@@ -321,7 +319,7 @@ requires Invocable<Func, ThreadManager::CommonIteT<Ite1, Ite2>> inline
 auto ThreadManager::enqueueLoop(Func&& task,
                                 Ite1&& begin,
                                 Ite2&& end,
-                                const int64b parent_task_id) -> Future<void>
+                                const bool wait_for_precedence) -> std::future<void>
 {
   using IteT = CommonIteT<Ite1, Ite2>;
   auto t = wrapTask<IteT>(std::forward<Func>(task));
@@ -330,10 +328,10 @@ auto ThreadManager::enqueueLoop(Func&& task,
     auto func = getTask<IteT>(data);
     std::invoke(func, it);
   };
-  Future<void> result = enqueueImpl<void, true>(std::move(wrapped_task),
-                                                std::forward<Ite1>(begin),
-                                                std::forward<Ite2>(end),
-                                                parent_task_id);
+  std::future result = enqueueImpl<void, true>(std::move(wrapped_task),
+                                               std::forward<Ite1>(begin),
+                                               std::forward<Ite2>(end),
+                                               wait_for_precedence);
   return result;
 }
 
@@ -346,7 +344,7 @@ auto ThreadManager::enqueueLoop(Func&& task,
   \param [in] task No description.
   \param [in] begin No description.
   \param [in] end No description.
-  \param [in] parent_task_id No description.
+  \param [in] wait_for_precedence No description.
   \return No description
   */
 template <typename Func, typename Ite1, typename Ite2>
@@ -354,14 +352,14 @@ requires Invocable<Func, ThreadManager::CommonIteT<Ite1, Ite2>, int64b> inline
 auto ThreadManager::enqueueLoop(Func&& task,
                                 Ite1&& begin,
                                 Ite2&& end,
-                                const int64b parent_task_id) -> Future<void>
+                                const bool wait_for_precedence) -> std::future<void>
 {
   using IteT = CommonIteT<Ite1, Ite2>;
   auto wrapped_task = wrapTask<IteT, int64b>(std::forward<Func>(task));
-  Future<void> result = enqueueImpl<void, true>(std::move(wrapped_task),
-                                                std::forward<Ite1>(begin),
-                                                std::forward<Ite2>(end),
-                                                parent_task_id);
+  std::future result = enqueueImpl<void, true>(std::move(wrapped_task),
+                                               std::forward<Ite1>(begin),
+                                               std::forward<Ite2>(end),
+                                               wait_for_precedence);
   return result;
 }
 
@@ -423,17 +421,7 @@ void ThreadManager::setCapacity(const std::size_t cap) noexcept
 {
   if (workersAreEnabled())
     waitForCompletion();
-
   taskQueue().setCapacity(cap);
-  taskIdSet().setCapacity(cap);
-
-  const std::size_t storage_cap = capacity();
-  if (task_storage_list_.size() < storage_cap) {
-    task_storage_list_.reserve(storage_cap);
-    for (std::size_t i = task_storage_list_.size(); i < storage_cap; ++i)
-      task_storage_list_.emplace_back(resource());
-  }
-
   clear();
 }
 
@@ -479,7 +467,7 @@ void ThreadManager::waitForCompletion() noexcept
   \param [in] it_offset No description.
   */
 inline
-ThreadManager::WorkerTask::WorkerTask(const SharedTask& task,
+ThreadManager::WorkerTask::WorkerTask(const SharedTaskT& task,
                                       const DiffT it_offset) noexcept :
     it_offset_{it_offset},
     task_{task}
@@ -546,6 +534,91 @@ void ThreadManager::WorkerTask::run(const int64b thread_id)
 }
 
 /*!
+  \brief No brief description
+
+  No detailed description.
+
+  \tparam ReturnT No description.
+  \tparam Data No description.
+  \tparam Ite1 No description.
+  \tparam Ite2 No description.
+  \tparam kIsLoop No description.
+  */
+template <typename Return, typename Data, typename Ite1, typename Ite2, bool kIsLoop>
+class ThreadManager::TaskImpl : public PackagedTaskType<Return>
+{
+  using BaseT = PackagedTaskType<Return>;
+
+ public:
+  // Type aliases
+  using ReturnT = typename BaseT::ReturnT;
+  using PromiseT = std::promise<ReturnT>;
+  using DataT = std::remove_reference_t<Data>;
+  using IteT = std::remove_cv_t<CommonIteT<Ite1, Ite2>>;
+
+
+  //! Initialize the task
+  TaskImpl(const int64b task_info, PromiseT&& p, ThreadManager* manager) noexcept :
+      BaseT(task_info),
+      promise_{std::move(p)},
+      manager_{manager}
+  {
+  }
+
+  //! Finalize the task
+  ~TaskImpl() noexcept override
+  {
+    if constexpr (kIsLoop) {
+      promise_.set_value();
+      manager_->taskStatusList().testAndSet(static_cast<std::size_t>(BaseT::id()), true);
+    }
+  }
+
+  //! Return the future of the underlying task
+  std::future<ReturnT> getFuture() noexcept override
+  {
+    return promise_.get_future();
+  }
+
+  //! Run a task
+  void run(const int64b thread_id, [[maybe_unused]] const DiffT it_offset) override
+  {
+    if (BaseT::isNeededToWaitForPrecedence())
+      manager_->waitForPrecedence(BaseT::id());
+    if constexpr (kIsLoop) { // Loop task
+      auto func = getTask<IteT, int64b>(*task_);
+      IteT ite = advance(*begin_, it_offset);
+      std::invoke(func, ite, thread_id);
+    }
+    else { // Single task
+      auto func = getTask<int64b>(*task_);
+      if constexpr (std::is_void_v<ReturnT>) {
+        std::invoke(func, thread_id);
+        promise_.set_value();
+      }
+      else {
+        ReturnT value = std::invoke(func, thread_id);
+        promise_.set_value(std::move(value));
+      }
+      manager_->taskStatusList().testAndSet(static_cast<std::size_t>(BaseT::id()), true);
+    }
+  }
+
+  //
+  void setData(DataT&& data, Ite1&& b) noexcept
+  {
+    task_.set(std::move(data));
+    begin_.set(std::forward<Ite1>(b));
+  }
+
+ private:
+  PromiseT promise_;
+  DataStorage<DataT> task_;
+  DataStorage<IteT> begin_;
+  ThreadManager* manager_;
+};
+
+/*!
   \details No detailed description
 
   \tparam Ite No description.
@@ -571,29 +644,25 @@ Ite ThreadManager::advance(Ite& begin, const OffsetT offset) noexcept
   \tparam Task No description.
   \tparam Data No description.
   \tparam Ite No description.
-  \param [in] parent_task_id No description.
   \param [in] data No description.
   \param [in] ite No description.
+  \param [in] wait_for_precedence No description.
   \return No description
   */
-template <typename Task, typename Data, typename Ite> inline
-std::shared_ptr<Task> ThreadManager::createSharedTask(const int64b parent_task_id,
-                                                      Data&& data,
-                                                      Ite&& ite)
+template <std::derived_from<PackagedTask> Task, typename Data, typename Ite> inline
+std::shared_ptr<Task> ThreadManager::createSharedTask(Data&& data,
+                                                      Ite&& ite,
+                                                      const bool wait_for_precedence)
 {
   constexpr std::size_t alloc_trial_max = 4;
-  std::array<int64b, alloc_trial_max> unused_id_stack{};
-  std::size_t stack_index = 0;
-
   std::shared_ptr<Task> task{};
-  while (!task) {
+  for (std::size_t i = 0; !task && (i < alloc_trial_max); ++i) {
     // Issue a task ID
     const int64b task_id = issueTaskId();
-    const std::optional storage_id = taskIdSet().add(task_id);
-    ZISC_ASSERT(storage_id.has_value(), "Registering the ID failed: id=", task_id);
 
     // Check resource
-    TaskResource& task_resource = task_storage_list_[*storage_id];
+    const auto storage_id = static_cast<std::size_t>(task_id);
+    TaskResource& task_resource = task_storage_list_[storage_id];
     if (!task_resource.isOccupied())
       task_resource.release();
 
@@ -602,8 +671,7 @@ std::shared_ptr<Task> ThreadManager::createSharedTask(const int64b parent_task_i
     using T = std::conditional_t<std::is_same_v<void, ReturnT>, void*, ReturnT>;
     // The max value is heuristic. 3 * sizeof(ReturnT) is needed for promise
     constexpr std::size_t alloc_max = 3 * sizeof(T) + sizeof(Task);
-    const bool use_task_resource = (alloc_max <= TaskResource::capacity()) &&
-                                   (stack_index < alloc_trial_max);
+    const bool use_task_resource = alloc_max <= TaskResource::capacity();
     pmr::memory_resource* mem_resource = use_task_resource 
         ? std::addressof(task_resource)
         : resource();
@@ -615,27 +683,16 @@ std::shared_ptr<Task> ThreadManager::createSharedTask(const int64b parent_task_i
       PromiseT promise{std::allocator_arg, promise_alloc};
 
       pmr::polymorphic_allocator<Task> task_alloc{mem_resource};
-      const int64b parent_id = (task_id == 0) ? kNoTask : parent_task_id;
-      task = std::allocate_shared<Task>(task_alloc,
-                                        task_id,
-                                        parent_id,
-                                        std::move(promise),
-                                        this);
+      const int64b info = PackagedTask::encodeInfo(task_id, wait_for_precedence);
+      task = std::allocate_shared<Task>(task_alloc, info, std::move(promise), this);
     }
     catch ([[maybe_unused]] const Memory::BadAllocation& error) {
-      if (alloc_trial_max == stack_index)
+      if (i == (alloc_trial_max - 1))
         throw;
-      unused_id_stack[stack_index++] = task_id;
     }
   }
   ZISC_ASSERT(task != nullptr, "The shared task is still null.");
   task->setData(std::forward<Data>(data), std::forward<Ite>(ite));
-
-  for (std::size_t i = 0; i < stack_index; ++i) {
-    const int64b task_id = unused_id_stack[i];
-    [[maybe_unused]] const std::optional storage_id = taskIdSet().remove(task_id);
-    ZISC_ASSERT(storage_id.has_value(), "Removing the ID failed: id=", task_id);
-  }
 
   return task;
 }
@@ -730,103 +787,6 @@ void ThreadManager::doWorkerTasks(const int64b thread_id)
 /*!
   \details No detailed description
 
-  \tparam Return No description.
-  \tparam kIsLoop No description.
-  \tparam Data No description.
-  \tparam Ite1 No description.
-  \tparam Ite2 No description.
-  \return No description
-  */
-template <typename Return, bool kIsLoop, typename Data, typename Ite1, typename Ite2>
-inline
-auto& ThreadManager::getTaskImplType() noexcept
-{
-  using DataT = std::remove_reference_t<Data>;
-  using IteT = std::remove_cv_t<CommonIteT<Ite1, Ite2>>;
-
-  class TaskImpl : public PackagedTask
-  {
-   public:
-    // Type aliases
-    using ReturnT = Return;
-    using PromiseT = std::promise<ReturnT>;
-
-    //! Initialize the task
-    TaskImpl(const int64b task_id,
-             const int64b parent_id,
-             PromiseT&& p,
-             ThreadManager* manager) noexcept
-        : PackagedTask(task_id, parent_id),
-          promise_{std::move(p)},
-          manager_{manager}
-    {
-    }
-
-    //! Finalize the task
-    ~TaskImpl() noexcept override
-    {
-      if constexpr (kIsLoop)
-        promise_.set_value();
-      [[maybe_unused]] const std::optional storage_id = manager_->taskIdSet().remove(id());
-      ZISC_ASSERT(storage_id.has_value(), "The given id isn't in the task tree.");
-    }
-
-    //! Run a task
-    void run(const int64b thread_id, [[maybe_unused]] const DiffT it_offset) override
-    {
-      manager_->waitForParent(id(), parentId());
-      if constexpr (kIsLoop) { // Loop task
-        auto func = getTask<IteT, int64b>(*task_);
-        auto ite = advance(*begin_, it_offset);
-        std::invoke(func, ite, thread_id);
-      }
-      else { // Single task
-        auto func = getTask<int64b>(*task_);
-        if constexpr (std::is_void_v<ReturnT>) {
-          std::invoke(func, thread_id);
-          promise_.set_value();
-        }
-        else {
-          auto value = std::invoke(func, thread_id);
-          promise_.set_value(std::move(value));
-        }
-      }
-    }
-
-    // Return the future of the underlying promise
-    Future<ReturnT> getFuture() noexcept
-    {
-      return {promise_.get_future(), id()};
-    }
-
-    // Return the future of the underlying promise
-    void* getFutureImpl() noexcept override
-    {
-      std::unique_ptr f = std::make_unique<Future<ReturnT>>(getFuture());
-      return f.release();
-    }
-
-    //
-    void setData(DataT&& data, Ite1&& b) noexcept
-    {
-      task_.set(std::move(data));
-      begin_.set(std::forward<Ite1>(b));
-    }
-
-   private:
-    PromiseT promise_;
-    DataStorage<DataT> task_;
-    DataStorage<IteT> begin_;
-    ThreadManager* manager_;
-  };
-
-  [[maybe_unused]] const void* mem = nullptr;
-  return *reinterp<const TaskImpl*>(mem);
-}
-
-/*!
-  \details No detailed description
-
   \tparam ReturnT No description.
   \tparam kIsLoop No description.
   \tparam Data No description.
@@ -835,7 +795,7 @@ auto& ThreadManager::getTaskImplType() noexcept
   \param [in] task No description.
   \param [in] begin No description.
   \param [in] end No description.
-  \param [in] parent_task_id No description.
+  \param [in] wait_for_precedence No description.
   \return No description
   \exception OverflowError No description.
   */
@@ -844,22 +804,22 @@ inline
 auto ThreadManager::enqueueImpl(Data&& task,
                                 Ite1&& begin,
                                 Ite2&& end,
-                                const int64b parent_task_id) -> Future<ReturnT>
+                                const bool wait_for_precedence) -> std::future<ReturnT>
 {
   const DiffT num_of_tasks = distance(begin, end);
 
   // Create a shared task
-  using TaskImpl = std::remove_cvref_t<decltype(getTaskImplType<ReturnT, kIsLoop, Data, Ite1, Ite2>())>;
-  std::shared_ptr shared_task = createSharedTask<TaskImpl>(parent_task_id,
-                                                           std::forward<Data>(task),
-                                                           std::forward<Ite1>(begin));
+  using TaskImplT = TaskImpl<ReturnT, Data, Ite1, Ite2, kIsLoop>;
+  std::shared_ptr shared_task = createSharedTask<TaskImplT>(std::forward<Data>(task),
+                                                            std::forward<Ite1>(begin),
+                                                            wait_for_precedence);
 
   // Enqueue tasks
   num_of_tasks_.fetch_add(num_of_tasks, std::memory_order::relaxed);
   for (DiffT i = 0; i < num_of_tasks; ++i) {
     WorkerTask worker_task{shared_task, i};
     try {
-      [[maybe_unused]] const std::optional r = taskQueue().enqueue(std::move(worker_task));
+      [[maybe_unused]] const std::optional result = taskQueue().enqueue(std::move(worker_task));
     }
     catch ([[maybe_unused]] const TaskQueue::OverflowError& error) {
       const DiffT rest = num_of_tasks - i;
@@ -944,9 +904,13 @@ inline
 void ThreadManager::initialize(const int64b num_of_threads) noexcept
 {
   static_assert(TaskQueue::isConcurrent(), "TaskQueue doesn't support concurrency.");
-  static_assert(TaskIdSet::isConcurrent(), "TaskIdSet doesn't support concurrency.");
   createWorkers(num_of_threads);
   setCapacity(defaultCapacity());
+  // Initialize resources
+  task_storage_list_.clear();
+  task_storage_list_.reserve(taskStatusList().size());
+  for (std::size_t i = 0; i < taskStatusList().size(); ++i)
+    task_storage_list_.emplace_back(resource());
 }
 
 /*!
@@ -957,7 +921,14 @@ void ThreadManager::initialize(const int64b num_of_threads) noexcept
 inline
 int64b ThreadManager::issueTaskId() noexcept
 {
-  const int64b id = total_queued_task_ids_.fetch_add(1, std::memory_order::acq_rel);
+  int64b id = task_id_count_.fetch_add(1, std::memory_order::acq_rel);
+
+  const auto index = static_cast<std::size_t>(id);
+  if (taskStatusList().isAll(0, index) || (taskStatusList().size() <= index)) {
+    clear();
+    id = task_id_count_.fetch_add(1, std::memory_order::acq_rel);
+  }
+
   return id;
 }
 
@@ -967,9 +938,9 @@ int64b ThreadManager::issueTaskId() noexcept
   \return No description
   */
 inline
-auto ThreadManager::taskIdSet() noexcept -> TaskIdSet&
+Bitset& ThreadManager::taskStatusList() noexcept
 {
-  return task_id_set_;
+  return task_status_list_;
 }
 
 /*!
@@ -978,9 +949,20 @@ auto ThreadManager::taskIdSet() noexcept -> TaskIdSet&
   \return No description
   */
 inline
-auto ThreadManager::taskIdSet() const noexcept -> const TaskIdSet&
+const Bitset& ThreadManager::taskStatusList() const noexcept
 {
-  return task_id_set_;
+  return task_status_list_;
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+inline
+constexpr std::size_t ThreadManager::taskStatusSize() noexcept
+{
+  return 4 * Bitset::chunkBitSize();
 }
 
 /*!
@@ -1009,29 +991,14 @@ auto ThreadManager::taskQueue() const noexcept -> const TaskQueue&
   \details No detailed description
 
   \param [in] task_id No description.
-  \param [in] parent_task_id No description.
   */
 inline
-void ThreadManager::waitForParent(const int64b task_id,
-                                  const int64b parent_task_id) const noexcept
+void ThreadManager::waitForPrecedence(const int64b task_id) const noexcept
 {
-  while (true) {
-    bool flag = false;
-    if (parent_task_id == kNoTask) {
-      flag = true;
-    }
-    else if (parent_task_id == kAllPrecedences) {
-      const std::optional min_key = taskIdSet().findMinKey();
-      flag = !min_key.has_value() || (*(min_key.value()) == task_id);
-    }
-    else {
-      const std::optional result = taskIdSet().contain(parent_task_id);
-      flag = !result.has_value();
-    }
-    if (flag)
-      break;
+  constexpr std::size_t begin = 0;
+  const auto end = static_cast<std::size_t>(task_id);
+  while (!taskStatusList().isAll(begin, end))
     std::this_thread::yield();
-  }
 }
 
 /*!

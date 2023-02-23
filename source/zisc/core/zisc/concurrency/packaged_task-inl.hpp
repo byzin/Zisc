@@ -17,11 +17,11 @@
 
 #include "packaged_task.hpp"
 // Standard C++ library
+#include <cmath>
 #include <limits>
 #include <memory>
 #include <utility>
 // Zisc
-#include "future.hpp"
 #include "zisc/utility.hpp"
 #include "zisc/zisc_config.hpp"
 
@@ -39,18 +39,11 @@ void PackagedTask::operator()(const int64b thread_id, const DiffT offset)
   run(thread_id, offset);
 }
 
-/*!
-  \details No detailed description
-
-  \tparam T No description.
-  \return No description
-  */
-template <typename T> inline
-auto PackagedTask::getFuture() noexcept -> UniqueFutureT<T>
+inline
+int64b PackagedTask::encodeInfo(const int64b task_id, const bool wait_for_precedence) noexcept
 {
-  using Pointer = typename UniqueFutureT<T>::pointer;
-  auto* data = reinterp<Pointer>(getFutureImpl());
-  return UniqueFutureT<T>{data};
+  const int64b info = wait_for_precedence ? -task_id : task_id;
+  return info;
 }
 
 /*!
@@ -61,7 +54,7 @@ auto PackagedTask::getFuture() noexcept -> UniqueFutureT<T>
 inline
 int64b PackagedTask::id() const noexcept
 {
-  return id_;
+  return std::abs(info_);
 }
 
 /*!
@@ -81,6 +74,18 @@ constexpr int64b PackagedTask::invalidId() noexcept
   \return No description
   */
 inline
+bool PackagedTask::isNeededToWaitForPrecedence() const noexcept
+{
+  const bool flag = std::signbit(info_);
+  return flag;
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+inline
 bool PackagedTask::isValid() const noexcept
 {
   const bool result = id() != invalidId();
@@ -90,24 +95,22 @@ bool PackagedTask::isValid() const noexcept
 /*!
   \details No detailed description
 
-  \return No description
+  \param [in] task_id No description.
   */
 inline
-int64b PackagedTask::parentId() const noexcept
+PackagedTask::PackagedTask(const int64b task_info) noexcept :
+    info_{task_info}
 {
-  return parent_id_;
 }
 
 /*!
   \details No detailed description
 
   \param [in] task_id No description.
-  \param [in] parent_task_id No description.
   */
-inline
-PackagedTask::PackagedTask(const int64b task_id, const int64b parent_task_id) noexcept :
-    id_{task_id},
-    parent_id_{parent_task_id}
+template <typename Type> inline
+PackagedTaskType<Type>::PackagedTaskType(const int64b task_info) noexcept :
+    PackagedTask(task_info)
 {
 }
 

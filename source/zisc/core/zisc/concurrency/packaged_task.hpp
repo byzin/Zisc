@@ -16,9 +16,9 @@
 #define ZISC_PACKAGED_TASK_HPP
 
 // Standard C++ library
+#include <future>
 #include <memory>
 // Zisc
-#include "future.hpp"
 #include "zisc/non_copyable.hpp"
 #include "zisc/zisc_config.hpp"
 
@@ -34,8 +34,6 @@ class PackagedTask : private NonCopyable<PackagedTask>
  public:
   // Type aliases
   using DiffT = int64b;
-  template <typename T>
-  using UniqueFutureT = std::unique_ptr<Future<T>>;
 
 
   //! Create a package with no task
@@ -48,9 +46,8 @@ class PackagedTask : private NonCopyable<PackagedTask>
   //! Run the underlying task
   void operator()(const int64b thread_id, const DiffT offset);
 
-  //! Return the future of the underlying task
-  template <typename T>
-  UniqueFutureT<T> getFuture() noexcept;
+  //! Return the encoded task info
+  static int64b encodeInfo(const int64b task_id, const bool wait_for_precedence) noexcept;
 
   //! Return the underlying task ID
   int64b id() const noexcept;
@@ -58,30 +55,46 @@ class PackagedTask : private NonCopyable<PackagedTask>
   //! Return the invalid task ID
   static constexpr int64b invalidId() noexcept;
 
+  //! Check if all precedence tasks need to be completed before the task running
+  bool isNeededToWaitForPrecedence() const noexcept;
+
   //! Check if the pacakge has a valid task
   bool isValid() const noexcept;
-
-  //! Return the parent task ID
-  int64b parentId() const noexcept;
 
   //! Run the underlying task
   virtual void run(const int64b thread_id, const DiffT offset) = 0;
 
  protected:
   //! Create a package with the given task id
-  PackagedTask(const int64b task_id, const int64b parent_task_id) noexcept;
+  PackagedTask(const int64b task_info) noexcept;
+
+
+ private:
+  int64b info_ = invalidId();
+};
+
+/*!
+  \brief No brief description
+
+  No detailed description.
+
+  \tparam Type No description.
+  */
+template <typename Type>
+class PackagedTaskType : public PackagedTask
+{
+ public:
+  // Type aliases
+  using ReturnT = Type;
 
 
   //! Return the future of the underlying task
-  virtual void* getFutureImpl() noexcept = 0;
+  virtual std::future<ReturnT> getFuture() noexcept = 0;
 
- private:
-  int64b id_ = invalidId();
-  int64b parent_id_ = invalidId();
+ protected:
+  //! Create a package with the given task id
+  PackagedTaskType(const int64b task_info) noexcept;
 };
-
-// Type aliases
-using SharedTask = std::shared_ptr<PackagedTask>;
 
 } // namespace zisc
 

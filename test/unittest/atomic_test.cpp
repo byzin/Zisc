@@ -54,7 +54,7 @@ void testAtomicAddition()
 
   constexpr std::size_t s = 0;
   constexpr std::size_t e = resolution;
-  auto result = thread_manager.enqueueLoop(test, s, e);
+  const std::future result = thread_manager.enqueueLoop(test, s, e);
   result.wait();
 
   const char* error_message = "zisc::atomic_fetch_add() failed. value=";
@@ -89,7 +89,7 @@ void testAtomicSubtraction()
 
   constexpr std::size_t s = 0;
   constexpr std::size_t e = resolution;
-  auto result = thread_manager.enqueueLoop(test, s, e);
+  const std::future result = thread_manager.enqueueLoop(test, s, e);
   result.wait();
 
   const char* error_message = "zisc::atomic_fetch_sub() failed. value=";
@@ -123,7 +123,7 @@ void testAtomicExchange()
 
   constexpr Type s = zisc::cast<Type>(1);
   constexpr Type e = zisc::cast<Type>(resolution);
-  auto result = thread_manager.enqueueLoop(test, s, e);
+  const std::future result = thread_manager.enqueueLoop(test, s, e);
   result.wait();
 
   const char* error_message = "zisc::atomic_exchange() failed. value=";
@@ -159,7 +159,7 @@ void testAtomicIncrement()
 
   constexpr std::size_t s = 0;
   constexpr std::size_t e = resolution;
-  auto result = thread_manager.enqueueLoop(test, s, e);
+  const std::future result = thread_manager.enqueueLoop(test, s, e);
   result.wait();
 
   const char* error_message = "zisc::atomic_fetch_inc() failed. value=";
@@ -193,7 +193,7 @@ void testAtomicDecrement()
 
   constexpr std::size_t s = 0;
   constexpr std::size_t e = resolution;
-  auto result = thread_manager.enqueueLoop(test, s, e);
+  const std::future result = thread_manager.enqueueLoop(test, s, e);
   result.wait();
 
   const char* error_message = "zisc::atomic_fetch_dec() failed. value=";
@@ -224,7 +224,7 @@ void testAtomicMin()
 
   constexpr Type s = zisc::cast<Type>(0);
   constexpr Type e = zisc::cast<Type>(resolution);
-  auto result = thread_manager.enqueueLoop(test, s, e);
+  const std::future result = thread_manager.enqueueLoop(test, s, e);
   result.wait();
 
   const char* error_message = "zisc::atomic_fetch_min() failed. value=";
@@ -253,7 +253,7 @@ void testAtomicMax()
 
   constexpr Type s = zisc::cast<Type>(0);
   constexpr Type e = zisc::cast<Type>(resolution);
-  auto result = thread_manager.enqueueLoop(test, s, e);
+  const std::future result = thread_manager.enqueueLoop(test, s, e);
   result.wait();
 
   const char* error_message = "zisc::atomic_fetch_max() failed. value=";
@@ -290,7 +290,7 @@ void testAtomicCmpxchg()
 
   constexpr std::size_t s = 0;
   constexpr std::size_t e = resolution;
-  auto result = thread_manager.enqueueLoop(test, s, e);
+  const std::future result = thread_manager.enqueueLoop(test, s, e);
   result.wait();
 
   const char* error_message = "zisc::atomic_compare_exchange() failed. value=";
@@ -321,7 +321,7 @@ void testAtomicAnd()
 
   constexpr std::size_t s = 0;
   constexpr std::size_t e = 8 * sizeof(Type);
-  auto result = thread_manager.enqueueLoop(test, s, e);
+  const std::future result = thread_manager.enqueueLoop(test, s, e);
   result.wait();
 
   const char* error_message = "zisc::atomic_fetch_and() failed. value=";
@@ -349,7 +349,7 @@ void testAtomicOr()
 
   constexpr std::size_t s = 0;
   constexpr std::size_t e = 8 * sizeof(Type);
-  auto result = thread_manager.enqueueLoop(test, s, e);
+  const std::future result = thread_manager.enqueueLoop(test, s, e);
   result.wait();
 
   const char* error_message = "zisc::atomic_fetch_or() failed. value=";

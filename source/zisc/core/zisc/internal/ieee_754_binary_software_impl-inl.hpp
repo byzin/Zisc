@@ -55,19 +55,6 @@ constexpr Ieee754BinarySoftwareImpl<kFormat>::Ieee754BinarySoftwareImpl(const Bi
 /*!
   \details No detailed description
 
-  \return No description
-  */
-template <Ieee754BinaryFormat kFormat> inline
-constexpr auto Ieee754BinarySoftwareImpl<kFormat>::operator-() const noexcept
-    -> Ieee754BinarySoftwareImpl
-{
-  const Ieee754BinarySoftwareImpl result{negateBits(data())};
-  return result;
-}
-
-/*!
-  \details No detailed description
-
   \tparam kDstFormat No description.
   \tparam kRMode No description.
   \return No description
@@ -108,7 +95,7 @@ constexpr Float Ieee754BinarySoftwareImpl<kFormat>::convertTo() const noexcept
   \return No description
   */
 template <Ieee754BinaryFormat kFormat> inline
-constexpr auto Ieee754BinarySoftwareImpl<kFormat>::data() const noexcept -> DataType
+constexpr auto Ieee754BinarySoftwareImpl<kFormat>::data() const noexcept -> DataT
 {
   return data_;
 }
@@ -674,7 +661,7 @@ constexpr auto Ieee754BinarySoftwareImpl<kFormat>::scaledUp() const noexcept
     -> Ieee754BinarySoftwareImpl<kDstFormat>
 {
   using DstBinaryT = Ieee754BinarySoftwareImpl<kDstFormat>;
-  using DstBitT = typename DstBinaryT::DataType;
+  using DstBitT = typename DstBinaryT::DataT;
   DstBinaryT dst = convertSpecialValue<kDstFormat>();
   if (isNormal(data()) || isSubnormal(data())) {
     constexpr std::size_t exp_bias = exponentBias();
@@ -721,6 +708,130 @@ constexpr auto Ieee754BinarySoftwareImpl<kFormat>::getRealSignificandBits(const 
 {
   const auto b = cast<BitT>(implicitBit() | (bits & significandBitMask()));
   return b;
+}
+
+/*!
+  \details No detailed description
+
+  \tparam kFormat No description.
+  \param [in] value No description.
+  \return No description
+  */
+template <Ieee754BinaryFormat kFormat> inline
+constexpr Ieee754BinarySoftwareImpl<kFormat> operator-(
+    const Ieee754BinarySoftwareImpl<kFormat>& value) noexcept
+{
+  return {Ieee754BinarySoftwareImpl<kFormat>::negateBits(value.data())};
+}
+
+/*!
+  \details No detailed description
+
+  \tparam kFormat No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
+  */
+template <Ieee754BinaryFormat kFormat> inline
+constexpr bool operator==(const Ieee754BinarySoftwareImpl<kFormat>& lhs,
+                          const Ieee754BinarySoftwareImpl<kFormat>& rhs) noexcept
+{
+  using BinaryT = Ieee754BinarySoftwareImpl<kFormat>;
+  const bool result = !(BinaryT::isNan(lhs.data()) || BinaryT::isNan(rhs.data())) &&
+                      ((BinaryT::isZero(lhs.data()) && BinaryT::isZero(rhs.data())) ||
+                       (lhs.data() == rhs.data()));
+  return result;
+}
+
+/*!
+  \details No detailed description
+
+  \tparam kFormat No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
+  */
+template <Ieee754BinaryFormat kFormat> inline
+constexpr bool operator!=(const Ieee754BinarySoftwareImpl<kFormat>& lhs,
+                          const Ieee754BinarySoftwareImpl<kFormat>& rhs) noexcept
+{
+  return !(lhs == rhs);
+}
+
+///*!
+//  \details No detailed description
+//
+//  \tparam kFormat No description.
+//  \param [in] lhs No description.
+//  \param [in] rhs No description.
+//  \return No description
+//  */
+//template <Ieee754BinaryFormat kFormat> inline
+//constexpr bool operator<(const Ieee754Binary<kFormat>& lhs,
+//                         const Ieee754Binary<kFormat>& rhs) noexcept
+//{
+//  bool result = !(isNan(lhs) || isNan(rhs) || (lhs.isZero() && rhs.isZero()));
+//  if (result) {
+//    using BinaryT = Ieee754Binary<kFormat>;
+//    using BitT = typename BinaryT::BitT;
+//    using SignedT = std::make_signed_t<BitT>;
+//    const auto get_signed = [](const BitT u) noexcept
+//    {
+//      constexpr BitT m = BinaryT::signBitMask();
+//      SignedT s = cast<SignedT>(u & ~m);
+//      s = ((u & m) == 0) ? s : -s;
+//      return s;
+//    };
+//    const SignedT sl = get_signed(lhs.bits());
+//    const SignedT sr = get_signed(rhs.bits());
+//    result = sl < sr;
+//  }
+//  return result;
+//}
+
+/*!
+  \details No detailed description
+
+  \tparam kFormat No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
+  */
+template <Ieee754BinaryFormat kFormat> inline
+constexpr bool operator<=(const Ieee754BinarySoftwareImpl<kFormat>& lhs,
+                          const Ieee754BinarySoftwareImpl<kFormat>& rhs) noexcept
+{
+  return (lhs == rhs) || (lhs < rhs);
+}
+
+/*!
+  \details No detailed description
+
+  \tparam kFormat No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
+  */
+template <Ieee754BinaryFormat kFormat> inline
+constexpr bool operator>(const Ieee754BinarySoftwareImpl<kFormat>& lhs,
+                         const Ieee754BinarySoftwareImpl<kFormat>& rhs) noexcept
+{
+  return rhs < lhs;
+}
+
+/*!
+  \details No detailed description
+
+  \tparam kFormat No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
+  */
+template <Ieee754BinaryFormat kFormat> inline
+constexpr bool operator>=(const Ieee754BinarySoftwareImpl<kFormat>& lhs,
+                          const Ieee754BinarySoftwareImpl<kFormat>& rhs) noexcept
+{
+  return rhs <= lhs;
 }
 
 } // namespace zisc

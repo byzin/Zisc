@@ -80,9 +80,10 @@
 !/test/resources/*.txt
 # Math reference
 !/test/math_reference/
+!/test/math_reference/*.cpp
 !/test/math_reference/*.hpp
 !/test/math_reference/reference/
-!/test/math_reference/reference/*.7z
+!/test/math_reference/reference/*.bin.7z
 
 # Example
 !/example/

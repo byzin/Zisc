@@ -42,7 +42,7 @@ class Ieee754BinarySoftwareImpl
                std::conditional_t<kFormat == Ieee754BinaryFormat::kSingle, uint32b,
                                                                            uint64b>>;
   //! Internal data type
-  using DataType = BitT;
+  using DataT = BitT;
 
 
   //! Initialize a value with 0
@@ -56,10 +56,6 @@ class Ieee754BinarySoftwareImpl
   constexpr Ieee754BinarySoftwareImpl(const BitT bits) noexcept;
 
 
-  //! Return the negative of the value
-  constexpr Ieee754BinarySoftwareImpl operator-() const noexcept;
-
-
   //! Convert to other format
   template <Ieee754BinaryFormat kDstFormat,
             Ieee754RoundingMode kRMode = kDefaultIeee754RoundingMode>
@@ -71,7 +67,7 @@ class Ieee754BinarySoftwareImpl
   constexpr Float convertTo() const noexcept;
 
   //! Return the bits in which a floating point is encoded
-  constexpr DataType data() const noexcept;
+  constexpr DataT data() const noexcept;
 
   //! Return the machine epsilon
   static constexpr BitT epsilon() noexcept;
@@ -159,7 +155,7 @@ class Ieee754BinarySoftwareImpl
   //! Round the given value with the trailing bits
   template <Ieee754RoundingMode kMode, UnsignedInteger Integer>
   static constexpr BitT round(const BitT bits,
-                                 const Integer trailing_bits) noexcept;
+                              const Integer trailing_bits) noexcept;
 
   //! Set the data to the given bits
   constexpr void setBits(const BitT bits) noexcept;
@@ -174,7 +170,7 @@ class Ieee754BinarySoftwareImpl
   static constexpr std::size_t significandBitSize() noexcept;
 
  private:
-  static_assert(kBinFormatBitSize<kFormat> == 8 * sizeof(DataType),
+  static_assert(kBinFormatBitSize<kFormat> == 8 * sizeof(DataT),
                 "The size of underlying data doesn't match with the format.");
 
 
@@ -200,8 +196,116 @@ class Ieee754BinarySoftwareImpl
   static constexpr BitT getRealSignificandBits(const BitT bits) noexcept;
 
 
-  DataType data_;
+  DataT data_;
 };
+
+// Assignment
+
+//! Apply addition assignment
+template <Ieee754BinaryFormat kFormat,
+          Ieee754RoundingMode kRMode = kDefaultIeee754RoundingMode>
+constexpr Ieee754BinarySoftwareImpl<kFormat>& operator+=(
+    Ieee754BinarySoftwareImpl<kFormat>& lhs,
+    const Ieee754BinarySoftwareImpl<kFormat>& rhs) noexcept;
+
+//! Apply subtraction assignment
+template <Ieee754BinaryFormat kFormat,
+          Ieee754RoundingMode kRMode = kDefaultIeee754RoundingMode>
+constexpr Ieee754BinarySoftwareImpl<kFormat>& operator-=(
+    Ieee754BinarySoftwareImpl<kFormat>& lhs,
+    const Ieee754BinarySoftwareImpl<kFormat>& rhs) noexcept;
+
+//! Apply multiplication assignment
+template <Ieee754BinaryFormat kFormat,
+          Ieee754RoundingMode kRMode = kDefaultIeee754RoundingMode>
+constexpr Ieee754BinarySoftwareImpl<kFormat>& operator*=(
+    Ieee754BinarySoftwareImpl<kFormat>& lhs,
+    const Ieee754BinarySoftwareImpl<kFormat>& rhs) noexcept;
+
+//! Apply division assignment
+template <Ieee754BinaryFormat kFormat,
+          Ieee754RoundingMode kRMode = kDefaultIeee754RoundingMode>
+constexpr Ieee754BinarySoftwareImpl<kFormat>& operator/=(
+    Ieee754BinarySoftwareImpl<kFormat>& lhs,
+    const Ieee754BinarySoftwareImpl<kFormat>& rhs) noexcept;
+
+// Arithmetic
+
+//! Return the value it's own
+template <Ieee754BinaryFormat kFormat>
+constexpr Ieee754BinarySoftwareImpl<kFormat> operator+(
+    const Ieee754BinarySoftwareImpl<kFormat>& value) noexcept;
+
+//! Return the negated value
+template <Ieee754BinaryFormat kFormat>
+constexpr Ieee754BinarySoftwareImpl<kFormat> operator-(
+    const Ieee754BinarySoftwareImpl<kFormat>& value) noexcept;
+
+//! Compute an addition
+template <Ieee754BinaryFormat kFormat,
+          Ieee754RoundingMode kRMode = kDefaultIeee754RoundingMode>
+constexpr Ieee754BinarySoftwareImpl<kFormat> operator+(
+    const Ieee754BinarySoftwareImpl<kFormat>& lhs,
+    const Ieee754BinarySoftwareImpl<kFormat>& rhs) noexcept;
+
+//! Compute a subtraction
+template <Ieee754BinaryFormat kFormat,
+          Ieee754RoundingMode kRMode = kDefaultIeee754RoundingMode>
+constexpr Ieee754BinarySoftwareImpl<kFormat> operator-(
+    const Ieee754BinarySoftwareImpl<kFormat>& lhs,
+    const Ieee754BinarySoftwareImpl<kFormat>& rhs) noexcept;
+
+//! Compute a multiplication
+template <Ieee754BinaryFormat kFormat,
+          Ieee754RoundingMode kRMode = kDefaultIeee754RoundingMode>
+constexpr Ieee754BinarySoftwareImpl<kFormat> operator*(
+    const Ieee754BinarySoftwareImpl<kFormat>& lhs,
+    const Ieee754BinarySoftwareImpl<kFormat>& rhs) noexcept;
+
+//! Compute a division
+template <Ieee754BinaryFormat kFormat,
+          Ieee754RoundingMode kRMode = kDefaultIeee754RoundingMode>
+constexpr Ieee754BinarySoftwareImpl<kFormat> operator/(
+    const Ieee754BinarySoftwareImpl<kFormat>& lhs,
+    const Ieee754BinarySoftwareImpl<kFormat>& rhs) noexcept;
+
+//! Comparison
+
+//! Check if two values are equal
+template <Ieee754BinaryFormat kFormat>
+constexpr bool operator==(
+    const Ieee754BinarySoftwareImpl<kFormat>& lhs,
+    const Ieee754BinarySoftwareImpl<kFormat>& rhs) noexcept;
+
+//! Check if two values aren't equal
+template <Ieee754BinaryFormat kFormat>
+constexpr bool operator!=(
+    const Ieee754BinarySoftwareImpl<kFormat>& lhs,
+    const Ieee754BinarySoftwareImpl<kFormat>& rhs) noexcept;
+
+//!
+template <Ieee754BinaryFormat kFormat>
+constexpr bool operator<(
+    const Ieee754BinarySoftwareImpl<kFormat>& lhs,
+    const Ieee754BinarySoftwareImpl<kFormat>& rhs) noexcept;
+
+//!
+template <Ieee754BinaryFormat kFormat>
+constexpr bool operator<=(
+    const Ieee754BinarySoftwareImpl<kFormat>& lhs,
+    const Ieee754BinarySoftwareImpl<kFormat>& rhs) noexcept;
+
+//!
+template <Ieee754BinaryFormat kFormat>
+constexpr bool operator>(
+    const Ieee754BinarySoftwareImpl<kFormat>& lhs,
+    const Ieee754BinarySoftwareImpl<kFormat>& rhs) noexcept;
+
+//!
+template <Ieee754BinaryFormat kFormat>
+constexpr bool operator>=(
+    const Ieee754BinarySoftwareImpl<kFormat>& lhs,
+    const Ieee754BinarySoftwareImpl<kFormat>& rhs) noexcept;
 
 } // namespace zisc
 

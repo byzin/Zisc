@@ -173,7 +173,7 @@ template <std::floating_point Float> inline
 constexpr bool isSubnormal(const Float& x) noexcept
 {
   using FLimit = std::numeric_limits<Float>;
-  constexpr Float zero = cast<Float>(0);
+  constexpr Float zero = static_cast<Float>(0);
   const Float d = abs(x);
   const bool result = (zero < d) && (d < (FLimit::min)());
   return result;
@@ -204,23 +204,12 @@ constexpr Ieee754Binary<kFormat>::Ieee754Binary(const BitT bits) noexcept :
 /*!
   \details No detailed description
 
-  \return No description
+  \param [in] value No description.
   */
 template <Ieee754BinaryFormat kFormat> inline
-constexpr auto Ieee754Binary<kFormat>::operator+() const noexcept -> Ieee754Binary
+constexpr Ieee754Binary<kFormat>::Ieee754Binary(const ImplT& impl) noexcept :
+    impl_{impl}
 {
-  return *this;
-}
-
-/*!
-  \details No detailed description
-
-  \return No description
-  */
-template <Ieee754BinaryFormat kFormat> inline
-constexpr auto Ieee754Binary<kFormat>::operator-() const noexcept -> Ieee754Binary
-{
-  return Ieee754Binary{SoftwareImplT::negateBits(bits())};
 }
 
 /*!
@@ -298,8 +287,8 @@ constexpr Ieee754Binary<kFormat>::operator double() const noexcept
 template <Ieee754BinaryFormat kFormat> inline
 constexpr Ieee754Binary<kFormat>::operator long double() const noexcept
 {
-  const double d = cast<double>(*this);
-  const auto result = cast<long double>(d);
+  const double d = static_cast<double>(*this);
+  const auto result = static_cast<long double>(d);
   return result;
 }
 
@@ -479,7 +468,7 @@ constexpr auto Ieee754Binary<kFormat>::bits() const noexcept -> BitT
   const auto data = impl().data();
   using DataT = std::remove_cvref_t<decltype(data)>;
   static_assert(std::is_trivially_copyable_v<DataT>,
-                "DataType of the impl isn't trivially copyable.");
+                "DataT of the impl isn't trivially copyable.");
   if constexpr (std::is_same_v<BitT, DataT>)
     return data;
   else
@@ -550,6 +539,28 @@ constexpr Ieee754BinaryFormat Ieee754Binary<kFormat>::format() noexcept
   \return No description
   */
 template <Ieee754BinaryFormat kFormat> inline
+constexpr auto Ieee754Binary<kFormat>::impl() const noexcept -> const ImplT&
+{
+  return impl_;
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+template <Ieee754BinaryFormat kFormat> inline
+constexpr auto Ieee754Binary<kFormat>::impl() noexcept -> ImplT&
+{
+  return impl_;
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+template <Ieee754BinaryFormat kFormat> inline
 constexpr auto Ieee754Binary<kFormat>::implicitBit() noexcept -> BitT
 {
   return SoftwareImplT::implicitBit();
@@ -602,34 +613,159 @@ constexpr std::size_t Ieee754Binary<kFormat>::significandBitSize() noexcept
 /*!
   \details No detailed description
 
+  \tparam kFormat No description.
+  \tparam kRMode No description.
+  \param [in,out] lhs No description.
+  \param [in] rhs No description.
+  \return No description
+  */
+template <Ieee754BinaryFormat kFormat, Ieee754RoundingMode kRMode> inline
+constexpr Ieee754Binary<kFormat>& operator+=(Ieee754Binary<kFormat>& lhs,
+                                             const Ieee754Binary<kFormat>& rhs) noexcept
+{
+  operator+=<kFormat, kRMode>(lhs.impl(), rhs.impl());
+  return lhs;
+}
+
+/*!
+  \details No detailed description
+
+  \tparam kFormat No description.
+  \tparam kRMode No description.
+  \param [in,out] lhs No description.
+  \param [in] rhs No description.
+  \return No description
+  */
+template <Ieee754BinaryFormat kFormat, Ieee754RoundingMode kRMode> inline
+constexpr Ieee754Binary<kFormat>& operator-=(Ieee754Binary<kFormat>& lhs,
+                                             const Ieee754Binary<kFormat>& rhs) noexcept
+{
+  operator-=<kFormat, kRMode>(lhs.impl(), rhs.impl());
+  return lhs;
+}
+
+/*!
+  \details No detailed description
+
+  \tparam kFormat No description.
+  \tparam kRMode No description.
+  \param [in,out] lhs No description.
+  \param [in] rhs No description.
+  \return No description
+  */
+template <Ieee754BinaryFormat kFormat, Ieee754RoundingMode kRMode> inline
+constexpr Ieee754Binary<kFormat>& operator*=(Ieee754Binary<kFormat>& lhs,
+                                             const Ieee754Binary<kFormat>& rhs) noexcept
+{
+  operator*=<kFormat, kRMode>(lhs.impl(), rhs.impl());
+  return lhs;
+}
+
+/*!
+  \details No detailed description
+
+  \tparam kFormat No description.
+  \tparam kRMode No description.
+  \param [in,out] lhs No description.
+  \param [in] rhs No description.
+  \return No description
+  */
+template <Ieee754BinaryFormat kFormat, Ieee754RoundingMode kRMode> inline
+constexpr Ieee754Binary<kFormat>& operator/=(Ieee754Binary<kFormat>& lhs,
+                                             const Ieee754Binary<kFormat>& rhs) noexcept
+{
+  operator/=<kFormat, kRMode>(lhs.impl(), rhs.impl());
+  return lhs;
+}
+
+/*!
+  \details No detailed description
+
+  \tparam kFormat No description.
   \param [in] value No description.
+  \return No description
   */
 template <Ieee754BinaryFormat kFormat> inline
-constexpr Ieee754Binary<kFormat>::Ieee754Binary(const ImplT& impl) noexcept :
-    impl_{impl}
+constexpr Ieee754Binary<kFormat> operator+(const Ieee754Binary<kFormat>& value) noexcept
 {
+  return {+value.impl()};
 }
 
 /*!
   \details No detailed description
 
+  \tparam kFormat No description.
+  \param [in] value No description.
   \return No description
   */
 template <Ieee754BinaryFormat kFormat> inline
-constexpr auto Ieee754Binary<kFormat>::impl() const noexcept -> const ImplT&
+constexpr Ieee754Binary<kFormat> operator-(const Ieee754Binary<kFormat>& value) noexcept
 {
-  return impl_;
+  return {-value.impl()};
 }
 
 /*!
   \details No detailed description
 
+  \tparam kFormat No description.
+  \tparam kRMode No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
   \return No description
   */
-template <Ieee754BinaryFormat kFormat> inline
-constexpr auto Ieee754Binary<kFormat>::impl() noexcept -> ImplT&
+template <Ieee754BinaryFormat kFormat, Ieee754RoundingMode kRMode> inline
+constexpr Ieee754Binary<kFormat> operator+(const Ieee754Binary<kFormat>& lhs,
+                                           const Ieee754Binary<kFormat>& rhs) noexcept
 {
-  return impl_;
+  return {operator+<kFormat, kRMode>(lhs.impl(), rhs.impl())};
+}
+
+/*!
+  \details No detailed description
+
+  \tparam kFormat No description.
+  \tparam kRMode No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
+  */
+template <Ieee754BinaryFormat kFormat, Ieee754RoundingMode kRMode> inline
+constexpr Ieee754Binary<kFormat> operator-(const Ieee754Binary<kFormat>& lhs,
+                                           const Ieee754Binary<kFormat>& rhs) noexcept
+{
+  return {operator-<kFormat, kRMode>(lhs.impl(), rhs.impl())};
+}
+
+/*!
+  \details No detailed description
+
+  \tparam kFormat No description.
+  \tparam kRMode No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
+  */
+template <Ieee754BinaryFormat kFormat, Ieee754RoundingMode kRMode> inline
+constexpr Ieee754Binary<kFormat> operator*(const Ieee754Binary<kFormat>& lhs,
+                                           const Ieee754Binary<kFormat>& rhs) noexcept
+{
+  return {operator*<kFormat, kRMode>(lhs.impl(), rhs.impl())};
+}
+
+/*!
+  \details No detailed description
+
+  \tparam kFormat No description.
+  \tparam kRMode No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
+  */
+template <Ieee754BinaryFormat kFormat, Ieee754RoundingMode kRMode> inline
+constexpr Ieee754Binary<kFormat> operator/(const Ieee754Binary<kFormat>& lhs,
+                                           const Ieee754Binary<kFormat>& rhs) noexcept
+{
+  return {operator/<kFormat, kRMode>(lhs.impl(), rhs.impl())};
 }
 
 /*!
@@ -644,9 +780,7 @@ template <Ieee754BinaryFormat kFormat> inline
 constexpr bool operator==(const Ieee754Binary<kFormat>& lhs,
                           const Ieee754Binary<kFormat>& rhs) noexcept
 {
-  const bool result = !(isNan(lhs) || isNan(rhs)) &&
-                      ((lhs.isZero() && rhs.isZero()) || (lhs.bits() == rhs.bits()));
-  return result;
+  return lhs.impl() == rhs.impl();
 }
 
 /*!
@@ -661,8 +795,7 @@ template <Ieee754BinaryFormat kFormat> inline
 constexpr bool operator!=(const Ieee754Binary<kFormat>& lhs,
                           const Ieee754Binary<kFormat>& rhs) noexcept
 {
-  const bool result = !(lhs == rhs);
-  return result;
+  return lhs.impl() != rhs.impl();
 }
 
 /*!
@@ -677,23 +810,7 @@ template <Ieee754BinaryFormat kFormat> inline
 constexpr bool operator<(const Ieee754Binary<kFormat>& lhs,
                          const Ieee754Binary<kFormat>& rhs) noexcept
 {
-  bool result = !(isNan(lhs) || isNan(rhs) || (lhs.isZero() && rhs.isZero()));
-  if (result) {
-    using BinaryT = Ieee754Binary<kFormat>;
-    using BitT = typename BinaryT::BitT;
-    using SignedT = std::make_signed_t<BitT>;
-    const auto get_signed = [](const BitT u) noexcept
-    {
-      constexpr BitT m = BinaryT::signBitMask();
-      SignedT s = cast<SignedT>(u & ~m);
-      s = ((u & m) == 0) ? s : -s;
-      return s;
-    };
-    const SignedT sl = get_signed(lhs.bits());
-    const SignedT sr = get_signed(rhs.bits());
-    result = sl < sr;
-  }
-  return result;
+  return lhs.impl() < rhs.impl();
 }
 
 /*!
@@ -708,8 +825,7 @@ template <Ieee754BinaryFormat kFormat> inline
 constexpr bool operator<=(const Ieee754Binary<kFormat>& lhs,
                           const Ieee754Binary<kFormat>& rhs) noexcept
 {
-  const bool result = (lhs == rhs) || (lhs < rhs);
-  return result;
+  return lhs.impl() <= rhs.impl();
 }
 
 /*!
@@ -724,8 +840,7 @@ template <Ieee754BinaryFormat kFormat> inline
 constexpr bool operator>(const Ieee754Binary<kFormat>& lhs,
                          const Ieee754Binary<kFormat>& rhs) noexcept
 {
-  const bool result = (rhs < lhs);
-  return result;
+  return lhs.impl() > rhs.impl();
 }
 
 /*!
@@ -740,8 +855,7 @@ template <Ieee754BinaryFormat kFormat> inline
 constexpr bool operator>=(const Ieee754Binary<kFormat>& lhs,
                           const Ieee754Binary<kFormat>& rhs) noexcept
 {
-  const bool result = (rhs <= lhs);
-  return result;
+  return lhs.impl() >= rhs.impl();
 }
 
 } // namespace zisc

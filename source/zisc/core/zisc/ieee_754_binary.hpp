@@ -128,12 +128,9 @@ class Ieee754Binary
   //! Initialize a value with the given bits
   constexpr Ieee754Binary(const BitT bits) noexcept;
 
+  //! Initialize a value with the given implementation
+  constexpr Ieee754Binary(const ImplT& impl) noexcept;
 
-  //! Return the value it's own
-  constexpr Ieee754Binary operator+() const noexcept;
-
-  //! Return the negated value
-  constexpr Ieee754Binary operator-() const noexcept;
 
   //! Convert to binary16
   explicit constexpr operator Binary16() const noexcept;
@@ -219,6 +216,12 @@ class Ieee754Binary
   //! Return the format
   static constexpr Ieee754BinaryFormat format() noexcept;
 
+  //! Return the underlying binary implementation
+  constexpr const ImplT& impl() const noexcept;
+
+  //! Return the underlying binary implementation
+  constexpr ImplT& impl() noexcept;
+
  //! Return the hidden bit of normal values
   static constexpr BitT implicitBit() noexcept;
 
@@ -235,19 +238,70 @@ class Ieee754Binary
   static constexpr std::size_t significandBitSize() noexcept;
 
  private:
-  //! Initialize a value with the given implementation
-  constexpr Ieee754Binary(const ImplT& impl) noexcept;
-
-
-  //! Return the underlying binary implementation
-  constexpr const ImplT& impl() const noexcept;
-
-  //! Return the underlying binary implementation
-  constexpr ImplT& impl() noexcept;
-
-
   ImplT impl_;
 };
+
+// Assignment
+
+//! Apply addition assignment
+template <Ieee754BinaryFormat kFormat,
+          Ieee754RoundingMode kRMode = kDefaultIeee754RoundingMode>
+constexpr Ieee754Binary<kFormat>& operator+=(Ieee754Binary<kFormat>& lhs,
+                                             const Ieee754Binary<kFormat>& rhs) noexcept;
+
+//! Apply subtraction assignment
+template <Ieee754BinaryFormat kFormat,
+          Ieee754RoundingMode kRMode = kDefaultIeee754RoundingMode>
+constexpr Ieee754Binary<kFormat>& operator-=(Ieee754Binary<kFormat>& lhs,
+                                             const Ieee754Binary<kFormat>& rhs) noexcept;
+
+//! Apply multiplication assignment
+template <Ieee754BinaryFormat kFormat,
+          Ieee754RoundingMode kRMode = kDefaultIeee754RoundingMode>
+constexpr Ieee754Binary<kFormat>& operator*=(Ieee754Binary<kFormat>& lhs,
+                                             const Ieee754Binary<kFormat>& rhs) noexcept;
+
+//! Apply division assignment
+template <Ieee754BinaryFormat kFormat,
+          Ieee754RoundingMode kRMode = kDefaultIeee754RoundingMode>
+constexpr Ieee754Binary<kFormat>& operator/=(Ieee754Binary<kFormat>& lhs,
+                                             const Ieee754Binary<kFormat>& rhs) noexcept;
+
+// Artihmeteic
+
+//! Return the value it's own
+template <Ieee754BinaryFormat kFormat>
+constexpr Ieee754Binary<kFormat> operator+(const Ieee754Binary<kFormat>& value) noexcept;
+
+//! Return the negated value
+template <Ieee754BinaryFormat kFormat>
+constexpr Ieee754Binary<kFormat> operator-(const Ieee754Binary<kFormat>& value) noexcept;
+
+//! Comppute an addition
+template <Ieee754BinaryFormat kFormat,
+          Ieee754RoundingMode kRMode = kDefaultIeee754RoundingMode>
+constexpr Ieee754Binary<kFormat> operator+(const Ieee754Binary<kFormat>& lhs,
+                                           const Ieee754Binary<kFormat>& rhs) noexcept;
+
+//! Comppute a subtraction
+template <Ieee754BinaryFormat kFormat,
+          Ieee754RoundingMode kRMode = kDefaultIeee754RoundingMode>
+constexpr Ieee754Binary<kFormat> operator-(const Ieee754Binary<kFormat>& lhs,
+                                           const Ieee754Binary<kFormat>& rhs) noexcept;
+
+//! Comppute a multiplication
+template <Ieee754BinaryFormat kFormat,
+          Ieee754RoundingMode kRMode = kDefaultIeee754RoundingMode>
+constexpr Ieee754Binary<kFormat> operator*(const Ieee754Binary<kFormat>& lhs,
+                                           const Ieee754Binary<kFormat>& rhs) noexcept;
+
+//! Comppute a division 
+template <Ieee754BinaryFormat kFormat,
+          Ieee754RoundingMode kRMode = kDefaultIeee754RoundingMode>
+constexpr Ieee754Binary<kFormat> operator/(const Ieee754Binary<kFormat>& lhs,
+                                           const Ieee754Binary<kFormat>& rhs) noexcept;
+
+// Comparison
 
 //! Check if two values are equal
 template <Ieee754BinaryFormat kFormat>

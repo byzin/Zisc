@@ -98,6 +98,7 @@ TEST(Ieee754BinaryTest, FloatLimitsTest)
   {
     constexpr std::float_round_style round_style = Limits::round_style;
     ASSERT_EQ(FLimits::round_style, round_style);
+    ASSERT_EQ(std::round_to_nearest, round_style);
   }
   {
     constexpr bool is_iec559 = Limits::is_iec559;

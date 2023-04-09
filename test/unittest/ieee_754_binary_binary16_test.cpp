@@ -17,12 +17,14 @@
 #include <cmath>
 #include <cstdint>
 #include <cstddef>
+#include <functional>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <limits>
 #include <tuple>
 #include <type_traits>
+#include <vector>
 // GoogleTest
 #include "googletest.hpp"
 // Zisc
@@ -377,4 +379,125 @@ TEST(Ieee754BinaryTest, Float2HalfSubnormalTest)
   const std::string_view ref_file_path = "resources/math_float2half_subf_reference.bin";
 
   ::testHalf<float, Half>(x_list, ref_file_path, "float", "half");
+}
+
+TEST(Ieee754BinaryTest, HalfArithmeticTest)
+{
+  using HalfT = zisc::Binary16;
+
+  // Load reference values
+  const std::string_view ref_file_path = "resources/half_arithmetic_reference.bin";
+  std::ifstream reference_file{ref_file_path.data(), std::ios_base::binary};
+  ASSERT_TRUE(reference_file.is_open()) << "Reference file not found: `"
+                                        << ref_file_path.data() << "'.";
+
+  std::size_t n = 0;
+  zisc::BSerializer::read(&n, &reference_file);
+  std::cout << "  n = " << n << std::endl;
+
+  // Make a normal list
+  std::vector<HalfT> normal_list;
+  normal_list.resize(2 * n);
+  zisc::BSerializer::read(normal_list.data(), &reference_file, normal_list.size() * sizeof(HalfT));
+  // Subnormal test
+  std::vector<HalfT> subnormal_list;
+  subnormal_list.resize(2 * n);
+  zisc::BSerializer::read(subnormal_list.data(), &reference_file, subnormal_list.size() * sizeof(HalfT));
+
+  enum class OpType
+  {
+    kAddition,
+    kSubtraction,
+    kMultiplication,
+    kDivision
+  };
+
+  auto test = [](const std::vector<HalfT>& in_list,
+                 const std::vector<zisc::uint16b>& expected_list,
+                 const OpType type,
+                 const std::string_view op_name) noexcept
+  {
+    std::cout << "  " << op_name << std::endl;
+    for (std::size_t i = 0; i < expected_list.size(); ++i) {
+      HalfT x = in_list[2 * i + 0];
+      const HalfT y = in_list[2 * i + 1];
+      {
+        HalfT result{};
+        switch (type) {
+         case OpType::kAddition:
+          result = x + y;
+          break;
+         case OpType::kSubtraction:
+          result = x - y;
+          break;
+         case OpType::kMultiplication:
+          result = x * y;
+          break;
+         case OpType::kDivision:
+          result = x / y;
+          break;
+         default:
+          break;
+        }
+        const zisc::uint16b expected = expected_list[i];
+        const auto bresult = zisc::bit_cast<zisc::uint16b>(result);
+        ASSERT_EQ(expected, bresult)
+            << "half '" << op_name << "' failed."
+            << std::scientific << " x=" << static_cast<float>(x) << ", y=" << static_cast<float>(y)
+            << std::endl;
+      }
+      {
+        switch (type) {
+         case OpType::kAddition:
+          x += y;
+          break;
+         case OpType::kSubtraction:
+          x -= y;
+          break;
+         case OpType::kMultiplication:
+          x *= y;
+          break;
+         case OpType::kDivision:
+          x /= y;
+          break;
+         default:
+          break;
+        }
+        const HalfT& result = x;
+        const zisc::uint16b expected = expected_list[i];
+        const auto bresult = zisc::bit_cast<zisc::uint16b>(result);
+        ASSERT_EQ(expected, bresult)
+            << "half '" << op_name << "' failed."
+            << std::scientific << " x=" << static_cast<float>(x) << ", y=" << static_cast<float>(y)
+            << std::endl;
+      }
+    }
+  };
+
+  std::vector<zisc::uint16b> expected_list;
+  expected_list.resize(n);
+
+  zisc::BSerializer::read(expected_list.data(), &reference_file, expected_list.size() * sizeof(HalfT));
+  test(normal_list, expected_list, OpType::kAddition, "normal addition");
+
+  zisc::BSerializer::read(expected_list.data(), &reference_file, expected_list.size() * sizeof(HalfT));
+  test(normal_list, expected_list, OpType::kSubtraction, "normal subtraction");
+
+  zisc::BSerializer::read(expected_list.data(), &reference_file, expected_list.size() * sizeof(HalfT));
+  test(normal_list, expected_list, OpType::kMultiplication, "normal multiplication");
+
+  zisc::BSerializer::read(expected_list.data(), &reference_file, expected_list.size() * sizeof(HalfT));
+  test(normal_list, expected_list, OpType::kDivision, "normal division");
+
+  zisc::BSerializer::read(expected_list.data(), &reference_file, expected_list.size() * sizeof(HalfT));
+  test(subnormal_list, expected_list, OpType::kAddition, "subnormal addition");
+
+  zisc::BSerializer::read(expected_list.data(), &reference_file, expected_list.size() * sizeof(HalfT));
+  test(subnormal_list, expected_list, OpType::kSubtraction, "subnormal subtraction");
+
+  zisc::BSerializer::read(expected_list.data(), &reference_file, expected_list.size() * sizeof(HalfT));
+  test(subnormal_list, expected_list, OpType::kMultiplication, "subnormal multiplication");
+
+  zisc::BSerializer::read(expected_list.data(), &reference_file, expected_list.size() * sizeof(HalfT));
+  test(subnormal_list, expected_list, OpType::kDivision, "subnormal division");
 }

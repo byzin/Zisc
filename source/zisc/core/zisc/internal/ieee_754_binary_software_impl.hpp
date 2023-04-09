@@ -252,6 +252,13 @@ template <Ieee754BinaryFormat kFormat, std::float_round_style kRoundStyle>
 constexpr Ieee754BinarySoftwareImpl<kFormat, kRoundStyle> operator-(
     const Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& value) noexcept;
 
+//!
+template <template <std::floating_point T> typename Func,
+          Ieee754BinaryFormat kFormat, std::float_round_style kRoundStyle>
+constexpr Ieee754BinarySoftwareImpl<kFormat, kRoundStyle> doOperation(
+    const Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& lhs,
+    const Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& rhs) noexcept;
+
 //! Compute an addition
 template <Ieee754BinaryFormat kFormat, std::float_round_style kRoundStyle>
 constexpr Ieee754BinarySoftwareImpl<kFormat, kRoundStyle> operator+(

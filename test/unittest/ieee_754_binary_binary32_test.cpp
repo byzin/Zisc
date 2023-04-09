@@ -710,3 +710,28 @@ TEST(Ieee754BinaryTest, FloatRelationalTest)
   }
   std::cout << "special values: " << num_of_specials << "/" << n << std::endl;
 }
+
+TEST(Ieee754BinaryTest, FloatArithmeticTest)
+{
+  using zisc::Binary32;
+
+  const auto x = static_cast<Binary32>(2.0f);
+  const auto y = static_cast<Binary32>(2.0f);
+
+  {
+    const Binary32 z = x + y;
+    ASSERT_FLOAT_EQ(4.0f, static_cast<float>(z));
+  }
+  {
+    const Binary32 z = x - y;
+    ASSERT_FLOAT_EQ(0.0f, static_cast<float>(z));
+  }
+  {
+    const Binary32 z = x * y;
+    ASSERT_FLOAT_EQ(4.0f, static_cast<float>(z));
+  }
+  {
+    const Binary32 z = x / y;
+    ASSERT_FLOAT_EQ(1.0f, static_cast<float>(z));
+  }
+}

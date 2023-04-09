@@ -20,6 +20,7 @@
 #include <bit>
 #include <concepts>
 #include <cstddef>
+#include <functional>
 #include <limits>
 #include <type_traits>
 // Zisc
@@ -778,6 +779,79 @@ constexpr auto Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>::getRealSignifica
   \details No detailed description
 
   \tparam kFormat No description.
+  \tparam kRoundStyle No description.
+  \param [in,out] lhs No description.
+  \param [in] rhs No description.
+  \return No description
+  */
+template <Ieee754BinaryFormat kFormat, std::float_round_style kRoundStyle> inline
+constexpr Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& operator+=(
+    Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& lhs,
+    const Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& rhs) noexcept
+{
+  lhs = lhs + rhs;
+  return lhs;
+}
+
+/*!
+  \details No detailed description
+
+  \tparam kFormat No description.
+  \tparam kRoundStyle No description.
+  \param [in,out] lhs No description.
+  \param [in] rhs No description.
+  \return No description
+  */
+template <Ieee754BinaryFormat kFormat, std::float_round_style kRoundStyle> inline
+constexpr Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& operator-=(
+    Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& lhs,
+    const Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& rhs) noexcept
+{
+  lhs = lhs - rhs;
+  return lhs;
+}
+
+/*!
+  \details No detailed description
+
+  \tparam kFormat No description.
+  \tparam kRoundStyle No description.
+  \param [in,out] lhs No description.
+  \param [in] rhs No description.
+  \return No description
+  */
+template <Ieee754BinaryFormat kFormat, std::float_round_style kRoundStyle> inline
+constexpr Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& operator*=(
+    Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& lhs,
+    const Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& rhs) noexcept
+{
+  lhs = lhs * rhs;
+  return lhs;
+}
+
+/*!
+  \details No detailed description
+
+  \tparam kFormat No description.
+  \tparam kRoundStyle No description.
+  \param [in,out] lhs No description.
+  \param [in] rhs No description.
+  \return No description
+  */
+template <Ieee754BinaryFormat kFormat, std::float_round_style kRoundStyle> inline
+constexpr Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& operator/=(
+    Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& lhs,
+    const Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& rhs) noexcept
+{
+  lhs = lhs / rhs;
+  return lhs;
+}
+
+/*!
+  \details No detailed description
+
+  \tparam kFormat No description.
+  \tparam kRoundStyle No description.
   \param [in] value No description.
   \return No description
   */
@@ -792,6 +866,7 @@ constexpr Ieee754BinarySoftwareImpl<kFormat, kRoundStyle> operator+(
   \details No detailed description
 
   \tparam kFormat No description.
+  \tparam kRoundStyle No description.
   \param [in] value No description.
   \return No description
   */
@@ -805,7 +880,123 @@ constexpr Ieee754BinarySoftwareImpl<kFormat, kRoundStyle> operator-(
 /*!
   \details No detailed description
 
+  \tparam Func No description.
   \tparam kFormat No description.
+  \tparam kRoundStyle No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
+  */
+template <template <std::floating_point T> typename Func,
+          Ieee754BinaryFormat kFormat, std::float_round_style kRoundStyle> inline
+constexpr Ieee754BinarySoftwareImpl<kFormat, kRoundStyle> doOperation(
+    const Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& lhs,
+    const Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& rhs) noexcept
+{
+  using BinT = Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>;
+  using FormatT = Ieee754BinaryFormat;
+  using FloatT = std::conditional_t<kFormat == FormatT::kHalf,   float,
+                 std::conditional_t<kFormat == FormatT::kSingle, float,
+                 std::conditional_t<kFormat == FormatT::kDouble, double,
+                                                                             void>>>;
+  const auto to_float = [](const BinT& b) noexcept
+  {
+    if constexpr (BinT::format() == FormatT::kHalf)
+      return bit_cast<FloatT>(b.template convertTo<FormatT::kSingle>());
+    else
+      return bit_cast<FloatT>(b);
+  };
+
+  const auto to_bin = [](const FloatT& f) noexcept
+  {
+    if constexpr (BinT::format() == FormatT::kHalf) {
+      using DstBinT = Ieee754BinarySoftwareImpl<FormatT::kSingle, kRoundStyle>;
+      return bit_cast<DstBinT>(f).template convertTo<FormatT::kHalf>();
+    }
+    else {
+      return bit_cast<BinT>(f);
+    }
+  };
+
+  const auto x = to_float(lhs);
+  const auto y = to_float(rhs);
+  const auto z = Func<FloatT>{}(x, y);
+  return to_bin(z);
+}
+
+/*!
+  \details No detailed description
+
+  \tparam kFormat No description.
+  \tparam kRoundStyle No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
+  */
+template <Ieee754BinaryFormat kFormat, std::float_round_style kRoundStyle> inline
+constexpr Ieee754BinarySoftwareImpl<kFormat, kRoundStyle> operator+(
+    const Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& lhs,
+    const Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& rhs) noexcept
+{
+  return doOperation<std::plus>(lhs, rhs);
+}
+
+/*!
+  \details No detailed description
+
+  \tparam kFormat No description.
+  \tparam kRoundStyle No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
+  */
+template <Ieee754BinaryFormat kFormat, std::float_round_style kRoundStyle> inline
+constexpr Ieee754BinarySoftwareImpl<kFormat, kRoundStyle> operator-(
+    const Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& lhs,
+    const Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& rhs) noexcept
+{
+  return doOperation<std::minus>(lhs, rhs);
+}
+
+/*!
+  \details No detailed description
+
+  \tparam kFormat No description.
+  \tparam kRoundStyle No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
+  */
+template <Ieee754BinaryFormat kFormat, std::float_round_style kRoundStyle> inline
+constexpr Ieee754BinarySoftwareImpl<kFormat, kRoundStyle> operator*(
+    const Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& lhs,
+    const Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& rhs) noexcept
+{
+  return doOperation<std::multiplies>(lhs, rhs);
+}
+
+/*!
+  \details No detailed description
+
+  \tparam kFormat No description.
+  \tparam kRoundStyle No description.
+  \param [in] lhs No description.
+  \param [in] rhs No description.
+  \return No description
+  */
+template <Ieee754BinaryFormat kFormat, std::float_round_style kRoundStyle> inline
+constexpr Ieee754BinarySoftwareImpl<kFormat, kRoundStyle> operator/(
+    const Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& lhs,
+    const Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& rhs) noexcept
+{
+  return doOperation<std::divides>(lhs, rhs);
+}
+
+/*!
+  \details No detailed description
+
+  \tparam kFormat No description.
+  \tparam kRoundStyle No description.
   \param [in] lhs No description.
   \param [in] rhs No description.
   \return No description
@@ -828,6 +1019,7 @@ constexpr bool operator==(const Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>&
   \details No detailed description
 
   \tparam kFormat No description.
+  \tparam kRoundStyle No description.
   \param [in] lhs No description.
   \param [in] rhs No description.
   \return No description
@@ -843,6 +1035,7 @@ constexpr bool operator!=(const Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>&
   \details No detailed description
 
   \tparam kFormat No description.
+  \tparam kRoundStyle No description.
   \param [in] lhs No description.
   \param [in] rhs No description.
   \return No description
@@ -865,6 +1058,7 @@ constexpr bool operator<(const Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& 
   \details No detailed description
 
   \tparam kFormat No description.
+  \tparam kRoundStyle No description.
   \param [in] lhs No description.
   \param [in] rhs No description.
   \return No description
@@ -887,6 +1081,7 @@ constexpr bool operator<=(const Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>&
   \details No detailed description
 
   \tparam kFormat No description.
+  \tparam kRoundStyle No description.
   \param [in] lhs No description.
   \param [in] rhs No description.
   \return No description
@@ -902,6 +1097,7 @@ constexpr bool operator>(const Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& 
   \details No detailed description
 
   \tparam kFormat No description.
+  \tparam kRoundStyle No description.
   \param [in] lhs No description.
   \param [in] rhs No description.
   \return No description

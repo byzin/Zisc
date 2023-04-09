@@ -759,3 +759,28 @@ TEST(Ieee754BinaryTest, DoubleRelationalTest)
   }
   std::cout << "special values: " << num_of_specials << "/" << n << std::endl;
 }
+
+TEST(Ieee754BinaryTest, DoubleArithmeticTest)
+{
+  using zisc::Binary64;
+
+  const auto x = static_cast<Binary64>(2.0);
+  const auto y = static_cast<Binary64>(2.0);
+
+  {
+    const Binary64 z = x + y;
+    ASSERT_DOUBLE_EQ(4.0, static_cast<double>(z));
+  }
+  {
+    const Binary64 z = x - y;
+    ASSERT_DOUBLE_EQ(0.0, static_cast<double>(z));
+  }
+  {
+    const Binary64 z = x * y;
+    ASSERT_DOUBLE_EQ(4.0, static_cast<double>(z));
+  }
+  {
+    const Binary64 z = x / y;
+    ASSERT_DOUBLE_EQ(1.0, static_cast<double>(z));
+  }
+}

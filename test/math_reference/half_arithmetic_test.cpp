@@ -47,7 +47,7 @@ void print(std::ostream& out, const float f) noexcept
 
 void print(std::ostream& out, const uint16b u) noexcept
 {
-  out << u;
+  out.write((char*)&u, sizeof(u));
 }
 
 void print(std::ostream& out, const half h) noexcept
@@ -80,7 +80,7 @@ int main(int argc, char** argv)
 
   constexpr std::size_t n = 50000;
   static_assert(sizeof(n) == 8);
-  output << n;
+  output.write((char*)&n, sizeof(n));
 
   std::vector<uint16b> normal_list;
   normal_list.resize(2 * n, 0);

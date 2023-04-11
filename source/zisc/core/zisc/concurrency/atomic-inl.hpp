@@ -60,6 +60,21 @@ constexpr auto Atomic::castMemOrder(const std::memory_order order) noexcept
 /*!
   \details No detailed description
 
+  \param [in] order No description.
+  \return No description
+  */
+inline
+constexpr std::memory_order Atomic::getLoadOrder(const std::memory_order order) noexcept
+{
+  const std::memory_order result = (order == std::memory_order::acq_rel)
+      ? std::memory_order::acquire
+      : order;
+  return result;
+}
+
+/*!
+  \details No detailed description
+
   \tparam Type No description.
   \param [out] ptr No description.
   \param [in] value No description.
@@ -403,7 +418,7 @@ Type Atomic::perform(Type* ptr,
                      Function&& expression,
                      Types&&... arguments) noexcept
 {
-  Type old = *ptr;
+  Type old = load(ptr, getLoadOrder(order));
   Type cmp = cast<Type>(0);
   do {
     cmp = old;

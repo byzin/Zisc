@@ -166,6 +166,9 @@ class Atomic
  private:
   //! Convert the memory order type
   static constexpr auto castMemOrder(const std::memory_order order) noexcept;
+
+  //! Return memory order for loading
+  static constexpr std::memory_order getLoadOrder(const std::memory_order order) noexcept;
 };
 
 // STL style function aliases

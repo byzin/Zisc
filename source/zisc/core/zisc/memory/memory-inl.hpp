@@ -152,7 +152,7 @@ std::size_t Memory::Usage::peak() const noexcept
 inline
 void Memory::Usage::release(const std::size_t size) noexcept
 {
-  atomic_fetch_sub(&total_, size, std::memory_order::relaxed);
+  atomic_fetch_sub(&total_, size, std::memory_order::acq_rel);
 }
 
 /*!

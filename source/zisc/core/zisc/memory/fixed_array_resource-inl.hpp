@@ -119,7 +119,7 @@ void* FixedArrayResource<Type>::allocateMemory(const std::size_t size,
   // Issue an index hint for finding a free storage
   std::size_t index = count_.fetch_add(1, std::memory_order::acq_rel);
   if (countMax() <= index) {
-    count_.fetch_sub(1, std::memory_order::relaxed);
+    count_.fetch_sub(1, std::memory_order::acq_rel);
     const char* message = "The number of allocation count exceeded the limit.";
     throw BadAllocT{size, alignment, message};
   }
@@ -211,7 +211,7 @@ void FixedArrayResource<Type>::deallocateMemory(void* data,
   ZISC_ASSERT(isInBounds(index, begin, countMax()), "The data is unmanaged data.");
   [[maybe_unused]] const bool had_ownership = used_list_.testAndSet(index, false);
   ZISC_ASSERT(had_ownership, "The ownership of the data was broken.");
-  count_.fetch_sub(1, std::memory_order::relaxed);
+  count_.fetch_sub(1, std::memory_order::acq_rel);
 }
 
 /*!

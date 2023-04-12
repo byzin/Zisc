@@ -116,7 +116,7 @@ void* MonotonicBufferResource<kSize, kAlignment>::allocateMemory(
                                           std::memory_order::acq_rel,
                                           std::memory_order::acquire));
   std::byte* data = storage() + (usage + adjustment);
-  use_count_.fetch_add(1, std::memory_order::relaxed);
+  use_count_.fetch_add(1, std::memory_order::acq_rel);
   return data;
 }
 
@@ -150,7 +150,7 @@ void MonotonicBufferResource<kSize, kAlignment>::deallocateMemory(
   [[maybe_unused]] const auto address = zisc::bit_cast<std::size_t>(data);
   ZISC_ASSERT(isInBounds(address, begin, end),
               "The data wasn't allocated by this allocator.");
-  use_count_.fetch_sub(1, std::memory_order::relaxed);
+  use_count_.fetch_sub(1, std::memory_order::acq_rel);
 }
 
 /*!

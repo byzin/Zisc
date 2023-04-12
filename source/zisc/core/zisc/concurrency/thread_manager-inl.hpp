@@ -776,9 +776,9 @@ void ThreadManager::doWorkerTasks(const int64b thread_id)
       }
       else {
         // There is no task. The worker waits for next task queuing
-        num_of_active_workers_.fetch_sub(1, std::memory_order::release);
+        num_of_active_workers_.fetch_sub(1, std::memory_order::acq_rel);
         num_of_tasks_.wait(0, std::memory_order::acquire);
-        num_of_active_workers_.fetch_add(1, std::memory_order::release);
+        num_of_active_workers_.fetch_add(1, std::memory_order::acq_rel);
       }
     }
   }
@@ -815,7 +815,7 @@ auto ThreadManager::enqueueImpl(Data&& task,
                                                             wait_for_precedence);
 
   // Enqueue tasks
-  num_of_tasks_.fetch_add(num_of_tasks, std::memory_order::relaxed);
+  num_of_tasks_.fetch_add(num_of_tasks, std::memory_order::acq_rel);
   for (DiffT i = 0; i < num_of_tasks; ++i) {
     WorkerTask worker_task{shared_task, i};
     try {
@@ -823,7 +823,7 @@ auto ThreadManager::enqueueImpl(Data&& task,
     }
     catch ([[maybe_unused]] const TaskQueue::OverflowError& error) {
       const DiffT rest = num_of_tasks - i;
-      num_of_tasks_.fetch_sub(rest, std::memory_order::relaxed);
+      num_of_tasks_.fetch_sub(rest, std::memory_order::acq_rel);
       num_of_tasks_.notify_all();
       const char* message = "Task queue overflow happened.";
       throw OverflowError{message,
@@ -862,7 +862,7 @@ auto ThreadManager::fetchTask() noexcept -> std::optional<WorkerTask>
 {
   std::optional<WorkerTask> queued_task = taskQueue().dequeue();
   if (queued_task.has_value())
-    num_of_tasks_.fetch_sub(1, std::memory_order::relaxed);
+    num_of_tasks_.fetch_sub(1, std::memory_order::acq_rel);
   return queued_task;
 }
 

@@ -472,7 +472,7 @@ int64b RingBuffer::diff(const uint64b lhs, const uint64b rhs) const noexcept
 inline
 std::atomic<uint64b>& RingBuffer::getIndex(const std::size_t index) noexcept
 {
-  MemChunk* mem = std::addressof(memory_[3]);
+  MemChunk* mem = memory_.data() + 3;
   auto indices = reinterp<std::atomic<uint64b>*>(mem);
   return indices[index];
 }
@@ -485,7 +485,7 @@ std::atomic<uint64b>& RingBuffer::getIndex(const std::size_t index) noexcept
 inline
 const std::atomic<uint64b>& RingBuffer::getIndex(const std::size_t index) const noexcept
 {
-  const MemChunk* mem = std::addressof(memory_[3]);
+  const MemChunk* mem = memory_.data() + 3;
   auto indices = reinterp<const std::atomic<uint64b>*>(mem);
   return indices[index];
 }
@@ -498,7 +498,7 @@ const std::atomic<uint64b>& RingBuffer::getIndex(const std::size_t index) const 
 inline
 std::atomic<uint64b>& RingBuffer::head() noexcept
 {
-  MemChunk* mem = std::addressof(memory_[0]);
+  MemChunk* mem = memory_.data();
   return *reinterp<std::atomic<uint64b>*>(mem);
 }
 
@@ -510,7 +510,7 @@ std::atomic<uint64b>& RingBuffer::head() noexcept
 inline
 const std::atomic<uint64b>& RingBuffer::head() const noexcept
 {
-  const MemChunk* mem = std::addressof(memory_[0]);
+  const MemChunk* mem = memory_.data();
   return *reinterp<const std::atomic<uint64b>*>(mem);
 }
 
@@ -602,7 +602,7 @@ uint64b RingBuffer::permuteIndexImpl(const uint64b index,
 inline
 std::atomic<uint64b>& RingBuffer::tail() noexcept
 {
-  MemChunk* mem = std::addressof(memory_[2]);
+  MemChunk* mem = memory_.data() + 2;
   return *reinterp<std::atomic<uint64b>*>(mem);
 }
 
@@ -614,7 +614,7 @@ std::atomic<uint64b>& RingBuffer::tail() noexcept
 inline
 const std::atomic<uint64b>& RingBuffer::tail() const noexcept
 {
-  const MemChunk* mem = std::addressof(memory_[2]);
+  const MemChunk* mem = memory_.data() + 2;
   return *reinterp<const std::atomic<uint64b>*>(mem);
 }
 
@@ -626,7 +626,7 @@ const std::atomic<uint64b>& RingBuffer::tail() const noexcept
 inline
 std::atomic<int64b>& RingBuffer::threshold() noexcept
 {
-  MemChunk* mem = std::addressof(memory_[1]);
+  MemChunk* mem = memory_.data() + 1;
   return *reinterp<std::atomic<int64b>*>(mem);
 }
 
@@ -638,7 +638,7 @@ std::atomic<int64b>& RingBuffer::threshold() noexcept
 inline
 const std::atomic<int64b>& RingBuffer::threshold() const noexcept
 {
-  const MemChunk* mem = std::addressof(memory_[1]);
+  const MemChunk* mem = memory_.data() + 1;
   return *reinterp<const std::atomic<int64b>*>(mem);
 }
 

@@ -129,7 +129,7 @@ void Memory::Usage::add(const std::size_t size) noexcept
 {
   const std::size_t old = atomic_fetch_add(&total_, size, std::memory_order::acq_rel);
   const std::size_t t = old + size;
-  atomic_fetch_max(&peak_, t, std::memory_order::release);
+  atomic_fetch_max(&peak_, t, std::memory_order::acq_rel);
 }
 
 /*!

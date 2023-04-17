@@ -20,7 +20,7 @@ endfunction(Zisc_getClangOptionSuffix)
 
 
 #
-function(Zisc_getSanitizerFlags compile_sanitizer_flags linker_sanitizer_flags)
+function(Zisc_getSanitizerFlagsImpl compile_sanitizer_flags linker_sanitizer_flags)
   set(compile_flags "")
   set(linker_flags "")
   set(check_list "")
@@ -108,7 +108,7 @@ function(Zisc_getSanitizerFlags compile_sanitizer_flags linker_sanitizer_flags)
     set(${compile_sanitizer_flags} ${compile_flags} PARENT_SCOPE)
     set(${linker_sanitizer_flags} ${linker_flags} PARENT_SCOPE)
   endif()
-endfunction(Zisc_getSanitizerFlags)
+endfunction(Zisc_getSanitizerFlagsImpl)
 
 
 function(Zisc_getMsvcCompilerFlags architecture cxx_compile_flags cxx_linker_flags cxx_definitions)
@@ -137,11 +137,6 @@ function(Zisc_getMsvcCompilerFlags architecture cxx_compile_flags cxx_linker_fla
   list(APPEND compile_flags # /Qspectre
                             /sdl
                             )
-
-  # Sanitizer
-  Zisc_getSanitizerFlags(compile_sanitizer_flags linker_sanitizer_flags)
-  list(APPEND compile_flags ${compile_sanitizer_flags})
-  list(APPEND linker_flags ${linker_sanitizer_flags})
 
   # Output variables
   set(${cxx_compile_flags} ${compile_flags} PARENT_SCOPE)
@@ -175,10 +170,6 @@ function(Zisc_getClangClCompilerFlags architecture cxx_compile_flags cxx_linker_
   list(APPEND compile_flags /diagnostics:caret
                             -fcolor-diagnostics
                             )
-  # Sanitizer
-  Zisc_getSanitizerFlags(compile_sanitizer_flags linker_sanitizer_flags)
-  list(APPEND compile_flags ${compile_sanitizer_flags})
-  list(APPEND linker_flags ${linker_sanitizer_flags})
 
   # Output variables
   set(${cxx_compile_flags} ${compile_flags} PARENT_SCOPE)
@@ -219,11 +210,6 @@ function(Zisc_getClangCompilerFlags architecture cxx_compile_flags cxx_linker_fl
   list(APPEND compile_flags -fcolor-diagnostics
                             )
 
-  # Sanitizer
-  Zisc_getSanitizerFlags(compile_sanitizer_flags linker_sanitizer_flags)
-  list(APPEND compile_flags ${compile_sanitizer_flags})
-  list(APPEND linker_flags ${linker_sanitizer_flags})
-
   # Output variables
   set(${cxx_compile_flags} ${compile_flags} PARENT_SCOPE)
   set(${cxx_linker_flags} ${linker_flags} PARENT_SCOPE)
@@ -249,11 +235,6 @@ function(Zisc_getGccCompilerFlags architecture cxx_compile_flags cxx_linker_flag
     list(APPEND compile_flags -fno-math-errno
                               -march=x86-64-v4)
   endif()
-
-  # Sanitizer
-  Zisc_getSanitizerFlags(compile_sanitizer_flags linker_sanitizer_flags)
-  list(APPEND compile_flags ${compile_sanitizer_flags})
-  list(APPEND linker_flags ${linker_sanitizer_flags})
 
   # Output variables
   set(${cxx_compile_flags} ${compile_flags} PARENT_SCOPE)

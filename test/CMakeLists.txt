@@ -108,6 +108,7 @@ macro(setTestProject)
 
   include("${__zisc_dir__}/cmake/compiler.cmake")
   Zisc_getCxxWarningFlags(cxx_compile_warning_flags)
+  Zisc_getSanitizerFlags(compile_sanitizer_flags linker_sanitizer_flags)
   getTestCompileFlags(test_compile_flags test_linker_flags test_definitions)
   getTestWarningFlags(test_warning_flags)
   add_executable(${PROJECT_NAME} ${unittest_source_files})
@@ -115,10 +116,12 @@ macro(setTestProject)
                                                    CXX_STANDARD_REQUIRED ON)
   target_compile_options(${PROJECT_NAME} PRIVATE ${test_compile_flags}
                                                  ${cxx_compile_warning_flags}
+                                                 ${compile_sanitizer_flags}
                                                  ${test_warning_flags})
   target_link_libraries(${PROJECT_NAME} PRIVATE Zisc::Zisc
                                                 GTest::gtest
                                                 ${test_linker_flags})
+  target_link_options(${PROJECT_NAME} PRIVATE ${linker_sanitizer_flags})
   target_compile_definitions(${PROJECT_NAME} PRIVATE ${test_definitions})
   target_include_directories(${PROJECT_NAME} PRIVATE "${PROJECT_SOURCE_DIR}/math_reference")
   Zisc_enableIpo(${PROJECT_NAME})

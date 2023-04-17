@@ -167,6 +167,35 @@ function(Zisc_setStaticAnalyzer target)
 endfunction(Zisc_setStaticAnalyzer)
 
 
+function(Zisc_getSanitizerFlags compile_sanitizer_flags linker_sanitizer_flags)
+  Zisc_getSanitizerFlagsImpl(compile_flags linker_flags)
+  # Output
+  set(${compile_sanitizer_flags} ${compile_flags} PARENT_SCOPE)
+  set(${linker_sanitizer_flags} ${linker_flags} PARENT_SCOPE)
+endfunction(Zisc_getSanitizerFlags)
+
+
+function(Zisc_createSanitizerIgnoreList source_files output_dir list_name cxx_compile_flags)
+  # Create an ignore list
+  set(ignore_list "")
+  foreach(file IN LISTS source_files)
+    string(APPEND ignore_list "src:${file}\n")
+  endforeach(file)
+  set(list_path ${output_dir})
+  cmake_path(APPEND list_path "${list_name}")
+  file(WRITE ${list_path} ${ignore_list})
+
+  # Make a compile flag for the ignore list
+  set(compile_flags "")
+  if(Z_VISUAL_STUDIO)
+    # not supported yet
+  else()
+    list(APPEND compile_flags "-fsanitize-ignorelist=${list_path}")
+  endif()
+  set(${cxx_compile_flags} ${compile_flags} PARENT_SCOPE)
+endfunction(Zisc_createSanitizerIgnoreList)
+
+
 function(Zisc_createLinkToTarget target output_dir)
   get_target_property(binary_dir ${target} BINARY_DIR)
   set(link_target ${target}_link)

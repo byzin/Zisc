@@ -97,6 +97,7 @@ macro(Zisc_setZiscProject)
   include("${PROJECT_SOURCE_DIR}/cmake/compiler.cmake")
   Zisc_initCompilerOptions()
   Zisc_getCxxWarningFlags(cxx_compile_warning_flags)
+  Zisc_getSanitizerFlags(compile_sanitizer_flags linker_sanitizer_flags)
   Zisc_getZiscFlags(zisc_compile_flags zisc_linker_flags zisc_definitions)
   Zisc_getZiscWarningFlags(zisc_warning_flags)
   # Get architecture
@@ -112,13 +113,15 @@ macro(Zisc_setZiscProject)
     target_compile_options(${library_name} PUBLIC ${cxx_compile_flags}
                                                   ${zisc_compile_flags}
                                            PRIVATE ${cxx_compile_warning_flags}
+                                                   ${compile_sanitizer_flags}
                                                    ${zisc_warning_flags})
     target_link_libraries(${library_name} PUBLIC Threads::Threads)
     if(Z_WINDOWS)
       target_link_libraries(${library_name} PRIVATE Synchronization.lib)
     endif()
     target_link_options(${library_name} PUBLIC ${cxx_linker_flags}
-                                               ${zisc_linker_flags})
+                                               ${zisc_linker_flags}
+                                        PRIVATE ${linker_sanitizer_flags})
     target_compile_definitions(${library_name} PUBLIC ${platform_definitions}
                                                       ${cxx_definitions}
                                                       ${zisc_definitions}

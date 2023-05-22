@@ -23,6 +23,7 @@
 
 namespace zisc {
 
+//! A reference to a function
 template <typename> class FunctionReference;
 
 /*!
@@ -41,10 +42,6 @@ class FunctionReference<ReturnT (ArgTypes...)>
   using FunctionPointer = ReturnT (*)(ArgTypes...);
 
 
-  // Constant value
-  static constexpr std::size_t kNumOfArgs = sizeof...(ArgTypes);
-
-
   //! Create an empry
   FunctionReference() noexcept = default;
 
@@ -58,7 +55,8 @@ class FunctionReference<ReturnT (ArgTypes...)>
   FunctionReference& operator=(Func&& func) noexcept;
 
   //! Invoke a referenced callable object
-  ReturnT operator()(ArgTypes... args) const;
+  template <typename ...Args>
+  ReturnT operator()(Args&&... args) const requires std::invocable<FunctionPointer, Args...>;
 
   //! Check whether this refers a callable object 
   explicit operator bool() const noexcept;
@@ -72,23 +70,17 @@ class FunctionReference<ReturnT (ArgTypes...)>
   void clear() noexcept;
 
   //! Invoke a referenced callable object
-  ReturnT invoke(ArgTypes... args) const;
+  template <typename ...Args>
+  ReturnT invoke(Args&&... args) const requires std::invocable<FunctionPointer, Args...>;
 
   //! Exchange referenced callable objects of this and other
   void swap(FunctionReference& other) noexcept;
 
  private:
   // Type aliases
-  using FuncRefMemory = std::aligned_storage_t<sizeof(void*),
-                                               std::alignment_of_v<void*>>;
+  using FuncRefMemory = std::aligned_storage_t<sizeof(void*), alignof(void*)>;
   using InvokerPointer = ReturnT (*)(FuncRefMemory, ArgTypes...);
-  template <typename Type>
-  using ArgRef = std::add_lvalue_reference_t<std::remove_reference_t<Type>>;
 
-
-  //! Forward lvalue as either lvalue or as rvalue
-  template <typename Type>
-  static constexpr Type forward(ArgRef<Type> arg) noexcept;
 
   //! Initialize with a callable object
   template <std::invocable<ArgTypes...> Func>
@@ -96,11 +88,7 @@ class FunctionReference<ReturnT (ArgTypes...)>
 
   //! Invoke a referenced callable object 
   template <typename FuncPtr>
-  static ReturnT invokeFunctionPointer(FuncRefMemory mem, ArgTypes... args);
-
-  //! Invoke a referenced callable object
-  template <typename Functor>
-  static ReturnT invokeFunctor(FuncRefMemory mem, ArgTypes... args);
+  static ReturnT invokeFunc(FuncRefMemory mem, ArgTypes... args);
 
   //! Return the underlying invoker pointer
   const InvokerPointer& invoker() const noexcept;

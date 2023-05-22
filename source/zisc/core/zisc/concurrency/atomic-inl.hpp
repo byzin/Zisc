@@ -66,9 +66,10 @@ constexpr auto Atomic::castMemOrder(const std::memory_order order) noexcept
 inline
 constexpr std::memory_order Atomic::getLoadOrder(const std::memory_order order) noexcept
 {
-  const std::memory_order result = (order == std::memory_order::acq_rel)
-      ? std::memory_order::acquire
-      : order;
+  const bool release_flag = (order == std::memory_order::release) ||
+                            (order == std::memory_order::acq_rel);
+  const std::memory_order result = release_flag ? std::memory_order::acquire
+                                                : order;
   return result;
 }
 
@@ -255,7 +256,7 @@ Type Atomic::decrement(Type* ptr, const std::memory_order order) noexcept
 template <TriviallyCopyable Type> inline
 Type Atomic::min(Type* ptr, const Type value, const std::memory_order order) noexcept
 {
-  const auto func = [](const Type lhs, const Type rhs)
+  const auto func = [](const Type lhs, const Type rhs) noexcept
   {
     return (lhs < rhs) ? lhs : rhs;
   };
@@ -281,7 +282,7 @@ Type Atomic::min(Type* ptr, const Type value, const std::memory_order order) noe
 template <TriviallyCopyable Type> inline
 Type Atomic::max(Type* ptr, const Type value, const std::memory_order order) noexcept
 {
-  const auto func = [](const Type lhs, const Type rhs)
+  const auto func = [](const Type lhs, const Type rhs) noexcept
   {
     return (lhs < rhs) ? rhs : lhs;
   };
@@ -293,7 +294,6 @@ Type Atomic::max(Type* ptr, const Type value, const std::memory_order order) noe
 #endif // Z_CLANG
     old = perform(ptr, order, func, value);
   return old;
-
 }
 
 /*!
@@ -423,7 +423,7 @@ Type Atomic::perform(Type* ptr,
   do {
     cmp = old;
     const Type value = expression(cmp, std::forward<Types>(arguments)...);
-    old = compareAndExchange(ptr, cmp, value, order, std::memory_order::acquire);
+    old = compareAndExchange(ptr, cmp, value, order, getLoadOrder(order));
   } while (old != cmp);
   return old;
 }

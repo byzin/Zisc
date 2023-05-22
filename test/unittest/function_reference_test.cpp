@@ -77,7 +77,6 @@ TEST(FunctionReferenceTest, InvocationTest)
   // Non void return case
   {
     using FuncRef = zisc::FunctionReference<int (int, int)>;
-    static_assert(FuncRef::kNumOfArgs == 2);
 
     constexpr int a = 1;
     constexpr int b = 2;

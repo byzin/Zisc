@@ -60,13 +60,16 @@ auto FunctionReference<ReturnT (ArgTypes...)>::operator=(Func&& func) noexcept -
 /*!
   \details No detailed description
 
+  \tparam Args No description.
   \param [in] args No description.
   \return No description
   */
-template <typename ReturnT, typename ...ArgTypes> inline
-auto FunctionReference<ReturnT (ArgTypes...)>::operator()(ArgTypes... args) const -> ReturnT
+template <typename ReturnT, typename ...ArgTypes>
+template <typename ...Args> inline
+auto FunctionReference<ReturnT (ArgTypes...)>::operator()(Args&&... args) const -> ReturnT
+    requires std::invocable<FunctionPointer, Args...>
 {
-  return invoke(forward<ArgTypes>(args)...);
+  return invoke(std::forward<Args>(args)...);
 }
 
 /*!
@@ -115,14 +118,17 @@ void FunctionReference<ReturnT (ArgTypes...)>::clear() noexcept
 /*!
   \details No detailed description
 
+  \tparam Args No description.
   \param [in] args No description.
   \return No description
   */
-template <typename ReturnT, typename ...ArgTypes> inline
-auto FunctionReference<ReturnT (ArgTypes...)>::invoke(ArgTypes... args) const -> ReturnT
+template <typename ReturnT, typename ...ArgTypes>
+template <typename ...Args> inline
+auto FunctionReference<ReturnT (ArgTypes...)>::invoke(Args&&... args) const -> ReturnT
+    requires std::invocable<FunctionPointer, Args...>
 {
-  ZISC_ASSERT(cast<bool>(*this), "Underlying reference is invalid.");
-  return invoker()(memory(), forward<ArgTypes>(args)...);
+  ZISC_ASSERT(static_cast<bool>(*this), "Underlying reference is invalid.");
+  return invoker()(memory(), std::forward<Args>(args)...);
 }
 
 /*!
@@ -140,22 +146,6 @@ void FunctionReference<ReturnT (ArgTypes...)>::swap(FunctionReference& other) no
 /*!
   \details No detailed description
 
-  \tparam Type No description.
-  \param [in] arg No description.
-  \return No description
-  */
-template <typename ReturnT, typename ...ArgTypes> template <typename Type> inline
-constexpr Type FunctionReference<ReturnT (ArgTypes...)>::forward(ArgRef<Type> arg) noexcept
-{
-  if constexpr (std::is_lvalue_reference_v<Type>)
-    return arg;
-  else
-    return std::move(arg);
-}
-
-/*!
-  \details No detailed description
-
   \tparam Func No description.
   \param [in] func No description.
   */
@@ -163,41 +153,25 @@ template <typename ReturnT, typename ...ArgTypes>
 template <std::invocable<ArgTypes...> Func> inline
 void FunctionReference<ReturnT (ArgTypes...)>::initialize(Func&& func) noexcept
 {
-  using Function = std::remove_volatile_t<std::remove_reference_t<Func>>;
-  constexpr bool is_func_ptr = std::is_pointer_v<Function>;
-  constexpr bool has_func_ptr = std::is_convertible_v<Function, FunctionPointer>;
-  constexpr bool is_fanctor = std::is_object_v<Function>;
-  if constexpr (is_func_ptr) {
-    // Function pointer case
-    using FuncPtr = Function;
-    static_assert(sizeof(FuncPtr) == sizeof(FuncRefMemory),
-                  "The memory doesn't have enough space for the function ptr.");
-    static_assert(std::alignment_of_v<FuncPtr> <= std::alignment_of_v<FuncRefMemory>,
-                  "The memory doesn't satify the alignment of the function ptr.");
+  using FunctionT = std::remove_volatile_t<std::remove_reference_t<Func>>;
+  constexpr bool is_func_ptr = std::is_pointer_v<FunctionT>;
+  constexpr bool has_func_ptr = std::is_convertible_v<FunctionT, FunctionPointer>;
+  constexpr bool is_fanctor = std::is_object_v<FunctionT>;
+  static_assert(is_func_ptr || has_func_ptr || is_fanctor, "Unsupported function type.");
+  using FuncPtr = std::conditional_t<is_func_ptr,  FunctionT,
+                  std::conditional_t<has_func_ptr, FunctionPointer,
+                  std::conditional_t<is_fanctor,   std::add_pointer_t<FunctionT>,
+                                                   void*>>>;
+  static_assert(sizeof(FuncPtr) == sizeof(FuncRefMemory),
+                "The memory doesn't have enough space for the function ptr.");
+  static_assert(std::alignment_of_v<FuncPtr> <= std::alignment_of_v<FuncRefMemory>,
+                "The memory doesn't satisfy the alignment of the function ptr.");
+
+  if constexpr (is_func_ptr || has_func_ptr)
     ::new (std::addressof(memory())) FuncPtr{func};
-    invoker_ = std::addressof(invokeFunctionPointer<Function>);
-  }
-  else if constexpr (has_func_ptr) {
-    // Function case
-    using FuncPtr = FunctionPointer;
-    static_assert(sizeof(FuncPtr) == sizeof(FuncRefMemory),
-                  "The memory doesn't have enough space for the function ptr.");
-    static_assert(std::alignment_of_v<FuncPtr> <= std::alignment_of_v<FuncRefMemory>,
-                  "The memory doesn't satify the alignment of the function ptr.");
-    ::new (std::addressof(memory())) FuncPtr{func};
-    invoker_ = std::addressof(invokeFunctionPointer<FunctionPointer>);
-  }
-  else if constexpr (is_fanctor) {
-    // Functor case
-    using FuncPtr = std::add_pointer_t<Function>;
-    static_assert(sizeof(FuncPtr) == sizeof(FuncRefMemory),
-                  "The memory doesn't have enough space for the functor ptr.");
-    static_assert(std::alignment_of_v<FuncPtr> <= std::alignment_of_v<FuncRefMemory>,
-                  "The memory doesn't satify the alignment of the functor ptr.");
+  else if constexpr (is_fanctor)
     ::new (std::addressof(memory())) FuncPtr{std::addressof(func)};
-    invoker_ = std::addressof(invokeFunctor<Function>);
-  }
-  static_assert(is_func_ptr || has_func_ptr || is_fanctor, "Unsupported func type.");
+  invoker_ = std::addressof(invokeFunc<FuncPtr>);
 }
 
 /*!
@@ -210,36 +184,12 @@ void FunctionReference<ReturnT (ArgTypes...)>::initialize(Func&& func) noexcept
   */
 template <typename ReturnT, typename ...ArgTypes>
 template <typename FuncPtr> inline
-auto FunctionReference<ReturnT (ArgTypes...)>::invokeFunctionPointer(
-    FuncRefMemory mem,
-    ArgTypes... args) -> ReturnT
+auto FunctionReference<ReturnT (ArgTypes...)>::invokeFunc(FuncRefMemory mem,
+                                                          ArgTypes... args) -> ReturnT
 {
-  auto ptr = zisc::bit_cast<FuncPtr>(mem);
-  if constexpr (std::is_void_v<ReturnT>)
-    std::invoke(ptr, forward<ArgTypes>(args)...);
-  else
-    return std::invoke(ptr, forward<ArgTypes>(args)...);
-}
-
-/*!
-  \details No detailed description
-
-  \tparam Functor No description.
-  \param [in] mem No description.
-  \param [in] args No description.
-  \return No description
-  */
-template <typename ReturnT, typename ...ArgTypes> template <typename Functor> inline
-auto FunctionReference<ReturnT (ArgTypes...)>::invokeFunctor(
-    FuncRefMemory mem,
-    ArgTypes... args) -> ReturnT
-{
-  using FuncPtr = std::add_pointer_t<Functor>;
-  auto ptr = zisc::bit_cast<FuncPtr>(mem);
-  if constexpr (std::is_void_v<ReturnT>)
-    std::invoke(*ptr, forward<ArgTypes>(args)...);
-  else
-    return std::invoke(*ptr, forward<ArgTypes>(args)...);
+  static_assert(std::is_pointer_v<FuncPtr>);
+  auto* ptr = zisc::bit_cast<FuncPtr>(mem);
+  return std::invoke(*ptr, std::forward<std::add_rvalue_reference_t<ArgTypes>>(args)...);
 }
 
 /*!

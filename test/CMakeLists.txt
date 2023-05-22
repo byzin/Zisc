@@ -129,6 +129,7 @@ macro(setTestProject)
   #
   set(clang_tidy_exclusion_checks bugprone-implicit-widening-of-multiplication-result
                                   bugprone-narrowing-conversions
+                                  bugprone-use-after-move
                                   misc-non-private-member-variables-in-classes
                                   misc-redundant-expression
                                   modernize-avoid-c-arrays

@@ -67,7 +67,7 @@ auto FunctionReference<ReturnT (ArgTypes...)>::operator=(Func&& func) noexcept -
 template <typename ReturnT, typename ...ArgTypes>
 template <typename ...Args> inline
 auto FunctionReference<ReturnT (ArgTypes...)>::operator()(Args&&... args) const -> ReturnT
-    requires std::invocable<FunctionPointer, Args...>
+    requires std::invocable<ReturnT (*)(ArgTypes...), Args...>
 {
   return invoke(std::forward<Args>(args)...);
 }
@@ -125,7 +125,7 @@ void FunctionReference<ReturnT (ArgTypes...)>::clear() noexcept
 template <typename ReturnT, typename ...ArgTypes>
 template <typename ...Args> inline
 auto FunctionReference<ReturnT (ArgTypes...)>::invoke(Args&&... args) const -> ReturnT
-    requires std::invocable<FunctionPointer, Args...>
+    requires std::invocable<ReturnT (*)(ArgTypes...), Args...>
 {
   ZISC_ASSERT(static_cast<bool>(*this), "Underlying reference is invalid.");
   return invoker()(memory(), std::forward<Args>(args)...);

@@ -133,11 +133,6 @@ function(Zisc_getMsvcCompilerFlags architecture cxx_compile_flags cxx_linker_fla
                             /options:strict
                             )
 
-  # Security
-  list(APPEND compile_flags # /Qspectre
-                            /sdl
-                            )
-
   # Output variables
   set(${cxx_compile_flags} ${compile_flags} PARENT_SCOPE)
   set(${cxx_linker_flags} ${linker_flags} PARENT_SCOPE)

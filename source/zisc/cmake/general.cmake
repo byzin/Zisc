@@ -54,13 +54,14 @@ endfunction(Zisc_checkTarget)
 # Build GoogleTest libraries
 function(Zisc_addGoogleTest source_dir binary_dir)
   Zisc_checkSubmodule("${source_dir}")
-  set(BUILD_GMOCK OFF CACHE INTERNAL "" FORCE)
-  set(INSTALL_GTEST OFF CACHE INTERNAL "" FORCE)
-  set(gtest_force_shared_crt ON CACHE INTERNAL "" FORCE) # Prevent overriding the parent project's compiler/linker settings on Windows
-  set(gtest_build_tests OFF CACHE INTERNAL "" FORCE)
-  set(gtest_build_samples OFF CACHE INTERNAL "" FORCE)
-  set(gtest_disable_pthreads ON CACHE INTERNAL "" FORCE)
-  set(gtest_hide_internal_symbols ON CACHE INTERNAL "" FORCE)
+  Zisc_setInternalValue(BUILD_GMOCK OFF)
+  Zisc_setInternalValue(INSTALL_GTEST OFF)
+  Zisc_setInternalValue(GTEST_HAS_ABSL OFF)
+  Zisc_setInternalValue(gtest_force_shared_crt ON) # Prevent overriding the parent project's compiler/linker settings on Windows
+  Zisc_setInternalValue(gtest_build_tests OFF)
+  Zisc_setInternalValue(gtest_build_samples OFF)
+  Zisc_setInternalValue(gtest_disable_pthreads ON)
+  Zisc_setInternalValue(gtest_hide_internal_symbols ON)
   add_subdirectory("${source_dir}" "${binary_dir}" EXCLUDE_FROM_ALL)
   include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/platform.cmake")
   set_target_properties(gtest

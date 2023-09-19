@@ -32,6 +32,7 @@
 #include <vector>
 // Zisc
 #include "container_overflow_error.hpp"
+#include "lock_free_ring_buffer.hpp"
 #include "zisc/error.hpp"
 #include "zisc/utility.hpp"
 #include "zisc/zisc_config.hpp"
@@ -179,7 +180,7 @@ auto ScalableCircularQueue<T>::dequeue() noexcept -> std::optional<ValueT>
 {
   std::optional<ValueT> result{};
   const size_type index = allocated_elements_.dequeue(false); // Get an entry point
-  const bool is_success = index != RingBuffer::invalidIndex();
+  const bool is_success = index != RingBufferT::invalidIndex();
   if (is_success) {
     StorageRef storage = getStorage(index);
     result = std::move(storage.get());
@@ -204,12 +205,12 @@ auto ScalableCircularQueue<T>::enqueue(Args&&... args) -> std::optional<size_typ
 
   // Check overflow
   using OverflowErr = typename BaseQueueT::OverflowError;
-  if (index == RingBuffer::overflowIndex()) {
+  if (index == RingBufferT::overflowIndex()) {
     const char* message = "Queue overflow happened.";
     throw OverflowErr{message, resource(), ValueT{std::forward<Args>(args)...}};
   }
 
-  const bool is_success = index != RingBuffer::invalidIndex();
+  const bool is_success = index != RingBufferT::invalidIndex();
   if (is_success) {
     StorageRef storage = getStorage(index);
     storage.set(std::forward<Args>(args)...);

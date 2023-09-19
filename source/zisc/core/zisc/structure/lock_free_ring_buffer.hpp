@@ -1,5 +1,5 @@
 /*!
-  \file ring_buffer.hpp
+  \file lock_free_ring_buffer.hpp
   \author Sho Ikeda
   \brief No brief description
 
@@ -12,8 +12,8 @@
   http://opensource.org/licenses/mit-license.php
   */
 
-#ifndef ZISC_RING_BUFFER_HPP
-#define ZISC_RING_BUFFER_HPP
+#ifndef ZISC_LOCK_FREE_RING_BUFFER_HPP
+#define ZISC_LOCK_FREE_RING_BUFFER_HPP
 
 // Standard C++ library
 #include <atomic>
@@ -33,21 +33,21 @@ namespace zisc {
 
   No detailed description.
   */
-class RingBuffer
+class LockFreeRingBuffer
 {
  public:
   //! Create a ring buffer
-  RingBuffer(pmr::memory_resource* mem_resource) noexcept;
+  LockFreeRingBuffer(pmr::memory_resource* mem_resource) noexcept;
 
   //! Move a data
-  RingBuffer(RingBuffer&& other) noexcept;
+  LockFreeRingBuffer(LockFreeRingBuffer&& other) noexcept;
 
   //! Destroy the ring buffer
-  ~RingBuffer() noexcept;
+  ~LockFreeRingBuffer() noexcept;
 
 
   //! Move a data
-  RingBuffer& operator=(RingBuffer&& other) noexcept;
+  LockFreeRingBuffer& operator=(LockFreeRingBuffer&& other) noexcept;
 
 
   //! Return the maximum possible capacity
@@ -96,8 +96,9 @@ class RingBuffer
   //!
   void catchUp(uint64b tailp, uint64b headp) noexcept;
 
-  //
-  int64b diff(const uint64b lhs, const uint64b rhs) const noexcept;
+  //!
+  template <template<typename> typename Func>
+  static bool compare(const uint64b lhs, const uint64b rhs) noexcept;
 
   //! Destroy the ring buffer
   void destroy() noexcept;
@@ -148,6 +149,6 @@ class RingBuffer
 
 } // namespace zisc
 
-#include "ring_buffer-inl.hpp"
+#include "lock_free_ring_buffer-inl.hpp"
 
-#endif // ZISC_RING_BUFFER_HPP
+#endif // ZISC_LOCK_FREE_RING_BUFFER_HPP

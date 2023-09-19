@@ -26,8 +26,8 @@
 #include <type_traits>
 #include <vector>
 // Zisc
+#include "lock_free_ring_buffer.hpp"
 #include "queue.hpp"
-#include "ring_buffer.hpp"
 #include "zisc/error.hpp"
 #include "zisc/zisc_config.hpp"
 #include "zisc/memory/data_storage.hpp"
@@ -130,6 +130,7 @@ class ScalableCircularQueue : public Queue<ScalableCircularQueue<T>, T>
   using ConstStorageRef = std::add_lvalue_reference_t<ConstStorageT>;
   using StoragePtr = std::add_pointer_t<StorageT>;
   using ConstStoragePtr = std::add_pointer_t<ConstStorageT>;
+  using RingBufferT = LockFreeRingBuffer;
 
 
   //! Return the storage by the given index
@@ -139,8 +140,8 @@ class ScalableCircularQueue : public Queue<ScalableCircularQueue<T>, T>
   ConstStorageRef getStorage(const size_type index) const noexcept;
 
 
-  RingBuffer free_elements_;
-  RingBuffer allocated_elements_;
+  RingBufferT free_elements_;
+  RingBufferT allocated_elements_;
   pmr::vector<StorageT> elements_;
 };
 

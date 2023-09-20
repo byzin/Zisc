@@ -77,8 +77,8 @@ class LockFreeRingBuffer
   //! Return the invalid index
   static constexpr uint64b invalidIndex() noexcept;
 
-  //! Return the order of a ring buffer size
-  uint64b order() const noexcept;
+  //! Remap index in order to avoid false sharing
+  static uint64b permuteIndex(const uint64b index, const uint64b n) noexcept;
 
   //! Set the number of elements of indices
   void setSize(const std::size_t s) noexcept;
@@ -88,10 +88,13 @@ class LockFreeRingBuffer
 
  private:
   //! Calculate the required memory length
-  std::size_t calcMemChunkSize(const std::size_t s) const noexcept;
+  static std::size_t calcMemChunkSize(const std::size_t s) noexcept;
+
+  //! Return the order of the size
+  static uint64b calcOrder(const uint64b s) noexcept;
 
   //!
-  int64b calcThreshold3(const uint64b half) const noexcept;
+  static int64b calcThreshold3(const uint64b half) noexcept;
 
   //!
   void catchUp(uint64b tailp, uint64b headp) noexcept;
@@ -120,11 +123,6 @@ class LockFreeRingBuffer
 
   //! Remap index in order to avoid false sharing
   uint64b permuteIndex(const uint64b index) const noexcept;
-
-  //! Remap index in order to avoid false sharing
-  uint64b permuteIndexImpl(const uint64b index,
-                           const uint64b o,
-                           const uint64b n) const noexcept;
 
   //! Return the underlying tail point
   std::atomic<uint64b>& tail() noexcept;

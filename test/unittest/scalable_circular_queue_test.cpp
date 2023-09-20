@@ -14,6 +14,7 @@
 
 // Standard C++ library
 #include <atomic>
+#include <bitset>
 #include <cstddef>
 #include <iostream>
 #include <memory>
@@ -26,10 +27,35 @@
 #include "zisc/utility.hpp"
 #include "zisc/zisc_config.hpp"
 #include "zisc/memory/alloc_free_resource.hpp"
+#include "zisc/structure/lock_free_ring_buffer.hpp"
 #include "zisc/structure/scalable_circular_queue.hpp"
 // Test
 #include "concurrent_queue_test.hpp"
 #include "queue_test.hpp"
+
+TEST(LockFreeRingBufferTest, IndexPermutationTest)
+{
+  using RingBufferT = zisc::LockFreeRingBuffer;
+  using zisc::uint64b;
+  constexpr uint64b order = 23;
+  constexpr uint64b n = 1u << order;
+  std::unique_ptr bits = std::make_unique<std::bitset<n>>();
+  for (uint64b o = 0; o < order; ++o) {
+    bits->reset();
+    const uint64b s = 1u << o;
+
+    for (uint64b i = 0; i < s; ++i) {
+      const uint64b index = RingBufferT::permuteIndex(i, s);
+      bits->set(index);
+    }
+
+    for (uint64b i = 0; i < s; ++i) {
+      if (!bits->test(i)) {
+        FAIL() << "LockFreeRingBuffer::permuteIndex(" << i << "," << s << ") failed.";
+      }
+    }
+  }
+}
 
 TEST(ScalableCircularQueueTest, LockFreeTest)
 {

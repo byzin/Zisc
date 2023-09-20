@@ -301,8 +301,7 @@ void LockFreeRingBuffer::full() noexcept
 
   for (uint64b i = 0; i < n; ++i) {
     const uint64b index = permuteIndex(i);
-    const uint64b v = (i < half) ? permuteIndexImpl(n + i, order(), half)
-                                 : invalidIndex();
+    const uint64b v = (i < half) ? permuteIndex(n + i, half) : invalidIndex();
     getIndex(index).store(v, std::memory_order::release);
   }
 
@@ -326,13 +325,30 @@ constexpr uint64b LockFreeRingBuffer::invalidIndex() noexcept
 /*!
   \details No detailed description
 
+  \param [in] index No description.
+  \param [in] n No description.
   \return No description
   */
 inline
-uint64b LockFreeRingBuffer::order() const noexcept
+uint64b LockFreeRingBuffer::permuteIndex(const uint64b index, const uint64b n) noexcept
 {
-  const uint64b o = cast<uint64b>(std::bit_width(size() >> 1));
-  return (0 < o) ? o - 1 : 0;
+  ZISC_ASSERT(std::has_single_bit(n), "The n isn't power of 2.");
+  const uint64b o = calcOrder(n);
+  using AtomicT = std::remove_cvref_t<decltype(LockFreeRingBuffer{nullptr}.getIndex(0))>;
+  constexpr uint64b cache_line_size = kCacheLineSize;
+  constexpr uint64b data_size = sizeof(AtomicT);
+  constexpr uint64b shift = (data_size < cache_line_size)
+      ? std::bit_width(cache_line_size) - std::bit_width(data_size)
+      : 0;
+
+  uint64b i = index;
+  if (shift < o) {
+    const uint64b upper = cast<uint64b>(index << shift);
+    const uint64b lower = cast<uint64b>((index & (n - 1)) >> (o - shift));
+    i = cast<uint64b>(upper | lower);
+  }
+  i = i & (n - 1);
+  return i;
 }
 
 /*!
@@ -374,10 +390,10 @@ std::size_t LockFreeRingBuffer::size() const noexcept
   \return No description
   */
 inline
-std::size_t LockFreeRingBuffer::calcMemChunkSize(const std::size_t s) const noexcept
+std::size_t LockFreeRingBuffer::calcMemChunkSize(const std::size_t s) noexcept
 {
   std::size_t l = 0;
-  using AtomicT = std::remove_cvref_t<decltype(getIndex(0))>;
+  using AtomicT = std::remove_cvref_t<decltype(LockFreeRingBuffer{nullptr}.getIndex(0))>;
   // Offset size
   {
     static_assert(sizeof(AtomicT) <= sizeof(MemChunk));
@@ -397,11 +413,23 @@ std::size_t LockFreeRingBuffer::calcMemChunkSize(const std::size_t s) const noex
 /*!
   \details No detailed description
 
+  \return No description
+  */
+inline
+uint64b LockFreeRingBuffer::calcOrder(const uint64b s) noexcept
+{
+  const uint64b o = cast<uint64b>(std::bit_width(s));
+  return (0 < o) ? o - 1 : 0;
+}
+
+/*!
+  \details No detailed description
+
   \param [in] half No description.
   \return No description
   */
 inline
-int64b LockFreeRingBuffer::calcThreshold3(const uint64b half) const noexcept
+int64b LockFreeRingBuffer::calcThreshold3(const uint64b half) noexcept
 {
   const uint64b threshold = 3 * half - 1;
   return cast<int64b>(threshold);
@@ -575,38 +603,7 @@ void LockFreeRingBuffer::initialize() noexcept
 inline
 uint64b LockFreeRingBuffer::permuteIndex(const uint64b index) const noexcept
 {
-  const uint64b i = permuteIndexImpl(index, order() + 1, size());
-  return i;
-}
-
-/*!
-  \details No detailed description
-
-  \param [in] index No description.
-  \param [in] o No description.
-  \param [in] n No description.
-  \return No description
-  */
-inline
-uint64b LockFreeRingBuffer::permuteIndexImpl(const uint64b index,
-                                             const uint64b o,
-                                             const uint64b n) const noexcept
-{
-  ZISC_ASSERT(std::has_single_bit(n), "The n isn't power of 2.");
-  using AtomicT = std::remove_cvref_t<decltype(getIndex(0))>;
-  constexpr uint64b cache_line_size = kCacheLineSize;
-  constexpr uint64b data_size = sizeof(AtomicT);
-  constexpr uint64b shift = (data_size < cache_line_size)
-      ? std::bit_width(cache_line_size) - std::bit_width(data_size)
-      : 0;
-
-  uint64b i = index;
-  if (shift < o) {
-    const uint64b upper = cast<uint64b>(index << shift);
-    const uint64b lower = cast<uint64b>((index & (n - 1)) >> (o - shift));
-    i = cast<uint64b>(upper | lower);
-  }
-  i = i & (n - 1);
+  const uint64b i = permuteIndex(index, size());
   return i;
 }
 

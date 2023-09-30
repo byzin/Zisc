@@ -27,6 +27,7 @@
 #include <vector>
 // Zisc
 #include "ring_buffer.hpp"
+#include "portable_ring_buffer.hpp"
 #include "queue.hpp"
 #include "scalable_circular_ring_buffer.hpp"
 #include "zisc/error.hpp"
@@ -161,6 +162,8 @@ class LockFreeQueue : public Queue<LockFreeQueue<T, RingBufferClass>, T>
 // Type aliases
 template <std::movable T>
 using ScalableCircularQueue = LockFreeQueue<T, ScalableCircularRingBuffer>;
+template <std::movable T>
+using PortableRingQueue = LockFreeQueue<T, PortableRingBuffer>;
 
 } // namespace zisc
 

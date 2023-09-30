@@ -1,5 +1,5 @@
 /*!
-  \file lock_free_ring_buffer.hpp
+  \file scalable_circular_ring_buffer.hpp
   \author Sho Ikeda
   \brief No brief description
 
@@ -12,8 +12,8 @@
   http://opensource.org/licenses/mit-license.php
   */
 
-#ifndef ZISC_LOCK_FREE_RING_BUFFER_HPP
-#define ZISC_LOCK_FREE_RING_BUFFER_HPP
+#ifndef ZISC_SCALABLE_CIRCULAR_RING_BUFFER_HPP
+#define ZISC_SCALABLE_CIRCULAR_RING_BUFFER_HPP
 
 // Standard C++ library
 #include <atomic>
@@ -22,6 +22,7 @@
 #include <type_traits>
 #include <vector>
 // Zisc
+#include "ring_buffer.hpp"
 #include "zisc/error.hpp"
 #include "zisc/zisc_config.hpp"
 #include "zisc/memory/std_memory_resource.hpp"
@@ -29,56 +30,47 @@
 namespace zisc {
 
 /*!
-  \brief Represent a ring buffer in a queue
+  \brief The implementation of Scalable Circular Lock-free Queue (SCQ)
 
-  No detailed description.
+  For more detail, please see the following paper: 
+  <a href="https://arxiv.org/abs/1908.04511">A Scalable, Portable, and Memory-Efficient Lock-Free FIFO Queue</a>. <br>
+  Assume that the number of threads is less than or equal size().
   */
-class LockFreeRingBuffer
+class ScalableCircularRingBuffer : public RingBuffer<ScalableCircularRingBuffer>
 {
  public:
+  // Type aliases
+  using BaseRingBufferT = RingBuffer<ScalableCircularRingBuffer>;
+
+
   //! Create a ring buffer
-  LockFreeRingBuffer(pmr::memory_resource* mem_resource) noexcept;
+  ScalableCircularRingBuffer(pmr::memory_resource* mem_resource) noexcept;
 
   //! Move a data
-  LockFreeRingBuffer(LockFreeRingBuffer&& other) noexcept;
+  ScalableCircularRingBuffer(ScalableCircularRingBuffer&& other) noexcept;
 
   //! Destroy the ring buffer
-  ~LockFreeRingBuffer() noexcept;
+  ~ScalableCircularRingBuffer() noexcept;
 
 
   //! Move a data
-  LockFreeRingBuffer& operator=(LockFreeRingBuffer&& other) noexcept;
+  ScalableCircularRingBuffer& operator=(ScalableCircularRingBuffer&& other) noexcept;
 
-
-  //! Return the maximum possible capacity
-  static constexpr std::size_t capacityMax() noexcept;
 
   //! Clear indices
   void clear() noexcept;
 
-  //! Return the index represent an overflow
-  static constexpr uint64b overflowIndex() noexcept;
-
   //! Take the first element of the queue
-  std::size_t dequeue(const bool nonempty) noexcept;
+  uint64b dequeue(const bool nonempty) noexcept;
 
   //! Return the distance between head and tail
   std::size_t distance() const noexcept;
 
   //! Append the given element value to the end of the queue
-  bool enqueue(const std::size_t index, const bool nonempty) noexcept;
-
-  //! Fill the buffer data
-  void fill(const uint64b s, const uint64b e) noexcept;
+  bool enqueue(const uint64b index, const bool nonempty) noexcept;
 
   //! Full the buffer data
   void full() noexcept;
-
-  //! Return the invalid index
-  static constexpr uint64b invalidIndex() noexcept;
-
-  //! Remap index in order to avoid false sharing
-  static uint64b permuteIndex(const uint64b index, const uint64b n) noexcept;
 
   //! Set the number of elements of indices
   void setSize(const std::size_t s) noexcept;
@@ -89,9 +81,6 @@ class LockFreeRingBuffer
  private:
   //! Calculate the required memory length
   static std::size_t calcMemChunkSize(const std::size_t s) noexcept;
-
-  //! Return the order of the size
-  static uint64b calcOrder(const uint64b s) noexcept;
 
   //!
   static int64b calcThreshold3(const uint64b half) noexcept;
@@ -147,6 +136,6 @@ class LockFreeRingBuffer
 
 } // namespace zisc
 
-#include "lock_free_ring_buffer-inl.hpp"
+#include "scalable_circular_ring_buffer-inl.hpp"
 
-#endif // ZISC_LOCK_FREE_RING_BUFFER_HPP
+#endif // ZISC_SCALABLE_CIRCULAR_RING_BUFFER_HPP

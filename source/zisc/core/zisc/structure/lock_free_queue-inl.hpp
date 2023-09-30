@@ -1,5 +1,5 @@
 /*!
-  \file scalable_circular_queue-inl.hpp
+  \file lock_free_queue-inl.hpp
   \author Sho Ikeda
   \brief No brief description
 
@@ -12,10 +12,10 @@
   http://opensource.org/licenses/mit-license.php
   */
 
-#ifndef ZISC_SCALABLE_CIRCULAR_QUEUE_INL_HPP
-#define ZISC_SCALABLE_CIRCULAR_QUEUE_INL_HPP
+#ifndef ZISC_LOCK_FREE_QUEUE_INL_HPP
+#define ZISC_LOCK_FREE_QUEUE_INL_HPP
 
-#include "scalable_circular_queue.hpp"
+#include "lock_free_queue.hpp"
 // Standard C++ library
 #include <algorithm>
 #include <atomic>
@@ -32,7 +32,7 @@
 #include <vector>
 // Zisc
 #include "container_overflow_error.hpp"
-#include "lock_free_ring_buffer.hpp"
+#include "ring_buffer.hpp"
 #include "zisc/error.hpp"
 #include "zisc/utility.hpp"
 #include "zisc/zisc_config.hpp"
@@ -46,9 +46,9 @@ namespace zisc {
 
   \param [in,out] mem_resource No description.
   */
-template <std::movable T> inline
-ScalableCircularQueue<T>::ScalableCircularQueue(pmr::memory_resource* mem_resource) noexcept
-    : ScalableCircularQueue(1, mem_resource)
+template <std::movable T, typename RingBufferClass> inline
+LockFreeQueue<T, RingBufferClass>::LockFreeQueue(pmr::memory_resource* mem_resource) noexcept
+    : LockFreeQueue(1, mem_resource)
 {
 }
 
@@ -58,9 +58,9 @@ ScalableCircularQueue<T>::ScalableCircularQueue(pmr::memory_resource* mem_resour
   \param [in] cap No description.
   \param [in,out] mem_resource No description.
   */
-template <std::movable T> inline
-ScalableCircularQueue<T>::ScalableCircularQueue(const size_type cap,
-                                                pmr::memory_resource* mem_resource) noexcept
+template <std::movable T, typename RingBufferClass> inline
+LockFreeQueue<T, RingBufferClass>::LockFreeQueue(const size_type cap,
+                                                 pmr::memory_resource* mem_resource) noexcept
     : BaseQueueT(),
       free_elements_{mem_resource},
       allocated_elements_{mem_resource},
@@ -74,9 +74,9 @@ ScalableCircularQueue<T>::ScalableCircularQueue(const size_type cap,
 
   \param [in] other No description.
   */
-template <std::movable T> inline
-ScalableCircularQueue<T>::ScalableCircularQueue(ScalableCircularQueue&& other) noexcept
-    : BaseQueueT(other),
+template <std::movable T, typename RingBufferClass> inline
+LockFreeQueue<T, RingBufferClass>::LockFreeQueue(LockFreeQueue&& other) noexcept
+    : BaseQueueT(std::move(other)),
       free_elements_{std::move(other.free_elements_)},
       allocated_elements_{std::move(other.allocated_elements_)},
       elements_{std::move(other.elements_)}
@@ -86,8 +86,8 @@ ScalableCircularQueue<T>::ScalableCircularQueue(ScalableCircularQueue&& other) n
 /*!
   \details No detailed description
   */
-template <std::movable T> inline
-ScalableCircularQueue<T>::~ScalableCircularQueue() noexcept
+template <std::movable T, typename RingBufferClass> inline
+LockFreeQueue<T, RingBufferClass>::~LockFreeQueue() noexcept
 {
   clear();
 }
@@ -98,9 +98,9 @@ ScalableCircularQueue<T>::~ScalableCircularQueue() noexcept
   \param [in] other No description.
   \return No description
   */
-template <std::movable T> inline
-auto ScalableCircularQueue<T>::operator=(ScalableCircularQueue&& other) noexcept
-    -> ScalableCircularQueue&
+template <std::movable T, typename RingBufferClass> inline
+auto LockFreeQueue<T, RingBufferClass>::operator=(LockFreeQueue&& other) noexcept
+    -> LockFreeQueue&
 {
   clear();
   BaseQueueT::operator=(std::move(other));
@@ -115,8 +115,8 @@ auto ScalableCircularQueue<T>::operator=(ScalableCircularQueue&& other) noexcept
 
   \return No description
   */
-template <std::movable T> inline
-auto ScalableCircularQueue<T>::capacity() const noexcept -> size_type
+template <std::movable T, typename RingBufferClass> inline
+auto LockFreeQueue<T, RingBufferClass>::capacity() const noexcept -> size_type
 {
   const size_type cap = elements_.size();
   ZISC_ASSERT((cap == 0) || std::has_single_bit(cap),
@@ -129,18 +129,18 @@ auto ScalableCircularQueue<T>::capacity() const noexcept -> size_type
 
   \return No description
   */
-template <std::movable T> inline
-constexpr auto ScalableCircularQueue<T>::capacityMax() noexcept -> size_type
+template <std::movable T, typename RingBufferClass> inline
+constexpr auto LockFreeQueue<T, RingBufferClass>::capacityMax() noexcept -> size_type
 {
-  const size_type cap = (std::numeric_limits<size_type>::max)() >> 2;
+  const size_type cap = BaseRingBufferT::capacityMax() >> 1;
   return cap;
 }
 
 /*!
   \details No detailed description
   */
-template <std::movable T> inline
-void ScalableCircularQueue<T>::clear() noexcept
+template <std::movable T, typename RingBufferClass> inline
+void LockFreeQueue<T, RingBufferClass>::clear() noexcept
 {
   // Skip clear operation after moving data to other
   if (elements_.empty())
@@ -154,8 +154,8 @@ void ScalableCircularQueue<T>::clear() noexcept
       [[maybe_unused]] const std::optional<ValueT> value = dequeue();
   }
   ZISC_ASSERT(BaseQueueT::isEmpty(), "The queue still have value. size=", size());
-  allocated_elements_.clear();
-  free_elements_.full();
+  allocatedElements().clear();
+  freeElements().full();
 }
 
 /*!
@@ -163,8 +163,8 @@ void ScalableCircularQueue<T>::clear() noexcept
 
   \return No description
   */
-template <std::movable T> inline
-auto ScalableCircularQueue<T>::data() const noexcept -> std::span<ConstT>
+template <std::movable T, typename RingBufferClass> inline
+auto LockFreeQueue<T, RingBufferClass>::data() const noexcept -> std::span<ConstT>
 {
   std::span<ConstT> d{getStorage(0).memory(), elements_.size()};
   return d;
@@ -175,17 +175,17 @@ auto ScalableCircularQueue<T>::data() const noexcept -> std::span<ConstT>
 
   \return No description
   */
-template <std::movable T> inline
-auto ScalableCircularQueue<T>::dequeue() noexcept -> std::optional<ValueT> 
+template <std::movable T, typename RingBufferClass> inline
+auto LockFreeQueue<T, RingBufferClass>::dequeue() noexcept -> std::optional<ValueT> 
 {
   std::optional<ValueT> result{};
-  const size_type index = allocated_elements_.dequeue(false); // Get an entry point
+  const size_type index = allocatedElements().dequeue(false); // Get an entry point
   const bool is_success = index != RingBufferT::invalidIndex();
   if (is_success) {
     StorageRef storage = getStorage(index);
     result = std::move(storage.get());
     storage.destroy();
-    free_elements_.enqueue(index, true);
+    freeElements().enqueue(index, true);
   }
   return result;
 }
@@ -197,11 +197,11 @@ auto ScalableCircularQueue<T>::dequeue() noexcept -> std::optional<ValueT>
   \return No description
   \exception OverflowError No description.
   */
-template <std::movable T>
+template <std::movable T, typename RingBufferClass>
 template <typename ...Args> requires std::is_nothrow_constructible_v<T, Args...> inline
-auto ScalableCircularQueue<T>::enqueue(Args&&... args) -> std::optional<size_type>
+auto LockFreeQueue<T, RingBufferClass>::enqueue(Args&&... args) -> std::optional<size_type>
 {
-  const size_type index = free_elements_.dequeue(true); // Get an entry index
+  const size_type index = freeElements().dequeue(true); // Get an entry index
 
   // Check overflow
   using OverflowErr = typename BaseQueueT::OverflowError;
@@ -214,7 +214,7 @@ auto ScalableCircularQueue<T>::enqueue(Args&&... args) -> std::optional<size_typ
   if (is_success) {
     StorageRef storage = getStorage(index);
     storage.set(std::forward<Args>(args)...);
-    allocated_elements_.enqueue(index, false);
+    allocatedElements().enqueue(index, false);
   }
   return is_success ? std::make_optional(index) : std::optional<size_type>{};
 }
@@ -225,8 +225,8 @@ auto ScalableCircularQueue<T>::enqueue(Args&&... args) -> std::optional<size_typ
   \param [in] index No description.
   \return No description
   */
-template <std::movable T> inline
-auto ScalableCircularQueue<T>::get(const size_type index) noexcept -> Reference
+template <std::movable T, typename RingBufferClass> inline
+auto LockFreeQueue<T, RingBufferClass>::get(const size_type index) noexcept -> Reference
 {
   return *getStorage(index);
 }
@@ -237,8 +237,8 @@ auto ScalableCircularQueue<T>::get(const size_type index) noexcept -> Reference
   \param [in] index No description.
   \return No description
   */
-template <std::movable T> inline
-auto ScalableCircularQueue<T>::get(const size_type index) const noexcept -> ConstReference
+template <std::movable T, typename RingBufferClass> inline
+auto LockFreeQueue<T, RingBufferClass>::get(const size_type index) const noexcept -> ConstReference
 {
   return *getStorage(index);
 }
@@ -248,8 +248,8 @@ auto ScalableCircularQueue<T>::get(const size_type index) const noexcept -> Cons
 
   \return No description
   */
-template <std::movable T> inline
-constexpr bool ScalableCircularQueue<T>::isBounded() noexcept
+template <std::movable T, typename RingBufferClass> inline
+constexpr bool LockFreeQueue<T, RingBufferClass>::isBounded() noexcept
 {
   return true;
 }
@@ -259,8 +259,8 @@ constexpr bool ScalableCircularQueue<T>::isBounded() noexcept
 
   \return No description
   */
-template <std::movable T> inline
-constexpr bool ScalableCircularQueue<T>::isConcurrent() noexcept
+template <std::movable T, typename RingBufferClass> inline
+constexpr bool LockFreeQueue<T, RingBufferClass>::isConcurrent() noexcept
 {
   return true;
 }
@@ -270,8 +270,8 @@ constexpr bool ScalableCircularQueue<T>::isConcurrent() noexcept
 
   \return No description
   */
-template <std::movable T> inline
-pmr::memory_resource* ScalableCircularQueue<T>::resource() const noexcept
+template <std::movable T, typename RingBufferClass> inline
+pmr::memory_resource* LockFreeQueue<T, RingBufferClass>::resource() const noexcept
 {
   pmr::memory_resource* mem_resource = elements_.get_allocator().resource();
   return mem_resource;
@@ -282,8 +282,8 @@ pmr::memory_resource* ScalableCircularQueue<T>::resource() const noexcept
 
   \param [in] cap No description.
   */
-template <std::movable T> inline
-void ScalableCircularQueue<T>::setCapacity(size_type cap) noexcept
+template <std::movable T, typename RingBufferClass> inline
+void LockFreeQueue<T, RingBufferClass>::setCapacity(size_type cap) noexcept
 {
   constexpr size_type lowest_size = 1;
   cap = (std::max)(lowest_size, cap);
@@ -304,8 +304,8 @@ void ScalableCircularQueue<T>::setCapacity(size_type cap) noexcept
 
   \return No description
   */
-template <std::movable T> inline
-auto ScalableCircularQueue<T>::size() const noexcept -> size_type
+template <std::movable T, typename RingBufferClass> inline
+auto LockFreeQueue<T, RingBufferClass>::size() const noexcept -> size_type
 {
   const std::size_t s = allocated_elements_.distance();
   return s;
@@ -314,11 +314,55 @@ auto ScalableCircularQueue<T>::size() const noexcept -> size_type
 /*!
   \details No detailed description
 
+  \return No description
+  */
+template <std::movable T, typename RingBufferClass> inline
+auto LockFreeQueue<T, RingBufferClass>::allocatedElements() noexcept -> BaseRingBufferT&
+{
+  return allocated_elements_;
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+template <std::movable T, typename RingBufferClass> inline
+auto LockFreeQueue<T, RingBufferClass>::allocatedElements() const noexcept -> const BaseRingBufferT&
+{
+  return allocated_elements_;
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+template <std::movable T, typename RingBufferClass> inline
+auto LockFreeQueue<T, RingBufferClass>::freeElements() noexcept -> BaseRingBufferT&
+{
+  return free_elements_;
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+template <std::movable T, typename RingBufferClass> inline
+auto LockFreeQueue<T, RingBufferClass>::freeElements() const noexcept -> const BaseRingBufferT&
+{
+  return free_elements_;
+}
+
+/*!
+  \details No detailed description
+
   \param [in] index No description.
   \return No description
   */
-template <std::movable T> inline
-auto ScalableCircularQueue<T>::getStorage(const size_type index) noexcept
+template <std::movable T, typename RingBufferClass> inline
+auto LockFreeQueue<T, RingBufferClass>::getStorage(const size_type index) noexcept
     -> StorageRef
 {
   return elements_[index];
@@ -330,8 +374,8 @@ auto ScalableCircularQueue<T>::getStorage(const size_type index) noexcept
   \param [in] index No description.
   \return No description
   */
-template <std::movable T> inline
-auto ScalableCircularQueue<T>::getStorage(const size_type index) const noexcept
+template <std::movable T, typename RingBufferClass> inline
+auto LockFreeQueue<T, RingBufferClass>::getStorage(const size_type index) const noexcept
     -> ConstStorageRef 
 {
   return elements_[index];
@@ -339,4 +383,4 @@ auto ScalableCircularQueue<T>::getStorage(const size_type index) const noexcept
 
 } // namespace zisc
 
-#endif // ZISC_SCALABLE_CIRCULAR_QUEUE_INL_HPP
+#endif // ZISC_LOCK_FREE_QUEUE_INL_HPP

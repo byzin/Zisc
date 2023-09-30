@@ -37,7 +37,7 @@
 #include "zisc/memory/monotonic_buffer_resource.hpp"
 #include "zisc/memory/std_memory_resource.hpp"
 #include "zisc/structure/queue.hpp"
-#include "zisc/structure/scalable_circular_queue.hpp"
+#include "zisc/structure/lock_free_queue.hpp"
 
 namespace zisc {
 

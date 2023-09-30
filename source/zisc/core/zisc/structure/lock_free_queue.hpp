@@ -1,5 +1,5 @@
 /*!
-  \file scalable_circular_queue.hpp
+  \file lock_free_queue.hpp
   \author Sho Ikeda
   \brief No brief description
 
@@ -12,8 +12,8 @@
   http://opensource.org/licenses/mit-license.php
   */
 
-#ifndef ZISC_SCALABLE_CIRCULAR_QUEUE_HPP
-#define ZISC_SCALABLE_CIRCULAR_QUEUE_HPP
+#ifndef ZISC_LOCK_FREE_QUEUE_HPP
+#define ZISC_LOCK_FREE_QUEUE_HPP
 
 // Standard C++ library
 #include <atomic>
@@ -26,8 +26,9 @@
 #include <type_traits>
 #include <vector>
 // Zisc
-#include "lock_free_ring_buffer.hpp"
+#include "ring_buffer.hpp"
 #include "queue.hpp"
+#include "scalable_circular_ring_buffer.hpp"
 #include "zisc/error.hpp"
 #include "zisc/zisc_config.hpp"
 #include "zisc/memory/data_storage.hpp"
@@ -36,20 +37,20 @@
 namespace zisc {
 
 /*!
-  \brief Scalable Circular Lock-free Queue (SCQ)
+  \brief No brief description
 
-  For more detail, please see the following paper: 
-  <a href="https://arxiv.org/abs/1908.04511">A Scalable, Portable, and Memory-Efficient Lock-Free FIFO Queue</a>. <br>
-  Assume that the number of threads is less than or equal size().
+  No detailed description.
 
   \tparam T No description.
+  \tparam RingBufferClass No description.
   */
-template <std::movable T>
-class ScalableCircularQueue : public Queue<ScalableCircularQueue<T>, T>
+template <std::movable T, typename RingBufferClass>
+class LockFreeQueue : public Queue<LockFreeQueue<T, RingBufferClass>, T>
 {
  public:
   // Type aliases
-  using BaseQueueT = Queue<ScalableCircularQueue<T>, T>;
+  using BaseRingBufferT = RingBuffer<RingBufferClass>;
+  using BaseQueueT = Queue<LockFreeQueue<T, RingBufferClass>, T>;
   using ValueT = typename BaseQueueT::ValueT;
   using ConstT = typename BaseQueueT::ConstT;
   using Reference = typename BaseQueueT::Reference;
@@ -66,21 +67,21 @@ class ScalableCircularQueue : public Queue<ScalableCircularQueue<T>, T>
 
 
   //! Create a queue
-  ScalableCircularQueue(pmr::memory_resource* mem_resource) noexcept;
+  LockFreeQueue(pmr::memory_resource* mem_resource) noexcept;
 
   //! Create a queue
-  ScalableCircularQueue(const size_type cap,
+  LockFreeQueue(const size_type cap,
                         pmr::memory_resource* mem_resource) noexcept;
 
   //! Move a data
-  ScalableCircularQueue(ScalableCircularQueue&& other) noexcept;
+  LockFreeQueue(LockFreeQueue&& other) noexcept;
 
   //! Destroy the queue
-  ~ScalableCircularQueue() noexcept;
+  ~LockFreeQueue() noexcept;
 
 
   //! Move a queue
-  ScalableCircularQueue& operator=(ScalableCircularQueue&& other) noexcept;
+  LockFreeQueue& operator=(LockFreeQueue&& other) noexcept;
 
 
   //! Return the maximum possible number of elements can be queued
@@ -130,8 +131,20 @@ class ScalableCircularQueue : public Queue<ScalableCircularQueue<T>, T>
   using ConstStorageRef = std::add_lvalue_reference_t<ConstStorageT>;
   using StoragePtr = std::add_pointer_t<StorageT>;
   using ConstStoragePtr = std::add_pointer_t<ConstStorageT>;
-  using RingBufferT = LockFreeRingBuffer;
+  using RingBufferT = RingBufferClass;
 
+
+  //! Return the ring buffer for allocated elements
+  BaseRingBufferT& allocatedElements() noexcept;
+
+  //! Return the ring buffer for allocated elements
+  const BaseRingBufferT& allocatedElements() const noexcept;
+
+  //! Return the ring buffer for free elements 
+  BaseRingBufferT& freeElements() noexcept;
+
+  //! Return the ring buffer for free elements 
+  const BaseRingBufferT& freeElements() const noexcept;
 
   //! Return the storage by the given index
   StorageRef getStorage(const size_type index) noexcept;
@@ -145,6 +158,10 @@ class ScalableCircularQueue : public Queue<ScalableCircularQueue<T>, T>
   pmr::vector<StorageT> elements_;
 };
 
+// Type aliases
+template <std::movable T>
+using ScalableCircularQueue = LockFreeQueue<T, ScalableCircularRingBuffer>;
+
 } // namespace zisc
 
 /*!
@@ -153,6 +170,6 @@ class ScalableCircularQueue : public Queue<ScalableCircularQueue<T>, T>
   This is an example of how to use zisc::Queue.
   */
 
-#include "scalable_circular_queue-inl.hpp"
+#include "lock_free_queue-inl.hpp"
 
-#endif // ZISC_SCALABLE_CIRCULAR_QUEUE_HPP
+#endif // ZISC_LOCK_FREE_QUEUE_HPP

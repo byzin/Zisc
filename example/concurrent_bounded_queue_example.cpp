@@ -23,7 +23,7 @@
 #include "zisc/zisc_config.hpp"
 #include "zisc/memory/alloc_free_resource.hpp"
 #include "zisc/structure/queue.hpp"
-#include "zisc/structure/scalable_circular_queue.hpp"
+#include "zisc/structure/lock_free_queue.hpp"
 
 template <typename Type>
 void showAtomicProperties(const std::string_view type_name) noexcept

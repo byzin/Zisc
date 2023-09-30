@@ -1,5 +1,5 @@
 /*!
-  \file lock_free_ring_buffer-inl.hpp
+  \file scalable_circular_ring_buffer-inl.hpp
   \author Sho Ikeda
   \brief No brief description
 
@@ -12,10 +12,10 @@
   http://opensource.org/licenses/mit-license.php
   */
 
-#ifndef ZISC_LOCK_FREE_RING_BUFFER_INL_HPP
-#define ZISC_LOCK_FREE_RING_BUFFER_INL_HPP
+#ifndef ZISC_SCALABLE_CIRCULAR_RING_BUFFER_INL_HPP
+#define ZISC_SCALABLE_CIRCULAR_RING_BUFFER_INL_HPP
 
-#include "lock_free_ring_buffer.hpp"
+#include "scalable_circular_ring_buffer.hpp"
 // Standard C++ library
 #include <algorithm>
 #include <atomic>
@@ -28,6 +28,7 @@
 #include <utility>
 #include <vector>
 // Zisc
+#include "ring_buffer.hpp"
 #include "zisc/error.hpp"
 #include "zisc/utility.hpp"
 #include "zisc/zisc_config.hpp"
@@ -41,7 +42,8 @@ namespace zisc {
   \param [in,out] mem_resource No description.
   */
 inline
-LockFreeRingBuffer::LockFreeRingBuffer(pmr::memory_resource* mem_resource) noexcept :
+ScalableCircularRingBuffer::ScalableCircularRingBuffer(pmr::memory_resource* mem_resource) noexcept :
+    BaseRingBufferT(),
     memory_{typename decltype(memory_)::allocator_type{mem_resource}},
     size_{0}
 {
@@ -54,7 +56,8 @@ LockFreeRingBuffer::LockFreeRingBuffer(pmr::memory_resource* mem_resource) noexc
   \param [in] other No description.
   */
 inline
-LockFreeRingBuffer::LockFreeRingBuffer(LockFreeRingBuffer&& other) noexcept :
+ScalableCircularRingBuffer::ScalableCircularRingBuffer(ScalableCircularRingBuffer&& other) noexcept :
+    BaseRingBufferT(std::move(other)),
     memory_{std::move(other.memory_)},
     size_{other.size_}
 {
@@ -64,7 +67,7 @@ LockFreeRingBuffer::LockFreeRingBuffer(LockFreeRingBuffer&& other) noexcept :
   \details No detailed description
   */
 inline
-LockFreeRingBuffer::~LockFreeRingBuffer() noexcept
+ScalableCircularRingBuffer::~ScalableCircularRingBuffer() noexcept
 {
   destroy();
 }
@@ -75,8 +78,9 @@ LockFreeRingBuffer::~LockFreeRingBuffer() noexcept
   \param [in] other No description.
   */
 inline
-auto LockFreeRingBuffer::operator=(LockFreeRingBuffer&& other) noexcept -> LockFreeRingBuffer&
+auto ScalableCircularRingBuffer::operator=(ScalableCircularRingBuffer&& other) noexcept -> ScalableCircularRingBuffer&
 {
+  BaseRingBufferT::operator=(std::move(other));
   memory_ = std::move(other.memory_);
   size_ = other.size_;
   return *this;
@@ -84,21 +88,9 @@ auto LockFreeRingBuffer::operator=(LockFreeRingBuffer&& other) noexcept -> LockF
 
 /*!
   \details No detailed description
-
-  \return No description
   */
 inline
-constexpr std::size_t LockFreeRingBuffer::capacityMax() noexcept
-{
-  constexpr std::size_t invalid = (std::numeric_limits<std::size_t>::max)();
-  return invalid;
-}
-
-/*!
-  \details No detailed description
-  */
-inline
-void LockFreeRingBuffer::clear() noexcept
+void ScalableCircularRingBuffer::clear() noexcept
 {
   for (std::size_t i = 0; i < size(); ++i)
     getIndex(i).store(invalidIndex(), std::memory_order::release);
@@ -106,19 +98,6 @@ void LockFreeRingBuffer::clear() noexcept
   head().store(0, std::memory_order::release);
   threshold().store(-1, std::memory_order::release);
   tail().store(0, std::memory_order::release);
-
-}
-
-/*!
-  \details No detailed description
-
-  \return No description
-  */
-inline
-constexpr uint64b LockFreeRingBuffer::overflowIndex() noexcept
-{
-  constexpr auto index = cast<uint64b>(capacityMax() - 1);
-  return index;
 }
 
 /*!
@@ -128,7 +107,7 @@ constexpr uint64b LockFreeRingBuffer::overflowIndex() noexcept
   \return No description
   */
 inline
-std::size_t LockFreeRingBuffer::dequeue(const bool nonempty) noexcept
+uint64b ScalableCircularRingBuffer::dequeue(const bool nonempty) noexcept
 {
   uint64b index = invalidIndex();
   uint64b headp = 0;
@@ -140,9 +119,7 @@ std::size_t LockFreeRingBuffer::dequeue(const bool nonempty) noexcept
   bool again = false;
 
   // Cautious dequeue
-  if (const uint64b h = head().load(std::memory_order::acquire),
-                    t = tail().load(std::memory_order::acquire);
-      nonempty && (t <= h)) [[unlikely]] {
+  if (nonempty && (distance() == 0)) [[unlikely]] {
     flag = false;
     index = overflowIndex();
   }
@@ -200,7 +177,7 @@ std::size_t LockFreeRingBuffer::dequeue(const bool nonempty) noexcept
       }
     }
   }
-  return cast<std::size_t>(index);
+  return index;
 }
 
 /*!
@@ -209,7 +186,7 @@ std::size_t LockFreeRingBuffer::dequeue(const bool nonempty) noexcept
   \return No description
   */
 inline
-std::size_t LockFreeRingBuffer::distance() const noexcept
+std::size_t ScalableCircularRingBuffer::distance() const noexcept
 {
   const uint64b h = head().load(std::memory_order::acquire);
   const uint64b t = tail().load(std::memory_order::acquire);
@@ -225,7 +202,7 @@ std::size_t LockFreeRingBuffer::distance() const noexcept
   \return No description
   */
 inline
-bool LockFreeRingBuffer::enqueue(const std::size_t index, const bool nonempty) noexcept
+bool ScalableCircularRingBuffer::enqueue(const uint64b index, const bool nonempty) noexcept
 {
   uint64b tailp = 0;
   uint64b tail_cycle = 0;
@@ -246,7 +223,7 @@ bool LockFreeRingBuffer::enqueue(const std::size_t index, const bool nonempty) n
         ((entry == entry_cycle) ||
          ((entry == (entry_cycle ^ n)) &&
           compare<std::less_equal>(head().load(std::memory_order::acquire), tailp)))) {
-      const uint64b entry_index = cast<uint64b>(index) ^ cast<uint64b>(n - 1);
+      const uint64b entry_index = index ^ cast<uint64b>(n - 1);
       retry = !getIndex(tail_index).compare_exchange_weak(entry,
                                                           tail_cycle ^ entry_index,
                                                           std::memory_order::acq_rel,
@@ -265,43 +242,21 @@ bool LockFreeRingBuffer::enqueue(const std::size_t index, const bool nonempty) n
 
 /*!
   \details No detailed description
-
-  \param [in] s No description.
-  \param [in] e No description.
   */
 inline
-void LockFreeRingBuffer::fill(const uint64b s, const uint64b e) noexcept
+void ScalableCircularRingBuffer::full() noexcept
 {
-  ZISC_ASSERT(e <= size(), "The e is greater than the number of elements.");
-  ZISC_ASSERT(s <= e, "The s is greater than the e.");
+  using AtomicT = std::remove_cvref_t<decltype(getIndex(0))>;
+
   const uint64b n = cast<uint64b>(size());
   const uint64b half = n >> 1;
 
   for (uint64b i = 0; i < n; ++i) {
     const uint64b index = permuteIndex(i);
-    const uint64b v = (i < s) ? 2 * n - 1 :
-                      (i < e) ? n + i
-                              : invalidIndex();
-    getIndex(index).store(v, std::memory_order::release);
-  }
-
-  head().store(s, std::memory_order::release);
-  threshold().store(calcThreshold3(half), std::memory_order::release);
-  tail().store(e, std::memory_order::release);
-}
-
-/*!
-  \details No detailed description
-  */
-inline
-void LockFreeRingBuffer::full() noexcept
-{
-  const uint64b n = cast<uint64b>(size());
-  const uint64b half = n >> 1;
-
-  for (uint64b i = 0; i < n; ++i) {
-    const uint64b index = permuteIndex(i);
-    const uint64b v = (i < half) ? permuteIndex(n + i, half) : invalidIndex();
+    constexpr std::size_t data_size = sizeof(AtomicT);
+    const uint64b v = (i < half)
+        ? BaseRingBufferT::permuteIndex<data_size>(n + i, half)
+        : invalidIndex();
     getIndex(index).store(v, std::memory_order::release);
   }
 
@@ -313,51 +268,10 @@ void LockFreeRingBuffer::full() noexcept
 /*!
   \details No detailed description
 
-  \return No description
-  */
-inline
-constexpr uint64b LockFreeRingBuffer::invalidIndex() noexcept
-{
-  constexpr auto invalid = cast<uint64b>(capacityMax());
-  return invalid;
-}
-
-/*!
-  \details No detailed description
-
-  \param [in] index No description.
-  \param [in] n No description.
-  \return No description
-  */
-inline
-uint64b LockFreeRingBuffer::permuteIndex(const uint64b index, const uint64b n) noexcept
-{
-  ZISC_ASSERT(std::has_single_bit(n), "The n isn't power of 2.");
-  const uint64b o = calcOrder(n);
-  using AtomicT = std::remove_cvref_t<decltype(LockFreeRingBuffer{nullptr}.getIndex(0))>;
-  constexpr uint64b cache_line_size = kCacheLineSize;
-  constexpr uint64b data_size = sizeof(AtomicT);
-  constexpr uint64b shift = (data_size < cache_line_size)
-      ? std::bit_width(cache_line_size) - std::bit_width(data_size)
-      : 0;
-
-  uint64b i = index;
-  if (shift < o) {
-    const uint64b upper = cast<uint64b>(index << shift);
-    const uint64b lower = cast<uint64b>((index & (n - 1)) >> (o - shift));
-    i = cast<uint64b>(upper | lower);
-  }
-  i = i & (n - 1);
-  return i;
-}
-
-/*!
-  \details No detailed description
-
   \param [in] s \a s must be a power of 2.
   */
 inline
-void LockFreeRingBuffer::setSize(const std::size_t s) noexcept
+void ScalableCircularRingBuffer::setSize(const std::size_t s) noexcept
 {
   ZISC_ASSERT((s == 0) || std::has_single_bit(s), "The size isn't 2^n. size = ", s);
   ZISC_ASSERT(s < capacityMax(), "The size exceeds the capacity max. size = ", s);
@@ -377,7 +291,7 @@ void LockFreeRingBuffer::setSize(const std::size_t s) noexcept
   \return No description
   */
 inline
-std::size_t LockFreeRingBuffer::size() const noexcept
+std::size_t ScalableCircularRingBuffer::size() const noexcept
 {
   const std::size_t s = size_;
   ZISC_ASSERT((s == 0) || std::has_single_bit(s), "The size isn't 2^n. size = ", s);
@@ -390,10 +304,10 @@ std::size_t LockFreeRingBuffer::size() const noexcept
   \return No description
   */
 inline
-std::size_t LockFreeRingBuffer::calcMemChunkSize(const std::size_t s) noexcept
+std::size_t ScalableCircularRingBuffer::calcMemChunkSize(const std::size_t s) noexcept
 {
   std::size_t l = 0;
-  using AtomicT = std::remove_cvref_t<decltype(LockFreeRingBuffer{nullptr}.getIndex(0))>;
+  using AtomicT = std::remove_cvref_t<decltype(ScalableCircularRingBuffer{nullptr}.getIndex(0))>;
   // Offset size
   {
     static_assert(sizeof(AtomicT) <= sizeof(MemChunk));
@@ -413,23 +327,11 @@ std::size_t LockFreeRingBuffer::calcMemChunkSize(const std::size_t s) noexcept
 /*!
   \details No detailed description
 
-  \return No description
-  */
-inline
-uint64b LockFreeRingBuffer::calcOrder(const uint64b s) noexcept
-{
-  const uint64b o = cast<uint64b>(std::bit_width(s));
-  return (0 < o) ? o - 1 : 0;
-}
-
-/*!
-  \details No detailed description
-
   \param [in] half No description.
   \return No description
   */
 inline
-int64b LockFreeRingBuffer::calcThreshold3(const uint64b half) noexcept
+int64b ScalableCircularRingBuffer::calcThreshold3(const uint64b half) noexcept
 {
   const uint64b threshold = 3 * half - 1;
   return cast<int64b>(threshold);
@@ -442,7 +344,7 @@ int64b LockFreeRingBuffer::calcThreshold3(const uint64b half) noexcept
   \param [in] headp No description.
   */
 inline
-void LockFreeRingBuffer::catchUp(uint64b tailp, uint64b headp) noexcept
+void ScalableCircularRingBuffer::catchUp(uint64b tailp, uint64b headp) noexcept
 {
   while (!tail().compare_exchange_weak(tailp,
                                        headp,
@@ -459,7 +361,7 @@ void LockFreeRingBuffer::catchUp(uint64b tailp, uint64b headp) noexcept
   \details No detailed description
   */
 inline
-void LockFreeRingBuffer::destroy() noexcept
+void ScalableCircularRingBuffer::destroy() noexcept
 {
   if (memory_.empty())
     return;
@@ -496,7 +398,7 @@ void LockFreeRingBuffer::destroy() noexcept
   \return No description
   */
 template <template<typename> typename Func> inline
-bool LockFreeRingBuffer::compare(const uint64b lhs, const uint64b rhs) noexcept
+bool ScalableCircularRingBuffer::compare(const uint64b lhs, const uint64b rhs) noexcept
 {
   using ParamT = int64b;
   using FuncT = Func<ParamT>;
@@ -514,7 +416,7 @@ bool LockFreeRingBuffer::compare(const uint64b lhs, const uint64b rhs) noexcept
   \return No description
   */
 inline
-std::atomic<uint64b>& LockFreeRingBuffer::getIndex(const std::size_t index) noexcept
+std::atomic<uint64b>& ScalableCircularRingBuffer::getIndex(const std::size_t index) noexcept
 {
   MemChunk* mem = memory_.data() + 3;
   auto indices = reinterp<std::atomic<uint64b>*>(mem);
@@ -527,7 +429,7 @@ std::atomic<uint64b>& LockFreeRingBuffer::getIndex(const std::size_t index) noex
   \return No description
   */
 inline
-const std::atomic<uint64b>& LockFreeRingBuffer::getIndex(const std::size_t index) const noexcept
+const std::atomic<uint64b>& ScalableCircularRingBuffer::getIndex(const std::size_t index) const noexcept
 {
   const MemChunk* mem = memory_.data() + 3;
   auto indices = reinterp<const std::atomic<uint64b>*>(mem);
@@ -540,7 +442,7 @@ const std::atomic<uint64b>& LockFreeRingBuffer::getIndex(const std::size_t index
   \return No description
   */
 inline
-std::atomic<uint64b>& LockFreeRingBuffer::head() noexcept
+std::atomic<uint64b>& ScalableCircularRingBuffer::head() noexcept
 {
   MemChunk* mem = memory_.data();
   return *reinterp<std::atomic<uint64b>*>(mem);
@@ -552,7 +454,7 @@ std::atomic<uint64b>& LockFreeRingBuffer::head() noexcept
   \return No description
   */
 inline
-const std::atomic<uint64b>& LockFreeRingBuffer::head() const noexcept
+const std::atomic<uint64b>& ScalableCircularRingBuffer::head() const noexcept
 {
   const MemChunk* mem = memory_.data();
   return *reinterp<const std::atomic<uint64b>*>(mem);
@@ -562,7 +464,7 @@ const std::atomic<uint64b>& LockFreeRingBuffer::head() const noexcept
   \details No detailed description
   */
 inline
-void LockFreeRingBuffer::initialize() noexcept
+void ScalableCircularRingBuffer::initialize() noexcept
 {
   // Indices
   for (std::size_t i = 0; i < size(); ++i) {
@@ -601,9 +503,11 @@ void LockFreeRingBuffer::initialize() noexcept
   \return No description
   */
 inline
-uint64b LockFreeRingBuffer::permuteIndex(const uint64b index) const noexcept
+uint64b ScalableCircularRingBuffer::permuteIndex(const uint64b index) const noexcept
 {
-  const uint64b i = permuteIndex(index, size());
+  using AtomicT = std::remove_cvref_t<decltype(getIndex(0))>;
+  constexpr std::size_t data_size = sizeof(AtomicT);
+  const uint64b i = BaseRingBufferT::permuteIndex<data_size>(index, size());
   return i;
 }
 
@@ -613,7 +517,7 @@ uint64b LockFreeRingBuffer::permuteIndex(const uint64b index) const noexcept
   \return No description
   */
 inline
-std::atomic<uint64b>& LockFreeRingBuffer::tail() noexcept
+std::atomic<uint64b>& ScalableCircularRingBuffer::tail() noexcept
 {
   MemChunk* mem = memory_.data() + 2;
   return *reinterp<std::atomic<uint64b>*>(mem);
@@ -625,7 +529,7 @@ std::atomic<uint64b>& LockFreeRingBuffer::tail() noexcept
   \return No description
   */
 inline
-const std::atomic<uint64b>& LockFreeRingBuffer::tail() const noexcept
+const std::atomic<uint64b>& ScalableCircularRingBuffer::tail() const noexcept
 {
   const MemChunk* mem = memory_.data() + 2;
   return *reinterp<const std::atomic<uint64b>*>(mem);
@@ -637,7 +541,7 @@ const std::atomic<uint64b>& LockFreeRingBuffer::tail() const noexcept
   \return No description
   */
 inline
-std::atomic<int64b>& LockFreeRingBuffer::threshold() noexcept
+std::atomic<int64b>& ScalableCircularRingBuffer::threshold() noexcept
 {
   MemChunk* mem = memory_.data() + 1;
   return *reinterp<std::atomic<int64b>*>(mem);
@@ -649,7 +553,7 @@ std::atomic<int64b>& LockFreeRingBuffer::threshold() noexcept
   \return No description
   */
 inline
-const std::atomic<int64b>& LockFreeRingBuffer::threshold() const noexcept
+const std::atomic<int64b>& ScalableCircularRingBuffer::threshold() const noexcept
 {
   const MemChunk* mem = memory_.data() + 1;
   return *reinterp<const std::atomic<int64b>*>(mem);
@@ -657,4 +561,4 @@ const std::atomic<int64b>& LockFreeRingBuffer::threshold() const noexcept
 
 } // namespace zisc
 
-#endif // ZISC_LOCK_FREE_RING_BUFFER_INL_HPP
+#endif // ZISC_SCALABLE_CIRCULAR_RING_BUFFER_INL_HPP

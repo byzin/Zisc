@@ -33,9 +33,9 @@ constexpr Type cast(T&& value) noexcept;
 template <std::floating_point Float, std::unsigned_integral Integer>
 constexpr Float mapTo01(const Integer x) noexcept;
 
-//! Convert between types by reinterpreting the underlying bit pattern
-template <typename NewType, typename Type>
-NewType reinterp(Type object) noexcept;
+//! Convert to Type which refers to the same memory but is assumed to have distinct lifetime
+template <Pointer Type, Pointer T>
+[[nodiscard]] Type reinterp(T p) noexcept;
 
 // Conditional functions
 

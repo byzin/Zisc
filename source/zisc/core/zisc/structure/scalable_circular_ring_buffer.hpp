@@ -19,6 +19,7 @@
 #include <atomic>
 #include <cstddef>
 #include <memory>
+#include <span>
 #include <type_traits>
 #include <vector>
 // Zisc
@@ -79,6 +80,15 @@ class ScalableCircularRingBuffer : public RingBuffer<ScalableCircularRingBuffer>
   std::size_t size() const noexcept;
 
  private:
+  //! Represent the memory offset
+  enum class MemOffset : std::size_t
+  {
+    kHead = 0,
+    kThreshold,
+    kTail,
+    kIndex
+  };
+
   //! Calculate the required memory length
   static std::size_t calcMemChunkSize(const std::size_t s) noexcept;
 
@@ -86,7 +96,10 @@ class ScalableCircularRingBuffer : public RingBuffer<ScalableCircularRingBuffer>
   static int64b calcThreshold3(const uint64b half) noexcept;
 
   //!
-  void catchUp(uint64b tailp, uint64b headp) noexcept;
+  static void catchUp(uint64b tailp,
+                      uint64b headp,
+                      std::atomic<uint64b>& tail_count,
+                      std::atomic<uint64b>& head_count) noexcept;
 
   //!
   template <template<typename> typename Func>
@@ -95,11 +108,21 @@ class ScalableCircularRingBuffer : public RingBuffer<ScalableCircularRingBuffer>
   //! Destroy the ring buffer
   void destroy() noexcept;
 
+  //! Return the distance between head and tail
+  static std::size_t distance(const std::atomic<uint64b>& tail_count,
+                              const std::atomic<uint64b>& head_count) noexcept;
+
   //! Return the underlying index counter
   std::atomic<uint64b>& getIndex(const std::size_t index) noexcept;
 
   //! Return the underlying index counter
   const std::atomic<uint64b>& getIndex(const std::size_t index) const noexcept;
+
+  //! Return the underlying index list
+  std::span<std::atomic<uint64b>> getIndexList() noexcept;
+
+  //! Return the underlying index list
+  std::span<const std::atomic<uint64b>> getIndexList() const noexcept;
 
   //! Return the underlying head point
   std::atomic<uint64b>& head() noexcept;

@@ -24,6 +24,7 @@
 #include <functional>
 #include <limits>
 #include <memory>
+#include <span>
 #include <type_traits>
 #include <utility>
 #include <vector>
@@ -92,12 +93,15 @@ auto ScalableCircularRingBuffer::operator=(ScalableCircularRingBuffer&& other) n
 inline
 void ScalableCircularRingBuffer::clear() noexcept
 {
-  for (std::size_t i = 0; i < size(); ++i)
-    getIndex(i).store(invalidIndex(), std::memory_order::release);
-
   head().store(0, std::memory_order::release);
   threshold().store(-1, std::memory_order::release);
   tail().store(0, std::memory_order::release);
+
+  std::span indices = getIndexList();
+  std::for_each_n(indices.begin(), indices.size(), [](std::atomic<uint64b>& index) noexcept
+  {
+    index.store(BaseRingBufferT::invalidIndex(), std::memory_order::release);
+  });
 }
 
 /*!
@@ -109,38 +113,43 @@ void ScalableCircularRingBuffer::clear() noexcept
 inline
 uint64b ScalableCircularRingBuffer::dequeue(const bool nonempty) noexcept
 {
-  uint64b index = invalidIndex();
+  std::atomic<uint64b>& tail_count = tail();
+  std::atomic<uint64b>& head_count = head();
+  std::atomic<int64b>& th = threshold();
+  std::span indices = getIndexList();
+
+  uint64b index = BaseRingBufferT::invalidIndex();
   uint64b headp = 0;
   uint64b tailp = 0;
   uint64b head_cycle = 0;
   uint64b head_index = 0;
   int attempt = 0;
-  bool flag = nonempty || (0 <= threshold().load(std::memory_order::acquire));
+  bool flag = nonempty || (0 <= th.load(std::memory_order::acquire));
   bool again = false;
 
   // Cautious dequeue
-  if (nonempty && (distance() == 0)) [[unlikely]] {
+  if (nonempty && (distance(tail_count, head_count) == 0)) [[unlikely]] {
     flag = false;
-    index = overflowIndex();
+    index = BaseRingBufferT::overflowIndex();
   }
 
   while (flag) {
     const uint64b n = cast<uint64b>(size());
     if (!again) {
-      headp = head().fetch_add(1, std::memory_order::acq_rel);
+      headp = head_count.fetch_add(1, std::memory_order::acq_rel);
       head_cycle = (headp << 1) | (2 * n - 1);
       head_index = permuteIndex(headp);
       attempt = 0;
     }
     again = false;
-    uint64b entry = getIndex(head_index).load(std::memory_order::acquire);
+    uint64b entry = indices[head_index].load(std::memory_order::acquire);
     uint64b entry_cycle = 0;
     uint64b entry_new = 0;
     do {
       entry_cycle = entry | (2 * n - 1);
       flag = entry_cycle != head_cycle;
       if (!flag) {
-        getIndex(head_index).fetch_or(n - 1, std::memory_order::acq_rel);
+        indices[head_index].fetch_or(n - 1, std::memory_order::acq_rel);
         index = entry & (n - 1);
         break;
       }
@@ -152,28 +161,28 @@ uint64b ScalableCircularRingBuffer::dequeue(const bool nonempty) noexcept
       else {
         constexpr int amask = (1 << 8) - 1;
         constexpr int amax = 1 << 12;
-        tailp = ((attempt & amask) == 0) ? tail().load(std::memory_order::acquire) : tailp;
+        tailp = ((attempt & amask) == 0) ? tail_count.load(std::memory_order::acquire) : tailp;
         again = (++attempt <= amax) && compare<std::greater_equal>(tailp, headp + 1);
         if (again)
           break;
         entry_new = head_cycle ^ ((~entry) & n);
       }
     } while (compare<std::less>(entry_cycle, head_cycle) &&
-             !getIndex(head_index).compare_exchange_weak(entry,
-                                                         entry_new,
-                                                         std::memory_order::acq_rel,
-                                                         std::memory_order::acquire));
+             !indices[head_index].compare_exchange_weak(entry,
+                                                        entry_new,
+                                                        std::memory_order::acq_rel,
+                                                        std::memory_order::acquire));
     if (flag && !again && !nonempty) {
-      tailp = tail().load(std::memory_order::acquire);
+      tailp = tail_count.load(std::memory_order::acquire);
       flag = compare<std::greater>(tailp, headp + 1);
       if (flag) {
-        flag = 0 < threshold().fetch_sub(1, std::memory_order::acq_rel);
-        index = flag ? index : invalidIndex();
+        flag = 0 < th.fetch_sub(1, std::memory_order::acq_rel);
+        index = flag ? index : BaseRingBufferT::invalidIndex();
       }
       else {
-        catchUp(tailp, headp + 1);
-        threshold().fetch_sub(1, std::memory_order::acq_rel);
-        index = invalidIndex();
+        catchUp(tailp, headp + 1, tail_count, head_count);
+        th.fetch_sub(1, std::memory_order::acq_rel);
+        index = BaseRingBufferT::invalidIndex();
       }
     }
   }
@@ -188,10 +197,7 @@ uint64b ScalableCircularRingBuffer::dequeue(const bool nonempty) noexcept
 inline
 std::size_t ScalableCircularRingBuffer::distance() const noexcept
 {
-  const uint64b h = head().load(std::memory_order::acquire);
-  const uint64b t = tail().load(std::memory_order::acquire);
-  const std::size_t d = (h < t) ? cast<std::size_t>(t - h) : 0;
-  return d;
+  return distance(tail(), head());
 }
 
 /*!
@@ -204,6 +210,11 @@ std::size_t ScalableCircularRingBuffer::distance() const noexcept
 inline
 bool ScalableCircularRingBuffer::enqueue(const uint64b index, const bool nonempty) noexcept
 {
+  std::atomic<uint64b>& tail_count = tail();
+  std::atomic<uint64b>& head_count = head();
+  std::atomic<int64b>& th = threshold();
+  std::span indices = getIndexList();
+
   uint64b tailp = 0;
   uint64b tail_cycle = 0;
   uint64b tail_index = 0;
@@ -212,28 +223,28 @@ bool ScalableCircularRingBuffer::enqueue(const uint64b index, const bool nonempt
   while (true) {
     const uint64b n = cast<uint64b>(size());
     if (!retry) {
-      tailp = tail().fetch_add(1, std::memory_order::acq_rel);
+      tailp = tail_count.fetch_add(1, std::memory_order::acq_rel);
       tail_cycle = (tailp << 1) | (2 * n - 1);
       tail_index = permuteIndex(tailp);
-      entry = getIndex(tail_index).load(std::memory_order::acquire);
+      entry = indices[tail_index].load(std::memory_order::acquire);
     }
     retry = false;
     const uint64b entry_cycle = entry | (2 * n - 1);
     if (compare<std::less>(entry_cycle, tail_cycle) &&
         ((entry == entry_cycle) ||
          ((entry == (entry_cycle ^ n)) &&
-          compare<std::less_equal>(head().load(std::memory_order::acquire), tailp)))) {
+          compare<std::less_equal>(head_count.load(std::memory_order::acquire), tailp)))) {
       const uint64b entry_index = index ^ cast<uint64b>(n - 1);
-      retry = !getIndex(tail_index).compare_exchange_weak(entry,
-                                                          tail_cycle ^ entry_index,
-                                                          std::memory_order::acq_rel,
-                                                          std::memory_order::acquire);
+      retry = !indices[tail_index].compare_exchange_weak(entry,
+                                                         tail_cycle ^ entry_index,
+                                                         std::memory_order::acq_rel,
+                                                         std::memory_order::acquire);
       if (retry)
         continue;
       const uint64b half = n >> 1;
       const int64b threshold3 = calcThreshold3(half);
-      if (!nonempty && (threshold().load(std::memory_order::acquire) != threshold3))
-        threshold().store(threshold3, std::memory_order::release);
+      if (!nonempty && (th.load(std::memory_order::acquire) != threshold3))
+        th.store(threshold3, std::memory_order::release);
       break;
     }
   }
@@ -251,18 +262,19 @@ void ScalableCircularRingBuffer::full() noexcept
   const uint64b n = cast<uint64b>(size());
   const uint64b half = n >> 1;
 
+  head().store(0, std::memory_order::release);
+  threshold().store(calcThreshold3(half), std::memory_order::release);
+  tail().store(half, std::memory_order::release);
+
+  std::span indices = getIndexList();
   for (uint64b i = 0; i < n; ++i) {
     const uint64b index = permuteIndex(i);
     constexpr std::size_t data_size = sizeof(AtomicT);
     const uint64b v = (i < half)
         ? BaseRingBufferT::permuteIndex<data_size>(n + i, half)
-        : invalidIndex();
-    getIndex(index).store(v, std::memory_order::release);
+        : BaseRingBufferT::invalidIndex();
+    indices[index].store(v, std::memory_order::release);
   }
-
-  head().store(0, std::memory_order::release);
-  threshold().store(calcThreshold3(half), std::memory_order::release);
-  tail().store(half, std::memory_order::release);
 }
 
 /*!
@@ -342,16 +354,21 @@ int64b ScalableCircularRingBuffer::calcThreshold3(const uint64b half) noexcept
 
   \param [in] tailp No description.
   \param [in] headp No description.
+  \param [in,out] tail_count No description.
+  \param [in,out] head_count No description.
   */
 inline
-void ScalableCircularRingBuffer::catchUp(uint64b tailp, uint64b headp) noexcept
+void ScalableCircularRingBuffer::catchUp(uint64b tailp,
+                                         uint64b headp,
+                                         std::atomic<uint64b>& tail_count,
+                                         std::atomic<uint64b>& head_count) noexcept
 {
-  while (!tail().compare_exchange_weak(tailp,
-                                       headp,
-                                       std::memory_order::acq_rel,
-                                       std::memory_order::acquire)) {
-    headp = head().load(std::memory_order::acquire);
-    tailp = tail().load(std::memory_order::acquire);
+  while (!tail_count.compare_exchange_weak(tailp,
+                                           headp,
+                                           std::memory_order::acq_rel,
+                                           std::memory_order::acquire)) {
+    tailp = tail_count.load(std::memory_order::acquire);
+    headp = head_count.load(std::memory_order::acquire);
     if (compare<std::greater_equal>(tailp, headp))
       break;
   }
@@ -368,12 +385,12 @@ void ScalableCircularRingBuffer::destroy() noexcept
 
   // Indices
   if (0 < size()) {
-    std::atomic<uint64b>* mem = std::addressof(getIndex(0));
-    std::destroy_n(mem, size());
+    std::span indices = getIndexList();
+    std::destroy_n(indices.data(), indices.size());
   }
-  // Head
+  // Tail
   {
-    std::atomic<uint64b>* mem = std::addressof(head());
+    std::atomic<uint64b>* mem = std::addressof(tail());
     std::destroy_at(mem);
   }
   // Threshold
@@ -381,11 +398,28 @@ void ScalableCircularRingBuffer::destroy() noexcept
     std::atomic<int64b>* mem = std::addressof(threshold());
     std::destroy_at(mem);
   }
-  // Tail
+  // Head
   {
-    std::atomic<uint64b>* mem = std::addressof(tail());
+    std::atomic<uint64b>* mem = std::addressof(head());
     std::destroy_at(mem);
   }
+}
+
+/*!
+  \details No detailed description
+
+  \param [in] tail_count No description.
+  \param [in] head_count No description.
+  \return No description
+  */
+inline
+std::size_t ScalableCircularRingBuffer::distance(const std::atomic<uint64b>& tail_count,
+                                                 const std::atomic<uint64b>& head_count) noexcept
+{
+  const uint64b t = tail_count.load(std::memory_order::acquire);
+  const uint64b h = head_count.load(std::memory_order::acquire);
+  const std::size_t d = (h < t) ? cast<std::size_t>(t - h) : 0;
+  return d;
 }
 
 /*!
@@ -418,8 +452,7 @@ bool ScalableCircularRingBuffer::compare(const uint64b lhs, const uint64b rhs) n
 inline
 std::atomic<uint64b>& ScalableCircularRingBuffer::getIndex(const std::size_t index) noexcept
 {
-  MemChunk* mem = memory_.data() + 3;
-  auto indices = reinterp<std::atomic<uint64b>*>(mem);
+  std::span indices = getIndexList();
   return indices[index];
 }
 
@@ -431,9 +464,34 @@ std::atomic<uint64b>& ScalableCircularRingBuffer::getIndex(const std::size_t ind
 inline
 const std::atomic<uint64b>& ScalableCircularRingBuffer::getIndex(const std::size_t index) const noexcept
 {
-  const MemChunk* mem = memory_.data() + 3;
-  auto indices = reinterp<const std::atomic<uint64b>*>(mem);
+  const std::span indices = getIndexList();
   return indices[index];
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+inline
+std::span<std::atomic<uint64b>> ScalableCircularRingBuffer::getIndexList() noexcept
+{
+  MemChunk* mem = memory_.data() + static_cast<std::size_t>(MemOffset::kIndex);
+  auto* ptr = reinterp<std::atomic<uint64b>*>(mem);
+  return {ptr, size()};
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+inline
+std::span<const std::atomic<uint64b>> ScalableCircularRingBuffer::getIndexList() const noexcept
+{
+  const MemChunk* mem = memory_.data() + static_cast<std::size_t>(MemOffset::kIndex);
+  const auto* ptr = reinterp<const std::atomic<uint64b>*>(mem);
+  return {ptr, size()};
 }
 
 /*!
@@ -444,7 +502,7 @@ const std::atomic<uint64b>& ScalableCircularRingBuffer::getIndex(const std::size
 inline
 std::atomic<uint64b>& ScalableCircularRingBuffer::head() noexcept
 {
-  MemChunk* mem = memory_.data();
+  MemChunk* mem = memory_.data() + static_cast<std::size_t>(MemOffset::kHead);
   return *reinterp<std::atomic<uint64b>*>(mem);
 }
 
@@ -456,7 +514,7 @@ std::atomic<uint64b>& ScalableCircularRingBuffer::head() noexcept
 inline
 const std::atomic<uint64b>& ScalableCircularRingBuffer::head() const noexcept
 {
-  const MemChunk* mem = memory_.data();
+  const MemChunk* mem = memory_.data() + static_cast<std::size_t>(MemOffset::kHead);
   return *reinterp<const std::atomic<uint64b>*>(mem);
 }
 
@@ -466,33 +524,37 @@ const std::atomic<uint64b>& ScalableCircularRingBuffer::head() const noexcept
 inline
 void ScalableCircularRingBuffer::initialize() noexcept
 {
-  // Indices
-  for (std::size_t i = 0; i < size(); ++i) {
-    using AtomicT = std::remove_cvref_t<decltype(getIndex(i))>;
-    std::atomic<uint64b>* mem = std::addressof(getIndex(i));
-    ::new (mem) AtomicT{};
-  }
-
   if (memory_.size() < 3)
     memory_.resize(3);
+
+  MemChunk* mem = memory_.data();
 
   // Head
   {
     using AtomicT = std::remove_cvref_t<decltype(head())>;
-    std::atomic<uint64b>* mem = std::addressof(head());
-    ::new (mem) AtomicT{};
+    MemChunk* ptr = mem + static_cast<std::size_t>(MemOffset::kHead);
+    ::new (ptr) AtomicT{};
   }
   // Threshold
   {
     using AtomicT = std::remove_cvref_t<decltype(threshold())>;
-    std::atomic<int64b>* mem = std::addressof(threshold());
-    ::new (mem) AtomicT{};
+    MemChunk* ptr = mem + static_cast<std::size_t>(MemOffset::kThreshold);
+    ::new (ptr) AtomicT{};
   }
   // Tail
   {
     using AtomicT = std::remove_cvref_t<decltype(tail())>;
-    std::atomic<uint64b>* mem = std::addressof(tail());
-    ::new (mem) AtomicT{};
+    MemChunk* ptr = mem + static_cast<std::size_t>(MemOffset::kTail);
+    ::new (ptr) AtomicT{};
+  }
+  // Indices
+  if (3 < memory_.size()) {
+    using AtomicT = std::remove_cvref_t<decltype(getIndex(0))>;
+    auto* indices = reinterp<AtomicT*>(mem + static_cast<std::size_t>(MemOffset::kIndex));
+    for (std::size_t i = 0; i < size(); ++i) {
+      AtomicT* ptr = indices + i;
+      ::new (ptr) AtomicT{};
+    }
   }
 }
 
@@ -519,7 +581,7 @@ uint64b ScalableCircularRingBuffer::permuteIndex(const uint64b index) const noex
 inline
 std::atomic<uint64b>& ScalableCircularRingBuffer::tail() noexcept
 {
-  MemChunk* mem = memory_.data() + 2;
+  MemChunk* mem = memory_.data() + static_cast<std::size_t>(MemOffset::kTail);
   return *reinterp<std::atomic<uint64b>*>(mem);
 }
 
@@ -531,7 +593,7 @@ std::atomic<uint64b>& ScalableCircularRingBuffer::tail() noexcept
 inline
 const std::atomic<uint64b>& ScalableCircularRingBuffer::tail() const noexcept
 {
-  const MemChunk* mem = memory_.data() + 2;
+  const MemChunk* mem = memory_.data() + static_cast<std::size_t>(MemOffset::kTail);
   return *reinterp<const std::atomic<uint64b>*>(mem);
 }
 
@@ -543,7 +605,7 @@ const std::atomic<uint64b>& ScalableCircularRingBuffer::tail() const noexcept
 inline
 std::atomic<int64b>& ScalableCircularRingBuffer::threshold() noexcept
 {
-  MemChunk* mem = memory_.data() + 1;
+  MemChunk* mem = memory_.data() + static_cast<std::size_t>(MemOffset::kThreshold);
   return *reinterp<std::atomic<int64b>*>(mem);
 }
 
@@ -555,7 +617,7 @@ std::atomic<int64b>& ScalableCircularRingBuffer::threshold() noexcept
 inline
 const std::atomic<int64b>& ScalableCircularRingBuffer::threshold() const noexcept
 {
-  const MemChunk* mem = memory_.data() + 1;
+  const MemChunk* mem = memory_.data() + static_cast<std::size_t>(MemOffset::kThreshold);
   return *reinterp<const std::atomic<int64b>*>(mem);
 }
 

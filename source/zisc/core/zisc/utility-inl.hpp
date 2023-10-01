@@ -22,9 +22,11 @@
 #include <cstddef>
 #include <functional>
 #include <limits>
+#include <new>
 #include <type_traits>
 #include <utility>
 // Zisc
+#include "concepts.hpp"
 #include "zisc_config.hpp"
 
 namespace zisc {
@@ -81,18 +83,16 @@ constexpr Float mapTo01(const Integer x) noexcept
 /*!
   \details No detailed description
 
-  \tparam NewType No description.
   \tparam Type No description.
-  \param [in] object No description.
+  \tparam T No description.
+  \param [in] p No description.
   \return No description
   */
-template <typename NewType, typename Type> inline
-NewType reinterp(Type object) noexcept
+template <Pointer Type, Pointer T> inline
+Type reinterp(T p) noexcept
 {
-  if constexpr (std::same_as<Type, NewType>)
-    return object;
-  else
-    return reinterpret_cast<NewType>(object);
+  Type ptr = std::launder(reinterpret_cast<Type>(p));
+  return ptr;
 }
 
 /*!

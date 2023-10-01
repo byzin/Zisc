@@ -168,9 +168,9 @@ void FunctionReference<ReturnT (ArgTypes...)>::initialize(Func&& func) noexcept
                 "The memory doesn't satisfy the alignment of the function ptr.");
 
   if constexpr (is_func_ptr || has_func_ptr)
-    ::new (std::addressof(memory())) FuncPtr{func};
+    memory() = zisc::bit_cast<FuncRefMemory>(FuncPtr{func});
   else if constexpr (is_fanctor)
-    ::new (std::addressof(memory())) FuncPtr{std::addressof(func)};
+    memory() = zisc::bit_cast<FuncRefMemory>(FuncPtr{std::addressof(func)});
   invoker_ = std::addressof(invokeFunc<FuncPtr>);
 }
 

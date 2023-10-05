@@ -252,28 +252,19 @@ bool PortableRingBuffer::enqueue(const uint64b index, [[maybe_unused]] const boo
 inline
 void PortableRingBuffer::full() noexcept
 {
-//  using AtomicT = std::remove_cvref_t<decltype(getIndex(0))>;
-//
-//  const uint64b n = cast<uint64b>(size());
-//  const uint64b half = n >> 1;
-//
-//  for (uint64b i = 0; i < n; ++i) {
-//    const uint64b index = permuteIndex(i);
-//    constexpr std::size_t data_size = sizeof(AtomicT);
-//    const uint64b v = (i < half)
-//        ? BaseRingBufferT::permuteIndex<data_size>(n + i, half)
-//        : invalidIndex();
-//    getIndex(index).store(v, std::memory_order::release);
-//  }
-//
-//  head().store(0, std::memory_order::release);
-//  threshold().store(calcThreshold3(half), std::memory_order::release);
-//  tail().store(half, std::memory_order::release);
+  std::span indices = getCellList();
+  const auto n = static_cast<uint64b>(indices.size());
 
-  clear();
-  const uint64b n = cast<uint64b>(size());
-  for (uint64b i = 0; i < n; ++i)
-    enqueue(i, false);
+  head().store(0, std::memory_order::release);
+  tail().store(n, std::memory_order::release);
+
+  for (std::size_t i = 0; i < indices.size(); ++i) {
+    const std::size_t index = permuteIndex(i);
+    Cell& cell = indices[index];
+    const auto v = static_cast<uint64b>(i);
+    cell.index_.store(v + n, std::memory_order::release);
+    cell.value_.store(v, std::memory_order::release);
+  }
 }
 
 /*!

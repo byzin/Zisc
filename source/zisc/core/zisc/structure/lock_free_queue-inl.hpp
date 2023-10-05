@@ -293,8 +293,9 @@ void LockFreeQueue<T, RingBufferClass>::setCapacity(size_type cap) noexcept
   if ((capacity() < cap_pow2) && (cap_pow2 <= cap_max)) {
     clear();
     elements_.resize(cap_pow2);
-    allocated_elements_.setSize(cap_pow2 << 1);
-    free_elements_.setSize(cap_pow2 << 1);
+    constexpr std::size_t cap_offset = std::is_same_v<ScalableCircularRingBuffer, RingBufferClass> ? 1 : 0;
+    allocated_elements_.setSize(cap_pow2 << cap_offset);
+    free_elements_.setSize(cap_pow2 << cap_offset);
   }
   clear();
 }

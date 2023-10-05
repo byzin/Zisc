@@ -21,9 +21,10 @@
 #include <atomic>
 #include <bit>
 #include <cstddef>
-#include <functional>
 #include <limits>
 #include <memory>
+#include <span>
+#include <thread>
 #include <type_traits>
 #include <utility>
 #include <vector>
@@ -92,12 +93,16 @@ auto PortableRingBuffer::operator=(PortableRingBuffer&& other) noexcept -> Porta
 inline
 void PortableRingBuffer::clear() noexcept
 {
-  for (std::size_t i = 0; i < size(); ++i)
-    getIndex(i).store(invalidIndex(), std::memory_order::release);
-
   head().store(0, std::memory_order::release);
-  threshold().store(-1, std::memory_order::release);
   tail().store(0, std::memory_order::release);
+
+  std::span indices = getCellList();
+  for (std::size_t i = 0; i < indices.size(); ++i) {
+    const std::size_t index = permuteIndex(i);
+    Cell& cell = indices[index];
+    cell.index_.store(static_cast<uint64b>(i), std::memory_order::release);
+    cell.value_.store(BaseRingBufferT::invalidIndex(), std::memory_order::release);
+  }
 }
 
 /*!
@@ -109,74 +114,80 @@ void PortableRingBuffer::clear() noexcept
 inline
 uint64b PortableRingBuffer::dequeue(const bool nonempty) noexcept
 {
-  uint64b index = invalidIndex();
-  uint64b headp = 0;
-  uint64b tailp = 0;
-  uint64b head_cycle = 0;
-  uint64b head_index = 0;
-  int attempt = 0;
-  bool flag = nonempty || (0 <= threshold().load(std::memory_order::acquire));
-  bool again = false;
+  std::atomic<uint64b>& tail_count = tail();
+  std::atomic<uint64b>& head_count = head();
+  std::span indices = getCellList();
+
+  bool flag = true;
+  uint64b index = BaseRingBufferT::invalidIndex();
 
   // Cautious dequeue
-  if (nonempty && (distance() == 0)) [[unlikely]] {
+  if (nonempty && (distance(tail_count, head_count) == 0)) [[unlikely]] {
     flag = false;
-    index = overflowIndex();
+    index = BaseRingBufferT::overflowIndex();
   }
 
   while (flag) {
     const uint64b n = cast<uint64b>(size());
-    if (!again) {
-      headp = head().fetch_add(1, std::memory_order::acq_rel);
-      head_cycle = (headp << 1) | (2 * n - 1);
-      head_index = permuteIndex(headp);
-      attempt = 0;
-    }
-    again = false;
-    uint64b entry = getIndex(head_index).load(std::memory_order::acquire);
-    uint64b entry_cycle = 0;
-    uint64b entry_new = 0;
-    do {
-      entry_cycle = entry | (2 * n - 1);
-      flag = entry_cycle != head_cycle;
-      if (!flag) {
-        getIndex(head_index).fetch_or(n - 1, std::memory_order::acq_rel);
-        index = entry & (n - 1);
+    const uint64b head_ticket = head_count.fetch_add(1, std::memory_order::acq_rel);
+    const uint64b head_index = permuteIndex(head_ticket % n);
+    Cell& cell = indices[head_index];
+
+    int attempt = 0;
+    uint64b tt = 0;
+
+    while (true) {
+      uint64b cell_index = cell.index_.load(std::memory_order::acquire);
+      index = cell.value_.load(std::memory_order::acquire);
+      const bool is_unsafe = isUnsafe(cell_index);
+      const uint64b node_index = getNodeIndex(cell_index);
+
+      constexpr auto msuccess = std::memory_order::acq_rel;
+      constexpr auto mfailure = std::memory_order::acquire;
+
+      if ((head_ticket + n) < node_index)
         break;
-      }
-      else if ((entry | n) != entry_cycle) {
-        entry_new = entry & ~n;
-        if (entry == entry_new)
+
+      if ((index != BaseRingBufferT::invalidIndex()) && !isBottom(index)) {
+        if ((head_ticket + n) == node_index) {
+          cell.value_.store(BaseRingBufferT::invalidIndex(), std::memory_order::release);
+          flag = false;
           break;
+        }
+        else {
+          if (is_unsafe) {
+            if (cell.index_.load(std::memory_order::acquire) == cell_index)
+              break;
+          }
+          else {
+            if (cell.index_.compare_exchange_strong(cell_index, getUnsafeFlag(node_index), msuccess, mfailure))
+              break;;
+          }
+        }
       }
       else {
-        constexpr int amask = (1 << 8) - 1;
-        constexpr int amax = 1 << 12;
-        tailp = ((attempt & amask) == 0) ? tail().load(std::memory_order::acquire) : tailp;
-        again = (++attempt <= amax) && compare<std::greater_equal>(tailp, headp + 1);
-        if (again)
-          break;
-        entry_new = head_cycle ^ ((~entry) & n);
+        constexpr int update_interval = 1 << 8;
+        constexpr int amax = 4 * 1024;
+        if ((attempt % update_interval) == 0)
+          tt = tail_count.load(std::memory_order::acquire);
+        const uint64b t = getNodeIndex(tt);
+        if (is_unsafe || (t < (head_ticket + 1)) || (amax < attempt)) {
+          if (isBottom(index) && !cell.value_.compare_exchange_strong(index, BaseRingBufferT::invalidIndex(), msuccess, mfailure))
+            continue;
+          if (cell.index_.compare_exchange_strong(cell_index, getUnsafeFlag(head_ticket + n), msuccess, mfailure))
+            break;
+        }
+        ++attempt;
       }
-    } while (compare<std::less>(entry_cycle, head_cycle) &&
-             !getIndex(head_index).compare_exchange_weak(entry,
-                                                         entry_new,
-                                                         std::memory_order::acq_rel,
-                                                         std::memory_order::acquire));
-    if (flag && !again && !nonempty) {
-      tailp = tail().load(std::memory_order::acquire);
-      flag = compare<std::greater>(tailp, headp + 1);
-      if (flag) {
-        flag = 0 < threshold().fetch_sub(1, std::memory_order::acq_rel);
-        index = flag ? index : invalidIndex();
-      }
-      else {
-        catchUp(tailp, headp + 1);
-        threshold().fetch_sub(1, std::memory_order::acq_rel);
-        index = invalidIndex();
-      }
+    }
+
+    if (flag && (getNodeIndex(tail_count.load(std::memory_order::acquire)) <= (head_ticket + 1))) {
+      fixState(tail_count, head_count);
+      index = BaseRingBufferT::invalidIndex();
+      flag = false;
     }
   }
+
   return index;
 }
 
@@ -188,10 +199,7 @@ uint64b PortableRingBuffer::dequeue(const bool nonempty) noexcept
 inline
 std::size_t PortableRingBuffer::distance() const noexcept
 {
-  const uint64b h = head().load(std::memory_order::acquire);
-  const uint64b t = tail().load(std::memory_order::acquire);
-  const std::size_t d = (h < t) ? cast<std::size_t>(t - h) : 0;
-  return d;
+  return distance(tail(), head());
 }
 
 /*!
@@ -202,41 +210,39 @@ std::size_t PortableRingBuffer::distance() const noexcept
   \return No description
   */
 inline
-bool PortableRingBuffer::enqueue(const uint64b index, const bool nonempty) noexcept
+bool PortableRingBuffer::enqueue(const uint64b index, [[maybe_unused]] const bool nonempty) noexcept
 {
-  uint64b tailp = 0;
-  uint64b tail_cycle = 0;
-  uint64b tail_index = 0;
-  uint64b entry = 0;
-  bool retry = false;
+  thread_local const uint64b thread_local_bottom = getThreadLocalBottom();
+
+  std::atomic<uint64b>& tail_count = tail();
+  std::atomic<uint64b>& head_count = head();
+  std::span indices = getCellList();
+
   while (true) {
     const uint64b n = cast<uint64b>(size());
-    if (!retry) {
-      tailp = tail().fetch_add(1, std::memory_order::acq_rel);
-      tail_cycle = (tailp << 1) | (2 * n - 1);
-      tail_index = permuteIndex(tailp);
-      entry = getIndex(tail_index).load(std::memory_order::acquire);
-    }
-    retry = false;
-    const uint64b entry_cycle = entry | (2 * n - 1);
-    if (compare<std::less>(entry_cycle, tail_cycle) &&
-        ((entry == entry_cycle) ||
-         ((entry == (entry_cycle ^ n)) &&
-          compare<std::less_equal>(head().load(std::memory_order::acquire), tailp)))) {
-      const uint64b entry_index = index ^ cast<uint64b>(n - 1);
-      retry = !getIndex(tail_index).compare_exchange_weak(entry,
-                                                          tail_cycle ^ entry_index,
-                                                          std::memory_order::acq_rel,
-                                                          std::memory_order::acquire);
-      if (retry)
-        continue;
-      const uint64b half = n >> 1;
-      const int64b threshold3 = calcThreshold3(half);
-      if (!nonempty && (threshold().load(std::memory_order::acquire) != threshold3))
-        threshold().store(threshold3, std::memory_order::release);
-      break;
+    const uint64b tail_ticket = tail_count.fetch_add(1, std::memory_order::acq_rel);
+    const uint64b tail_index = permuteIndex(tail_ticket % n);
+    Cell& cell = indices[tail_index];
+    uint64b cell_index = cell.index_.load(std::memory_order::acquire);
+    uint64b cell_value = cell.value_.load(std::memory_order::acquire);
+    if ((cell_value == BaseRingBufferT::invalidIndex()) && 
+        (getNodeIndex(cell_index) <= tail_ticket) &&
+        (!isUnsafe(cell_index) || head_count.load(std::memory_order::acquire) <= tail_ticket)) {
+      constexpr auto msuccess = std::memory_order::acq_rel;
+      constexpr auto mfailure = std::memory_order::acquire;
+      uint64b bottom = thread_local_bottom;
+      if (cell.value_.compare_exchange_strong(cell_value, bottom, msuccess, mfailure)) {
+        if (cell.index_.compare_exchange_strong(cell_index, tail_ticket + n, msuccess, mfailure)) {
+          if (cell.value_.compare_exchange_strong(bottom, index, msuccess, mfailure))
+            break;
+        }
+        else {
+          cell.value_.compare_exchange_strong(bottom, BaseRingBufferT::invalidIndex(), msuccess, mfailure);
+        }
+      }
     }
   }
+
   return true;
 }
 
@@ -246,23 +252,28 @@ bool PortableRingBuffer::enqueue(const uint64b index, const bool nonempty) noexc
 inline
 void PortableRingBuffer::full() noexcept
 {
-  using AtomicT = std::remove_cvref_t<decltype(getIndex(0))>;
+//  using AtomicT = std::remove_cvref_t<decltype(getIndex(0))>;
+//
+//  const uint64b n = cast<uint64b>(size());
+//  const uint64b half = n >> 1;
+//
+//  for (uint64b i = 0; i < n; ++i) {
+//    const uint64b index = permuteIndex(i);
+//    constexpr std::size_t data_size = sizeof(AtomicT);
+//    const uint64b v = (i < half)
+//        ? BaseRingBufferT::permuteIndex<data_size>(n + i, half)
+//        : invalidIndex();
+//    getIndex(index).store(v, std::memory_order::release);
+//  }
+//
+//  head().store(0, std::memory_order::release);
+//  threshold().store(calcThreshold3(half), std::memory_order::release);
+//  tail().store(half, std::memory_order::release);
 
+  clear();
   const uint64b n = cast<uint64b>(size());
-  const uint64b half = n >> 1;
-
-  for (uint64b i = 0; i < n; ++i) {
-    const uint64b index = permuteIndex(i);
-    constexpr std::size_t data_size = sizeof(AtomicT);
-    const uint64b v = (i < half)
-        ? BaseRingBufferT::permuteIndex<data_size>(n + i, half)
-        : invalidIndex();
-    getIndex(index).store(v, std::memory_order::release);
-  }
-
-  head().store(0, std::memory_order::release);
-  threshold().store(calcThreshold3(half), std::memory_order::release);
-  tail().store(half, std::memory_order::release);
+  for (uint64b i = 0; i < n; ++i)
+    enqueue(i, false);
 }
 
 /*!
@@ -307,54 +318,24 @@ inline
 std::size_t PortableRingBuffer::calcMemChunkSize(const std::size_t s) noexcept
 {
   std::size_t l = 0;
-  using AtomicT = std::remove_cvref_t<decltype(PortableRingBuffer{nullptr}.getIndex(0))>;
   // Offset size
   {
+    using AtomicT = std::remove_cvref_t<decltype(PortableRingBuffer{nullptr}.head())>;
     static_assert(sizeof(AtomicT) <= sizeof(MemChunk));
     static_assert(sizeof(MemChunk) % sizeof(AtomicT) == 0);
     static_assert(alignof(AtomicT) <= alignof(MemChunk));
-    l += 3;
+    l += 2;
   }
   // Indices size
   {
-    const std::size_t total = s * sizeof(AtomicT);
+    static_assert(sizeof(Cell) <= sizeof(MemChunk));
+    static_assert(sizeof(MemChunk) % sizeof(Cell) == 0);
+    static_assert(alignof(Cell) <= alignof(MemChunk));
+    const std::size_t total = s * sizeof(Cell);
     constexpr std::size_t chunk_size = sizeof(MemChunk);
     l += (total + (chunk_size - 1)) / chunk_size;
   }
   return l;
-}
-
-/*!
-  \details No detailed description
-
-  \param [in] half No description.
-  \return No description
-  */
-inline
-int64b PortableRingBuffer::calcThreshold3(const uint64b half) noexcept
-{
-  const uint64b threshold = 3 * half - 1;
-  return cast<int64b>(threshold);
-}
-
-/*!
-  \details No detailed description
-
-  \param [in] tailp No description.
-  \param [in] headp No description.
-  */
-inline
-void PortableRingBuffer::catchUp(uint64b tailp, uint64b headp) noexcept
-{
-  while (!tail().compare_exchange_weak(tailp,
-                                       headp,
-                                       std::memory_order::acq_rel,
-                                       std::memory_order::acquire)) {
-    headp = head().load(std::memory_order::acquire);
-    tailp = tail().load(std::memory_order::acquire);
-    if (compare<std::greater_equal>(tailp, headp))
-      break;
-  }
 }
 
 /*!
@@ -368,72 +349,154 @@ void PortableRingBuffer::destroy() noexcept
 
   // Indices
   if (0 < size()) {
-    std::atomic<uint64b>* mem = std::addressof(getIndex(0));
-    std::destroy_n(mem, size());
-  }
-  // Head
-  {
-    std::atomic<uint64b>* mem = std::addressof(head());
-    std::destroy_at(mem);
-  }
-  // Threshold
-  {
-    std::atomic<int64b>* mem = std::addressof(threshold());
-    std::destroy_at(mem);
+    std::span indices = getCellList();
+    std::destroy_n(indices.data(), indices.size());
   }
   // Tail
   {
     std::atomic<uint64b>* mem = std::addressof(tail());
     std::destroy_at(mem);
   }
+  // Head
+  {
+    std::atomic<uint64b>* mem = std::addressof(head());
+    std::destroy_at(mem);
+  }
 }
 
 /*!
   \details No detailed description
 
-  \tparam Func No description.
-  \param [in] lhs No description.
-  \param [in] rhs No description.
-  \param [in] func No description.
+  \param [in] tail_count No description.
+  \param [in] head_count No description.
   \return No description
   */
-template <template<typename> typename Func> inline
-bool PortableRingBuffer::compare(const uint64b lhs, const uint64b rhs) noexcept
+inline
+std::size_t PortableRingBuffer::distance(const std::atomic<uint64b>& tail_count,
+                                         const std::atomic<uint64b>& head_count) noexcept
 {
-  using ParamT = int64b;
-  using FuncT = Func<ParamT>;
-  static_assert(std::is_same_v<bool, std::invoke_result_t<FuncT, ParamT, ParamT>>);
+  const uint64b t = tail_count.load(std::memory_order::acquire);
+  const uint64b h = head_count.load(std::memory_order::acquire);
+  const std::size_t d = (h < t) ? cast<std::size_t>(t - h) : 0;
+  return d;
+}
 
-  const auto d = static_cast<int64b>(lhs - rhs);
-  const bool result = FuncT{}(d, static_cast<int64b>(0));
+/*!
+  \details No detailed description
 
+  \param [in] tail_count No description.
+  \param [in] head_count No description.
+  */
+inline
+void PortableRingBuffer::fixState(std::atomic<uint64b>& tail_count,
+                                  std::atomic<uint64b>& head_count) noexcept
+{
+  while (true) {
+    const uint64b t = tail_count.load(std::memory_order::acquire);
+    const uint64b h = head_count.load(std::memory_order::acquire);
+    if (tail_count.load(std::memory_order::acquire) != t)
+      continue;
+    if (t < h) { // h would be less than t if queue is closed
+      uint64b tmp = t;
+      if (tail_count.compare_exchange_strong(tmp, h, std::memory_order::acq_rel, std::memory_order::acquire))
+        break;
+      continue;
+    }
+    break;
+  }
+}
+
+/*!
+  \details No detailed description
+
+  \param [in] index No description.
+  \return No description
+  */
+inline
+auto PortableRingBuffer::getCell(const std::size_t index) noexcept -> Cell&
+{
+  std::span indices = getCellList();
+  return indices[index];
+}
+
+/*!
+  \details No detailed description
+
+  \param [in] index No description.
+  \return No description
+  */
+inline
+auto PortableRingBuffer::getCell(const std::size_t index) const noexcept -> const Cell&
+{
+  const std::span indices = getCellList();
+  return indices[index];
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+inline
+auto PortableRingBuffer::getCellList() noexcept -> std::span<Cell>
+{
+  MemChunk* mem = memory_.data() + static_cast<std::size_t>(MemOffset::kIndex);
+  auto* ptr = reinterp<Cell*>(mem);
+  return {ptr, size()};
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+inline
+auto PortableRingBuffer::getCellList() const noexcept -> std::span<const Cell>
+{
+  const MemChunk* mem = memory_.data() + static_cast<std::size_t>(MemOffset::kIndex);
+  auto* ptr = reinterp<const Cell*>(mem);
+  return {ptr, size()};
+}
+
+/*!
+  \details No detailed description
+
+  \param [in] index No description.
+  \return No description
+  */
+inline
+uint64b PortableRingBuffer::getNodeIndex(const uint64b index) noexcept
+{
+  const uint64b mask = ~unsafeMask();
+  return static_cast<uint64b>(index & mask);
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+inline
+uint64b PortableRingBuffer::getThreadLocalBottom() noexcept
+{
+  const std::thread::id thread_id = std::this_thread::get_id();
+  const std::size_t id = std::hash<std::thread::id>{}(thread_id);
+  const uint64b bottom = static_cast<uint64b>(id) | unsafeMask();
+  return bottom;
+}
+
+/*!
+  \details No detailed description
+
+  \param [in] index No description.
+  \return No description
+  */
+inline
+uint64b PortableRingBuffer::getUnsafeFlag(const uint64b index) noexcept
+{
+  const uint64b i = BaseRingBufferT::indexMask() & index;
+  const uint64b result = unsafeMask() | i;
   return result;
-}
-
-/*!
-  \details No detailed description
-
-  \return No description
-  */
-inline
-std::atomic<uint64b>& PortableRingBuffer::getIndex(const std::size_t index) noexcept
-{
-  MemChunk* mem = memory_.data() + 3;
-  auto indices = reinterp<std::atomic<uint64b>*>(mem);
-  return indices[index];
-}
-
-/*!
-  \details No detailed description
-
-  \return No description
-  */
-inline
-const std::atomic<uint64b>& PortableRingBuffer::getIndex(const std::size_t index) const noexcept
-{
-  const MemChunk* mem = memory_.data() + 3;
-  auto indices = reinterp<const std::atomic<uint64b>*>(mem);
-  return indices[index];
 }
 
 /*!
@@ -444,7 +507,7 @@ const std::atomic<uint64b>& PortableRingBuffer::getIndex(const std::size_t index
 inline
 std::atomic<uint64b>& PortableRingBuffer::head() noexcept
 {
-  MemChunk* mem = memory_.data();
+  MemChunk* mem = memory_.data() + static_cast<std::size_t>(MemOffset::kHead);
   return *reinterp<std::atomic<uint64b>*>(mem);
 }
 
@@ -456,7 +519,7 @@ std::atomic<uint64b>& PortableRingBuffer::head() noexcept
 inline
 const std::atomic<uint64b>& PortableRingBuffer::head() const noexcept
 {
-  const MemChunk* mem = memory_.data();
+  const MemChunk* mem = memory_.data() + static_cast<std::size_t>(MemOffset::kHead);
   return *reinterp<const std::atomic<uint64b>*>(mem);
 }
 
@@ -466,34 +529,58 @@ const std::atomic<uint64b>& PortableRingBuffer::head() const noexcept
 inline
 void PortableRingBuffer::initialize() noexcept
 {
-  // Indices
-  for (std::size_t i = 0; i < size(); ++i) {
-    using AtomicT = std::remove_cvref_t<decltype(getIndex(i))>;
-    std::atomic<uint64b>* mem = std::addressof(getIndex(i));
-    ::new (mem) AtomicT{};
-  }
+  if (memory_.size() < 2)
+    memory_.resize(2);
 
-  if (memory_.size() < 3)
-    memory_.resize(3);
+  MemChunk* mem = memory_.data();
 
   // Head
   {
     using AtomicT = std::remove_cvref_t<decltype(head())>;
-    std::atomic<uint64b>* mem = std::addressof(head());
-    ::new (mem) AtomicT{};
-  }
-  // Threshold
-  {
-    using AtomicT = std::remove_cvref_t<decltype(threshold())>;
-    std::atomic<int64b>* mem = std::addressof(threshold());
-    ::new (mem) AtomicT{};
+    MemChunk* ptr = mem + static_cast<std::size_t>(MemOffset::kHead);
+    ::new (ptr) AtomicT{};
   }
   // Tail
   {
     using AtomicT = std::remove_cvref_t<decltype(tail())>;
-    std::atomic<uint64b>* mem = std::addressof(tail());
-    ::new (mem) AtomicT{};
+    MemChunk* ptr = mem + static_cast<std::size_t>(MemOffset::kTail);
+    ::new (ptr) AtomicT{};
   }
+
+  // Indices
+  if (2 < memory_.size()) {
+    auto* indices = reinterp<Cell*>(mem + static_cast<std::size_t>(MemOffset::kIndex));
+    for (std::size_t i = 0; i < size(); ++i) {
+      Cell* ptr = indices + i;
+      ::new (ptr) Cell{};
+    }
+  }
+}
+
+/*!
+  \details No detailed description
+
+  \param [in] value No description.
+  \return No description
+  */
+inline
+bool PortableRingBuffer::isBottom(const uint64b value) noexcept
+{
+  const bool result = (value != BaseRingBufferT::invalidIndex()) && isUnsafe(value);
+  return result;
+}
+
+/*!
+  \details No detailed description
+
+  \param [in] index No description.
+  \return No description
+  */
+inline
+bool PortableRingBuffer::isUnsafe(const uint64b index) noexcept
+{
+  const bool result = (unsafeMask() & index) == unsafeMask();
+  return result;
 }
 
 /*!
@@ -505,8 +592,7 @@ void PortableRingBuffer::initialize() noexcept
 inline
 uint64b PortableRingBuffer::permuteIndex(const uint64b index) const noexcept
 {
-  using AtomicT = std::remove_cvref_t<decltype(getIndex(0))>;
-  constexpr std::size_t data_size = sizeof(AtomicT);
+  constexpr std::size_t data_size = sizeof(Cell);
   const uint64b i = BaseRingBufferT::permuteIndex<data_size>(index, size());
   return i;
 }
@@ -519,7 +605,7 @@ uint64b PortableRingBuffer::permuteIndex(const uint64b index) const noexcept
 inline
 std::atomic<uint64b>& PortableRingBuffer::tail() noexcept
 {
-  MemChunk* mem = memory_.data() + 2;
+  MemChunk* mem = memory_.data() + static_cast<std::size_t>(MemOffset::kTail);
   return *reinterp<std::atomic<uint64b>*>(mem);
 }
 
@@ -531,7 +617,7 @@ std::atomic<uint64b>& PortableRingBuffer::tail() noexcept
 inline
 const std::atomic<uint64b>& PortableRingBuffer::tail() const noexcept
 {
-  const MemChunk* mem = memory_.data() + 2;
+  const MemChunk* mem = memory_.data() + static_cast<std::size_t>(MemOffset::kTail);
   return *reinterp<const std::atomic<uint64b>*>(mem);
 }
 
@@ -541,22 +627,10 @@ const std::atomic<uint64b>& PortableRingBuffer::tail() const noexcept
   \return No description
   */
 inline
-std::atomic<int64b>& PortableRingBuffer::threshold() noexcept
+constexpr uint64b PortableRingBuffer::unsafeMask() noexcept
 {
-  MemChunk* mem = memory_.data() + 1;
-  return *reinterp<std::atomic<int64b>*>(mem);
-}
-
-/*!
-  \details No detailed description
-
-  \return No description
-  */
-inline
-const std::atomic<int64b>& PortableRingBuffer::threshold() const noexcept
-{
-  const MemChunk* mem = memory_.data() + 1;
-  return *reinterp<const std::atomic<int64b>*>(mem);
+  constexpr uint64b m = static_cast<uint64b>(1) << (std::numeric_limits<uint64b>::digits - 1);
+  return m;
 }
 
 } // namespace zisc

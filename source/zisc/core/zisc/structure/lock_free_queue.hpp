@@ -71,8 +71,7 @@ class LockFreeQueue : public Queue<LockFreeQueue<T, RingBufferClass>, T>
   LockFreeQueue(pmr::memory_resource* mem_resource) noexcept;
 
   //! Create a queue
-  LockFreeQueue(const size_type cap,
-                        pmr::memory_resource* mem_resource) noexcept;
+  LockFreeQueue(const size_type cap, pmr::memory_resource* mem_resource) noexcept;
 
   //! Move a data
   LockFreeQueue(LockFreeQueue&& other) noexcept;

@@ -46,6 +46,7 @@ endif()
 # Build unit test
 if(ZISC_BUILD_TESTS)
   addGoogleTest("${PROJECT_BINARY_DIR}/GoogleTest")
+  addSanitizerFlags(gtest)
   enable_testing()
   add_subdirectory("${PROJECT_SOURCE_DIR}/test" "${PROJECT_BINARY_DIR}/UnitTest")
 endif()

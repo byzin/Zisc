@@ -49,3 +49,26 @@ function(addGoogleTest binary_dir)
   Zisc_populateTargetOptions(Zisc::Zisc gtest)
   Zisc_checkTarget(GTest::gtest)
 endfunction(addGoogleTest)
+
+
+# GoogleTest
+function(addSanitizerFlags)
+  #
+  include("${zisc_path}/cmake/general.cmake")
+  include("${zisc_path}/cmake/platform.cmake")
+  include("${zisc_path}/cmake/compiler.cmake")
+  Zisc_getPlatformFlags(platform_definitions)
+  Zisc_setVariablesOnCMake(${platform_definitions})
+  #
+  if(NOT Z_WINDOWS)
+    return()
+  endif()
+  #
+  Zisc_getSanitizerFlags(sa_compile_flags sa_linker_flags sa_definitions)
+  foreach(target IN LISTS ARGN)
+    Zisc_checkTarget(${target})
+    target_compile_options(${target} PRIVATE ${sa_compile_flags})
+    target_link_options(${target} PRIVATE ${sa_linker_flags})
+    target_compile_definitions(${target} PRIVATE ${sa_definitions})
+  endforeach(target)
+endfunction(addSanitizerFlags)

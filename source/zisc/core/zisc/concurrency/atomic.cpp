@@ -21,6 +21,7 @@
 #include <mutex>
 // Zisc
 #include "atomic_word.hpp"
+#include "zisc/bit.hpp"
 #include "zisc/utility.hpp"
 // Platform
 #if defined(Z_WINDOWS)
@@ -98,9 +99,10 @@ void Atomic::wait<true>(AtomicWord<true>* word,
   if constexpr (AtomicWord<true>::isSpecialized()) {
     do {
 #if defined(Z_WINDOWS)
+      static_assert(sizeof(Atomic::WordValueType*) == sizeof(PVOID));
+      static_assert(alignof(Atomic::WordValueType*) == alignof(PVOID));
       PVOID addr = std::addressof(word->get());
-      PVOID comp =
-          reinterp<PVOID>(const_cast<Atomic::WordValueType*>(std::addressof(old)));
+      PVOID comp = bit_cast<PVOID>(std::addressof(old));
       [[maybe_unused]] auto result = WaitOnAddress(addr, comp, sizeof(old), INFINITE);
 #elif defined(Z_LINUX)
       Atomic::WordValueType* addr = std::addressof(word->get());

@@ -220,7 +220,7 @@ class ThreadManager : private NonCopyable<ThreadManager>
   class TaskImpl;
 
   // Type aliases
-  using TaskQueueImpl = ScalableCircularQueue<WorkerTask>;
+  using TaskQueueImpl = PortableRingQueue<WorkerTask>;
   using TaskQueue = Queue<TaskQueueImpl, WorkerTask>;
 
 

@@ -74,7 +74,7 @@ class ErrorCategory : public std::error_category
 {
  public:
   //! Construct an error category
-  ErrorCategory() noexcept;
+  ErrorCategory() noexcept = default;
 
   //! Destruct an error category
   ~ErrorCategory() noexcept override;

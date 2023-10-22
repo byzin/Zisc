@@ -363,6 +363,9 @@ function(Zisc_setClangTidyAnalyzer target exclusion_checks)
     list(APPEND check_list bugprone-*
                            clang-analyzer-*
                            concurrency-*
+                           cppcoreguidelines-*
+                           google-*
+                           hicpp-*
                            misc-*
                            modernize-*
                            performance-*
@@ -374,7 +377,6 @@ function(Zisc_setClangTidyAnalyzer target exclusion_checks)
     endforeach(check)
     set(exclusion_list "")
     list(APPEND exclusion_list bugprone-easily-swappable-parameters
-                               modernize-use-equals-default
                                modernize-use-trailing-return-type
                                readability-braces-around-statements
                                )

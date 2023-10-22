@@ -127,22 +127,26 @@ macro(setTestProject)
   Zisc_enableIpo(${PROJECT_NAME})
 
   #
-  set(clang_tidy_exclusion_checks bugprone-implicit-widening-of-multiplication-result
-                                  bugprone-narrowing-conversions
-                                  bugprone-use-after-move
-                                  misc-non-private-member-variables-in-classes
-                                  misc-redundant-expression
-                                  modernize-avoid-c-arrays
-                                  modernize-use-auto
-                                  performance-move-const-arg
+  set(clang_tidy_exclusion_checks
+                                   # bugprone-implicit-widening-of-multiplication-result
+  #                                bugprone-narrowing-conversions
+  #                                bugprone-use-after-move
+                                  misc-include-cleaner
+  #                                misc-non-private-member-variables-in-classes
+  #                                misc-redundant-expression
+  #                                modernize-avoid-c-arrays
+  #                                modernize-use-auto
+  #                                performance-move-const-arg
                                   readability-function-cognitive-complexity
-                                  readability-function-size
+  #                                readability-function-size
                                   readability-identifier-length
-                                  readability-isolate-declaration
-                                  readability-magic-numbers
-                                  readability-named-parameter
-                                  readability-static-accessed-through-instance
-                                  readability-uppercase-literal-suffix)
+  #                                readability-isolate-declaration
+  #                                readability-magic-numbers
+  #                                readability-named-parameter
+  #                                readability-static-accessed-through-instance
+  #                                readability-uppercase-literal-suffix
+                                  )
+
   Zisc_setStaticAnalyzer(${PROJECT_NAME}
                          CLANG_TIDY_EXCLUSION_CHECKS ${clang_tidy_exclusion_checks})
   Zisc_createLinkToTarget(${PROJECT_NAME} ${PROJECT_BINARY_DIR})

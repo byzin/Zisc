@@ -131,7 +131,15 @@ macro(Zisc_setZiscProject)
     Zisc_enableIpo(${library_name})
 
     # Set analyzer
-    set(clang_tidy_exclusion_checks readability-identifier-length
+    set(clang_tidy_exclusion_checks 
+                                    cppcoreguidelines-avoid-do-while
+                                    cppcoreguidelines-macro-usage
+                                    cppcoreguidelines-pro-type-vararg
+                                    google-runtime-int
+                                    hicpp-vararg
+                                    misc-include-cleaner
+                                    performance-avoid-endl
+                                    readability-identifier-length
                                     )
     Zisc_setStaticAnalyzer(${library_name}
                            CLANG_TIDY_EXCLUSION_CHECKS ${clang_tidy_exclusion_checks})

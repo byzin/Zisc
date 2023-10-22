@@ -29,14 +29,6 @@ namespace zisc {
 
 /*!
   \details No detailed description
-  */
-inline
-ErrorCategory::ErrorCategory() noexcept : std::error_category()
-{
-}
-
-/*!
-  \details No detailed description
 
   \param [in] code No description.
   */

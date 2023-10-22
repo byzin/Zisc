@@ -53,16 +53,12 @@ std::string getErrorCodeString(const ErrorCode code)
 /*!
   \details No detailed description
   */
-ErrorCategory::~ErrorCategory() noexcept
-{
-}
+ErrorCategory::~ErrorCategory() noexcept = default;
 
 /*!
   \details No detailed description
   */
-SystemError::~SystemError() noexcept
-{
-}
+SystemError::~SystemError() noexcept = default;
 
 /*!
   \details No detailed description

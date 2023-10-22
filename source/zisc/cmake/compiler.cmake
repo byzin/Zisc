@@ -136,7 +136,7 @@ function(Zisc_setStaticAnalyzer target)
   # Parse arguments
   set(options "")
   set(one_value_args "")
-  set(multi_value_args CLANG_TIDY_EXCLUSION_CHECKS)
+  set(multi_value_args CLANG_TIDY_HEADER_PATHS CLANG_TIDY_EXCLUSION_CHECKS)
   cmake_parse_arguments(PARSE_ARGV 1 ZISC "${options}" "${one_value_args}" "${multi_value_args}")
 
   # Set output directory
@@ -149,7 +149,7 @@ function(Zisc_setStaticAnalyzer target)
 
   # clang-tidy
   if(Z_ENABLE_STATIC_ANALYZER_CLANG_TIDY AND Z_CLANG)
-    Zisc_setClangTidyAnalyzer(${target} "${ZISC_CLANG_TIDY_EXCLUSION_CHECKS}")
+    Zisc_setClangTidyAnalyzer(${target} "${ZISC_CLANG_TIDY_HEADER_PATHS}" "${ZISC_CLANG_TIDY_EXCLUSION_CHECKS}")
     list(APPEND static_analyzer_list "clang-tidy")
   endif()
 

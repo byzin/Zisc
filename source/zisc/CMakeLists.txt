@@ -142,6 +142,7 @@ macro(Zisc_setZiscProject)
                                     readability-identifier-length
                                     )
     Zisc_setStaticAnalyzer(${library_name}
+                           CLANG_TIDY_HEADER_PATHS ${PROJECT_SOURCE_DIR}/core/zisc/
                            CLANG_TIDY_EXCLUSION_CHECKS ${clang_tidy_exclusion_checks})
   endforeach(architecture)
 endmacro(Zisc_setZiscProject)

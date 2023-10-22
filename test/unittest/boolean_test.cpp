@@ -47,7 +47,7 @@ TEST(BooleanTest, ValueTest)
   {
     Bool v1{};
     v1 = value;
-    Bool v2{std::move(v1)};
+    Bool v2{v1};
     return v2;
   };
   {

@@ -355,10 +355,17 @@ endfunction(Zisc_getArchitectureNameAmd64)
 
 
 #
-function(Zisc_setClangTidyAnalyzer target exclusion_checks)
+function(Zisc_setClangTidyAnalyzer target header_paths exclusion_checks)
   find_program(clang_tidy "clang-tidy")
   if(clang_tidy)
     set(tidy_command "${clang_tidy}")
+
+    # Add header paths
+    if(header_paths)
+      list(APPEND tidy_command "--header-filter=${header_paths}")
+    endif()
+
+    # Add a check list
     set(check_list "")
     list(APPEND check_list bugprone-*
                            clang-analyzer-*
@@ -376,16 +383,13 @@ function(Zisc_setClangTidyAnalyzer target exclusion_checks)
       set(checks "${checks},${check}")
     endforeach(check)
     set(exclusion_list "")
-    list(APPEND exclusion_list bugprone-easily-swappable-parameters
-                               modernize-use-trailing-return-type
-                               readability-braces-around-statements
-                               )
     list(APPEND exclusion_list ${exclusion_checks})
     set(exclusion_checks "")
     foreach(exclusion_check IN LISTS exclusion_list)
       set(exclusion_checks "${exclusion_checks},-${exclusion_check}")
     endforeach(exclusion_check)
-    list(APPEND tidy_command "-checks=-*${checks}${exclusion_checks}")
+    list(APPEND tidy_command "--checks=-*${checks}${exclusion_checks}")
+
     set_target_properties(${target} PROPERTIES
         C_CLANG_TIDY "${tidy_command}"
         CXX_CLANG_TIDY "${tidy_command}")

@@ -61,14 +61,19 @@ function(addExample target save_dependency_list)
     #bugprone-exception-escape
     #bugprone-implicit-widening-of-multiplication-result
     #bugprone-narrowing-conversions
+                                  cppcoreguidelines-avoid-magic-numbers
+                                  google-readability-braces-around-statements
+                                  hicpp-braces-around-statements
     #misc-non-private-member-variables-in-classes
     #misc-redundant-expression
+                                  misc-include-cleaner
     #modernize-avoid-c-arrays
     #modernize-use-auto
+                                  performance-avoid-endl
                                   readability-function-cognitive-complexity
                                   readability-identifier-length
                                   #readability-isolate-declaration
-                                  #readability-magic-numbers
+                                  readability-magic-numbers
                                   #readability-static-accessed-through-instance
                                   #readability-uppercase-literal-suffix
                                   )

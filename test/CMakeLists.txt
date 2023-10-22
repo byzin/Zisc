@@ -148,6 +148,7 @@ macro(setTestProject)
                                   )
 
   Zisc_setStaticAnalyzer(${PROJECT_NAME}
+                         CLANG_TIDY_HEADER_PATHS ${PROJECT_SOURCE_DIR}/unittest/
                          CLANG_TIDY_EXCLUSION_CHECKS ${clang_tidy_exclusion_checks})
   Zisc_createLinkToTarget(${PROJECT_NAME} ${PROJECT_BINARY_DIR})
 

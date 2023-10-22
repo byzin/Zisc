@@ -132,13 +132,26 @@ macro(Zisc_setZiscProject)
 
     # Set analyzer
     set(clang_tidy_exclusion_checks 
+                                    bugprone-easily-swappable-parameters
                                     cppcoreguidelines-avoid-do-while
                                     cppcoreguidelines-macro-usage
+                                    cppcoreguidelines-no-malloc
+                                    cppcoreguidelines-owning-memory
+                                    cppcoreguidelines-pro-bounds-pointer-arithmetic
+                                    cppcoreguidelines-pro-type-const-cast
+                                    cppcoreguidelines-pro-type-reinterpret-cast
                                     cppcoreguidelines-pro-type-vararg
+                                    cppcoreguidelines-special-member-functions
+                                    google-readability-braces-around-statements
                                     google-runtime-int
+                                    hicpp-braces-around-statements
+                                    hicpp-no-malloc
+                                    hicpp-special-member-functions
                                     hicpp-vararg
                                     misc-include-cleaner
                                     performance-avoid-endl
+                                    readability-avoid-const-params-in-decls
+                                    readability-braces-around-statements
                                     readability-identifier-length
                                     )
     Zisc_setStaticAnalyzer(${library_name}

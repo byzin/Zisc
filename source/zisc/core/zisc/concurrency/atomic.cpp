@@ -69,9 +69,9 @@ void notifyAllFallback(zisc::AtomicWord<kOsSpecified>* word) noexcept
 
 #if defined(Z_LINUX)
 inline
-long futex(zisc::Atomic::WordValueType* addr,
+auto futex(zisc::Atomic::WordValueType* addr,
            const zisc::Atomic::WordValueType futex_op,
-           const zisc::Atomic::WordValueType val)
+           const zisc::Atomic::WordValueType val) -> long
 {
   static_assert(sizeof(zisc::Atomic::WordValueType) == 4,
                 "'zisc::Atomic::WordValueType' must be 4 bytes length and aligned.");

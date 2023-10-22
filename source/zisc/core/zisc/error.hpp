@@ -63,7 +63,8 @@ enum class ErrorCode : int
 };
 
 //! Return the string of the given error code
-std::string getErrorCodeString(const ErrorCode code);
+[[nodiscard]]
+auto getErrorCodeString(const ErrorCode code) -> std::string;
 
 /*!
   \brief No brief description
@@ -81,10 +82,12 @@ class ErrorCategory : public std::error_category
 
 
   //! Return the name of the category
-  const char* name() const noexcept override;
+  [[nodiscard]]
+  auto name() const noexcept -> const char* override;
 
   //! Return the explanatory string
-  std::string message(const int condition) const override;
+  [[nodiscard]]
+  auto message(const int condition) const -> std::string override;
 };
 
 /*!
@@ -96,20 +99,20 @@ class SystemError : public std::system_error
 {
  public:
   //! Construct the system error
-  SystemError(const ErrorCode code);
+  explicit SystemError(const ErrorCode code);
 
   //! Construct the system error
   SystemError(const ErrorCode code, const std::string_view what_arg);
 
   //! Move data
-  SystemError(SystemError&& other);
+  SystemError(SystemError&& other) noexcept;
 
   //! Finalize the system error
   ~SystemError() noexcept override;
 
 
   //! Move data
-  SystemError& operator=(SystemError&& other);
+  auto operator=(SystemError&& other) noexcept -> SystemError&;
 };
 
 //! If condition is false, print messages and raise an error
@@ -118,8 +121,7 @@ void assertIfFalse(const bool condition, Types&&... messages) noexcept;
 
 //! Send messages to the 'output_stream' stream
 template <typename ...Types>
-std::ostream& outputMessage(std::ostream& output_stream,
-                            Types&&... messages) noexcept;
+auto outputMessage(std::ostream& output_stream, Types&&... messages) noexcept -> std::ostream&;
 
 //! Print messages and raise an error
 template <typename ...Types>

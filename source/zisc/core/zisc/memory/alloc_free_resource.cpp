@@ -30,7 +30,7 @@ namespace zisc {
   \return No description
   \exception BadAllocT No description.
   */
-void* AllocFreeResource::do_allocate(std::size_t size, std::size_t alignment)
+auto AllocFreeResource::do_allocate(std::size_t size, std::size_t alignment) -> void*
 {
   return allocateMemory(size, alignment);
 }
@@ -55,7 +55,7 @@ void AllocFreeResource::do_deallocate(void* data,
   \param [in] other No description.
   \return No description
   */
-bool AllocFreeResource::do_is_equal(const zisc::pmr::memory_resource& other) const noexcept
+auto AllocFreeResource::do_is_equal(const zisc::pmr::memory_resource& other) const noexcept -> bool
 {
   const bool result = this == std::addressof(other);
   return result;

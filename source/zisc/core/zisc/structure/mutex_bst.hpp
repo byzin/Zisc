@@ -111,7 +111,8 @@ class MutexBst : public Map<MutexBst<Key, T, Compare>, Key, T, Compare>
 
   //! Insert the given value into the bst
   template <typename ...Args>
-  [[nodiscard]] std::optional<size_type> add(Args&&... args);
+  [[nodiscard]]
+  std::optional<size_type> add(Args&&... args);
 
   //! Return the maximum possible number of elements
   size_type capacity() const noexcept;
@@ -123,13 +124,16 @@ class MutexBst : public Map<MutexBst<Key, T, Compare>, Key, T, Compare>
   void clear() noexcept;
 
   //! Check if the given value is contained in the bst
-  [[nodiscard]] std::optional<size_type> contain(ConstKeyT& key) const noexcept;
+  [[nodiscard]]
+  std::optional<size_type> contain(ConstKeyT& key) const noexcept;
 
   //! Find the minimum key in the bst
-  [[nodiscard]] std::optional<Pointer> findMinKey() noexcept;
+  [[nodiscard]]
+  std::optional<Pointer> findMinKey() noexcept;
 
   //! Find the minimum key in the bst
-  [[nodiscard]] std::optional<ConstPointer> findMinKey() const noexcept;
+  [[nodiscard]]
+  std::optional<ConstPointer> findMinKey() const noexcept;
 
   //! Return the value by the given index
   Reference get(const size_type index) noexcept;
@@ -144,7 +148,8 @@ class MutexBst : public Map<MutexBst<Key, T, Compare>, Key, T, Compare>
   static constexpr bool isConcurrent() noexcept;
 
   //! Remove the value from the bst
-  [[nodiscard]] std::optional<size_type> remove(ConstKeyT& key);
+  [[nodiscard]]
+  std::optional<size_type> remove(ConstKeyT& key);
 
   //! Return a pointer to the underlying memory resource
   pmr::memory_resource* resource() const noexcept;

@@ -60,7 +60,7 @@ Memory::BadAllocation::BadAllocation(const std::size_t size,
 
   \return No description
   */
-std::size_t Memory::BadAllocation::alignment() const noexcept
+auto Memory::BadAllocation::alignment() const noexcept -> std::size_t
 {
   return alignment_;
 }
@@ -70,7 +70,7 @@ std::size_t Memory::BadAllocation::alignment() const noexcept
 
   \return No description
   */
-std::size_t Memory::BadAllocation::size() const noexcept
+auto Memory::BadAllocation::size() const noexcept -> std::size_t
 {
   return size_;
 }
@@ -80,7 +80,7 @@ std::size_t Memory::BadAllocation::size() const noexcept
 
   \return No description
   */
-const char* Memory::BadAllocation::what() const noexcept
+auto Memory::BadAllocation::what() const noexcept -> const char*
 {
   return explanation_.data();
 }
@@ -93,9 +93,9 @@ const char* Memory::BadAllocation::what() const noexcept
   \param [in] explanation No description.
   \return No description
   */
-std::string Memory::BadAllocation::explain(const std::size_t size,
-                                           const std::size_t alignment,
-                                           const std::string_view explanation)
+auto Memory::BadAllocation::explain(const std::size_t size,
+                                    const std::size_t alignment,
+                                    const std::string_view explanation) -> std::string
 {
   constexpr std::size_t max_length = 2048;
   std::array<char, max_length> e{};
@@ -113,8 +113,8 @@ std::string Memory::BadAllocation::explain(const std::size_t size,
   \return No description
   */
 [[nodiscard]]
-void* Memory::alignedAllocWin([[maybe_unused]] const std::size_t alignment,
-                              [[maybe_unused]] const std::size_t size) noexcept
+auto Memory::alignedAllocWin([[maybe_unused]] const std::size_t alignment,
+                             [[maybe_unused]] const std::size_t size) noexcept -> void*
 {
   void* ptr = nullptr;
 #if defined(Z_WINDOWS)
@@ -140,9 +140,9 @@ void Memory::freeWin([[maybe_unused]] void* ptr) noexcept
 
   \return No description
   */
-Memory::SystemMemoryStats Memory::retrieveSystemStatsImpl() noexcept
+auto Memory::retrieveSystemStatsImpl() noexcept -> Memory::SystemMemoryStats
 {
-  SystemMemoryStats stats;
+  SystemMemoryStats stats{};
   bool success = false;
 #if defined(Z_WINDOWS)
   {

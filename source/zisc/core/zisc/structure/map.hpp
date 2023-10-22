@@ -98,7 +98,8 @@ class Map : private NonCopyable<Map<MapClass, Key, T, Compare>>
 
   //! Insert the given value into the map
   template <typename ...Args>
-  [[nodiscard]] std::optional<size_type> add(Args&&... args);
+  [[nodiscard]]
+  std::optional<size_type> add(Args&&... args);
 
   //! Return the maximum possible number of elements
   size_type capacity() const noexcept;
@@ -110,13 +111,16 @@ class Map : private NonCopyable<Map<MapClass, Key, T, Compare>>
   void clear() noexcept;
 
   //! Check if the given value is contained in the map
-  [[nodiscard]] std::optional<size_type> contain(ConstKeyT& key) const noexcept;
+  [[nodiscard]]
+  std::optional<size_type> contain(ConstKeyT& key) const noexcept;
 
   //! Find the minimum key in the map
-  [[nodiscard]] std::optional<Pointer> findMinKey() noexcept;
+  [[nodiscard]]
+  std::optional<Pointer> findMinKey() noexcept;
 
   //! Find the minimum key in the map
-  [[nodiscard]] std::optional<ConstPointer> findMinKey() const noexcept;
+  [[nodiscard]]
+  std::optional<ConstPointer> findMinKey() const noexcept;
 
   //! Retrun the value by the given index
   Reference get(const size_type index) noexcept;
@@ -134,7 +138,8 @@ class Map : private NonCopyable<Map<MapClass, Key, T, Compare>>
   bool isEmpty() const noexcept;
 
   //! Remove the value from the map
-  [[nodiscard]] std::optional<size_type> remove(ConstKeyT& key);
+  [[nodiscard]]
+  std::optional<size_type> remove(ConstKeyT& key);
 
   //! Change the maximum possible number of elements. The map will be cleared
   void setCapacity(const size_type cap) noexcept;

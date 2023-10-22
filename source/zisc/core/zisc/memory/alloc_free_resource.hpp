@@ -50,7 +50,7 @@ class AllocFreeResource : public pmr::memory_resource,
     std::byte* pointer_ = nullptr; //!< The header pointer of the allocated memory
     std::size_t size_ = 0; //!< The size of the allocated memory
     std::size_t alignment_ = 1; //!< The alignment of the allocated memory
-    [[maybe_unused]] Padding<sizeof(std::size_t)> pad_;
+    [[maybe_unused]] Padding<sizeof(std::size_t)> pad_{};
   };
 
 
@@ -65,12 +65,13 @@ class AllocFreeResource : public pmr::memory_resource,
 
 
   //! Move a data
-  AllocFreeResource& operator=(AllocFreeResource&& other) noexcept;
+  auto operator=(AllocFreeResource&& other) noexcept -> AllocFreeResource&;
 
 
   //! Allocate memory
-  void* allocateMemory(const std::size_t size,
-                       const std::size_t alignment);
+  [[nodiscard]]
+  auto allocateMemory(const std::size_t size,
+                      const std::size_t alignment) -> void*;
 
   //! Deallocate memory
   void deallocateMemory(void* data,
@@ -78,29 +79,33 @@ class AllocFreeResource : public pmr::memory_resource,
                         const std::size_t alignment) noexcept;
 
   //! Return the header info of the memory allocation
-  static const Header* getHeader(const void* data) noexcept;
+  static auto getHeader(const void* data) noexcept -> const Header*;
 
   //! Return the memory usage
-  const Memory::Usage& memoryUsage() const noexcept;
+  [[nodiscard]]
+  auto memoryUsage() const noexcept -> const Memory::Usage&;
 
   //! Return the total memory usage
-  std::size_t totalMemoryUsage() const noexcept;
+  [[nodiscard]]
+  auto totalMemoryUsage() const noexcept -> std::size_t;
 
   //! Return the peak memory usage
-  std::size_t peakMemoryUsage() const noexcept;
+  [[nodiscard]]
+  auto peakMemoryUsage() const noexcept -> std::size_t;
 
  private:
   //! Calculate required alignment for allocation
-  static std::size_t calcAllocAlignment(const std::size_t alignment) noexcept;
+  static auto calcAllocAlignment(const std::size_t alignment) noexcept -> std::size_t;
 
   //! Calculate required size for allocation
-  static std::tuple<std::size_t, std::size_t> calcAllocSize(
-      const std::size_t size,
-      const std::size_t alignment) noexcept;
+  static auto calcAllocSize(const std::size_t size,
+                            const std::size_t alignment) noexcept
+      -> std::tuple<std::size_t, std::size_t>;
 
   //! Allocate memory
-  void* do_allocate(std::size_t size,
-                    std::size_t alignment) override;
+  [[nodiscard]]
+  auto do_allocate(std::size_t size,
+                   std::size_t alignment) -> void* override;
 
   //! Deallocate memory
   void do_deallocate(void* data,
@@ -108,10 +113,11 @@ class AllocFreeResource : public pmr::memory_resource,
                      std::size_t alignment) override;
 
   //! Compare for equality with another memory resource
-  bool do_is_equal(const pmr::memory_resource& other) const noexcept override;
+  [[nodiscard]]
+  auto do_is_equal(const pmr::memory_resource& other) const noexcept -> bool override;
 
   //! Return the header info of the memory allocation
-  static Header* getHeaderInner(void* data) noexcept;
+  static auto getHeaderInner(void* data) noexcept -> Header*;
 
 
   Memory::Usage memory_usage_;

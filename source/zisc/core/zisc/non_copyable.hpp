@@ -27,22 +27,22 @@ namespace zisc {
 template <typename Type>
 class NonCopyable
 {
+ public:
+  //! Prohibit copy constructor
+  NonCopyable(const NonCopyable&) = delete;
+
+  //! Prohibit copy assignment
+  auto operator=(const NonCopyable&) -> NonCopyable& = delete;
+
+  //! Prohibit copy assignment
+  auto operator=(const Type&) -> Type& = delete;
+
  protected:
   //
   NonCopyable() noexcept = default;
 
   //
   ~NonCopyable() noexcept = default;
-
- private:
-  //! Prohibit copy constructor
-  NonCopyable(const NonCopyable&) = delete;
-
-  //! Prohibit copy assignment
-  NonCopyable& operator=(const NonCopyable&) = delete;
-
-  //! Prohibit copy assignment
-  Type& operator=(const Type&) = delete;
 };
 
 } // namespace zisc

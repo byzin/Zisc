@@ -56,8 +56,8 @@ SystemError::SystemError(const ErrorCode code, const std::string_view what_arg) 
   \param [in,out] other No description.
   */
 inline
-SystemError::SystemError(SystemError&& other) :
-    std::system_error(std::move(other))
+SystemError::SystemError(SystemError&& other) noexcept:
+    std::system_error(other)
 {
 }
 
@@ -67,9 +67,9 @@ SystemError::SystemError(SystemError&& other) :
   \param [in,out] other No description.
   */
 inline
-SystemError& SystemError::operator=(SystemError&& other)
+auto SystemError::operator=(SystemError&& other) noexcept -> SystemError&
 {
-  std::system_error::operator=(std::move(other));
+  std::system_error::operator=(other);
   return *this;
 }
 
@@ -97,10 +97,9 @@ void assertIfFalse(const bool condition, Types&&... messages) noexcept
   \return No description
   */
 template <typename ...Types> inline
-std::ostream& outputMessage(std::ostream& output_stream,
-                            Types&&... messages) noexcept
+auto outputMessage(std::ostream& output_stream, Types&&... messages) noexcept -> std::ostream&
 {
-  return (output_stream << ... << messages) << std::endl;
+  return (output_stream << ... << std::forward<Types>(messages)) << std::endl;
 }
 
 /*!

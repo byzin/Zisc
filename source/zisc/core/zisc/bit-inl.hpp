@@ -33,7 +33,7 @@ namespace zisc {
   \return No description
   */
 template <TriviallyCopyable To, TriviallyCopyable From> inline
-constexpr To Bit::castBit(const From& from) noexcept
+constexpr auto Bit::castBit(const From& from) noexcept -> To
 {
   const To to =
 #if defined(Z_CLANG)
@@ -55,7 +55,7 @@ constexpr To Bit::castBit(const From& from) noexcept
   \return No description
   */
 template <TriviallyCopyable To, TriviallyCopyable From> inline
-constexpr To bit_cast(const From& from) noexcept
+constexpr auto bit_cast(const From& from) noexcept -> To
 {
   const To to = Bit::castBit<To, From>(from);
   return to;

@@ -62,7 +62,7 @@ constexpr auto Config::architecture() noexcept -> Architecture
   \return No description
   */
 inline
-constexpr std::string_view Config::architectureName(const Architecture arch) noexcept
+constexpr auto Config::architectureName(const Architecture arch) noexcept -> std::string_view
 {
   using namespace std::literals;
   switch (arch) {
@@ -87,7 +87,7 @@ constexpr std::string_view Config::architectureName(const Architecture arch) noe
   \return No description
   */
 inline
-constexpr std::string_view Config::architectureName() noexcept
+constexpr auto Config::architectureName() noexcept -> std::string_view
 {
   constexpr std::string_view name{ZISC_ARCHITECTURE_NAME};
   constexpr bool is_valid = (name == architectureName(Architecture::kAmd64V1)) ||
@@ -104,7 +104,7 @@ constexpr std::string_view Config::architectureName() noexcept
   \return No description
   */
 inline
-constexpr int Config::versionMajor() noexcept
+constexpr auto Config::versionMajor() noexcept -> int
 {
   return @PROJECT_VERSION_MAJOR@;
 }
@@ -115,7 +115,7 @@ constexpr int Config::versionMajor() noexcept
   \return No description
   */
 inline
-constexpr int Config::versionMinor() noexcept
+constexpr auto Config::versionMinor() noexcept -> int
 {
   return @PROJECT_VERSION_MINOR@;
 }
@@ -126,7 +126,7 @@ constexpr int Config::versionMinor() noexcept
   \return No description
   */
 inline
-constexpr int Config::versionPatch() noexcept
+constexpr auto Config::versionPatch() noexcept -> int
 {
   return @PROJECT_VERSION_PATCH@;
 }
@@ -137,7 +137,7 @@ constexpr int Config::versionPatch() noexcept
   \return No description
   */
 inline
-constexpr std::string_view Config::versionString() noexcept
+constexpr auto Config::versionString() noexcept -> std::string_view
 {
   constexpr auto version_str = "@PROJECT_VERSION@";
   const std::string_view version{version_str};
@@ -150,7 +150,7 @@ constexpr std::string_view Config::versionString() noexcept
   \return No description
   */
 inline
-constexpr std::size_t Config::l1CacheLineSize() noexcept
+constexpr auto Config::l1CacheLineSize() noexcept -> std::size_t
 {
   constexpr std::size_t s = @ZISC_L1_CACHE_LINE_SIZE@;
   static_assert(std::has_single_bit(s), "The cache line size isn't power of 2.");
@@ -163,7 +163,7 @@ constexpr std::size_t Config::l1CacheLineSize() noexcept
   \return No description
   */
 inline
-constexpr bool Config::isAtomicOsSpecifiedWaitUsed() noexcept
+constexpr auto Config::isAtomicOsSpecifiedWaitUsed() noexcept -> bool
 {
 #if defined(ZISC_ATOMIC_OS_SPECIFIED_WAIT)
   const bool flag = true;

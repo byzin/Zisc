@@ -15,8 +15,6 @@
 #include "error.hpp"
 // Standard C++ library
 #include <string>
-#include <system_error>
-#include <utility>
 
 /*!
   \brief Add a case of an error code
@@ -39,7 +37,7 @@ namespace zisc {
   \param [in] code No description.
   \return No description
   */
-std::string getErrorCodeString(const ErrorCode code)
+auto getErrorCodeString(const ErrorCode code) -> std::string
 {
   using namespace std::string_literals;
   std::string code_string;
@@ -65,7 +63,7 @@ SystemError::~SystemError() noexcept = default;
 
   \return No description
   */
-const char* ErrorCategory::name() const noexcept
+auto ErrorCategory::name() const noexcept -> const char*
 {
   const char* n = "Zisc";
   return n;
@@ -77,7 +75,7 @@ const char* ErrorCategory::name() const noexcept
   \param [in] condition No description.
   \return No description
   */
-std::string ErrorCategory::message(const int condition) const
+auto ErrorCategory::message(const int condition) const -> std::string
 {
   const auto code = static_cast<ErrorCode>(condition);
   std::string code_string{getErrorCodeString(code)};

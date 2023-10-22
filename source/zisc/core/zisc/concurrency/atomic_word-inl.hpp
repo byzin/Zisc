@@ -54,13 +54,13 @@ class AtomicWordBase : private NonCopyable<AtomicWordBase<kOsSpecified>>
 {
  public:
   //! Return the underlying mutex
-  std::mutex& lock() noexcept
+  auto lock() noexcept -> std::mutex&
   {
     return lock_;
   }
 
   //! Return the underlyling condition variable
-  std::condition_variable& condition() noexcept
+  auto condition() noexcept -> std::condition_variable&
   {
     return condition_;
   }
@@ -74,21 +74,21 @@ class AtomicWordBase : private NonCopyable<AtomicWordBase<kOsSpecified>>
 
 // template explicit instantiation
 template <>
-void Atomic::wait<false>(AtomicWord<false>*,
-                         const Atomic::WordValueType,
-                         const std::memory_order) noexcept;
+void Atomic::wait<false>(AtomicWord<false>* word,
+                         const Atomic::WordValueType old,
+                         const std::memory_order order) noexcept;
 template <>
-void Atomic::wait<true>(AtomicWord<true>*,
-                        const Atomic::WordValueType,
-                        const std::memory_order) noexcept;
+void Atomic::wait<true>(AtomicWord<true>* word,
+                        const Atomic::WordValueType old,
+                        const std::memory_order order) noexcept;
 template <>
-void Atomic::notifyOne<false>(AtomicWord<false>*) noexcept;
+void Atomic::notifyOne<false>(AtomicWord<false>* word) noexcept;
 template <>
-void Atomic::notifyOne<true>(AtomicWord<true>*) noexcept;
+void Atomic::notifyOne<true>(AtomicWord<true>* word) noexcept;
 template <>
-void Atomic::notifyAll<false>(AtomicWord<false>*) noexcept;
+void Atomic::notifyAll<false>(AtomicWord<false>* word) noexcept;
 template <>
-void Atomic::notifyAll<true>(AtomicWord<true>*) noexcept;
+void Atomic::notifyAll<true>(AtomicWord<true>* word) noexcept;
 
 /*!
   \details No detailed description
@@ -116,7 +116,7 @@ AtomicWord<kOsSpecified>::AtomicWord(const Atomic::WordValueType value) noexcept
   \return No description
   */
 template <bool kOsSpecified> inline
-Atomic::WordValueType& AtomicWord<kOsSpecified>::get() noexcept
+auto AtomicWord<kOsSpecified>::get() noexcept -> Atomic::WordValueType&
 {
   return word_;
 }
@@ -127,7 +127,7 @@ Atomic::WordValueType& AtomicWord<kOsSpecified>::get() noexcept
   \return No description
   */
 template <bool kOsSpecified> inline
-const Atomic::WordValueType& AtomicWord<kOsSpecified>::get() const noexcept
+auto AtomicWord<kOsSpecified>::get() const noexcept -> const Atomic::WordValueType&
 {
   return word_;
 }
@@ -138,7 +138,7 @@ const Atomic::WordValueType& AtomicWord<kOsSpecified>::get() const noexcept
   \return No description
   */
 template <bool kOsSpecified> inline
-constexpr bool AtomicWord<kOsSpecified>::isSpecialized() noexcept
+constexpr auto AtomicWord<kOsSpecified>::isSpecialized() noexcept -> bool
 {
   const bool flag =
 #if defined(Z_WINDOWS) || defined(Z_LINUX)
@@ -156,7 +156,8 @@ constexpr bool AtomicWord<kOsSpecified>::isSpecialized() noexcept
   \return No description
   */
 template <bool kOsSpecified> inline
-Atomic::WordValueType AtomicWord<kOsSpecified>::load(const std::memory_order order) const noexcept
+auto AtomicWord<kOsSpecified>::load(const std::memory_order order) const noexcept
+    -> Atomic::WordValueType
 {
   const Atomic::WordValueType result = atomic_load(&word_, order);
   return result;

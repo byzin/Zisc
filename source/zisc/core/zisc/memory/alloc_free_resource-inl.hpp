@@ -41,9 +41,9 @@ namespace zisc {
   */
 inline
 AllocFreeResource::AllocFreeResource(AllocFreeResource&& other) noexcept :
-    pmr::memory_resource(std::move(other))
+    pmr::memory_resource(other),
+    memory_usage_{other.memory_usage_}
 {
-  memory_usage_ = std::move(other.memory_usage_);
 }
 
 /*!
@@ -53,10 +53,10 @@ AllocFreeResource::AllocFreeResource(AllocFreeResource&& other) noexcept :
   \return No description
   */
 inline
-AllocFreeResource& AllocFreeResource::operator=(AllocFreeResource&& other) noexcept
+auto AllocFreeResource::operator=(AllocFreeResource&& other) noexcept -> AllocFreeResource&
 {
-  pmr::memory_resource::operator=(std::move(other));
-  memory_usage_ = std::move(other.memory_usage_);
+  pmr::memory_resource::operator=(other);
+  memory_usage_ = other.memory_usage_;
   return *this;
 }
 
@@ -69,8 +69,8 @@ AllocFreeResource& AllocFreeResource::operator=(AllocFreeResource&& other) noexc
   \exception BadAllocT No description.
   */
 inline
-void* AllocFreeResource::allocateMemory(const std::size_t size,
-                                        const std::size_t alignment)
+auto AllocFreeResource::allocateMemory(const std::size_t size,
+                                       const std::size_t alignment) -> void*
 {
   // Allocate memory
   const std::size_t alloc_alignment = calcAllocAlignment(alignment);
@@ -139,7 +139,7 @@ auto AllocFreeResource::getHeader(const void* data) noexcept -> const Header*
   \return No description
   */
 inline
-const Memory::Usage& AllocFreeResource::memoryUsage() const noexcept
+auto AllocFreeResource::memoryUsage() const noexcept -> const Memory::Usage&
 {
   return memory_usage_;
 }
@@ -150,7 +150,7 @@ const Memory::Usage& AllocFreeResource::memoryUsage() const noexcept
   \return No description
   */
 inline
-std::size_t AllocFreeResource::totalMemoryUsage() const noexcept
+auto AllocFreeResource::totalMemoryUsage() const noexcept -> std::size_t
 {
   return memoryUsage().total();
 }
@@ -161,7 +161,7 @@ std::size_t AllocFreeResource::totalMemoryUsage() const noexcept
   \return No description
   */
 inline
-std::size_t AllocFreeResource::peakMemoryUsage() const noexcept
+auto AllocFreeResource::peakMemoryUsage() const noexcept -> std::size_t
 {
   return memoryUsage().peak();
 }
@@ -173,7 +173,7 @@ std::size_t AllocFreeResource::peakMemoryUsage() const noexcept
   \return No description
   */
 inline
-std::size_t AllocFreeResource::calcAllocAlignment(const std::size_t alignment) noexcept
+auto AllocFreeResource::calcAllocAlignment(const std::size_t alignment) noexcept -> std::size_t
 {
   constexpr std::size_t min_alignment = (std::max)(std::alignment_of_v<Header>,
                                                    Memory::minAllocAlignment());

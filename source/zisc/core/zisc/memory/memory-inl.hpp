@@ -37,7 +37,7 @@ namespace zisc {
   \return No description
   */
 inline
-std::size_t Memory::SystemMemoryStats::availablePhysicalMemory() const noexcept
+auto Memory::SystemMemoryStats::availablePhysicalMemory() const noexcept -> std::size_t
 {
   return available_physical_memory_;
 }
@@ -48,7 +48,7 @@ std::size_t Memory::SystemMemoryStats::availablePhysicalMemory() const noexcept
   \return No description
   */
 inline
-std::size_t Memory::SystemMemoryStats::totalPhysicalMemory() const noexcept
+auto Memory::SystemMemoryStats::totalPhysicalMemory() const noexcept -> std::size_t
 {
   return total_physical_memory_;
 }
@@ -59,7 +59,7 @@ std::size_t Memory::SystemMemoryStats::totalPhysicalMemory() const noexcept
   \return No description
   */
 inline
-std::size_t Memory::SystemMemoryStats::availableVirtualMemory() const noexcept
+auto Memory::SystemMemoryStats::availableVirtualMemory() const noexcept -> std::size_t
 {
   return available_virtual_memory_;
 }
@@ -70,7 +70,7 @@ std::size_t Memory::SystemMemoryStats::availableVirtualMemory() const noexcept
   \return No description
   */
 inline
-std::size_t Memory::SystemMemoryStats::totalVirtualMemory() const noexcept
+auto Memory::SystemMemoryStats::totalVirtualMemory() const noexcept -> std::size_t
 {
   return total_virtual_memory_;
 }
@@ -138,7 +138,7 @@ void Memory::Usage::add(const std::size_t size) noexcept
   \return No description
   */
 inline
-std::size_t Memory::Usage::peak() const noexcept
+auto Memory::Usage::peak() const noexcept -> std::size_t
 {
   const std::size_t p = atomic_load(&peak_, std::memory_order::acquire);
   return p;
@@ -183,7 +183,7 @@ void Memory::Usage::setTotal(const std::size_t t) noexcept
   \return No description
   */
 inline
-std::size_t Memory::Usage::total() const noexcept
+auto Memory::Usage::total() const noexcept -> std::size_t
 {
   const std::size_t t = atomic_load(&total_, std::memory_order::acquire);
   return t;
@@ -197,7 +197,7 @@ std::size_t Memory::Usage::total() const noexcept
   \return No description
   */
 inline
-void* Memory::allocate(const std::size_t alignment, const std::size_t size) noexcept
+auto Memory::allocate(const std::size_t alignment, const std::size_t size) noexcept -> void*
 {
   void* ptr =
 #if defined(Z_WINDOWS)
@@ -217,7 +217,7 @@ void* Memory::allocate(const std::size_t alignment, const std::size_t size) noex
   \return No description
   */
 template <std::size_t kN, typename Type> inline
-constexpr Type* Memory::assumeAligned(Type* ptr) noexcept
+constexpr auto Memory::assumeAligned(Type* ptr) noexcept -> Type*
 {
   Type* result =
 #if defined(Z_CLANG)
@@ -251,9 +251,9 @@ void Memory::free(void* ptr) noexcept
   \return No description
   */
 inline
-bool Memory::isAligned(const void* data, const std::size_t alignment) noexcept
+auto Memory::isAligned(const void* data, const std::size_t alignment) noexcept -> bool
 {
-  const std::size_t address = zisc::bit_cast<std::size_t>(data);
+  const auto address = zisc::bit_cast<std::size_t>(data);
   const bool result = (address & (alignment - 1)) == 0;
   return result;
 }
@@ -264,7 +264,7 @@ bool Memory::isAligned(const void* data, const std::size_t alignment) noexcept
   \return No description
   */
 inline
-constexpr std::size_t Memory::minAllocAlignment() noexcept
+constexpr auto Memory::minAllocAlignment() noexcept -> std::size_t
 {
   constexpr std::size_t alignment = alignof(void*);
   return alignment;
@@ -276,7 +276,7 @@ constexpr std::size_t Memory::minAllocAlignment() noexcept
   \return No description
   */
 inline
-Memory::SystemMemoryStats Memory::retrieveSystemStats() noexcept
+auto Memory::retrieveSystemStats() noexcept -> Memory::SystemMemoryStats
 {
   SystemMemoryStats stats = retrieveSystemStatsImpl();
   return stats;
@@ -290,7 +290,7 @@ Memory::SystemMemoryStats Memory::retrieveSystemStats() noexcept
   \return No description
   */
 inline
-void* aligned_alloc(const std::size_t alignment, const std::size_t size) noexcept
+auto aligned_alloc(const std::size_t alignment, const std::size_t size) noexcept -> void*
 {
   void* ptr = Memory::allocate(alignment, size);
   return ptr;
@@ -305,7 +305,7 @@ void* aligned_alloc(const std::size_t alignment, const std::size_t size) noexcep
   \return No description
   */
 template <std::size_t kN, typename Type> inline
-constexpr Type* assume_aligned(Type* ptr) noexcept
+constexpr auto assume_aligned(Type* ptr) noexcept -> Type*
 {
   Type* result = Memory::assumeAligned<kN>(ptr);
   return result;

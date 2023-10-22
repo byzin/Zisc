@@ -42,10 +42,10 @@ namespace zisc {
 template <typename Type, typename T>
 requires std::is_nothrow_convertible_v<T, Type> ||
          std::is_nothrow_constructible_v<Type, T> inline
-constexpr Type cast(T&& value) noexcept
+constexpr auto cast(T&& value) noexcept -> Type
 {
   if constexpr (std::same_as<Type, T>)
-    return value;
+    return std::forward<T>(value);
   else
     return static_cast<Type>(value);
 }
@@ -61,7 +61,7 @@ constexpr Type cast(T&& value) noexcept
   \return No description
   */
 template <std::floating_point Float, std::unsigned_integral Integer> inline
-constexpr Float mapTo01(const Integer x) noexcept
+constexpr auto mapTo01(const Integer x) noexcept -> Float
 {
   constexpr std::size_t int_digits = std::numeric_limits<Integer>::digits;
   constexpr std::size_t mant_digits = std::numeric_limits<Float>::digits;
@@ -75,7 +75,7 @@ constexpr Float mapTo01(const Integer x) noexcept
     constexpr std::size_t offset = mant_digits - int_digits;
     v = static_cast<ValueType>(x) << offset;
   }
-  constexpr Float norm = static_cast<Float>(1.0) / static_cast<Float>(1ull << mant_digits);
+  constexpr Float norm = static_cast<Float>(1.0) / static_cast<Float>(1ULL << mant_digits);
   const Float y = static_cast<Float>(v) * norm;
   return y;
 }
@@ -89,7 +89,7 @@ constexpr Float mapTo01(const Integer x) noexcept
   \return No description
   */
 template <Pointer Type, Pointer T> inline
-Type reinterp(T p) noexcept
+auto reinterp(T p) noexcept -> Type
 {
   Type ptr = std::launder(reinterpret_cast<Type>(p));
   return ptr;
@@ -107,10 +107,10 @@ Type reinterp(T p) noexcept
   */
 template <typename Lhs, typename Rhs> requires std::is_nothrow_assignable_v<Lhs, Rhs>
 inline
-bool updateIfTrue(const bool flag, Lhs&& lhs, Rhs&& rhs) noexcept
+auto updateIfTrue(const bool flag, Lhs&& lhs, Rhs&& rhs) noexcept -> bool
 {
   if (flag)
-    lhs = std::forward<Rhs>(rhs);
+    std::forward<Lhs>(lhs) = std::forward<Rhs>(rhs);
   return flag;
 }
 
@@ -129,10 +129,11 @@ bool updateIfTrue(const bool flag, Lhs&& lhs, Rhs&& rhs) noexcept
 template <typename ReturnT, typename Func, typename ...ArgTypes>
     requires std::is_nothrow_invocable_r_v<ReturnT, Func, ArgTypes...>
 inline
-bool invokeIfTrue(const bool flag, ReturnT& result, Func&& func, ArgTypes&&... args) noexcept
+auto invokeIfTrue(const bool flag, ReturnT& result, Func&& func, ArgTypes&&... args) noexcept
+    -> bool
 {
   if (flag)
-    result = std::invoke(func, std::forward<ArgTypes>(args)...);
+    result = std::invoke(std::forward<Func>(func), std::forward<ArgTypes>(args)...);
   return flag;
 }
 
@@ -149,10 +150,11 @@ bool invokeIfTrue(const bool flag, ReturnT& result, Func&& func, ArgTypes&&... a
 template <typename Func, typename ...ArgTypes>
     requires std::is_nothrow_invocable_v<Func, ArgTypes...>
 inline
-bool invokeIfTrue(const bool flag, Func&& func, ArgTypes&&... args) noexcept
+auto invokeIfTrue(const bool flag, Func&& func, ArgTypes&&... args) noexcept
+    -> bool
 {
   if (flag)
-    std::invoke(func, std::forward<ArgTypes>(args)...);
+    std::invoke(std::forward<Func>(func), std::forward<ArgTypes>(args)...);
   return flag;
 }
 

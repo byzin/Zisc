@@ -27,31 +27,35 @@ namespace zisc {
 template <typename Type, typename T>
 requires std::is_nothrow_convertible_v<T, Type> ||
          std::is_nothrow_constructible_v<Type, T>
-constexpr Type cast(T&& value) noexcept;
+constexpr auto cast(T&& value) noexcept -> Type;
 
 //! Map an integer value into a [0, 1) floating point value
 template <std::floating_point Float, std::unsigned_integral Integer>
-constexpr Float mapTo01(const Integer x) noexcept;
+constexpr auto mapTo01(const Integer x) noexcept -> Float;
 
 //! Convert to Type which refers to the same memory but is assumed to have distinct lifetime
 template <Pointer Type, Pointer T>
-[[nodiscard]] Type reinterp(T p) noexcept;
+[[nodiscard]]
+auto reinterp(T p) noexcept -> Type;
 
 // Conditional functions
 
 //! Invoke the func with the args if the flag is true
 template <typename ReturnT, typename Func, typename ...ArgTypes>
     requires std::is_nothrow_invocable_r_v<ReturnT, Func, ArgTypes...>
-bool invokeIfTrue(const bool flag, ReturnT& result, Func&& func, ArgTypes&&... args) noexcept;
+auto invokeIfTrue(const bool flag, ReturnT& result, Func&& func, ArgTypes&&... args) noexcept
+    -> bool;
 
 //! Invoke the func with the args if the flag is true
 template <typename Func, typename ...ArgTypes>
     requires std::is_nothrow_invocable_v<Func, ArgTypes...>
-bool invokeIfTrue(const bool flag, Func&& func, ArgTypes&&... args) noexcept;
+auto invokeIfTrue(const bool flag, Func&& func, ArgTypes&&... args) noexcept
+    -> bool;
 
 //! Update the value in lhs with the rhs if the flag is true
 template <typename Lhs, typename Rhs> requires std::is_nothrow_assignable_v<Lhs, Rhs>
-bool updateIfTrue(const bool flag, Lhs&& lhs, Rhs&& rhs) noexcept;
+auto updateIfTrue(const bool flag, Lhs&& lhs, Rhs&& rhs) noexcept
+    -> bool;
 
 } // namespace zisc
 

@@ -41,7 +41,7 @@ class Atomic
 
 
   //! Return the default memory order
-  static constexpr std::memory_order defaultMemOrder() noexcept
+  static constexpr auto defaultMemOrder() noexcept -> std::memory_order
   {
     return std::memory_order::seq_cst;
   }
@@ -54,98 +54,98 @@ class Atomic
 
   //! Atomically obtain the value of the referenced object
   template <TriviallyCopyable Type>
-  static Type load(const Type* ptr,
-                   const std::memory_order order = defaultMemOrder()) noexcept;
+  static auto load(const Type* ptr,
+                   const std::memory_order order = defaultMemOrder()) noexcept -> Type;
 
   //! Atomically replace with the given value
   template <TriviallyCopyable Type>
-  static Type exchange(Type* ptr,
+  static auto exchange(Type* ptr,
                        Type value,
-                       const std::memory_order order = defaultMemOrder()) noexcept;
+                       const std::memory_order order = defaultMemOrder()) noexcept -> Type;
 
   //! Atomically compare and perform exchange
   template <TriviallyCopyable Type>
-  static Type compareAndExchange(
+  static auto compareAndExchange(
       Type* ptr,
       Type cmp,
       Type value,
       const std::memory_order success_order = defaultMemOrder(),
-      const std::memory_order failure_order = defaultMemOrder()) noexcept;
+      const std::memory_order failure_order = defaultMemOrder()) noexcept -> Type;
 
   //! Perform atomic addition
   template <TriviallyCopyable Type>
-  static Type add(Type* ptr,
+  static auto add(Type* ptr,
                   const Type value,
-                  const std::memory_order order = defaultMemOrder()) noexcept;
+                  const std::memory_order order = defaultMemOrder()) noexcept -> Type;
 
   //! Perform atomic subtraction
   template <TriviallyCopyable Type>
-  static Type sub(Type* ptr,
+  static auto sub(Type* ptr,
                   const Type value,
-                  const std::memory_order order = defaultMemOrder()) noexcept;
+                  const std::memory_order order = defaultMemOrder()) noexcept -> Type;
 
   //! Perform atomic increment
   template <TriviallyCopyable Type>
-  static Type increment(Type* ptr,
-                        const std::memory_order order = defaultMemOrder()) noexcept;
+  static auto increment(Type* ptr,
+                        const std::memory_order order = defaultMemOrder()) noexcept -> Type;
 
   //! Perform atomic decrement 
   template <TriviallyCopyable Type>
-  static Type decrement(Type* ptr,
-                        const std::memory_order order = defaultMemOrder()) noexcept;
+  static auto decrement(Type* ptr,
+                        const std::memory_order order = defaultMemOrder()) noexcept -> Type;
 
   //!
   template <TriviallyCopyable Type>
-  static Type min(Type* ptr,
+  static auto min(Type* ptr,
                   const Type value,
-                  const std::memory_order order = defaultMemOrder()) noexcept;
+                  const std::memory_order order = defaultMemOrder()) noexcept -> Type;
 
   //!
   template <TriviallyCopyable Type>
-  static Type max(Type* ptr,
+  static auto max(Type* ptr,
                   const Type value,
-                  const std::memory_order order = defaultMemOrder()) noexcept;
+                  const std::memory_order order = defaultMemOrder()) noexcept -> Type;
 
   //! Perform atomic bitwise and
   template <Integer Int>
-  static Int bitAnd(Int* ptr,
+  static auto bitAnd(Int* ptr,
                     const Int value,
-                    const std::memory_order order = defaultMemOrder()) noexcept;
+                    const std::memory_order order = defaultMemOrder()) noexcept -> Int;
 
   //! Perform atomic bitwise or
   template <Integer Int>
-  static Int bitOr(Int* ptr,
+  static auto bitOr(Int* ptr,
                    const Int value,
-                   const std::memory_order order = defaultMemOrder()) noexcept;
+                   const std::memory_order order = defaultMemOrder()) noexcept -> Int;
 
   //! Perform atomic bitwise or
   template <Integer Int>
-  static Int bitXor(Int* ptr,
+  static auto bitXor(Int* ptr,
                     const Int value,
-                    const std::memory_order order = defaultMemOrder()) noexcept;
+                    const std::memory_order order = defaultMemOrder()) noexcept -> Int;
 
   //! Indicate that the type is always lock-free
   template <TriviallyCopyable Type>
-  static constexpr bool isAlwaysLockFree() noexcept;
+  static constexpr auto isAlwaysLockFree() noexcept -> bool;
 
   //! Check if the atomic operations are lock-free
   template <TriviallyCopyable Type>
-  static bool isLockFree() noexcept;
+  static auto isLockFree() noexcept -> bool;
 
   //! Perform an expression atomically
   template <TriviallyCopyable Type, typename Function, typename ...Types>
   requires InvocableR<Function, Type, Type, Types...>
-  static Type perform(Type* ptr,
+  static auto perform(Type* ptr,
                       const std::memory_order order,
                       Function&& expression,
-                      Types&&... arguments) noexcept;
+                      Types&&... arguments) noexcept -> Type;
 
   //! Perform an expression atomically
   template <TriviallyCopyable Type, typename Function, typename ...Types>
   requires InvocableR<Function, Type, Type, Types...>
-  static Type perform(Type* ptr,
+  static auto perform(Type* ptr,
                       Function&& expression,
-                      Types&&... arguments) noexcept;
+                      Types&&... arguments) noexcept -> Type;
 
   // Atomic wait-notification
 
@@ -168,7 +168,7 @@ class Atomic
   static constexpr auto castMemOrder(const std::memory_order order) noexcept;
 
   //! Return memory order for loading
-  static constexpr std::memory_order getLoadOrder(const std::memory_order order) noexcept;
+  static constexpr auto getLoadOrder(const std::memory_order order) noexcept -> std::memory_order;
 };
 
 // STL style function aliases
@@ -182,86 +182,86 @@ void atomic_store(
 
 //! Atomically obtain the value of the referenced object
 template <TriviallyCopyable Type>
-Type atomic_load(
+auto atomic_load(
     const Type* ptr,
-    const std::memory_order order = Atomic::defaultMemOrder()) noexcept;
+    const std::memory_order order = Atomic::defaultMemOrder()) noexcept -> Type;
 
 //! Atomically replace with the given value
 template <TriviallyCopyable Type>
-Type atomic_exchange(
+auto atomic_exchange(
     Type* ptr,
     const Type value,
-    const std::memory_order order = Atomic::defaultMemOrder()) noexcept;
+    const std::memory_order order = Atomic::defaultMemOrder()) noexcept -> Type;
 
 //! Atomically compare and perform exchange
 template <TriviallyCopyable Type>
-Type atomic_compare_exchange(
+auto atomic_compare_exchange(
     Type* ptr,
     const Type cmp,
     const Type value,
     const std::memory_order success_order = Atomic::defaultMemOrder(),
-    const std::memory_order failure_order = Atomic::defaultMemOrder()) noexcept;
+    const std::memory_order failure_order = Atomic::defaultMemOrder()) noexcept -> Type;
 
 //! Perform atomic addition
 template <TriviallyCopyable Type>
-Type atomic_fetch_add(
+auto atomic_fetch_add(
     Type* ptr,
     const Type value,
-    const std::memory_order order = Atomic::defaultMemOrder()) noexcept;
+    const std::memory_order order = Atomic::defaultMemOrder()) noexcept -> Type;
 
 //! Perform atomic subtraction
 template <TriviallyCopyable Type>
-Type atomic_fetch_sub(
+auto atomic_fetch_sub(
     Type* ptr,
     const Type value,
-    const std::memory_order order = Atomic::defaultMemOrder()) noexcept;
+    const std::memory_order order = Atomic::defaultMemOrder()) noexcept -> Type;
 
 //! Perform atomic increment
 template <TriviallyCopyable Type>
-Type atomic_fetch_inc(
+auto atomic_fetch_inc(
     Type* ptr,
-    const std::memory_order order = Atomic::defaultMemOrder()) noexcept;
+    const std::memory_order order = Atomic::defaultMemOrder()) noexcept -> Type;
 
 //! Perform atomic decrement 
 template <TriviallyCopyable Type>
-Type atomic_fetch_dec(
+auto atomic_fetch_dec(
     Type* ptr,
-    const std::memory_order order = Atomic::defaultMemOrder()) noexcept;
+    const std::memory_order order = Atomic::defaultMemOrder()) noexcept -> Type;
 
 //!
 template <TriviallyCopyable Type>
-Type atomic_fetch_min(
+auto atomic_fetch_min(
     Type* ptr,
     const Type value,
-    const std::memory_order order = Atomic::defaultMemOrder()) noexcept;
+    const std::memory_order order = Atomic::defaultMemOrder()) noexcept -> Type;
 
 //!
 template <TriviallyCopyable Type>
-Type atomic_fetch_max(
+auto atomic_fetch_max(
     Type* ptr,
     const Type value,
-    const std::memory_order order = Atomic::defaultMemOrder()) noexcept;
+    const std::memory_order order = Atomic::defaultMemOrder()) noexcept -> Type;
 
 //! Perform atomic bitwise and
 template <Integer Int>
-Int atomic_fetch_and(
+auto atomic_fetch_and(
     Int* ptr,
     const Int value,
-    const std::memory_order order = Atomic::defaultMemOrder()) noexcept;
+    const std::memory_order order = Atomic::defaultMemOrder()) noexcept -> Int;
 
 //! Perform atomic bitwise or
 template <Integer Int>
-Int atomic_fetch_or(
+auto atomic_fetch_or(
     Int* ptr,
     const Int value,
-    const std::memory_order order = Atomic::defaultMemOrder()) noexcept;
+    const std::memory_order order = Atomic::defaultMemOrder()) noexcept -> Int;
 
 //! Perform atomic bitwise or
 template <Integer Int>
-Int atomic_fetch_xor(
+auto atomic_fetch_xor(
     Int* ptr,
     const Int value,
-    const std::memory_order order = Atomic::defaultMemOrder()) noexcept;
+    const std::memory_order order = Atomic::defaultMemOrder()) noexcept -> Int;
 
 //! Block the thread until notified and the word value changed
 template <bool kOsSpecified>

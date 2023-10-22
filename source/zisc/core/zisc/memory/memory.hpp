@@ -47,19 +47,24 @@ class Memory
                   const std::string_view explanation);
 
     //! Return the alignment that is failed to be allocated
-    std::size_t alignment() const noexcept;
+    [[nodiscard]]
+    auto alignment() const noexcept -> std::size_t;
 
     //! Return the size that is failed to be allocated
-    std::size_t size() const noexcept;
+    [[nodiscard]]
+    auto size() const noexcept -> std::size_t;
 
     //! Return the explanatory string
-    const char* what() const noexcept override;
+    [[nodiscard]]
+    auto what() const noexcept -> const char* override;
 
    private:
     //! Return the explanatory string
-    static std::string explain(const std::size_t size,
-                               const std::size_t alignment,
-                               const std::string_view explanation);
+    [[nodiscard]]
+    static auto explain(const std::size_t size,
+                        const std::size_t alignment,
+                        const std::string_view explanation) -> std::string;
+
 
     std::string explanation_;
     std::size_t size_;
@@ -75,16 +80,20 @@ class Memory
   {
    public:
     //! Return the amount of actual physical memory currently available in bytes
-    std::size_t availablePhysicalMemory() const noexcept;
+    [[nodiscard]]
+    auto availablePhysicalMemory() const noexcept -> std::size_t;
 
     //! Return the amount of actual physical memory in bytes
-    std::size_t totalPhysicalMemory() const noexcept;
+    [[nodiscard]]
+    auto totalPhysicalMemory() const noexcept -> std::size_t;
 
     //! Return the amount of swap memory space currently available in bytes
-    std::size_t availableVirtualMemory() const noexcept;
+    [[nodiscard]]
+    auto availableVirtualMemory() const noexcept -> std::size_t;
 
     //! Return the amount of swap memory space in bytes
-    std::size_t totalVirtualMemory() const noexcept;
+    [[nodiscard]]
+    auto totalVirtualMemory() const noexcept -> std::size_t;
 
     //! Set the amount of actual physical memory currently available in bytes
     void setAvailablePhysicalMemory(const std::size_t s) noexcept;
@@ -117,7 +126,8 @@ class Memory
     void add(const std::size_t size) noexcept;
 
     //! Return the peak memory usage
-    std::size_t peak() const noexcept;
+    [[nodiscard]]
+    auto peak() const noexcept -> std::size_t;
 
     //! Release the size of memory from the usage
     void release(const std::size_t size) noexcept;
@@ -129,7 +139,8 @@ class Memory
     void setTotal(const std::size_t t) noexcept;
 
     //! Return the total memory usage
-    std::size_t total() const noexcept;
+    [[nodiscard]]
+    auto total() const noexcept -> std::size_t;
 
    private:
     std::size_t total_ = 0;
@@ -139,47 +150,48 @@ class Memory
 
   //! Allocate aligned memory
   [[nodiscard]]
-  static void* allocate(const std::size_t alignment, const std::size_t size) noexcept;
+  static auto allocate(const std::size_t alignment, const std::size_t size) noexcept -> void*;
 
   //! Inform the compiler that a pointer is aligned
   template <std::size_t kN, typename Type>
   [[nodiscard]]
-  static constexpr Type* assumeAligned(Type* ptr) noexcept;
+  static constexpr auto assumeAligned(Type* ptr) noexcept -> Type*;
 
   //! Deallocate previously allocated memory
   static void free(void* ptr) noexcept;
 
   //! Check if an address of the \a data is aligned at the \a alignment bytes
-  static bool isAligned(const void* data, const std::size_t alignment) noexcept;
+  static auto isAligned(const void* data, const std::size_t alignment) noexcept -> bool;
 
   //! Return the minimum alignment guaranteed to be accepted by \a allocate method
-  static constexpr std::size_t minAllocAlignment() noexcept;
+  static constexpr auto minAllocAlignment() noexcept -> std::size_t;
 
   //! Retrieve the system memory statistics
-  static SystemMemoryStats retrieveSystemStats() noexcept;
+  static auto retrieveSystemStats() noexcept -> SystemMemoryStats;
 
  private:
   //! Allocate aligned memory for Windows
   [[nodiscard]]
-  static void* alignedAllocWin(const std::size_t alignment, const std::size_t size) noexcept;
+  static auto alignedAllocWin(const std::size_t alignment, const std::size_t size) noexcept
+      -> void*;
 
   //! Deallocate previously allocated memory for Windows
   static void freeWin(void* ptr) noexcept;
 
   //! Retrieve the system memory statistics
-  static SystemMemoryStats retrieveSystemStatsImpl() noexcept;
+  static auto retrieveSystemStatsImpl() noexcept -> SystemMemoryStats;
 };
 
 // STL style function aliases
 
 //! Allocate aligned memory
 [[nodiscard]]
-void* aligned_alloc(const std::size_t alignment, const std::size_t size) noexcept;
+auto aligned_alloc(const std::size_t alignment, const std::size_t size) noexcept -> void*;
 
 //! Inform the compiler that a pointer is aligned
 template <std::size_t kN, typename Type>
 [[nodiscard]]
-constexpr Type* assume_aligned(Type* ptr) noexcept;
+constexpr auto assume_aligned(Type* ptr) noexcept -> Type*;
 
 //! Deallocate previously allocated memory
 void free(void* ptr) noexcept;

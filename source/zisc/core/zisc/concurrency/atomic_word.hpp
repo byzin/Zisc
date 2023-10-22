@@ -42,20 +42,24 @@ class AtomicWord : public AtomicWordBase<kOsSpecified>
   AtomicWord() noexcept;
 
   //! Construct an atomic word
-  AtomicWord(const Atomic::WordValueType value) noexcept;
+  explicit AtomicWord(const Atomic::WordValueType value) noexcept;
 
 
   //! Return the underlying word value
-  Atomic::WordValueType& get() noexcept;
+  [[nodiscard]]
+  auto get() noexcept -> Atomic::WordValueType&;
 
   //! Return the underlying word value
-  const Atomic::WordValueType& get() const noexcept;
+  [[nodiscard]]
+  auto get() const noexcept -> const Atomic::WordValueType&;
 
   //! Check if the atomic word is specialized
-  static constexpr bool isSpecialized() noexcept;
+  static constexpr auto isSpecialized() noexcept -> bool;
 
   //! Get the underlying word value atomically
-  Atomic::WordValueType load(const std::memory_order order = Atomic::defaultMemOrder()) const noexcept;
+  [[nodiscard]]
+  auto load(const std::memory_order order = Atomic::defaultMemOrder()) const noexcept
+      -> Atomic::WordValueType;
 
   //! Set a value to the underlying word atomically
   void store(const Atomic::WordValueType value,

@@ -31,14 +31,14 @@ class Bit
  public:
   //! Reinterpret the object representation of one type as that of another
   template <TriviallyCopyable To, TriviallyCopyable From>
-  static constexpr To castBit(const From& from) noexcept;
+  static constexpr auto castBit(const From& from) noexcept -> To;
 };
 
 // STL style function aliases
 
 //! Reinterpret the object representation of one type as that of another
 template <TriviallyCopyable To, TriviallyCopyable From>
-constexpr To bit_cast(const From& from) noexcept;
+constexpr auto bit_cast(const From& from) noexcept -> To;
 
 } // namespace zisc
 

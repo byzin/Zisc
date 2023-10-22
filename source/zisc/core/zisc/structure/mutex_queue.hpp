@@ -90,11 +90,13 @@ class MutexQueue : public Queue<MutexQueue<T>, T>
   std::span<ConstT> data() const noexcept;
 
   //! Take the first element of the queue
-  [[nodiscard]] std::optional<ValueT> dequeue() noexcept;
+  [[nodiscard]]
+  std::optional<ValueT> dequeue() noexcept;
 
   //! Append the given element value to the end of the queue
   template <typename ...Args> requires std::is_nothrow_constructible_v<T, Args...>
-  [[nodiscard]] std::optional<size_type> enqueue(Args&&... args);
+  [[nodiscard]]
+  std::optional<size_type> enqueue(Args&&... args);
 
   //! Return the value by the given index
   Reference get(const size_type index) noexcept;

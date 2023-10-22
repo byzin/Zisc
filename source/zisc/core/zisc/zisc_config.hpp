@@ -61,33 +61,33 @@ class Config
 
 
   //! Return the target architecture of the build
-  static constexpr Architecture architecture() noexcept;
+  static constexpr auto architecture() noexcept -> Architecture;
 
   //! Return the target architecture name of the given architecture
-  static constexpr std::string_view architectureName(const Architecture arch) noexcept;
+  static constexpr auto architectureName(const Architecture arch) noexcept -> std::string_view;
 
   //! Return the target architecture name of the build
-  static constexpr std::string_view architectureName() noexcept;
+  static constexpr auto architectureName() noexcept -> std::string_view;
 
   //! Return the value of the major component of the Zisc version number
-  static constexpr int versionMajor() noexcept;
+  static constexpr auto versionMajor() noexcept -> int;
 
   //! Return the value of the minor component of the Zisc version number
-  static constexpr int versionMinor() noexcept;
+  static constexpr auto versionMinor() noexcept -> int;
 
   //! Return the value of the patch component of the Zisc version number
-  static constexpr int versionPatch() noexcept;
+  static constexpr auto versionPatch() noexcept -> int;
 
   //! Return the version string of Zisc
-  static constexpr std::string_view versionString() noexcept;
+  static constexpr auto versionString() noexcept -> std::string_view;
 
   //! Return the L1 cache line size in bytes
-  static constexpr std::size_t l1CacheLineSize() noexcept;
+  static constexpr auto l1CacheLineSize() noexcept -> std::size_t;
 
   // Algorithm config
 
   // Atomic config
-  static constexpr bool isAtomicOsSpecifiedWaitUsed() noexcept;
+  static constexpr auto isAtomicOsSpecifiedWaitUsed() noexcept -> bool;
 
  private:
 };

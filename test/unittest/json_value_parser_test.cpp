@@ -129,7 +129,7 @@ TEST(JsonValueParserTest, IntegerTest)
       const bool result1 = parser.isInteger(json_value);
       EXPECT_TRUE(result1)
           << "'" << json_value << "' is not JSON integer." << std::endl;
-      const auto result2 = parser.toCxxInteger<long>(json_value);
+      const auto result2 = decltype(parser)::toCxxInteger<long>(json_value);
       EXPECT_EQ(expected, result2)
           << "JSON integer conversion failed: '" << json_value << "'";
       if (result1)
@@ -191,7 +191,7 @@ TEST(JsonValueParserTest, FloatTest)
       const bool result1 = parser.isFloat(json_value);
       EXPECT_TRUE(result1)
           << "'" << json_value << "' is not JSON float." << std::endl;
-      const auto result2 = parser.toCxxFloat<double>(json_value);
+      const auto result2 = decltype(parser)::toCxxFloat<double>(json_value);
       EXPECT_DOUBLE_EQ(expected, result2)
           << "JSON float conversion failed: '" << json_value << "'";
       if (result1)

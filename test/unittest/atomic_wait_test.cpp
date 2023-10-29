@@ -80,7 +80,7 @@ void testWaitNotification(zisc::AtomicWord<specialization>* word)
 TEST(AtomicTest, WaitNotificationTest)
 {
   zisc::AtomicWord<false> word{};
-  std::cout << "OS specialized: " << word.isSpecialized() << std::endl;
+  std::cout << "OS specialized: " << decltype(word)::isSpecialized() << std::endl;
   std::cout << "AtomicWord alignment: "
             << std::alignment_of_v<zisc::AtomicWord<false>> << std::endl;
   std::cout << "AtomicWord size     : "
@@ -91,7 +91,7 @@ TEST(AtomicTest, WaitNotificationTest)
 TEST(AtomicTest, WaitNotificationOsTest)
 {
   zisc::AtomicWord<true> word{};
-  std::cout << "OS specialized: " << word.isSpecialized() << std::endl;
+  std::cout << "OS specialized: " << decltype(word)::isSpecialized() << std::endl;
   std::cout << "AtomicWord alignment: "
             << std::alignment_of_v<zisc::AtomicWord<true>> << std::endl;
   std::cout << "AtomicWord size     : "

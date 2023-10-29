@@ -41,16 +41,6 @@ class ResourceCreator
   using MemResource = zisc::MonotonicBufferResource<kSize, kAlighment>;
 
 
-  //
-  ResourceCreator() noexcept
-  {
-  }
-
-  //
-  ~ResourceCreator()
-  {
-  }
-
   zisc::pmr::unique_ptr<MemResource> create()
   {
     const zisc::pmr::polymorphic_allocator<MemResource> alloc{&resource_};
@@ -77,7 +67,7 @@ TEST(MonotonicBufferResourceTest, AllocationTest)
   ASSERT_EQ(0, resource->size()) << "Resource initialization failed.";
 
   constexpr std::size_t n = 3 * (MemResource::capacity() / 8);
-  std::array<void*, n> data_list;
+  std::array<void*, n> data_list{};
   // Allocation test
   for (std::size_t i = 0; i < n; ++i) {
     const std::size_t alignment = (i % 3 == 0) ? 1 :
@@ -142,7 +132,7 @@ TEST(MonotonicBufferResourceTest, AlignmentTest)
         << "The resource alignment isn't enough.";
 
     using Data = void*;
-    std::array<Data, 4> data_list;
+    std::array<Data, 4> data_list{};
     // Allocation
     std::for_each(data_list.begin(), data_list.end(), [alignment, &resource](Data& data)
     {

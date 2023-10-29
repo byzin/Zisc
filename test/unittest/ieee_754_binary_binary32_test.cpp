@@ -166,7 +166,7 @@ TEST(Ieee754BinaryTest, FloatLimitsTest)
   {
     constexpr float min_f = (FLimits::min)();
     constexpr Binary32 min_b = (Limits::min)();
-    constexpr float result = cast<float>(min_b);
+    constexpr auto result = cast<float>(min_b);
     ASSERT_EQ(min_f, result);
     ASSERT_TRUE(zisc::isFinite(min_f)) << "Float classification function failed.";
     ASSERT_TRUE(zisc::isNormal(min_f)) << "Float classification function failed.";
@@ -182,7 +182,7 @@ TEST(Ieee754BinaryTest, FloatLimitsTest)
   {
     constexpr float low_f = FLimits::lowest();
     constexpr Binary32 low_b = Limits::lowest();
-    constexpr float result = cast<float>(low_b);
+    constexpr auto result = cast<float>(low_b);
     ASSERT_EQ(low_f, result);
     ASSERT_TRUE(zisc::isFinite(low_f)) << "Float classification function failed.";
     ASSERT_TRUE(zisc::isNormal(low_f)) << "Float classification function failed.";
@@ -198,7 +198,7 @@ TEST(Ieee754BinaryTest, FloatLimitsTest)
   {
     constexpr float max_f = (FLimits::max)();
     constexpr Binary32 max_b = (Limits::max)();
-    constexpr float result = cast<float>(max_b);
+    constexpr auto result = cast<float>(max_b);
     ASSERT_EQ(max_f, result);
     ASSERT_TRUE(zisc::isFinite(max_f)) << "Float classification function failed.";
     ASSERT_TRUE(zisc::isNormal(max_f)) << "Float classification function failed.";
@@ -214,7 +214,7 @@ TEST(Ieee754BinaryTest, FloatLimitsTest)
   {
     constexpr float eps_f = FLimits::epsilon();
     constexpr Binary32 eps_b = Limits::epsilon();
-    constexpr float result = cast<float>(eps_b);
+    constexpr auto result = cast<float>(eps_b);
     ASSERT_EQ(eps_f, result);
     ASSERT_TRUE(zisc::isFinite(eps_f)) << "Float classification function failed.";
     ASSERT_TRUE(zisc::isNormal(eps_f)) << "Float classification function failed.";
@@ -230,13 +230,13 @@ TEST(Ieee754BinaryTest, FloatLimitsTest)
   {
     constexpr float round_err_f = FLimits::round_error();
     constexpr Binary32 round_err_b = Limits::round_error();
-    constexpr float result = cast<float>(round_err_b);
+    constexpr auto result = cast<float>(round_err_b);
     ASSERT_EQ(round_err_f, result);
   }
   {
     constexpr float inf_f = FLimits::infinity();
     constexpr Binary32 inf_b = Limits::infinity();
-    constexpr float result = cast<float>(inf_b);
+    constexpr auto result = cast<float>(inf_b);
     ASSERT_EQ(inf_f, result);
     ASSERT_FALSE(zisc::isFinite(inf_f)) << "Float classification function failed.";
     ASSERT_FALSE(zisc::isNormal(inf_f)) << "Float classification function failed.";
@@ -253,7 +253,7 @@ TEST(Ieee754BinaryTest, FloatLimitsTest)
     const float qnan_f = FLimits::quiet_NaN();
     print_float_bits("quiet_NaN", qnan_f);
     constexpr Binary32 qnan_b = Limits::quiet_NaN();
-    const float result = cast<float>(qnan_b);
+    const auto result = cast<float>(qnan_b);
     EXPECT_TRUE(std::isnan(result));
     ASSERT_FALSE(zisc::isFinite(qnan_f)) << "Float classification function failed.";
     ASSERT_FALSE(zisc::isNormal(qnan_f)) << "Float classification function failed.";
@@ -270,7 +270,7 @@ TEST(Ieee754BinaryTest, FloatLimitsTest)
     const float snan_f = FLimits::signaling_NaN();
     print_float_bits("signaling_NaN", snan_f);
     constexpr Binary32 snan_b = Limits::signaling_NaN();
-    const float result = cast<float>(snan_b);
+    const auto result = cast<float>(snan_b);
     EXPECT_TRUE(std::isnan(result));
     ASSERT_FALSE(zisc::isFinite(snan_f)) << "Float classification function failed.";
     ASSERT_FALSE(zisc::isNormal(snan_f)) << "Float classification function failed.";
@@ -286,7 +286,7 @@ TEST(Ieee754BinaryTest, FloatLimitsTest)
   {
     constexpr float dmin_f = FLimits::denorm_min();
     constexpr Binary32 dmin_b = Limits::denorm_min();
-    constexpr float result = cast<float>(dmin_b);
+    constexpr auto result = cast<float>(dmin_b);
     ASSERT_EQ(dmin_f, result);
     ASSERT_TRUE(zisc::isFinite(dmin_f)) << "Float classification function failed.";
     ASSERT_FALSE(zisc::isNormal(dmin_f)) << "Float classification function failed.";
@@ -313,112 +313,112 @@ TEST(Ieee754BinaryTest, Float2DoubleConstantTest)
 
   {
     constexpr float f = 0.0f;
-    constexpr double d = cast<double>(f);
+    constexpr auto d = cast<double>(f);
     constexpr Binary32 b32{f};
-    constexpr double b64 = cast<double>(b32);
+    constexpr auto b64 = cast<double>(b32);
     ASSERT_DOUBLE_EQ(d, b64);
   }
   {
     constexpr float f = -0.0f;
-    constexpr double d = cast<double>(f);
+    constexpr auto d = cast<double>(f);
     constexpr Binary32 b32{f};
-    constexpr double b64 = cast<double>(b32);
+    constexpr auto b64 = cast<double>(b32);
     ASSERT_DOUBLE_EQ(d, b64);
   }
   {
     constexpr float f = 1.0f;
-    constexpr double d = cast<double>(f);
+    constexpr auto d = cast<double>(f);
     constexpr Binary32 b32{f};
-    constexpr double b64 = cast<double>(b32);
+    constexpr auto b64 = cast<double>(b32);
     ASSERT_DOUBLE_EQ(d, b64);
   }
   {
     constexpr float f = -1.0f;
-    constexpr double d = cast<double>(f);
+    constexpr auto d = cast<double>(f);
     constexpr Binary32 b32{f};
-    constexpr double b64 = cast<double>(b32);
+    constexpr auto b64 = cast<double>(b32);
     ASSERT_DOUBLE_EQ(d, b64);
   }
   {
     constexpr float f = 100.0f;
-    constexpr double d = cast<double>(f);
+    constexpr auto d = cast<double>(f);
     constexpr Binary32 b32{f};
-    constexpr double b64 = cast<double>(b32);
+    constexpr auto b64 = cast<double>(b32);
     ASSERT_DOUBLE_EQ(d, b64);
   }
   {
     constexpr float f = -100.0f;
-    constexpr double d = cast<double>(f);
+    constexpr auto d = cast<double>(f);
     constexpr Binary32 b32{f};
-    constexpr double b64 = cast<double>(b32);
+    constexpr auto b64 = cast<double>(b32);
     ASSERT_DOUBLE_EQ(d, b64);
   }
   {
     constexpr float f = FLimit::denorm_min();
-    constexpr double d = cast<double>(f);
+    constexpr auto d = cast<double>(f);
     constexpr Binary32 b32{f};
-    constexpr double b64 = cast<double>(b32);
+    constexpr auto b64 = cast<double>(b32);
     ASSERT_DOUBLE_EQ(d, b64);
   }
   {
     constexpr float f = -FLimit::denorm_min();
-    constexpr double d = cast<double>(f);
+    constexpr auto d = cast<double>(f);
     constexpr Binary32 b32{f};
-    constexpr double b64 = cast<double>(b32);
+    constexpr auto b64 = cast<double>(b32);
     ASSERT_DOUBLE_EQ(d, b64);
   }
   {
     constexpr float f = (FLimit::min)();
-    constexpr double d = cast<double>(f);
+    constexpr auto d = cast<double>(f);
     constexpr Binary32 b32{f};
-    constexpr double b64 = cast<double>(b32);
+    constexpr auto b64 = cast<double>(b32);
     ASSERT_DOUBLE_EQ(d, b64);
   }
   {
     constexpr float f = -(FLimit::min)();
-    constexpr double d = cast<double>(f);
+    constexpr auto d = cast<double>(f);
     constexpr Binary32 b32{f};
-    constexpr double b64 = cast<double>(b32);
+    constexpr auto b64 = cast<double>(b32);
     ASSERT_DOUBLE_EQ(d, b64);
   }
   {
     constexpr float f = (FLimit::max)();
-    constexpr double d = cast<double>(f);
+    constexpr auto d = cast<double>(f);
     constexpr Binary32 b32{f};
-    constexpr double b64 = cast<double>(b32);
+    constexpr auto b64 = cast<double>(b32);
     ASSERT_DOUBLE_EQ(d, b64);
   }
   {
     constexpr float f = -(FLimit::max)();
-    constexpr double d = cast<double>(f);
+    constexpr auto d = cast<double>(f);
     constexpr Binary32 b32{f};
-    constexpr double b64 = cast<double>(b32);
+    constexpr auto b64 = cast<double>(b32);
     ASSERT_DOUBLE_EQ(d, b64);
   }
   {
     constexpr float f = FLimit::epsilon();
-    constexpr double d = cast<double>(f);
+    constexpr auto d = cast<double>(f);
     constexpr Binary32 b32{f};
-    constexpr double b64 = cast<double>(b32);
+    constexpr auto b64 = cast<double>(b32);
     ASSERT_DOUBLE_EQ(d, b64);
   }
   {
     constexpr float f = -FLimit::epsilon();
-    constexpr double d = cast<double>(f);
+    constexpr auto d = cast<double>(f);
     constexpr Binary32 b32{f};
-    constexpr double b64 = cast<double>(b32);
+    constexpr auto b64 = cast<double>(b32);
     ASSERT_DOUBLE_EQ(d, b64);
   }
   {
     constexpr float f = FLimit::infinity();
     constexpr Binary32 b32{f};
-    constexpr double b64d = cast<double>(b32);
+    constexpr auto b64d = cast<double>(b32);
     ASSERT_TRUE(zisc::isInf(b64d));
   }
   {
     constexpr float f = -FLimit::infinity();
     constexpr Binary32 b32{f};
-    constexpr double b64d = cast<double>(b32);
+    constexpr auto b64d = cast<double>(b32);
     ASSERT_TRUE(zisc::isInf(b64d));
   }
 }
@@ -433,7 +433,7 @@ TEST(Ieee754BinaryTest, Float2DoubleTest)
 
   auto to_bitset32 = [](const uint32b u)
   {
-    const uint64b ul = zisc::cast<uint64b>(u);
+    const auto ul = zisc::cast<uint64b>(u);
     std::bitset<32> bits{ul};
     return bits;
   };
@@ -447,7 +447,7 @@ TEST(Ieee754BinaryTest, Float2DoubleTest)
   static_assert(sizeof(Generator::result_type) == 4);
   for (std::size_t i = 0; i < n; ++i) {
     const uint32b u = generator(engine);
-    const float f = zisc::bit_cast<float>(u);
+    const auto f = zisc::bit_cast<float>(u);
     if (zisc::isNormal(f)) {
       ++num_of_normals;
     }
@@ -459,10 +459,10 @@ TEST(Ieee754BinaryTest, Float2DoubleTest)
       continue;
     }
 
-    const double d = zisc::cast<double>(f);
+    const auto d = zisc::cast<double>(f);
     const Binary32 b32{u};
     {
-      const double b64 = zisc::cast<double>(b32);
+      const auto b64 = zisc::cast<double>(b32);
       const double expected = d;
       ASSERT_DOUBLE_EQ(expected, b64)
           << f << " (" << to_bitset32(u) << ") conversion failed." << std::endl
@@ -652,8 +652,8 @@ TEST(Ieee754BinaryTest, FloatRelationalTest)
 
   auto to_bitset32 = [](const float f)
   {
-    const uint32b u = zisc::bit_cast<uint32b>(f);
-    const uint64b ul = zisc::cast<uint64b>(u);
+    const auto u = zisc::bit_cast<uint32b>(f);
+    const auto ul = zisc::cast<uint64b>(u);
     std::bitset<32> bits{ul};
     return bits;
   };
@@ -665,13 +665,13 @@ TEST(Ieee754BinaryTest, FloatRelationalTest)
   static_assert(sizeof(Generator::result_type) == 4);
   for (std::size_t i = 0; i < n; ++i) {
     const uint32b ul = generator(engine);
-    const float fl = zisc::bit_cast<float>(ul);
+    const auto fl = zisc::bit_cast<float>(ul);
     if (!(zisc::isFinite(fl) || zisc::isInf(fl))) {
       ++num_of_specials;
       continue;
     }
     const uint32b ur = generator(engine);
-    const float fr = zisc::bit_cast<float>(ur);
+    const auto fr = zisc::bit_cast<float>(ur);
     if (!(zisc::isFinite(fr) || zisc::isInf(fr))) {
       ++num_of_specials;
       continue;

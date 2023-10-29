@@ -420,9 +420,10 @@ auto Atomic::perform(Type* ptr,
 {
   Type old = load(ptr, getLoadOrder(order));
   Type cmp = cast<Type>(0);
+  Function func = std::forward<Function>(expression);
   do {
     cmp = old;
-    const Type value = expression(cmp, std::forward<Types>(arguments)...);
+    const Type value = func(cmp, std::forward<Types>(arguments)...);
     old = compareAndExchange(ptr, cmp, value, order, getLoadOrder(order));
   } while (old != cmp);
   return old;

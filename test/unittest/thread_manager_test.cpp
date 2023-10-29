@@ -85,7 +85,7 @@ struct NonCopyableSetter2 : private zisc::NonCopyable<NonCopyableSetter2>
 struct MovableSetter1 : private zisc::NonCopyable<MovableSetter1>
 {
   MovableSetter1() = default;
-  MovableSetter1(MovableSetter1&&) noexcept {}
+  MovableSetter1([[maybe_unused]] MovableSetter1&& other) noexcept {}
   int operator()() noexcept
   {
     return kGlobalConstant1;
@@ -95,7 +95,7 @@ struct MovableSetter1 : private zisc::NonCopyable<MovableSetter1>
 struct MovableSetter2 : private zisc::NonCopyable<MovableSetter2>
 {
   MovableSetter2() = default;
-  MovableSetter2(MovableSetter2&&) noexcept {}
+  MovableSetter2([[maybe_unused]] MovableSetter2&& other) noexcept {}
   int operator()([[maybe_unused]] const zisc::int64b thread_id) noexcept
   {
     return kGlobalConstant2;
@@ -376,7 +376,7 @@ struct MovableAdder1 : private zisc::NonCopyable<MovableAdder1>
   {
     global_value1.store(0, std::memory_order::release);
   }
-  MovableAdder1(MovableAdder1&&) noexcept {}
+  MovableAdder1([[maybe_unused]] MovableAdder1&& other) noexcept {}
   int operator()(const int value) noexcept
   {
     global_value1.fetch_add(value, std::memory_order::release);
@@ -390,7 +390,7 @@ struct MovableAdder2 : private zisc::NonCopyable<MovableAdder2>
   {
     global_value2.store(0, std::memory_order::release);
   }
-  MovableAdder2(MovableAdder2&&) noexcept {}
+  MovableAdder2([[maybe_unused]] MovableAdder2&& other) noexcept {}
   int operator()(std::list<int>::const_iterator ite,
                  [[maybe_unused]] const zisc::int64b thread_id) noexcept
   {
@@ -1057,7 +1057,7 @@ TEST(ThreadManagerTest, ParallelTest)
       using Task = std::function<void (zisc::int64b)>;
       using Future = std::future<void>;
 
-      std::array<zisc::int64b, num_of_threads> id_list;
+      std::array<zisc::int64b, num_of_threads> id_list{};
       std::for_each(id_list.begin(), id_list.end(), [](zisc::int64b& value)
       {
         value = std::numeric_limits<zisc::int64b>::max();
@@ -1093,7 +1093,7 @@ TEST(ThreadManagerTest, ParallelTest)
     {
       using Task = std::function<void (zisc::int64b, zisc::uint)>;
 
-      std::array<zisc::int64b, num_of_threads> id_list;
+      std::array<zisc::int64b, num_of_threads> id_list{};
       std::for_each(id_list.begin(), id_list.end(), [](zisc::int64b& value)
       {
         value = std::numeric_limits<zisc::int64b>::max();
@@ -1124,7 +1124,7 @@ TEST(ThreadManagerTest, ParallelTest)
       using Task = std::function<void (std::list<zisc::uint>::iterator, zisc::int64b)>;
 
       std::list<zisc::uint> list;
-      std::array<zisc::uint, num_of_threads> id_list;
+      std::array<zisc::uint, num_of_threads> id_list{};
       for (std::size_t i = 0; i < num_of_threads; ++i) {
         id_list[i] = std::numeric_limits<zisc::uint>::max();
         list.emplace_back(i);

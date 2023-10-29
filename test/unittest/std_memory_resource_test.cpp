@@ -89,7 +89,7 @@ TEST(StdMemoryResourceTest, UniquePtrDeletionTest)
   int value = 0;
   struct MemTest
   {
-    MemTest(int* v) noexcept : v_{v} {*v_ = 1;}
+    explicit MemTest(int* v) noexcept : v_{v} {*v_ = 1;}
     ~MemTest() noexcept {*v_ = 2;}
     int* v_ = nullptr;
   };

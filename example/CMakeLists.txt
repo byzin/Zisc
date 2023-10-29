@@ -58,24 +58,29 @@ function(addExample target save_dependency_list)
 
   #
   set(clang_tidy_exclusion_checks 
-    #bugprone-exception-escape
-    #bugprone-implicit-widening-of-multiplication-result
+                                  bugprone-exception-escape
+                                  bugprone-implicit-widening-of-multiplication-result
     #bugprone-narrowing-conversions
                                   cppcoreguidelines-avoid-magic-numbers
+                                  cppcoreguidelines-pro-bounds-pointer-arithmetic
                                   google-readability-braces-around-statements
                                   hicpp-braces-around-statements
+                                  hicpp-uppercase-literal-suffix
     #misc-non-private-member-variables-in-classes
     #misc-redundant-expression
                                   misc-include-cleaner
     #modernize-avoid-c-arrays
     #modernize-use-auto
+                                  modernize-use-trailing-return-type
                                   performance-avoid-endl
+                                  readability-avoid-const-params-in-decls
+                                  readability-braces-around-statements
                                   readability-function-cognitive-complexity
                                   readability-identifier-length
-                                  #readability-isolate-declaration
+                                  readability-isolate-declaration
                                   readability-magic-numbers
                                   #readability-static-accessed-through-instance
-                                  #readability-uppercase-literal-suffix
+                                  readability-uppercase-literal-suffix
                                   )
   Zisc_setStaticAnalyzer(${target}
                          CLANG_TIDY_EXCLUSION_CHECKS ${clang_tidy_exclusion_checks})

@@ -62,10 +62,9 @@ TEST(UnitMultipleTest, ConstructorTest)
     ASSERT_EQ(2 * zisc::ByteUnit::base(), value.value().numer());
   }
   {
-    constexpr zisc::ByteUnit byte{};
-    constexpr auto base = byte.base();
+    constexpr auto base = zisc::ByteUnit::base();
     ASSERT_EQ(1024, base);
-    constexpr auto exponent = byte.exponent();
+    constexpr auto exponent = zisc::ByteUnit::exponent();
     ASSERT_EQ(0, exponent);
   }
 }

@@ -13,6 +13,7 @@
   */
 
 // Standard C++ library
+#include <array>
 #include <cstddef>
 #include <istream>
 #include <memory>
@@ -30,7 +31,7 @@ namespace {
 
 struct TestData
 {
-  zisc::int8b c_[4];
+  std::array<zisc::int8b, 4> c_;
   zisc::uint32b u_;
   double d_;
 };
@@ -103,10 +104,10 @@ TEST(BinarySerializerTest, ReadWriteTest)
   data_size -= data3.size();
   ::testDistance(data_size, &data_stream);
   {
-    ::TestData result;
+    ::TestData result{};
     zisc::BSerializer::read(&result, &data_stream);
     for (int i = 0; i < 4; ++i)
-      ASSERT_EQ(data4.c_[i], result.c_[i]);
+      ASSERT_EQ(data4.c_.at(i), result.c_.at(i));
     ASSERT_EQ(data4.u_, result.u_);
     ASSERT_DOUBLE_EQ(data4.d_, result.d_);
   }

@@ -56,8 +56,9 @@ struct MathTestResult
   bool fatal_outlier_ = false;
   bool fatal_inf_ = false;
   bool fatal_nan_ = false;
-  [[maybe_unused]] zisc::Padding<sizeof(Float) - 3> pad_;
+  [[maybe_unused]] zisc::Padding<sizeof(Float) - 3> pad_{};
 
+  [[nodiscard]]
   Float averageUlpDiff() const noexcept
   {
     const Float total = total_ulp_diff_ + compensation_;
@@ -151,7 +152,7 @@ bool testMathFloat(const Float expected,
   }
 
   // Check sign
-  constexpr Float one = static_cast<Float>(1.0);
+  constexpr auto one = static_cast<Float>(1.0);
   const Float sign = std::copysign(one, expected) * std::copysign(one, value);
   if (sign != one) {
     result->fatal_outlier_ = true;
@@ -202,7 +203,7 @@ bool testMathFloat(const Float expected,
   \return No description
   */
 template <typename Float> inline
-std::vector<Float> loadXList(std::string_view file_path) noexcept
+std::vector<Float> loadXList(std::string_view file_path)
 {
   std::ifstream reference_file{file_path.data(), std::ios_base::binary};
 
@@ -268,7 +269,7 @@ std::vector<Float> loadAllXList() noexcept
   \return No description
   */
 template <typename Float> inline
-std::vector<Float> loadAllHalfXList() noexcept
+std::vector<Float> loadAllHalfXList()
 {
   auto file_path = (sizeof(Float) == 2)
     ? std::string_view{"resources/math_xall_halfh_reference.bin"}
@@ -298,7 +299,7 @@ std::vector<Float> loadAllSubnormalXList() noexcept
   \return No description
   */
 template <typename Float> inline
-std::vector<Float> loadAllHalfSubnormalXList() noexcept
+std::vector<Float> loadAllHalfSubnormalXList()
 {
   auto file_path = (sizeof(Float) == 2)
     ? std::string_view{"resources/math_xall_half_subh_reference.bin"}
@@ -313,7 +314,7 @@ std::vector<Float> loadAllHalfSubnormalXList() noexcept
   \return No description
   */
 template <std::floating_point Float> inline
-std::vector<Float> loadPositiveXList() noexcept
+std::vector<Float> loadPositiveXList()
 {
   auto file_path = (sizeof(Float) == 4)
     ? std::string_view{"resources/math_xpositivef_reference.bin"}
@@ -328,7 +329,7 @@ std::vector<Float> loadPositiveXList() noexcept
   \return No description
   */
 template <std::floating_point Float> inline
-std::vector<Float> loadPositiveSubnormalXList() noexcept
+std::vector<Float> loadPositiveSubnormalXList()
 {
   auto file_path = (sizeof(Float) == 4)
     ? std::string_view{"resources/math_xpositive_subf_reference.bin"}

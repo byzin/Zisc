@@ -64,7 +64,7 @@ void testSimpleBoundedMap(zisc::Map<MapClass, int>* map)
   // Create input values
   constexpr std::size_t n = 64;
   std::mt19937_64 sampler{123'456'789};
-  std::array<int, n> vlist;
+  std::array<int, n> vlist{};
   constexpr int min_value = -zisc::cast<int>(n / 2);
   std::iota(vlist.begin(), vlist.end(), min_value);
   std::shuffle(vlist.begin(), vlist.end(), sampler);
@@ -195,7 +195,7 @@ class MovableMValue : public zisc::NonCopyable<MovableMValue>
  public:
   MovableMValue() = default;
 
-  MovableMValue(const int v) : value_{v} {}
+  explicit MovableMValue(const int v) : value_{v} {}
 
   MovableMValue(MovableMValue&& other) noexcept : value_{other.value_}
   {
@@ -213,6 +213,7 @@ class MovableMValue : public zisc::NonCopyable<MovableMValue>
     return value_;
   }
 
+  [[nodiscard]]
   int value() const noexcept
   {
     return value_;
@@ -252,7 +253,7 @@ void testMovableValueMap(zisc::Map<MapClass, int, MovableMValue>* map)
   // Create input values
   constexpr std::size_t n = 64;
   std::mt19937_64 sampler{123'456'789};
-  std::array<int, n> vlist;
+  std::array<int, n> vlist{};
   constexpr int min_value = -zisc::cast<int>(n / 2);
   std::iota(vlist.begin(), vlist.end(), min_value);
   std::shuffle(vlist.begin(), vlist.end(), sampler);

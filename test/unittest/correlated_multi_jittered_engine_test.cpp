@@ -64,7 +64,7 @@ void testCmjEngine(const std::string_view reference_file_path)
     const std::uint64_t x_value = *zisc::reinterp<const std::uint64_t*>(&xy[0]);
     const std::uint64_t y_value = *zisc::reinterp<const std::uint64_t*>(&xy[1]);
 
-    std::uint64_t reference;
+    std::uint64_t reference = 0;
     reference_file >> reference;
     ASSERT_EQ(reference, d_value);
     reference_file >> reference;

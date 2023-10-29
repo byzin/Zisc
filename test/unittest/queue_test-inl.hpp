@@ -55,7 +55,7 @@ void testSimpleBoundedQueue(zisc::Queue<QueueClass, int>* queue)
   // Create input values
   constexpr std::size_t n = 64;
   std::mt19937_64 sampler{123'456'789};
-  std::array<int, n> vlist;
+  std::array<int, n> vlist{};
   std::iota(vlist.begin(), vlist.end(), 0);
   std::shuffle(vlist.begin(), vlist.end(), sampler);
 
@@ -126,7 +126,7 @@ class MovableQValue : public zisc::NonCopyable<MovableQValue>
  public:
   MovableQValue() = delete;
 
-  MovableQValue(const int v) : value_{v} {}
+  explicit MovableQValue(const int v) : value_{v} {}
 
   MovableQValue(MovableQValue&& other) noexcept : value_{other.value_}
   {
@@ -168,7 +168,7 @@ void testMovableValueQueue(zisc::Queue<QueueClass, MovableQValue>* queue)
   // Create input values
   constexpr std::size_t n = 64;
   std::mt19937_64 sampler{123'456'789};
-  std::array<int, n> vlist;
+  std::array<int, n> vlist{};
   std::iota(vlist.begin(), vlist.end(), 0);
   std::shuffle(vlist.begin(), vlist.end(), sampler);
 
@@ -260,7 +260,7 @@ void testTinyCapacityQueue(zisc::Queue<QueueClass, int>* queue)
     {
       const std::optional<int> result = queue->dequeue();
       ASSERT_TRUE(result.has_value()) << "Dequeuing failed.";
-      const auto index = zisc::cast<std::size_t>(*result);
+      const auto index = zisc::cast<std::size_t>(result.value_or(0));
       ASSERT_EQ(i, index);
     }
     ASSERT_EQ(0, queue->size()) << "Dequeuing failed.";

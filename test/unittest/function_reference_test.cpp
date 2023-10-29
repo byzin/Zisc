@@ -47,7 +47,7 @@ constexpr void addL2(const long a, const long b, int* result) noexcept
 
 struct Adder : private zisc::NonCopyable<Adder>
 {
-  Adder(const int c) : c_{c} {}
+  explicit Adder(const int c) : c_{c} {}
 
   constexpr int operator()(const int a, const int b) const noexcept
   {
@@ -59,7 +59,7 @@ struct Adder : private zisc::NonCopyable<Adder>
 
 struct Adder2 : private zisc::NonCopyable<Adder>
 {
-  Adder2(const int c) : c_{c} {}
+  explicit Adder2(const int c) : c_{c} {}
 
   constexpr void operator()(const int a, const int b, int* result) const noexcept
   {
@@ -262,14 +262,14 @@ namespace {
 class NonCopyable : private zisc::NonCopyable<NonCopyable>
 {
  public:
-  NonCopyable(const int value) : value_{value} {}
+  explicit NonCopyable(const int value) : value_{value} {}
   int value_ = 0;
 };
 
 class Movable : public zisc::NonCopyable<Movable>
 {
  public:
-  Movable(const int value) : value_{value} {}
+  explicit Movable(const int value) : value_{value} {}
   Movable(Movable&& other) noexcept : value_{other.value_} {}
   int value_ = 0;
 };

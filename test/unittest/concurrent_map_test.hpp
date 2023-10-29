@@ -56,7 +56,7 @@ class Zipfian
 
  private:
   //
-  double eta() const noexcept;
+  [[nodiscard]] double eta() const noexcept;
 
   //
   static double zeta(const std::size_t cur_num, const double theta) noexcept;

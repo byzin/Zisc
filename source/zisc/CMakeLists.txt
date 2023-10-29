@@ -134,6 +134,7 @@ macro(Zisc_setZiscProject)
     set(clang_tidy_exclusion_checks 
                                     bugprone-easily-swappable-parameters
                                     cppcoreguidelines-avoid-do-while
+                                    #cppcoreguidelines-avoid-magic-numbers
                                     cppcoreguidelines-macro-usage
                                     cppcoreguidelines-no-malloc
                                     cppcoreguidelines-owning-memory
@@ -153,6 +154,7 @@ macro(Zisc_setZiscProject)
                                     readability-avoid-const-params-in-decls
                                     readability-braces-around-statements
                                     readability-identifier-length
+                                    #readability-magic-numbers
                                     )
     Zisc_setStaticAnalyzer(${library_name}
                            CLANG_TIDY_HEADER_PATHS ${PROJECT_SOURCE_DIR}/core/zisc/

@@ -15,6 +15,7 @@
 // Standard C++ library
 #include <bit>
 #include <concepts>
+#include <cstring>
 #include <limits>
 #include <type_traits>
 // GoogleTest
@@ -31,128 +32,123 @@ template <zisc::UnsignedInteger Integer, std::floating_point Float>
 void testCastBit()
 {
   static_assert(sizeof(Integer) == sizeof(Float));
-  union Data
-  {
-    Data(const Integer v) : u_{v} {}
-    Data(const Float v) : f_{v} {}
-    Integer u_;
-    Float f_;
-  };
 
-  auto reinterpu = [](const Float f) noexcept
+  auto reinterpu = [](const Float f) noexcept -> Integer
   {
-    const Data b{f};
-    return b.u_;
+    Integer u{};
+    std::memcpy(&u, &f, sizeof(u));
+    return u;
   };
 
   using FLimits = std::numeric_limits<Float>;
   {
     constexpr Float f = FLimits::min();
-    constexpr Integer u = zisc::bit_cast<Integer>(f);
+    constexpr auto u = zisc::bit_cast<Integer>(f);
     const Integer expected = reinterpu(f);
     ASSERT_EQ(expected, u) << "zisc::bit_cast(" << f << ") failed.";
   }
   {
     constexpr Float f = FLimits::lowest();
-    constexpr Integer u = zisc::bit_cast<Integer>(f);
+    constexpr auto u = zisc::bit_cast<Integer>(f);
     const Integer expected = reinterpu(f);
     ASSERT_EQ(expected, u) << "zisc::bit_cast(" << f << ") failed.";
   }
   {
     constexpr Float f = FLimits::max();
-    constexpr Integer u = zisc::bit_cast<Integer>(f);
+    constexpr auto u = zisc::bit_cast<Integer>(f);
     const Integer expected = reinterpu(f);
     ASSERT_EQ(expected, u) << "zisc::bit_cast(" << f << ") failed.";
   }
   {
     constexpr Float f = FLimits::epsilon();
-    constexpr Integer u = zisc::bit_cast<Integer>(f);
+    constexpr auto u = zisc::bit_cast<Integer>(f);
     const Integer expected = reinterpu(f);
     ASSERT_EQ(expected, u) << "zisc::bit_cast(" << f << ") failed.";
   }
   {
     constexpr Float f = FLimits::round_error();
-    constexpr Integer u = zisc::bit_cast<Integer>(f);
+    constexpr auto u = zisc::bit_cast<Integer>(f);
     const Integer expected = reinterpu(f);
     ASSERT_EQ(expected, u) << "zisc::bit_cast(" << f << ") failed.";
   }
   {
     constexpr Float f = FLimits::infinity();
-    constexpr Integer u = zisc::bit_cast<Integer>(f);
+    constexpr auto u = zisc::bit_cast<Integer>(f);
     const Integer expected = reinterpu(f);
     ASSERT_EQ(expected, u) << "zisc::bit_cast(" << f << ") failed.";
   }
   {
     constexpr Float f = -FLimits::infinity();
-    constexpr Integer u = zisc::bit_cast<Integer>(f);
+    constexpr auto u = zisc::bit_cast<Integer>(f);
     const Integer expected = reinterpu(f);
     ASSERT_EQ(expected, u) << "zisc::bit_cast(" << f << ") failed.";
   }
   {
     const Float f = FLimits::quiet_NaN();
-    const Integer u = zisc::bit_cast<Integer>(f);
+    const auto u = zisc::bit_cast<Integer>(f);
     const Integer expected = reinterpu(f);
     ASSERT_EQ(expected, u) << "zisc::bit_cast(" << f << ") failed.";
   }
 //  {
 //    const Float f = FLimits::signaling_NaN();
-//    const Integer u = zisc::bit_cast<Integer>(f);
+//    const auto u = zisc::bit_cast<Integer>(f);
 //    const Integer expected = reinterpu(f);
 //    ASSERT_EQ(expected, u) << "zisc::bit_cast(" << f << ") failed.";
 //  }
   {
     constexpr Float f = FLimits::denorm_min();
-    constexpr Integer u = zisc::bit_cast<Integer>(f);
+    constexpr auto u = zisc::bit_cast<Integer>(f);
     const Integer expected = reinterpu(f);
     ASSERT_EQ(expected, u) << "zisc::bit_cast(" << f << ") failed.";
   }
   {
     constexpr Float f = FLimits::min() - FLimits::denorm_min(); // denorm_max
     static_assert(f != FLimits::min());
-    constexpr Integer u = zisc::bit_cast<Integer>(f);
+    constexpr auto u = zisc::bit_cast<Integer>(f);
     const Integer expected = reinterpu(f);
     ASSERT_EQ(expected, u) << "zisc::bit_cast(" << f << ") failed.";
   }
   {
-    constexpr Float f = static_cast<Float>(0.0);
-    constexpr Integer u = zisc::bit_cast<Integer>(f);
+    constexpr auto f = static_cast<Float>(0.0);
+    constexpr auto u = zisc::bit_cast<Integer>(f);
     const Integer expected = reinterpu(f);
     ASSERT_EQ(expected, u) << "zisc::bit_cast(" << f << ") failed.";
   }
   {
-    constexpr Float f = static_cast<Float>(1.0);
-    constexpr Integer u = zisc::bit_cast<Integer>(f);
+    constexpr auto f = static_cast<Float>(1.0);
+    constexpr auto u = zisc::bit_cast<Integer>(f);
     const Integer expected = reinterpu(f);
     ASSERT_EQ(expected, u) << "zisc::bit_cast(" << f << ") failed.";
   }
   {
-    constexpr Float f = static_cast<Float>(123456.0);
-    constexpr Integer u = zisc::bit_cast<Integer>(f);
+    constexpr auto f = static_cast<Float>(123456.0);
+    constexpr auto u = zisc::bit_cast<Integer>(f);
     const Integer expected = reinterpu(f);
     ASSERT_EQ(expected, u) << "zisc::bit_cast(" << f << ") failed.";
   }
 
-  auto reinterpf = [](const Integer u) noexcept
+  auto reinterpf = [](const Integer u) noexcept -> Float
   {
-    const Data b{u};
-    return b.f_;
+    Float f{};
+    std::memcpy(&f, &u, sizeof(f));
+    return f;
   };
 
   {
-    constexpr Integer u = static_cast<Integer>(0);
-    constexpr Float f = zisc::bit_cast<Float>(u);
+    constexpr auto u = static_cast<Integer>(0);
+    constexpr auto f = zisc::bit_cast<Float>(u);
     const Float expected = reinterpf(u);
     ASSERT_EQ(expected, f) << "zisc::bit_cast(" << u << ") failed.";
   }
   {
-    constexpr Integer u = static_cast<Integer>(1);
-    constexpr Float f = zisc::bit_cast<Float>(u);
+    constexpr auto u = static_cast<Integer>(1);
+    constexpr auto f = zisc::bit_cast<Float>(u);
     const Float expected = reinterpf(u);
     ASSERT_EQ(expected, f) << "zisc::bit_cast(" << u << ") failed.";
   }
   {
-    constexpr Integer u = static_cast<Integer>(123456);
-    constexpr Float f = zisc::bit_cast<Float>(u);
+    constexpr auto u = static_cast<Integer>(123456);
+    constexpr auto f = zisc::bit_cast<Float>(u);
     const Float expected = reinterpf(u);
     ASSERT_EQ(expected, f) << "zisc::bit_cast(" << u << ") failed.";
   }
@@ -226,19 +222,19 @@ void testCountlOne()
   constexpr int offset = 8 * (sizeof(Integer) - sizeof(zisc::uint8b));
   using zisc::cast;
   {
-    constexpr Integer x = cast<Integer>(Integer{0b00000000} << offset);
+    constexpr auto x = cast<Integer>(Integer{0b00000000} << offset);
     constexpr int result = std::countl_one(x);
     constexpr int expected = 0;
     ASSERT_EQ(expected, result) << "std::countl_one(" << x << ") failed.";
   }
   {
-    constexpr Integer x = cast<Integer>(Integer{0b11111111} << offset);
+    constexpr auto x = cast<Integer>(Integer{0b11111111} << offset);
     constexpr int result = std::countl_one(x);
     constexpr int expected = 8;
     ASSERT_EQ(expected, result) << "std::countl_one(" << x << ") failed.";
   }
   {
-    constexpr Integer x = cast<Integer>(Integer{0b11100011} << offset);
+    constexpr auto x = cast<Integer>(Integer{0b11100011} << offset);
     constexpr int result = std::countl_one(x);
     constexpr int expected = 3;
     ASSERT_EQ(expected, result) << "std::countl_one(" << x << ") failed.";
@@ -747,7 +743,7 @@ void testBitwiseLeftRotating()
   constexpr std::size_t nbits = 8 * sizeof(Integer);
   constexpr Integer a = 0b0101;
   constexpr Integer b = 0b1010;
-  constexpr Integer x = cast<Integer>((b << (nbits - 4)) | a);
+  constexpr auto x = cast<Integer>((b << (nbits - 4)) | a);
   {
     constexpr Integer result = std::rotl(x, 0);
     constexpr Integer expected = x;
@@ -755,35 +751,35 @@ void testBitwiseLeftRotating()
   }
   {
     constexpr Integer result = std::rotl(x, 1);
-    constexpr Integer expected = cast<Integer>((x << 1) | (x >> (nbits - 1)));
+    constexpr auto expected = cast<Integer>((x << 1) | (x >> (nbits - 1)));
     ASSERT_EQ(expected, result) << "std::rotl(" << x << ") failed.";
   }
   {
     constexpr Integer result = std::rotl(x, 4);
-    constexpr Integer expected = cast<Integer>((x << 4) | (x >> (nbits - 4)));
+    constexpr auto expected = cast<Integer>((x << 4) | (x >> (nbits - 4)));
     ASSERT_EQ(expected, result) << "std::rotl(" << x << ") failed.";
   }
   {
     constexpr Integer result = std::rotl(x, 9);
     if constexpr (nbits < 9)
     {
-      constexpr Integer expected = cast<Integer>((x << 1) | (x >> (nbits - 1)));
+      constexpr auto expected = cast<Integer>((x << 1) | (x >> (nbits - 1)));
       ASSERT_EQ(expected, result) << "std::rotl(" << x << ") failed.";
     }
     else
     {
-      constexpr Integer expected = cast<Integer>((x << 9) | (x >> (nbits - 9)));
+      constexpr auto expected = cast<Integer>((x << 9) | (x >> (nbits - 9)));
       ASSERT_EQ(expected, result) << "std::rotl(" << x << ") failed.";
     }
   }
   {
     constexpr Integer result = std::rotl(x, -1);
-    constexpr Integer expected = cast<Integer>((x >> 1) | (x << (nbits - 1)));
+    constexpr auto expected = cast<Integer>((x >> 1) | (x << (nbits - 1)));
     ASSERT_EQ(expected, result) << "std::rotl(" << x << ") failed.";
   }
 }
 
-}
+} // namespace
 
 TEST(BitTest, BitwiseLeftRotating8Test)
 {
@@ -814,7 +810,7 @@ void testBitwiseRightRotating()
   constexpr std::size_t nbits = 8 * sizeof(Integer);
   constexpr Integer a = 0b0101;
   constexpr Integer b = 0b1010;
-  constexpr Integer x = cast<Integer>((b << (nbits - 4)) | a);
+  constexpr auto x = cast<Integer>((b << (nbits - 4)) | a);
   {
     constexpr Integer result = std::rotr(x, 0);
     constexpr Integer expected = x;
@@ -822,35 +818,35 @@ void testBitwiseRightRotating()
   }
   {
     constexpr Integer result = std::rotr(x, 1);
-    constexpr Integer expected = cast<Integer>((x >> 1) | (x << (nbits - 1)));
+    constexpr auto expected = cast<Integer>((x >> 1) | (x << (nbits - 1)));
     ASSERT_EQ(expected, result) << "std::rotr(" << x << ") failed.";
   }
   {
     constexpr Integer result = std::rotr(x, 4);
-    constexpr Integer expected = cast<Integer>((x >> 4) | (x << (nbits - 4)));
+    constexpr auto expected = cast<Integer>((x >> 4) | (x << (nbits - 4)));
     ASSERT_EQ(expected, result) << "std::rotr(" << x << ") failed.";
   }
   {
     constexpr Integer result = std::rotr(x, 9);
     if constexpr (nbits < 9)
     {
-      constexpr Integer expected = cast<Integer>((x >> 1) | (x << (nbits - 1)));
+      constexpr auto expected = cast<Integer>((x >> 1) | (x << (nbits - 1)));
       ASSERT_EQ(expected, result) << "std::rotr(" << x << ") failed.";
     }
     else
     {
-      constexpr Integer expected = cast<Integer>((x >> 9) | (x << (nbits - 9)));
+      constexpr auto expected = cast<Integer>((x >> 9) | (x << (nbits - 9)));
       ASSERT_EQ(expected, result) << "std::rotr(" << x << ") failed.";
     }
   }
   {
     constexpr Integer result = std::rotr(x, -1);
-    constexpr Integer expected = cast<Integer>((x << 1) | (x >> (nbits - 1)));
+    constexpr auto expected = cast<Integer>((x << 1) | (x >> (nbits - 1)));
     ASSERT_EQ(expected, result) << "std::rotr(" << x << ") failed.";
   }
 }
 
-}
+} // namespace
 
 TEST(BitTest, BitwiseRightRotating8Test)
 {

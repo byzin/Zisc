@@ -73,7 +73,7 @@ void testPowIntConstant(const std::vector<float>& expected_list,
   {
     constexpr int expt = i;
     constexpr float y = zisc::pow(base, expt);
-    const std::size_t index = zisc::cast<std::size_t>(i - start);
+    const auto index = zisc::cast<std::size_t>(i - start);
     const float expected = expected_list[index];
     testMathFloat(expected, y, result);
   }

@@ -73,7 +73,7 @@ void testPowIntConstant(const std::vector<double>& expected_list,
   {
     constexpr int expt = i;
     constexpr double y = zisc::pow(base, expt);
-    const std::size_t index = zisc::cast<std::size_t>(i - start);
+    const auto index = zisc::cast<std::size_t>(i - start);
     const double expected = expected_list[index];
     testMathFloat(expected, y, result);
   }
@@ -81,7 +81,7 @@ void testPowIntConstant(const std::vector<double>& expected_list,
     testPowIntConstant<i + 1, start, end, c>(expected_list, result);
 }
 
-}
+} // namespace
 
 TEST(MathTest, PowDTest)
 {

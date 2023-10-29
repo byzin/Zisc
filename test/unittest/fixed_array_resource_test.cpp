@@ -54,7 +54,7 @@ TEST(FixedArrayResourceTest, MemoryAllocationTest)
     ASSERT_EQ(s, mem_resource.countMax()) << "Initialization of the resource failed.";
     for (std::size_t i = 0; i < s; ++i) {
       void* data = mem_resource.allocate(size_max, alignment_max);
-      [[maybe_unused]] StorageT* value = ::new(data) StorageT{0};
+      [[maybe_unused]] auto* value = ::new(data) StorageT{0};
       data_list[i] = data;
     }
     ASSERT_EQ(s, mem_resource.count()) << "Initialization of the resource failed.";
@@ -77,7 +77,7 @@ TEST(FixedArrayResourceTest, MemoryAllocationTest)
     // Clear test
     for (std::size_t i = 0; i < s; ++i) {
       void* data = mem_resource.allocate(size_max, alignment_max);
-      [[maybe_unused]] StorageT* value = ::new(data) StorageT{0};
+      [[maybe_unused]] auto* value = ::new(data) StorageT{0};
       data_list[i] = data;
     }
     ASSERT_EQ(s, mem_resource.count()) << "Initialization of the resource failed.";
@@ -127,7 +127,7 @@ TEST(FixedArrayResourceTest, MultiThreadTest)
   zisc::FixedArrayResource<StorageT> mem_resource{&r};
 
   constexpr std::size_t n_threads = 128;
-  constexpr std::size_t loop = 1 << 18;
+  constexpr std::size_t loop = 1U << 18U;
   mem_resource.setCountMax(n_threads * loop);
 
   std::atomic_int worker_lock{-1};

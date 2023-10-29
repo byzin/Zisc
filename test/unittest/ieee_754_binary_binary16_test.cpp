@@ -210,70 +210,70 @@ TEST(Ieee754BinaryTest, Half2FloatConstantTest)
 
   {
     constexpr Half min_b = (Limits::min)();
-    constexpr float result = zisc::cast<float>(min_b);
+    constexpr auto result = zisc::cast<float>(min_b);
     const auto r_bits = toBitset(result);
     const auto expected = FloatBits{0x38800000ull};
     ASSERT_EQ(expected, r_bits) << "Converting half to float failed.";
   }
   {
     constexpr Half low_b = Limits::lowest();
-    constexpr float result = zisc::cast<float>(low_b);
+    constexpr auto result = zisc::cast<float>(low_b);
     const auto r_bits = toBitset(result);
     const auto expected = FloatBits{0xc77fe000ull};
     ASSERT_EQ(expected, r_bits) << "Converting half to float failed.";
   }
   {
     constexpr Half max_b = (Limits::max)();
-    constexpr float result = zisc::cast<float>(max_b);
+    constexpr auto result = zisc::cast<float>(max_b);
     const auto r_bits = toBitset(result);
     const auto expected = FloatBits{0x477fe000ull};
     ASSERT_EQ(expected, r_bits) << "Converting half to float failed.";
   }
   {
     constexpr Half max_b = Limits::epsilon();
-    constexpr float result = zisc::cast<float>(max_b);
+    constexpr auto result = zisc::cast<float>(max_b);
     const auto r_bits = toBitset(result);
     const auto expected = FloatBits{0x3a800000ull};
     ASSERT_EQ(expected, r_bits) << "Converting half to float failed.";
   }
   {
     constexpr Half max_b = Limits::round_error();
-    constexpr float result = zisc::cast<float>(max_b);
+    constexpr auto result = zisc::cast<float>(max_b);
     const auto r_bits = toBitset(result);
     const auto expected = FloatBits{0x3f000000ull};
     ASSERT_EQ(expected, r_bits) << "Converting half to float failed.";
   }
   {
     constexpr Half zero_b = Half::zero();
-    constexpr float result = zisc::cast<float>(zero_b);
+    constexpr auto result = zisc::cast<float>(zero_b);
     const auto r_bits = toBitset(result);
     const auto expected = FloatBits{0x0ull};
     ASSERT_EQ(expected, r_bits) << "Converting half to float failed.";
   }
   {
     constexpr Half one_b = Half::one();
-    constexpr float result = zisc::cast<float>(one_b);
+    constexpr auto result = zisc::cast<float>(one_b);
     const auto r_bits = toBitset(result);
     const auto expected = FloatBits{0x3f800000ull};
     ASSERT_EQ(expected, r_bits) << "Converting half to float failed.";
   }
   {
     constexpr Half infinity_b = Limits::infinity();
-    constexpr float result = zisc::cast<float>(infinity_b);
+    constexpr auto result = zisc::cast<float>(infinity_b);
     const auto r_bits = toBitset(result);
     const auto expected = FloatBits{0x7f800000ull};
     ASSERT_EQ(expected, r_bits) << "Converting half to float failed.";
   }
   {
     constexpr Half infinity_b = -Limits::infinity();
-    constexpr float result = zisc::cast<float>(infinity_b);
+    constexpr auto result = zisc::cast<float>(infinity_b);
     const auto r_bits = toBitset(result);
     const auto expected = FloatBits{0xff800000ull};
     ASSERT_EQ(expected, r_bits) << "Converting half to float failed.";
   }
   {
     constexpr Half denorm_min_b = Limits::denorm_min();
-    constexpr float result = zisc::cast<float>(denorm_min_b);
+    constexpr auto result = zisc::cast<float>(denorm_min_b);
     const auto r_bits = toBitset(result);
     const auto expected = FloatBits{0x33800000ull};
     ASSERT_EQ(expected, r_bits) << "Converting half to float failed.";

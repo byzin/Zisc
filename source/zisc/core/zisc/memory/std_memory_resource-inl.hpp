@@ -23,9 +23,7 @@
 #include <type_traits>
 #include <utility>
 
-namespace zisc {
-
-namespace pmr {
+namespace zisc::pmr {
 
 /*!
   \details No detailed description
@@ -33,21 +31,8 @@ namespace pmr {
   \param [in,out] alloc No description.
   */
 template <typename Type> inline
-UniquePtrDeleter<Type>::UniquePtrDeleter(
-    const zisc::pmr::polymorphic_allocator<Type>& alloc) noexcept :
-        resource_{alloc.resource()}
-{
-}
-
-/*!
-  \details No detailed description
-
-  \tparam Derived No description.
-  \param [in] other No description.
-  */
-template <typename Type> inline
-UniquePtrDeleter<Type>::UniquePtrDeleter(UniquePtrDeleter&& other) noexcept
-    : resource_{other.resource()}
+UniquePtrDeleter<Type>::UniquePtrDeleter(const polymorphic_allocator<Type>& alloc) noexcept :
+    resource_{alloc.resource()}
 {
 }
 
@@ -59,21 +44,8 @@ UniquePtrDeleter<Type>::UniquePtrDeleter(UniquePtrDeleter&& other) noexcept
   */
 template <typename Type> template <std::derived_from<Type> Derived> inline
 UniquePtrDeleter<Type>::UniquePtrDeleter(UniquePtrDeleter<Derived>&& other) noexcept
-    : resource_{other.resource()}
+    : resource_{std::move(other).resource()}
 {
-}
-
-/*!
-  \details No detailed description
-
-  \param [in] other No description.
-  */
-template <typename Type> inline
-auto UniquePtrDeleter<Type>::operator=(UniquePtrDeleter&& other) noexcept
-    -> UniquePtrDeleter&
-{
-  resource_ = other.resource();
-  return *this;
 }
 
 /*!
@@ -85,7 +57,7 @@ template <typename Type> template <std::derived_from<Type> Derived> inline
 auto UniquePtrDeleter<Type>::operator=(UniquePtrDeleter<Derived>&& other) noexcept
     -> UniquePtrDeleter&
 {
-  resource_ = other.resource();
+  resource_ = std::move(other).resource();
   return *this;
 }
 
@@ -99,7 +71,7 @@ void UniquePtrDeleter<Type>::operator()(Pointer memory) noexcept
 {
   if (memory != nullptr) {
     std::destroy_at(memory);
-    zisc::pmr::polymorphic_allocator<Type> alloc{resource()};
+    polymorphic_allocator<Type> alloc{resource()};
     constexpr std::size_t n = 1;
     alloc.deallocate(memory, n);
   }
@@ -111,7 +83,7 @@ void UniquePtrDeleter<Type>::operator()(Pointer memory) noexcept
   \return No description
   */
 template <typename Type> inline
-zisc::pmr::memory_resource* UniquePtrDeleter<Type>::resource() noexcept
+auto UniquePtrDeleter<Type>::resource() noexcept -> memory_resource*
 {
   return resource_;
 }
@@ -126,21 +98,18 @@ zisc::pmr::memory_resource* UniquePtrDeleter<Type>::resource() noexcept
   \return No description
   */
 template <typename Type, typename ...ArgTypes> inline
-unique_ptr<Type> allocateUnique(const zisc::pmr::polymorphic_allocator<Type> alloc,
-                                ArgTypes&&... arguments)
+auto allocateUnique(const polymorphic_allocator<Type> alloc,
+                    ArgTypes&&... arguments) -> unique_ptr<Type>
 {
   using Pointer = std::add_pointer_t<Type>;
   constexpr std::size_t n = 1;
-  zisc::pmr::polymorphic_allocator<Type> a = alloc;
+  polymorphic_allocator<Type> a = alloc;
   Pointer memory = a.allocate(n);
   a.construct(memory, std::forward<ArgTypes>(arguments)...);
 
-  unique_ptr<Type> p{memory, {alloc}};
-  return p;
+  return {memory, typename unique_ptr<Type>::deleter_type{alloc}};
 }
 
-} // namespace pmr
-
-} // namespace zisc
+} // namespace zisc::pmr
 
 #endif // ZISC_STD_MEMORY_RESOURCE_INL_HPP

@@ -40,9 +40,7 @@ static_assert(false, "Compiler doesn't have 'memory_resource'.");
 #include <utility>
 #include <vector>
 
-namespace zisc {
-
-namespace pmr {
+namespace zisc::pmr {
 
 // Memory resource
 
@@ -219,7 +217,7 @@ class UniquePtrDeleter
   UniquePtrDeleter(const polymorphic_allocator<Type>& alloc) noexcept;
 
   //! Move a data
-  UniquePtrDeleter(UniquePtrDeleter&& other) noexcept;
+  UniquePtrDeleter(UniquePtrDeleter&& other) noexcept = default;
 
   //! Move a data from a super class
   template <std::derived_from<Type> Derived>
@@ -227,18 +225,18 @@ class UniquePtrDeleter
 
 
   //! Move a data
-  UniquePtrDeleter& operator=(UniquePtrDeleter&& other) noexcept;
+  auto operator=(UniquePtrDeleter&& other) noexcept -> UniquePtrDeleter& = default;
 
   //! Move a data from a super class
   template <std::derived_from<Type> Derived>
-  UniquePtrDeleter& operator=(UniquePtrDeleter<Derived>&& other) noexcept;
+  auto operator=(UniquePtrDeleter<Derived>&& other) noexcept -> UniquePtrDeleter&;
 
   //! Delete the given pointer memory
   void operator()(Pointer memory) noexcept;
 
 
   //! Return the underlying memory resource
-  memory_resource* resource() noexcept;
+  auto resource() noexcept -> memory_resource*;
 
  private:
   memory_resource* resource_ = nullptr;
@@ -256,12 +254,10 @@ using unique_ptr = std::unique_ptr<Type, UniquePtrDeleter<Type>>;
 
 //! Create a unique pointer that manages a new object allocated using polymorphic_allocator
 template <typename Type, typename ...ArgTypes>
-unique_ptr<Type> allocateUnique(const polymorphic_allocator<Type> alloc,
-                                ArgTypes&&... arguments);
+auto allocateUnique(const polymorphic_allocator<Type> alloc,
+                    ArgTypes&&... arguments) -> unique_ptr<Type>;
 
-} // namespace pmr 
-
-} // namespace zisc
+} // namespace zisc::pmr
 
 #include "std_memory_resource-inl.hpp"
 

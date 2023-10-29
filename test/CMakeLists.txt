@@ -128,23 +128,41 @@ macro(setTestProject)
 
   #
   set(clang_tidy_exclusion_checks
-                                   # bugprone-implicit-widening-of-multiplication-result
-  #                                bugprone-narrowing-conversions
-  #                                bugprone-use-after-move
+                                  bugprone-easily-swappable-parameters
+                                  bugprone-implicit-widening-of-multiplication-result
+                                  bugprone-narrowing-conversions
+                                  cppcoreguidelines-avoid-c-arrays,hicpp-avoid-c-arrays
+                                  cppcoreguidelines-avoid-magic-numbers
+                                  cppcoreguidelines-avoid-non-const-global-variables
+                                  cppcoreguidelines-macro-usage
+                                  cppcoreguidelines-narrowing-conversions
+                                  cppcoreguidelines-owning-memory
+                                  cppcoreguidelines-rvalue-reference-param-not-moved
+                                  cppcoreguidelines-pro-bounds-array-to-pointer-decay
+                                  cppcoreguidelines-pro-bounds-constant-array-index
+                                  cppcoreguidelines-special-member-functions
+                                  google-readability-braces-around-statements
+                                  google-runtime-int
+                                  hicpp-avoid-c-arrays
+                                  hicpp-braces-around-statements
+                                  hicpp-no-array-decay
+                                  hicpp-signed-bitwise
+                                  hicpp-special-member-functions
+                                  hicpp-uppercase-literal-suffix
+                                  misc-const-correctness
                                   misc-include-cleaner
-  #                                misc-non-private-member-variables-in-classes
-  #                                misc-redundant-expression
-  #                                modernize-avoid-c-arrays
-  #                                modernize-use-auto
-  #                                performance-move-const-arg
+                                  misc-non-private-member-variables-in-classes
+                                  misc-redundant-expression
+                                  modernize-avoid-c-arrays
+                                  modernize-use-trailing-return-type
+                                  performance-avoid-endl
+                                  readability-avoid-const-params-in-decls
+                                  readability-braces-around-statements
                                   readability-function-cognitive-complexity
-  #                                readability-function-size
                                   readability-identifier-length
-  #                                readability-isolate-declaration
-  #                                readability-magic-numbers
-  #                                readability-named-parameter
-  #                                readability-static-accessed-through-instance
-  #                                readability-uppercase-literal-suffix
+                                  readability-isolate-declaration
+                                  readability-magic-numbers
+                                  readability-uppercase-literal-suffix
                                   )
 
   Zisc_setStaticAnalyzer(${PROJECT_NAME}

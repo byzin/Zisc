@@ -40,7 +40,7 @@ class Boolean
 
 
   //! Convert from a built-in boolean
-  constexpr Boolean& operator=(const bool value) noexcept;
+  constexpr auto operator=(const bool value) noexcept -> Boolean&;
 
   //! Convert to a built-in boolean
   constexpr operator bool() const noexcept;
@@ -50,17 +50,19 @@ class Boolean
   constexpr void set(const bool value) noexcept;
 
   //! Convert to a built-in boolean
-  constexpr bool toBool() const noexcept;
+  [[nodiscard]]
+  constexpr auto toBool() const noexcept -> bool;
 
  private:
   //! Return the false value
-  static constexpr uint8b getFalse() noexcept;
+  static constexpr auto getFalse() noexcept -> uint8b;
 
   //! Return the true value
-  static constexpr uint8b getTrue() noexcept;
+  static constexpr auto getTrue() noexcept -> uint8b;
 
   //! Return the underlying state
-  constexpr uint8b state() const noexcept;
+  [[nodiscard]]
+  constexpr auto state() const noexcept -> uint8b;
 
 
   uint8b state_;

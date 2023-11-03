@@ -34,34 +34,27 @@ class Stopwatch : private NonCopyable<Stopwatch>
 {
  public:
   //! Clock type
-  using Clock = std::chrono::steady_clock;
-
-
-  //! Initialize
-  Stopwatch() noexcept;
-
-  //! Move data
-  Stopwatch(Stopwatch&& other) noexcept;
-
-
-  //! Move data
-  Stopwatch& operator=(Stopwatch&& other) noexcept;
+  using ClockT = std::chrono::steady_clock;
 
 
   //! Return the total elapsed time
-  Clock::duration elapsedTime() const noexcept;
+  [[nodiscard]]
+  auto elapsedTime() const noexcept -> ClockT::duration;
 
   //! Check if stopwatch is idle state
-  bool isIdle() const noexcept;
+  [[nodiscard]]
+  auto isIdle() const noexcept -> bool;
 
   //! Check if stopwatch is pause state
-  bool isPausing() const noexcept;
+  [[nodiscard]]
+  auto isPausing() const noexcept -> bool;
 
   //! Check if stopwatch is run state
-  bool isRunning() const noexcept;
+  [[nodiscard]]
+  auto isRunning() const noexcept -> bool;
 
   //! Pause time measurement and return the elapsed time of this running
-  Clock::duration pause() noexcept;
+  auto pause() noexcept -> ClockT::duration;
 
   //! Start to measure the time
   void start() noexcept;
@@ -75,7 +68,7 @@ class Stopwatch : private NonCopyable<Stopwatch>
 
     No detailed description.
     */
-  enum class State : Clock::rep
+  enum class State : ClockT::rep
   {
     Idle,
     Run,
@@ -84,12 +77,13 @@ class Stopwatch : private NonCopyable<Stopwatch>
 
 
   //! Return the elapsed time of this running
-  Clock::duration elapsedRunningTime() const noexcept;
+  [[nodiscard]]
+  auto elapsedRunningTime() const noexcept -> ClockT::duration;
 
 
-  Clock::time_point start_time_;
-  Clock::duration elapsed_time_;
-  State state_;
+  ClockT::time_point start_time_{};
+  ClockT::duration elapsed_time_ = ClockT::duration::zero();
+  State state_ = State::Idle;
 };
 
 } // namespace zisc

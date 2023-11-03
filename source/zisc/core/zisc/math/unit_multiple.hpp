@@ -46,39 +46,39 @@ class UnitMultiple
 
 
   //! Initialize with 0
-  constexpr UnitMultiple() noexcept;
+  constexpr UnitMultiple() noexcept = default;
 
   //! Initialize with (value * kBase^kExponent)
-  constexpr UnitMultiple(const Type value) noexcept;
+  explicit constexpr UnitMultiple(const Type value) noexcept;
 
   //! Initialize with (value * kBase^kExponent)
-  constexpr UnitMultiple(const FractionType& value) noexcept;
+  explicit constexpr UnitMultiple(const FractionType& value) noexcept;
 
   //! Change the exponent of the base
   template <Type kOtherExponent>
-  constexpr UnitMultiple(const UnitMultiple<kBase, kOtherExponent>& other) noexcept;
+  explicit constexpr UnitMultiple(const UnitMultiple<kBase, kOtherExponent>& other) noexcept;
 
 
   //! Set the value
-  constexpr UnitMultiple& operator=(const Type value) noexcept;
+  constexpr auto operator=(const Type value) noexcept -> UnitMultiple&;
 
   //! Set the value
-  constexpr UnitMultiple& operator=(const FractionType& value) noexcept;
+  constexpr auto operator=(const FractionType& value) noexcept -> UnitMultiple&;
 
   //! Change the exponent of the base
   template <Type kOtherExponent>
-  constexpr UnitMultiple& operator=(const UnitMultiple<kBase, kOtherExponent>& other) noexcept;
+  constexpr auto operator=(const UnitMultiple<kBase, kOtherExponent>& other) noexcept -> UnitMultiple&;
 
 
   //! Return the base value
-  static constexpr Type base() noexcept;
+  static constexpr auto base() noexcept -> Type;
 
   //! Represent this value as (x * kBase^kToExponent)
   template <Type kToExponent>
-  constexpr UnitMultiple<kBase, kToExponent> cast() const noexcept;
+  constexpr auto cast() const noexcept -> UnitMultiple<kBase, kToExponent>;
 
   //! Return the exponent value
-  static constexpr Type exponent() noexcept;
+  static constexpr auto exponent() noexcept -> Type;
 
   //! Set the value
   constexpr void set(const Type value) noexcept;
@@ -91,10 +91,12 @@ class UnitMultiple
   constexpr void set(const UnitMultiple<kBase, kOtherExponent>& other) noexcept;
 
   //! Return the value
-  constexpr FractionType& value() noexcept;
+  [[nodiscard]]
+  constexpr auto value() noexcept -> FractionType&;
 
   //! Return the value
-  constexpr const FractionType& value() const noexcept;
+  [[nodiscard]]
+  constexpr auto value() const noexcept -> const FractionType&;
 
  private:
   FractionType value_;
@@ -110,69 +112,69 @@ using GibiUnit = UnitMultiple<1024, 3>;
 
 //! Perform addition operation on two values in the smaller exponent of the unit
 template <int64b kBase, int64b kExponent1, int64b kExponent2>
-constexpr UnitMultiple<kBase, (std::min)(kExponent1, kExponent2)> operator+(
-    const UnitMultiple<kBase, kExponent1>& lhs,
-    const UnitMultiple<kBase, kExponent2>& rhs) noexcept;
+constexpr auto operator+(const UnitMultiple<kBase, kExponent1>& lhs,
+                         const UnitMultiple<kBase, kExponent2>& rhs) noexcept
+    -> UnitMultiple<kBase, (std::min)(kExponent1, kExponent2)>;
 
 //! Perform subtraction operation on two values in the smaller exponent of the unit
 template <int64b kBase, int64b kExponent1, int64b kExponent2>
-constexpr UnitMultiple<kBase, (std::min)(kExponent1, kExponent2)> operator-(
-    const UnitMultiple<kBase, kExponent1>& lhs,
-    const UnitMultiple<kBase, kExponent2>& rhs) noexcept;
+constexpr auto operator-(const UnitMultiple<kBase, kExponent1>& lhs,
+                         const UnitMultiple<kBase, kExponent2>& rhs) noexcept
+    -> UnitMultiple<kBase, (std::min)(kExponent1, kExponent2)>;
 
 //! Perform multiplication operation on two values in the smaller exponent of the unit
 template <int64b kBase, int64b kExponent, Integer Int>
-constexpr UnitMultiple<kBase, kExponent> operator*(
-    const UnitMultiple<kBase, kExponent>& lhs,
-    const Int rhs) noexcept;
+constexpr auto operator*(const UnitMultiple<kBase, kExponent>& lhs,
+                         const Int rhs) noexcept
+    -> UnitMultiple<kBase, kExponent>;
 
 //! Perform multiplication operation on two values in the smaller exponent of the unit
 template <Integer Int, int64b kBase, int64b kExponent>
-constexpr UnitMultiple<kBase, kExponent> operator*(
-    const Int lhs,
-    const UnitMultiple<kBase, kExponent>& rhs) noexcept;
+constexpr auto operator*(const Int lhs,
+                         const UnitMultiple<kBase, kExponent>& rhs) noexcept
+    -> UnitMultiple<kBase, kExponent>;
 
 //! Perform division operation on two values in the smaller exponent of the unit
 template <int64b kBase, int64b kExponent, Integer Int>
-constexpr UnitMultiple<kBase, kExponent> operator/(
-    const UnitMultiple<kBase, kExponent>& lhs,
-    const Int rhs) noexcept;
+constexpr auto operator/(const UnitMultiple<kBase, kExponent>& lhs,
+                         const Int rhs) noexcept
+    -> UnitMultiple<kBase, kExponent>;
 
 //! Check if the two values are equal
 template <int64b kBase, int64b kExponent1, int64b kExponent2>
-constexpr bool operator==(
+constexpr auto operator==(
     const UnitMultiple<kBase, kExponent1>& lhs,
-    const UnitMultiple<kBase, kExponent2>& rhs) noexcept;
+    const UnitMultiple<kBase, kExponent2>& rhs) noexcept -> bool;
 
 //! Check if the two values are equal
 template <int64b kBase, int64b kExponent1, int64b kExponent2>
-constexpr bool operator!=(
+constexpr auto operator!=(
     const UnitMultiple<kBase, kExponent1>& lhs,
-    const UnitMultiple<kBase, kExponent2>& rhs) noexcept;
+    const UnitMultiple<kBase, kExponent2>& rhs) noexcept -> bool;
 
 //!
 template <int64b kBase, int64b kExponent1, int64b kExponent2>
-constexpr bool operator<(
+constexpr auto operator<(
     const UnitMultiple<kBase, kExponent1>& lhs,
-    const UnitMultiple<kBase, kExponent2>& rhs) noexcept;
+    const UnitMultiple<kBase, kExponent2>& rhs) noexcept -> bool;
 
 //!
 template <int64b kBase, int64b kExponent1, int64b kExponent2>
-constexpr bool operator<=(
+constexpr auto operator<=(
     const UnitMultiple<kBase, kExponent1>& lhs,
-    const UnitMultiple<kBase, kExponent2>& rhs) noexcept;
+    const UnitMultiple<kBase, kExponent2>& rhs) noexcept -> bool;
 
 //!
 template <int64b kBase, int64b kExponent1, int64b kExponent2>
-constexpr bool operator>(
+constexpr auto operator>(
     const UnitMultiple<kBase, kExponent1>& lhs,
-    const UnitMultiple<kBase, kExponent2>& rhs) noexcept;
+    const UnitMultiple<kBase, kExponent2>& rhs) noexcept -> bool;
 
 //!
 template <int64b kBase, int64b kExponent1, int64b kExponent2>
-constexpr bool operator>=(
+constexpr auto operator>=(
     const UnitMultiple<kBase, kExponent1>& lhs,
-    const UnitMultiple<kBase, kExponent2>& rhs) noexcept;
+    const UnitMultiple<kBase, kExponent2>& rhs) noexcept -> bool;
 
 #endif // Z_MSVC
 

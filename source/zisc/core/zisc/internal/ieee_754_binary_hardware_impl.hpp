@@ -62,37 +62,37 @@ class Ieee754BinaryHardwareImpl
 
   //! Initialize a value with the given floating point value
   template <std::floating_point Float>
-  constexpr Ieee754BinaryHardwareImpl(const Float value) noexcept;
+  explicit constexpr Ieee754BinaryHardwareImpl(const Float value) noexcept;
 
   //! Initialize a value with the given floating point value
-  constexpr Ieee754BinaryHardwareImpl(const HalfT value) noexcept;
+  explicit constexpr Ieee754BinaryHardwareImpl(const HalfT value) noexcept;
 
   //! Initialize a value with the given bits data
-  constexpr Ieee754BinaryHardwareImpl(const BitT bits) noexcept;
+  explicit constexpr Ieee754BinaryHardwareImpl(const BitT bits) noexcept;
 
 
   //! Convert to other format
   template <Ieee754BinaryFormat kDstFormat>
-  constexpr Ieee754BinaryHardwareImpl<kDstFormat> convertTo() const noexcept;
+  constexpr auto convertTo() const noexcept -> Ieee754BinaryHardwareImpl<kDstFormat>;
 
   //! Convert to a floating point
   template <std::floating_point Float>
-  constexpr Float convertTo() const noexcept;
+  constexpr auto convertTo() const noexcept -> Float;
 
   //! Return the underlying floating point value
-  constexpr DataT& data() noexcept;
+  constexpr auto data() noexcept -> DataT&;
 
   //! Return the underlying floating point value
-  constexpr const DataT& data() const noexcept;
+  constexpr auto data() const noexcept -> const DataT&;
 
   //! Return the bit length used in the interchange encoding
-  static constexpr std::size_t bitSize() noexcept;
+  static constexpr auto bitSize() noexcept -> std::size_t;
 
   //! Return the format
-  static constexpr Ieee754BinaryFormat format() noexcept;
+  static constexpr auto format() noexcept -> Ieee754BinaryFormat;
 
   //! Return the float round style
-  static constexpr std::float_round_style roundStyle() noexcept;
+  static constexpr auto roundStyle() noexcept -> std::float_round_style;
 
   //! Set the data to the given bits
   constexpr void setBits(const BitT bits) noexcept;
@@ -105,101 +105,101 @@ class Ieee754BinaryHardwareImpl
 
 //! Apply addition assignment
 template <Ieee754BinaryFormat kFormat>
-constexpr Ieee754BinaryHardwareImpl<kFormat>& operator+=(
-    Ieee754BinaryHardwareImpl<kFormat>& lhs,
-    const Ieee754BinaryHardwareImpl<kFormat>& rhs) noexcept;
+constexpr auto operator+=(Ieee754BinaryHardwareImpl<kFormat>& lhs,
+                          const Ieee754BinaryHardwareImpl<kFormat>& rhs) noexcept
+    -> Ieee754BinaryHardwareImpl<kFormat>&;
 
 //! Apply subtraction assignment
 template <Ieee754BinaryFormat kFormat>
-constexpr Ieee754BinaryHardwareImpl<kFormat>& operator-=(
-    Ieee754BinaryHardwareImpl<kFormat>& lhs,
-    const Ieee754BinaryHardwareImpl<kFormat>& rhs) noexcept;
+constexpr auto operator-=(Ieee754BinaryHardwareImpl<kFormat>& lhs,
+                          const Ieee754BinaryHardwareImpl<kFormat>& rhs) noexcept
+    -> Ieee754BinaryHardwareImpl<kFormat>&;
 
 //! Apply multiplication assignment
 template <Ieee754BinaryFormat kFormat>
-constexpr Ieee754BinaryHardwareImpl<kFormat>& operator*=(
-    Ieee754BinaryHardwareImpl<kFormat>& lhs,
-    const Ieee754BinaryHardwareImpl<kFormat>& rhs) noexcept;
+constexpr auto operator*=(Ieee754BinaryHardwareImpl<kFormat>& lhs,
+                          const Ieee754BinaryHardwareImpl<kFormat>& rhs) noexcept
+    -> Ieee754BinaryHardwareImpl<kFormat>&;
 
 //! Apply division assignment
 template <Ieee754BinaryFormat kFormat>
-constexpr Ieee754BinaryHardwareImpl<kFormat>& operator/=(
-    Ieee754BinaryHardwareImpl<kFormat>& lhs,
-    const Ieee754BinaryHardwareImpl<kFormat>& rhs) noexcept;
+constexpr auto operator/=(Ieee754BinaryHardwareImpl<kFormat>& lhs,
+                          const Ieee754BinaryHardwareImpl<kFormat>& rhs) noexcept
+    ->  Ieee754BinaryHardwareImpl<kFormat>&;
 
 // Arithmetic
 
 //! Return the value it's own
 template <Ieee754BinaryFormat kFormat>
-constexpr Ieee754BinaryHardwareImpl<kFormat> operator+(
-    const Ieee754BinaryHardwareImpl<kFormat>& value) noexcept;
+constexpr auto operator+(const Ieee754BinaryHardwareImpl<kFormat>& value) noexcept
+    -> Ieee754BinaryHardwareImpl<kFormat>;
 
 //! Return the negated value
 template <Ieee754BinaryFormat kFormat>
-constexpr Ieee754BinaryHardwareImpl<kFormat> operator-(
-    const Ieee754BinaryHardwareImpl<kFormat>& value) noexcept;
+constexpr auto operator-(const Ieee754BinaryHardwareImpl<kFormat>& value) noexcept
+    -> Ieee754BinaryHardwareImpl<kFormat>;
 
 //! Compute an addition
 template <Ieee754BinaryFormat kFormat>
-constexpr Ieee754BinaryHardwareImpl<kFormat> operator+(
-    const Ieee754BinaryHardwareImpl<kFormat>& lhs,
-    const Ieee754BinaryHardwareImpl<kFormat>& rhs) noexcept;
+constexpr auto operator+(const Ieee754BinaryHardwareImpl<kFormat>& lhs,
+                         const Ieee754BinaryHardwareImpl<kFormat>& rhs) noexcept
+    -> Ieee754BinaryHardwareImpl<kFormat>;
 
 //! Compute an subtraction
 template <Ieee754BinaryFormat kFormat>
-constexpr Ieee754BinaryHardwareImpl<kFormat> operator-(
-    const Ieee754BinaryHardwareImpl<kFormat>& lhs,
-    const Ieee754BinaryHardwareImpl<kFormat>& rhs) noexcept;
+constexpr auto operator-(const Ieee754BinaryHardwareImpl<kFormat>& lhs,
+                         const Ieee754BinaryHardwareImpl<kFormat>& rhs) noexcept
+    -> Ieee754BinaryHardwareImpl<kFormat>;
 
 //! Compute an multiplication
 template <Ieee754BinaryFormat kFormat>
-constexpr Ieee754BinaryHardwareImpl<kFormat> operator*(
-    const Ieee754BinaryHardwareImpl<kFormat>& lhs,
-    const Ieee754BinaryHardwareImpl<kFormat>& rhs) noexcept;
+constexpr auto operator*(const Ieee754BinaryHardwareImpl<kFormat>& lhs,
+                         const Ieee754BinaryHardwareImpl<kFormat>& rhs) noexcept
+    -> Ieee754BinaryHardwareImpl<kFormat>;
 
 //! Compute an division
 template <Ieee754BinaryFormat kFormat>
-constexpr Ieee754BinaryHardwareImpl<kFormat> operator/(
-    const Ieee754BinaryHardwareImpl<kFormat>& lhs,
-    const Ieee754BinaryHardwareImpl<kFormat>& rhs) noexcept;
+constexpr auto operator/(const Ieee754BinaryHardwareImpl<kFormat>& lhs,
+                         const Ieee754BinaryHardwareImpl<kFormat>& rhs) noexcept
+    -> Ieee754BinaryHardwareImpl<kFormat>;
 
 // Comparison
 
 //! Check if two values are equal
 template <Ieee754BinaryFormat kFormat>
-constexpr bool operator==(
+constexpr auto operator==(
     const Ieee754BinaryHardwareImpl<kFormat>& lhs,
-    const Ieee754BinaryHardwareImpl<kFormat>& rhs) noexcept;
+    const Ieee754BinaryHardwareImpl<kFormat>& rhs) noexcept -> bool;
 
 //! Check if two values aren't equal
 template <Ieee754BinaryFormat kFormat>
-constexpr bool operator!=(
+constexpr auto operator!=(
     const Ieee754BinaryHardwareImpl<kFormat>& lhs,
-    const Ieee754BinaryHardwareImpl<kFormat>& rhs) noexcept;
+    const Ieee754BinaryHardwareImpl<kFormat>& rhs) noexcept -> bool;
 
 //!
 template <Ieee754BinaryFormat kFormat>
-constexpr bool operator<(
+constexpr auto operator<(
     const Ieee754BinaryHardwareImpl<kFormat>& lhs,
-    const Ieee754BinaryHardwareImpl<kFormat>& rhs) noexcept;
+    const Ieee754BinaryHardwareImpl<kFormat>& rhs) noexcept -> bool;
 
 //!
 template <Ieee754BinaryFormat kFormat>
-constexpr bool operator<=(
+constexpr auto operator<=(
     const Ieee754BinaryHardwareImpl<kFormat>& lhs,
-    const Ieee754BinaryHardwareImpl<kFormat>& rhs) noexcept;
+    const Ieee754BinaryHardwareImpl<kFormat>& rhs) noexcept -> bool;
 
 //!
 template <Ieee754BinaryFormat kFormat>
-constexpr bool operator>(
+constexpr auto operator>(
     const Ieee754BinaryHardwareImpl<kFormat>& lhs,
-    const Ieee754BinaryHardwareImpl<kFormat>& rhs) noexcept;
+    const Ieee754BinaryHardwareImpl<kFormat>& rhs) noexcept -> bool;
 
 //!
 template <Ieee754BinaryFormat kFormat>
-constexpr bool operator>=(
+constexpr auto operator>=(
     const Ieee754BinaryHardwareImpl<kFormat>& lhs,
-    const Ieee754BinaryHardwareImpl<kFormat>& rhs) noexcept;
+    const Ieee754BinaryHardwareImpl<kFormat>& rhs) noexcept -> bool;
 
 } // namespace zisc
 

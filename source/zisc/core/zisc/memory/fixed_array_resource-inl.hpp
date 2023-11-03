@@ -89,7 +89,7 @@ auto FixedArrayResource<Type>::operator=(FixedArrayResource&& other) noexcept
   \return No description
   */
 template <typename Type> inline
-constexpr std::size_t FixedArrayResource<Type>::alignmentMax() noexcept
+constexpr auto FixedArrayResource<Type>::alignmentMax() noexcept -> std::size_t
 {
   static_assert(alignof(StorageT) == alignof(Type));
   const std::size_t s = alignof(StorageT);
@@ -105,8 +105,8 @@ constexpr std::size_t FixedArrayResource<Type>::alignmentMax() noexcept
   \exception BadAllocT No description.
   */
 template <typename Type> inline
-void* FixedArrayResource<Type>::allocateMemory(const std::size_t size,
-                                               const std::size_t alignment)
+auto FixedArrayResource<Type>::allocateMemory(const std::size_t size,
+                                              const std::size_t alignment) -> void*
 {
   // Check if the resource can proceed the request
   if ((sizeMax() < size) && (alignmentMax() < alignment)) {
@@ -141,7 +141,7 @@ void* FixedArrayResource<Type>::allocateMemory(const std::size_t size,
   \return No description
   */
 template <typename Type> inline
-std::size_t FixedArrayResource<Type>::count() const noexcept
+auto FixedArrayResource<Type>::count() const noexcept -> std::size_t
 {
   const std::size_t c = count_.load(std::memory_order::acquire);
   return c;
@@ -153,7 +153,7 @@ std::size_t FixedArrayResource<Type>::count() const noexcept
   \return No description
   */
 template <typename Type> inline
-std::size_t FixedArrayResource<Type>::countMax() const noexcept
+auto FixedArrayResource<Type>::countMax() const noexcept -> std::size_t
 {
   const std::size_t c = storage_list_.size();
   return c;
@@ -233,7 +233,7 @@ void FixedArrayResource<Type>::setCountMax(const std::size_t c) noexcept
   \return No description
   */
 template <typename Type> inline
-constexpr std::size_t FixedArrayResource<Type>::sizeMax() noexcept
+constexpr auto FixedArrayResource<Type>::sizeMax() noexcept -> std::size_t
 {
   static_assert(sizeof(StorageT) == sizeof(Type));
   const std::size_t s = sizeof(StorageT);
@@ -248,8 +248,8 @@ constexpr std::size_t FixedArrayResource<Type>::sizeMax() noexcept
   \return No description
   */
 template <typename Type> inline
-void* FixedArrayResource<Type>::do_allocate(std::size_t size,
-                                            std::size_t alignment)
+auto FixedArrayResource<Type>::do_allocate(std::size_t size,
+                                           std::size_t alignment) -> void*
 {
   return allocateMemory(size, alignment);
 }
@@ -276,7 +276,7 @@ void FixedArrayResource<Type>::do_deallocate(void* data,
   \return No description
   */
 template <typename Type> inline
-bool FixedArrayResource<Type>::do_is_equal(const pmr::memory_resource& other) const noexcept
+auto FixedArrayResource<Type>::do_is_equal(const pmr::memory_resource& other) const noexcept -> bool
 {
   const bool result = this == std::addressof(other);
   return result;
@@ -289,7 +289,7 @@ bool FixedArrayResource<Type>::do_is_equal(const pmr::memory_resource& other) co
   \return No description
   */
 template <typename Type> inline
-std::size_t FixedArrayResource<Type>::findAndGetOwnership(const std::size_t start) noexcept
+auto FixedArrayResource<Type>::findAndGetOwnership(const std::size_t start) noexcept -> std::size_t
 {
   using BitT = Bitset::BitT;
   constexpr std::size_t block_bits = Bitset::blockBitSize();
@@ -332,7 +332,7 @@ std::size_t FixedArrayResource<Type>::findAndGetOwnership(const std::size_t star
   \return No description
   */
 template <typename Type> inline
-constexpr std::size_t FixedArrayResource<Type>::invalidIndex() noexcept
+constexpr auto FixedArrayResource<Type>::invalidIndex() noexcept -> std::size_t
 {
   const std::size_t invalid = (std::numeric_limits<std::size_t>::max)();
   return invalid;
@@ -345,7 +345,7 @@ constexpr std::size_t FixedArrayResource<Type>::invalidIndex() noexcept
   \return No description
   */
 template <typename Type> inline
-std::size_t FixedArrayResource<Type>::permuteIndex(const std::size_t index) const noexcept
+auto FixedArrayResource<Type>::permuteIndex(const std::size_t index) const noexcept -> std::size_t
 {
   constexpr std::size_t shift = std::bit_width(kCacheLineSize * 8);
   const std::size_t n = countMax();

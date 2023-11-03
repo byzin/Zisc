@@ -42,33 +42,33 @@ class CorrelatedMultiJitteredEngine
 
   //! Generate a [0, 1) float random number
   template <std::floating_point Float>
-  static Float generate1d(const ValueT s, const ValueT p) noexcept;
+  static auto generate1d(const ValueT s, const ValueT p) noexcept -> Float;
 
   //! Generate two [0, 1) float random numbers
   template <std::floating_point Float>
-  static std::array<Float, 2> generate2d(ValueT s, const ValueT p) noexcept;
+  static auto generate2d(ValueT s, const ValueT p) noexcept -> std::array<Float, 2>;
 
   //! Return the period
-  static constexpr std::size_t getPeriod() noexcept;
+  static constexpr auto getPeriod() noexcept -> std::size_t;
 
   //! Check if a specified sample (0 base count) is the end of period
   template <std::unsigned_integral Integer>
-  static constexpr bool isEndOfPeriod(const Integer sample) noexcept;
+  static constexpr auto isEndOfPeriod(const Integer sample) noexcept -> bool;
 
  private:
   //! Hash the i value
-  static ValueT hashInteger(ValueT i, const ValueT p) noexcept;
+  static auto hashInteger(ValueT i, const ValueT p) noexcept -> ValueT;
 
   //! Make a w mask
-  static constexpr ValueT makeWMask(const ValueT w) noexcept;
+  static constexpr auto makeWMask(const ValueT w) noexcept -> ValueT;
 
   //!
   template <uint32b l>
-  static ValueT permute(ValueT i, const ValueT p) noexcept;
+  static auto permute(ValueT i, const ValueT p) noexcept -> ValueT;
 
   //! The implementation of permutation
   template <uint32b w>
-  static ValueT permuteImpl(ValueT i, const ValueT p) noexcept;
+  static auto permuteImpl(ValueT i, const ValueT p) noexcept -> ValueT;
 };
 
 // Type aliases

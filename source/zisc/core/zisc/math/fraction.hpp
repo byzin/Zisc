@@ -41,29 +41,29 @@ class Fraction
 
 
   //! Creata a fraction (0 / 1)
-  constexpr Fraction() noexcept;
+  constexpr Fraction() noexcept = default;
 
   //! Create a fraction (numerator / 1)
-  constexpr Fraction(const Type n) noexcept;
+  explicit constexpr Fraction(const Type n) noexcept;
 
   //! Create a fraction (numerator / denominator)
   constexpr Fraction(const Type n, const Type d) noexcept;
 
 
   //!
-  constexpr Fraction operator-() const noexcept;
+  constexpr auto operator-() const noexcept -> Fraction;
 
   //!
-  constexpr Fraction& operator+=(const Fraction& other) noexcept;
+  constexpr auto operator+=(const Fraction& other) noexcept -> Fraction&;
 
   //!
-  constexpr Fraction& operator-=(const Fraction& other) noexcept;
+  constexpr auto operator-=(const Fraction& other) noexcept -> Fraction&;
 
   //!
-  constexpr Fraction& operator*=(const Fraction& other) noexcept;
+  constexpr auto operator*=(const Fraction& other) noexcept -> Fraction&;
 
   //!
-  constexpr Fraction& operator/=(const Fraction& other) noexcept;
+  constexpr auto operator/=(const Fraction& other) noexcept -> Fraction&;
 
   //! Convert to a float
   explicit constexpr operator float() const noexcept;
@@ -76,23 +76,28 @@ class Fraction
 
 
   //! Return the denominator
-  constexpr Int& denom() noexcept;
+  [[nodiscard]]
+  constexpr auto denom() noexcept -> Int&;
 
   //! Return the denominator
-  constexpr const Int& denom() const noexcept;
+  [[nodiscard]]
+  constexpr auto denom() const noexcept -> const Int&;
 
   //! Return the numerator 
-  constexpr Int& numer() noexcept;
+  [[nodiscard]]
+  constexpr auto numer() noexcept -> Int&;
 
   //! Return the numerator 
-  constexpr const Int& numer() const noexcept;
+  [[nodiscard]]
+  constexpr auto numer() const noexcept -> const Int&;
 
   //! Return a inverse fraction
-  constexpr Fraction invert() const noexcept;
+  [[nodiscard]]
+  constexpr auto invert() const noexcept -> Fraction;
 
   //! Convert a fraction to a float
   template <std::floating_point Float>
-  constexpr Float toFloat() const noexcept;
+  constexpr auto toFloat() const noexcept -> Float;
 
  private:
   Type numerator_ = static_cast<Type>(0),
@@ -106,53 +111,53 @@ using Fraction64 = Fraction<int64b>;
 
 //! Perform addition operation on two values
 template <SignedInteger Int>
-constexpr Fraction<Int> operator+(const Fraction<Int>& lhs,
-                                  const Fraction<Int>& rhs) noexcept;
+constexpr auto operator+(const Fraction<Int>& lhs,
+                         const Fraction<Int>& rhs) noexcept -> Fraction<Int>;
 
 //! Perform subtraction operation on two values
 template <SignedInteger Int>
-constexpr Fraction<Int> operator-(const Fraction<Int>& lhs,
-                                  const Fraction<Int>& rhs) noexcept;
+constexpr auto operator-(const Fraction<Int>& lhs,
+                         const Fraction<Int>& rhs) noexcept -> Fraction<Int>;
 
 //! Perform multiplication operation on two values
 template <SignedInteger Int>
-constexpr Fraction<Int> operator*(const Fraction<Int>& lhs,
-                                  const Fraction<Int>& rhs) noexcept;
+constexpr auto operator*(const Fraction<Int>& lhs,
+                         const Fraction<Int>& rhs) noexcept -> Fraction<Int>;
 
 //! Perform division operation on two values
 template <SignedInteger Int>
-constexpr Fraction<Int> operator/(const Fraction<Int>& lhs,
-                                  const Fraction<Int>& rhs) noexcept;
+constexpr auto operator/(const Fraction<Int>& lhs,
+                         const Fraction<Int>& rhs) noexcept -> Fraction<Int>;
 
 //! Check if two fractions are equal in value
 template <SignedInteger Int>
-constexpr bool operator==(const Fraction<Int>& lhs,
-                          const Fraction<Int>& rhs) noexcept;
+constexpr auto operator==(const Fraction<Int>& lhs,
+                          const Fraction<Int>& rhs) noexcept -> bool;
 
 //! Check if two fractions aren't equal in value
 template <SignedInteger Int>
-constexpr bool operator!=(const Fraction<Int>& lhs,
-                          const Fraction<Int>& rhs) noexcept;
+constexpr auto operator!=(const Fraction<Int>& lhs,
+                          const Fraction<Int>& rhs) noexcept -> bool;
 
 //!
 template <SignedInteger Int>
-constexpr bool operator<(const Fraction<Int>& lhs,
-                         const Fraction<Int>& rhs) noexcept;
+constexpr auto operator<(const Fraction<Int>& lhs,
+                         const Fraction<Int>& rhs) noexcept -> bool;
 
 //!
 template <SignedInteger Int>
-constexpr bool operator<=(const Fraction<Int>& lhs,
-                          const Fraction<Int>& rhs) noexcept;
+constexpr auto operator<=(const Fraction<Int>& lhs,
+                          const Fraction<Int>& rhs) noexcept -> bool;
 
 //!
 template <SignedInteger Int>
-constexpr bool operator>(const Fraction<Int>& lhs,
-                         const Fraction<Int>& rhs) noexcept;
+constexpr auto operator>(const Fraction<Int>& lhs,
+                         const Fraction<Int>& rhs) noexcept -> bool;
 
 //!
 template <SignedInteger Int>
-constexpr bool operator>=(const Fraction<Int>& lhs,
-                          const Fraction<Int>& rhs) noexcept;
+constexpr auto operator>=(const Fraction<Int>& lhs,
+                          const Fraction<Int>& rhs) noexcept -> bool;
 
 } // namespace zisc
 

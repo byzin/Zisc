@@ -33,7 +33,7 @@ namespace zisc {
   \return Radian
   */
 template <std::floating_point Float> inline
-constexpr Float toRadian(const Float angle) noexcept
+constexpr auto toRadian(const Float angle) noexcept -> Float
 {
   constexpr Float k = std::numbers::pi_v<Float> / cast<Float>(180.0);
   const Float radian = k * angle;
@@ -48,7 +48,7 @@ constexpr Float toRadian(const Float angle) noexcept
   \return Degree
   */
 template <std::floating_point Float> inline
-constexpr Float toAngle(const Float radian) noexcept
+constexpr auto toAngle(const Float radian) noexcept -> Float
 {
   constexpr Float k = cast<Float>(180.0) / std::numbers::pi_v<Float>;
   const Float angle = k * radian;

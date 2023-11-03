@@ -56,9 +56,9 @@ constexpr auto Fnv1aHashEngine<T>::prime() noexcept -> ValueT
 {
   ValueT p = 0;
   if constexpr (sizeof(ValueT) == 4)
-    p = cast<ValueT>(16777619u);
+    p = cast<ValueT>(16777619U);
   else if constexpr (sizeof(ValueT) == 8)
-    p = cast<ValueT>(1099511628211ull);
+    p = cast<ValueT>(1099511628211ULL);
   return p;
 }
 
@@ -72,9 +72,9 @@ constexpr auto Fnv1aHashEngine<T>::offset() noexcept -> ValueT
 {
   ValueT p = 0;
   if constexpr (sizeof(ValueT) == 4)
-    p = cast<ValueT>(2166136261u);
+    p = cast<ValueT>(2166136261U);
   else if constexpr (sizeof(ValueT) == 8)
-    p = cast<ValueT>(14695981039346656037ull);
+    p = cast<ValueT>(14695981039346656037ULL);
   return p;
 }
 

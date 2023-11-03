@@ -91,6 +91,13 @@ macro(Zisc_setZiscProject)
   # Create Zisc library
   file(GLOB_RECURSE zisc_source_files ${zisc_core_dir}/zisc/*[.hpp|.cpp])
   list(APPEND zisc_source_files "${zisc_config_dir}/zisc_config-inl.hpp")
+
+  # Add special source code for static analyzer
+  if(Z_ENABLE_STATIC_ANALYZER_CLANG_TIDY)
+    list(APPEND zisc_source_files "${PROJECT_SOURCE_DIR}/clang-tidy/clang-tidy.cpp")
+  endif()
+
+  #
   source_group(${PROJECT_NAME} FILES "${zisc_source_files}")
 
   # Compiler flags
@@ -134,10 +141,11 @@ macro(Zisc_setZiscProject)
     set(clang_tidy_exclusion_checks 
                                     bugprone-easily-swappable-parameters
                                     cppcoreguidelines-avoid-do-while
-                                    #cppcoreguidelines-avoid-magic-numbers
+                                    cppcoreguidelines-avoid-magic-numbers
                                     cppcoreguidelines-macro-usage
                                     cppcoreguidelines-no-malloc
                                     cppcoreguidelines-owning-memory
+                                    cppcoreguidelines-pro-bounds-constant-array-index
                                     cppcoreguidelines-pro-bounds-pointer-arithmetic
                                     cppcoreguidelines-pro-type-const-cast
                                     cppcoreguidelines-pro-type-reinterpret-cast
@@ -147,6 +155,7 @@ macro(Zisc_setZiscProject)
                                     google-runtime-int
                                     hicpp-braces-around-statements
                                     hicpp-no-malloc
+                                    hicpp-signed-bitwise
                                     hicpp-special-member-functions
                                     hicpp-vararg
                                     misc-include-cleaner
@@ -154,7 +163,7 @@ macro(Zisc_setZiscProject)
                                     readability-avoid-const-params-in-decls
                                     readability-braces-around-statements
                                     readability-identifier-length
-                                    #readability-magic-numbers
+                                    readability-magic-numbers
                                     )
     Zisc_setStaticAnalyzer(${library_name}
                            CLANG_TIDY_HEADER_PATHS ${PROJECT_SOURCE_DIR}/core/zisc/

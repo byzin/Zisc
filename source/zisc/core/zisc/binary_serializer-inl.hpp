@@ -33,7 +33,7 @@ namespace zisc {
   \return No description
   */
 inline
-std::streamsize BinarySerializer::getDistance(std::istream* data_stream) noexcept
+auto BinarySerializer::getDistance(std::istream* data_stream) noexcept -> std::streamsize
 {
   std::streamsize distance = 0;
   const std::istream::pos_type pos = data_stream->tellg();
@@ -61,9 +61,9 @@ std::streamsize BinarySerializer::getDistance(std::istream* data_stream) noexcep
   \return No description
   */
 template <typename Type> inline
-std::istream& BinarySerializer::read(Type* data,
-                                     std::istream* data_stream,
-                                     const std::streamsize size) noexcept
+auto BinarySerializer::read(Type* data,
+                            std::istream* data_stream,
+                            const std::streamsize size) noexcept -> std::istream&
 {
   static_assert(sizeof(char) == 1, "The size of 'char' isn't 1.");
   //! \todo Exception check
@@ -82,9 +82,9 @@ std::istream& BinarySerializer::read(Type* data,
   \return No description
   */
 template <typename Type> inline
-std::ostream& BinarySerializer::write(const Type* data,
-                                      std::ostream* data_stream,
-                                      const std::streamsize size) noexcept
+auto BinarySerializer::write(const Type* data,
+                             std::ostream* data_stream,
+                             const std::streamsize size) noexcept -> std::ostream&
 {
   static_assert(sizeof(const char) == 1, "The size of 'char' isn't 1.");
   //! \todo Exception check

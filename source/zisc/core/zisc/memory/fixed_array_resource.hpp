@@ -52,7 +52,7 @@ class FixedArrayResource : public pmr::memory_resource,
 
 
   //! Create a resource
-  FixedArrayResource(pmr::memory_resource* mem_resource) noexcept;
+  explicit FixedArrayResource(pmr::memory_resource* mem_resource) noexcept;
 
   //! Create a resource
   FixedArrayResource(FixedArrayResource&& other) noexcept;
@@ -62,30 +62,31 @@ class FixedArrayResource : public pmr::memory_resource,
 
 
   //! Create a resource
-  FixedArrayResource& operator=(FixedArrayResource&& other) noexcept;
+  auto operator=(FixedArrayResource&& other) noexcept -> FixedArrayResource&;
 
 
   //! Return the maximum available alignment per allocation
-  static constexpr std::size_t alignmentMax() noexcept;
+  static constexpr auto alignmentMax() noexcept -> std::size_t;
 
   //! Allocate memory
-  void* allocateMemory(const std::size_t size,
-                       const std::size_t alignment);
+  [[nodiscard]]
+  auto allocateMemory(const std::size_t size,
+                      const std::size_t alignment) -> void*;
 
   //! Return the number of used storage in the fixed array
-  std::size_t count() const noexcept;
+  auto count() const noexcept -> std::size_t;
 
   //! Return the maximum number of available storage in the fixed array
-  std::size_t countMax() const noexcept;
+  auto countMax() const noexcept -> std::size_t;
 
   //! Clear the usage status in the resource
   void clear() noexcept;
 
   //! Return the underlying data pointer
-  Pointer data() noexcept;
+  auto data() noexcept -> Pointer;
 
   //! Return the underlying data pointer
-  ConstPointer data() const noexcept;
+  auto data() const noexcept -> ConstPointer;
 
   //! Deallocate memory
   void deallocateMemory(void* data,
@@ -96,7 +97,7 @@ class FixedArrayResource : public pmr::memory_resource,
   void setCountMax(const std::size_t c) noexcept;
 
   //! Return the maximum available size per allocation
-  static constexpr std::size_t sizeMax() noexcept;
+  static constexpr auto sizeMax() noexcept -> std::size_t;
 
  private:
   // Type aliases
@@ -108,8 +109,9 @@ class FixedArrayResource : public pmr::memory_resource,
 
 
   //! Allocate memory
-  void* do_allocate(std::size_t size,
-                    std::size_t alignment) override;
+  [[nodiscard]]
+  auto do_allocate(std::size_t size,
+                   std::size_t alignment) -> void* override;
 
   //! Deallocate memory
   void do_deallocate(void* data,
@@ -117,23 +119,23 @@ class FixedArrayResource : public pmr::memory_resource,
                      std::size_t alignment) override;
 
   //! Compare for equality with another memory resource
-  bool do_is_equal(const pmr::memory_resource& other) const noexcept override;
+  auto do_is_equal(const pmr::memory_resource& other) const noexcept -> bool override;
 
   //! Find and get a ownership of a free storage
-  std::size_t findAndGetOwnership(const std::size_t start) noexcept;
+  auto findAndGetOwnership(const std::size_t start) noexcept -> std::size_t;
 
   //! Return the invalid index
-  static constexpr std::size_t invalidIndex() noexcept;
+  static constexpr auto invalidIndex() noexcept -> std::size_t;
 
   //! Remap index in order to avoid contentions
-  std::size_t permuteIndex(const std::size_t index) const noexcept;
+  auto permuteIndex(const std::size_t index) const noexcept -> std::size_t;
 
 
   alignas(kCacheLineSize) std::atomic_size_t count_;
-  [[maybe_unused]] Padding<kCacheLineSize - sizeof(count_)> pad1_;
+  [[maybe_unused]] Padding<kCacheLineSize - sizeof(count_)> pad1_{};
   pmr::vector<StorageT> storage_list_;
   Bitset used_list_;
-  [[maybe_unused]] Padding<kCacheLineSize - (sizeof(storage_list_) + sizeof(used_list_))> pad2_;
+  [[maybe_unused]] Padding<kCacheLineSize - (sizeof(storage_list_) + sizeof(used_list_))> pad2_{};
 };
 
 } /* namespace zisc */

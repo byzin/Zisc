@@ -48,7 +48,7 @@ constexpr Boolean::Boolean(const bool value) noexcept :
   \return No description
   */
 inline
-constexpr Boolean& Boolean::operator=(const bool value) noexcept
+constexpr auto Boolean::operator=(const bool value) noexcept -> Boolean&
 {
   set(value);
   return *this;
@@ -82,7 +82,7 @@ constexpr void Boolean::set(const bool value) noexcept
   \return No description
   */
 inline
-constexpr bool Boolean::toBool() const noexcept
+constexpr auto Boolean::toBool() const noexcept -> bool
 {
   const bool result = state() == getTrue();
   return result;
@@ -94,7 +94,7 @@ constexpr bool Boolean::toBool() const noexcept
   \return No description
   */
 inline
-constexpr uint8b Boolean::getFalse() noexcept
+constexpr auto Boolean::getFalse() noexcept -> uint8b
 {
   return 0;
 }
@@ -105,7 +105,7 @@ constexpr uint8b Boolean::getFalse() noexcept
   \return No description
   */
 inline
-constexpr uint8b Boolean::getTrue() noexcept
+constexpr auto Boolean::getTrue() noexcept -> uint8b
 {
   return 1;
 }
@@ -116,7 +116,7 @@ constexpr uint8b Boolean::getTrue() noexcept
   \return No description
   */
 inline
-constexpr uint8b Boolean::state() const noexcept
+constexpr auto Boolean::state() const noexcept -> uint8b
 {
   return state_;
 }

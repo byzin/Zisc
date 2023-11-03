@@ -66,7 +66,7 @@ auto PcgEngine<T, kBase>::generate() noexcept -> ValueT
   \return No description
   */
 template <std::unsigned_integral T, PcgBase kBase> inline
-constexpr std::size_t PcgEngine<T, kBase>::getPeriodPow2() noexcept
+constexpr auto PcgEngine<T, kBase>::getPeriodPow2() noexcept -> std::size_t
 {
   constexpr bool is_mcg = kBase == PcgBase::Mcg;
   constexpr std::size_t period_pow2 = 8 * sizeof(ValueT) - (is_mcg ? 2 : 0);
@@ -82,8 +82,7 @@ constexpr std::size_t PcgEngine<T, kBase>::getPeriodPow2() noexcept
   */
 template <std::unsigned_integral T, PcgBase kBase>
 template <std::unsigned_integral Integer> inline
-constexpr bool PcgEngine<T, kBase>::isEndOfPeriod(
-    const Integer sample) noexcept
+constexpr auto PcgEngine<T, kBase>::isEndOfPeriod(const Integer sample) noexcept -> bool
 {
   constexpr std::size_t sample_bit_size = sizeof(Integer) * 8;
   constexpr std::size_t period_pow2 = getPeriodPow2();
@@ -93,7 +92,7 @@ constexpr bool PcgEngine<T, kBase>::isEndOfPeriod(
     return sample == end_of_period;
   }
   else {
-    constexpr Integer end_of_period = (cast<Integer>(1u) << period_pow2) - 1;
+    constexpr Integer end_of_period = (cast<Integer>(1U) << period_pow2) - 1;
     return sample == end_of_period;
   }
 }
@@ -154,13 +153,13 @@ constexpr auto PcgEngine<T, kBase>::increment() noexcept -> ValueT
   constexpr bool is_mcg = kBase == PcgBase::Mcg;
   if constexpr (!is_mcg) {
     if constexpr (sizeof(ValueT) == 1)
-      i = 77u;
+      i = 77U;
     else if constexpr (sizeof(ValueT) == 2)
-      i = 47989u;
+      i = 47989U;
     else if constexpr (sizeof(ValueT) == 4)
-      i = 2891336453u;
+      i = 2891336453U;
     else if constexpr (sizeof(ValueT) == 8)
-      i = 1442695040888963407ull;
+      i = 1442695040888963407ULL;
   }
   return i;
 }
@@ -175,13 +174,13 @@ constexpr auto PcgEngine<T, kBase>::mcgMultiplier() noexcept -> ValueT
 {
   ValueT m = 0;
   if constexpr (sizeof(ValueT) == 1)
-    m = 217u;
+    m = 217U;
   else if constexpr (sizeof(ValueT) == 2)
-    m = 62169u;
+    m = 62169U;
   else if constexpr (sizeof(ValueT) == 4)
-    m = 277803737u;
+    m = 277803737U;
   else if constexpr (sizeof(ValueT) == 8)
-    m = 12605985483714917081ull;
+    m = 12605985483714917081ULL;
   return m;
 }
 
@@ -195,13 +194,13 @@ constexpr auto PcgEngine<T, kBase>::multiplier() noexcept -> ValueT
 {
   ValueT m = 0;
   if constexpr (sizeof(ValueT) == 1)
-    m = 141u;
+    m = 141U;
   else if constexpr (sizeof(ValueT) == 2)
-    m = 12829u;
+    m = 12829U;
   else if constexpr (sizeof(ValueT) == 4)
-    m = 747796405u;
+    m = 747796405U;
   else if constexpr (sizeof(ValueT) == 8)
-    m = 6364136223846793005ull;
+    m = 6364136223846793005ULL;
   return m;
 }
 
@@ -215,8 +214,8 @@ template <std::unsigned_integral T, PcgBase kBase> inline
 auto PcgEngine<T, kBase>::output(ValueT internal) noexcept -> ValueT
 {
   // Constant values
-  constexpr BitCountType xtypebits = cast<BitCountType>(8 * sizeof(ValueT));
-  constexpr BitCountType bits = cast<BitCountType>(8 * sizeof(ValueT));
+  constexpr auto xtypebits = cast<BitCountType>(8 * sizeof(ValueT));
+  constexpr auto bits = cast<BitCountType>(8 * sizeof(ValueT));
   constexpr BitCountType opbits = (128 <= xtypebits) ? 6 :
                                   ( 64 <= xtypebits) ? 5 :
                                   ( 32 <= xtypebits) ? 4 :
@@ -224,9 +223,9 @@ auto PcgEngine<T, kBase>::output(ValueT internal) noexcept -> ValueT
                                                        2;
   constexpr BitCountType shift = bits - xtypebits;
   constexpr BitCountType mask = (1 << opbits) - 1;
-  constexpr BitCountType xshift = (2u * xtypebits + 2u) / 3u;
+  constexpr BitCountType xshift = (2U * xtypebits + 2U) / 3U;
 
-  const BitCountType rshift = opbits
+  const BitCountType rshift = (opbits != 0U)
       ? cast<BitCountType>(internal >> (bits - opbits)) & mask
       : 0;
   internal ^= internal >> (opbits + rshift);

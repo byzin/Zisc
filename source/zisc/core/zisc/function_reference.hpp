@@ -47,16 +47,16 @@ class FunctionReference<ReturnT (ArgTypes...)>
 
   //! Create a reference to the given callable object
   template <std::invocable<ArgTypes...> Func>
-  FunctionReference(Func&& func) noexcept;
+  explicit FunctionReference(Func&& func) noexcept;
 
 
   //! Create a reference to the given callable object
   template <std::invocable<ArgTypes...> Func>
-  FunctionReference& operator=(Func&& func) noexcept;
+  auto operator=(Func&& func) noexcept -> FunctionReference&;
 
   //! Invoke a referenced callable object
   template <typename ...Args>
-  ReturnT operator()(Args&&... args) const
+  auto operator()(Args&&... args) const -> ReturnT
   requires std::invocable<ReturnT (*)(ArgTypes...), Args...>;
 
   //! Check whether this refers a callable object 
@@ -65,14 +65,14 @@ class FunctionReference<ReturnT (ArgTypes...)>
 
   //! Create a reference to the given callable object
   template <std::invocable<ArgTypes...> Func>
-  FunctionReference& assign(Func&& func) noexcept;
+  auto assign(Func&& func) noexcept -> FunctionReference&;
 
   //! Clear the underlying reference to a callable object
   void clear() noexcept;
 
   //! Invoke a referenced callable object
   template <typename ...Args>
-  ReturnT invoke(Args&&... args) const
+  auto invoke(Args&&... args) const -> ReturnT
   requires std::invocable<ReturnT (*)(ArgTypes...), Args...>;
 
   //! Exchange referenced callable objects of this and other
@@ -90,19 +90,21 @@ class FunctionReference<ReturnT (ArgTypes...)>
 
   //! Invoke a referenced callable object 
   template <typename FuncPtr>
-  static ReturnT invokeFunc(FuncRefMemory mem, ArgTypes... args);
+  static auto invokeFunc(FuncRefMemory mem, ArgTypes... args) -> ReturnT;
 
   //! Return the underlying invoker pointer
-  const InvokerPointer& invoker() const noexcept;
+  auto invoker() const noexcept -> const InvokerPointer&;
 
   //! Return the memory of the function reference
-  FuncRefMemory& memory() noexcept;
+  [[nodiscard]]
+  auto memory() noexcept -> FuncRefMemory&;
 
   //! Return the memory of the function reference
-  const FuncRefMemory& memory() const noexcept;
+  [[nodiscard]]
+  auto memory() const noexcept -> const FuncRefMemory&;
 
 
-  FuncRefMemory memory_;
+  FuncRefMemory memory_{};
   InvokerPointer invoker_ = nullptr;
 };
 

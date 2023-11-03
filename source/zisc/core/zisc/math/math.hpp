@@ -37,121 +37,121 @@ class Math
 
   //! Return circular constant
   template <std::floating_point Float>
-  static constexpr Float pi() noexcept;
+  static constexpr auto pi() noexcept -> Float;
 
   // Basic operations
 
   //! Add two values with minimizing the loss of significance
   template <std::floating_point Float>
-  static constexpr Float add(const Float lhs,
-                             const Float rhs,
-                             Float* compensation = nullptr) noexcept;
+  static constexpr auto add(const Float lhs,
+                            const Float rhs,
+                            Float* compensation = nullptr) noexcept -> Float;
 
   //! Fused multiply-add operation
   template <std::floating_point Float>
-  static constexpr Float fma(const Float x, const Float y, const Float z) noexcept;
+  static constexpr auto fma(const Float x, const Float y, const Float z) noexcept -> Float;
 
   //! Calculate remainder of the floating point division operation
   template <std::floating_point Float>
-  static constexpr Float fmod(const Float x, const Float y) noexcept;
+  static constexpr auto fmod(const Float x, const Float y) noexcept -> Float;
 
   // Power functions
 
   //! Raise a number to the given power
   template <Arithmetic Arith, Integer Int>
-  static constexpr Arith pow(Arith base, Int exponent) noexcept;
+  static constexpr auto pow(Arith base, Int exponent) noexcept -> Arith;
 
   //! Raise a number to the given power
   template <Arithmetic Arith, std::floating_point Float>
-  static constexpr Arith pow(const Arith base, const Float exponent) noexcept;
+  static constexpr auto pow(const Arith base, const Float exponent) noexcept -> Arith;
 
   //! Calculate the square root
   template <std::floating_point Float>
-  static constexpr Float sqrt(Float x) noexcept;
+  static constexpr auto sqrt(Float x) noexcept -> Float;
 
   //! Calculate the square root
   template <std::floating_point Float = double, Integer Int>
-  static constexpr Float sqrt(const Int x) noexcept;
+  static constexpr auto sqrt(const Int x) noexcept -> Float;
 
   //! Calculate the cubic root
   template <std::floating_point Float>
-  static constexpr Float cbrt(const Float x) noexcept;
+  static constexpr auto cbrt(const Float x) noexcept -> Float;
 
   //! Calculate the cubic root
   template <std::floating_point Float = double, Integer Int>
-  static constexpr Float cbrt(const Int x) noexcept;
+  static constexpr auto cbrt(const Int x) noexcept -> Float;
 
   // Exponential functions
 
   //! Calculate e raised to the given power
   template <std::floating_point Float>
-  static constexpr Float exp(const Float x) noexcept;
+  static constexpr auto exp(const Float x) noexcept -> Float;
 
   //! Calculate e raised to the given power
   template <std::floating_point Float = double, Integer Int>
-  static constexpr Float exp(const Int x) noexcept;
+  static constexpr auto exp(const Int x) noexcept -> Float;
 
   //! Calculate 2 raised to the given power
   template <std::floating_point Float>
-  static constexpr Float exp2(const Float x) noexcept;
+  static constexpr auto exp2(const Float x) noexcept -> Float;
 
   //! Calculate 2 raised to the given power
   template <std::floating_point Float = double, Integer Int>
-  static constexpr Float exp2(const Int x) noexcept;
+  static constexpr auto exp2(const Int x) noexcept -> Float;
 
   //! Calculate the natural logarithm
   template <std::floating_point Float>
-  static constexpr Float log(const Float x) noexcept;
+  static constexpr auto log(const Float x) noexcept -> Float;
 
   //! Calculate the natural logarithm
   template <std::floating_point Float = double, Integer Int>
-  static constexpr Float log(const Int x) noexcept;
+  static constexpr auto log(const Int x) noexcept -> Float;
 
   //! Calculate the binary logarithm
   template <std::floating_point Float>
-  static constexpr Float log2(const Float x) noexcept;
+  static constexpr auto log2(const Float x) noexcept -> Float;
 
   //! Calculate the binary logarithm
   template <std::floating_point Float = double, Integer Int>
-  static constexpr Float log2(const Int x) noexcept;
+  static constexpr auto log2(const Int x) noexcept -> Float;
 
   //! Calculate the common logarithm
   template <std::floating_point Float>
-  static constexpr Float log10(const Float x) noexcept;
+  static constexpr auto log10(const Float x) noexcept -> Float;
 
   //! Calculate the common logarithm
   template <std::floating_point Float = double, Integer Int>
-  static constexpr Float log10(const Int x) noexcept;
+  static constexpr auto log10(const Int x) noexcept -> Float;
 
   // Trigonometric functions
 
   //! Calculate sin(theta)
   template <std::floating_point Float>
-  static constexpr Float sin(const Float x) noexcept;
+  static constexpr auto sin(const Float x) noexcept -> Float;
 
   //! Calculate cos(theta)
   template <std::floating_point Float>
-  static constexpr Float cos(const Float x) noexcept;
+  static constexpr auto cos(const Float x) noexcept -> Float;
 
   //! Calculate tan(theta)
   template <std::floating_point Float>
-  static constexpr Float tan(const Float x) noexcept;
+  static constexpr auto tan(const Float x) noexcept -> Float;
 
   //! Calculate asin(x)
   template <std::floating_point Float>
-  static constexpr Float asin(const Float x) noexcept;
+  static constexpr auto asin(const Float x) noexcept -> Float;
 
   //! Calculate acos(x)
   template <std::floating_point Float>
-  static constexpr Float acos(const Float x) noexcept;
+  static constexpr auto acos(const Float x) noexcept -> Float;
 
   //! Calculate atan(x)
   template <std::floating_point Float>
-  static constexpr Float atan(const Float x) noexcept;
+  static constexpr auto atan(const Float x) noexcept -> Float;
 
   //! Calculate atan(x)
   template <std::floating_point Float>
-  static constexpr Float atan2(const Float y, const Float x) noexcept;
+  static constexpr auto atan2(const Float y, const Float x) noexcept -> Float;
 
  private:
   template <std::floating_point Float>
@@ -168,238 +168,238 @@ class Math
     template <std::floating_point Float>
     struct F2 
     {
-      constexpr F2() {}
-      constexpr F2(const Float x) : x_{x} {}
-      constexpr F2(const Float x, const Float y) : x_{x}, y_{y} {}
+      constexpr F2() noexcept = default;
+      explicit constexpr F2(const Float x) noexcept : x_{x} {}
+      constexpr F2(const Float x, const Float y) noexcept : x_{x}, y_{y} {}
       Float x_ = cast<Float>(0.0);
       Float y_ = cast<Float>(0.0);
     };
 
     //!
     template <std::floating_point Float>
-    static constexpr F2<Float> add(const Float x, const Float y) noexcept;
+    static constexpr auto add(const Float x, const Float y) noexcept -> F2<Float>;
 
     //!
     template <std::floating_point Float>
-    static constexpr F2<Float> add(const Float x, const F2<Float> y) noexcept;
+    static constexpr auto add(const Float x, const F2<Float> y) noexcept -> F2<Float>;
 
     //!
     template <std::floating_point Float>
-    static constexpr F2<Float> add(const F2<Float> x, const Float y) noexcept;
+    static constexpr auto add(const F2<Float> x, const Float y) noexcept -> F2<Float>;
 
     //!
     template <std::floating_point Float>
-    static constexpr F2<Float> add(const F2<Float> x, const F2<Float> y) noexcept;
+    static constexpr auto add(const F2<Float> x, const F2<Float> y) noexcept -> F2<Float>;
 
     //!
     template <std::floating_point Float>
-    static constexpr F2<Float> add2(const Float x, const Float y) noexcept;
+    static constexpr auto add2(const Float x, const Float y) noexcept -> F2<Float>;
 
     //!
     template <std::floating_point Float>
-    static constexpr F2<Float> add2(const Float x, const F2<Float> y) noexcept;
+    static constexpr auto add2(const Float x, const F2<Float> y) noexcept -> F2<Float>;
 
     //!
     template <std::floating_point Float>
-    static constexpr F2<Float> add2(const F2<Float> x, const Float y) noexcept;
+    static constexpr auto add2(const F2<Float> x, const Float y) noexcept -> F2<Float>;
 
     //!
     template <std::floating_point Float>
-    static constexpr F2<Float> add2(const F2<Float> x, const F2<Float> y) noexcept;
+    static constexpr auto add2(const F2<Float> x, const F2<Float> y) noexcept -> F2<Float>;
 
     //!
     template <std::floating_point Float>
-    static constexpr F2<Float> div(const F2<Float> x, const F2<Float> y) noexcept;
+    static constexpr auto div(const F2<Float> x, const F2<Float> y) noexcept -> F2<Float>;
 
     //!
     template <std::floating_point Float>
-    static constexpr F2<Float> mul(const Float x, const Float y) noexcept;
+    static constexpr auto mul(const Float x, const Float y) noexcept -> F2<Float>;
 
     //!
     template <std::floating_point Float>
-    static constexpr F2<Float> mul(const F2<Float> x, const Float y) noexcept;
+    static constexpr auto mul(const F2<Float> x, const Float y) noexcept -> F2<Float>;
 
     //!
-    template <typename Return, std::floating_point Float>
-    static constexpr Return mul(const F2<Float> x, const F2<Float> y) noexcept;
-
-    //!
-    template <std::floating_point Float>
-    static constexpr F2<Float> normalize(const F2<Float> x) noexcept;
+    template <typename ReturnT, std::floating_point Float>
+    static constexpr auto mul(const F2<Float> x, const F2<Float> y) noexcept -> ReturnT;
 
     //!
     template <std::floating_point Float>
-    static constexpr F2<Float> rec(const Float x) noexcept;
+    static constexpr auto normalize(const F2<Float> x) noexcept -> F2<Float>;
 
     //!
     template <std::floating_point Float>
-    static constexpr F2<Float> rec(const F2<Float> x) noexcept;
+    static constexpr auto rec(const Float x) noexcept -> F2<Float>;
 
     //!
     template <std::floating_point Float>
-    static constexpr F2<Float> scale(const F2<Float> x, const Float y) noexcept;
+    static constexpr auto rec(const F2<Float> x) noexcept -> F2<Float>;
 
     //!
-    template <typename Return, std::floating_point Float>
-    static constexpr Return squ(const F2<Float> x) noexcept;
+    template <std::floating_point Float>
+    static constexpr auto scale(const F2<Float> x, const Float s) noexcept -> F2<Float>;
+
+    //!
+    template <typename ReturnT, std::floating_point Float>
+    static constexpr auto squ(const F2<Float> x) noexcept -> ReturnT;
 
     // Constants
 
     struct ExpDConstants
     {
-      static constexpr double get(const std::size_t index) noexcept;
+      static constexpr auto get(const std::size_t index) noexcept -> double;
     };
 
     struct LogDConstants
     {
-      static constexpr double get(const std::size_t index) noexcept;
+      static constexpr auto get(const std::size_t index) noexcept -> double;
     };
 
     //!
     template <std::floating_point Float>
-    static constexpr Float ln2() noexcept;
+    static constexpr auto ln2() noexcept -> Float;
 
     //!
     template <std::floating_point Float>
-    static constexpr Float l2l() noexcept;
+    static constexpr auto l2l() noexcept -> Float;
 
     //!
     template <std::floating_point Float>
-    static constexpr Float l2u() noexcept;
+    static constexpr auto l2u() noexcept -> Float;
 
     // Poly
 
     //!
     template <typename Constans, std::size_t coffset, std::floating_point Float>
-    static constexpr Float poly2(const Float x) noexcept;
+    static constexpr auto poly2(const Float x) noexcept -> Float;
 
     //!
     template <typename Constans, std::size_t coffset, std::floating_point Float>
-    static constexpr Float poly3(const Float x,
-                                 const Float x2) noexcept;
+    static constexpr auto poly3(const Float x,
+                                const Float x2) noexcept -> Float;
 
     //!
     template <typename Constans, std::size_t coffset, std::floating_point Float>
-    static constexpr Float poly4(const Float x,
-                                 const Float x2) noexcept;
+    static constexpr auto poly4(const Float x,
+                                const Float x2) noexcept -> Float;
 
     //!
     template <typename Constans, std::size_t coffset, std::floating_point Float>
-    static constexpr Float poly5(const Float x,
-                                 const Float x2,
-                                 const Float x4) noexcept;
+    static constexpr auto poly5(const Float x,
+                                const Float x2,
+                                const Float x4) noexcept -> Float;
 
     //!
     template <typename Constans, std::size_t coffset, std::floating_point Float>
-    static constexpr Float poly6(const Float x,
-                                 const Float x2,
-                                 const Float x4) noexcept;
+    static constexpr auto poly6(const Float x,
+                                const Float x2,
+                                const Float x4) noexcept -> Float;
 
     //!
     template <typename Constans, std::size_t coffset, std::floating_point Float>
-    static constexpr Float poly7(const Float x,
-                                 const Float x2,
-                                 const Float x4) noexcept;
+    static constexpr auto poly7(const Float x,
+                                const Float x2,
+                                const Float x4) noexcept -> Float;
 
     //!
     template <typename Constans, std::size_t coffset, std::floating_point Float>
-    static constexpr Float poly8(const Float x,
-                                 const Float x2,
-                                 const Float x4) noexcept;
+    static constexpr auto poly8(const Float x,
+                                const Float x2,
+                                const Float x4) noexcept -> Float;
 
     //!
     template <typename Constans, std::size_t coffset, std::floating_point Float>
-    static constexpr Float poly9(const Float x,
+    static constexpr auto poly9(const Float x,
+                                const Float x2,
+                                const Float x4,
+                                const Float x8) noexcept -> Float;
+
+    //!
+    template <typename Constans, std::size_t coffset, std::floating_point Float>
+    static constexpr auto poly10(const Float x,
                                  const Float x2,
                                  const Float x4,
-                                 const Float x8) noexcept;
+                                 const Float x8) noexcept -> Float;
 
     //!
     template <typename Constans, std::size_t coffset, std::floating_point Float>
-    static constexpr Float poly10(const Float x,
-                                  const Float x2,
-                                  const Float x4,
-                                  const Float x8) noexcept;
+    static constexpr auto poly11(const Float x,
+                                 const Float x2,
+                                 const Float x4,
+                                 const Float x8) noexcept -> Float;
 
     //!
     template <typename Constans, std::size_t coffset, std::floating_point Float>
-    static constexpr Float poly11(const Float x,
-                                  const Float x2,
-                                  const Float x4,
-                                  const Float x8) noexcept;
+    static constexpr auto poly12(const Float x,
+                                 const Float x2,
+                                 const Float x4,
+                                 const Float x8) noexcept -> Float;
 
     //!
     template <typename Constans, std::size_t coffset, std::floating_point Float>
-    static constexpr Float poly12(const Float x,
-                                  const Float x2,
-                                  const Float x4,
-                                  const Float x8) noexcept;
+    static constexpr auto poly13(const Float x,
+                                 const Float x2,
+                                 const Float x4,
+                                 const Float x8) noexcept -> Float;
 
     //!
     template <typename Constans, std::size_t coffset, std::floating_point Float>
-    static constexpr Float poly13(const Float x,
-                                  const Float x2,
-                                  const Float x4,
-                                  const Float x8) noexcept;
+    static constexpr auto poly14(const Float x,
+                                 const Float x2,
+                                 const Float x4,
+                                 const Float x8) noexcept -> Float;
 
     //!
     template <typename Constans, std::size_t coffset, std::floating_point Float>
-    static constexpr Float poly14(const Float x,
-                                  const Float x2,
-                                  const Float x4,
-                                  const Float x8) noexcept;
+    static constexpr auto poly15(const Float x,
+                                 const Float x2,
+                                 const Float x4,
+                                 const Float x8) noexcept -> Float;
 
     //!
     template <typename Constans, std::size_t coffset, std::floating_point Float>
-    static constexpr Float poly15(const Float x,
-                                  const Float x2,
-                                  const Float x4,
-                                  const Float x8) noexcept;
+    static constexpr auto poly16(const Float x,
+                                 const Float x2,
+                                 const Float x4,
+                                 const Float x8) noexcept -> Float;
 
     //!
     template <typename Constans, std::size_t coffset, std::floating_point Float>
-    static constexpr Float poly16(const Float x,
-                                  const Float x2,
-                                  const Float x4,
-                                  const Float x8) noexcept;
+    static constexpr auto poly17(const Float x,
+                                 const Float x2,
+                                 const Float x4,
+                                 const Float x8,
+                                 const Float x16) noexcept -> Float;
 
     //!
     template <typename Constans, std::size_t coffset, std::floating_point Float>
-    static constexpr Float poly17(const Float x,
-                                  const Float x2,
-                                  const Float x4,
-                                  const Float x8,
-                                  const Float x16) noexcept;
+    static constexpr auto poly18(const Float x,
+                                 const Float x2,
+                                 const Float x4,
+                                 const Float x8,
+                                 const Float x16) noexcept -> Float;
 
     //!
     template <typename Constans, std::size_t coffset, std::floating_point Float>
-    static constexpr Float poly18(const Float x,
-                                  const Float x2,
-                                  const Float x4,
-                                  const Float x8,
-                                  const Float x16) noexcept;
-
-    //!
-    template <typename Constans, std::size_t coffset, std::floating_point Float>
-    static constexpr Float poly19(const Float x,
-                                  const Float x2,
-                                  const Float x4,
-                                  const Float x8,
-                                  const Float x16) noexcept;
+    static constexpr auto poly19(const Float x,
+                                 const Float x2,
+                                 const Float x4,
+                                 const Float x8,
+                                 const Float x16) noexcept -> Float;
 
     // Math
 
     //!
     template <std::floating_point Float>
-    static constexpr Float abs(const Float x) noexcept;
+    static constexpr auto abs(const Float x) noexcept -> Float;
 
     //!
     template <std::floating_point Float>
-    static constexpr Float copysign(const Float x, const Float y) noexcept;
+    static constexpr auto copysign(const Float x, const Float y) noexcept -> Float;
 
     //!
     template <std::floating_point Float>
-    static constexpr Float exp(const F2<Float> x) noexcept;
+    static constexpr auto exp(const F2<Float> x) noexcept -> Float;
 
     //!
     template <std::floating_point Float, Arithmetic Arith1, Arithmetic Arith2>
@@ -407,55 +407,55 @@ class Math
 
     //!
     template <std::floating_point Float>
-    static constexpr IntT<Float> ilogb2(const Float x) noexcept;
+    static constexpr auto ilogb2(const Float x) noexcept -> IntT<Float>;
 
     //!
     template <std::floating_point Float>
-    static constexpr bool isInf(const Float x) noexcept;
+    static constexpr auto isInf(const Float x) noexcept -> bool;
 
     //!
     template <std::floating_point Float>
-    static constexpr bool isInt(const Float x) noexcept;
+    static constexpr auto isInt(const Float x) noexcept -> bool;
 
     //!
     template <std::floating_point Float>
-    static constexpr bool isNan(const Float x) noexcept;
+    static constexpr auto isNan(const Float x) noexcept -> bool;
 
     //!
     template <std::floating_point Float>
-    static constexpr bool isOdd(const Float x) noexcept;
+    static constexpr auto isOdd(const Float x) noexcept -> bool;
 
     //!
     template <std::floating_point Float>
-    static constexpr Float ldexp(Float x, int e) noexcept;
+    static constexpr auto ldexp(Float x, int e) noexcept -> Float;
 
     //!
     template <std::floating_point Float>
-    static constexpr Float ldexp3(const Float x, const IntT<Float> e) noexcept;
+    static constexpr auto ldexp3(const Float x, const IntT<Float> e) noexcept -> Float;
 
     //!
     template <std::floating_point Float>
-    static constexpr F2<Float> log(Float x) noexcept;
+    static constexpr auto log(Float x) noexcept -> F2<Float>;
 
     //!
     template <std::floating_point Float>
-    static constexpr Float mla(const Float x, const Float y, const Float z) noexcept;
+    static constexpr auto mla(const Float x, const Float y, const Float z) noexcept -> Float;
 
     //!
     template <std::floating_point Float>
-    static constexpr Float mulsign(const Float x, const Float y) noexcept;
+    static constexpr auto mulsign(const Float x, const Float y) noexcept -> Float;
 
     //!
     template <std::floating_point Float>
-    static constexpr Float rint(const Float x) noexcept;
+    static constexpr auto rint(const Float x) noexcept -> Float;
 
     //!
     template <std::floating_point Float>
-    static constexpr Float sign(const Float x) noexcept;
+    static constexpr auto sign(const Float x) noexcept -> Float;
 
     //!
     template <std::floating_point Float>
-    static constexpr Float upper(const Float x) noexcept;
+    static constexpr auto upper(const Float x) noexcept -> Float;
   };
 };
 
@@ -473,105 +473,105 @@ constexpr Float kPi = Math::pi<Float>();
 
 //! Fused multiply-add operation
 template <std::floating_point Float>
-constexpr Float fma(const Float x, const Float y, const Float z) noexcept;
+constexpr auto fma(const Float x, const Float y, const Float z) noexcept -> Float;
 
 //! Calculate remainder of the floating point division operation
 template <std::floating_point Float>
-constexpr Float fmod(const Float x, const Float y) noexcept;
+constexpr auto fmod(const Float x, const Float y) noexcept -> Float;
 
 // Power functions
 
 //! Raise a number to the given power
 template <Arithmetic Arith1, Arithmetic Arith2>
-constexpr Arith1 pow(const Arith1 base, const Arith2 exponent) noexcept;
+constexpr auto pow(const Arith1 base, const Arith2 exponent) noexcept -> Arith1;
 
 //! Calculate the square root
 template <std::floating_point Float>
-constexpr Float sqrt(const Float x) noexcept;
+constexpr auto sqrt(const Float x) noexcept -> Float;
 
 //! Calculate the square root
 template <std::floating_point Float = double, Integer Int>
-constexpr Float sqrt(const Int x) noexcept;
+constexpr auto sqrt(const Int x) noexcept -> Float;
 
 //! Calculate the cubic root
 template <std::floating_point Float>
-constexpr Float cbrt(const Float x) noexcept;
+constexpr auto cbrt(const Float x) noexcept -> Float;
 
 //! Calculate the cubic root
 template <std::floating_point Float = double, Integer Int>
-constexpr Float cbrt(const Int x) noexcept;
+constexpr auto cbrt(const Int x) noexcept -> Float;
 
 // Exponential functions
 
 //! Calculate e raised to the given power
 template <std::floating_point Float>
-constexpr Float exp(const Float x) noexcept;
+constexpr auto exp(const Float x) noexcept -> Float;
 
 //! Calculate e raised to the given power
 template <std::floating_point Float = double, Integer Int>
-constexpr Float exp(const Int x) noexcept;
+constexpr auto exp(const Int x) noexcept -> Float;
 
 //! Calculate 2 raised to the given power
 template <std::floating_point Float>
-constexpr Float exp2(const Float x) noexcept;
+constexpr auto exp2(const Float x) noexcept -> Float;
 
 //! Calculate 2 raised to the given power
 template <std::floating_point Float = double, Integer Int>
-constexpr Float exp2(const Int x) noexcept;
+constexpr auto exp2(const Int x) noexcept -> Float;
 
 //! Calculate the natural logarithm
 template <std::floating_point Float>
-constexpr Float log(const Float x) noexcept;
+constexpr auto log(const Float x) noexcept -> Float;
 
 //! Calculate the natural logarithm
 template <std::floating_point Float = double, Integer Int>
-constexpr Float log(const Int x) noexcept;
+constexpr auto log(const Int x) noexcept -> Float;
 
 //! Calculate the binary logarithm
 template <std::floating_point Float>
-constexpr Float log2(const Float x) noexcept;
+constexpr auto log2(const Float x) noexcept -> Float;
 
 //! Calculate the binary logarithm
 template <std::floating_point Float = double, Integer Int>
-constexpr Float log2(const Int x) noexcept;
+constexpr auto log2(const Int x) noexcept -> Float;
 
 //! Calculate the common logarithm
 template <std::floating_point Float>
-constexpr Float log10(const Float x) noexcept;
+constexpr auto log10(const Float x) noexcept -> Float;
 
 //! Calculate the common logarithm
 template <std::floating_point Float = double, Integer Int>
-constexpr Float log10(const Int x) noexcept;
+constexpr auto log10(const Int x) noexcept -> Float;
 
 // Trigonometric functions
 
 //! Calculate sin(theta)
 template <std::floating_point Float>
-constexpr Float sin(const Float x) noexcept;
+constexpr auto sin(const Float x) noexcept -> Float;
 
 //! Calculate cos(theta)
 template <std::floating_point Float>
-constexpr Float cos(const Float x) noexcept;
+constexpr auto cos(const Float x) noexcept -> Float;
 
 //! Calculate tan(theta)
 template <std::floating_point Float>
-constexpr Float tan(const Float x) noexcept;
+constexpr auto tan(const Float x) noexcept -> Float;
 
 //! Calculate asin(x)
 template <std::floating_point Float>
-constexpr Float asin(const Float x) noexcept;
+constexpr auto asin(const Float x) noexcept -> Float;
 
 //! Calculate acos(x)
 template <std::floating_point Float>
-constexpr Float acos(const Float x) noexcept;
+constexpr auto acos(const Float x) noexcept -> Float;
 
 //! Calculate atan(x)
 template <std::floating_point Float>
-constexpr Float atan(const Float x) noexcept;
+constexpr auto atan(const Float x) noexcept -> Float;
 
 //! Calculate atan(x)
 template <std::floating_point Float>
-constexpr Float atan2(const Float y, const Float x) noexcept;
+constexpr auto atan2(const Float y, const Float x) noexcept -> Float;
 
 } // namespace zisc
 

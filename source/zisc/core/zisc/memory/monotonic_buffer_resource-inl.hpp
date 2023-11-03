@@ -50,7 +50,7 @@ MonotonicBufferResource<kSize, kAlignment>::MonotonicBufferResource(pmr::memory_
   */
 template <std::size_t kSize, std::size_t kAlignment> inline
 MonotonicBufferResource<kSize, kAlignment>::MonotonicBufferResource(MonotonicBufferResource&& other) noexcept :
-    pmr::memory_resource(std::move(other)),
+    pmr::memory_resource(other),
     storage_{std::move(other.storage_)},
     use_count_{other.use_count_.load(std::memory_order::acquire)},
     size_{other.size_.load(std::memory_order::acquire)}
@@ -63,7 +63,7 @@ MonotonicBufferResource<kSize, kAlignment>::MonotonicBufferResource(MonotonicBuf
   \return No description
   */
 template <std::size_t kSize, std::size_t kAlignment> inline
-constexpr std::size_t MonotonicBufferResource<kSize, kAlignment>::alignment() noexcept
+constexpr auto MonotonicBufferResource<kSize, kAlignment>::alignment() noexcept -> std::size_t
 {
   constexpr std::size_t a = alignof(StorageT);
   static_assert(std::has_single_bit(a), "The alignment isn't power of 2.");
@@ -78,7 +78,7 @@ constexpr std::size_t MonotonicBufferResource<kSize, kAlignment>::alignment() no
 template <std::size_t kSize, std::size_t kAlignment> inline
 auto MonotonicBufferResource<kSize, kAlignment>::operator=(MonotonicBufferResource&& other) noexcept -> MonotonicBufferResource&
 {
-  pmr::memory_resource::operator=(std::move(other));
+  pmr::memory_resource::operator=(other);
   storage_ = std::move(other.storage_);
   use_count_ = other.use_count_.load(std::memory_order::acquire);
   size_ = other.size_.load(std::memory_order::acquire);
@@ -94,15 +94,15 @@ auto MonotonicBufferResource<kSize, kAlignment>::operator=(MonotonicBufferResour
   \exception BadAllocT No description.
   */
 template <std::size_t kSize, std::size_t kAlignment> inline
-void* MonotonicBufferResource<kSize, kAlignment>::allocateMemory(
+auto MonotonicBufferResource<kSize, kAlignment>::allocateMemory(
     const std::size_t size,
-    const std::size_t alignment)
+    const std::size_t alignment) -> void*
 {
   std::size_t usage = this->size();
   std::size_t next_usage = 0;
   std::size_t adjustment = 0;
   do {
-    const std::size_t address = zisc::bit_cast<std::size_t>(storage() + usage);
+    const auto address = zisc::bit_cast<std::size_t>(storage() + usage);
     const std::size_t fraction = address & (alignment - 1);
     adjustment = (alignment - fraction) & (alignment - 1);
     const std::size_t alloc_size = adjustment + size;
@@ -127,7 +127,7 @@ void* MonotonicBufferResource<kSize, kAlignment>::allocateMemory(
   \return No description
   */
 template <std::size_t kSize, std::size_t kAlignment> inline
-constexpr std::size_t MonotonicBufferResource<kSize, kAlignment>::capacity() noexcept
+constexpr auto MonotonicBufferResource<kSize, kAlignment>::capacity() noexcept -> std::size_t
 {
   return sizeof(StorageT);
 }
@@ -159,7 +159,7 @@ void MonotonicBufferResource<kSize, kAlignment>::deallocateMemory(
   \return No description
   */
 template <std::size_t kSize, std::size_t kAlignment> inline
-bool MonotonicBufferResource<kSize, kAlignment>::isOccupied() const noexcept
+auto MonotonicBufferResource<kSize, kAlignment>::isOccupied() const noexcept -> bool
 {
   const bool result = 0 < use_count_.load(std::memory_order::acquire);
   return result;
@@ -181,7 +181,7 @@ void MonotonicBufferResource<kSize, kAlignment>::release() noexcept
   \return No description
   */
 template <std::size_t kSize, std::size_t kAlignment> inline
-std::size_t MonotonicBufferResource<kSize, kAlignment>::size() const noexcept
+auto MonotonicBufferResource<kSize, kAlignment>::size() const noexcept -> std::size_t
 {
   const std::size_t s = size_.load(std::memory_order::acquire);
   return s;
@@ -194,7 +194,7 @@ template <std::size_t kSize, std::size_t kAlignment> inline
 void MonotonicBufferResource<kSize, kAlignment>::initialize(
     pmr::memory_resource* mem_resource) noexcept
 {
-  pmr::polymorphic_allocator<StorageT> alloc{mem_resource};
+  const pmr::polymorphic_allocator<StorageT> alloc{mem_resource};
   storage_ = pmr::allocateUnique<StorageT>(alloc);
 }
 
@@ -207,9 +207,9 @@ void MonotonicBufferResource<kSize, kAlignment>::initialize(
   \exception BadAllocT No description.
   */
 template <std::size_t kSize, std::size_t kAlignment> inline
-void* MonotonicBufferResource<kSize, kAlignment>::do_allocate(
+auto MonotonicBufferResource<kSize, kAlignment>::do_allocate(
     std::size_t size,
-    std::size_t alignment)
+    std::size_t alignment) -> void*
 {
   return allocateMemory(size, alignment);
 }
@@ -236,8 +236,8 @@ void MonotonicBufferResource<kSize, kAlignment>::do_deallocate(
   \return No description
   */
 template <std::size_t kSize, std::size_t kAlignment> inline
-bool MonotonicBufferResource<kSize, kAlignment>::do_is_equal(
-    const pmr::memory_resource& other) const noexcept
+auto MonotonicBufferResource<kSize, kAlignment>::do_is_equal(
+    const pmr::memory_resource& other) const noexcept -> bool
 {
   const auto* other_mem = dynamic_cast<const MonotonicBufferResource*>(&other);
   const bool result = (other_mem != nullptr) && (other_mem->storage() == storage());
@@ -250,7 +250,7 @@ bool MonotonicBufferResource<kSize, kAlignment>::do_is_equal(
   \return No description
   */
 template <std::size_t kSize, std::size_t kAlignment> inline
-std::byte* MonotonicBufferResource<kSize, kAlignment>::storage() noexcept
+auto MonotonicBufferResource<kSize, kAlignment>::storage() noexcept -> std::byte*
 {
   static_assert(sizeof(std::byte) == 1, "The size of std::byte isn't 1.");
   return reinterp<std::byte*>(storage_.get());
@@ -262,7 +262,7 @@ std::byte* MonotonicBufferResource<kSize, kAlignment>::storage() noexcept
   \return No description
   */
 template <std::size_t kSize, std::size_t kAlignment> inline
-const std::byte* MonotonicBufferResource<kSize, kAlignment>::storage() const noexcept
+auto MonotonicBufferResource<kSize, kAlignment>::storage() const noexcept -> const std::byte*
 {
   static_assert(sizeof(std::byte) == 1, "The size of std::byte isn't 1.");
   return reinterp<const std::byte*>(storage_.get());

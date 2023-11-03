@@ -51,8 +51,8 @@ constexpr auto HashEngine<HashClass, T>::hash(
   \return No description
   */
 template <typename HashClass, HashValue T> inline
-constexpr auto HashEngine<HashClass, T>::hash(
-    const std::string_view seed) noexcept -> ValueT
+constexpr auto HashEngine<HashClass, T>::hash(const std::string_view seed) noexcept
+    -> ValueT
 {
   const ValueT result = hash(seed.data(), seed.size());
   return result;
@@ -67,9 +67,9 @@ constexpr auto HashEngine<HashClass, T>::hash(
   */
 template <typename HashClass, HashValue T>
 template <HashKeyElement Int8> inline
-constexpr auto HashEngine<HashClass, T>::hash(
-    const Int8* seed,
-    const std::size_t n) noexcept -> ValueT
+constexpr auto HashEngine<HashClass, T>::hash(const Int8* seed,
+                                              const std::size_t n) noexcept
+    -> ValueT
 {
   const ValueT result = hashValue(seed, n);
   return result;
@@ -84,8 +84,8 @@ constexpr auto HashEngine<HashClass, T>::hash(
   */
 template <typename HashClass, HashValue T>
 template <UnsignedInteger Integer> inline
-constexpr auto HashEngine<HashClass, T>::hash(
-    const Integer seed) noexcept -> ValueT
+constexpr auto HashEngine<HashClass, T>::hash(const Integer seed) noexcept
+    -> ValueT
 {
   // Make a seed array
   std::array<uint8b, sizeof(Integer)> seed_array{};
@@ -106,9 +106,9 @@ constexpr auto HashEngine<HashClass, T>::hash(
   */
 template <typename HashClass, HashValue T>
 template <HashKeyElement Int8> inline
-constexpr auto HashEngine<HashClass, T>::hashValue(
-    const Int8* seed,
-    const std::size_t n) noexcept -> ValueT
+constexpr auto HashEngine<HashClass, T>::hashValue(const Int8* seed,
+                                                   const std::size_t n) noexcept
+    -> ValueT
 {
   const ValueT result = HashT::hashValue(seed, n);
   return result;

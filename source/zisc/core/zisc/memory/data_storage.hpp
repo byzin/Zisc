@@ -53,36 +53,40 @@ class DataStorage : private NonCopyable<DataStorage<T>>
 
   //! Create a storage and store a value initialized by the given args
   template <typename ...Args> requires std::is_nothrow_constructible_v<T, Args...>
-  DataStorage(Args&&... args) noexcept;
+  explicit DataStorage(Args&&... args) noexcept;
 
 
   //! Move a data
-  DataStorage& operator=(DataStorage&& other) noexcept;
+  auto operator=(DataStorage&& other) noexcept -> DataStorage&;
 
   //! Return the reference to the underlying data
-  Reference operator*() noexcept;
+  auto operator*() noexcept -> Reference;
 
   //! Return the reference to the underlying data
-  ConstReference operator*() const noexcept;
+  auto operator*() const noexcept -> ConstReference;
 
   //! Destroy the value stored in the storage
   void destroy() noexcept;
 
   //! Return the reference to the underlying data
-  Reference get() noexcept;
+  [[nodiscard]]
+  auto get() noexcept -> Reference;
 
   //! Return the reference to the underlying data
-  ConstReference get() const noexcept;
+  [[nodiscard]]
+  auto get() const noexcept -> ConstReference;
 
   //! Return the pointer to the underlying data
-  Pointer memory() noexcept;
+  [[nodiscard]]
+  auto memory() noexcept -> Pointer;
 
   //! Return the pointer to the underlying data
-  ConstPointer memory() const noexcept;
+  [[nodiscard]]
+  auto memory() const noexcept -> ConstPointer;
 
   //! Create a value initialized with the given value and store it into the storage
   template <typename ...Args> requires std::is_nothrow_constructible_v<T, Args...>
-  Pointer set(Args&&... args) noexcept;
+  auto set(Args&&... args) noexcept -> Pointer;
 
  private:
   //! Check if T is able to be used as storage directly. Otherwise use aligned_storage

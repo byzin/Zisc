@@ -48,54 +48,63 @@ class Bitset : private NonCopyable<Bitset>
 
 
   //! Create a bitset
-  Bitset(pmr::memory_resource* mem_resource) noexcept;
+  explicit Bitset(pmr::memory_resource* mem_resource) noexcept;
 
   //! Create a bitset
-  Bitset(const std::size_t s, pmr::memory_resource* memory_resource) noexcept;
+  Bitset(const std::size_t s, pmr::memory_resource* mem_resource) noexcept;
 
   //! Move a data
   Bitset(Bitset&& other) noexcept;
 
 
   //! Move a data
-  Bitset& operator=(Bitset&& other) noexcept;
+  auto operator=(Bitset&& other) noexcept -> Bitset&;
 
   //! Access the bit at position pos
-  bool operator[](const std::size_t pos) const noexcept;
+  auto operator[](const std::size_t pos) const noexcept -> bool;
 
 
   //! Return the bit size of a block
-  static constexpr std::size_t blockBitSize() noexcept;
+  static constexpr auto blockBitSize() noexcept -> std::size_t;
 
   //! Return the bit size of a chunk
-  static constexpr std::size_t chunkBitSize() noexcept;
+  static constexpr auto chunkBitSize() noexcept -> std::size_t;
 
   //! Return the number of bits set to true
-  std::size_t count() const noexcept;
+  [[nodiscard]]
+  auto count() const noexcept -> std::size_t;
 
   //! Return the number of bits set to true
-  std::size_t count(const std::size_t begin, const std::size_t end) const noexcept;
+  [[nodiscard]]
+  auto count(const std::size_t begin, const std::size_t end) const noexcept -> std::size_t;
 
   //! Return the bits of the block at the pos
-  BitT getBlockBits(const std::size_t pos) const noexcept;
+  [[nodiscard]]
+  auto getBlockBits(const std::size_t pos) const noexcept -> BitT;
 
   //! Check if all bits are set to true
-  bool isAll() const noexcept;
+  [[nodiscard]]
+  auto isAll() const noexcept -> bool;
 
   //! Check if all bits are set to true
-  bool isAll(const std::size_t begin, const std::size_t end) const noexcept;
+  [[nodiscard]]
+  auto isAll(const std::size_t begin, const std::size_t end) const noexcept -> bool;
 
   //! Check if any of the bits are set to true
-  bool isAny() const noexcept;
+  [[nodiscard]]
+  auto isAny() const noexcept -> bool;
 
   //! Check if any of the bits are set to true
-  bool isAny(const std::size_t begin, const std::size_t end) const noexcept;
+  [[nodiscard]]
+  auto isAny(const std::size_t begin, const std::size_t end) const noexcept -> bool;
 
   //! Check if none of the bits are set to true
-  bool isNone() const noexcept;
+  [[nodiscard]]
+  auto isNone() const noexcept -> bool;
 
   //! Check if none of the bits are set to true
-  bool isNone(const std::size_t begin, const std::size_t end) const noexcept;
+  [[nodiscard]]
+  auto isNone(const std::size_t begin, const std::size_t end) const noexcept -> bool;
 
   //! Set bits to the given value
   void reset(const bool value = false) noexcept;
@@ -104,16 +113,18 @@ class Bitset : private NonCopyable<Bitset>
   void reset(const std::size_t begin, const std::size_t end, const bool value = false) noexcept;
 
   //! Set the number of bits
-  void setSize(const std::size_t s) noexcept;
+  void setSize(const std::size_t s);
 
   //! Return the number of bits
-  std::size_t size() const noexcept;
+  [[nodiscard]]
+  auto size() const noexcept -> std::size_t;
 
   //! Return the value at the given position
-  bool test(const std::size_t pos) const noexcept;
+  [[nodiscard]]
+  auto test(const std::size_t pos) const noexcept -> bool;
 
   //! Atomically set value and obtain it's previous value
-  bool testAndSet(const std::size_t pos, const bool value) noexcept;
+  auto testAndSet(const std::size_t pos, const bool value) noexcept -> bool;
 
  private:
   // Type aliases
@@ -132,13 +143,13 @@ class Bitset : private NonCopyable<Bitset>
   struct alignas(kChunkAlignment) Chunk
   {
     //! Create a chunk
-    Chunk() noexcept;
+    Chunk() noexcept = default;
 
     //! Move a data
     Chunk(Chunk&& other) noexcept;
 
     //! Move a data
-    Chunk& operator=(Chunk&& other) noexcept;
+    auto operator=(Chunk&& other) noexcept -> Chunk&;
 
     //! Copy the bits
     void set(const Chunk& other) noexcept;
@@ -151,23 +162,25 @@ class Bitset : private NonCopyable<Bitset>
 
 
   //! Return the reference of a block
-  AReference getBlockRef(const std::size_t pos) noexcept;
+  [[nodiscard]]
+  auto getBlockRef(const std::size_t pos) noexcept -> AReference;
 
   //! Return the reference of a block
-  AConstReference getBlockRef(const std::size_t pos) const noexcept;
+  [[nodiscard]]
+  auto getBlockRef(const std::size_t pos) const noexcept -> AConstReference;
 
   //!
   template <typename Func>
-  std::size_t iterate(const std::size_t begin,
-                      const std::size_t end,
-                      Func func) const noexcept
+  auto iterate(const std::size_t begin,
+               const std::size_t end,
+               Func func) const noexcept -> std::size_t
   requires std::invocable<Func, Bitset::ConstT, Bitset::AConstReference, std::size_t&>;
 
   //! Make a bit mask
-  static BitT makeMask(const std::size_t pos) noexcept;
+  static auto makeMask(const std::size_t pos) noexcept -> BitT;
 
   //! Make a bit mask
-  static BitT makeMask(const std::size_t begin, const std::size_t end) noexcept;
+  static auto makeMask(const std::size_t begin, const std::size_t end) noexcept -> BitT;
 
 
   pmr::vector<Chunk> chunk_list_;

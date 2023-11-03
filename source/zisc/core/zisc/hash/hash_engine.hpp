@@ -51,24 +51,24 @@ class HashEngine
 
 
   //! Compute a hash value
-  static constexpr ValueT hash(const char* seed) noexcept;
+  static constexpr auto hash(const char* seed) noexcept -> ValueT;
 
   //! Compute a hash value
-  static constexpr ValueT hash(const std::string_view seed) noexcept;
+  static constexpr auto hash(const std::string_view seed) noexcept -> ValueT;
 
   //! Compute a hash value
   template <HashKeyElement Int8>
-  static constexpr ValueT hash(const Int8* seed, const std::size_t n) noexcept;
+  static constexpr auto hash(const Int8* seed, const std::size_t n) noexcept -> ValueT;
 
   //! Compute a hash value
   template <UnsignedInteger Integer>
-  static constexpr ValueT hash(const Integer seed) noexcept;
+  static constexpr auto hash(const Integer seed) noexcept -> ValueT;
 
  private:
   //! Implementation of the hash function
   template <HashKeyElement Int8>
-  static constexpr ValueT hashValue(const Int8* seed,
-                                    const std::size_t n) noexcept;
+  static constexpr auto hashValue(const Int8* seed,
+                                  const std::size_t n) noexcept -> ValueT;
 };
 
 } // namespace zisc

@@ -61,24 +61,24 @@ class JsonValueParser
 
 
   //! Return the required size for converting the given string to a C++ string
-  static std::size_t getCxxStringSize(const std::string_view json_value) noexcept;
+  static auto getCxxStringSize(const std::string_view json_value) noexcept -> std::size_t;
 
   //! Return the regex options for instance
-  static constexpr std::regex::flag_type regexInsOptions() noexcept;
+  static constexpr auto regexInsOptions() noexcept -> std::regex::flag_type;
 
   //! Return the regex options for temporary use
-  static constexpr std::regex::flag_type regexTempOptions() noexcept;
+  static constexpr auto regexTempOptions() noexcept -> std::regex::flag_type;
 
   //! Convert JSON boolean to C++ boolean
-  static bool toCxxBool(const std::string_view json_value) noexcept;
+  static auto toCxxBool(const std::string_view json_value) noexcept -> bool;
 
   //! Convert JSON float to C++ float
   template <std::floating_point Float>
-  static Float toCxxFloat(const std::string_view json_value) noexcept;
+  static auto toCxxFloat(const std::string_view json_value) noexcept -> Float;
 
   //! Convert JSON float to C++ float
   template <Integer Int>
-  static Int toCxxInteger(const std::string_view json_value) noexcept;
+  static auto toCxxInteger(const std::string_view json_value) noexcept -> Int;
 
   //! Convert JSON string to C++ string
   static void toCxxString(const std::string_view json_value, char* value) noexcept;
@@ -86,63 +86,70 @@ class JsonValueParser
   // For temporary use
 
   //! Check whether the 'json_value' is JSON boolean
-  static bool isBoolValue(const std::string_view json_value) noexcept;
+  static auto isBoolValue(const std::string_view json_value) noexcept -> bool;
 
   //! Check whether the 'json_value' is JSON float
-  static bool isFloatValue(const std::string_view json_value) noexcept;
+  static auto isFloatValue(const std::string_view json_value) noexcept -> bool;
 
   //! Check whether the 'json_value' is JSON integer
-  static bool isIntegerValue(const std::string_view json_value) noexcept;
+  static auto isIntegerValue(const std::string_view json_value) noexcept -> bool;
 
   //! Check whether the 'json_value' is JSON string
-  static bool isStringValue(const std::string_view json_value) noexcept;
+  static auto isStringValue(const std::string_view json_value) noexcept -> bool;
 
   // For instance
 
   //! Return the floating point regex object
-  const std::regex& floatRegex() const noexcept;
+  [[nodiscard]]
+  auto floatRegex() const noexcept -> const std::regex&;
 
   //! Return the integer regex object
-  const std::regex& integerRegex() const noexcept;
+  [[nodiscard]]
+  auto integerRegex() const noexcept -> const std::regex&;
 
   //! Check whether the 'json_value' is JSON boolean
-  bool isBool(const std::string_view json_value) const noexcept;
+  [[nodiscard]]
+  static auto isBool(const std::string_view json_value) noexcept -> bool;
 
   //! Check whether the 'json_value' is JSON float
-  bool isFloat(const std::string_view json_value) const noexcept;
+  [[nodiscard]]
+  auto isFloat(const std::string_view json_value) const noexcept -> bool;
 
   //! Check whether the 'json_value' is JSON integer
-  bool isInteger(const std::string_view json_value) const noexcept;
+  [[nodiscard]]
+  auto isInteger(const std::string_view json_value) const noexcept -> bool;
 
   //! Check whether the 'json_value' is JSON string
-  bool isString(const std::string_view json_value) const noexcept;
+  [[nodiscard]]
+  auto isString(const std::string_view json_value) const noexcept -> bool;
 
   //! Return the string regex object
-  const std::regex& stringRegex() const noexcept;
+  [[nodiscard]]
+  auto stringRegex() const noexcept -> const std::regex&;
 
  private:
   //! Return a escaped character
-  static char getEscapedCharacter(const char c) noexcept;
+  static auto getEscapedCharacter(const char c) noexcept -> char;
 
   //! Check whether the 'json_value' is JSON value
-  static bool isValueOf(const std::regex& pattern,
-                        const std::string_view json_value) noexcept;
+  static auto isValueOf(const std::regex& pattern,
+                        const std::string_view json_value) noexcept -> bool;
 
   //! Convert JSON float to C++ float
   template <std::floating_point Float>
-  static Float toCxxFloatImpl(std::string_view json_value) noexcept;
+  static auto toCxxFloatImpl(std::string_view json_value) noexcept -> Float;
 
   //! Convert JSON integer to C++ integer
   template <SignedInteger Int>
-  static Int toCxxIntegerImpl(std::string_view json_value) noexcept;
+  static auto toCxxIntegerImpl(std::string_view json_value) noexcept -> Int;
 
   //! Convert JSON integer to C++ integer
   template <UnsignedInteger Int>
-  static Int toCxxIntegerImpl(std::string_view json_value) noexcept;
+  static auto toCxxIntegerImpl(std::string_view json_value) noexcept -> Int;
 
   //! Convert JSON string to C++ string
-  static std::size_t toCxxStringImpl(std::string_view json_value,
-                                     char* value) noexcept;
+  static auto toCxxStringImpl(std::string_view json_value,
+                              char* value) noexcept -> std::size_t;
 
 
   std::regex int_pattern_;

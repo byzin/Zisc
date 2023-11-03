@@ -84,7 +84,7 @@ constexpr auto Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>::convertTo() cons
   */
 template <Ieee754BinaryFormat kFormat, std::float_round_style kRoundStyle>
 template <std::floating_point Float> inline
-constexpr Float Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>::convertTo() const noexcept
+constexpr auto Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>::convertTo() const noexcept -> Float
 {
   const auto dst = convertTo<kBinFormatFromFloat<Float>>();
   return zisc::bit_cast<Float>(dst);
@@ -134,7 +134,7 @@ constexpr auto Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>::infinity() noexc
   \return No description
   */
 template <Ieee754BinaryFormat kFormat, std::float_round_style kRoundStyle> inline
-constexpr bool Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>::isFinite(const BitT bits) noexcept
+constexpr auto Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>::isFinite(const BitT bits) noexcept -> bool
 {
   const BitT exp_bits = getExponentBits(bits);
   const bool result = exp_bits != exponentBitMask();
@@ -148,7 +148,7 @@ constexpr bool Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>::isFinite(const B
   \return No description
   */
 template <Ieee754BinaryFormat kFormat, std::float_round_style kRoundStyle> inline
-constexpr bool Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>::isInf(const BitT bits) noexcept
+constexpr auto Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>::isInf(const BitT bits) noexcept -> bool
 {
   const BitT sig_exp_bits = getSignificandExponentBits(bits);
   const bool result = sig_exp_bits == exponentBitMask();
@@ -162,7 +162,7 @@ constexpr bool Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>::isInf(const BitT
   \return No description
   */
 template <Ieee754BinaryFormat kFormat, std::float_round_style kRoundStyle> inline
-constexpr bool Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>::isNan(const BitT bits) noexcept
+constexpr auto Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>::isNan(const BitT bits) noexcept -> bool
 {
   const BitT sig_exp_bits = getSignificandExponentBits(bits);
   const bool result = sig_exp_bits > exponentBitMask();
@@ -176,7 +176,7 @@ constexpr bool Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>::isNan(const BitT
   \return No description
   */
 template <Ieee754BinaryFormat kFormat, std::float_round_style kRoundStyle> inline
-constexpr bool Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>::isNormal(const BitT bits) noexcept
+constexpr auto Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>::isNormal(const BitT bits) noexcept -> bool
 {
   const BitT exp_bits = getExponentBits(bits);
   const bool result = (0 < exp_bits) && (exp_bits < exponentBitMask());
@@ -190,7 +190,7 @@ constexpr bool Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>::isNormal(const B
   \return No description
   */
 template <Ieee754BinaryFormat kFormat, std::float_round_style kRoundStyle> inline
-constexpr bool Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>::isSubnormal(const BitT bits) noexcept
+constexpr auto Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>::isSubnormal(const BitT bits) noexcept -> bool
 {
   const BitT sig_exp_bits = getSignificandExponentBits(bits);
   const bool result = (0 < sig_exp_bits) && (sig_exp_bits <= significandBitMask());
@@ -204,7 +204,7 @@ constexpr bool Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>::isSubnormal(cons
   \return No description
   */
 template <Ieee754BinaryFormat kFormat, std::float_round_style kRoundStyle> inline
-constexpr bool Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>::isZero(const BitT bits) noexcept
+constexpr auto Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>::isZero(const BitT bits) noexcept -> bool
 {
   const BitT sig_exp_bits = getSignificandExponentBits(bits);
   const bool result = sig_exp_bits == 0;
@@ -231,7 +231,7 @@ constexpr auto Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>::max() noexcept -
 template <Ieee754BinaryFormat kFormat, std::float_round_style kRoundStyle> inline
 constexpr auto Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>::min() noexcept -> BitT
 {
-  const BitT bits = BitT{0b1u} << significandBitSize();
+  const BitT bits = BitT{0b1U} << significandBitSize();
   return bits;
 }
 
@@ -256,7 +256,7 @@ template <Ieee754BinaryFormat kFormat, std::float_round_style kRoundStyle> inlin
 constexpr auto Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>::quietNan() noexcept -> BitT
 {
   const BitT exp_bits = exponentBitMask();
-  const BitT sig_bits = BitT{0b1u} << (significandBitSize() - 1);
+  const BitT sig_bits = BitT{0b1U} << (significandBitSize() - 1);
   const BitT bits = exp_bits | sig_bits;
   return bits;
 }
@@ -280,7 +280,8 @@ constexpr auto Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>::roundError() noe
   \return No description
   */
 template <Ieee754BinaryFormat kFormat, std::float_round_style kRoundStyle> inline
-constexpr std::float_round_style Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>::roundStyle() noexcept
+constexpr auto Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>::roundStyle() noexcept
+    -> std::float_round_style
 {
   return kRoundStyle;
 }
@@ -294,7 +295,7 @@ template <Ieee754BinaryFormat kFormat, std::float_round_style kRoundStyle> inlin
 constexpr auto Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>::signalingNan() noexcept -> BitT
 {
   const BitT exp_bits = exponentBitMask();
-  const BitT sig_bits = BitT{0b1u} << (significandBitSize() - 2);
+  const BitT sig_bits = BitT{0b1U} << (significandBitSize() - 2);
   const BitT bits = exp_bits | sig_bits;
   return bits;
 }
@@ -317,7 +318,7 @@ constexpr auto Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>::zero() noexcept 
   \return No description
   */
 template <Ieee754BinaryFormat kFormat, std::float_round_style kRoundStyle> inline
-constexpr std::size_t Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>::bitSize() noexcept
+constexpr auto Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>::bitSize() noexcept -> std::size_t
 {
   constexpr std::size_t bit_size = kBinFormatBitSize<kFormat>;
   static_assert(bit_size == 8 * sizeof(Ieee754BinarySoftwareImpl),
@@ -331,9 +332,9 @@ constexpr std::size_t Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>::bitSize()
   \return No description
   */
 template <Ieee754BinaryFormat kFormat, std::float_round_style kRoundStyle> inline
-constexpr std::size_t Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>::exponentBias() noexcept
+constexpr auto Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>::exponentBias() noexcept -> std::size_t
 {
-  const std::size_t bias = (0b1u << (exponentBitSize() - 1u)) - 1u;
+  const std::size_t bias = (0b1U << (exponentBitSize() - 1U)) - 1U;
   return bias;
 }
 
@@ -345,9 +346,9 @@ constexpr std::size_t Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>::exponentB
 template <Ieee754BinaryFormat kFormat, std::float_round_style kRoundStyle> inline
 constexpr auto Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>::exponentBitMask() noexcept -> BitT
 {
-  BitT mask = 0b0u;
+  BitT mask = 0b0U;
   for (std::size_t bit = 0; bit < exponentBitSize(); ++bit) {
-    constexpr BitT o = 0b1u;
+    constexpr BitT o = 0b1U;
     mask = mask | static_cast<BitT>(o << (significandBitSize() + bit));
   }
   return mask;
@@ -359,7 +360,7 @@ constexpr auto Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>::exponentBitMask(
   \return No description
   */
 template <Ieee754BinaryFormat kFormat, std::float_round_style kRoundStyle> inline
-constexpr std::size_t Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>::exponentBitSize() noexcept
+constexpr auto Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>::exponentBitSize() noexcept -> std::size_t
 {
   const std::size_t s = (kFormat == Ieee754BinaryFormat::kHalf) ?   5 :
                         (kFormat == Ieee754BinaryFormat::kSingle) ? 8 :
@@ -373,7 +374,8 @@ constexpr std::size_t Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>::exponentB
   \return No description
   */
 template <Ieee754BinaryFormat kFormat, std::float_round_style kRoundStyle> inline
-constexpr Ieee754BinaryFormat Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>::format() noexcept
+constexpr auto Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>::format() noexcept
+    -> Ieee754BinaryFormat
 {
   return kFormat;
 }
@@ -389,7 +391,7 @@ constexpr auto Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>::getBiasedExponen
     -> BitT
 {
   const BitT b = getExponentBits(bits);
-  const BitT e = static_cast<BitT>(b >> significandBitSize());
+  const auto e = static_cast<BitT>(b >> significandBitSize());
   return e;
 }
 
@@ -400,7 +402,7 @@ constexpr auto Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>::getBiasedExponen
   \return No description
   */
 template <Ieee754BinaryFormat kFormat, std::float_round_style kRoundStyle> inline
-constexpr int Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>::getExponent(const BitT bits) noexcept
+constexpr auto Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>::getExponent(const BitT bits) noexcept -> int
 {
   const BitT biased_expt = getBiasedExponent(bits);
   const int expt = static_cast<int>(biased_expt) - static_cast<int>(exponentBias());
@@ -488,7 +490,7 @@ constexpr auto Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>::getSignificandEx
 template <Ieee754BinaryFormat kFormat, std::float_round_style kRoundStyle> inline
 constexpr auto Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>::implicitBit() noexcept -> BitT
 {
-  const BitT b = BitT{0b1u} << significandBitSize();
+  const BitT b = BitT{0b1U} << significandBitSize();
   return b;
 }
 
@@ -549,7 +551,7 @@ constexpr void Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>::setBits(const Bi
 template <Ieee754BinaryFormat kFormat, std::float_round_style kRoundStyle> inline
 constexpr auto Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>::signBitMask() noexcept -> BitT
 {
-  const BitT mask = BitT{0b1u} << (exponentBitSize() + significandBitSize());
+  const BitT mask = BitT{0b1U} << (exponentBitSize() + significandBitSize());
   return mask;
 }
 
@@ -563,7 +565,7 @@ constexpr auto Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>::significandBitMa
 {
   BitT mask = 0b0;
   for (std::size_t bit = 0; bit < significandBitSize(); ++bit) {
-    constexpr BitT o = 0b1u;
+    constexpr BitT o = 0b1U;
     mask = mask | static_cast<BitT>(o << bit);
   }
   return mask;
@@ -575,7 +577,7 @@ constexpr auto Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>::significandBitMa
   \return No description
   */
 template <Ieee754BinaryFormat kFormat, std::float_round_style kRoundStyle> inline
-constexpr std::size_t Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>::significandBitSize() noexcept
+constexpr auto Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>::significandBitSize() noexcept -> std::size_t
 {
   const std::size_t s = (kFormat == Ieee754BinaryFormat::kHalf) ?   10 :
                         (kFormat == Ieee754BinaryFormat::kSingle) ? 23 :
@@ -600,7 +602,7 @@ constexpr auto Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>::significandExpon
   \return No description
   */
 template <Ieee754BinaryFormat kFormat, std::float_round_style kRoundStyle> inline
-constexpr std::size_t Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>::significandExponentBitSize() noexcept
+constexpr auto Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>::significandExponentBitSize() noexcept -> std::size_t
 {
   return significandBitSize() + exponentBitSize();
 }
@@ -631,12 +633,13 @@ constexpr auto Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>::toBinary(const F
   */
 template <Ieee754BinaryFormat kFormat, std::float_round_style kRoundStyle>
 template <Ieee754BinaryFormat kDstFormat> inline
-constexpr Ieee754BinarySoftwareImpl<kDstFormat, kRoundStyle> Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>::convertSpecialValue() const noexcept
+constexpr auto Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>::convertSpecialValue() const noexcept
+    -> Ieee754BinarySoftwareImpl<kDstFormat, kRoundStyle>
 {
   using DstBinaryT = Ieee754BinarySoftwareImpl<kDstFormat, kRoundStyle>;
-  const DstBinaryT dst = isNan(data()) ? DstBinaryT::quietNan() :
-                         isInf(data()) ?  DstBinaryT::infinity()
-                                       :  DstBinaryT::zero();
+  const DstBinaryT dst = isNan(data()) ? DstBinaryT{DstBinaryT::quietNan()} :
+                         isInf(data()) ? DstBinaryT{DstBinaryT::infinity()}
+                                       : DstBinaryT{DstBinaryT::zero()};
   return dst;
 }
 
@@ -704,7 +707,7 @@ constexpr auto Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>::scaledDown() con
       }
     }
     else { // Overflow
-      dst = DstBinaryT::infinity();
+      dst = DstBinaryT{DstBinaryT::infinity()};
     }
   }
 
@@ -750,8 +753,8 @@ constexpr auto Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>::scaledUp() const
       dst_sig_bits = static_cast<DstBitT>(dst_sig_bits << expt_diff);
       dst_sig_bits = DstBinaryT::getSignificandBits(dst_sig_bits);
     }
-    const DstBitT dst_exp_bits = static_cast<DstBitT>(dst_expt << dst_sig_size);
-    const DstBitT dst_bits = static_cast<DstBitT>(dst_exp_bits | dst_sig_bits);
+    const auto dst_exp_bits = static_cast<DstBitT>(dst_expt << dst_sig_size);
+    const auto dst_bits = static_cast<DstBitT>(dst_exp_bits | dst_sig_bits);
     dst.setBits(dst_bits);
   }
 
@@ -785,9 +788,9 @@ constexpr auto Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>::getRealSignifica
   \return No description
   */
 template <Ieee754BinaryFormat kFormat, std::float_round_style kRoundStyle> inline
-constexpr Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& operator+=(
-    Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& lhs,
-    const Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& rhs) noexcept
+constexpr auto operator+=(Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& lhs,
+                          const Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& rhs) noexcept
+    -> Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>&
 {
   lhs = lhs + rhs;
   return lhs;
@@ -803,9 +806,9 @@ constexpr Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& operator+=(
   \return No description
   */
 template <Ieee754BinaryFormat kFormat, std::float_round_style kRoundStyle> inline
-constexpr Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& operator-=(
-    Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& lhs,
-    const Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& rhs) noexcept
+constexpr auto operator-=(Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& lhs,
+                          const Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& rhs) noexcept
+    -> Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>&
 {
   lhs = lhs - rhs;
   return lhs;
@@ -821,9 +824,9 @@ constexpr Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& operator-=(
   \return No description
   */
 template <Ieee754BinaryFormat kFormat, std::float_round_style kRoundStyle> inline
-constexpr Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& operator*=(
-    Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& lhs,
-    const Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& rhs) noexcept
+constexpr auto operator*=(Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& lhs,
+                          const Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& rhs) noexcept
+    -> Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>&
 {
   lhs = lhs * rhs;
   return lhs;
@@ -839,9 +842,9 @@ constexpr Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& operator*=(
   \return No description
   */
 template <Ieee754BinaryFormat kFormat, std::float_round_style kRoundStyle> inline
-constexpr Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& operator/=(
-    Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& lhs,
-    const Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& rhs) noexcept
+constexpr auto operator/=(Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& lhs,
+                          const Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& rhs) noexcept
+    -> Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>&
 {
   lhs = lhs / rhs;
   return lhs;
@@ -856,8 +859,8 @@ constexpr Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& operator/=(
   \return No description
   */
 template <Ieee754BinaryFormat kFormat, std::float_round_style kRoundStyle> inline
-constexpr Ieee754BinarySoftwareImpl<kFormat, kRoundStyle> operator+(
-    const Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& value) noexcept
+constexpr auto operator+(const Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& value) noexcept
+    -> Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>
 {
   return value;
 }
@@ -871,10 +874,11 @@ constexpr Ieee754BinarySoftwareImpl<kFormat, kRoundStyle> operator+(
   \return No description
   */
 template <Ieee754BinaryFormat kFormat, std::float_round_style kRoundStyle> inline
-constexpr Ieee754BinarySoftwareImpl<kFormat, kRoundStyle> operator-(
-    const Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& value) noexcept
+constexpr auto operator-(const Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& value) noexcept
+    -> Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>
 {
-  return {Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>::negateBits(value.data())};
+  using BinaryT = Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>;
+  return BinaryT{BinaryT::negateBits(value.data())};
 }
 
 /*!
@@ -889,9 +893,9 @@ constexpr Ieee754BinarySoftwareImpl<kFormat, kRoundStyle> operator-(
   */
 template <template <std::floating_point T> typename Func,
           Ieee754BinaryFormat kFormat, std::float_round_style kRoundStyle> inline
-constexpr Ieee754BinarySoftwareImpl<kFormat, kRoundStyle> doOperation(
-    const Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& lhs,
-    const Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& rhs) noexcept
+constexpr auto doOperation(const Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& lhs,
+                           const Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& rhs) noexcept
+    -> Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>
 {
   using BinT = Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>;
   using FormatT = Ieee754BinaryFormat;
@@ -934,9 +938,9 @@ constexpr Ieee754BinarySoftwareImpl<kFormat, kRoundStyle> doOperation(
   \return No description
   */
 template <Ieee754BinaryFormat kFormat, std::float_round_style kRoundStyle> inline
-constexpr Ieee754BinarySoftwareImpl<kFormat, kRoundStyle> operator+(
-    const Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& lhs,
-    const Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& rhs) noexcept
+constexpr auto operator+(const Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& lhs,
+                         const Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& rhs) noexcept
+    -> Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>
 {
   return doOperation<std::plus>(lhs, rhs);
 }
@@ -951,9 +955,9 @@ constexpr Ieee754BinarySoftwareImpl<kFormat, kRoundStyle> operator+(
   \return No description
   */
 template <Ieee754BinaryFormat kFormat, std::float_round_style kRoundStyle> inline
-constexpr Ieee754BinarySoftwareImpl<kFormat, kRoundStyle> operator-(
-    const Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& lhs,
-    const Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& rhs) noexcept
+constexpr auto operator-(const Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& lhs,
+                         const Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& rhs) noexcept
+    -> Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>
 {
   return doOperation<std::minus>(lhs, rhs);
 }
@@ -968,9 +972,9 @@ constexpr Ieee754BinarySoftwareImpl<kFormat, kRoundStyle> operator-(
   \return No description
   */
 template <Ieee754BinaryFormat kFormat, std::float_round_style kRoundStyle> inline
-constexpr Ieee754BinarySoftwareImpl<kFormat, kRoundStyle> operator*(
-    const Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& lhs,
-    const Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& rhs) noexcept
+constexpr auto operator*(const Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& lhs,
+                         const Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& rhs) noexcept
+    -> Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>
 {
   return doOperation<std::multiplies>(lhs, rhs);
 }
@@ -985,9 +989,9 @@ constexpr Ieee754BinarySoftwareImpl<kFormat, kRoundStyle> operator*(
   \return No description
   */
 template <Ieee754BinaryFormat kFormat, std::float_round_style kRoundStyle> inline
-constexpr Ieee754BinarySoftwareImpl<kFormat, kRoundStyle> operator/(
-    const Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& lhs,
-    const Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& rhs) noexcept
+constexpr auto operator/(const Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& lhs,
+                         const Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& rhs) noexcept
+    -> Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>
 {
   return doOperation<std::divides>(lhs, rhs);
 }
@@ -1002,8 +1006,8 @@ constexpr Ieee754BinarySoftwareImpl<kFormat, kRoundStyle> operator/(
   \return No description
   */
 template <Ieee754BinaryFormat kFormat, std::float_round_style kRoundStyle> inline
-constexpr bool operator==(const Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& lhs,
-                          const Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& rhs) noexcept
+constexpr auto operator==(const Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& lhs,
+                          const Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& rhs) noexcept -> bool
 {
   using BinT = Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>;
   using BitT = typename BinT::BitT;
@@ -1025,8 +1029,8 @@ constexpr bool operator==(const Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>&
   \return No description
   */
 template <Ieee754BinaryFormat kFormat, std::float_round_style kRoundStyle> inline
-constexpr bool operator!=(const Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& lhs,
-                          const Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& rhs) noexcept
+constexpr auto operator!=(const Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& lhs,
+                          const Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& rhs) noexcept -> bool
 {
   return !(lhs == rhs);
 }
@@ -1041,8 +1045,8 @@ constexpr bool operator!=(const Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>&
   \return No description
   */
 template <Ieee754BinaryFormat kFormat, std::float_round_style kRoundStyle> inline
-constexpr bool operator<(const Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& lhs,
-                         const Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& rhs) noexcept
+constexpr auto operator<(const Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& lhs,
+                         const Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& rhs) noexcept -> bool
 {
   using BinT = Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>;
   using BitT = typename BinT::BitT;
@@ -1064,8 +1068,8 @@ constexpr bool operator<(const Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& 
   \return No description
   */
 template <Ieee754BinaryFormat kFormat, std::float_round_style kRoundStyle> inline
-constexpr bool operator<=(const Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& lhs,
-                          const Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& rhs) noexcept
+constexpr auto operator<=(const Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& lhs,
+                          const Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& rhs) noexcept -> bool
 {
   using BinT = Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>;
   using BitT = typename BinT::BitT;
@@ -1087,8 +1091,8 @@ constexpr bool operator<=(const Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>&
   \return No description
   */
 template <Ieee754BinaryFormat kFormat, std::float_round_style kRoundStyle> inline
-constexpr bool operator>(const Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& lhs,
-                         const Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& rhs) noexcept
+constexpr auto operator>(const Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& lhs,
+                         const Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& rhs) noexcept -> bool
 {
   return rhs < lhs;
 }
@@ -1103,8 +1107,8 @@ constexpr bool operator>(const Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& 
   \return No description
   */
 template <Ieee754BinaryFormat kFormat, std::float_round_style kRoundStyle> inline
-constexpr bool operator>=(const Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& lhs,
-                          const Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& rhs) noexcept
+constexpr auto operator>=(const Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& lhs,
+                          const Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>& rhs) noexcept -> bool
 {
   return rhs <= lhs;
 }

@@ -20,6 +20,7 @@
 #include <cstddef>
 #include <istream>
 #include <regex>
+#include <span>
 #include <string_view>
 #include <tuple>
 #include <vector>
@@ -59,14 +60,14 @@ class Csv : private NonCopyable<Csv<Type, Types...>>
 
 
   //! Initialize CSV
-  Csv(pmr::memory_resource* mem_resource) noexcept;
+  explicit Csv(pmr::memory_resource* mem_resource) noexcept;
 
   //! Move data
   Csv(Csv&& other) noexcept;
 
 
   //! Move data
-  Csv& operator=(Csv&& other) noexcept;
+  auto operator=(Csv&& other) noexcept -> Csv&;
 
 
   //! Add values
@@ -74,32 +75,35 @@ class Csv : private NonCopyable<Csv<Type, Types...>>
   void append(std::istream& csv) noexcept;
 
   //! Return the number of elements that can be held in allocated storage
-  std::size_t capacity() const noexcept;
+  [[nodiscard]]
+  auto capacity() const noexcept -> std::size_t;
 
   //! Clear all csv data
   void clear() noexcept;
 
   //! Return the column size
-  static constexpr uint columnSize() noexcept;
+  static constexpr auto columnSize() noexcept -> uint;
 
   //! Return the pattern string for regex
   static constexpr auto csvPattern() noexcept;
 
   //! Return the CSV regex
-  const std::regex& csvRegex() const noexcept;
+  [[nodiscard]]
+  auto csvRegex() const noexcept -> const std::regex&;
 
   //! Return the data of the csv
-  const pmr::vector<RecordType>& data() const noexcept;
+  auto data() const noexcept -> std::span<const RecordType>;
 
   //! Return the field value of the given row by the column index
   template <std::size_t column>
-  const FieldType<column> get(const std::size_t row) const noexcept;
+  auto get(const std::size_t row) const noexcept -> FieldType<column>;
 
   //! Return the record by the row
-  const RecordType& record(const std::size_t row) const noexcept;
+  auto record(const std::size_t row) const noexcept -> const RecordType&;
 
   //! Return the row size
-  std::size_t rowSize() const noexcept;
+  [[nodiscard]]
+  auto rowSize() const noexcept -> std::size_t;
 
   //! Reserve storage
   void setCapacity(const std::size_t cap) noexcept;
@@ -111,19 +115,19 @@ class Csv : private NonCopyable<Csv<Type, Types...>>
 
   //! Convert a CSV bool to a C++ bool 
   template <std::same_as<bool> PType>
-  PType toCxxType(const std::string_view json_value) const noexcept;
+  auto toCxxType(const std::string_view json_value) const noexcept -> PType;
 
   //! Convert a CSV float to a C++ float
   template <std::floating_point PType>
-  PType toCxxType(const std::string_view json_value) const noexcept;
+  auto toCxxType(const std::string_view json_value) const noexcept -> PType;
 
   //! Convert a CSV integer to a C++ integer
   template <Integer PType>
-  PType toCxxType(const std::string_view json_value) const noexcept;
+  auto toCxxType(const std::string_view json_value) const noexcept -> PType;
 
   //! Convert a CSV string to a C++ string
   template <String PType>
-  pmr::string toCxxType(const std::string_view json_value) noexcept;
+  auto toCxxType(const std::string_view json_value) noexcept -> pmr::string;
 
   //! Return the pattern string for regex
   template <typename PType, typename ...PTypes>
@@ -146,19 +150,19 @@ class Csv : private NonCopyable<Csv<Type, Types...>>
   static constexpr auto getTypePattern() noexcept;
 
   //! Return the underlying memory resource
-  pmr::memory_resource* memoryResource() noexcept;
+  auto memoryResource() noexcept -> pmr::memory_resource*;
 
   //! Parse csv line
-  RecordType parseCsvLine(std::string_view line) noexcept;
+  auto parseCsvLine(std::string_view line) noexcept -> RecordType;
 
   //! Convert a CSV line to C++ values
   template <std::size_t ...indices>
-  RecordType toCxxRecord(const pmr::cmatch& result,
-                         std::index_sequence<indices...>) noexcept;
+  auto toCxxRecord(const pmr::cmatch& result,
+                   std::index_sequence<indices...> idx) noexcept -> RecordType;
 
   //! Convert a CSV value to a C++ value
   template <std::size_t index>
-  InnerFieldType<index> toCxxField(const pmr::cmatch& result) noexcept;
+  auto toCxxField(const pmr::cmatch& result) noexcept -> InnerFieldType<index>;
 
 
   pmr::vector<RecordType> data_;

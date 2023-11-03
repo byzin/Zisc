@@ -233,7 +233,7 @@ auto BasicConstantString<Char, kN>::toStdStr() const noexcept
 template <Character Char, uint kN> template <std::size_t ...indices> inline
 constexpr auto BasicConstantString<Char, kN>::makeArray(
     const value_type (&other)[kN],
-    std::index_sequence<indices...>) noexcept -> ArrayType
+    [[maybe_unused]] std::index_sequence<indices...> idx) noexcept -> ArrayType
 {
   const ArrayType data{{other[indices]...}};
   return data;
@@ -264,9 +264,9 @@ constexpr auto BasicConstantString<Char, kN>::makeEmptyArray() noexcept -> Array
   \return No description
   */
 template <Character Char, uint kN1, uint kN2> inline
-constexpr BasicConstantString<Char, kN1 + kN2 - 1> operator+(
-    const BasicConstantString<Char, kN1>& lhs,
-    const BasicConstantString<Char, kN2>& rhs) noexcept
+constexpr auto operator+(const BasicConstantString<Char, kN1>& lhs,
+                         const BasicConstantString<Char, kN2>& rhs) noexcept
+    -> BasicConstantString<Char, kN1 + kN2 - 1>
 {
   const BasicConstantString<Char, kN1 + kN2 - 1> result = concatenate(lhs, rhs);
   return result;
@@ -283,9 +283,9 @@ constexpr BasicConstantString<Char, kN1 + kN2 - 1> operator+(
   \return No description
   */
 template <Character Char, uint kN1, uint kN2> inline
-constexpr BasicConstantString<Char, kN1 + kN2 - 1> operator+(
-    const Char (&lhs)[kN1],
-    const BasicConstantString<Char, kN2>& rhs) noexcept
+constexpr auto operator+(const Char (&lhs)[kN1],
+                         const BasicConstantString<Char, kN2>& rhs) noexcept
+    -> BasicConstantString<Char, kN1 + kN2 - 1>
 {
   const BasicConstantString<Char, kN1 + kN2 - 1> result = concatenate(lhs, rhs);
   return result;
@@ -302,9 +302,9 @@ constexpr BasicConstantString<Char, kN1 + kN2 - 1> operator+(
   \return No description
   */
 template <Character Char, uint kN1, uint kN2> inline
-constexpr BasicConstantString<Char, kN1 + kN2 - 1> operator+(
-    const BasicConstantString<Char, kN1>& lhs,
-    const Char (&rhs)[kN2]) noexcept
+constexpr auto operator+(const BasicConstantString<Char, kN1>& lhs,
+                         const Char (&rhs)[kN2]) noexcept
+    -> BasicConstantString<Char, kN1 + kN2 - 1>
 {
   const BasicConstantString<Char, kN1 + kN2 - 1> result = concatenate(lhs, rhs);
   return result;
@@ -321,8 +321,8 @@ constexpr BasicConstantString<Char, kN1 + kN2 - 1> operator+(
   \return No description
   */
 template <Character Char, uint kN1, uint kN2> inline
-constexpr bool operator==(const BasicConstantString<Char, kN1>& lhs,
-                          const BasicConstantString<Char, kN2>& rhs) noexcept
+constexpr auto operator==(const BasicConstantString<Char, kN1>& lhs,
+                          const BasicConstantString<Char, kN2>& rhs) noexcept -> bool
 {
   bool result = lhs.size() == rhs.size();
   for (uint i = 0; result && (i < lhs.size()); ++i)
@@ -340,8 +340,8 @@ constexpr bool operator==(const BasicConstantString<Char, kN1>& lhs,
   \return No description
   */
 template <Character Char, uint kN> inline
-constexpr bool operator==(const Char* lhs,
-                          const BasicConstantString<Char, kN>& rhs) noexcept
+constexpr auto operator==(const Char* lhs,
+                          const BasicConstantString<Char, kN>& rhs) noexcept -> bool
 {
   const std::basic_string_view<Char> l{lhs};
   return l == rhs;
@@ -357,8 +357,8 @@ constexpr bool operator==(const Char* lhs,
   \return No description
   */
 template <Character Char, uint kN> inline
-constexpr bool operator==(const BasicConstantString<Char, kN>& lhs,
-                          const Char* rhs) noexcept
+constexpr auto operator==(const BasicConstantString<Char, kN>& lhs,
+                          const Char* rhs) noexcept -> bool
 {
   return rhs == lhs;
 }
@@ -373,8 +373,8 @@ constexpr bool operator==(const BasicConstantString<Char, kN>& lhs,
   \return No description
   */
 template <Character Char, uint kN> inline
-constexpr bool operator==(const std::basic_string_view<Char>& lhs,
-                          const BasicConstantString<Char, kN>& rhs) noexcept
+constexpr auto operator==(const std::basic_string_view<Char>& lhs,
+                          const BasicConstantString<Char, kN>& rhs) noexcept -> bool
 {
   bool result = lhs.size() == rhs.size();
   for (uint i = 0; result && (i < rhs.size()); ++i)
@@ -392,8 +392,8 @@ constexpr bool operator==(const std::basic_string_view<Char>& lhs,
   \return No description
   */
 template <Character Char, uint kN> inline
-constexpr bool operator==(const BasicConstantString<Char, kN>& lhs,
-                          const std::basic_string_view<Char>& rhs) noexcept
+constexpr auto operator==(const BasicConstantString<Char, kN>& lhs,
+                          const std::basic_string_view<Char>& rhs) noexcept -> bool
 {
   return rhs == lhs;
 }
@@ -409,8 +409,8 @@ constexpr bool operator==(const BasicConstantString<Char, kN>& lhs,
   \return No description
   */
 template <Character Char, uint kN1, uint kN2> inline
-constexpr bool operator!=(const BasicConstantString<Char, kN1>& lhs,
-                          const BasicConstantString<Char, kN2>& rhs) noexcept
+constexpr auto operator!=(const BasicConstantString<Char, kN1>& lhs,
+                          const BasicConstantString<Char, kN2>& rhs) noexcept -> bool
 {
   return !(lhs == rhs);
 }
@@ -425,8 +425,8 @@ constexpr bool operator!=(const BasicConstantString<Char, kN1>& lhs,
   \return No description
   */
 template <Character Char, uint kN> inline
-constexpr bool operator!=(const Char* lhs,
-                          const BasicConstantString<Char, kN>& rhs) noexcept
+constexpr auto operator!=(const Char* lhs,
+                          const BasicConstantString<Char, kN>& rhs) noexcept -> bool
 {
   return !(lhs == rhs);
 }
@@ -441,8 +441,8 @@ constexpr bool operator!=(const Char* lhs,
   \return No description
   */
 template <Character Char, uint kN> inline
-constexpr bool operator!=(const BasicConstantString<Char, kN>& lhs,
-                          const Char* rhs) noexcept
+constexpr auto operator!=(const BasicConstantString<Char, kN>& lhs,
+                          const Char* rhs) noexcept -> bool
 {
   return !(lhs == rhs);
 }
@@ -458,9 +458,9 @@ constexpr bool operator!=(const BasicConstantString<Char, kN>& lhs,
   \return No description
   */
 template <Character Char, uint kN1, uint kN2> inline
-constexpr BasicConstantString<Char, kN1 + kN2 - 1> concatenate(
-    const BasicConstantString<Char, kN1>& lhs,
-    const BasicConstantString<Char, kN2>& rhs) noexcept
+constexpr auto concatenate(const BasicConstantString<Char, kN1>& lhs,
+                           const BasicConstantString<Char, kN2>& rhs) noexcept
+    -> BasicConstantString<Char, kN1 + kN2 - 1>
 {
   constexpr uint size = kN1 + kN2 - 1;
   BasicConstantString<Char, size> result{};
@@ -482,9 +482,9 @@ constexpr BasicConstantString<Char, kN1 + kN2 - 1> concatenate(
   \return No description
   */
 template <Character Char, uint kN1, uint kN2> inline
-constexpr BasicConstantString<Char, kN1 + kN2 - 1> concatenate(
-    const Char (&lhs)[kN1],
-    const BasicConstantString<Char, kN2>& rhs) noexcept
+constexpr auto concatenate(const Char (&lhs)[kN1],
+                           const BasicConstantString<Char, kN2>& rhs) noexcept
+    -> BasicConstantString<Char, kN1 + kN2 - 1>
 {
   const BasicConstantString<Char, kN1> l = toString(lhs);
   const BasicConstantString<Char, kN1 + kN2 - 1> result = concatenate(l, rhs);
@@ -502,9 +502,9 @@ constexpr BasicConstantString<Char, kN1 + kN2 - 1> concatenate(
   \return No description
   */
 template <Character Char, uint kN1, uint kN2> inline
-constexpr BasicConstantString<Char, kN1 + kN2 - 1> concatenate(
-    const BasicConstantString<Char, kN1>& lhs,
-    const Char (&rhs)[kN2]) noexcept 
+constexpr auto concatenate(const BasicConstantString<Char, kN1>& lhs,
+                           const Char (&rhs)[kN2]) noexcept 
+    -> BasicConstantString<Char, kN1 + kN2 - 1>
 {
   const BasicConstantString<Char, kN2> r = toString(rhs);
   const BasicConstantString<Char, kN1 + kN2 - 1> result = concatenate(lhs, r);
@@ -520,7 +520,7 @@ constexpr BasicConstantString<Char, kN1 + kN2 - 1> concatenate(
   \return No description
   */
 template <Character Char, uint kN> inline
-constexpr BasicConstantString<Char, kN> toString(const Char (&other)[kN]) noexcept
+constexpr auto toString(const Char (&other)[kN]) noexcept -> BasicConstantString<Char, kN>
 {
   const BasicConstantString<Char, kN> s{other};
   return s;

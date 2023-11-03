@@ -47,26 +47,29 @@ class PackagedTask : private NonCopyable<PackagedTask>
   void operator()(const int64b thread_id, const DiffT offset);
 
   //! Return the encoded task info
-  static int64b encodeInfo(const int64b task_id, const bool wait_for_precedence) noexcept;
+  static auto encodeInfo(const int64b task_id, const bool wait_for_precedence) noexcept -> int64b;
 
   //! Return the underlying task ID
-  int64b id() const noexcept;
+  [[nodiscard]]
+  auto id() const noexcept -> int64b;
 
   //! Return the invalid task ID
-  static constexpr int64b invalidId() noexcept;
+  static constexpr auto invalidId() noexcept -> int64b;
 
   //! Check if all precedence tasks need to be completed before the task running
-  bool isNeededToWaitForPrecedence() const noexcept;
+  [[nodiscard]]
+  auto isNeededToWaitForPrecedence() const noexcept -> bool;
 
   //! Check if the pacakge has a valid task
-  bool isValid() const noexcept;
+  [[nodiscard]]
+  auto isValid() const noexcept -> bool;
 
   //! Run the underlying task
   virtual void run(const int64b thread_id, const DiffT offset) = 0;
 
  protected:
   //! Create a package with the given task id
-  PackagedTask(const int64b task_info) noexcept;
+  explicit PackagedTask(const int64b task_info) noexcept;
 
 
  private:
@@ -89,11 +92,11 @@ class PackagedTaskType : public PackagedTask
 
 
   //! Return the future of the underlying task
-  virtual std::future<ReturnT> getFuture() noexcept = 0;
+  virtual auto getFuture() noexcept -> std::future<ReturnT> = 0;
 
  protected:
   //! Create a package with the given task id
-  PackagedTaskType(const int64b task_info) noexcept;
+  explicit PackagedTaskType(const int64b task_info) noexcept;
 };
 
 } // namespace zisc

@@ -33,18 +33,18 @@ class Algorithm
  public:
   //! Return the absolute value of the given value
   template <Arithmetic Arith>
-  static constexpr Arith abs(const Arith x) noexcept;
+  static constexpr auto abs(const Arith x) noexcept -> Arith;
 
   //! Clamp the value \a x between \a lower and \a upper
   template <typename Type, typename LowerType, typename UpperType>
-  static constexpr std::common_type_t<Type, LowerType, UpperType> clamp(
-      const Type value, 
-      const LowerType lower, 
-      const UpperType upper) noexcept;
+  static constexpr auto clamp(const Type value, 
+                              const LowerType lower, 
+                              const UpperType upper) noexcept
+      -> std::common_type_t<Type, LowerType, UpperType>;
 
   //! Return a inverse number of the given value
   template <std::floating_point Float>
-  static constexpr Float invert(const Float x) noexcept;
+  static constexpr auto invert(const Float x) noexcept -> Float;
 
   //! Test whether a value is in a range
   template <bool kIsLeftClosed = true,
@@ -52,82 +52,82 @@ class Algorithm
             typename Type,
             typename LowerType,
             typename UpperType>
-  static constexpr bool isInBounds(const Type& value, 
+  static constexpr auto isInBounds(const Type& value, 
                                    const LowerType& lower, 
-                                   const UpperType& upper) noexcept;
+                                   const UpperType& upper) noexcept -> bool;
 
   //! Test whether a value is in a range: (\a lower, \a upper )
   template <typename Type, typename LowerType, typename UpperType>
-  static constexpr bool isInOpenBounds(const Type& value, 
+  static constexpr auto isInOpenBounds(const Type& value, 
                                        const LowerType& lower, 
-                                       const UpperType& upper) noexcept;
+                                       const UpperType& upper) noexcept -> bool;
 
   //! Test whether a value is in a range: [\a lower, \a upper ]
   template <typename Type, typename LowerType, typename UpperType>
-  static constexpr bool isInClosedBounds(const Type& value, 
+  static constexpr auto isInClosedBounds(const Type& value, 
                                          const LowerType& lower, 
-                                         const UpperType& upper) noexcept;
+                                         const UpperType& upper) noexcept -> bool;
 
   //! Test whether the given number is negative
   template <Arithmetic Arith>
-  static constexpr bool isNegative(const Arith x) noexcept;
+  static constexpr auto isNegative(const Arith x) noexcept -> bool;
 
   //! Return the greater of two elements
   template <typename Type1, typename Type2>
-  static constexpr const std::common_type_t<Type1, Type2>& max(
-      const Type1& a,
-      const Type2& b) noexcept;
+  static constexpr auto max(const Type1& a,
+                            const Type2& b) noexcept
+      -> const std::common_type_t<Type1, Type2>&;
 
   //! Return the smaller of two elements
   template <typename Type1, typename Type2>
-  static constexpr const std::common_type_t<Type1, Type2>& min(
-      const Type1& a,
-      const Type2& b) noexcept;
+  static constexpr auto min(const Type1& a,
+                            const Type2& b) noexcept
+      -> const std::common_type_t<Type1, Type2>&;
 
   // Integer
 
   //! Return the sub-range of the given index 
   template <Integer Int1, Integer Int2, Integer Int3>
-  static constexpr std::array<std::common_type_t<Int1, Int2, Int3>, 2> divideRange(
-      const Int1 range,
-      const Int2 num_of_division,
-      const Int3 index) noexcept;
+  static constexpr auto divideRange(const Int1 range,
+                                    const Int2 num_of_division,
+                                    const Int3 index) noexcept
+      -> std::array<std::common_type_t<Int1, Int2, Int3>, 2>;
 
   //! Test whether the given value is odd
   template <Integer Int>
-  static constexpr bool isOdd(const Int x) noexcept;
+  static constexpr auto isOdd(const Int x) noexcept -> bool;
 };
 
 // STL style function aliases
 
 //! Return the absolute value of the given value
 template <Arithmetic Arith>
-constexpr Arith abs(const Arith x) noexcept;
+constexpr auto abs(const Arith x) noexcept -> Arith;
 
 //! Clamp the value x to be between min and max
 template <typename Type, typename LowerType, typename UpperType>
-constexpr std::common_type_t<Type, LowerType, UpperType> clamp(
-    const Type value, 
-    const LowerType lower, 
-    const UpperType upper) noexcept;
+constexpr auto clamp(const Type value, 
+                     const LowerType lower, 
+                     const UpperType upper) noexcept
+    -> std::common_type_t<Type, LowerType, UpperType>;
 
 //! Return a inverse number
 template <std::floating_point Float>
-constexpr Float invert(const Float x) noexcept;
+constexpr auto invert(const Float x) noexcept -> Float;
 
 //! Return the large of two elements
 template <typename Type1, typename Type2>
-constexpr const std::common_type_t<Type1, Type2>& max(const Type1& a,
-                                                      const Type2& b) noexcept;
+constexpr auto max(const Type1& a, const Type2& b) noexcept
+    -> const std::common_type_t<Type1, Type2>&;
 
 //! Return the small of two elements
 template <typename Type1, typename Type2>
-constexpr const std::common_type_t<Type1, Type2>& min(const Type1& a,
-                                                      const Type2& b) noexcept;
+constexpr auto min(const Type1& a, const Type2& b) noexcept
+    -> const std::common_type_t<Type1, Type2>&;
 
 //! Test whether the given number is negative
 template <Arithmetic Arith>
-constexpr bool signbit(const Arith x) noexcept;
+constexpr auto signbit(const Arith x) noexcept -> bool;
 
 //
 
@@ -137,32 +137,32 @@ template <bool kIsLeftClosed = true,
           typename Type,
           typename LowerType,
           typename UpperType>
-constexpr bool isInBounds(const Type& value, 
+constexpr auto isInBounds(const Type& value, 
                           const LowerType& lower, 
-                          const UpperType& upper) noexcept;
+                          const UpperType& upper) noexcept -> bool;
 
 //! Test whether a value is in a range: (lower, upper)
 template <typename Type, typename LowerType, typename UpperType>
-constexpr bool isInOpenBounds(const Type& value, 
+constexpr auto isInOpenBounds(const Type& value, 
                               const LowerType& lower, 
-                              const UpperType& upper) noexcept;
+                              const UpperType& upper) noexcept -> bool;
 
 //! Test whether a value is in a range: [lower, upper]
 template <typename Type, typename LowerType, typename UpperType>
-constexpr bool isInClosedBounds(const Type& value, 
+constexpr auto isInClosedBounds(const Type& value, 
                                 const LowerType& lower, 
-                                const UpperType& upper) noexcept;
+                                const UpperType& upper) noexcept -> bool;
 
 //! Return the sub-range of the given index 
 template <Integer Int1, Integer Int2, Integer Int3>
-constexpr std::array<std::common_type_t<Int1, Int2, Int3>, 2> divideRange(
-    const Int1 range,
-    const Int2 num_of_division,
-    const Int3 index) noexcept;
+constexpr auto divideRange(const Int1 range,
+                           const Int2 num_of_division,
+                           const Int3 index) noexcept
+    -> std::array<std::common_type_t<Int1, Int2, Int3>, 2>;
 
 //! Test whether the n is odd
 template <Integer Int>
-constexpr bool isOdd(const Int x) noexcept;
+constexpr auto isOdd(const Int x) noexcept -> bool;
 
 } // namespace zisc
 

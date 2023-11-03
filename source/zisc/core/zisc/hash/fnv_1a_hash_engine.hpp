@@ -41,14 +41,14 @@ class Fnv1aHashEngine : public HashEngine<Fnv1aHashEngine<T>, T>
 
   //! Implementation of the hash function
   template <HashKeyElement Int8>
-  static constexpr ValueT hashValue(const Int8* seed, const std::size_t n) noexcept;
+  static constexpr auto hashValue(const Int8* seed, const std::size_t n) noexcept -> ValueT;
  private:
 
   //!
-  static constexpr ValueT prime() noexcept;
+  static constexpr auto prime() noexcept -> ValueT;
 
   //!
-  static constexpr ValueT offset() noexcept;
+  static constexpr auto offset() noexcept -> ValueT;
 };
 
 // Type aliases

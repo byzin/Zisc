@@ -38,7 +38,7 @@ namespace zisc {
   \return No description
   */
 template <Arithmetic Arith> inline
-constexpr Arith Algorithm::abs(const Arith x) noexcept
+constexpr auto Algorithm::abs(const Arith x) noexcept -> Arith
 {
   if constexpr (std::is_signed_v<Arith>) {
     const Arith y = signbit(x) ? -x : x;
@@ -61,10 +61,10 @@ constexpr Arith Algorithm::abs(const Arith x) noexcept
   \return No description
   */
 template <typename Type, typename LowerType, typename UpperType> inline
-constexpr std::common_type_t<Type, LowerType, UpperType> Algorithm::clamp(
-    const Type value, 
-    const LowerType lower, 
-    const UpperType upper) noexcept
+constexpr auto Algorithm::clamp(const Type value, 
+                                const LowerType lower, 
+                                const UpperType upper) noexcept
+    -> std::common_type_t<Type, LowerType, UpperType>
 {
   using ResultT = std::common_type_t<Type, LowerType, UpperType>;
   const ResultT y = (min)((max)(value, lower), upper);
@@ -79,10 +79,10 @@ constexpr std::common_type_t<Type, LowerType, UpperType> Algorithm::clamp(
   \return No description
   */
 template <std::floating_point Float> inline
-constexpr Float Algorithm::invert(const Float x) noexcept
+constexpr auto Algorithm::invert(const Float x) noexcept -> Float
 {
-  constexpr Float zero = cast<Float>(0.0);
-  constexpr Float one = cast<Float>(1.0);
+  constexpr auto zero = cast<Float>(0.0);
+  constexpr auto one = cast<Float>(1.0);
   constexpr Float m = (std::numeric_limits<Float>::max)();
   const Float y = (x != zero) ? one / x : m;
   return y;
@@ -106,9 +106,9 @@ template <bool kIsLeftClosed,
           typename Type,
           typename LowerType,
           typename UpperType> inline
-constexpr bool Algorithm::isInBounds(const Type& value, 
+constexpr auto Algorithm::isInBounds(const Type& value, 
                                      const LowerType& lower, 
-                                     const UpperType& upper) noexcept
+                                     const UpperType& upper) noexcept -> bool
 {
   const bool result = ((kIsLeftClosed) ? !(value < lower) : (lower < value)) &&
                       ((kIsRightClosed) ? !(upper < value) : (value < upper));
@@ -127,9 +127,9 @@ constexpr bool Algorithm::isInBounds(const Type& value,
   \return No description
   */
 template <typename Type, typename LowerType, typename UpperType> inline
-constexpr bool Algorithm::isInOpenBounds(const Type& value, 
+constexpr auto Algorithm::isInOpenBounds(const Type& value, 
                                          const LowerType& lower, 
-                                         const UpperType& upper) noexcept
+                                         const UpperType& upper) noexcept -> bool
 {
   const bool result = isInBounds<false, false>(value, lower, upper);
   return result;
@@ -147,9 +147,9 @@ constexpr bool Algorithm::isInOpenBounds(const Type& value,
   \return No description
   */
 template <typename Type, typename LowerType, typename UpperType> inline
-constexpr bool Algorithm::isInClosedBounds(const Type& value, 
+constexpr auto Algorithm::isInClosedBounds(const Type& value, 
                                            const LowerType& lower, 
-                                           const UpperType& upper) noexcept
+                                           const UpperType& upper) noexcept -> bool
 {
   const bool result = isInBounds<true, true>(value, lower, upper);
   return result;
@@ -163,7 +163,7 @@ constexpr bool Algorithm::isInClosedBounds(const Type& value,
   \return No description
   */
 template <Arithmetic Arith> inline
-constexpr bool Algorithm::isNegative(const Arith x) noexcept
+constexpr auto Algorithm::isNegative(const Arith x) noexcept -> bool
 {
   if constexpr (std::is_signed_v<Arith>) {
     constexpr auto zero = cast<Arith>(0);
@@ -185,9 +185,8 @@ constexpr bool Algorithm::isNegative(const Arith x) noexcept
   \return No description
   */
 template <typename Type1, typename Type2> inline
-constexpr const std::common_type_t<Type1, Type2>& Algorithm::max(
-    const Type1& a,
-    const Type2& b) noexcept
+constexpr auto Algorithm::max(const Type1& a, const Type2& b) noexcept
+    -> const std::common_type_t<Type1, Type2>&
 {
   const std::common_type_t<Type1, Type2>& y = (b < a) ? a : b;
   return y;
@@ -203,9 +202,8 @@ constexpr const std::common_type_t<Type1, Type2>& Algorithm::max(
   \return No description
   */
 template <typename Type1, typename Type2> inline
-constexpr const std::common_type_t<Type1, Type2>& Algorithm::min(
-    const Type1& a,
-    const Type2& b) noexcept
+constexpr auto Algorithm::min(const Type1& a, const Type2& b) noexcept
+    -> const std::common_type_t<Type1, Type2>&
 {
   const std::common_type_t<Type1, Type2>& y = (b < a) ? b : a;
   return y;
@@ -223,17 +221,17 @@ constexpr const std::common_type_t<Type1, Type2>& Algorithm::min(
   \return No description
   */
 template <Integer Int1, Integer Int2, Integer Int3> inline
-constexpr std::array<std::common_type_t<Int1, Int2, Int3>, 2> Algorithm::divideRange(
-    const Int1 range,
-    const Int2 num_of_division,
-    const Int3 index) noexcept
+constexpr auto Algorithm::divideRange(const Int1 range,
+                                      const Int2 num_of_division,
+                                      const Int3 index) noexcept
+    -> std::array<std::common_type_t<Int1, Int2, Int3>, 2>
 {
   using Int = std::common_type_t<Int1, Int2, Int3>;
 
   std::array<Int, 2> result{{0, 0}};
-  const Int r = cast<Int>(range);
-  const Int num = cast<Int>(num_of_division);
-  const Int i = cast<Int>(index);
+  const auto r = cast<Int>(range);
+  const auto num = cast<Int>(num_of_division);
+  const auto i = cast<Int>(index);
   if (isInBounds(i, cast<Int>(0), num)) {
     const Int n = r / num;
     result[0] = n * i;
@@ -250,7 +248,7 @@ constexpr std::array<std::common_type_t<Int1, Int2, Int3>, 2> Algorithm::divideR
   \return No description
   */
 template <Integer Int> inline
-constexpr bool Algorithm::isOdd(const Int x) noexcept
+constexpr auto Algorithm::isOdd(const Int x) noexcept -> bool
 {
   constexpr auto lsb = cast<Int>(0b01);
   const bool result = ((x & lsb) == lsb);
@@ -265,7 +263,7 @@ constexpr bool Algorithm::isOdd(const Int x) noexcept
   \return No description
   */
 template <Arithmetic Arith> inline
-constexpr Arith abs(const Arith x) noexcept
+constexpr auto abs(const Arith x) noexcept -> Arith
 {
   const Arith y = Algorithm::abs(x);
   return y;
@@ -284,10 +282,8 @@ constexpr Arith abs(const Arith x) noexcept
   */
 
 template <typename Type, typename LowerType, typename UpperType> inline
-constexpr std::common_type_t<Type, LowerType, UpperType> clamp(
-    const Type value, 
-    const LowerType lower, 
-    const UpperType upper) noexcept
+constexpr auto clamp(const Type value, const LowerType lower, const UpperType upper) noexcept
+    -> std::common_type_t<Type, LowerType, UpperType>
 {
   using ResultT = std::common_type_t<Type, LowerType, UpperType>;
   const ResultT y = Algorithm::clamp(value, lower, upper);
@@ -302,7 +298,7 @@ constexpr std::common_type_t<Type, LowerType, UpperType> clamp(
   \return No description
   */
 template <std::floating_point Float> inline
-constexpr Float invert(const Float x) noexcept
+constexpr auto invert(const Float x) noexcept -> Float
 {
   const Float y = Algorithm::invert(x);
   return y;
@@ -318,8 +314,8 @@ constexpr Float invert(const Float x) noexcept
   \return No description
   */
 template <typename Type1, typename Type2> inline
-constexpr const std::common_type_t<Type1, Type2>& max(const Type1& a,
-                                                      const Type2& b) noexcept
+constexpr auto max(const Type1& a, const Type2& b) noexcept
+    -> const std::common_type_t<Type1, Type2>&
 {
   const std::common_type_t<Type1, Type2>& y = (Algorithm::max)(a, b);
   return y;
@@ -335,8 +331,8 @@ constexpr const std::common_type_t<Type1, Type2>& max(const Type1& a,
   \return No description
   */
 template <typename Type1, typename Type2> inline
-constexpr const std::common_type_t<Type1, Type2>& min(const Type1& a,
-                                                      const Type2& b) noexcept
+constexpr auto min(const Type1& a, const Type2& b) noexcept
+    -> const std::common_type_t<Type1, Type2>&
 {
   const std::common_type_t<Type1, Type2>& y = (Algorithm::min)(a, b);
   return y;
@@ -350,7 +346,7 @@ constexpr const std::common_type_t<Type1, Type2>& min(const Type1& a,
   \return No description
   */
 template <Arithmetic Arith> inline
-constexpr bool signbit(const Arith x) noexcept
+constexpr auto signbit(const Arith x) noexcept -> bool
 {
   const bool result = Algorithm::isNegative(x);
   return result;
@@ -374,9 +370,9 @@ template <bool kIsLeftClosed,
           typename Type,
           typename LowerType,
           typename UpperType> inline
-constexpr bool isInBounds(const Type& value, 
+constexpr auto isInBounds(const Type& value, 
                           const LowerType& lower, 
-                          const UpperType& upper) noexcept
+                          const UpperType& upper) noexcept -> bool
 {
   const bool result = Algorithm::isInBounds<kIsLeftClosed,
                                             kIsRightClosed,
@@ -398,9 +394,9 @@ constexpr bool isInBounds(const Type& value,
   \return No description
   */
 template <typename Type, typename LowerType, typename UpperType> inline
-constexpr bool isInOpenBounds(const Type& value, 
+constexpr auto isInOpenBounds(const Type& value, 
                               const LowerType& lower, 
-                              const UpperType& upper) noexcept
+                              const UpperType& upper) noexcept -> bool
 {
   const bool result = isInBounds<false, false>(value, lower, upper);
   return result;
@@ -418,9 +414,9 @@ constexpr bool isInOpenBounds(const Type& value,
   \return No description
   */
 template <typename Type, typename LowerType, typename UpperType> inline
-constexpr bool isInClosedBounds(const Type& value, 
+constexpr auto isInClosedBounds(const Type& value, 
                                 const LowerType& lower, 
-                                const UpperType& upper) noexcept
+                                const UpperType& upper) noexcept -> bool
 {
   const bool result = isInBounds<true, true>(value, lower, upper);
   return result;
@@ -438,10 +434,10 @@ constexpr bool isInClosedBounds(const Type& value,
   \return No description
   */
 template <Integer Int1, Integer Int2, Integer Int3> inline
-constexpr std::array<std::common_type_t<Int1, Int2, Int3>, 2> divideRange(
-    const Int1 range,
-    const Int2 num_of_division,
-    const Int3 index) noexcept
+constexpr auto divideRange(const Int1 range,
+                           const Int2 num_of_division,
+                           const Int3 index) noexcept
+    -> std::array<std::common_type_t<Int1, Int2, Int3>, 2>
 {
   const std::array result = Algorithm::divideRange(range, num_of_division, index);
   return result;
@@ -455,7 +451,7 @@ constexpr std::array<std::common_type_t<Int1, Int2, Int3>, 2> divideRange(
   \return No description
   */
 template <Integer Int> inline
-constexpr bool isOdd(const Int x) noexcept
+constexpr auto isOdd(const Int x) noexcept -> bool
 {
   const bool result = Algorithm::isOdd(x);
   return result;

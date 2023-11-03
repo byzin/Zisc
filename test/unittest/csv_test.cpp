@@ -40,8 +40,7 @@ TEST(CsvTest, MoveTest)
     csv.setCapacity(1024);
     *csv_ptr = std::move(csv);
   }
-  const auto& data = csv_ptr->data();
-  ASSERT_EQ(1024, data.capacity()) << "Moving CSV data failed.";
+  ASSERT_EQ(1024, csv_ptr->capacity()) << "Moving CSV data failed.";
 }
 
 TEST(CsvTest, ParseCsvTest1)

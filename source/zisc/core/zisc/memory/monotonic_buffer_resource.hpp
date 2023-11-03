@@ -48,7 +48,7 @@ class MonotonicBufferResource :
 
 
   //! Create a new resource
-  MonotonicBufferResource(pmr::memory_resource* mem_resource) noexcept;
+  explicit MonotonicBufferResource(pmr::memory_resource* mem_resource) noexcept;
 
   //! Move a data
   MonotonicBufferResource(MonotonicBufferResource&& other) noexcept;
@@ -58,18 +58,19 @@ class MonotonicBufferResource :
 
 
   //! Move a data
-  MonotonicBufferResource& operator=(MonotonicBufferResource&& other) noexcept;
+  auto operator=(MonotonicBufferResource&& other) noexcept -> MonotonicBufferResource&;
 
 
   //! Return the maximum possible available alignment
-  static constexpr std::size_t alignment() noexcept;
+  static constexpr auto alignment() noexcept -> std::size_t;
 
   //! Allocate memory
-  void* allocateMemory(const std::size_t size,
-                       const std::size_t alignment);
+  [[nodiscard]]
+  auto allocateMemory(const std::size_t size,
+                      const std::size_t alignment) -> void*;
 
   //! Return the maximum possible available size
-  static constexpr std::size_t capacity() noexcept;
+  static constexpr auto capacity() noexcept -> std::size_t;
 
   //! Deallocate memory
   void deallocateMemory(void* data,
@@ -77,18 +78,19 @@ class MonotonicBufferResource :
                         const std::size_t alignment) noexcept;
 
   //! Check if the underlying storage is occupied
-  bool isOccupied() const noexcept;
+  auto isOccupied() const noexcept -> bool;
 
   //! Release all allocated memory
   void release() noexcept;
 
   //! Return the used size for allocation
-  std::size_t size() const noexcept;
+  auto size() const noexcept -> std::size_t;
 
  private:
   //! Allocate memory
-  void* do_allocate(std::size_t size,
-                    std::size_t alignment) override;
+  [[nodiscard]]
+  auto do_allocate(std::size_t size,
+                   std::size_t alignment) -> void* override;
 
   //! Deallocate memory
   void do_deallocate(void* data,
@@ -96,16 +98,16 @@ class MonotonicBufferResource :
                      std::size_t alignment) override;
 
   //! Compare for equality with another memory resource
-  bool do_is_equal(const pmr::memory_resource& other) const noexcept override;
+  auto do_is_equal(const pmr::memory_resource& other) const noexcept -> bool override;
 
   //! Initialize the storage
   void initialize(pmr::memory_resource* mem_resource) noexcept;
 
   //! Return the pointer to the underlying storage
-  std::byte* storage() noexcept;
+  auto storage() noexcept -> std::byte*;
 
   //! Return the pointer to the underlying storage
-  const std::byte* storage() const noexcept;
+  auto storage() const noexcept -> const std::byte*;
 
 
   static constexpr std::size_t kBlockSize = kAlignment;

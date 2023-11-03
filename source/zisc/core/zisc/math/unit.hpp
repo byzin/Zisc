@@ -23,11 +23,11 @@ namespace zisc {
 
 //! Convert degree to radian
 template <std::floating_point Float>
-constexpr Float toRadian(const Float angle) noexcept;
+constexpr auto toRadian(const Float angle) noexcept -> Float;
 
 //! Convert radian to degree
 template <std::floating_point Float>
-constexpr Float toAngle(const Float radian) noexcept;
+constexpr auto toAngle(const Float radian) noexcept -> Float;
 
 } // namespace zisc
 

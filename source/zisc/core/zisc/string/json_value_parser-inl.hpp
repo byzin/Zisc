@@ -124,7 +124,7 @@ JsonValueParser::JsonValueParser() noexcept :
   \return No description
   */
 inline
-std::size_t JsonValueParser::getCxxStringSize(const std::string_view json_value) noexcept
+auto JsonValueParser::getCxxStringSize(const std::string_view json_value) noexcept -> std::size_t
 {
   const std::size_t size = toCxxStringImpl(json_value, nullptr);
   return size;
@@ -136,7 +136,7 @@ std::size_t JsonValueParser::getCxxStringSize(const std::string_view json_value)
   \return No description
   */
 inline
-constexpr std::regex::flag_type JsonValueParser::regexInsOptions() noexcept
+constexpr auto JsonValueParser::regexInsOptions() noexcept -> std::regex::flag_type
 {
   constexpr std::regex::flag_type flag = std::regex_constants::nosubs |
                                          std::regex_constants::optimize |
@@ -150,7 +150,7 @@ constexpr std::regex::flag_type JsonValueParser::regexInsOptions() noexcept
   \return No description
   */
 inline
-constexpr std::regex::flag_type JsonValueParser::regexTempOptions() noexcept
+constexpr auto JsonValueParser::regexTempOptions() noexcept -> std::regex::flag_type
 {
   constexpr std::regex::flag_type flag = std::regex_constants::nosubs |
                                          std::regex_constants::ECMAScript;
@@ -164,7 +164,7 @@ constexpr std::regex::flag_type JsonValueParser::regexTempOptions() noexcept
   \return No description
   */
 inline
-bool JsonValueParser::toCxxBool(const std::string_view json_value) noexcept
+auto JsonValueParser::toCxxBool(const std::string_view json_value) noexcept -> bool
 {
   constexpr auto true_value = truePattern();
   const bool result = true_value == json_value;
@@ -179,7 +179,7 @@ bool JsonValueParser::toCxxBool(const std::string_view json_value) noexcept
   \return No description
   */
 template <std::floating_point Float> inline
-Float JsonValueParser::toCxxFloat(const std::string_view json_value) noexcept
+auto JsonValueParser::toCxxFloat(const std::string_view json_value) noexcept -> Float
 {
   const Float result = toCxxFloatImpl<Float>(json_value);
   return result;
@@ -193,7 +193,7 @@ Float JsonValueParser::toCxxFloat(const std::string_view json_value) noexcept
   \return No description
   */
 template <Integer Int> inline
-Int JsonValueParser::toCxxInteger(const std::string_view json_value) noexcept
+auto JsonValueParser::toCxxInteger(const std::string_view json_value) noexcept -> Int
 {
   const Int result = toCxxIntegerImpl<Int>(json_value);
   return result;
@@ -221,7 +221,7 @@ void JsonValueParser::toCxxString(const std::string_view json_value,
   \return No description
   */
 inline
-bool JsonValueParser::isBoolValue(const std::string_view json_value) noexcept
+auto JsonValueParser::isBoolValue(const std::string_view json_value) noexcept -> bool
 {
   constexpr auto true_value = truePattern();
   constexpr auto false_value = falsePattern();
@@ -236,7 +236,7 @@ bool JsonValueParser::isBoolValue(const std::string_view json_value) noexcept
   \return No description
   */
 inline
-bool JsonValueParser::isFloatValue(const std::string_view json_value) noexcept
+auto JsonValueParser::isFloatValue(const std::string_view json_value) noexcept -> bool
 {
   const std::regex float_pattern{floatPattern().toCStr(), regexTempOptions()};
   const bool result = isValueOf(float_pattern, json_value);
@@ -250,7 +250,7 @@ bool JsonValueParser::isFloatValue(const std::string_view json_value) noexcept
   \return No description
   */
 inline
-bool JsonValueParser::isIntegerValue(const std::string_view json_value) noexcept
+auto JsonValueParser::isIntegerValue(const std::string_view json_value) noexcept -> bool
 {
   const std::regex int_pattern{integerPattern().toCStr(), regexTempOptions()};
   const bool result = isValueOf(int_pattern, json_value);
@@ -264,7 +264,7 @@ bool JsonValueParser::isIntegerValue(const std::string_view json_value) noexcept
   \return No description
   */
 inline
-bool JsonValueParser::isStringValue(const std::string_view json_value) noexcept
+auto JsonValueParser::isStringValue(const std::string_view json_value) noexcept -> bool
 {
   const std::regex string_pattern{stringPattern().toCStr(), regexTempOptions()};
   const bool result = isValueOf(string_pattern, json_value);
@@ -279,7 +279,7 @@ bool JsonValueParser::isStringValue(const std::string_view json_value) noexcept
   \return No description
   */
 inline
-const std::regex& JsonValueParser::floatRegex() const noexcept
+auto JsonValueParser::floatRegex() const noexcept -> const std::regex&
 {
   return float_pattern_;
 }
@@ -290,7 +290,7 @@ const std::regex& JsonValueParser::floatRegex() const noexcept
   \return No description
   */
 inline
-const std::regex& JsonValueParser::integerRegex() const noexcept
+auto JsonValueParser::integerRegex() const noexcept -> const std::regex&
 {
   return int_pattern_;
 }
@@ -302,7 +302,7 @@ const std::regex& JsonValueParser::integerRegex() const noexcept
   \return No description
   */
 inline
-bool JsonValueParser::isBool(const std::string_view json_value) const noexcept
+auto JsonValueParser::isBool(const std::string_view json_value) noexcept -> bool
 {
   const bool result = isBoolValue(json_value);
   return result;
@@ -315,7 +315,7 @@ bool JsonValueParser::isBool(const std::string_view json_value) const noexcept
   \return No description
   */
 inline
-bool JsonValueParser::isFloat(const std::string_view json_value) const noexcept
+auto JsonValueParser::isFloat(const std::string_view json_value) const noexcept -> bool
 {
   const bool result = isValueOf(floatRegex(), json_value);
   return result;
@@ -328,7 +328,7 @@ bool JsonValueParser::isFloat(const std::string_view json_value) const noexcept
   \return No description
   */
 inline
-bool JsonValueParser::isInteger(const std::string_view json_value) const noexcept
+auto JsonValueParser::isInteger(const std::string_view json_value) const noexcept -> bool
 {
   const bool result = isValueOf(integerRegex(), json_value);
   return result;
@@ -341,7 +341,7 @@ bool JsonValueParser::isInteger(const std::string_view json_value) const noexcep
   \return No description
   */
 inline
-bool JsonValueParser::isString(const std::string_view json_value) const noexcept
+auto JsonValueParser::isString(const std::string_view json_value) const noexcept -> bool
 {
   const bool result = isValueOf(stringRegex(), json_value);
   return result;
@@ -353,7 +353,7 @@ bool JsonValueParser::isString(const std::string_view json_value) const noexcept
   \return No description
   */
 inline
-const std::regex& JsonValueParser::stringRegex() const noexcept
+auto JsonValueParser::stringRegex() const noexcept -> const std::regex&
 {
   return string_pattern_;
 }
@@ -365,7 +365,7 @@ const std::regex& JsonValueParser::stringRegex() const noexcept
   \return No description
   */
 inline
-char JsonValueParser::getEscapedCharacter(const char c) noexcept
+auto JsonValueParser::getEscapedCharacter(const char c) noexcept -> char
 {
   char result = '\0';
   switch (c) {
@@ -404,8 +404,8 @@ char JsonValueParser::getEscapedCharacter(const char c) noexcept
   \return No description
   */
 inline
-bool JsonValueParser::isValueOf(const std::regex& pattern,
-                                const std::string_view json_value) noexcept
+auto JsonValueParser::isValueOf(const std::regex& pattern,
+                                const std::string_view json_value) noexcept -> bool
 {
   const bool result = std::regex_match(json_value.begin(),
                                        json_value.end(),
@@ -421,7 +421,7 @@ bool JsonValueParser::isValueOf(const std::regex& pattern,
   \return No description
   */
 template <std::floating_point Float> inline
-Float JsonValueParser::toCxxFloatImpl(const std::string_view json_value) noexcept
+auto JsonValueParser::toCxxFloatImpl(const std::string_view json_value) noexcept -> Float
 {
   using FType = std::remove_cv_t<Float>;
   Float result;
@@ -442,7 +442,7 @@ Float JsonValueParser::toCxxFloatImpl(const std::string_view json_value) noexcep
   \return No description
   */
 template <SignedInteger Int> inline
-Int JsonValueParser::toCxxIntegerImpl(const std::string_view json_value) noexcept
+auto JsonValueParser::toCxxIntegerImpl(const std::string_view json_value) noexcept -> Int
 {
   Int result = 0;
   if constexpr (Integer64<Int>)
@@ -460,7 +460,7 @@ Int JsonValueParser::toCxxIntegerImpl(const std::string_view json_value) noexcep
   \return No description
   */
 template <UnsignedInteger Int> inline
-Int JsonValueParser::toCxxIntegerImpl(const std::string_view json_value) noexcept
+auto JsonValueParser::toCxxIntegerImpl(const std::string_view json_value) noexcept -> Int
 {
   Int result = 0;
   if constexpr (Integer64<Int>)
@@ -478,21 +478,21 @@ Int JsonValueParser::toCxxIntegerImpl(const std::string_view json_value) noexcep
   \return No description
   */
 inline
-std::size_t JsonValueParser::toCxxStringImpl(std::string_view json_value,
-                                             char* value) noexcept
+auto JsonValueParser::toCxxStringImpl(std::string_view json_value,
+                                      char* value) noexcept -> std::size_t
 {
   // Remove prefix and suffix '"'
   json_value.remove_prefix(1);
   json_value.remove_suffix(1);
 
   std::size_t size = 0;
-  for (auto i = json_value.begin(); i != json_value.end(); ++i) {
+  for (const auto* i = json_value.begin(); i != json_value.end(); ++i) {
     char c = *i;
     if (c == '\\') {
       ++i;
       c = getEscapedCharacter(*i);
     }
-    if (value)
+    if (value != nullptr)
       value[size] = c;
     ++size;
   }

@@ -29,14 +29,6 @@ namespace zisc {
 
 /*!
   \details No detailed description
-  */
-template <SignedInteger Int> inline
-constexpr Fraction<Int>::Fraction() noexcept
-{
-}
-
-/*!
-  \details No detailed description
 
   \param [in] n No description.
   */
@@ -221,7 +213,7 @@ constexpr auto Fraction<Int>::invert() const noexcept -> Fraction
   \return No description
   */
 template <SignedInteger Int> template <std::floating_point Float> inline
-constexpr Float Fraction<Int>::toFloat() const noexcept
+constexpr auto Fraction<Int>::toFloat() const noexcept -> Float
 {
   const Float value = cast<Float>(numer()) / cast<Float>(denom());
   return value;
@@ -236,8 +228,8 @@ constexpr Float Fraction<Int>::toFloat() const noexcept
   \return No description
   */
 template <SignedInteger Int> inline
-constexpr Fraction<Int> operator+(const Fraction<Int>& lhs,
-                                  const Fraction<Int>& rhs) noexcept
+constexpr auto operator+(const Fraction<Int>& lhs, const Fraction<Int>& rhs) noexcept
+    -> Fraction<Int>
 {
   const auto denom = std::lcm(lhs.denom(), rhs.denom());
   const auto numer = lhs.numer() * (denom / std::gcd(denom, lhs.denom())) +
@@ -255,8 +247,8 @@ constexpr Fraction<Int> operator+(const Fraction<Int>& lhs,
   \return No description
   */
 template <SignedInteger Int> inline
-constexpr Fraction<Int> operator-(const Fraction<Int>& lhs,
-                                  const Fraction<Int>& rhs) noexcept
+constexpr auto operator-(const Fraction<Int>& lhs, const Fraction<Int>& rhs) noexcept
+    -> Fraction<Int>
 {
   const auto result = lhs + (-rhs);
   return result;
@@ -271,8 +263,8 @@ constexpr Fraction<Int> operator-(const Fraction<Int>& lhs,
   \return No description
   */
 template <SignedInteger Int> inline
-constexpr Fraction<Int> operator*(const Fraction<Int>& lhs,
-                                  const Fraction<Int>& rhs) noexcept
+constexpr auto operator*(const Fraction<Int>& lhs, const Fraction<Int>& rhs) noexcept
+    -> Fraction<Int>
 {
   const auto s = std::gcd(lhs.numer(), rhs.denom());
   const auto t = std::gcd(lhs.denom(), rhs.numer());
@@ -291,8 +283,8 @@ constexpr Fraction<Int> operator*(const Fraction<Int>& lhs,
   \return No description
   */
 template <SignedInteger Int> inline
-constexpr Fraction<Int> operator/(const Fraction<Int>& lhs,
-                                  const Fraction<Int>& rhs) noexcept
+constexpr auto operator/(const Fraction<Int>& lhs, const Fraction<Int>& rhs) noexcept
+    -> Fraction<Int>
 {
   const auto result = lhs * rhs.invert();
   return result;
@@ -307,8 +299,8 @@ constexpr Fraction<Int> operator/(const Fraction<Int>& lhs,
   \return No description
   */
 template <SignedInteger Int> inline
-constexpr bool operator==(const Fraction<Int>& lhs,
-                          const Fraction<Int>& rhs) noexcept
+constexpr auto operator==(const Fraction<Int>& lhs,
+                          const Fraction<Int>& rhs) noexcept -> bool
 {
   const bool result = (lhs.numer() == rhs.numer()) && (lhs.denom() == rhs.denom());
   return result;
@@ -323,8 +315,8 @@ constexpr bool operator==(const Fraction<Int>& lhs,
   \return No description
   */
 template <SignedInteger Int> inline
-constexpr bool operator!=(const Fraction<Int>& lhs,
-                          const Fraction<Int>& rhs) noexcept
+constexpr auto operator!=(const Fraction<Int>& lhs,
+                          const Fraction<Int>& rhs) noexcept -> bool
 {
   const bool result = !(lhs == rhs);
   return result;
@@ -339,8 +331,8 @@ constexpr bool operator!=(const Fraction<Int>& lhs,
   \return No description
   */
 template <SignedInteger Int> inline
-constexpr bool operator<(const Fraction<Int>& lhs,
-                         const Fraction<Int>& rhs) noexcept
+constexpr auto operator<(const Fraction<Int>& lhs,
+                         const Fraction<Int>& rhs) noexcept -> bool
 {
   const bool result = (lhs.numer() * rhs.denom()) < (lhs.denom() * rhs.numer());
   return result;
@@ -355,8 +347,8 @@ constexpr bool operator<(const Fraction<Int>& lhs,
   \return No description
   */
 template <SignedInteger Int> inline
-constexpr bool operator<=(const Fraction<Int>& lhs,
-                          const Fraction<Int>& rhs) noexcept
+constexpr auto operator<=(const Fraction<Int>& lhs,
+                          const Fraction<Int>& rhs) noexcept -> bool
 {
   const bool result = (lhs == rhs) || (lhs < rhs);
   return result;
@@ -371,8 +363,8 @@ constexpr bool operator<=(const Fraction<Int>& lhs,
   \return No description
   */
 template <SignedInteger Int> inline
-constexpr bool operator>(const Fraction<Int>& lhs,
-                         const Fraction<Int>& rhs) noexcept
+constexpr auto operator>(const Fraction<Int>& lhs,
+                         const Fraction<Int>& rhs) noexcept -> bool
 {
   const bool result = rhs < lhs;
   return result;
@@ -387,8 +379,8 @@ constexpr bool operator>(const Fraction<Int>& lhs,
   \return No description
   */
 template <SignedInteger Int> inline
-constexpr bool operator>=(const Fraction<Int>& lhs,
-                          const Fraction<Int>& rhs) noexcept
+constexpr auto operator>=(const Fraction<Int>& lhs,
+                          const Fraction<Int>& rhs) noexcept -> bool
 {
   const bool result = rhs <= lhs;
   return result;

@@ -17,10 +17,12 @@
 
 #include "csv.hpp"
 // Standard C++ library
+#include <array>
 #include <concepts>
 #include <cstddef>
 #include <istream>
 #include <regex>
+#include <span>
 #include <string>
 #include <string_view>
 #include <tuple>
@@ -116,10 +118,10 @@ template <typename Type, typename ...Types> template <std::size_t kMaxNumCharsPe
 inline
 void Csv<Type, Types...>::append(std::istream& csv) noexcept
 {
-  char s[kMaxNumCharsPerLine];
   constexpr std::size_t n = kMaxNumCharsPerLine;
-  for (csv.getline(s, n); !csv.eof(); csv.getline(s, n)) {
-    std::string_view line{s};
+  std::array<char, n> s{};
+  for (csv.getline(s.data(), n); !csv.eof(); csv.getline(s.data(), n)) {
+    std::string_view line{s.data()};
     const RecordType cxx_record = parseCsvLine(line);
     data_.emplace_back(std::move(cxx_record));
   }
@@ -131,7 +133,7 @@ void Csv<Type, Types...>::append(std::istream& csv) noexcept
   \return No description
   */
 template <typename Type, typename ...Types> inline
-std::size_t Csv<Type, Types...>::capacity() const noexcept
+auto Csv<Type, Types...>::capacity() const noexcept -> std::size_t
 {
   const std::size_t cap = data_.capacity();
   return cap;
@@ -152,7 +154,7 @@ void Csv<Type, Types...>::clear() noexcept
   \return No description
   */
 template <typename Type, typename ...Types> inline
-constexpr uint Csv<Type, Types...>::columnSize() noexcept
+constexpr auto Csv<Type, Types...>::columnSize() noexcept -> uint
 {
   constexpr uint size = 1 + sizeof...(Types);
   return size;
@@ -176,7 +178,7 @@ constexpr auto Csv<Type, Types...>::csvPattern() noexcept
   \return No description
   */
 template <typename Type, typename ...Types> inline
-const std::regex& Csv<Type, Types...>::csvRegex() const noexcept
+auto Csv<Type, Types...>::csvRegex() const noexcept -> const std::regex&
 {
   return csv_pattern_;
 }
@@ -187,9 +189,9 @@ const std::regex& Csv<Type, Types...>::csvRegex() const noexcept
   \return No description
   */
 template <typename Type, typename ...Types> inline
-auto Csv<Type, Types...>::data() const noexcept -> const pmr::vector<RecordType>&
+auto Csv<Type, Types...>::data() const noexcept -> std::span<const RecordType>
 {
-  return data_;
+  return {data_};
 }
 
 /*!
@@ -201,7 +203,7 @@ auto Csv<Type, Types...>::data() const noexcept -> const pmr::vector<RecordType>
   */
 template <typename Type, typename ...Types> template <std::size_t column> inline
 auto Csv<Type, Types...>::get(const std::size_t row) const noexcept
-    -> const FieldType<column>
+    -> FieldType<column>
 {
   const RecordType& record = this->record(row);
   const std::tuple_element_t<column, RecordType>& field = std::get<column>(record);
@@ -239,7 +241,7 @@ auto Csv<Type, Types...>::record(const std::size_t row) const noexcept
   \return No description
   */
 template <typename Type, typename ...Types> inline
-std::size_t Csv<Type, Types...>::rowSize() const noexcept
+auto Csv<Type, Types...>::rowSize() const noexcept -> std::size_t
 {
   const std::size_t s = data_.size();
   return s;
@@ -264,7 +266,7 @@ void Csv<Type, Types...>::setCapacity(const std::size_t cap) noexcept
   \return No description
   */
 template <typename Type, typename ...Types> template <std::same_as<bool> PType> inline
-PType Csv<Type, Types...>::toCxxType(const std::string_view json_value) const noexcept
+auto Csv<Type, Types...>::toCxxType(const std::string_view json_value) const noexcept -> PType
 {
   const PType result = JsonValueParser::toCxxBool(json_value);
   return result;
@@ -278,7 +280,7 @@ PType Csv<Type, Types...>::toCxxType(const std::string_view json_value) const no
   \return No description
   */
 template <typename Type, typename ...Types> template <std::floating_point PType> inline
-PType Csv<Type, Types...>::toCxxType(const std::string_view json_value) const noexcept
+auto Csv<Type, Types...>::toCxxType(const std::string_view json_value) const noexcept -> PType
 {
   const PType result = JsonValueParser::toCxxFloat<PType>(json_value);
   return result;
@@ -292,7 +294,7 @@ PType Csv<Type, Types...>::toCxxType(const std::string_view json_value) const no
   \return No description
   */
 template <typename Type, typename ...Types> template <Integer PType> inline
-PType Csv<Type, Types...>::toCxxType(const std::string_view json_value) const noexcept
+auto Csv<Type, Types...>::toCxxType(const std::string_view json_value) const noexcept -> PType
 {
   const PType result = JsonValueParser::toCxxInteger<PType>(json_value);
   return result;
@@ -306,7 +308,7 @@ PType Csv<Type, Types...>::toCxxType(const std::string_view json_value) const no
   \return No description
   */
 template <typename Type, typename ...Types> template <String PType> inline
-pmr::string Csv<Type, Types...>::toCxxType(const std::string_view json_value) noexcept
+auto Csv<Type, Types...>::toCxxType(const std::string_view json_value) noexcept -> pmr::string
 {
   pmr::string::allocator_type alloc{memoryResource()};
   pmr::string result{alloc};
@@ -394,7 +396,7 @@ constexpr auto Csv<Type, Types...>::getTypePattern() noexcept
   \return No description
   */
 template <typename Type, typename ...Types> inline
-pmr::memory_resource* Csv<Type, Types...>::memoryResource() noexcept
+auto Csv<Type, Types...>::memoryResource() noexcept -> pmr::memory_resource*
 {
   auto mem_resource = data_.get_allocator().resource();
   return mem_resource;
@@ -433,7 +435,7 @@ auto Csv<Type, Types...>::parseCsvLine(std::string_view line) noexcept
 template <typename Type, typename ...Types>
 template <std::size_t ...indices> inline
 auto Csv<Type, Types...>::toCxxRecord(const pmr::cmatch& result,
-                                      std::index_sequence<indices...>) noexcept
+                                      [[maybe_unused]] std::index_sequence<indices...> idx) noexcept
     -> RecordType
 {
   const RecordType cxx_record = std::make_tuple(toCxxField<indices>(result)...);

@@ -26,22 +26,6 @@ namespace zisc {
   \details No detailed description
   */
 inline
-SpinLockMutex::SpinLockMutex() noexcept
-{
-}
-
-/*!
-  \details No detailed description
-  */
-inline
-SpinLockMutex::~SpinLockMutex() noexcept
-{
-}
-
-/*!
-  \details No detailed description
-  */
-inline
 void SpinLockMutex::lock() noexcept
 {
   while (!tryLock()) {
@@ -58,7 +42,7 @@ void SpinLockMutex::lock() noexcept
   \return No description
   */
 inline
-bool SpinLockMutex::try_lock() noexcept
+auto SpinLockMutex::try_lock() noexcept -> bool
 {
   return tryLock();
 }
@@ -69,7 +53,7 @@ bool SpinLockMutex::try_lock() noexcept
   \return No description
   */
 inline
-bool SpinLockMutex::tryLock() noexcept
+auto SpinLockMutex::tryLock() noexcept -> bool
 {
   return !lock_state_.test_and_set(std::memory_order::acquire);
 }

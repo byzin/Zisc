@@ -92,7 +92,7 @@ auto ThreadManager::TaskExceptionData::numOfIterations() const noexcept -> DiffT
   \return No description
   */
 template <typename Type> inline
-PackagedTaskType<Type>& ThreadManager::TaskExceptionData::task() noexcept
+auto ThreadManager::TaskExceptionData::task() noexcept -> PackagedTaskType<Type>&
 {
   auto* t = dynamic_cast<PackagedTaskType<Type>*>(task_.get());
   ZISC_ASSERT(t != nullptr, "The dynamic cast of the packaged task failed.");
@@ -105,7 +105,7 @@ PackagedTaskType<Type>& ThreadManager::TaskExceptionData::task() noexcept
   \return No description
   */
 template <typename Type> inline
-const PackagedTaskType<Type>& ThreadManager::TaskExceptionData::task() const noexcept
+auto ThreadManager::TaskExceptionData::task() const noexcept -> const PackagedTaskType<Type>&
 {
   const auto* t = dynamic_cast<const PackagedTaskType<Type>*>(task_.get());
   ZISC_ASSERT(t != nullptr, "The dynamic cast of the packaged task failed.");
@@ -200,7 +200,7 @@ auto ThreadManager::wrapTask(Func&& func) noexcept
   else if constexpr (std::is_lvalue_reference_v<Func>)
     return std::addressof(func);
   else // rvalue functor
-    return std::move(func);
+    return std::forward<Func>(func);
 
   static_assert(is_func_ptr || has_func_ptr || is_fanctor, "Unsupported func type.");
 }
@@ -211,7 +211,7 @@ auto ThreadManager::wrapTask(Func&& func) noexcept
   \return No description
   */
 inline
-constexpr std::size_t ThreadManager::alignmentMax() noexcept
+constexpr auto ThreadManager::alignmentMax() noexcept -> std::size_t
 {
   return kAlignmentMax;
 }
@@ -222,7 +222,7 @@ constexpr std::size_t ThreadManager::alignmentMax() noexcept
   \return No description
   */
 inline
-std::size_t ThreadManager::capacity() const noexcept
+auto ThreadManager::capacity() const noexcept -> std::size_t
 {
   const std::size_t cap = taskQueue().capacity();
   return cap;
@@ -249,7 +249,7 @@ void ThreadManager::clear() noexcept
   \return No description
   */
 inline
-constexpr std::size_t ThreadManager::defaultCapacity() noexcept
+constexpr auto ThreadManager::defaultCapacity() noexcept -> std::size_t
 {
   const std::size_t cap = 1024;
   return cap;
@@ -369,7 +369,7 @@ auto ThreadManager::enqueueLoop(Func&& task,
   \return No description
   */
 inline
-bool ThreadManager::isEmpty() const noexcept
+auto ThreadManager::isEmpty() const noexcept -> bool
 {
   const bool result = taskQueue().isEmpty();
   return result;
@@ -381,9 +381,9 @@ bool ThreadManager::isEmpty() const noexcept
   \return No description
   */
 inline
-int64b ThreadManager::logicalCores() noexcept
+auto ThreadManager::logicalCores() noexcept -> int64b
 {
-  const int64b cores = cast<int64b>(std::thread::hardware_concurrency());
+  const auto cores = cast<int64b>(std::thread::hardware_concurrency());
   return cores;
 }
 
@@ -393,7 +393,7 @@ int64b ThreadManager::logicalCores() noexcept
   \return The number of worker threads
   */
 inline
-int64b ThreadManager::numOfThreads() const noexcept
+auto ThreadManager::numOfThreads() const noexcept -> int64b
 {
   const std::size_t num_of_threads = worker_list_.size();
   return cast<int64b>(num_of_threads);
@@ -405,7 +405,7 @@ int64b ThreadManager::numOfThreads() const noexcept
   \return No description
   */
 inline
-pmr::memory_resource* ThreadManager::resource() const noexcept
+auto ThreadManager::resource() const noexcept -> pmr::memory_resource*
 {
   pmr::memory_resource* mem_resource = worker_list_.get_allocator().resource();
   return mem_resource;
@@ -431,7 +431,7 @@ void ThreadManager::setCapacity(const std::size_t cap) noexcept
   \return No description
   */
 inline
-std::size_t ThreadManager::size() const noexcept
+auto ThreadManager::size() const noexcept -> std::size_t
 {
   const std::size_t s = taskQueue().size();
   return s;
@@ -443,7 +443,7 @@ std::size_t ThreadManager::size() const noexcept
   \return No description
   */
 inline
-constexpr int64b ThreadManager::unmanagedThreadId() noexcept
+constexpr auto ThreadManager::unmanagedThreadId() noexcept -> int64b
 {
   const int64b id = (std::numeric_limits<int64b>::min)();
   return id;
@@ -467,10 +467,9 @@ void ThreadManager::waitForCompletion() noexcept
   \param [in] it_offset No description.
   */
 inline
-ThreadManager::WorkerTask::WorkerTask(const SharedTaskT& task,
-                                      const DiffT it_offset) noexcept :
+ThreadManager::WorkerTask::WorkerTask(SharedTaskT task, const DiffT it_offset) noexcept :
     it_offset_{it_offset},
-    task_{task}
+    task_{std::move(task)}
 {
 }
 
@@ -516,9 +515,9 @@ void ThreadManager::WorkerTask::operator()(const int64b thread_id)
   \return No description
   */
 inline
-bool ThreadManager::WorkerTask::isValid() const noexcept
+auto ThreadManager::WorkerTask::isValid() const noexcept -> bool
 {
-  const bool is_valid = cast<bool>(task_);
+  const auto is_valid = cast<bool>(task_);
   return is_valid;
 }
 
@@ -575,7 +574,7 @@ class ThreadManager::TaskImpl : public PackagedTaskType<Return>
   }
 
   //! Return the future of the underlying task
-  std::future<ReturnT> getFuture() noexcept override
+  auto getFuture() noexcept -> std::future<ReturnT> override
   {
     return promise_.get_future();
   }
@@ -628,7 +627,7 @@ class ThreadManager::TaskImpl : public PackagedTaskType<Return>
   \return No description
   */
 template <typename Ite, typename OffsetT> inline
-Ite ThreadManager::advance(Ite& begin, const OffsetT offset) noexcept
+auto ThreadManager::advance(Ite& begin, const OffsetT offset) noexcept -> Ite
 {
   Ite ite = begin;
   if constexpr (std::is_arithmetic_v<Ite>)
@@ -650,9 +649,9 @@ Ite ThreadManager::advance(Ite& begin, const OffsetT offset) noexcept
   \return No description
   */
 template <std::derived_from<PackagedTask> Task, typename Data, typename Ite> inline
-std::shared_ptr<Task> ThreadManager::createSharedTask(Data&& data,
-                                                      Ite&& ite,
-                                                      const bool wait_for_precedence)
+auto ThreadManager::createSharedTask(Data&& data,
+                                     Ite&& ite,
+                                     const bool wait_for_precedence) -> std::shared_ptr<Task>
 {
   constexpr std::size_t alloc_trial_max = 4;
   std::shared_ptr<Task> task{};
@@ -744,7 +743,7 @@ void ThreadManager::createWorkers(const int64b num_of_threads) noexcept
   \return No description
   */
 template <typename Ite1, typename Ite2> inline
-auto ThreadManager::distance(Ite1&& begin, Ite2&& end) noexcept -> DiffT
+auto ThreadManager::distance(const Ite1& begin, const Ite2& end) noexcept -> DiffT
 {
   using IteT = std::remove_cvref_t<CommonIteT<Ite1, Ite2>>;
   DiffT d = 0;
@@ -806,7 +805,7 @@ auto ThreadManager::enqueueImpl(Data&& task,
                                 Ite2&& end,
                                 const bool wait_for_precedence) -> std::future<ReturnT>
 {
-  const DiffT num_of_tasks = distance(begin, end);
+  const DiffT num_of_tasks = distance(begin, std::forward<Ite2>(end));
 
   // Create a shared task
   using TaskImplT = TaskImpl<ReturnT, Data, Ite1, Ite2, kIsLoop>;
@@ -873,7 +872,7 @@ auto ThreadManager::fetchTask() noexcept -> std::optional<WorkerTask>
   \return No description
   */
 inline
-std::size_t ThreadManager::getAvailableNumOfThreads(const int64b s) noexcept
+auto ThreadManager::getAvailableNumOfThreads(const int64b s) noexcept -> std::size_t
 {
   const int64b num_of_threads = (s == 0) ? logicalCores() : s;
   return cast<std::size_t>(num_of_threads);
@@ -885,7 +884,7 @@ std::size_t ThreadManager::getAvailableNumOfThreads(const int64b s) noexcept
   \return No description
   */
 inline
-int64b ThreadManager::getCurrentThreadId() const noexcept
+auto ThreadManager::getCurrentThreadId() const noexcept -> int64b
 {
   const std::thread::id id = std::this_thread::get_id();
   const auto t = std::lower_bound(worker_id_list_.begin(), worker_id_list_.end(), id);
@@ -919,7 +918,7 @@ void ThreadManager::initialize(const int64b num_of_threads) noexcept
   \return No description
   */
 inline
-int64b ThreadManager::issueTaskId() noexcept
+auto ThreadManager::issueTaskId() noexcept -> int64b
 {
   int64b id = task_id_count_.fetch_add(1, std::memory_order::acq_rel);
 
@@ -938,7 +937,7 @@ int64b ThreadManager::issueTaskId() noexcept
   \return No description
   */
 inline
-Bitset& ThreadManager::taskStatusList() noexcept
+auto ThreadManager::taskStatusList() noexcept -> Bitset&
 {
   return task_status_list_;
 }
@@ -949,7 +948,7 @@ Bitset& ThreadManager::taskStatusList() noexcept
   \return No description
   */
 inline
-const Bitset& ThreadManager::taskStatusList() const noexcept
+auto ThreadManager::taskStatusList() const noexcept -> const Bitset&
 {
   return task_status_list_;
 }
@@ -960,7 +959,7 @@ const Bitset& ThreadManager::taskStatusList() const noexcept
   \return No description
   */
 inline
-constexpr std::size_t ThreadManager::taskStatusSize() noexcept
+constexpr auto ThreadManager::taskStatusSize() noexcept -> std::size_t
 {
   return 4 * Bitset::chunkBitSize();
 }
@@ -1007,7 +1006,7 @@ void ThreadManager::waitForPrecedence(const int64b task_id) const noexcept
   \return No description
   */
 inline
-bool ThreadManager::workersAreEnabled() const noexcept
+auto ThreadManager::workersAreEnabled() const noexcept -> bool
 {
   // The state gets minus value when the manager is destroyed.
   const DiffT state = num_of_tasks_.load(std::memory_order::acquire);

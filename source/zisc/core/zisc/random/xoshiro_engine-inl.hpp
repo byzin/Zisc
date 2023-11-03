@@ -68,7 +68,7 @@ auto XoshiroEngine<T, kMethod>::generate() noexcept -> ValueT
   \return No description
   */
 template <std::unsigned_integral T, XoshiroMethod kMethod> inline
-constexpr std::size_t XoshiroEngine<T, kMethod>::getPeriodPow2() noexcept
+constexpr auto XoshiroEngine<T, kMethod>::getPeriodPow2() noexcept -> std::size_t
 {
   constexpr std::size_t period_pow2 = 4 * std::numeric_limits<ValueT>::digits;
   return period_pow2;
@@ -83,7 +83,7 @@ constexpr std::size_t XoshiroEngine<T, kMethod>::getPeriodPow2() noexcept
   */
 template <std::unsigned_integral T, XoshiroMethod kMethod>
 template <std::unsigned_integral Integer> inline
-constexpr bool XoshiroEngine<T, kMethod>::isEndOfPeriod(const Integer sample) noexcept
+constexpr auto XoshiroEngine<T, kMethod>::isEndOfPeriod(const Integer sample) noexcept -> bool
 {
   constexpr std::size_t sample_bit_size = sizeof(Integer) * 8;
   constexpr std::size_t period_pow2 = getPeriodPow2();
@@ -95,7 +95,7 @@ constexpr bool XoshiroEngine<T, kMethod>::isEndOfPeriod(const Integer sample) no
     return sample == end_of_period;
   }
   else {
-    constexpr Integer end_of_period = (cast<Integer>(1u) << period_pow2) - 2;
+    constexpr Integer end_of_period = (cast<Integer>(1U) << period_pow2) - 2;
     return sample == end_of_period;
   }
 }
@@ -173,7 +173,7 @@ auto XoshiroEngine<T, kMethod>::generateRandom() noexcept -> ValueT
   else if constexpr (kMethod == XoshiroMethod::PlusPlus)
     result = rotateLeft<a()>(state_[0] + state_[3]) + state_[0];
   else if constexpr (kMethod == XoshiroMethod::StarStar)
-    result = rotateLeft<7>(state_[1] * 5u) * 9u;
+    result = rotateLeft<7>(state_[1] * 5U) * 9U;
   return result;
 }
 

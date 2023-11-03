@@ -50,9 +50,18 @@ Bitset::Bitset(pmr::memory_resource* mem_resource) noexcept :
   */
 inline
 Bitset::Bitset(const std::size_t s, pmr::memory_resource* mem_resource) noexcept :
-    chunk_list_{decltype(chunk_list_)::allocator_type{mem_resource}}
+    chunk_list_{decltype(chunk_list_)::allocator_type{mem_resource}},
+    size_{0}
 {
-  setSize(s);
+  constexpr std::size_t num_of_attempts = 16;
+  for (std::size_t i = 0; i < num_of_attempts; ++i) {
+    try {
+      setSize(s);
+      break;
+    }
+    catch ([[maybe_unused]] const std::exception& error) {
+    }
+  }
 }
 
 /*!
@@ -74,7 +83,7 @@ Bitset::Bitset(Bitset&& other) noexcept :
   \return No description
   */
 inline
-Bitset& Bitset::operator=(Bitset&& other) noexcept
+auto Bitset::operator=(Bitset&& other) noexcept -> Bitset&
 {
   chunk_list_ = std::move(other.chunk_list_);
   size_ = other.size_;
@@ -88,7 +97,7 @@ Bitset& Bitset::operator=(Bitset&& other) noexcept
   \return No description
   */
 inline
-bool Bitset::operator[](const std::size_t pos) const noexcept
+auto Bitset::operator[](const std::size_t pos) const noexcept -> bool
 {
   const bool result = test(pos);
   return result;
@@ -100,7 +109,7 @@ bool Bitset::operator[](const std::size_t pos) const noexcept
   \return No description
   */
 inline
-constexpr std::size_t Bitset::blockBitSize() noexcept
+constexpr auto Bitset::blockBitSize() noexcept -> std::size_t
 {
   const std::size_t s = 8 * sizeof(AtomicT);
   return s;
@@ -112,7 +121,7 @@ constexpr std::size_t Bitset::blockBitSize() noexcept
   \return No description
   */
 inline
-constexpr std::size_t Bitset::chunkBitSize() noexcept
+constexpr auto Bitset::chunkBitSize() noexcept -> std::size_t
 {
   const std::size_t s = 8 * sizeof(Chunk);
   return s;
@@ -124,7 +133,7 @@ constexpr std::size_t Bitset::chunkBitSize() noexcept
   \return No description
   */
 inline
-std::size_t Bitset::count() const noexcept
+auto Bitset::count() const noexcept -> std::size_t
 {
   const std::size_t c = count(0, size());
   return c;
@@ -138,7 +147,7 @@ std::size_t Bitset::count() const noexcept
   \return No description
   */
 inline
-std::size_t Bitset::count(const std::size_t begin, const std::size_t end) const noexcept
+auto Bitset::count(const std::size_t begin, const std::size_t end) const noexcept -> std::size_t
 {
   auto func = [](ConstT mask, AConstReference block, std::size_t& result) noexcept
   {
@@ -170,7 +179,7 @@ auto Bitset::getBlockBits(const std::size_t pos) const noexcept -> BitT
   \return No description
   */
 inline
-bool Bitset::isAll() const noexcept
+auto Bitset::isAll() const noexcept -> bool
 {
   const bool result = isAll(0, size());
   return result;
@@ -184,7 +193,7 @@ bool Bitset::isAll() const noexcept
   \return No description
   */
 inline
-bool Bitset::isAll(const std::size_t begin, const std::size_t end) const noexcept
+auto Bitset::isAll(const std::size_t begin, const std::size_t end) const noexcept -> bool
 {
   auto func = [](ConstT mask, AConstReference block, std::size_t& result) noexcept
   {
@@ -203,7 +212,7 @@ bool Bitset::isAll(const std::size_t begin, const std::size_t end) const noexcep
   \return No description
   */
 inline
-bool Bitset::isAny() const noexcept
+auto Bitset::isAny() const noexcept -> bool
 {
   const bool result = isAny(0, size());
   return result;
@@ -217,7 +226,7 @@ bool Bitset::isAny() const noexcept
   \return No description
   */
 inline
-bool Bitset::isAny(const std::size_t begin, const std::size_t end) const noexcept
+auto Bitset::isAny(const std::size_t begin, const std::size_t end) const noexcept -> bool
 {
   const bool result = !isNone(begin, end);
   return result;
@@ -229,7 +238,7 @@ bool Bitset::isAny(const std::size_t begin, const std::size_t end) const noexcep
   \return No description
   */
 inline
-bool Bitset::isNone() const noexcept
+auto Bitset::isNone() const noexcept -> bool
 {
   const bool result = isNone(0, size());
   return result;
@@ -243,7 +252,7 @@ bool Bitset::isNone() const noexcept
   \return No description
   */
 inline
-bool Bitset::isNone(const std::size_t begin, const std::size_t end) const noexcept
+auto Bitset::isNone(const std::size_t begin, const std::size_t end) const noexcept -> bool
 {
   auto func = [](ConstT mask, AConstReference block, std::size_t& result) noexcept
   {
@@ -301,7 +310,7 @@ void Bitset::reset(const std::size_t begin, const std::size_t end, const bool va
   \param [in] s No description.
   */
 inline
-void Bitset::setSize(const std::size_t s) noexcept
+void Bitset::setSize(const std::size_t s)
 {
   constexpr std::size_t bits = chunkBitSize();
   const std::size_t n = (s + (bits - 1)) / bits;
@@ -316,7 +325,7 @@ void Bitset::setSize(const std::size_t s) noexcept
   \return No description
   */
 inline
-std::size_t Bitset::size() const noexcept
+auto Bitset::size() const noexcept -> std::size_t
 {
   return size_;
 }
@@ -328,7 +337,7 @@ std::size_t Bitset::size() const noexcept
   \return No description
   */
 inline
-bool Bitset::test(const std::size_t pos) const noexcept
+auto Bitset::test(const std::size_t pos) const noexcept -> bool
 {
   AConstReference block = getBlockRef(pos);
   ConstT mask = makeMask(pos);
@@ -345,7 +354,7 @@ bool Bitset::test(const std::size_t pos) const noexcept
   \return No description
   */
 inline
-bool Bitset::testAndSet(const std::size_t pos, const bool value) noexcept
+auto Bitset::testAndSet(const std::size_t pos, const bool value) noexcept -> bool
 {
   AReference block = getBlockRef(pos);
   ConstT mask = makeMask(pos);
@@ -354,14 +363,6 @@ bool Bitset::testAndSet(const std::size_t pos, const bool value) noexcept
                      : block.fetch_and(v, std::memory_order::acq_rel);
   const bool result = (old & mask) != 0;
   return result;
-}
-
-/*!
-  \details No detailed description
-  */
-inline
-Bitset::Chunk::Chunk() noexcept
-{
 }
 
 /*!
@@ -442,9 +443,9 @@ auto Bitset::getBlockRef(const std::size_t pos) const noexcept -> AConstReferenc
   \return No description
   */
 template <typename Func> inline
-std::size_t Bitset::iterate(const std::size_t begin,
-                            const std::size_t end,
-                            Func func) const noexcept
+auto Bitset::iterate(const std::size_t begin,
+                     const std::size_t end,
+                     Func func) const noexcept -> std::size_t
     requires std::invocable<Func, Bitset::ConstT, Bitset::AConstReference, std::size_t&>
 {
   constexpr std::size_t bits = blockBitSize();
@@ -491,12 +492,12 @@ auto Bitset::makeMask(const std::size_t begin, const std::size_t end) noexcept -
   constexpr std::size_t bitmask = bits - 1;
   BitT mask = (std::numeric_limits<BitT>::max)();
   {
-    std::size_t b = begin & bitmask;
+    const std::size_t b = begin & bitmask;
     mask = mask >> b;
     mask = mask << b;
   }
   {
-    std::size_t e = bits - (((end - 1) & bitmask) + 1);
+    const std::size_t e = bits - (((end - 1) & bitmask) + 1);
     mask = mask << e;
     mask = mask >> e;
   }

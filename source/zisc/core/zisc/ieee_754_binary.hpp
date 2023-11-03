@@ -137,123 +137,132 @@ class Ieee754Binary
 
 
   //! Return the machine epsilon
-  static constexpr Ieee754Binary epsilon() noexcept;
+  static constexpr auto epsilon() noexcept -> Ieee754Binary;
 
   //! Return the infinity
-  static constexpr Ieee754Binary infinity() noexcept;
+  static constexpr auto infinity() noexcept -> Ieee754Binary;
 
   //! Check if the underlying value is finite
-  constexpr bool isFinite() const noexcept;
+  [[nodiscard]]
+  constexpr auto isFinite() const noexcept -> bool;
 
   //! Check if the underlying value is infinity
-  constexpr bool isInf() const noexcept;
+  [[nodiscard]]
+  constexpr auto isInf() const noexcept -> bool;
 
   //! Check if the underlying value is NaN 
-  constexpr bool isNan() const noexcept;
+  [[nodiscard]]
+  constexpr auto isNan() const noexcept -> bool;
 
   //! Check if the underlying value is normal
-  constexpr bool isNormal() const noexcept;
+  [[nodiscard]]
+  constexpr auto isNormal() const noexcept -> bool;
 
   //! Check if the underlying value is subnormal
-  constexpr bool isSubnormal() const noexcept;
+  [[nodiscard]]
+  constexpr auto isSubnormal() const noexcept -> bool;
 
   //! Check if the underlying value is zero
-  constexpr bool isZero() const noexcept;
+  [[nodiscard]]
+  constexpr auto isZero() const noexcept -> bool;
 
   //! Return the largest normal value
-  static constexpr Ieee754Binary max() noexcept;
+  static constexpr auto max() noexcept -> Ieee754Binary;
 
   //! Return the smallest normal value
-  static constexpr Ieee754Binary min() noexcept;
+  static constexpr auto min() noexcept -> Ieee754Binary;
 
   //! Return the positive one value
-  static constexpr Ieee754Binary one() noexcept;
+  static constexpr auto one() noexcept -> Ieee754Binary;
 
   //! Return a quiet NaN
-  static constexpr Ieee754Binary quietNan() noexcept;
+  static constexpr auto quietNan() noexcept -> Ieee754Binary;
 
   //! Return the largest possible rounding error in ULPs
-  static constexpr Ieee754Binary roundError() noexcept;
+  static constexpr auto roundError() noexcept -> Ieee754Binary;
 
   //! Return the float round style
-  static constexpr std::float_round_style roundStyle() noexcept;
+  static constexpr auto roundStyle() noexcept -> std::float_round_style;
 
   //! Return a signaling NaN
-  static constexpr Ieee754Binary signalingNan() noexcept;
+  static constexpr auto signalingNan() noexcept -> Ieee754Binary;
 
   //! Return the positive zero
-  static constexpr Ieee754Binary zero() noexcept;
+  static constexpr auto zero() noexcept -> Ieee754Binary;
 
   // Bit manipulation
 
   //! Return the bits in which a floating point is encoded
-  constexpr BitT bits() const noexcept;
+  [[nodiscard]]
+  constexpr auto bits() const noexcept -> BitT;
 
   //! Return the bit length used in the interchange encoding
-  static constexpr std::size_t bitSize() noexcept;
+  static constexpr auto bitSize() noexcept -> std::size_t;
 
   //! Return the exponent bias
-  static constexpr std::size_t exponentBias() noexcept;
+  static constexpr auto exponentBias() noexcept -> std::size_t;
 
   //! Return the exponent bit length
-  static constexpr BitT exponentBitMask() noexcept;
+  static constexpr auto exponentBitMask() noexcept -> BitT;
 
   //! Return the exponent bit length
-  static constexpr std::size_t exponentBitSize() noexcept;
+  static constexpr auto exponentBitSize() noexcept -> std::size_t;
 
   //! Return the format
-  static constexpr Ieee754BinaryFormat format() noexcept;
+  static constexpr auto format() noexcept -> Ieee754BinaryFormat;
 
   //! Return the biased exponent from the given bits
-  static constexpr BitT getBiasedExponent(const BitT bits) noexcept;
+  static constexpr auto getBiasedExponent(const BitT bits) noexcept -> BitT;
 
   //! Return the exponent from the given bits
-  static constexpr int getExponent(const BitT bits) noexcept;
+  static constexpr auto getExponent(const BitT bits) noexcept -> int;
 
   //! Return the exponent bits from the given bits
-  static constexpr BitT getExponentBits(const BitT bits) noexcept;
+  static constexpr auto getExponentBits(const BitT bits) noexcept -> BitT;
 
   //! Return the sign bit from the given bits
-  static constexpr BitT getSignBit(const BitT bits) noexcept;
+  static constexpr auto getSignBit(const BitT bits) noexcept -> BitT;
 
   //! Return the signed value of the given bits
-  static constexpr std::make_signed_t<BitT> getSigned(const BitT bits) noexcept;
+  static constexpr auto getSigned(const BitT bits) noexcept -> std::make_signed_t<BitT>;
 
   //! Return the significand bits from the given bits
-  static constexpr BitT getSignificandBits(const BitT bits) noexcept;
+  static constexpr auto getSignificandBits(const BitT bits) noexcept -> BitT;
 
   //! Return the significand and exponent bits from the given bits
-  static constexpr BitT getSignificandExponentBits(const BitT bits) noexcept;
+  static constexpr auto getSignificandExponentBits(const BitT bits) noexcept -> BitT;
 
   //! Return the underlying binary implementation
-  constexpr const ImplT& impl() const noexcept;
+  [[nodiscard]]
+  constexpr auto impl() noexcept -> ImplT&;
 
   //! Return the underlying binary implementation
-  constexpr ImplT& impl() noexcept;
+  [[nodiscard]]
+  constexpr auto impl() const noexcept -> const ImplT&;
 
   //! Return the hidden bit of normal values
-  static constexpr BitT implicitBit() noexcept;
+  static constexpr auto implicitBit() noexcept -> BitT;
 
   //! Return the negative of the given value
-  static constexpr BitT negateBits(const BitT bits) noexcept;
+  static constexpr auto negateBits(const BitT bits) noexcept -> BitT;
 
   //! Set the data to the given bits
   constexpr void setBits(const BitT data) noexcept;
 
   //! Return the sign bit mask
-  static constexpr BitT signBitMask() noexcept;
+  static constexpr auto signBitMask() noexcept -> BitT;
 
   //! Return the significand bit mask
-  static constexpr BitT significandBitMask() noexcept;
+  static constexpr auto significandBitMask() noexcept -> BitT;
 
   //! Return the significand bit length
-  static constexpr std::size_t significandBitSize() noexcept;
+  static constexpr auto significandBitSize() noexcept -> std::size_t;
 
   //! Return the significand and exponent bit mask
-  static constexpr BitT significandExponentBitMask() noexcept;
+  static constexpr auto significandExponentBitMask() noexcept -> BitT;
 
   //! Return the significand and exponent bit length
-  static constexpr std::size_t significandExponentBitSize() noexcept;
+  static constexpr auto significandExponentBitSize() noexcept -> std::size_t;
 
  private:
   ImplT impl_;
@@ -263,85 +272,95 @@ class Ieee754Binary
 
 //! Apply addition assignment
 template <Ieee754BinaryFormat kFormat>
-constexpr Ieee754Binary<kFormat>& operator+=(Ieee754Binary<kFormat>& lhs,
-                                             const Ieee754Binary<kFormat>& rhs) noexcept;
+constexpr auto operator+=(Ieee754Binary<kFormat>& lhs,
+                          const Ieee754Binary<kFormat>& rhs) noexcept
+    -> Ieee754Binary<kFormat>&;
 
 //! Apply subtraction assignment
 template <Ieee754BinaryFormat kFormat>
-constexpr Ieee754Binary<kFormat>& operator-=(Ieee754Binary<kFormat>& lhs,
-                                             const Ieee754Binary<kFormat>& rhs) noexcept;
+constexpr auto operator-=(Ieee754Binary<kFormat>& lhs,
+                          const Ieee754Binary<kFormat>& rhs) noexcept
+    -> Ieee754Binary<kFormat>&;
 
 //! Apply multiplication assignment
 template <Ieee754BinaryFormat kFormat>
-constexpr Ieee754Binary<kFormat>& operator*=(Ieee754Binary<kFormat>& lhs,
-                                             const Ieee754Binary<kFormat>& rhs) noexcept;
+constexpr auto operator*=(Ieee754Binary<kFormat>& lhs,
+                          const Ieee754Binary<kFormat>& rhs) noexcept
+    -> Ieee754Binary<kFormat>&;
 
 //! Apply division assignment
 template <Ieee754BinaryFormat kFormat>
-constexpr Ieee754Binary<kFormat>& operator/=(Ieee754Binary<kFormat>& lhs,
-                                             const Ieee754Binary<kFormat>& rhs) noexcept;
+constexpr auto operator/=(Ieee754Binary<kFormat>& lhs,
+                          const Ieee754Binary<kFormat>& rhs) noexcept
+    -> Ieee754Binary<kFormat>&;
 
 // Artihmeteic
 
 //! Return the value it's own
 template <Ieee754BinaryFormat kFormat>
-constexpr Ieee754Binary<kFormat> operator+(const Ieee754Binary<kFormat>& value) noexcept;
+constexpr auto operator+(const Ieee754Binary<kFormat>& value) noexcept
+    -> Ieee754Binary<kFormat>;
 
 //! Return the negated value
 template <Ieee754BinaryFormat kFormat>
-constexpr Ieee754Binary<kFormat> operator-(const Ieee754Binary<kFormat>& value) noexcept;
+constexpr auto operator-(const Ieee754Binary<kFormat>& value) noexcept
+    -> Ieee754Binary<kFormat>;
 
 //! Comppute an addition
 template <Ieee754BinaryFormat kFormat>
-constexpr Ieee754Binary<kFormat> operator+(const Ieee754Binary<kFormat>& lhs,
-                                           const Ieee754Binary<kFormat>& rhs) noexcept;
+constexpr auto operator+(const Ieee754Binary<kFormat>& lhs,
+                         const Ieee754Binary<kFormat>& rhs) noexcept
+    -> Ieee754Binary<kFormat>;
 
 //! Comppute a subtraction
 template <Ieee754BinaryFormat kFormat>
-constexpr Ieee754Binary<kFormat> operator-(const Ieee754Binary<kFormat>& lhs,
-                                           const Ieee754Binary<kFormat>& rhs) noexcept;
+constexpr auto operator-(const Ieee754Binary<kFormat>& lhs,
+                         const Ieee754Binary<kFormat>& rhs) noexcept
+    -> Ieee754Binary<kFormat>;
 
 //! Comppute a multiplication
 template <Ieee754BinaryFormat kFormat>
-constexpr Ieee754Binary<kFormat> operator*(const Ieee754Binary<kFormat>& lhs,
-                                           const Ieee754Binary<kFormat>& rhs) noexcept;
+constexpr auto operator*(const Ieee754Binary<kFormat>& lhs,
+                         const Ieee754Binary<kFormat>& rhs) noexcept
+    -> Ieee754Binary<kFormat>;
 
 //! Comppute a division 
 template <Ieee754BinaryFormat kFormat>
-constexpr Ieee754Binary<kFormat> operator/(const Ieee754Binary<kFormat>& lhs,
-                                           const Ieee754Binary<kFormat>& rhs) noexcept;
+constexpr auto operator/(const Ieee754Binary<kFormat>& lhs,
+                         const Ieee754Binary<kFormat>& rhs) noexcept
+    -> Ieee754Binary<kFormat>;
 
 // Comparison
 
 //! Check if two values are equal
 template <Ieee754BinaryFormat kFormat>
-constexpr bool operator==(const Ieee754Binary<kFormat>& lhs,
-                          const Ieee754Binary<kFormat>& rhs) noexcept;
+constexpr auto operator==(const Ieee754Binary<kFormat>& lhs,
+                          const Ieee754Binary<kFormat>& rhs) noexcept -> bool;
 
 //! Check if two values aren't equal
 template <Ieee754BinaryFormat kFormat>
-constexpr bool operator!=(const Ieee754Binary<kFormat>& lhs,
-                          const Ieee754Binary<kFormat>& rhs) noexcept;
+constexpr auto operator!=(const Ieee754Binary<kFormat>& lhs,
+                          const Ieee754Binary<kFormat>& rhs) noexcept -> bool;
 
 //!
 template <Ieee754BinaryFormat kFormat>
-constexpr bool operator<(const Ieee754Binary<kFormat>& lhs,
-                         const Ieee754Binary<kFormat>& rhs) noexcept;
+constexpr auto operator<(const Ieee754Binary<kFormat>& lhs,
+                         const Ieee754Binary<kFormat>& rhs) noexcept -> bool;
 
 //!
 template <Ieee754BinaryFormat kFormat>
-constexpr bool operator<=(const Ieee754Binary<kFormat>& lhs,
-                          const Ieee754Binary<kFormat>& rhs) noexcept;
+constexpr auto operator<=(const Ieee754Binary<kFormat>& lhs,
+                          const Ieee754Binary<kFormat>& rhs) noexcept -> bool;
 
 //!
 template <Ieee754BinaryFormat kFormat>
-constexpr bool operator>(const Ieee754Binary<kFormat>& lhs,
-                         const Ieee754Binary<kFormat>& rhs) noexcept;
+constexpr auto operator>(const Ieee754Binary<kFormat>& lhs,
+                         const Ieee754Binary<kFormat>& rhs) noexcept -> bool;
 
 //!
 template <Ieee754BinaryFormat kFormat>
-constexpr bool operator>=(const Ieee754Binary<kFormat>& lhs,
-                          const Ieee754Binary<kFormat>& rhs) noexcept;
+constexpr auto operator>=(const Ieee754Binary<kFormat>& lhs,
+                          const Ieee754Binary<kFormat>& rhs) noexcept -> bool;
 
 // Classification and comparison
 
@@ -353,43 +372,43 @@ concept Ieee754BinaryClass = std::is_same_v<Binary16, std::remove_cv_t<Type>> ||
 
 //! Check if the given value is finite value
 template <Ieee754BinaryClass Float>
-constexpr bool isFinite(const Float& x) noexcept;
+constexpr auto isFinite(const Float& x) noexcept -> bool;
 
 //! Check if the given value is finite value
 template <std::floating_point Float>
-constexpr bool isFinite(const Float& x) noexcept;
+constexpr auto isFinite(const Float& x) noexcept -> bool;
 
 //! Check if the given value is infinite
 template <Ieee754BinaryClass Float>
-constexpr bool isInf(const Float& x) noexcept;
+constexpr auto isInf(const Float& x) noexcept -> bool;
 
 //! Check if the given value is infinite
 template <std::floating_point Float>
-constexpr bool isInf(const Float& x) noexcept;
+constexpr auto isInf(const Float& x) noexcept -> bool;
 
 //! Check if the given value is NaN
 template <Ieee754BinaryClass Float>
-constexpr bool isNan(const Float& x) noexcept;
+constexpr auto isNan(const Float& x) noexcept -> bool;
 
 //! Check if the given value is NaN
 template <std::floating_point Float>
-constexpr bool isNan(const Float& x) noexcept;
+constexpr auto isNan(const Float& x) noexcept -> bool;
 
 //! Check if the given value is normal
 template <Ieee754BinaryClass Float>
-constexpr bool isNormal(const Float& x) noexcept;
+constexpr auto isNormal(const Float& x) noexcept -> bool;
 
 //! Check if the given value is normal
 template <std::floating_point Float>
-constexpr bool isNormal(const Float& x) noexcept;
+constexpr auto isNormal(const Float& x) noexcept -> bool;
 
 //! Check if the given value is subnormal
 template <Ieee754BinaryClass Float>
-constexpr bool isSubnormal(const Float& x) noexcept;
+constexpr auto isSubnormal(const Float& x) noexcept -> bool;
 
 //! Check if the given value is subnormal
 template <std::floating_point Float>
-constexpr bool isSubnormal(const Float& x) noexcept;
+constexpr auto isSubnormal(const Float& x) noexcept -> bool;
 
 } // namespace zisc
 

@@ -31,21 +31,14 @@ namespace zisc {
 class SpinLockMutex : private NonCopyable<SpinLockMutex>
 {
  public:
-  //! Construct the mutex. The mutex is in unlocked state.
-  SpinLockMutex() noexcept;
-
-  //!
-  ~SpinLockMutex() noexcept;
-
-
   //! Lock the mutex
   void lock() noexcept;
 
   //! Try to lock the mutex for STL compatible
-  bool try_lock() noexcept;
+  auto try_lock() noexcept -> bool;
 
   //! Try to lock the mutex
-  bool tryLock() noexcept;
+  auto tryLock() noexcept -> bool;
 
   //! Unlock the mutex
   void unlock() noexcept;

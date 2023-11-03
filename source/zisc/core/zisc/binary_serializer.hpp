@@ -29,19 +29,19 @@ class BinarySerializer
 {
  public:
   //! Return the distance from current position to the end of the given stream
-  static std::streamsize getDistance(std::istream* data_stream) noexcept;
+  static auto getDistance(std::istream* data_stream) noexcept -> std::streamsize;
 
   //! Deserialize a data from the given stream
   template <typename Type>
-  static std::istream& read(Type* data,
-                            std::istream* data_stream,
-                            const std::streamsize size = sizeof(Type)) noexcept;
+  static auto read(Type* data,
+                   std::istream* data_stream,
+                   const std::streamsize size = sizeof(Type)) noexcept -> std::istream&;
 
   //! Serialize the given data into the stream
   template <typename Type>
-  static std::ostream& write(const Type* data,
-                             std::ostream* data_stream,
-                             const std::streamsize size = sizeof(Type)) noexcept;
+  static auto write(const Type* data,
+                    std::ostream* data_stream,
+                    const std::streamsize size = sizeof(Type)) noexcept -> std::ostream&;
 
   //! Set the input position indicator to begin
   static void backToBegin(std::istream* data_stream) noexcept;

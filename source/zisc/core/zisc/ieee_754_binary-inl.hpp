@@ -46,7 +46,7 @@ static_assert(std::is_trivial_v<Binary64>);
   \return No description
   */
 template <Ieee754BinaryClass Float> inline
-constexpr bool isFinite(const Float& x) noexcept
+constexpr auto isFinite(const Float& x) noexcept -> bool
 {
   return x.isFinite();
 }
@@ -59,7 +59,7 @@ constexpr bool isFinite(const Float& x) noexcept
   \return No description
   */
 template <std::floating_point Float> inline
-constexpr bool isFinite(const Float& x) noexcept
+constexpr auto isFinite(const Float& x) noexcept -> bool
 {
   using FLimit = std::numeric_limits<Float>;
   const bool result = (FLimit::lowest() <= x) && (x <= (FLimit::max)());
@@ -74,7 +74,7 @@ constexpr bool isFinite(const Float& x) noexcept
   \return No description
   */
 template <Ieee754BinaryClass Float> inline
-constexpr bool isInf(const Float& x) noexcept
+constexpr auto isInf(const Float& x) noexcept -> bool
 {
   return x.isInf();
 }
@@ -87,7 +87,7 @@ constexpr bool isInf(const Float& x) noexcept
   \return No description
   */
 template <std::floating_point Float> inline
-constexpr bool isInf(const Float& x) noexcept
+constexpr auto isInf(const Float& x) noexcept -> bool
 {
   using FLimit = std::numeric_limits<Float>;
   const bool result = (x == -FLimit::infinity()) || (x == FLimit::infinity());
@@ -102,7 +102,7 @@ constexpr bool isInf(const Float& x) noexcept
   \return No description
   */
 template <Ieee754BinaryClass Float> inline
-constexpr bool isNan(const Float& x) noexcept
+constexpr auto isNan(const Float& x) noexcept -> bool
 {
   return x.isNan();
 }
@@ -115,7 +115,7 @@ constexpr bool isNan(const Float& x) noexcept
   \return No description
   */
 template <std::floating_point Float> inline
-constexpr bool isNan(const Float& x) noexcept
+constexpr auto isNan(const Float& x) noexcept -> bool
 {
   const bool result = !(isFinite(x) || isInf(x));
   return result;
@@ -129,7 +129,7 @@ constexpr bool isNan(const Float& x) noexcept
   \return No description
   */
 template <Ieee754BinaryClass Float> inline
-constexpr bool isNormal(const Float& x) noexcept
+constexpr auto isNormal(const Float& x) noexcept -> bool
 {
   return x.isNormal();
 }
@@ -142,7 +142,7 @@ constexpr bool isNormal(const Float& x) noexcept
   \return No description
   */
 template <std::floating_point Float> inline
-constexpr bool isNormal(const Float& x) noexcept
+constexpr auto isNormal(const Float& x) noexcept -> bool
 {
   using FLimit = std::numeric_limits<Float>;
   const Float d = abs(x);
@@ -158,7 +158,7 @@ constexpr bool isNormal(const Float& x) noexcept
   \return No description
   */
 template <Ieee754BinaryClass Float> inline
-constexpr bool isSubnormal(const Float& x) noexcept
+constexpr auto isSubnormal(const Float& x) noexcept -> bool
 {
   return x.isSubnormal();
 }
@@ -171,10 +171,10 @@ constexpr bool isSubnormal(const Float& x) noexcept
   \return No description
   */
 template <std::floating_point Float> inline
-constexpr bool isSubnormal(const Float& x) noexcept
+constexpr auto isSubnormal(const Float& x) noexcept -> bool
 {
   using FLimit = std::numeric_limits<Float>;
-  constexpr Float zero = static_cast<Float>(0);
+  constexpr auto zero = static_cast<Float>(0);
   const Float d = abs(x);
   const bool result = (zero < d) && (d < (FLimit::min)());
   return result;
@@ -288,7 +288,7 @@ constexpr Ieee754Binary<kFormat>::operator double() const noexcept
 template <Ieee754BinaryFormat kFormat> inline
 constexpr Ieee754Binary<kFormat>::operator long double() const noexcept
 {
-  const double d = static_cast<double>(*this);
+  const auto d = static_cast<double>(*this);
   const auto result = static_cast<long double>(d);
   return result;
 }
@@ -321,7 +321,7 @@ constexpr auto Ieee754Binary<kFormat>::infinity() noexcept -> Ieee754Binary
   \return No description
   */
 template <Ieee754BinaryFormat kFormat> inline
-constexpr bool Ieee754Binary<kFormat>::isFinite() const noexcept
+constexpr auto Ieee754Binary<kFormat>::isFinite() const noexcept -> bool
 {
   return SoftImplT::isFinite(bits());
 }
@@ -332,7 +332,7 @@ constexpr bool Ieee754Binary<kFormat>::isFinite() const noexcept
   \return No description
   */
 template <Ieee754BinaryFormat kFormat> inline
-constexpr bool Ieee754Binary<kFormat>::isInf() const noexcept
+constexpr auto Ieee754Binary<kFormat>::isInf() const noexcept -> bool
 {
   return SoftImplT::isInf(bits());
 }
@@ -343,7 +343,7 @@ constexpr bool Ieee754Binary<kFormat>::isInf() const noexcept
   \return No description
   */
 template <Ieee754BinaryFormat kFormat> inline
-constexpr bool Ieee754Binary<kFormat>::isNan() const noexcept
+constexpr auto Ieee754Binary<kFormat>::isNan() const noexcept -> bool
 {
   return SoftImplT::isNan(bits());
 }
@@ -354,7 +354,7 @@ constexpr bool Ieee754Binary<kFormat>::isNan() const noexcept
   \return No description
   */
 template <Ieee754BinaryFormat kFormat> inline
-constexpr bool Ieee754Binary<kFormat>::isNormal() const noexcept
+constexpr auto Ieee754Binary<kFormat>::isNormal() const noexcept -> bool
 {
   return SoftImplT::isNormal(bits());
 }
@@ -365,7 +365,7 @@ constexpr bool Ieee754Binary<kFormat>::isNormal() const noexcept
   \return No description
   */
 template <Ieee754BinaryFormat kFormat> inline
-constexpr bool Ieee754Binary<kFormat>::isSubnormal() const noexcept
+constexpr auto Ieee754Binary<kFormat>::isSubnormal() const noexcept -> bool
 {
   return SoftImplT::isSubnormal(bits());
 }
@@ -376,7 +376,7 @@ constexpr bool Ieee754Binary<kFormat>::isSubnormal() const noexcept
   \return No description
   */
 template <Ieee754BinaryFormat kFormat> inline
-constexpr bool Ieee754Binary<kFormat>::isZero() const noexcept
+constexpr auto Ieee754Binary<kFormat>::isZero() const noexcept -> bool
 {
   return SoftImplT::isZero(bits());
 }
@@ -442,7 +442,7 @@ constexpr auto Ieee754Binary<kFormat>::roundError() noexcept -> Ieee754Binary
   \return No description
   */
 template <Ieee754BinaryFormat kFormat> inline
-constexpr std::float_round_style Ieee754Binary<kFormat>::roundStyle() noexcept
+constexpr auto Ieee754Binary<kFormat>::roundStyle() noexcept -> std::float_round_style
 {
   return ImplT::roundStyle();
 }
@@ -486,7 +486,7 @@ constexpr auto Ieee754Binary<kFormat>::bits() const noexcept -> BitT
   \return No description
   */
 template <Ieee754BinaryFormat kFormat> inline
-constexpr std::size_t Ieee754Binary<kFormat>::bitSize() noexcept
+constexpr auto Ieee754Binary<kFormat>::bitSize() noexcept -> std::size_t
 {
   constexpr std::size_t bit_size = ImplT::bitSize();
   static_assert(bit_size == sizeof(Ieee754Binary),
@@ -500,7 +500,7 @@ constexpr std::size_t Ieee754Binary<kFormat>::bitSize() noexcept
   \return No description
   */
 template <Ieee754BinaryFormat kFormat> inline
-constexpr std::size_t Ieee754Binary<kFormat>::exponentBias() noexcept
+constexpr auto Ieee754Binary<kFormat>::exponentBias() noexcept -> std::size_t
 {
   return SoftImplT::exponentBias();
 }
@@ -522,7 +522,7 @@ constexpr auto Ieee754Binary<kFormat>::exponentBitMask() noexcept -> BitT
   \return No description
   */
 template <Ieee754BinaryFormat kFormat> inline
-constexpr std::size_t Ieee754Binary<kFormat>::exponentBitSize() noexcept
+constexpr auto Ieee754Binary<kFormat>::exponentBitSize() noexcept -> std::size_t
 {
   return SoftImplT::exponentBitSize();
 }
@@ -533,7 +533,7 @@ constexpr std::size_t Ieee754Binary<kFormat>::exponentBitSize() noexcept
   \return No description
   */
 template <Ieee754BinaryFormat kFormat> inline
-constexpr Ieee754BinaryFormat Ieee754Binary<kFormat>::format() noexcept
+constexpr auto Ieee754Binary<kFormat>::format() noexcept -> Ieee754BinaryFormat
 {
   return ImplT::format();
 }
@@ -557,7 +557,7 @@ constexpr auto Ieee754Binary<kFormat>::getBiasedExponent(const BitT bits) noexce
   \return No description
   */
 template <Ieee754BinaryFormat kFormat> inline
-constexpr int Ieee754Binary<kFormat>::getExponent(const BitT bits) noexcept
+constexpr auto Ieee754Binary<kFormat>::getExponent(const BitT bits) noexcept -> int
 {
   return SoftImplT::getExponent(bits);
 }
@@ -628,7 +628,7 @@ constexpr auto Ieee754Binary<kFormat>::getSignificandExponentBits(const BitT bit
   \return No description
   */
 template <Ieee754BinaryFormat kFormat> inline
-constexpr auto Ieee754Binary<kFormat>::impl() const noexcept -> const ImplT&
+constexpr auto Ieee754Binary<kFormat>::impl() noexcept -> ImplT&
 {
   return impl_;
 }
@@ -639,7 +639,7 @@ constexpr auto Ieee754Binary<kFormat>::impl() const noexcept -> const ImplT&
   \return No description
   */
 template <Ieee754BinaryFormat kFormat> inline
-constexpr auto Ieee754Binary<kFormat>::impl() noexcept -> ImplT&
+constexpr auto Ieee754Binary<kFormat>::impl() const noexcept -> const ImplT&
 {
   return impl_;
 }
@@ -694,7 +694,7 @@ constexpr auto Ieee754Binary<kFormat>::significandBitMask() noexcept -> BitT
   \return No description
   */
 template <Ieee754BinaryFormat kFormat> inline
-constexpr std::size_t Ieee754Binary<kFormat>::significandBitSize() noexcept
+constexpr auto Ieee754Binary<kFormat>::significandBitSize() noexcept -> std::size_t
 {
   return SoftImplT::significandBitSize();
 }
@@ -716,7 +716,7 @@ constexpr auto Ieee754Binary<kFormat>::significandExponentBitMask() noexcept -> 
   \return No description
   */
 template <Ieee754BinaryFormat kFormat> inline
-constexpr std::size_t Ieee754Binary<kFormat>::significandExponentBitSize() noexcept
+constexpr auto Ieee754Binary<kFormat>::significandExponentBitSize() noexcept -> std::size_t
 {
   return SoftImplT::significandExponentBitSize();
 }
@@ -730,8 +730,9 @@ constexpr std::size_t Ieee754Binary<kFormat>::significandExponentBitSize() noexc
   \return No description
   */
 template <Ieee754BinaryFormat kFormat> inline
-constexpr Ieee754Binary<kFormat>& operator+=(Ieee754Binary<kFormat>& lhs,
-                                             const Ieee754Binary<kFormat>& rhs) noexcept
+constexpr auto operator+=(Ieee754Binary<kFormat>& lhs,
+                          const Ieee754Binary<kFormat>& rhs) noexcept
+    -> Ieee754Binary<kFormat>&
 {
   lhs.impl() += rhs.impl();
   return lhs;
@@ -746,8 +747,9 @@ constexpr Ieee754Binary<kFormat>& operator+=(Ieee754Binary<kFormat>& lhs,
   \return No description
   */
 template <Ieee754BinaryFormat kFormat> inline
-constexpr Ieee754Binary<kFormat>& operator-=(Ieee754Binary<kFormat>& lhs,
-                                             const Ieee754Binary<kFormat>& rhs) noexcept
+constexpr auto operator-=(Ieee754Binary<kFormat>& lhs,
+                          const Ieee754Binary<kFormat>& rhs) noexcept
+    -> Ieee754Binary<kFormat>&
 {
   lhs.impl() -= rhs.impl();
   return lhs;
@@ -762,8 +764,9 @@ constexpr Ieee754Binary<kFormat>& operator-=(Ieee754Binary<kFormat>& lhs,
   \return No description
   */
 template <Ieee754BinaryFormat kFormat> inline
-constexpr Ieee754Binary<kFormat>& operator*=(Ieee754Binary<kFormat>& lhs,
-                                             const Ieee754Binary<kFormat>& rhs) noexcept
+constexpr auto operator*=(Ieee754Binary<kFormat>& lhs,
+                          const Ieee754Binary<kFormat>& rhs) noexcept
+    -> Ieee754Binary<kFormat>&
 {
   lhs.impl() *= rhs.impl();
   return lhs;
@@ -778,8 +781,9 @@ constexpr Ieee754Binary<kFormat>& operator*=(Ieee754Binary<kFormat>& lhs,
   \return No description
   */
 template <Ieee754BinaryFormat kFormat> inline
-constexpr Ieee754Binary<kFormat>& operator/=(Ieee754Binary<kFormat>& lhs,
-                                             const Ieee754Binary<kFormat>& rhs) noexcept
+constexpr auto operator/=(Ieee754Binary<kFormat>& lhs,
+                          const Ieee754Binary<kFormat>& rhs) noexcept
+    -> Ieee754Binary<kFormat>&
 {
   lhs.impl() /= rhs.impl();
   return lhs;
@@ -793,7 +797,8 @@ constexpr Ieee754Binary<kFormat>& operator/=(Ieee754Binary<kFormat>& lhs,
   \return No description
   */
 template <Ieee754BinaryFormat kFormat> inline
-constexpr Ieee754Binary<kFormat> operator+(const Ieee754Binary<kFormat>& value) noexcept
+constexpr auto operator+(const Ieee754Binary<kFormat>& value) noexcept
+    -> Ieee754Binary<kFormat>
 {
   return {+value.impl()};
 }
@@ -806,7 +811,8 @@ constexpr Ieee754Binary<kFormat> operator+(const Ieee754Binary<kFormat>& value) 
   \return No description
   */
 template <Ieee754BinaryFormat kFormat> inline
-constexpr Ieee754Binary<kFormat> operator-(const Ieee754Binary<kFormat>& value) noexcept
+constexpr auto operator-(const Ieee754Binary<kFormat>& value) noexcept
+    -> Ieee754Binary<kFormat>
 {
   return {-value.impl()};
 }
@@ -820,8 +826,9 @@ constexpr Ieee754Binary<kFormat> operator-(const Ieee754Binary<kFormat>& value) 
   \return No description
   */
 template <Ieee754BinaryFormat kFormat> inline
-constexpr Ieee754Binary<kFormat> operator+(const Ieee754Binary<kFormat>& lhs,
-                                           const Ieee754Binary<kFormat>& rhs) noexcept
+constexpr auto operator+(const Ieee754Binary<kFormat>& lhs,
+                         const Ieee754Binary<kFormat>& rhs) noexcept
+    -> Ieee754Binary<kFormat>
 {
   return {lhs.impl() + rhs.impl()};
 }
@@ -835,8 +842,9 @@ constexpr Ieee754Binary<kFormat> operator+(const Ieee754Binary<kFormat>& lhs,
   \return No description
   */
 template <Ieee754BinaryFormat kFormat> inline
-constexpr Ieee754Binary<kFormat> operator-(const Ieee754Binary<kFormat>& lhs,
-                                           const Ieee754Binary<kFormat>& rhs) noexcept
+constexpr auto operator-(const Ieee754Binary<kFormat>& lhs,
+                         const Ieee754Binary<kFormat>& rhs) noexcept
+    -> Ieee754Binary<kFormat>
 {
   return {lhs.impl() - rhs.impl()};
 }
@@ -850,8 +858,9 @@ constexpr Ieee754Binary<kFormat> operator-(const Ieee754Binary<kFormat>& lhs,
   \return No description
   */
 template <Ieee754BinaryFormat kFormat> inline
-constexpr Ieee754Binary<kFormat> operator*(const Ieee754Binary<kFormat>& lhs,
-                                           const Ieee754Binary<kFormat>& rhs) noexcept
+constexpr auto operator*(const Ieee754Binary<kFormat>& lhs,
+                         const Ieee754Binary<kFormat>& rhs) noexcept
+    -> Ieee754Binary<kFormat>
 {
   return {lhs.impl() * rhs.impl()};
 }
@@ -865,8 +874,9 @@ constexpr Ieee754Binary<kFormat> operator*(const Ieee754Binary<kFormat>& lhs,
   \return No description
   */
 template <Ieee754BinaryFormat kFormat> inline
-constexpr Ieee754Binary<kFormat> operator/(const Ieee754Binary<kFormat>& lhs,
-                                           const Ieee754Binary<kFormat>& rhs) noexcept
+constexpr auto operator/(const Ieee754Binary<kFormat>& lhs,
+                         const Ieee754Binary<kFormat>& rhs) noexcept
+    -> Ieee754Binary<kFormat>
 {
   return {lhs.impl() / rhs.impl()};
 }
@@ -880,8 +890,8 @@ constexpr Ieee754Binary<kFormat> operator/(const Ieee754Binary<kFormat>& lhs,
   \return No description
   */
 template <Ieee754BinaryFormat kFormat> inline
-constexpr bool operator==(const Ieee754Binary<kFormat>& lhs,
-                          const Ieee754Binary<kFormat>& rhs) noexcept
+constexpr auto operator==(const Ieee754Binary<kFormat>& lhs,
+                          const Ieee754Binary<kFormat>& rhs) noexcept -> bool
 {
   return lhs.impl() == rhs.impl();
 }
@@ -895,8 +905,8 @@ constexpr bool operator==(const Ieee754Binary<kFormat>& lhs,
   \return No description
   */
 template <Ieee754BinaryFormat kFormat> inline
-constexpr bool operator!=(const Ieee754Binary<kFormat>& lhs,
-                          const Ieee754Binary<kFormat>& rhs) noexcept
+constexpr auto operator!=(const Ieee754Binary<kFormat>& lhs,
+                          const Ieee754Binary<kFormat>& rhs) noexcept -> bool
 {
   return lhs.impl() != rhs.impl();
 }
@@ -910,8 +920,8 @@ constexpr bool operator!=(const Ieee754Binary<kFormat>& lhs,
   \return No description
   */
 template <Ieee754BinaryFormat kFormat> inline
-constexpr bool operator<(const Ieee754Binary<kFormat>& lhs,
-                         const Ieee754Binary<kFormat>& rhs) noexcept
+constexpr auto operator<(const Ieee754Binary<kFormat>& lhs,
+                         const Ieee754Binary<kFormat>& rhs) noexcept -> bool
 {
   return lhs.impl() < rhs.impl();
 }
@@ -925,8 +935,8 @@ constexpr bool operator<(const Ieee754Binary<kFormat>& lhs,
   \return No description
   */
 template <Ieee754BinaryFormat kFormat> inline
-constexpr bool operator<=(const Ieee754Binary<kFormat>& lhs,
-                          const Ieee754Binary<kFormat>& rhs) noexcept
+constexpr auto operator<=(const Ieee754Binary<kFormat>& lhs,
+                          const Ieee754Binary<kFormat>& rhs) noexcept -> bool
 {
   return lhs.impl() <= rhs.impl();
 }
@@ -940,8 +950,8 @@ constexpr bool operator<=(const Ieee754Binary<kFormat>& lhs,
   \return No description
   */
 template <Ieee754BinaryFormat kFormat> inline
-constexpr bool operator>(const Ieee754Binary<kFormat>& lhs,
-                         const Ieee754Binary<kFormat>& rhs) noexcept
+constexpr auto operator>(const Ieee754Binary<kFormat>& lhs,
+                         const Ieee754Binary<kFormat>& rhs) noexcept -> bool
 {
   return lhs.impl() > rhs.impl();
 }
@@ -955,8 +965,8 @@ constexpr bool operator>(const Ieee754Binary<kFormat>& lhs,
   \return No description
   */
 template <Ieee754BinaryFormat kFormat> inline
-constexpr bool operator>=(const Ieee754Binary<kFormat>& lhs,
-                          const Ieee754Binary<kFormat>& rhs) noexcept
+constexpr auto operator>=(const Ieee754Binary<kFormat>& lhs,
+                          const Ieee754Binary<kFormat>& rhs) noexcept -> bool
 {
   return lhs.impl() >= rhs.impl();
 }
@@ -1076,57 +1086,57 @@ class numeric_limits<zisc::Ieee754Binary<kFormat>>
   static constexpr bool tinyness_before = false;
 
   //! Return the smallest finite value
-  static constexpr BinaryT min()
+  static constexpr auto min() -> BinaryT
   {
     return (BinaryT::min)();
   }
 
   //! Return the lowest finite value
-  static constexpr BinaryT lowest()
+  static constexpr auto lowest() -> BinaryT
   {
     return -(BinaryT::max)();
   }
 
   //! Return the largest finite value
-  static constexpr BinaryT max()
+  static constexpr auto max() -> BinaryT
   {
     return +(BinaryT::max)();
   }
 
   //! Return the difference between 1.0 and the next representable value
-  static constexpr BinaryT epsilon()
+  static constexpr auto epsilon() -> BinaryT
   {
     return BinaryT::epsilon();
   }
 
   //! Return the maximum rounding error
-  static constexpr BinaryT round_error()
+  static constexpr auto round_error() -> BinaryT
   {
     return BinaryT::roundError();
   }
 
   //! Return the positive infinity value
-  static constexpr BinaryT infinity()
+  static constexpr auto infinity() -> BinaryT
   {
     return BinaryT::infinity();
   }
 
   //! Return a quiet NaN value
-  static constexpr BinaryT quiet_NaN()
+  static constexpr auto quiet_NaN() -> BinaryT
   {
     return BinaryT::quietNan();
   }
 
   //! Return a signaling NaN value
-  static constexpr BinaryT signaling_NaN()
+  static constexpr auto signaling_NaN() -> BinaryT
   {
     return BinaryT::signalingNan();
   }
 
   //! Return the smallest positive subnormal value
-  static constexpr BinaryT denorm_min()
+  static constexpr auto denorm_min() -> BinaryT
   {
-    return BinaryT{0b1u};
+    return BinaryT{0b1U};
   }
 };
 

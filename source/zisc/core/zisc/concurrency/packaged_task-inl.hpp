@@ -41,7 +41,8 @@ void PackagedTask::operator()(const int64b thread_id, const DiffT offset)
 }
 
 inline
-int64b PackagedTask::encodeInfo(const int64b task_id, const bool wait_for_precedence) noexcept
+auto PackagedTask::encodeInfo(const int64b task_id, const bool wait_for_precedence) noexcept
+    -> int64b
 {
   const int64b info = wait_for_precedence ? -task_id : task_id;
   return info;
@@ -53,7 +54,7 @@ int64b PackagedTask::encodeInfo(const int64b task_id, const bool wait_for_preced
   \return No description
   */
 inline
-int64b PackagedTask::id() const noexcept
+auto PackagedTask::id() const noexcept -> int64b
 {
   return std::abs(info_);
 }
@@ -64,7 +65,7 @@ int64b PackagedTask::id() const noexcept
   \return No description
   */
 inline
-constexpr int64b PackagedTask::invalidId() noexcept
+constexpr auto PackagedTask::invalidId() noexcept -> int64b
 {
   return (std::numeric_limits<int64b>::min)();
 }
@@ -75,7 +76,7 @@ constexpr int64b PackagedTask::invalidId() noexcept
   \return No description
   */
 inline
-bool PackagedTask::isNeededToWaitForPrecedence() const noexcept
+auto PackagedTask::isNeededToWaitForPrecedence() const noexcept -> bool
 {
   const bool flag = std::signbit(bit_cast<double>(info_));
   return flag;
@@ -87,7 +88,7 @@ bool PackagedTask::isNeededToWaitForPrecedence() const noexcept
   \return No description
   */
 inline
-bool PackagedTask::isValid() const noexcept
+auto PackagedTask::isValid() const noexcept -> bool
 {
   const bool result = id() != invalidId();
   return result;

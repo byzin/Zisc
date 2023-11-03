@@ -52,41 +52,41 @@ class XoshiroEngine : public PseudoRandomNumberEngine<XoshiroEngine<T, kMethod>,
   XoshiroEngine() noexcept;
 
   //! Initialize
-  XoshiroEngine(const ValueT seed) noexcept;
+  explicit XoshiroEngine(const ValueT seed) noexcept;
 
 
   //! Generate a random number
-  ValueT generate() noexcept;
+  auto generate() noexcept -> ValueT;
 
   //! Return the n which of the period 2^n-1
-  static constexpr std::size_t getPeriodPow2() noexcept;
+  static constexpr auto getPeriodPow2() noexcept -> std::size_t;
 
   //! Check if a specified sample (0 base count) is the end of period
   template <std::unsigned_integral Integer>
-  static constexpr bool isEndOfPeriod(const Integer sample) noexcept;
+  static constexpr auto isEndOfPeriod(const Integer sample) noexcept -> bool;
 
   //! Set a seed
   void setSeed(const ValueT seed) noexcept;
 
  private:
   //!
-  static constexpr ValueT a() noexcept;
+  static constexpr auto a() noexcept -> ValueT;
 
   //!
-  static constexpr ValueT b() noexcept;
+  static constexpr auto b() noexcept -> ValueT;
 
   //!
-  static constexpr ValueT c() noexcept;
+  static constexpr auto c() noexcept -> ValueT;
 
   //! Generate a random number
-  ValueT generateRandom() noexcept;
+  auto generateRandom() noexcept -> ValueT;
 
   //! Next seed state
   void nextState() noexcept;
 
   //!
   template <T k>
-  static ValueT rotateLeft(const ValueT x) noexcept;
+  static auto rotateLeft(const ValueT x) noexcept -> ValueT;
 
 
   alignas(4 * sizeof(ValueT)) std::array<ValueT, 4> state_;

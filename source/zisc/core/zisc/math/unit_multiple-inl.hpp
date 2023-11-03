@@ -30,15 +30,6 @@ namespace zisc {
 
 /*!
   \details No detailed description
-  */
-template <int64b kBase, int64b kExponent> inline
-constexpr UnitMultiple<kBase, kExponent>::UnitMultiple() noexcept :
-    value_{}
-{
-}
-
-/*!
-  \details No detailed description
 
   \param [in] value No description.
   */
@@ -143,7 +134,8 @@ constexpr auto UnitMultiple<kBase, kExponent>::exponent() noexcept -> Type
   \return No description
   */
 template <int64b kBase, int64b kExponent> template <int64b kToExponent> inline
-constexpr UnitMultiple<kBase, kToExponent> UnitMultiple<kBase, kExponent>::cast() const noexcept
+constexpr auto UnitMultiple<kBase, kExponent>::cast() const noexcept
+    -> UnitMultiple<kBase, kToExponent>
 {
   FractionType v = value();
   constexpr auto exponent_diff = kToExponent - exponent();
@@ -164,7 +156,7 @@ constexpr UnitMultiple<kBase, kToExponent> UnitMultiple<kBase, kExponent>::cast(
 template <int64b kBase, int64b kExponent> inline
 constexpr void UnitMultiple<kBase, kExponent>::set(const Type value) noexcept
 {
-  value_ = value;
+  value_ = FractionType{value};
 }
 
 /*!
@@ -224,9 +216,9 @@ constexpr auto UnitMultiple<kBase, kExponent>::value() const noexcept -> const F
   \return No description
   */
 template <int64b kBase, int64b kExponent1, int64b kExponent2> inline
-constexpr UnitMultiple<kBase, (std::min)(kExponent1, kExponent2)> operator+(
-    const UnitMultiple<kBase, kExponent1>& lhs,
-    const UnitMultiple<kBase, kExponent2>& rhs) noexcept
+constexpr auto operator+(const UnitMultiple<kBase, kExponent1>& lhs,
+                         const UnitMultiple<kBase, kExponent2>& rhs) noexcept
+    -> UnitMultiple<kBase, (std::min)(kExponent1, kExponent2)>
 {
   using Multiple = UnitMultiple<kBase, (std::min)(kExponent1, kExponent2)>;
   using FracType = typename Multiple::FractionType;
@@ -245,9 +237,9 @@ constexpr UnitMultiple<kBase, (std::min)(kExponent1, kExponent2)> operator+(
   \return No description
   */
 template <int64b kBase, int64b kExponent1, int64b kExponent2> inline
-constexpr UnitMultiple<kBase, (std::min)(kExponent1, kExponent2)> operator-(
-    const UnitMultiple<kBase, kExponent1>& lhs,
-    const UnitMultiple<kBase, kExponent2>& rhs) noexcept
+constexpr auto operator-(const UnitMultiple<kBase, kExponent1>& lhs,
+                         const UnitMultiple<kBase, kExponent2>& rhs) noexcept
+    -> UnitMultiple<kBase, (std::min)(kExponent1, kExponent2)>
 {
   using Multiple = UnitMultiple<kBase, (std::min)(kExponent1, kExponent2)>;
   using FracType = typename Multiple::FractionType;
@@ -266,9 +258,9 @@ constexpr UnitMultiple<kBase, (std::min)(kExponent1, kExponent2)> operator-(
   \return No description
   */
 template <int64b kBase, int64b kExponent, Integer Int> inline
-constexpr UnitMultiple<kBase, kExponent> operator*(
-    const UnitMultiple<kBase, kExponent>& lhs,
-    const Int rhs) noexcept
+constexpr auto operator*(const UnitMultiple<kBase, kExponent>& lhs,
+                         const Int rhs) noexcept
+    -> UnitMultiple<kBase, kExponent>
 {
   using Multiple = UnitMultiple<kBase, kExponent>;
   using FracType = typename Multiple::FractionType;
@@ -287,9 +279,9 @@ constexpr UnitMultiple<kBase, kExponent> operator*(
   \return No description
   */
 template <Integer Int, int64b kBase, int64b kExponent> inline
-constexpr UnitMultiple<kBase, kExponent> operator*(
-    const Int lhs,
-    const UnitMultiple<kBase, kExponent>& rhs) noexcept
+constexpr auto operator*(const Int lhs,
+                         const UnitMultiple<kBase, kExponent>& rhs) noexcept
+    -> UnitMultiple<kBase, kExponent>
 {
   return rhs * lhs;
 }
@@ -305,9 +297,9 @@ constexpr UnitMultiple<kBase, kExponent> operator*(
   \return No description
   */
 template <int64b kBase, int64b kExponent, Integer Int> inline
-constexpr UnitMultiple<kBase, kExponent> operator/(
-    const UnitMultiple<kBase, kExponent>& lhs,
-    const Int rhs) noexcept
+constexpr auto operator/(const UnitMultiple<kBase, kExponent>& lhs,
+                         const Int rhs) noexcept
+    -> UnitMultiple<kBase, kExponent>
 {
   using Multiple = UnitMultiple<kBase, kExponent>;
   using FracType = typename Multiple::FractionType;
@@ -326,9 +318,9 @@ constexpr UnitMultiple<kBase, kExponent> operator/(
   \return No description
   */
 template <int64b kBase, int64b kExponent1, int64b kExponent2> inline
-constexpr bool operator==(
+constexpr auto operator==(
     const UnitMultiple<kBase, kExponent1>& lhs,
-    const UnitMultiple<kBase, kExponent2>& rhs) noexcept
+    const UnitMultiple<kBase, kExponent2>& rhs) noexcept -> bool
 {
   using Multiple = UnitMultiple<kBase, (std::min)(kExponent1, kExponent2)>;
   const bool result = Multiple{lhs}.value() == Multiple{rhs}.value();
@@ -346,9 +338,9 @@ constexpr bool operator==(
   \return No description
   */
 template <int64b kBase, int64b kExponent1, int64b kExponent2> inline
-constexpr bool operator!=(
+constexpr auto operator!=(
     const UnitMultiple<kBase, kExponent1>& lhs,
-    const UnitMultiple<kBase, kExponent2>& rhs) noexcept
+    const UnitMultiple<kBase, kExponent2>& rhs) noexcept -> bool
 {
   const bool result = !(lhs == rhs);
   return result;
@@ -365,9 +357,9 @@ constexpr bool operator!=(
   \return No description
   */
 template <int64b kBase, int64b kExponent1, int64b kExponent2> inline
-constexpr bool operator<(
+constexpr auto operator<(
     const UnitMultiple<kBase, kExponent1>& lhs,
-    const UnitMultiple<kBase, kExponent2>& rhs) noexcept
+    const UnitMultiple<kBase, kExponent2>& rhs) noexcept -> bool
 {
   using Multiple = UnitMultiple<kBase, (std::min)(kExponent1, kExponent2)>;
   const bool result = Multiple{lhs}.value() < Multiple{rhs}.value();
@@ -385,9 +377,9 @@ constexpr bool operator<(
   \return No description
   */
 template <int64b kBase, int64b kExponent1, int64b kExponent2> inline
-constexpr bool operator<=(
+constexpr auto operator<=(
     const UnitMultiple<kBase, kExponent1>& lhs,
-    const UnitMultiple<kBase, kExponent2>& rhs) noexcept
+    const UnitMultiple<kBase, kExponent2>& rhs) noexcept -> bool
 {
   using Multiple = UnitMultiple<kBase, (std::min)(kExponent1, kExponent2)>;
   const bool result = Multiple{lhs}.value() <= Multiple{rhs}.value();
@@ -405,9 +397,9 @@ constexpr bool operator<=(
   \return No description
   */
 template <int64b kBase, int64b kExponent1, int64b kExponent2> inline
-constexpr bool operator>(
+constexpr auto operator>(
     const UnitMultiple<kBase, kExponent1>& lhs,
-    const UnitMultiple<kBase, kExponent2>& rhs) noexcept
+    const UnitMultiple<kBase, kExponent2>& rhs) noexcept -> bool
 {
   const bool result = rhs < lhs;
   return result;
@@ -424,9 +416,9 @@ constexpr bool operator>(
   \return No description
   */
 template <int64b kBase, int64b kExponent1, int64b kExponent2> inline
-constexpr bool operator>=(
+constexpr auto operator>=(
     const UnitMultiple<kBase, kExponent1>& lhs,
-    const UnitMultiple<kBase, kExponent2>& rhs) noexcept
+    const UnitMultiple<kBase, kExponent2>& rhs) noexcept -> bool
 {
   const bool result = rhs <= lhs;
   return result;

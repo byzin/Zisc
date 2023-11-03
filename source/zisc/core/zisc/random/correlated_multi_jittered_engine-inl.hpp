@@ -37,9 +37,9 @@ namespace zisc {
   \return No description
   */
 template <uint32b kRootN> template <std::floating_point Float> inline
-Float CorrelatedMultiJitteredEngine<kRootN>::generate1d(
+auto CorrelatedMultiJitteredEngine<kRootN>::generate1d(
     const ValueT s,
-    const ValueT p) noexcept
+    const ValueT p) noexcept -> Float
 {
   constexpr ValueT n = getPeriod();
 
@@ -64,9 +64,9 @@ Float CorrelatedMultiJitteredEngine<kRootN>::generate1d(
   \return No description
   */
 template <uint32b kRootN> template <std::floating_point Float> inline
-std::array<Float, 2> CorrelatedMultiJitteredEngine<kRootN>::generate2d(
+auto CorrelatedMultiJitteredEngine<kRootN>::generate2d(
     ValueT s,
-    const ValueT p) noexcept
+    const ValueT p) noexcept -> std::array<Float, 2>
 {
   constexpr ValueT n = getPeriod();
 
@@ -96,9 +96,9 @@ std::array<Float, 2> CorrelatedMultiJitteredEngine<kRootN>::generate2d(
   \return No description
   */
 template <uint32b kRootN> inline
-constexpr std::size_t CorrelatedMultiJitteredEngine<kRootN>::getPeriod() noexcept
+constexpr auto CorrelatedMultiJitteredEngine<kRootN>::getPeriod() noexcept -> std::size_t
 {
-  constexpr std::size_t period = kRootN * kRootN;
+  constexpr auto period = static_cast<std::size_t>(kRootN * kRootN);
   return period;
 }
 
@@ -110,8 +110,8 @@ constexpr std::size_t CorrelatedMultiJitteredEngine<kRootN>::getPeriod() noexcep
   \return No description
   */
 template <uint32b kRootN> template <std::unsigned_integral Integer> inline
-constexpr bool CorrelatedMultiJitteredEngine<kRootN>::isEndOfPeriod(
-    const Integer sample) noexcept
+constexpr auto CorrelatedMultiJitteredEngine<kRootN>::isEndOfPeriod(
+    const Integer sample) noexcept -> bool
 {
   constexpr Integer umax = (std::numeric_limits<Integer>::max)();
   constexpr Integer end_of_period = (umax < getPeriod()) ? umax : getPeriod() - 1;

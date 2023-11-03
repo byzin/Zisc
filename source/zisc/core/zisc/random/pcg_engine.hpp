@@ -56,18 +56,18 @@ class PcgEngine : public PseudoRandomNumberEngine<PcgEngine<T, kBase>, T>
   PcgEngine() noexcept;
 
   //! Initialize
-  PcgEngine(const ValueT seed) noexcept;
+  explicit PcgEngine(const ValueT seed) noexcept;
 
 
   //! Generate a random number
-  ValueT generate() noexcept;
+  auto generate() noexcept -> ValueT;
 
   //! Return the n which of the period 2^n
-  static constexpr std::size_t getPeriodPow2() noexcept;
+  static constexpr auto getPeriodPow2() noexcept -> std::size_t;
 
   //! Check if a specified sample (0 base count) is the end of period
   template <std::unsigned_integral Integer>
-  static constexpr bool isEndOfPeriod(const Integer sample) noexcept;
+  static constexpr auto isEndOfPeriod(const Integer sample) noexcept -> bool;
 
   //! Set seed
   void setSeed(const ValueT seed) noexcept;
@@ -77,22 +77,22 @@ class PcgEngine : public PseudoRandomNumberEngine<PcgEngine<T, kBase>, T>
 
 
   //! Bump
-  ValueT bump(const ValueT state) const noexcept;
+  auto bump(const ValueT state) const noexcept -> ValueT;
 
   //! Generate a base of a random number
-  ValueT generateBase() noexcept;
+  auto generateBase() noexcept -> ValueT;
 
   //! Return the default increment
-  static constexpr ValueT increment() noexcept;
+  static constexpr auto increment() noexcept -> ValueT;
 
   //! Return the default multiplier
-  static constexpr ValueT mcgMultiplier() noexcept;
+  static constexpr auto mcgMultiplier() noexcept -> ValueT;
 
   //! Return the default multiplier
-  static constexpr ValueT multiplier() noexcept;
+  static constexpr auto multiplier() noexcept -> ValueT;
 
   //!
-  static ValueT output(ValueT internal) noexcept;
+  static auto output(ValueT internal) noexcept -> ValueT;
 
 
   static constexpr bool kOutputPrevious = sizeof(ValueT) <= 8;

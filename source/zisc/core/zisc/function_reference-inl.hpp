@@ -40,7 +40,7 @@ template <typename ReturnT, typename ...ArgTypes>
 template <std::invocable<ArgTypes...> Func> inline
 FunctionReference<ReturnT (ArgTypes...)>::FunctionReference(Func&& func) noexcept
 {
-  assign(func);
+  assign(std::forward<Func>(func));
 }
 
 /*!
@@ -54,7 +54,8 @@ template <typename ReturnT, typename ...ArgTypes>
 template <std::invocable<ArgTypes...> Func> inline
 auto FunctionReference<ReturnT (ArgTypes...)>::operator=(Func&& func) noexcept -> FunctionReference&
 {
-  return assign(std::forward<Func>(func));
+  assign(std::forward<Func>(func));
+  return *this;
 }
 
 /*!

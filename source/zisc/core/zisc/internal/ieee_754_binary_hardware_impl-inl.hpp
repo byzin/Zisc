@@ -88,7 +88,7 @@ constexpr auto Ieee754BinaryHardwareImpl<kFormat>::convertTo() const noexcept
   \return No description
   */
 template <Ieee754BinaryFormat kFormat> template <std::floating_point Float> inline
-constexpr Float Ieee754BinaryHardwareImpl<kFormat>::convertTo() const noexcept
+constexpr auto Ieee754BinaryHardwareImpl<kFormat>::convertTo() const noexcept -> Float
 {
   return static_cast<Float>(data());
 }
@@ -121,7 +121,7 @@ constexpr auto Ieee754BinaryHardwareImpl<kFormat>::data() const noexcept -> cons
   \return No description
   */
 template <Ieee754BinaryFormat kFormat> inline
-constexpr std::size_t Ieee754BinaryHardwareImpl<kFormat>::bitSize() noexcept
+constexpr auto Ieee754BinaryHardwareImpl<kFormat>::bitSize() noexcept -> std::size_t
 {
   constexpr std::size_t bit_size = kBinFormatBitSize<kFormat>;
   static_assert(bit_size == 8 * sizeof(Ieee754BinaryHardwareImpl),
@@ -135,7 +135,7 @@ constexpr std::size_t Ieee754BinaryHardwareImpl<kFormat>::bitSize() noexcept
   \return No description
   */
 template <Ieee754BinaryFormat kFormat> inline
-constexpr Ieee754BinaryFormat Ieee754BinaryHardwareImpl<kFormat>::format() noexcept
+constexpr auto Ieee754BinaryHardwareImpl<kFormat>::format() noexcept -> Ieee754BinaryFormat
 {
   return kFormat;
 }
@@ -146,7 +146,7 @@ constexpr Ieee754BinaryFormat Ieee754BinaryHardwareImpl<kFormat>::format() noexc
   \return No description
   */
 template <Ieee754BinaryFormat kFormat> inline
-constexpr std::float_round_style Ieee754BinaryHardwareImpl<kFormat>::roundStyle() noexcept
+constexpr auto Ieee754BinaryHardwareImpl<kFormat>::roundStyle() noexcept -> std::float_round_style
 {
   if constexpr (format() == Ieee754BinaryFormat::kHalf)
     return std::float_round_style::round_to_nearest; // We assume half use round to nearest
@@ -174,9 +174,9 @@ constexpr void Ieee754BinaryHardwareImpl<kFormat>::setBits(const BitT bits) noex
   \return No description
   */
 template <Ieee754BinaryFormat kFormat> inline
-constexpr Ieee754BinaryHardwareImpl<kFormat>& operator+=(
-    Ieee754BinaryHardwareImpl<kFormat>& lhs,
-    const Ieee754BinaryHardwareImpl<kFormat>& rhs) noexcept
+constexpr auto operator+=(Ieee754BinaryHardwareImpl<kFormat>& lhs,
+                          const Ieee754BinaryHardwareImpl<kFormat>& rhs) noexcept
+    -> Ieee754BinaryHardwareImpl<kFormat>&
 {
   lhs.data() += rhs.data();
   return lhs;
@@ -191,9 +191,9 @@ constexpr Ieee754BinaryHardwareImpl<kFormat>& operator+=(
   \return No description
   */
 template <Ieee754BinaryFormat kFormat> inline
-constexpr Ieee754BinaryHardwareImpl<kFormat>& operator-=(
-    Ieee754BinaryHardwareImpl<kFormat>& lhs,
-    const Ieee754BinaryHardwareImpl<kFormat>& rhs) noexcept
+constexpr auto operator-=(Ieee754BinaryHardwareImpl<kFormat>& lhs,
+                          const Ieee754BinaryHardwareImpl<kFormat>& rhs) noexcept
+    -> Ieee754BinaryHardwareImpl<kFormat>&
 {
   lhs.data() -= rhs.data();
   return lhs;
@@ -208,9 +208,9 @@ constexpr Ieee754BinaryHardwareImpl<kFormat>& operator-=(
   \return No description
   */
 template <Ieee754BinaryFormat kFormat> inline
-constexpr Ieee754BinaryHardwareImpl<kFormat>& operator*=(
-    Ieee754BinaryHardwareImpl<kFormat>& lhs,
-    const Ieee754BinaryHardwareImpl<kFormat>& rhs) noexcept
+constexpr auto operator*=(Ieee754BinaryHardwareImpl<kFormat>& lhs,
+                          const Ieee754BinaryHardwareImpl<kFormat>& rhs) noexcept
+    -> Ieee754BinaryHardwareImpl<kFormat>&
 {
   lhs.data() *= rhs.data();
   return lhs;
@@ -225,9 +225,9 @@ constexpr Ieee754BinaryHardwareImpl<kFormat>& operator*=(
   \return No description
   */
 template <Ieee754BinaryFormat kFormat> inline
-constexpr Ieee754BinaryHardwareImpl<kFormat>& operator/=(
-    Ieee754BinaryHardwareImpl<kFormat>& lhs,
-    const Ieee754BinaryHardwareImpl<kFormat>& rhs) noexcept
+constexpr auto operator/=(Ieee754BinaryHardwareImpl<kFormat>& lhs,
+                          const Ieee754BinaryHardwareImpl<kFormat>& rhs) noexcept
+    -> Ieee754BinaryHardwareImpl<kFormat>&
 {
   lhs.data() /= rhs.data();
   return lhs;
@@ -241,8 +241,8 @@ constexpr Ieee754BinaryHardwareImpl<kFormat>& operator/=(
   \return No description
   */
 template <Ieee754BinaryFormat kFormat> inline
-constexpr Ieee754BinaryHardwareImpl<kFormat> operator+(
-    const Ieee754BinaryHardwareImpl<kFormat>& value) noexcept
+constexpr auto operator+(const Ieee754BinaryHardwareImpl<kFormat>& value) noexcept
+    -> Ieee754BinaryHardwareImpl<kFormat>
 {
   return value;
 }
@@ -255,8 +255,8 @@ constexpr Ieee754BinaryHardwareImpl<kFormat> operator+(
   \return No description
   */
 template <Ieee754BinaryFormat kFormat> inline
-constexpr Ieee754BinaryHardwareImpl<kFormat> operator-(
-    const Ieee754BinaryHardwareImpl<kFormat>& value) noexcept
+constexpr auto operator-(const Ieee754BinaryHardwareImpl<kFormat>& value) noexcept
+    -> Ieee754BinaryHardwareImpl<kFormat>
 {
   const Ieee754BinaryHardwareImpl<kFormat> result{-value.data()};
   return result;
@@ -271,9 +271,9 @@ constexpr Ieee754BinaryHardwareImpl<kFormat> operator-(
   \return No description
   */
 template <Ieee754BinaryFormat kFormat> inline
-constexpr Ieee754BinaryHardwareImpl<kFormat> operator+(
-    const Ieee754BinaryHardwareImpl<kFormat>& lhs,
-    const Ieee754BinaryHardwareImpl<kFormat>& rhs) noexcept
+constexpr auto operator+(const Ieee754BinaryHardwareImpl<kFormat>& lhs,
+                         const Ieee754BinaryHardwareImpl<kFormat>& rhs) noexcept
+    -> Ieee754BinaryHardwareImpl<kFormat>
 {
   const Ieee754BinaryHardwareImpl<kFormat> result{lhs.data() + rhs.data()};
   return result;
@@ -288,9 +288,9 @@ constexpr Ieee754BinaryHardwareImpl<kFormat> operator+(
   \return No description
   */
 template <Ieee754BinaryFormat kFormat> inline
-constexpr Ieee754BinaryHardwareImpl<kFormat> operator-(
-    const Ieee754BinaryHardwareImpl<kFormat>& lhs,
-    const Ieee754BinaryHardwareImpl<kFormat>& rhs) noexcept
+constexpr auto operator-(const Ieee754BinaryHardwareImpl<kFormat>& lhs,
+                         const Ieee754BinaryHardwareImpl<kFormat>& rhs) noexcept
+    -> Ieee754BinaryHardwareImpl<kFormat>
 {
   const Ieee754BinaryHardwareImpl<kFormat> result{lhs.data() - rhs.data()};
   return result;
@@ -305,9 +305,9 @@ constexpr Ieee754BinaryHardwareImpl<kFormat> operator-(
   \return No description
   */
 template <Ieee754BinaryFormat kFormat> inline
-constexpr Ieee754BinaryHardwareImpl<kFormat> operator*(
-    const Ieee754BinaryHardwareImpl<kFormat>& lhs,
-    const Ieee754BinaryHardwareImpl<kFormat>& rhs) noexcept
+constexpr auto operator*(const Ieee754BinaryHardwareImpl<kFormat>& lhs,
+                         const Ieee754BinaryHardwareImpl<kFormat>& rhs) noexcept
+    -> Ieee754BinaryHardwareImpl<kFormat>
 {
   const Ieee754BinaryHardwareImpl<kFormat> result{lhs.data() * rhs.data()};
   return result;
@@ -322,9 +322,9 @@ constexpr Ieee754BinaryHardwareImpl<kFormat> operator*(
   \return No description
   */
 template <Ieee754BinaryFormat kFormat> inline
-constexpr Ieee754BinaryHardwareImpl<kFormat> operator/(
-    const Ieee754BinaryHardwareImpl<kFormat>& lhs,
-    const Ieee754BinaryHardwareImpl<kFormat>& rhs) noexcept
+constexpr auto operator/(const Ieee754BinaryHardwareImpl<kFormat>& lhs,
+                         const Ieee754BinaryHardwareImpl<kFormat>& rhs) noexcept
+    -> Ieee754BinaryHardwareImpl<kFormat>
 {
   const Ieee754BinaryHardwareImpl<kFormat> result{lhs.data() / rhs.data()};
   return result;
@@ -339,9 +339,9 @@ constexpr Ieee754BinaryHardwareImpl<kFormat> operator/(
   \return No description
   */
 template <Ieee754BinaryFormat kFormat> inline
-constexpr bool operator==(
+constexpr auto operator==(
     const Ieee754BinaryHardwareImpl<kFormat>& lhs,
-    const Ieee754BinaryHardwareImpl<kFormat>& rhs) noexcept
+    const Ieee754BinaryHardwareImpl<kFormat>& rhs) noexcept -> bool
 {
   return lhs.data() == rhs.data();
 }
@@ -355,9 +355,9 @@ constexpr bool operator==(
   \return No description
   */
 template <Ieee754BinaryFormat kFormat> inline
-constexpr bool operator!=(
+constexpr auto operator!=(
     const Ieee754BinaryHardwareImpl<kFormat>& lhs,
-    const Ieee754BinaryHardwareImpl<kFormat>& rhs) noexcept
+    const Ieee754BinaryHardwareImpl<kFormat>& rhs) noexcept -> bool
 {
   return lhs.data() != rhs.data();
 }
@@ -371,9 +371,9 @@ constexpr bool operator!=(
   \return No description
   */
 template <Ieee754BinaryFormat kFormat> inline
-constexpr bool operator<(
+constexpr auto operator<(
     const Ieee754BinaryHardwareImpl<kFormat>& lhs,
-    const Ieee754BinaryHardwareImpl<kFormat>& rhs) noexcept
+    const Ieee754BinaryHardwareImpl<kFormat>& rhs) noexcept -> bool
 {
   return lhs.data() < rhs.data();
 }
@@ -387,9 +387,9 @@ constexpr bool operator<(
   \return No description
   */
 template <Ieee754BinaryFormat kFormat> inline
-constexpr bool operator<=(
+constexpr auto operator<=(
     const Ieee754BinaryHardwareImpl<kFormat>& lhs,
-    const Ieee754BinaryHardwareImpl<kFormat>& rhs) noexcept
+    const Ieee754BinaryHardwareImpl<kFormat>& rhs) noexcept -> bool
 {
   return lhs.data() <= rhs.data();
 }
@@ -403,9 +403,9 @@ constexpr bool operator<=(
   \return No description
   */
 template <Ieee754BinaryFormat kFormat> inline
-constexpr bool operator>(
+constexpr auto operator>(
     const Ieee754BinaryHardwareImpl<kFormat>& lhs,
-    const Ieee754BinaryHardwareImpl<kFormat>& rhs) noexcept
+    const Ieee754BinaryHardwareImpl<kFormat>& rhs) noexcept -> bool
 {
   return lhs.data() > rhs.data();
 }
@@ -419,9 +419,9 @@ constexpr bool operator>(
   \return No description
   */
 template <Ieee754BinaryFormat kFormat> inline
-constexpr bool operator>=(
+constexpr auto operator>=(
     const Ieee754BinaryHardwareImpl<kFormat>& lhs,
-    const Ieee754BinaryHardwareImpl<kFormat>& rhs) noexcept
+    const Ieee754BinaryHardwareImpl<kFormat>& rhs) noexcept -> bool
 {
   return lhs.data() >= rhs.data();
 }

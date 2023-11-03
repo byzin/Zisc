@@ -61,65 +61,78 @@ class BasicConstantString
   constexpr BasicConstantString() noexcept;
 
   //! Create a string
-  constexpr BasicConstantString(const value_type (&other)[kN]) noexcept;
+  explicit constexpr BasicConstantString(const value_type (&other)[kN]) noexcept;
 
 
   //! For STL
   //! Return an iterator to the first element of the containter
-  constexpr iterator begin() noexcept;
+  [[nodiscard]]
+  constexpr auto begin() noexcept -> iterator;
 
   //! Return an iterator to the first element of the containter
-  constexpr const_iterator begin() const noexcept;
+  [[nodiscard]]
+  constexpr auto begin() const noexcept -> const_iterator;
 
   //! Return an iterator to the first element of the containter
-  constexpr const_iterator cbegin() const noexcept;
+  [[nodiscard]]
+  constexpr auto cbegin() const noexcept -> const_iterator;
 
   //! Return an iterator following the last element of the container
-  constexpr iterator end() noexcept;
+  [[nodiscard]]
+  constexpr auto end() noexcept -> iterator;
 
   //! Return an iterator following the last element of the container
-  constexpr const_iterator end() const noexcept;
+  [[nodiscard]]
+  constexpr auto end() const noexcept -> const_iterator;
 
   //! Return an iterator following the last element of the container
-  constexpr const_iterator cend() const noexcept;
+  [[nodiscard]]
+  constexpr auto cend() const noexcept -> const_iterator;
 
 
   //! Access specified character
-  constexpr reference operator[](const uint index) noexcept;
+  constexpr auto operator[](const uint index) noexcept -> reference;
 
   //! Access specified character
-  constexpr const_reference operator[](const uint index) const noexcept;
+  constexpr auto operator[](const uint index) const noexcept -> const_reference;
 
 
   //! Return the reference of the array
-  constexpr ArrayType& data() noexcept;
+  [[nodiscard]]
+  constexpr auto data() noexcept -> ArrayType&;
 
   //! Return the reference of the array
-  constexpr const ArrayType& data() const noexcept;
+  [[nodiscard]]
+  constexpr auto data() const noexcept -> const ArrayType&;
 
   //! Access specified character
-  constexpr reference get(const uint index) noexcept;
+  [[nodiscard]]
+  constexpr auto get(const uint index) noexcept -> reference;
 
   //! Access specified character
-  constexpr const_reference get(const uint index) const noexcept;
+  [[nodiscard]]
+  constexpr auto get(const uint index) const noexcept -> const_reference;
 
   //! Returns the number of Char elements in the string
-  constexpr size_type size() const noexcept;
+  [[nodiscard]]
+  constexpr auto size() const noexcept -> size_type;
 
   //! Return a standard c character array
-  const_pointer toCStr() const noexcept;
+  [[nodiscard]]
+  auto toCStr() const noexcept -> const_pointer;
 
   //! Convert to std::basic_string_view<Char>
-  std::basic_string_view<value_type> toStdStr() const noexcept;
+  [[nodiscard]]
+  auto toStdStr() const noexcept -> std::basic_string_view<value_type>;
 
  private:
   //! Make a array
   template <std::size_t ...indices>
-  static constexpr ArrayType makeArray(const value_type (&other)[kN],
-                                       std::index_sequence<indices...>) noexcept;
+  static constexpr auto makeArray(const value_type (&other)[kN],
+                                  std::index_sequence<indices...> idx) noexcept -> ArrayType;
 
   //! Make an empty array
-  static constexpr ArrayType makeEmptyArray() noexcept;
+  static constexpr auto makeEmptyArray() noexcept -> ArrayType;
 
 
   ArrayType data_;
@@ -139,93 +152,93 @@ using U32CString = BasicConstantString<char32_t, kN>;
 
 //! Concatenates two strings
 template <Character Char, uint kN1, uint kN2>
-constexpr BasicConstantString<Char, kN1 + kN2 - 1> operator+(
-    const BasicConstantString<Char, kN1>& lhs,
-    const BasicConstantString<Char, kN2>& rhs) noexcept;
+constexpr auto operator+(const BasicConstantString<Char, kN1>& lhs,
+                         const BasicConstantString<Char, kN2>& rhs) noexcept
+    -> BasicConstantString<Char, kN1 + kN2 - 1>;
 
 //! Concatenates two strings
 template <Character Char, uint kN1, uint kN2>
-constexpr BasicConstantString<Char, kN1 + kN2 - 1> operator+(
-    const Char (&lhs)[kN1],
-    const BasicConstantString<Char, kN2>& rhs) noexcept;
+constexpr auto operator+(const Char (&lhs)[kN1],
+                         const BasicConstantString<Char, kN2>& rhs) noexcept
+    -> BasicConstantString<Char, kN1 + kN2 - 1>;
 
 //! Concatenates two strings
 template <Character Char, uint kN1, uint kN2>
-constexpr BasicConstantString<Char, kN1 + kN2 - 1> operator+(
-    const BasicConstantString<Char, kN1>& lhs,
-    const Char (&rhs)[kN2]) noexcept;
+constexpr auto operator+(const BasicConstantString<Char, kN1>& lhs,
+                         const Char (&rhs)[kN2]) noexcept
+    -> BasicConstantString<Char, kN1 + kN2 - 1>;
 
 //! Lexicographically compares two strings
 template <Character Char, uint kN1, uint kN2>
-constexpr bool operator==(const BasicConstantString<Char, kN1>& lhs,
-                          const BasicConstantString<Char, kN2>& rhs) noexcept;
+constexpr auto operator==(const BasicConstantString<Char, kN1>& lhs,
+                          const BasicConstantString<Char, kN2>& rhs) noexcept -> bool;
 
 //! Lexicographically compares two strings
 template <Character Char, uint kN>
-constexpr bool operator==(const Char* lhs,
-                          const BasicConstantString<Char, kN>& rhs) noexcept;
+constexpr auto operator==(const Char* lhs,
+                          const BasicConstantString<Char, kN>& rhs) noexcept -> bool;
 
 //! Lexicographically compares two strings
 template <Character Char, uint kN>
-constexpr bool operator==(const BasicConstantString<Char, kN>& lhs,
-                          const Char* rhs) noexcept;
+constexpr auto operator==(const BasicConstantString<Char, kN>& lhs,
+                          const Char* rhs) noexcept -> bool;
 
 //! Lexicographically compares two strings
 template <Character Char, uint kN>
-constexpr bool operator==(const std::basic_string_view<Char>& lhs,
-                          const BasicConstantString<Char, kN>& rhs) noexcept;
+constexpr auto operator==(const std::basic_string_view<Char>& lhs,
+                          const BasicConstantString<Char, kN>& rhs) noexcept -> bool;
 
 //! Lexicographically compares two strings
 template <Character Char, uint kN>
-constexpr bool operator==(const BasicConstantString<Char, kN>& lhs,
-                          const std::basic_string_view<Char>& rhs) noexcept;
+constexpr auto operator==(const BasicConstantString<Char, kN>& lhs,
+                          const std::basic_string_view<Char>& rhs) noexcept -> bool;
 
 //! Lexicographically compares two strings
 template <Character Char, uint kN1, uint kN2>
-constexpr bool operator!=(const BasicConstantString<Char, kN1>& lhs,
-                          const BasicConstantString<Char, kN2>& rhs) noexcept;
+constexpr auto operator!=(const BasicConstantString<Char, kN1>& lhs,
+                          const BasicConstantString<Char, kN2>& rhs) noexcept -> bool;
 
 //! Lexicographically compares two strings
 template <Character Char, uint kN>
-constexpr bool operator!=(const Char* lhs,
-                          const BasicConstantString<Char, kN>& rhs) noexcept;
+constexpr auto operator!=(const Char* lhs,
+                          const BasicConstantString<Char, kN>& rhs) noexcept -> bool;
 
 //! Lexicographically compares two strings
 template <Character Char, uint kN>
-constexpr bool operator!=(const BasicConstantString<Char, kN>& lhs,
-                          const Char* rhs) noexcept;
+constexpr auto operator!=(const BasicConstantString<Char, kN>& lhs,
+                          const Char* rhs) noexcept -> bool;
 
 //! Lexicographically compares two strings
 template <Character Char, uint kN>
-constexpr bool operator!=(const std::basic_string_view<Char>& lhs,
-                          const BasicConstantString<Char, kN>& rhs) noexcept;
+constexpr auto operator!=(const std::basic_string_view<Char>& lhs,
+                          const BasicConstantString<Char, kN>& rhs) noexcept -> bool;
 
 //! Lexicographically compares two strings
 template <Character Char, uint kN>
-constexpr bool operator!=(const BasicConstantString<Char, kN>& lhs,
-                          const std::basic_string_view<Char>& rhs) noexcept;
+constexpr auto operator!=(const BasicConstantString<Char, kN>& lhs,
+                          const std::basic_string_view<Char>& rhs) noexcept -> bool;
 
 //! Concatenates two strings
 template <Character Char, uint kN1, uint kN2>
-constexpr BasicConstantString<Char, kN1 + kN2 - 1> concatenate(
-    const BasicConstantString<Char, kN1>& lhs, 
-    const BasicConstantString<Char, kN2>& rhs) noexcept;
+constexpr auto concatenate(const BasicConstantString<Char, kN1>& lhs, 
+                           const BasicConstantString<Char, kN2>& rhs) noexcept
+    -> BasicConstantString<Char, kN1 + kN2 - 1>;
 
 //! Concatenates two strings
 template <Character Char, uint kN1, uint kN2>
-constexpr BasicConstantString<Char, kN1 + kN2 - 1> concatenate(
-    const Char (&lhs)[kN1],
-    const BasicConstantString<Char, kN2>& rhs) noexcept;
+constexpr auto concatenate(const Char (&lhs)[kN1],
+                           const BasicConstantString<Char, kN2>& rhs) noexcept
+    -> BasicConstantString<Char, kN1 + kN2 - 1>;
 
 //! Concatenates two strings
 template <Character Char, uint kN1, uint kN2>
-constexpr BasicConstantString<Char, kN1 + kN2 - 1> concatenate(
-    const BasicConstantString<Char, kN1>& lhs, 
-    const Char (&rhs)[kN2]) noexcept;
+constexpr auto concatenate(const BasicConstantString<Char, kN1>& lhs, 
+                           const Char (&rhs)[kN2]) noexcept
+    -> BasicConstantString<Char, kN1 + kN2 - 1>;
 
 //! Convert the string to String class
 template <Character Char, uint kN>
-constexpr BasicConstantString<Char, kN> toString(const Char (&other)[kN]) noexcept;
+constexpr auto toString(const Char (&other)[kN]) noexcept -> BasicConstantString<Char, kN>;
 
 } // namespace zisc
 

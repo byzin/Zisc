@@ -39,44 +39,45 @@ class PseudoRandomNumberEngine
   using ValueT = T;
 
 
+  // Delete function
+  auto operator=(const PseudoRandomNumberEngine&) -> PseudoRandomNumberEngine& = delete;
+
+
   //! Generate a random number
-  ValueT operator()() noexcept;
+  auto operator()() noexcept -> ValueT;
 
   //! Generate a float random number x satisfying [lower, upper)
   template <std::floating_point Float>
-  Float operator()(const Float lower, const Float upper) noexcept;
+  auto operator()(const Float lower, const Float upper) noexcept -> Float;
 
 
   //! Return the default seed
-  static constexpr ValueT defaultSeed() noexcept;
+  static constexpr auto defaultSeed() noexcept -> ValueT;
 
   //! Generate a random number
-  ValueT generate() noexcept;
+  auto generate() noexcept -> ValueT;
 
   //! Generate a float random number x satisfying [lower, upper)
   template <std::floating_point Float>
-  Float generate(const Float lower, const Float upper) noexcept;
+  auto generate(const Float lower, const Float upper) noexcept -> Float;
 
   //! Generate a [0, 1) float random number
   template <std::floating_point Float>
-  Float generate01() noexcept;
+  auto generate01() noexcept -> Float;
 
   //! Check if a specified sample (0 base count) is the end of period
   template <std::unsigned_integral Integer>
-  static constexpr bool isEndOfPeriod(const Integer sample) noexcept;
+  static constexpr auto isEndOfPeriod(const Integer sample) noexcept -> bool;
 
   //! Set a random seed
   void setSeed(const ValueT seed) noexcept;
 
  protected:
   //! Initialize the PRNE
-  PseudoRandomNumberEngine() noexcept;
+  PseudoRandomNumberEngine() noexcept = default;
 
   //! Copy a PRNE state
-  PseudoRandomNumberEngine(const PseudoRandomNumberEngine&) noexcept;
-
-  // Delete function
-  PseudoRandomNumberEngine& operator=(const PseudoRandomNumberEngine&) = delete;
+  PseudoRandomNumberEngine(const PseudoRandomNumberEngine&) noexcept = default;
 };
 
 } // namespace zisc

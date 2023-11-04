@@ -72,7 +72,7 @@ ContainerOverflowError<T>::ContainerOverflowError(const std::string_view what_ar
   \param [in,out] other No description.
   */
 template <std::movable T> inline
-ContainerOverflowError<T>::ContainerOverflowError(ContainerOverflowError&& other)
+ContainerOverflowError<T>::ContainerOverflowError(ContainerOverflowError&& other) noexcept
     : SystemError(std::move(other)),
       value_{std::move(other.value_)}
 {
@@ -85,7 +85,7 @@ ContainerOverflowError<T>::ContainerOverflowError(ContainerOverflowError&& other
   \return No description
   */
 template <std::movable T> inline
-auto ContainerOverflowError<T>::operator=(ContainerOverflowError&& other)
+auto ContainerOverflowError<T>::operator=(ContainerOverflowError&& other) noexcept
     -> ContainerOverflowError&
 {
   SystemError::operator=(std::move(other));

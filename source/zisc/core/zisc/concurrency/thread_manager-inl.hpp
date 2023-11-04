@@ -168,10 +168,11 @@ auto ThreadManager::getTask(WrappedTask&& data) noexcept
   constexpr bool t1_is_invocable = std::is_invocable_v<FuncT1, Types...>;
   using FuncT2 = std::remove_pointer_t<FuncT1>;
   constexpr bool t2_is_invocable = std::is_invocable_v<FuncT2, Types...>;
+  WrappedTask d = std::forward<WrappedTask>(data);
   if constexpr (t1_is_invocable)
-    return std::ref(data);
+    return std::ref(d);
   else if constexpr (t2_is_invocable)
-    return std::ref(*data);
+    return std::ref(*d);
   static_assert(t1_is_invocable || t2_is_invocable, "Unsupported data type.");
 }
 
@@ -193,14 +194,15 @@ auto ThreadManager::wrapTask(Func&& func) noexcept
   constexpr bool has_func_ptr = std::is_convertible_v<Function, FunctionPointer>;
   constexpr bool is_fanctor = std::is_object_v<Function>;
 
+  Func f = std::forward<Func>(func);
   if constexpr (is_func_ptr)
-    return func;
+    return f;
   else if constexpr (has_func_ptr)
-    return FunctionPointer{func};
+    return FunctionPointer{f};
   else if constexpr (std::is_lvalue_reference_v<Func>)
-    return std::addressof(func);
+    return std::addressof(f);
   else // rvalue functor
-    return std::forward<Func>(func);
+    return std::forward<Func>(f);
 
   static_assert(is_func_ptr || has_func_ptr || is_fanctor, "Unsupported func type.");
 }
@@ -417,7 +419,7 @@ auto ThreadManager::resource() const noexcept -> pmr::memory_resource*
   \param [in] cap No description.
   */
 inline
-void ThreadManager::setCapacity(const std::size_t cap) noexcept
+void ThreadManager::setCapacity(const std::size_t cap)
 {
   if (workersAreEnabled())
     waitForCompletion();
@@ -604,10 +606,11 @@ class ThreadManager::TaskImpl : public PackagedTaskType<Return>
   }
 
   //
-  void setData(DataT&& data, Ite1&& b) noexcept
+  template <typename D, typename I>
+  void setData(D&& data, I&& b) noexcept
   {
-    task_.set(std::move(data));
-    begin_.set(std::forward<Ite1>(b));
+    task_.set(std::forward<D>(data));
+    begin_.set(std::forward<I>(b));
   }
 
  private:
@@ -702,11 +705,9 @@ auto ThreadManager::createSharedTask(Data&& data,
   \param [in] num_of_threads No description.
   */
 inline
-void ThreadManager::createWorkers(const int64b num_of_threads) noexcept
+void ThreadManager::createWorkers(const int64b num_of_threads)
 {
   const std::size_t n = getAvailableNumOfThreads(num_of_threads);
-  worker_list_.reserve(n);
-  worker_id_list_.reserve(n);
   constexpr DiffT not_ready = -1;
   num_of_tasks_.store(not_ready, std::memory_order::release);
   num_of_active_workers_.store(cast<int>(n), std::memory_order::release);
@@ -720,6 +721,8 @@ void ThreadManager::createWorkers(const int64b num_of_threads) noexcept
     doWorkerTasks(thread_id);
   };
 
+  worker_list_.reserve(n);
+  worker_id_list_.reserve(n);
   for (std::size_t i = 0; i < n; ++i) {
     worker_list_.emplace_back(work);
     worker_id_list_.emplace_back(worker_list_.back().get_id());
@@ -903,13 +906,18 @@ inline
 void ThreadManager::initialize(const int64b num_of_threads) noexcept
 {
   static_assert(TaskQueue::isConcurrent(), "TaskQueue doesn't support concurrency.");
-  createWorkers(num_of_threads);
-  setCapacity(defaultCapacity());
-  // Initialize resources
-  task_storage_list_.clear();
-  task_storage_list_.reserve(taskStatusList().size());
-  for (std::size_t i = 0; i < taskStatusList().size(); ++i)
-    task_storage_list_.emplace_back(resource());
+  try {
+    createWorkers(num_of_threads);
+    setCapacity(defaultCapacity());
+    // Initialize resources
+    task_storage_list_.clear();
+    task_storage_list_.reserve(taskStatusList().size());
+    for (std::size_t i = 0; i < taskStatusList().size(); ++i)
+      task_storage_list_.emplace_back(resource());
+  }
+  catch ([[maybe_unused]] const std::exception& error) {
+    ZISC_ASSERT(false, "ThreadManager initialization failed.");
+  }
 }
 
 /*!

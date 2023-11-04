@@ -235,7 +235,7 @@ auto MutexQueue<T>::get(const size_type index) const noexcept -> ConstReference
   \return No description
   */
 template <std::movable T> inline
-constexpr bool MutexQueue<T>::isBounded() noexcept
+constexpr auto MutexQueue<T>::isBounded() noexcept -> bool
 {
   return true;
 }
@@ -246,7 +246,7 @@ constexpr bool MutexQueue<T>::isBounded() noexcept
   \return No description
   */
 template <std::movable T> inline
-constexpr bool MutexQueue<T>::isConcurrent() noexcept
+constexpr auto MutexQueue<T>::isConcurrent() noexcept -> bool
 {
   return true;
 }
@@ -257,7 +257,7 @@ constexpr bool MutexQueue<T>::isConcurrent() noexcept
   \return No description
   */
 template <std::movable T> inline
-pmr::memory_resource* MutexQueue<T>::resource() const noexcept
+auto MutexQueue<T>::resource() const noexcept -> pmr::memory_resource*
 {
   pmr::memory_resource* mem_resource = elements_.get_allocator().resource();
   return mem_resource;

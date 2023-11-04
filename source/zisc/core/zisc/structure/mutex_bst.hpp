@@ -80,10 +80,10 @@ class MutexBst : public Map<MutexBst<Key, T, Compare>, Key, T, Compare>
 
 
   //! Create a bst
-  MutexBst(pmr::memory_resource* mem_resource) noexcept;
+  explicit MutexBst(pmr::memory_resource* mem_resource) noexcept;
 
   //! Create a bst
-  MutexBst(const size_type cap, pmr::memory_resource* memory_resource) noexcept;
+  MutexBst(const size_type cap, pmr::memory_resource* mem_resource) noexcept;
 
   //! Move a data
   MutexBst(MutexBst&& other) noexcept;
@@ -93,72 +93,72 @@ class MutexBst : public Map<MutexBst<Key, T, Compare>, Key, T, Compare>
 
 
   //! Move a data
-  MutexBst& operator=(MutexBst&& other) noexcept;
+  auto operator=(MutexBst&& other) noexcept -> MutexBst&;
 
 
   //! Return an iterator to the beginning
-  Iterator begin() noexcept;
+  auto begin() noexcept -> Iterator;
 
   //! Return an iterator to the beginning
-  ConstIterator cbegin() const noexcept;
+  auto cbegin() const noexcept -> ConstIterator;
 
   //! Return an iterator to the end
-  Iterator end() noexcept;
+  auto end() noexcept -> Iterator;
 
   //! Return an iterator to the end
-  ConstIterator cend() const noexcept;
+  auto cend() const noexcept -> ConstIterator;
 
 
   //! Insert the given value into the bst
   template <typename ...Args>
   [[nodiscard]]
-  std::optional<size_type> add(Args&&... args);
+  auto add(Args&&... args) -> std::optional<size_type>;
 
   //! Return the maximum possible number of elements
-  size_type capacity() const noexcept;
+  auto capacity() const noexcept -> size_type;
 
   //! Return the maximum possible capacity
-  static constexpr size_type capacityMax() noexcept;
+  static constexpr auto capacityMax() noexcept -> size_type;
 
   //! Clear the contents
   void clear() noexcept;
 
   //! Check if the given value is contained in the bst
   [[nodiscard]]
-  std::optional<size_type> contain(ConstKeyT& key) const noexcept;
+  auto contain(ConstKeyT& key) const noexcept -> std::optional<size_type>;
 
   //! Find the minimum key in the bst
   [[nodiscard]]
-  std::optional<Pointer> findMinKey() noexcept;
+  auto findMinKey() noexcept -> std::optional<Pointer>;
 
   //! Find the minimum key in the bst
   [[nodiscard]]
-  std::optional<ConstPointer> findMinKey() const noexcept;
+  auto findMinKey() const noexcept -> std::optional<ConstPointer>;
 
   //! Return the value by the given index
-  Reference get(const size_type index) noexcept;
+  auto get(const size_type index) noexcept -> Reference;
 
   //! Return the value by the given index
-  ConstReference get(const size_type index) const noexcept;
+  auto get(const size_type index) const noexcept -> ConstReference;
 
   //! Check if the bst is bounded
-  static constexpr bool isBounded() noexcept;
+  static constexpr auto isBounded() noexcept -> bool;
 
   //! Check if the bst is concurrent
-  static constexpr bool isConcurrent() noexcept;
+  static constexpr auto isConcurrent() noexcept -> bool;
 
   //! Remove the value from the bst
   [[nodiscard]]
-  std::optional<size_type> remove(ConstKeyT& key);
+  auto remove(ConstKeyT& key) -> std::optional<size_type>;
 
   //! Return a pointer to the underlying memory resource
-  pmr::memory_resource* resource() const noexcept;
+  auto resource() const noexcept -> pmr::memory_resource*;
 
   //! Change the maximum possible number of elements. The bst will be cleared
   void setCapacity(size_type cap) noexcept;
 
   //! Return the number of elements in the bst
-  size_type size() const noexcept;
+  auto size() const noexcept -> size_type;
 
  private:
   using StorageT = DataStorage<ValueT>;
@@ -170,28 +170,28 @@ class MutexBst : public Map<MutexBst<Key, T, Compare>, Key, T, Compare>
 
 
   //! Compare the two keys
-  static bool compare(ConstStoragePtr lhs, ConstKeyT& rhs) noexcept;
+  static auto compare(ConstStoragePtr lhs, ConstKeyT& rhs) noexcept -> bool;
 
   //! Compare the two keys of nodes
-  static bool compareNode(ConstStoragePtr lhs, ConstStoragePtr rhs) noexcept;
+  static auto compareNode(ConstStoragePtr lhs, ConstStoragePtr rhs) noexcept -> bool;
 
   //! Check if the two given keys are same
-  static bool equal(ConstStoragePtr lhs, ConstKeyT& rhs) noexcept;
+  static auto equal(ConstStoragePtr lhs, ConstKeyT& rhs) noexcept -> bool;
 
   //! Return the index of the given node
-  size_type getIndex(ConstStoragePtr node) const noexcept;
+  auto getIndex(ConstStoragePtr node) const noexcept -> size_type;
 
   //! Return the storage by the given index
-  StorageRef getStorage(const size_type index) noexcept;
+  auto getStorage(const size_type index) noexcept -> StorageRef;
 
   //! Return the storage by the given index
-  ConstStorageRef getStorage(const size_type index) const noexcept;
+  auto getStorage(const size_type index) const noexcept -> ConstStorageRef;
 
   //! Return the invalid id
-  static constexpr size_type invalidId() noexcept;
+  static constexpr auto invalidId() noexcept -> size_type;
 
   //! Issue a storage index from the index stack
-  size_type issueStorageIndex() noexcept;
+  auto issueStorageIndex() noexcept -> size_type;
 
 
   mutable std::shared_mutex mutex_;

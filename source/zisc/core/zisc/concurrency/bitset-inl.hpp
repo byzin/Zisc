@@ -26,6 +26,7 @@
 #include <vector>
 // Zisc
 #include "zisc/algorithm.hpp"
+#include "zisc/error.hpp"
 #include "zisc/zisc_config.hpp"
 #include "zisc/memory/std_memory_resource.hpp"
 
@@ -53,13 +54,14 @@ Bitset::Bitset(const std::size_t s, pmr::memory_resource* mem_resource) noexcept
     chunk_list_{decltype(chunk_list_)::allocator_type{mem_resource}},
     size_{0}
 {
-  constexpr std::size_t num_of_attempts = 16;
+  constexpr std::size_t num_of_attempts = 4;
   for (std::size_t i = 0; i < num_of_attempts; ++i) {
     try {
       setSize(s);
       break;
     }
     catch ([[maybe_unused]] const std::exception& error) {
+      ZISC_ASSERT(false, "Bitset initialization failed.");
     }
   }
 }
@@ -85,7 +87,12 @@ Bitset::Bitset(Bitset&& other) noexcept :
 inline
 auto Bitset::operator=(Bitset&& other) noexcept -> Bitset&
 {
-  chunk_list_ = std::move(other.chunk_list_);
+  try {
+    chunk_list_ = std::move(other.chunk_list_);
+  }
+  catch ([[maybe_unused]] const std::exception& error) {
+    ZISC_ASSERT(false, "Bitset move failed.");
+  }
   size_ = other.size_;
   return *this;
 }
@@ -406,6 +413,28 @@ void Bitset::Chunk::set(const Chunk& other) noexcept
 /*!
   \details No detailed description
 
+  \return No description
+  */
+inline
+auto Bitset::Chunk::blockList() noexcept -> std::array<AtomicT, kN>&
+{
+  return block_list_;
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+inline
+auto Bitset::Chunk::blockList() const noexcept -> const std::array<AtomicT, kN>&
+{
+  return block_list_;
+}
+
+/*!
+  \details No detailed description
+
   \param [in] pos No description.
   \return No description
   */
@@ -415,7 +444,7 @@ auto Bitset::getBlockRef(const std::size_t pos) noexcept -> AReference
   const std::size_t chunk_index = pos / chunkBitSize();
   Chunk& chunk = chunk_list_[chunk_index];
   const std::size_t block_index = (pos % chunkBitSize()) / blockBitSize();
-  return chunk.block_list_[block_index];
+  return chunk.blockList()[block_index];
 }
 
 /*!
@@ -430,7 +459,7 @@ auto Bitset::getBlockRef(const std::size_t pos) const noexcept -> AConstReferenc
   const std::size_t chunk_index = pos / chunkBitSize();
   const Chunk& chunk = chunk_list_[chunk_index];
   const std::size_t block_index = (pos % chunkBitSize()) / blockBitSize();
-  return chunk.block_list_[block_index];
+  return chunk.blockList()[block_index];
 }
 
 /*!

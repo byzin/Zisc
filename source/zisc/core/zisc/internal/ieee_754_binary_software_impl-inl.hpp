@@ -676,7 +676,7 @@ constexpr auto Ieee754BinarySoftwareImpl<kFormat, kRoundStyle>::scaledDown() con
           : 0;                                        // Normal case
       if (shift_size <= dst_sig_size) {
         // Exponent bits
-        const DstBitT dst_exp_bits = static_cast<DstBitT>((0 < shift_size)
+        const auto dst_exp_bits = static_cast<DstBitT>((0 < shift_size)
             ? 0                                             // Subnormal case
             : (exp_bits >> sig_size_diff) - exp_bias_diff); // Normal case
         // Significand bits

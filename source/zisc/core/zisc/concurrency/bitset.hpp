@@ -140,8 +140,9 @@ class Bitset : private NonCopyable<Bitset>
 
 
   //! Represent a block in the bitset
-  struct alignas(kChunkAlignment) Chunk
+  class alignas(kChunkAlignment) Chunk
   {
+   public:
     //! Create a chunk
     Chunk() noexcept = default;
 
@@ -157,6 +158,15 @@ class Bitset : private NonCopyable<Bitset>
     static_assert(kChunkAlignment % sizeof(AtomicT) == 0);
     static constexpr std::size_t kN = kChunkAlignment / sizeof(AtomicT);
 
+    //!
+    [[nodiscard]]
+    auto blockList() noexcept -> std::array<AtomicT, kN>&;
+
+    //!
+    [[nodiscard]]
+    auto blockList() const noexcept -> const std::array<AtomicT, kN>&;
+
+   private:
     std::array<AtomicT, kN> block_list_;
   };
 

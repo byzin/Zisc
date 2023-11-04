@@ -94,7 +94,7 @@ class FixedArrayResource : public pmr::memory_resource,
                         const std::size_t alignment) noexcept;
 
   //! Set the count max of the resource
-  void setCountMax(const std::size_t c) noexcept;
+  void setCountMax(const std::size_t c);
 
   //! Return the maximum available size per allocation
   static constexpr auto sizeMax() noexcept -> std::size_t;

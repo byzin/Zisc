@@ -80,9 +80,11 @@ class Ieee754BinaryHardwareImpl
   constexpr auto convertTo() const noexcept -> Float;
 
   //! Return the underlying floating point value
+  [[nodiscard]]
   constexpr auto data() noexcept -> DataT&;
 
   //! Return the underlying floating point value
+  [[nodiscard]]
   constexpr auto data() const noexcept -> const DataT&;
 
   //! Return the bit length used in the interchange encoding

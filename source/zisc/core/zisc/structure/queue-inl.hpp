@@ -123,7 +123,7 @@ auto Queue<QueueClass, T>::get(const size_type index) const noexcept -> ConstRef
   \return No description
   */
 template <typename QueueClass, std::movable T> inline
-constexpr bool Queue<QueueClass, T>::isBounded() noexcept
+constexpr auto Queue<QueueClass, T>::isBounded() noexcept -> bool
 {
   return QueueT::isBounded();
 }
@@ -134,7 +134,7 @@ constexpr bool Queue<QueueClass, T>::isBounded() noexcept
   \return No description
   */
 template <typename QueueClass, std::movable T> inline
-constexpr bool Queue<QueueClass, T>::isConcurrent() noexcept
+constexpr auto Queue<QueueClass, T>::isConcurrent() noexcept -> bool
 {
   return QueueT::isConcurrent();
 }
@@ -145,7 +145,7 @@ constexpr bool Queue<QueueClass, T>::isConcurrent() noexcept
   \return No description
   */
 template <typename QueueClass, std::movable T> inline
-bool Queue<QueueClass, T>::isEmpty() const noexcept
+auto Queue<QueueClass, T>::isEmpty() const noexcept -> bool
 {
   const bool result = size() == 0;
   return result;
@@ -157,7 +157,7 @@ bool Queue<QueueClass, T>::isEmpty() const noexcept
   \param [in] cap No description.
   */
 template <typename QueueClass, std::movable T> inline
-void Queue<QueueClass, T>::setCapacity(const size_type cap) noexcept
+void Queue<QueueClass, T>::setCapacity(const size_type cap)
 {
   QueueReference q = ref();
   q.setCapacity(cap);
@@ -173,14 +173,6 @@ auto Queue<QueueClass, T>::size() const noexcept -> size_type
 {
   ConstQueueReference q = ref();
   return q.size();
-}
-
-/*!
-  \details No detailed description
-  */
-template <typename QueueClass, std::movable T> inline
-Queue<QueueClass, T>::Queue() noexcept
-{
 }
 
 /*!

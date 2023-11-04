@@ -33,41 +33,45 @@ class RingBuffer
 {
  public:
   //! Return the maximum possible capacity
-  static constexpr std::size_t capacityMax() noexcept;
+  static constexpr auto capacityMax() noexcept -> std::size_t;
 
   //! Clear indices
   void clear() noexcept;
 
   //! Return the index represent an overflow
-  static constexpr uint64b overflowIndex() noexcept;
+  static constexpr auto overflowIndex() noexcept -> uint64b;
 
   //! Take the first element of the queue
-  uint64b dequeue(const bool nonempty) noexcept;
+  [[nodiscard]]
+  auto dequeue(const bool nonempty) noexcept -> uint64b;
 
   //! Return the distance between head and tail
-  std::size_t distance() const noexcept;
+  [[nodiscard]]
+  auto distance() const noexcept -> std::size_t;
 
   //! Append the given element value to the end of the queue
-  bool enqueue(const uint64b index, const bool nonempty) noexcept;
+  [[nodiscard]]
+  auto enqueue(const uint64b index, const bool nonempty) noexcept -> bool;
 
   //! Full the buffer data
   void full() noexcept;
 
   //! Return the uint mask for index
-  static constexpr uint64b indexMask() noexcept;
+  static constexpr auto indexMask() noexcept -> uint64b;
 
   //! Return the invalid index
-  static constexpr uint64b invalidIndex() noexcept;
+  static constexpr auto invalidIndex() noexcept -> uint64b;
 
   //! Remap index in order to avoid false sharing
   template <std::size_t kDataSize>
-  static uint64b permuteIndex(const uint64b index, const uint64b n) noexcept;
+  static auto permuteIndex(const uint64b index, const uint64b n) noexcept -> uint64b;
 
   //! Set the number of elements of indices
-  void setSize(const std::size_t s) noexcept;
+  void setSize(const std::size_t s);
 
   //! Return the number of elements of indices
-  std::size_t size() const noexcept;
+  [[nodiscard]]
+  auto size() const noexcept -> std::size_t;
 
  protected:
   // Type aliases
@@ -80,24 +84,26 @@ class RingBuffer
 
 
   //! Initialize the ring buffer
-  RingBuffer() noexcept;
+  RingBuffer() noexcept = default;
 
   //! Copy a ring buffer
   RingBuffer(const RingBuffer& other) noexcept;
 
 
   //! Copy a ring buffer
-  RingBuffer& operator=(const RingBuffer& other) noexcept;
+  auto operator=(const RingBuffer& other) noexcept -> RingBuffer&;
 
 
   //! Return the order of the size
-  static uint64b calcOrder(const uint64b s) noexcept;
+  static auto calcOrder(const uint64b s) noexcept -> uint64b;
 
   //! Return the reference to the ring buffer class
-  RingBufferReference ref() noexcept;
+  [[nodiscard]]
+  auto ref() noexcept -> RingBufferReference;
 
   //! Return the reference to the ring buffer class
-  ConstRingBufferReference ref() const noexcept;
+  [[nodiscard]]
+  auto ref() const noexcept -> ConstRingBufferReference;
 
 
   static constexpr std::size_t kCacheLineSize = Config::l1CacheLineSize();

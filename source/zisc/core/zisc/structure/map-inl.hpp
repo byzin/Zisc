@@ -238,7 +238,7 @@ template <typename MapClass,
           std::movable Key,
           MappedValue T,
           std::invocable<Key, Key> Compare> inline
-constexpr bool Map<MapClass, Key, T, Compare>::isBounded() noexcept
+constexpr auto Map<MapClass, Key, T, Compare>::isBounded() noexcept -> bool
 {
   return MapT::isBounded();
 }
@@ -252,7 +252,7 @@ template <typename MapClass,
           std::movable Key,
           MappedValue T,
           std::invocable<Key, Key> Compare> inline
-constexpr bool Map<MapClass, Key, T, Compare>::isConcurrent() noexcept
+constexpr auto Map<MapClass, Key, T, Compare>::isConcurrent() noexcept -> bool
 {
   return MapT::isConcurrent();
 }
@@ -266,7 +266,7 @@ template <typename MapClass,
           std::movable Key,
           MappedValue T,
           std::invocable<Key, Key> Compare> inline
-bool Map<MapClass, Key, T, Compare>::isEmpty() const noexcept
+auto Map<MapClass, Key, T, Compare>::isEmpty() const noexcept -> bool
 {
   const bool result = size() == 0;
   return result;
@@ -297,7 +297,7 @@ template <typename MapClass,
           std::movable Key,
           MappedValue T,
           std::invocable<Key, Key> Compare> inline
-void Map<MapClass, Key, T, Compare>::setCapacity(const size_type cap) noexcept
+void Map<MapClass, Key, T, Compare>::setCapacity(const size_type cap)
 {
   MapReference map = ref();
   map.setCapacity(cap);
@@ -320,13 +320,20 @@ auto Map<MapClass, Key, T, Compare>::size() const noexcept -> size_type
 
 /*!
   \details No detailed description
+
+  \return No description
   */
 template <typename MapClass,
           std::movable Key,
           MappedValue T,
           std::invocable<Key, Key> Compare> inline
-Map<MapClass, Key, T, Compare>::Map() noexcept
+auto Map<MapClass, Key, T, Compare>::getKey(ConstReference value) noexcept
+    -> ConstKeyT&
 {
+  if constexpr (std::is_void_v<T>)
+    return value;
+  else
+    return std::get<0>(value);
 }
 
 /*!
@@ -358,23 +365,6 @@ auto Map<MapClass, Key, T, Compare>::operator=([[maybe_unused]] const Map& other
   return *this;
 }
 
-/*!
-  \details No detailed description
-
-  \return No description
-  */
-template <typename MapClass,
-          std::movable Key,
-          MappedValue T,
-          std::invocable<Key, Key> Compare> inline
-auto Map<MapClass, Key, T, Compare>::getKey(ConstReference value) noexcept
-    -> ConstKeyT&
-{
-  if constexpr (std::is_void_v<T>)
-    return value;
-  else
-    return std::get<0>(value);
-}
 
 /*!
   \details No detailed description

@@ -145,15 +145,19 @@ macro(Zisc_setZiscProject)
                                     cppcoreguidelines-macro-usage
                                     cppcoreguidelines-no-malloc
                                     cppcoreguidelines-owning-memory
+                                    cppcoreguidelines-pro-bounds-array-to-pointer-decay,hicpp-no-array-decay
                                     cppcoreguidelines-pro-bounds-constant-array-index
                                     cppcoreguidelines-pro-bounds-pointer-arithmetic
                                     cppcoreguidelines-pro-type-const-cast
                                     cppcoreguidelines-pro-type-reinterpret-cast
                                     cppcoreguidelines-pro-type-vararg
                                     cppcoreguidelines-special-member-functions
+                                    google-explicit-constructor
                                     google-readability-braces-around-statements
                                     google-runtime-int
                                     hicpp-braces-around-statements
+                                    hicpp-explicit-conversions
+                                    hicpp-no-array-decay
                                     hicpp-no-malloc
                                     hicpp-signed-bitwise
                                     hicpp-special-member-functions
@@ -162,6 +166,8 @@ macro(Zisc_setZiscProject)
                                     performance-avoid-endl
                                     readability-avoid-const-params-in-decls
                                     readability-braces-around-statements
+                                    readability-else-after-return
+                                    readability-function-cognitive-complexity
                                     readability-identifier-length
                                     readability-magic-numbers
                                     )

@@ -35,7 +35,7 @@ namespace zisc {
   \return No description
   */
 template <typename RingBufferClass> inline
-constexpr std::size_t RingBuffer<RingBufferClass>::capacityMax() noexcept
+constexpr auto RingBuffer<RingBufferClass>::capacityMax() noexcept -> std::size_t
 {
   const auto c = static_cast<std::size_t>(indexMask());
   return c;
@@ -57,7 +57,7 @@ void RingBuffer<RingBufferClass>::clear() noexcept
   \return No description
   */
 template <typename RingBufferClass> inline
-constexpr uint64b RingBuffer<RingBufferClass>::overflowIndex() noexcept
+constexpr auto RingBuffer<RingBufferClass>::overflowIndex() noexcept -> uint64b
 {
   constexpr uint64b index = invalidIndex() - 1;
   return index;
@@ -70,7 +70,7 @@ constexpr uint64b RingBuffer<RingBufferClass>::overflowIndex() noexcept
   \return No description
   */
 template <typename RingBufferClass> inline
-uint64b RingBuffer<RingBufferClass>::dequeue(const bool nonempty) noexcept
+auto RingBuffer<RingBufferClass>::dequeue(const bool nonempty) noexcept -> uint64b
 {
   RingBufferReference buffer = ref();
   return buffer.dequeue(nonempty);
@@ -82,7 +82,7 @@ uint64b RingBuffer<RingBufferClass>::dequeue(const bool nonempty) noexcept
   \return No description
   */
 template <typename RingBufferClass> inline
-std::size_t RingBuffer<RingBufferClass>::distance() const noexcept
+auto RingBuffer<RingBufferClass>::distance() const noexcept -> std::size_t
 {
   ConstRingBufferReference buffer = ref();
   return buffer.distance();
@@ -96,7 +96,7 @@ std::size_t RingBuffer<RingBufferClass>::distance() const noexcept
   \return No description
   */
 template <typename RingBufferClass> inline
-bool RingBuffer<RingBufferClass>::enqueue(const uint64b index, const bool nonempty) noexcept
+auto RingBuffer<RingBufferClass>::enqueue(const uint64b index, const bool nonempty) noexcept -> bool
 {
   RingBufferReference buffer = ref();
   return buffer.enqueue(index, nonempty);
@@ -118,7 +118,7 @@ void RingBuffer<RingBufferClass>::full() noexcept
   \return No description
   */
 template <typename RingBufferClass> inline
-constexpr uint64b RingBuffer<RingBufferClass>::indexMask() noexcept
+constexpr auto RingBuffer<RingBufferClass>::indexMask() noexcept -> uint64b
 {
   constexpr uint64b mask = (std::numeric_limits<uint64b>::max)() >> 1;
   return mask;
@@ -130,7 +130,7 @@ constexpr uint64b RingBuffer<RingBufferClass>::indexMask() noexcept
   \return No description
   */
 template <typename RingBufferClass> inline
-constexpr uint64b RingBuffer<RingBufferClass>::invalidIndex() noexcept
+constexpr auto RingBuffer<RingBufferClass>::invalidIndex() noexcept -> uint64b
 {
   constexpr uint64b invalid = (std::numeric_limits<uint64b>::max)();
   return invalid;
@@ -145,7 +145,7 @@ constexpr uint64b RingBuffer<RingBufferClass>::invalidIndex() noexcept
   \return No description
   */
 template <typename RingBufferClass> template <std::size_t kDataSize> inline
-uint64b RingBuffer<RingBufferClass>::permuteIndex(const uint64b index, const uint64b n) noexcept
+auto RingBuffer<RingBufferClass>::permuteIndex(const uint64b index, const uint64b n) noexcept -> uint64b
 {
   static_assert(std::has_single_bit(kDataSize), "The data size isn't power of 2.");
   ZISC_ASSERT(std::has_single_bit(n), "The n isn't power of 2.");
@@ -158,8 +158,8 @@ uint64b RingBuffer<RingBufferClass>::permuteIndex(const uint64b index, const uin
 
   uint64b i = index;
   if (shift < o) {
-    const uint64b upper = cast<uint64b>(index << shift);
-    const uint64b lower = cast<uint64b>((index & (n - 1)) >> (o - shift));
+    const auto upper = cast<uint64b>(index << shift);
+    const auto lower = cast<uint64b>((index & (n - 1)) >> (o - shift));
     i = cast<uint64b>(upper | lower);
   }
   i = i & (n - 1);
@@ -172,7 +172,7 @@ uint64b RingBuffer<RingBufferClass>::permuteIndex(const uint64b index, const uin
   \param [in] s \a s must be a power of 2.
   */
 template <typename RingBufferClass> inline
-void RingBuffer<RingBufferClass>::setSize(const std::size_t s) noexcept
+void RingBuffer<RingBufferClass>::setSize(const std::size_t s)
 {
   ZISC_ASSERT((s == 0) || std::has_single_bit(s), "The size isn't 2^n. size = ", s);
   ZISC_ASSERT(s < capacityMax(), "The size exceeds the capacity max. size = ", s);
@@ -186,7 +186,7 @@ void RingBuffer<RingBufferClass>::setSize(const std::size_t s) noexcept
   \return No description
   */
 template <typename RingBufferClass> inline
-std::size_t RingBuffer<RingBufferClass>::size() const noexcept
+auto RingBuffer<RingBufferClass>::size() const noexcept -> std::size_t
 {
   ConstRingBufferReference buffer = ref();
   const std::size_t s = buffer.size();
@@ -196,21 +196,11 @@ std::size_t RingBuffer<RingBufferClass>::size() const noexcept
 
 /*!
   \details No detailed description
-  */
-template <typename RingBufferClass> inline
-RingBuffer<RingBufferClass>::RingBuffer() noexcept
-{
-}
-
-/*!
-  \details No detailed description
 
   \param [in] other No description.
   */
 template <typename RingBufferClass> inline
-RingBuffer<RingBufferClass>::RingBuffer([[maybe_unused]] const RingBuffer& other) noexcept
-{
-}
+RingBuffer<RingBufferClass>::RingBuffer(const RingBuffer& other) noexcept = default;
 
 /*!
   \details No detailed description
@@ -230,9 +220,9 @@ auto RingBuffer<RingBufferClass>::operator =([[maybe_unused]] const RingBuffer& 
   \return No description
   */
 template <typename RingBufferClass> inline
-uint64b RingBuffer<RingBufferClass>::calcOrder(const uint64b s) noexcept
+auto RingBuffer<RingBufferClass>::calcOrder(const uint64b s) noexcept -> uint64b
 {
-  const uint64b o = cast<uint64b>(std::bit_width(s));
+  const auto o = cast<uint64b>(std::bit_width(s));
   return (0 < o) ? o - 1 : 0;
 }
 

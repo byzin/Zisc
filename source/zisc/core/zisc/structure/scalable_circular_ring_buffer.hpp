@@ -45,39 +45,43 @@ class ScalableCircularRingBuffer : public RingBuffer<ScalableCircularRingBuffer>
 
 
   //! Create a ring buffer
-  ScalableCircularRingBuffer(pmr::memory_resource* mem_resource) noexcept;
+  explicit ScalableCircularRingBuffer(pmr::memory_resource* mem_resource) noexcept;
 
   //! Move a data
-  ScalableCircularRingBuffer(ScalableCircularRingBuffer&& other) noexcept;
+  ScalableCircularRingBuffer(ScalableCircularRingBuffer&& other) noexcept = default;
 
   //! Destroy the ring buffer
   ~ScalableCircularRingBuffer() noexcept;
 
 
   //! Move a data
-  ScalableCircularRingBuffer& operator=(ScalableCircularRingBuffer&& other) noexcept;
+  auto operator=(ScalableCircularRingBuffer&& other) noexcept -> ScalableCircularRingBuffer& = default;
 
 
   //! Clear indices
   void clear() noexcept;
 
   //! Take the first element of the queue
-  uint64b dequeue(const bool nonempty) noexcept;
+  [[nodiscard]]
+  auto dequeue(const bool nonempty) noexcept -> uint64b;
 
   //! Return the distance between head and tail
-  std::size_t distance() const noexcept;
+  [[nodiscard]]
+  auto distance() const noexcept -> std::size_t;
 
   //! Append the given element value to the end of the queue
-  bool enqueue(const uint64b index, const bool nonempty) noexcept;
+  [[nodiscard]]
+  auto enqueue(const uint64b index, const bool nonempty) noexcept -> bool;
 
   //! Full the buffer data
   void full() noexcept;
 
   //! Set the number of elements of indices
-  void setSize(const std::size_t s) noexcept;
+  void setSize(const std::size_t s);
 
   //! Return the number of elements of indices
-  std::size_t size() const noexcept;
+  [[nodiscard]]
+  auto size() const noexcept -> std::size_t;
 
  private:
   //! Represent the memory offset
@@ -90,10 +94,10 @@ class ScalableCircularRingBuffer : public RingBuffer<ScalableCircularRingBuffer>
   };
 
   //! Calculate the required memory length
-  static std::size_t calcMemChunkSize(const std::size_t s) noexcept;
+  static auto calcMemChunkSize(const std::size_t s) noexcept -> std::size_t;
 
   //!
-  static int64b calcThreshold3(const uint64b half) noexcept;
+  static auto calcThreshold3(const uint64b half) noexcept -> int64b;
 
   //!
   static void catchUp(uint64b tailp,
@@ -103,50 +107,61 @@ class ScalableCircularRingBuffer : public RingBuffer<ScalableCircularRingBuffer>
 
   //!
   template <template<typename> typename Func>
-  static bool compare(const uint64b lhs, const uint64b rhs) noexcept;
+  static auto compare(const uint64b lhs, const uint64b rhs) noexcept -> bool;
 
   //! Destroy the ring buffer
   void destroy() noexcept;
 
   //! Return the distance between head and tail
-  static std::size_t distance(const std::atomic<uint64b>& tail_count,
-                              const std::atomic<uint64b>& head_count) noexcept;
+  static auto distance(const std::atomic<uint64b>& tail_count,
+                       const std::atomic<uint64b>& head_count) noexcept -> std::size_t;
 
   //! Return the underlying index counter
-  std::atomic<uint64b>& getIndex(const std::size_t index) noexcept;
+  [[nodiscard]]
+  auto getIndex(const std::size_t index) noexcept -> std::atomic<uint64b>&;
 
   //! Return the underlying index counter
-  const std::atomic<uint64b>& getIndex(const std::size_t index) const noexcept;
+  [[nodiscard]]
+  auto getIndex(const std::size_t index) const noexcept -> const std::atomic<uint64b>&;
 
   //! Return the underlying index list
-  std::span<std::atomic<uint64b>> getIndexList() noexcept;
+  [[nodiscard]]
+  auto getIndexList() noexcept -> std::span<std::atomic<uint64b>>;
 
   //! Return the underlying index list
-  std::span<const std::atomic<uint64b>> getIndexList() const noexcept;
+  [[nodiscard]]
+  auto getIndexList() const noexcept -> std::span<const std::atomic<uint64b>>;
 
   //! Return the underlying head point
-  std::atomic<uint64b>& head() noexcept;
+  [[nodiscard]]
+  auto head() noexcept -> std::atomic<uint64b>&;
 
   //! Return the underlying head point
-  const std::atomic<uint64b>& head() const noexcept;
+  [[nodiscard]]
+  auto head() const noexcept -> const std::atomic<uint64b>&;
 
   //! Initialize the ring buffer
   void initialize() noexcept;
 
   //! Remap index in order to avoid false sharing
-  uint64b permuteIndex(const uint64b index) const noexcept;
+  [[nodiscard]]
+  auto permuteIndex(const uint64b index) const noexcept -> uint64b;
 
   //! Return the underlying tail point
-  std::atomic<uint64b>& tail() noexcept;
+  [[nodiscard]]
+  auto tail() noexcept -> std::atomic<uint64b>&;
 
   //! Return the underlying tail point
-  const std::atomic<uint64b>& tail() const noexcept;
+  [[nodiscard]]
+  auto tail() const noexcept -> const std::atomic<uint64b>&;
 
   //! Return the underlying threshold
-  std::atomic<int64b>& threshold() noexcept;
+  [[nodiscard]]
+  auto threshold() noexcept -> std::atomic<int64b>&;
 
   //! Return the underlying threshold
-  const std::atomic<int64b>& threshold() const noexcept;
+  [[nodiscard]]
+  auto threshold() const noexcept -> const std::atomic<int64b>&;
 
 
   static constexpr std::size_t kCacheLineSize = Config::l1CacheLineSize();
@@ -154,7 +169,7 @@ class ScalableCircularRingBuffer : public RingBuffer<ScalableCircularRingBuffer>
 
 
   pmr::vector<MemChunk> memory_;
-  std::size_t size_;
+  std::size_t size_ = 0;
 };
 
 } // namespace zisc

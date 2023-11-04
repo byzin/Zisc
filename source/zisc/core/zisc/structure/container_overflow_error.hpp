@@ -60,21 +60,23 @@ class ContainerOverflowError : public SystemError
                          RReference value);
 
   //! Move data
-  ContainerOverflowError(ContainerOverflowError&& other);
+  ContainerOverflowError(ContainerOverflowError&& other) noexcept;
 
   //! Finalize the lock free queue error
   ~ContainerOverflowError() noexcept override = default;
 
 
   //! Move data
-  ContainerOverflowError& operator=(ContainerOverflowError&& other);
+  auto operator=(ContainerOverflowError&& other) noexcept -> ContainerOverflowError&;
 
 
   //! Return the overflowing value
-  Reference get() noexcept;
+  [[nodiscard]]
+  auto get() noexcept -> Reference;
 
   //! Return the overflowing value
-  ConstReference get() const noexcept;
+  [[nodiscard]]
+  auto get() const noexcept -> ConstReference;
 
  private:
   std::shared_ptr<ValueT> value_;

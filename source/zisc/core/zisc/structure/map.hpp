@@ -99,53 +99,56 @@ class Map : private NonCopyable<Map<MapClass, Key, T, Compare>>
   //! Insert the given value into the map
   template <typename ...Args>
   [[nodiscard]]
-  std::optional<size_type> add(Args&&... args);
+  auto add(Args&&... args) -> std::optional<size_type>;
 
   //! Return the maximum possible number of elements
-  size_type capacity() const noexcept;
+  [[nodiscard]]
+  auto capacity() const noexcept -> size_type;
 
   //! Return the maximum possible capacity
-  static constexpr size_type capacityMax() noexcept;
+  static constexpr auto capacityMax() noexcept -> size_type;
 
   //! Clear the contents
   void clear() noexcept;
 
   //! Check if the given value is contained in the map
   [[nodiscard]]
-  std::optional<size_type> contain(ConstKeyT& key) const noexcept;
+  auto contain(ConstKeyT& key) const noexcept -> std::optional<size_type>;
 
   //! Find the minimum key in the map
   [[nodiscard]]
-  std::optional<Pointer> findMinKey() noexcept;
+  auto findMinKey() noexcept -> std::optional<Pointer>;
 
   //! Find the minimum key in the map
   [[nodiscard]]
-  std::optional<ConstPointer> findMinKey() const noexcept;
+  auto findMinKey() const noexcept -> std::optional<ConstPointer>;
 
   //! Retrun the value by the given index
-  Reference get(const size_type index) noexcept;
+  auto get(const size_type index) noexcept -> Reference;
 
   //! Retrun the value by the given index
-  ConstReference get(const size_type index) const noexcept;
+  auto get(const size_type index) const noexcept -> ConstReference;
 
   //! Check if the map is bounded
-  static constexpr bool isBounded() noexcept;
+  static constexpr auto isBounded() noexcept -> bool;
 
   //! Check if the map is concurrent
-  static constexpr bool isConcurrent() noexcept;
+  static constexpr auto isConcurrent() noexcept -> bool;
 
   //! Check whether the map is empty
-  bool isEmpty() const noexcept;
+  [[nodiscard]]
+  auto isEmpty() const noexcept -> bool;
 
   //! Remove the value from the map
   [[nodiscard]]
-  std::optional<size_type> remove(ConstKeyT& key);
+  auto remove(ConstKeyT& key) -> std::optional<size_type>;
 
   //! Change the maximum possible number of elements. The map will be cleared
-  void setCapacity(const size_type cap) noexcept;
+  void setCapacity(const size_type cap);
 
   //! Return the number of elements in the map
-  size_type size() const noexcept;
+  [[nodiscard]]
+  auto size() const noexcept -> size_type;
 
  protected:
   // Type aliases
@@ -158,24 +161,24 @@ class Map : private NonCopyable<Map<MapClass, Key, T, Compare>>
 
 
   //! Create a map
-  Map() noexcept;
+  Map() noexcept = default;
 
   //! Move a data
   Map(const Map& other) noexcept;
 
 
   //! Move a data
-  Map& operator=(const Map& other) noexcept;
+  auto operator=(const Map& other) noexcept -> Map&;
 
 
   //! Get the key from the given value
-  static ConstKeyT& getKey(ConstReference value) noexcept;
+  static auto getKey(ConstReference value) noexcept -> ConstKeyT&;
 
   //! Return the reference to the map class
-  MapReference ref() noexcept;
+  auto ref() noexcept -> MapReference;
 
   //! Return the reference to the map class
-  ConstMapReference ref() const noexcept;
+  auto ref() const noexcept -> ConstMapReference;
 };
 
 } // namespace zisc

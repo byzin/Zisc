@@ -168,9 +168,16 @@ class Math
     template <std::floating_point Float>
     struct F2 
     {
+     public:
       constexpr F2() noexcept = default;
       explicit constexpr F2(const Float x) noexcept : x_{x} {}
       constexpr F2(const Float x, const Float y) noexcept : x_{x}, y_{y} {}
+      constexpr auto x() noexcept -> Float& {return x_;}
+      constexpr auto x() const noexcept -> const Float& {return x_;}
+      constexpr auto y() noexcept -> Float& {return y_;}
+      constexpr auto y() const noexcept -> const Float& {return y_;}
+
+     private:
       Float x_ = cast<Float>(0.0);
       Float y_ = cast<Float>(0.0);
     };

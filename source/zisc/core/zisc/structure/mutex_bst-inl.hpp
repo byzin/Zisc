@@ -77,6 +77,7 @@ MutexBst<Key, T, Compare>::MutexBst(const size_type cap,
 template <std::movable Key, MappedValue T, std::invocable<Key, Key> Compare>
 inline
 MutexBst<Key, T, Compare>::MutexBst(MutexBst&& other) noexcept :
+    BaseMapT(std::move(other)),
     index_stack_{std::move(other.index_stack_)},
     node_pool_{std::move(other.node_pool_)},
     node_list_{std::move(other.node_list_)}
@@ -337,7 +338,7 @@ auto MutexBst<Key, T, Compare>::get(const size_type index) const noexcept
   */
 template <std::movable Key, MappedValue T, std::invocable<Key, Key> Compare>
 inline
-constexpr bool MutexBst<Key, T, Compare>::isBounded() noexcept
+constexpr auto MutexBst<Key, T, Compare>::isBounded() noexcept -> bool
 {
   return true;
 }
@@ -349,7 +350,7 @@ constexpr bool MutexBst<Key, T, Compare>::isBounded() noexcept
   */
 template <std::movable Key, MappedValue T, std::invocable<Key, Key> Compare>
 inline
-constexpr bool MutexBst<Key, T, Compare>::isConcurrent() noexcept
+constexpr auto MutexBst<Key, T, Compare>::isConcurrent() noexcept -> bool
 {
   return true;
 }
@@ -388,7 +389,7 @@ auto MutexBst<Key, T, Compare>::remove(ConstKeyT& key) -> std::optional<size_typ
   */
 template <std::movable Key, MappedValue T, std::invocable<Key, Key> Compare>
 inline
-pmr::memory_resource* MutexBst<Key, T, Compare>::resource() const noexcept
+auto MutexBst<Key, T, Compare>::resource() const noexcept -> pmr::memory_resource*
 {
   pmr::memory_resource* mem_resource = node_pool_.get_allocator().resource();
   return mem_resource;
@@ -439,7 +440,7 @@ auto MutexBst<Key, T, Compare>::size() const noexcept -> size_type
   */
 template <std::movable Key, MappedValue T, std::invocable<Key, Key> Compare>
 inline
-bool MutexBst<Key, T, Compare>::compare(ConstStoragePtr lhs, ConstKeyT& rhs) noexcept
+auto MutexBst<Key, T, Compare>::compare(ConstStoragePtr lhs, ConstKeyT& rhs) noexcept -> bool
 {
   ConstKeyT& lhs_key = BaseMapT::getKey(lhs->get());
   const bool result = CompareT{}(lhs_key, rhs);
@@ -455,7 +456,7 @@ bool MutexBst<Key, T, Compare>::compare(ConstStoragePtr lhs, ConstKeyT& rhs) noe
   */
 template <std::movable Key, MappedValue T, std::invocable<Key, Key> Compare>
 inline
-bool MutexBst<Key, T, Compare>::compareNode(ConstStoragePtr lhs, ConstStoragePtr rhs) noexcept
+auto MutexBst<Key, T, Compare>::compareNode(ConstStoragePtr lhs, ConstStoragePtr rhs) noexcept -> bool
 {
   return MutexBst::compare(lhs, BaseMapT::getKey(rhs->get()));
 }
@@ -469,7 +470,7 @@ bool MutexBst<Key, T, Compare>::compareNode(ConstStoragePtr lhs, ConstStoragePtr
   */
 template <std::movable Key, MappedValue T, std::invocable<Key, Key> Compare>
 inline
-bool MutexBst<Key, T, Compare>::equal(ConstStoragePtr lhs, ConstKeyT& rhs) noexcept
+auto MutexBst<Key, T, Compare>::equal(ConstStoragePtr lhs, ConstKeyT& rhs) noexcept -> bool
 {
   ConstKeyT& lhs_key = BaseMapT::getKey(lhs->get());
   const bool result = !CompareT{}(lhs_key, rhs) && !CompareT{}(rhs, lhs_key);

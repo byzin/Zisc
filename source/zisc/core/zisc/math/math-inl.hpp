@@ -158,7 +158,7 @@ constexpr auto Math::pow(const Arith base, const Float exponent) noexcept -> Ari
   const auto x = cast<Float>(base);
   const Impl::F2<Float> d = Impl::mul(Impl::log(Impl::abs(x)), exponent);
   Float result = Impl::exp(d);
-  if (d.x_ > cast<Float>(709.78271114955742909217217426))
+  if (d.x() > cast<Float>(709.78271114955742909217217426))
     result = FLimits::infinity();
 
   result = Impl::isNan(result) ? FLimits::infinity() : result;
@@ -214,7 +214,7 @@ constexpr auto Math::sqrt(Float x) noexcept -> Float
   auto x2 = Impl::mul<Impl::F2<Float>>(Impl::add2(x, Impl::mul(v, v)), Impl::rec(v));
 
   using FLimits = std::numeric_limits<Float>;
-  Float result = q * (x2.x_ + x2.y_);
+  Float result = q * (x2.x() + x2.y());
   result = (x == FLimits::infinity()) ? FLimits::infinity() : result;
   result = (x == cast<Float>(0)) ? x : result;
   return result;
@@ -509,7 +509,7 @@ constexpr auto Math::Impl::add(const Float x, const Float y) noexcept
     -> F2<Float>
 {
   F2<Float> result{x + y};
-  result.y_ = x - result.x_ + y;
+  result.y() = x - result.x() + y;
   return result;
 }
 
@@ -525,8 +525,8 @@ template <std::floating_point Float> inline
 constexpr auto Math::Impl::add(const Float x, const F2<Float> y) noexcept
     -> F2<Float>
 {
-  F2<Float> result{x + y.x_};
-  result.y_ = x - result.x_ + y.x_ + y.y_;
+  F2<Float> result{x + y.x()};
+  result.y() = x - result.x() + y.x() + y.y();
   return result;
 }
 
@@ -542,8 +542,8 @@ template <std::floating_point Float> inline
 constexpr auto Math::Impl::add(const F2<Float> x, const Float y) noexcept
     -> F2<Float>
 {
-  F2<Float> result{x.x_ + y};
-  result.y_ = x.x_ - result.x_ + y + x.y_;
+  F2<Float> result{x.x() + y};
+  result.y() = x.x() - result.x() + y + x.y();
   return result;
 }
 
@@ -559,8 +559,8 @@ template <std::floating_point Float> inline
 constexpr auto Math::Impl::add(const F2<Float> x, const F2<Float> y) noexcept
     -> F2<Float>
 {
-  F2<Float> result{x.x_ + y.x_};
-  result.y_ = x.x_ - result.x_ + y.x_ + x.y_ + y.y_;
+  F2<Float> result{x.x() + y.x()};
+  result.y() = x.x() - result.x() + y.x() + x.y() + y.y();
   return result;
 }
 
@@ -576,8 +576,8 @@ template <std::floating_point Float> inline
 constexpr auto Math::Impl::add2(const Float x, const Float y) noexcept -> F2<Float>
 {
   F2<Float> result{x + y};
-  const Float v = result.x_ - x;
-  result.y_ = (x - (result.x_ - v)) + (y - v);
+  const Float v = result.x() - x;
+  result.y() = (x - (result.x() - v)) + (y - v);
   return result;
 }
 
@@ -593,9 +593,9 @@ template <std::floating_point Float> inline
 constexpr auto Math::Impl::add2(const Float x, const F2<Float> y) noexcept
     -> F2<Float>
 {
-  F2<Float> result{x + y.x_};
-  const Float v = result.x_ - x;
-  result.y_ = (x - (result.x_ - v)) + (y.x_ - v) + y.y_;
+  F2<Float> result{x + y.x()};
+  const Float v = result.x() - x;
+  result.y() = (x - (result.x() - v)) + (y.x() - v) + y.y();
   return result;
 }
 
@@ -611,9 +611,9 @@ template <std::floating_point Float> inline
 constexpr auto Math::Impl::add2(const F2<Float> x, const Float y) noexcept
     -> F2<Float>
 {
-  F2<Float> result{x.x_ + y};
-  const Float v = result.x_ - x.x_;
-  result.y_ = (x.x_ - (result.x_ - v)) + (y - v) + x.y_;
+  F2<Float> result{x.x() + y};
+  const Float v = result.x() - x.x();
+  result.y() = (x.x() - (result.x() - v)) + (y - v) + x.y();
   return result;
 }
 
@@ -629,9 +629,9 @@ template <std::floating_point Float> inline
 constexpr auto Math::Impl::add2(const F2<Float> x, const F2<Float> y) noexcept
     -> F2<Float>
 {
-  F2<Float> result{x.x_ + y.x_};
-  const Float v = result.x_ - x.x_;
-  result.y_ = (x.x_ - (result.x_ - v)) + (y.x_ - v) + (x.y_ + y.y_);
+  F2<Float> result{x.x() + y.x()};
+  const Float v = result.x() - x.x();
+  result.y() = (x.x() - (result.x() - v)) + (y.x() - v) + (x.y() + y.y());
   return result;
 }
 
@@ -647,18 +647,18 @@ template <std::floating_point Float> inline
 constexpr auto Math::Impl::div(const F2<Float> x, const F2<Float> y) noexcept
     -> F2<Float>
 {
-  const Float t = invert(y.x_);
-  const Float yh = upper(y.x_);
-  const Float yl = y.x_ - yh;
+  const Float t = invert(y.x());
+  const Float yh = upper(y.x());
+  const Float yl = y.x() - yh;
   const Float th = upper(t);
   const Float tl = t - th;
-  const Float xhh = upper(x.x_);
-  const Float xhl = x.x_ - xhh;
+  const Float xhh = upper(x.x());
+  const Float xhl = x.x() - xhh;
 
-  F2<Float> q{t * x.x_};
-  const Float u = -q.x_ + xhh * th + xhh * tl + xhl * th + xhl * tl +
-                   q.x_ * (cast<Float>(1.0) - yh * th - yh * tl - yl * th - yl * tl);
-  q.y_ = t * (x.y_ - q.x_ * y.y_) + u;
+  F2<Float> q{t * x.x()};
+  const Float u = -q.x() + xhh * th + xhh * tl + xhl * th + xhl * tl +
+                   q.x() * (cast<Float>(1.0) - yh * th - yh * tl - yl * th - yl * tl);
+  q.y() = t * (x.y() - q.x() * y.y()) + u;
   return q;
 }
 
@@ -679,7 +679,7 @@ constexpr auto Math::Impl::mul(const Float x, const Float y) noexcept -> F2<Floa
   const Float yl = y - yh;
 
   F2<Float> result{x * y};
-  result.y_ = xh * yh - result.x_ + xl * yh + xh * yl + xl * yl;
+  result.y() = xh * yh - result.x() + xl * yh + xh * yl + xl * yl;
   return result;
 }
 
@@ -695,13 +695,13 @@ template <std::floating_point Float> inline
 constexpr auto Math::Impl::mul(const F2<Float> x, const Float y) noexcept
     -> F2<Float>
 {
-  const Float xh = upper(x.x_);
-  const Float xl = x.x_ - xh;
+  const Float xh = upper(x.x());
+  const Float xl = x.x() - xh;
   const Float yh = upper(y);
   const Float yl = y - yh;
 
-  F2<Float> result{x.x_ * y};
-  result.y_ = xh * yh - result.x_ + xl * yh + xh * yl + xl * yl + x.y_ * y;
+  F2<Float> result{x.x() * y};
+  result.y() = xh * yh - result.x() + xl * yh + xh * yl + xl * yl + x.y() * y;
   return result;
 }
 
@@ -716,18 +716,18 @@ constexpr auto Math::Impl::mul(const F2<Float> x, const Float y) noexcept
 template <typename ReturnT, std::floating_point Float> inline
 constexpr auto Math::Impl::mul(const F2<Float> x, const F2<Float> y) noexcept -> ReturnT
 {
-  const Float xh = upper(x.x_);
-  const Float xl = x.x_ - xh;
-  const Float yh = upper(y.x_);
-  const Float yl = y.x_ - yh;
+  const Float xh = upper(x.x());
+  const Float xl = x.x() - xh;
+  const Float yh = upper(y.x());
+  const Float yl = y.x() - yh;
 
   if constexpr (std::same_as<Float, ReturnT>) {
-    const Float result = x.y_ * yh + xh * y.y_ + xl * yl + xh * yl + xl * yh + xh * yh;
+    const Float result = x.y() * yh + xh * y.y() + xl * yl + xh * yl + xl * yh + xh * yh;
     return result;
   }
   else if constexpr (std::same_as<F2<Float>, ReturnT>) {
-    F2<Float> result{x.x_ * y.x_};
-    result.y_ = xh * yh - result.x_ + xl * yh + xh * yl + xl * yl + x.x_ * y.y_ + x.y_ * y.x_;
+    F2<Float> result{x.x() * y.x()};
+    result.y() = xh * yh - result.x() + xl * yh + xh * yl + xl * yl + x.x() * y.y() + x.y() * y.x();
     return result;
   }
 }
@@ -742,8 +742,8 @@ constexpr auto Math::Impl::mul(const F2<Float> x, const F2<Float> y) noexcept ->
 template <std::floating_point Float> inline
 constexpr auto Math::Impl::normalize(const F2<Float> x) noexcept -> F2<Float>
 {
-  F2<Float> result{x.x_ + x.y_};
-  result.y_ = x.x_ - result.x_ + x.y_;
+  F2<Float> result{x.x() + x.y()};
+  result.y() = x.x() - result.x() + x.y();
   return result;
 }
 
@@ -778,14 +778,14 @@ constexpr auto Math::Impl::rec(const Float x) noexcept -> F2<Float>
 template <std::floating_point Float> inline
 constexpr auto Math::Impl::rec(const F2<Float> x) noexcept -> F2<Float>
 {
-  const Float xh = upper(x.x_);
-  const Float xl = x.x_ - xh;
-  const Float t = invert(x.x_);
+  const Float xh = upper(x.x());
+  const Float xl = x.x() - xh;
+  const Float t = invert(x.x());
   const Float th = upper(t);
   const Float tl = t - th;
 
   constexpr Float one = cast<Float>(1);
-  F2<Float> result{t, t * (one - xh * th - xh * tl - xl * th - xl * tl - x.y_ * t)};
+  F2<Float> result{t, t * (one - xh * th - xh * tl - xl * th - xl * tl - x.y() * t)};
   return result;
 }
 
@@ -801,7 +801,7 @@ template <std::floating_point Float> inline
 constexpr auto Math::Impl::scale(const F2<Float> x, const Float s) noexcept
     -> F2<Float>
 {
-  const F2<Float> result{s * x.x_, s * x.y_};
+  const F2<Float> result{s * x.x(), s * x.y()};
   return result;
 }
 
@@ -815,15 +815,15 @@ constexpr auto Math::Impl::scale(const F2<Float> x, const Float s) noexcept
 template <typename ReturnT, std::floating_point Float> inline
 constexpr auto Math::Impl::squ(const F2<Float> x) noexcept -> ReturnT
 {
-  const Float xh = upper(x.x_);
-  const Float xl = x.x_ - xh;
+  const Float xh = upper(x.x());
+  const Float xl = x.x() - xh;
   ReturnT y;
   if constexpr (std::is_scalar_v<ReturnT>) {
-    y = xh * x.y_ + xh * x.y_ + xl * xl + (xh * xl + xh * xl) + xh * xh;
+    y = xh * x.y() + xh * x.y() + xl * xl + (xh * xl + xh * xl) + xh * xh;
   }
   else {
-    y.x_ = x.x_ * x.x_;
-    y.y_ = xh * xh - y.x_ + (xh + xh) * xl + xl * xl + x.x_ * (x.y_ + x.y_);
+    y.x() = x.x() * x.x();
+    y.y() = xh * xh - y.x() + (xh + xh) * xl + xl * xl + x.x() * (x.y() + x.y());
   }
   return y;
 }
@@ -1354,7 +1354,7 @@ constexpr auto Math::Impl::copysign(const Float x, const Float y) noexcept -> Fl
 template <std::floating_point Float> inline
 constexpr auto Math::Impl::exp(const F2<Float> x) noexcept -> Float
 {
-  const auto q = cast<int>(rint((x.x_ + x.y_) * ln2<Float>()));
+  const auto q = cast<int>(rint((x.x() + x.y()) * ln2<Float>()));
   F2<Float> s = add2(x, cast<Float>(q) * -l2u<Float>());
   s = add2(s, cast<Float>(q) * -l2l<Float>());
   s = normalize(s);
@@ -1363,23 +1363,23 @@ constexpr auto Math::Impl::exp(const F2<Float> x) noexcept -> Float
   F2<Float> t;
   if constexpr (sizeof(Float) == 4) {
     u = 0.00136324646882712841033936F;
-    u = mla(u, s.x_, 0.00836596917361021041870117F);
-    u = mla(u, s.x_, 0.0416710823774337768554688F);
-    u = mla(u, s.x_, 0.166665524244308471679688F);
-    u = mla(u, s.x_, 0.499999850988388061523438F);
+    u = mla(u, s.x(), 0.00836596917361021041870117F);
+    u = mla(u, s.x(), 0.0416710823774337768554688F);
+    u = mla(u, s.x(), 0.166665524244308471679688F);
+    u = mla(u, s.x(), 0.499999850988388061523438F);
     t = add(s, mul(squ<F2<Float>>(s), u));
     t = add(1.0F, t);
   }
   else {
-    const Float s2 = s.x_ * s.x_;
+    const Float s2 = s.x() * s.x();
     const Float s4 = s2 * s2;
     const Float s8 = s4 * s4;
-    u = poly10<ExpDConstants, 0>(s.x_, s2, s4, s8);
+    u = poly10<ExpDConstants, 0>(s.x(), s2, s4, s8);
     t = add(1.0, s);
     t = add(t, mul(squ<F2<Float>>(s), u));
   }
-  u = ldexp(t.x_ + t.y_, q);
-  if (x.x_ < fvalue<Float>(-104.0F, -1000.0))
+  u = ldexp(t.x() + t.y(), q);
+  if (x.x() < fvalue<Float>(-104.0F, -1000.0))
     u = cast<Float>(0.0);
   return u;
 }
@@ -1563,14 +1563,14 @@ constexpr auto Math::Impl::log(Float x) noexcept -> F2<Float>
   auto t = cast<Float>(0.0);
   if constexpr (sizeof(Float) == 4) {
     t = 0.240320354700088500976562F;
-    t = mla(t, u2.x_, 0.285112679004669189453125F);
-    t = mla(t, u2.x_, 0.400007992982864379882812F);
+    t = mla(t, u2.x(), 0.285112679004669189453125F);
+    t = mla(t, u2.x(), 0.400007992982864379882812F);
   }
   else {
-    const Float u4 = u2.x_ * u2.x_;
+    const Float u4 = u2.x() * u2.x();
     const Float u8 = u4 * u4;
     const Float u16 = u8 * u8;
-    t = poly9<LogDConstants, 0>(u2.x_, u4, u8, u16);
+    t = poly9<LogDConstants, 0>(u2.x(), u4, u8, u16);
   }
 
   constexpr F2<Float> c{

@@ -45,39 +45,41 @@ class PortableRingBuffer : public RingBuffer<PortableRingBuffer>
 
 
   //! Create a ring buffer
-  PortableRingBuffer(pmr::memory_resource* mem_resource) noexcept;
+  explicit PortableRingBuffer(pmr::memory_resource* mem_resource) noexcept;
 
   //! Move a data
-  PortableRingBuffer(PortableRingBuffer&& other) noexcept;
+  PortableRingBuffer(PortableRingBuffer&& other) noexcept = default;
 
   //! Destroy the ring buffer
   ~PortableRingBuffer() noexcept;
 
 
   //! Move a data
-  PortableRingBuffer& operator=(PortableRingBuffer&& other) noexcept;
+  auto operator=(PortableRingBuffer&& other) noexcept -> PortableRingBuffer& = default;
 
 
   //! Clear indices
   void clear() noexcept;
 
   //! Take the first element of the queue
-  uint64b dequeue(const bool nonempty) noexcept;
+  auto dequeue(const bool nonempty) noexcept -> uint64b;
 
   //! Return the distance between head and tail
-  std::size_t distance() const noexcept;
+  [[nodiscard]]
+  auto distance() const noexcept -> std::size_t;
 
   //! Append the given element value to the end of the queue
-  bool enqueue(const uint64b index, const bool nonempty) noexcept;
+  auto enqueue(const uint64b index, const bool nonempty) noexcept -> bool;
 
   //! Full the buffer data
   void full() noexcept;
 
   //! Set the number of elements of indices
-  void setSize(const std::size_t s) noexcept;
+  void setSize(const std::size_t s);
 
   //! Return the number of elements of indices
-  std::size_t size() const noexcept;
+  [[nodiscard]]
+  auto size() const noexcept -> std::size_t;
 
  private:
   //! Represent the memory offset
@@ -97,66 +99,75 @@ class PortableRingBuffer : public RingBuffer<PortableRingBuffer>
 
 
   //! Calculate the required memory length
-  static std::size_t calcMemChunkSize(const std::size_t s) noexcept;
+  static auto calcMemChunkSize(const std::size_t s) noexcept -> std::size_t;
 
   //! Destroy the ring buffer
   void destroy() noexcept;
 
   //! Return the distance between head and tail
-  static std::size_t distance(const std::atomic<uint64b>& tail_count,
-                              const std::atomic<uint64b>& head_count) noexcept;
+  static auto distance(const std::atomic<uint64b>& tail_count,
+                       const std::atomic<uint64b>& head_count) noexcept -> std::size_t;
 
   //!
   static void fixState(std::atomic<uint64b>& tail_count,
                        std::atomic<uint64b>& head_count) noexcept;
 
   //! Return the underlying cell
-  Cell& getCell(const std::size_t index) noexcept;
+  [[nodiscard]]
+  auto getCell(const std::size_t index) noexcept -> Cell&;
 
   //! Return the underlying cell
-  const Cell& getCell(const std::size_t index) const noexcept;
+  [[nodiscard]]
+  auto getCell(const std::size_t index) const noexcept -> const Cell&;
 
   //! Return the underlying cell list
-  std::span<Cell> getCellList() noexcept;
+  [[nodiscard]]
+  auto getCellList() noexcept -> std::span<Cell>;
 
   //! Return the underlying cell list
-  std::span<const Cell> getCellList() const noexcept;
+  [[nodiscard]]
+  auto getCellList() const noexcept -> std::span<const Cell>;
 
   //! Return the node index
-  static uint64b getNodeIndex(const uint64b index) noexcept;
+  static auto getNodeIndex(const uint64b index) noexcept -> uint64b;
 
   //! Return a thread local bottom
-  static uint64b getThreadLocalBottom() noexcept;
+  static auto getThreadLocalBottom() noexcept -> uint64b;
 
   //! Return the index with unsafe flag
-  static uint64b getUnsafeFlag(const uint64b index) noexcept;
+  static auto getUnsafeFlag(const uint64b index) noexcept -> uint64b;
 
   //! Return the underlying head point
-  std::atomic<uint64b>& head() noexcept;
+  [[nodiscard]]
+  auto head() noexcept -> std::atomic<uint64b>&;
 
   //! Return the underlying head point
-  const std::atomic<uint64b>& head() const noexcept;
+  [[nodiscard]]
+  auto head() const noexcept -> const std::atomic<uint64b>&;
 
   //! Initialize the ring buffer
   void initialize() noexcept;
 
   //! Check if the value is bottom
-  static bool isBottom(const uint64b value) noexcept;
+  static auto isBottom(const uint64b value) noexcept -> bool;
 
   //! CHeck if the given index has unsafe flag
-  static bool isUnsafe(const uint64b index) noexcept;
+  static auto isUnsafe(const uint64b index) noexcept -> bool;
 
   //! Remap index in order to avoid false sharing
-  uint64b permuteIndex(const uint64b index) const noexcept;
+  [[nodiscard]]
+  auto permuteIndex(const uint64b index) const noexcept -> uint64b;
 
   //! Return the underlying tail point
-  std::atomic<uint64b>& tail() noexcept;
+  [[nodiscard]]
+  auto tail() noexcept -> std::atomic<uint64b>&;
 
   //! Return the underlying tail point
-  const std::atomic<uint64b>& tail() const noexcept;
+  [[nodiscard]]
+  auto tail() const noexcept -> const std::atomic<uint64b>&;
 
   //! Return the unsafe mask
-  static constexpr uint64b unsafeMask() noexcept;
+  static constexpr auto unsafeMask() noexcept -> uint64b;
 
 
   static constexpr std::size_t kCacheLineSize = Config::l1CacheLineSize();
@@ -164,7 +175,7 @@ class PortableRingBuffer : public RingBuffer<PortableRingBuffer>
 
 
   pmr::vector<MemChunk> memory_;
-  std::size_t size_;
+  std::size_t size_ = 0;
 };
 
 } // namespace zisc

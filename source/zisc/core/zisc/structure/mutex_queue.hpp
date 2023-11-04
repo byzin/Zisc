@@ -61,7 +61,7 @@ class MutexQueue : public Queue<MutexQueue<T>, T>
 
 
   //! Create a queue
-  MutexQueue(pmr::memory_resource* mem_resource) noexcept;
+  explicit MutexQueue(pmr::memory_resource* mem_resource) noexcept;
 
   //! Create a queue
   MutexQueue(const size_type cap, pmr::memory_resource* mem_resource) noexcept;
@@ -74,50 +74,50 @@ class MutexQueue : public Queue<MutexQueue<T>, T>
 
 
   //! Move a data
-  MutexQueue& operator=(MutexQueue&& other) noexcept;
+  auto operator=(MutexQueue&& other) noexcept -> MutexQueue&;
 
 
   //! Return the maximum possible number of elements can be queued
-  size_type capacity() const noexcept;
+  auto capacity() const noexcept -> size_type;
 
   //! Return the maximum possible capacity
-  static constexpr size_type capacityMax() noexcept;
+  static constexpr auto capacityMax() noexcept -> size_type;
 
   //! Clear the contents
   void clear() noexcept;
 
   //! Return the direct access to the underlying array
-  std::span<ConstT> data() const noexcept;
+  auto data() const noexcept -> std::span<ConstT>;
 
   //! Take the first element of the queue
   [[nodiscard]]
-  std::optional<ValueT> dequeue() noexcept;
+  auto dequeue() noexcept -> std::optional<ValueT>;
 
   //! Append the given element value to the end of the queue
   template <typename ...Args> requires std::is_nothrow_constructible_v<T, Args...>
   [[nodiscard]]
-  std::optional<size_type> enqueue(Args&&... args);
+  auto enqueue(Args&&... args) -> std::optional<size_type>;
 
   //! Return the value by the given index
-  Reference get(const size_type index) noexcept;
+  auto get(const size_type index) noexcept -> Reference;
 
   //! Return the value by the given index
-  ConstReference get(const size_type index) const noexcept;
+  auto get(const size_type index) const noexcept -> ConstReference;
 
   //! Check if the queue is bounded
-  static constexpr bool isBounded() noexcept;
+  static constexpr auto isBounded() noexcept -> bool;
 
   //! Check if the queue is concurrent
-  static constexpr bool isConcurrent() noexcept;
+  static constexpr auto isConcurrent() noexcept -> bool;
 
   //! Return the pointer to the underlying memory resource
-  pmr::memory_resource* resource() const noexcept;
+  auto resource() const noexcept -> pmr::memory_resource*;
 
   //! Change the maximum possible number of elements. The queued data is cleared
   void setCapacity(size_type cap) noexcept;
 
   //! Return the number of elements
-  size_type size() const noexcept;
+  auto size() const noexcept -> size_type;
 
  private:
   using StorageT = DataStorage<ValueT>;
@@ -129,19 +129,19 @@ class MutexQueue : public Queue<MutexQueue<T>, T>
 
 
   //! Return the distance between the head and tail pointers
-  size_type distance() const noexcept;
+  auto distance() const noexcept -> size_type;
 
   //! Return the storage by the given index
-  StorageRef getStorage(const size_type index) noexcept;
+  auto getStorage(const size_type index) noexcept -> StorageRef;
 
   //! Return the storage by the given index
-  ConstStorageRef getStorage(const size_type index) const noexcept;
+  auto getStorage(const size_type index) const noexcept -> ConstStorageRef;
 
   //! Increment the given indicator and return next index in memory
-  size_type increment(size_type* current) const noexcept;
+  auto increment(size_type* current) const noexcept -> size_type;
 
   //! Return the invalid ID
-  static constexpr size_type invalidId() noexcept;
+  static constexpr auto invalidId() noexcept -> size_type;
 
 
   mutable std::shared_mutex mutex_;

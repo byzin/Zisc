@@ -64,33 +64,33 @@ class MutexBstIterator
 
 
   //! Create an iterator
-  MutexBstIterator(PointerPtr ptr) noexcept;
+  explicit MutexBstIterator(PointerPtr ptr) noexcept;
 
 
   //! Dereference pointer to the underlying object
-  Reference operator*() noexcept;
+  auto operator*() noexcept -> Reference;
 
   //! Dereference pointer to the underlying object
-  ConstReference operator*() const noexcept;
+  auto operator*() const noexcept -> ConstReference;
 
   //! Dereference pointer to the underlying object
-  Pointer operator->() noexcept;
+  auto operator->() noexcept -> Pointer;
 
   //! Dereference pointer to the underlying object
-  ConstPointer operator->() const noexcept;
+  auto operator->() const noexcept -> ConstPointer;
 
   //! Increment the iterator
-  MutexBstIterator& operator++() noexcept;
+  auto operator++() noexcept -> MutexBstIterator&;
 
   //! Increment the iterator
-  MutexBstIterator operator++(int) noexcept;
+  auto operator++(int) noexcept -> MutexBstIterator;
 
 
   //! Return the underlying pointer
-  PointerPtr get() noexcept;
+  auto get() noexcept -> PointerPtr;
 
   //! Return the underlying pointer
-  ConstPointerPtr get() const noexcept;
+  auto get() const noexcept -> ConstPointerPtr;
 
  private:
   PointerPtr ptr_ = nullptr;
@@ -98,15 +98,15 @@ class MutexBstIterator
 
 //! Compare the values
 template <typename Key, typename T>
-bool operator==(const MutexBstIterator<Key, T>& lhs,
-                const MutexBstIterator<Key, T>& rhs) noexcept;
+auto operator==(const MutexBstIterator<Key, T>& lhs,
+                const MutexBstIterator<Key, T>& rhs) noexcept -> bool;
 
 //! Compare the values
 template <typename Key, typename T>
-bool operator!=(const MutexBstIterator<Key, T>& lhs,
-                const MutexBstIterator<Key, T>& rhs) noexcept;
+auto operator!=(const MutexBstIterator<Key, T>& lhs,
+                const MutexBstIterator<Key, T>& rhs) noexcept -> bool;
 
-} /* namespace z */
+} /* namespace zisc */
 
 #include "mutex_bst_iterator-inl.hpp"
 

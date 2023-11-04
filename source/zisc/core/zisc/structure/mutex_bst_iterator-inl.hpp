@@ -134,8 +134,8 @@ auto MutexBstIterator<Key, T>::get() const noexcept -> ConstPointerPtr
   \return No description
   */
 template <typename Key, typename T> inline
-bool operator==(const MutexBstIterator<Key, T>& lhs,
-                const MutexBstIterator<Key, T>& rhs) noexcept
+auto operator==(const MutexBstIterator<Key, T>& lhs,
+                const MutexBstIterator<Key, T>& rhs) noexcept -> bool
 {
   return lhs.get() == rhs.get();
 }
@@ -148,12 +148,12 @@ bool operator==(const MutexBstIterator<Key, T>& lhs,
   \return No description
   */
 template <typename Key, typename T> inline
-bool operator!=(const MutexBstIterator<Key, T>& lhs,
-                const MutexBstIterator<Key, T>& rhs) noexcept
+auto operator!=(const MutexBstIterator<Key, T>& lhs,
+                const MutexBstIterator<Key, T>& rhs) noexcept -> bool
 {
   return !(lhs == rhs);
 }
 
-} /* namespace z */
+} /* namespace zisc */
 
 #endif /* ZISC_MUTEX_BST_ITERATOR_INL_HPP */

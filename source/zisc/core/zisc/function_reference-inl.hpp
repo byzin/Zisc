@@ -168,10 +168,11 @@ void FunctionReference<ReturnT (ArgTypes...)>::initialize(Func&& func) noexcept
   static_assert(std::alignment_of_v<FuncPtr> <= std::alignment_of_v<FuncRefMemory>,
                 "The memory doesn't satisfy the alignment of the function ptr.");
 
+  Func f = std::forward<Func>(func);
   if constexpr (is_func_ptr || has_func_ptr)
-    memory() = zisc::bit_cast<FuncRefMemory>(FuncPtr{func});
+    memory() = zisc::bit_cast<FuncRefMemory>(FuncPtr{f});
   else if constexpr (is_fanctor)
-    memory() = zisc::bit_cast<FuncRefMemory>(FuncPtr{std::addressof(func)});
+    memory() = zisc::bit_cast<FuncRefMemory>(FuncPtr{std::addressof(f)});
   invoker_ = std::addressof(invokeFunc<FuncPtr>);
 }
 

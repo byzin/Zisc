@@ -68,7 +68,7 @@ class LockFreeQueue : public Queue<LockFreeQueue<T, RingBufferClass>, T>
 
 
   //! Create a queue
-  LockFreeQueue(pmr::memory_resource* mem_resource) noexcept;
+  explicit LockFreeQueue(pmr::memory_resource* mem_resource) noexcept;
 
   //! Create a queue
   LockFreeQueue(const size_type cap, pmr::memory_resource* mem_resource) noexcept;
@@ -81,50 +81,54 @@ class LockFreeQueue : public Queue<LockFreeQueue<T, RingBufferClass>, T>
 
 
   //! Move a queue
-  LockFreeQueue& operator=(LockFreeQueue&& other) noexcept;
+  auto operator=(LockFreeQueue&& other) noexcept -> LockFreeQueue&;
 
 
   //! Return the maximum possible number of elements can be queued
-  size_type capacity() const noexcept;
+  auto capacity() const noexcept -> size_type;
 
   //! Return the maximum possible capacity
-  static constexpr size_type capacityMax() noexcept;
+  static constexpr auto capacityMax() noexcept -> size_type;
 
   //! Clear the contents
   void clear() noexcept;
 
   //! Return the direct access to the underlying array
-  std::span<ConstT> data() const noexcept;
+  [[nodiscard]]
+  auto data() const noexcept -> std::span<ConstT>;
 
   //! Take the first element of the queue
   [[nodiscard]]
-  std::optional<ValueT> dequeue() noexcept;
+  auto dequeue() noexcept -> std::optional<ValueT>;
 
   //! Append the given element value to the end of the queue
   template <typename ...Args> requires std::is_nothrow_constructible_v<T, Args...>
   [[nodiscard]]
-  std::optional<size_type> enqueue(Args&&... args);
+  auto enqueue(Args&&... args) -> std::optional<size_type>;
 
   //! Return the value by the given index
-  Reference get(const size_type index) noexcept;
+  [[nodiscard]]
+  auto get(const size_type index) noexcept -> Reference;
 
   //! Return the value by the given index
-  ConstReference get(const size_type index) const noexcept;
+  [[nodiscard]]
+  auto get(const size_type index) const noexcept -> ConstReference;
 
   //! Check if the queue is bounded
-  static constexpr bool isBounded() noexcept;
+  static constexpr auto isBounded() noexcept -> bool;
 
   //! Check if the queue is concurrent
-  static constexpr bool isConcurrent() noexcept;
+  static constexpr auto isConcurrent() noexcept -> bool;
 
   //! Return a pointer to the underlying memory resource
-  pmr::memory_resource* resource() const noexcept;
+  [[nodiscard]]
+  auto resource() const noexcept -> pmr::memory_resource*;
 
   //! Change the maximum possible number of elements. The queued data is cleared
-  void setCapacity(size_type cap) noexcept;
+  void setCapacity(size_type cap);
 
   //! Return the number of elements
-  size_type size() const noexcept;
+  auto size() const noexcept -> size_type;
 
  private:
   using StorageT = DataStorage<ValueT>;
@@ -137,22 +141,28 @@ class LockFreeQueue : public Queue<LockFreeQueue<T, RingBufferClass>, T>
 
 
   //! Return the ring buffer for allocated elements
-  BaseRingBufferT& allocatedElements() noexcept;
+  [[nodiscard]]
+  auto allocatedElements() noexcept -> BaseRingBufferT&;
 
   //! Return the ring buffer for allocated elements
-  const BaseRingBufferT& allocatedElements() const noexcept;
+  [[nodiscard]]
+  auto allocatedElements() const noexcept -> const BaseRingBufferT&;
 
   //! Return the ring buffer for free elements 
-  BaseRingBufferT& freeElements() noexcept;
+  [[nodiscard]]
+  auto freeElements() noexcept -> BaseRingBufferT&;
 
   //! Return the ring buffer for free elements 
-  const BaseRingBufferT& freeElements() const noexcept;
+  [[nodiscard]]
+  auto freeElements() const noexcept -> const BaseRingBufferT&;
 
   //! Return the storage by the given index
-  StorageRef getStorage(const size_type index) noexcept;
+  [[nodiscard]]
+  auto getStorage(const size_type index) noexcept -> StorageRef;
 
   //! Return the storage by the given index
-  ConstStorageRef getStorage(const size_type index) const noexcept;
+  [[nodiscard]]
+  auto getStorage(const size_type index) const noexcept -> ConstStorageRef;
 
 
   RingBufferT free_elements_;

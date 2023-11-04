@@ -66,7 +66,16 @@ LockFreeQueue<T, RingBufferClass>::LockFreeQueue(const size_type cap,
       allocated_elements_{mem_resource},
       elements_{typename decltype(elements_)::allocator_type{mem_resource}}
 {
-  setCapacity(cap);
+  constexpr std::size_t num_of_attempts = 4;
+  for (std::size_t i = 0; i < num_of_attempts; ++i) {
+    try {
+      setCapacity(cap);
+      break;
+    }
+    catch ([[maybe_unused]] const std::exception& error) {
+      ZISC_ASSERT(false, "LockFreeQueue initialization failed.");
+    }
+  }
 }
 
 /*!
@@ -185,7 +194,7 @@ auto LockFreeQueue<T, RingBufferClass>::dequeue() noexcept -> std::optional<Valu
     StorageRef storage = getStorage(index);
     result = std::move(storage.get());
     storage.destroy();
-    freeElements().enqueue(index, true);
+    [[maybe_unused]] const uint64b result = freeElements().enqueue(index, true);
   }
   return result;
 }
@@ -214,7 +223,7 @@ auto LockFreeQueue<T, RingBufferClass>::enqueue(Args&&... args) -> std::optional
   if (is_success) {
     StorageRef storage = getStorage(index);
     storage.set(std::forward<Args>(args)...);
-    allocatedElements().enqueue(index, false);
+    [[maybe_unused]] const uint64b result = allocatedElements().enqueue(index, false);
   }
   return is_success ? std::make_optional(index) : std::optional<size_type>{};
 }
@@ -249,7 +258,7 @@ auto LockFreeQueue<T, RingBufferClass>::get(const size_type index) const noexcep
   \return No description
   */
 template <std::movable T, typename RingBufferClass> inline
-constexpr bool LockFreeQueue<T, RingBufferClass>::isBounded() noexcept
+constexpr auto LockFreeQueue<T, RingBufferClass>::isBounded() noexcept -> bool
 {
   return true;
 }
@@ -260,7 +269,7 @@ constexpr bool LockFreeQueue<T, RingBufferClass>::isBounded() noexcept
   \return No description
   */
 template <std::movable T, typename RingBufferClass> inline
-constexpr bool LockFreeQueue<T, RingBufferClass>::isConcurrent() noexcept
+constexpr auto LockFreeQueue<T, RingBufferClass>::isConcurrent() noexcept -> bool
 {
   return true;
 }
@@ -271,7 +280,7 @@ constexpr bool LockFreeQueue<T, RingBufferClass>::isConcurrent() noexcept
   \return No description
   */
 template <std::movable T, typename RingBufferClass> inline
-pmr::memory_resource* LockFreeQueue<T, RingBufferClass>::resource() const noexcept
+auto LockFreeQueue<T, RingBufferClass>::resource() const noexcept -> pmr::memory_resource* 
 {
   pmr::memory_resource* mem_resource = elements_.get_allocator().resource();
   return mem_resource;
@@ -283,7 +292,7 @@ pmr::memory_resource* LockFreeQueue<T, RingBufferClass>::resource() const noexce
   \param [in] cap No description.
   */
 template <std::movable T, typename RingBufferClass> inline
-void LockFreeQueue<T, RingBufferClass>::setCapacity(size_type cap) noexcept
+void LockFreeQueue<T, RingBufferClass>::setCapacity(size_type cap)
 {
   constexpr size_type lowest_size = 1;
   cap = (std::max)(lowest_size, cap);

@@ -162,7 +162,7 @@ class ThreadManager : private NonCopyable<ThreadManager>
   auto resource() const noexcept -> pmr::memory_resource*;
 
   //! Change the maximum possible number of task items. The queued tasks are cleared
-  void setCapacity(const std::size_t cap) noexcept;
+  void setCapacity(const std::size_t cap);
 
   //! Return the number of queued tasks
   auto size() const noexcept -> std::size_t;
@@ -233,7 +233,7 @@ class ThreadManager : private NonCopyable<ThreadManager>
       -> std::shared_ptr<Task>;
 
   //! Create worker threads
-  void createWorkers(const int64b num_of_threads) noexcept;
+  void createWorkers(const int64b num_of_threads);
 
   //! Return the distance of given two iterators
   template <typename Ite1, typename Ite2>
@@ -314,9 +314,9 @@ class ThreadManager : private NonCopyable<ThreadManager>
   pmr::vector<TaskResource> task_storage_list_;
   static constexpr std::size_t kManagerSize = sizeof(task_queue_) +
                                               sizeof(task_status_list_) +
-                                              sizeof(worker_list_) +
-                                              sizeof(worker_id_list_) +
-                                              sizeof(task_storage_list_);
+                                              sizeof(decltype(worker_list_)) +
+                                              sizeof(decltype(worker_id_list_)) +
+                                              sizeof(decltype(task_storage_list_));
   [[maybe_unused]] Padding<kCacheLineSize - (kManagerSize % kCacheLineSize)> pad4_{};
 };
 

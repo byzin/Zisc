@@ -52,7 +52,12 @@ FixedArrayResource<Type>::FixedArrayResource(pmr::memory_resource* mem_resource)
   static_assert(alignof(decltype(storage_list_)) == alignof(decltype(used_list_)));
   static_assert(sizeof(count_) + sizeof(pad1_) == kCacheLineSize);
   static_assert(sizeof(storage_list_) + sizeof(used_list_) + sizeof(pad2_) == kCacheLineSize);
-  setCountMax(1);
+  try {
+    setCountMax(1);
+  }
+  catch ([[maybe_unused]] const std::exception& error) {
+    ZISC_ASSERT(false, "FixedArrayResource initialization failed.");
+  }
 }
 
 /*!
@@ -220,7 +225,7 @@ void FixedArrayResource<Type>::deallocateMemory(void* data,
   \param [in] c No description.
   */
 template <typename Type> inline
-void FixedArrayResource<Type>::setCountMax(const std::size_t c) noexcept
+void FixedArrayResource<Type>::setCountMax(const std::size_t c)
 {
   storage_list_.resize(c);
   used_list_.setSize(c);

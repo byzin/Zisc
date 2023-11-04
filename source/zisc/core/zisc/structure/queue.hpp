@@ -66,43 +66,48 @@ class Queue : private NonCopyable<Queue<QueueClass, T>>
 
 
   //! Return the maximum possible number of elements can be queued
-  size_type capacity() const noexcept;
+  [[nodiscard]]
+  auto capacity() const noexcept -> size_type;
 
   //! Return the maximum possible capacity if the queue is bounded
-  static constexpr size_type capacityMax() noexcept;
+  static constexpr auto capacityMax() noexcept -> size_type;
 
   //! Clear the contents
   void clear() noexcept;
 
   //! Take the first element of the queue
   [[nodiscard]]
-  std::optional<ValueT> dequeue() noexcept;
+  auto dequeue() noexcept -> std::optional<ValueT>;
 
   //! Append the given element value to the end of the queue
   template <typename ...Args> requires std::is_nothrow_constructible_v<T, Args...>
   [[nodiscard]]
-  std::optional<size_type> enqueue(Args&&... args);
+  auto enqueue(Args&&... args) -> std::optional<size_type>;
 
   //! Return the value by the given index
-  Reference get(const size_type index) noexcept;
+  [[nodiscard]]
+  auto get(const size_type index) noexcept -> Reference;
 
   //! Return the value by the given index
-  ConstReference get(const size_type index) const noexcept;
+  [[nodiscard]]
+  auto get(const size_type index) const noexcept -> ConstReference;
 
   //! Check if the queue is bounded
-  static constexpr bool isBounded() noexcept;
+  static constexpr auto isBounded() noexcept -> bool;
 
   //! Check if the queue is concurrent
-  static constexpr bool isConcurrent() noexcept;
+  static constexpr auto isConcurrent() noexcept -> bool;
 
   //! Check whether the queue is empty
-  bool isEmpty() const noexcept;
+  [[nodiscard]]
+  auto isEmpty() const noexcept -> bool;
 
   //! Change the maximum possible number of elements. The queued data is cleared
-  void setCapacity(const size_type cap) noexcept;
+  void setCapacity(const size_type cap);
 
   //! Return the number of elements
-  size_type size() const noexcept;
+  [[nodiscard]]
+  auto size() const noexcept -> size_type;
 
  protected:
   // Type aliases
@@ -115,21 +120,21 @@ class Queue : private NonCopyable<Queue<QueueClass, T>>
 
 
   //! Create a queue
-  Queue() noexcept;
+  Queue() noexcept = default;
 
   //! Move a data
   Queue(const Queue& other) noexcept;
 
 
   //! Move a queue
-  Queue& operator=(const Queue& other) noexcept;
+  auto operator=(const Queue& other) noexcept -> Queue&;
 
 
   //! Return the reference to the queue class
-  QueueReference ref() noexcept;
+  auto ref() noexcept -> QueueReference;
 
   //! Return the reference to the queue class
-  ConstQueueReference ref() const noexcept;
+  auto ref() const noexcept -> ConstQueueReference;
 };
 
 } // namespace zisc

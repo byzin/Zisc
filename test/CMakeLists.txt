@@ -62,8 +62,12 @@ function(getTestWarningFlags test_warning_flags)
       # list(APPEND warning_flags
       #                          )
     elseif(Z_MSVC)
-      list(APPEND warning_flags /wd4267 # conversion from 'size_t' to '_To', possible loss of data.
+      list(APPEND warning_flags /wd4244 # 'argument': conversion from '_Ty' to 'const int', possible loss of data
+                                /wd4267 # conversion from 'size_t' to '_To', possible loss of data.
+                                /wd4324 # structure was padded due to alignment specifier¬
+                                /wd4334 # '<<': result of 32-bit shift implicitly converted to 64 bits
                                 /wd6031 # Return value ignored
+                                /wd6297 # Arithmetic overflow.  Results might not be an expected value.
                                 /wd6326 # Potential comparison of a constant with another constant.
                                 )
     endif()

@@ -24,7 +24,8 @@ function(getExampleWarningFlags example_warning_flags)
       # list(APPEND warning_flags 
       #                           )
     elseif(Z_MSVC)
-      list(APPEND warning_flags /wd4267 # conversion from 'size_t' to '_To', possible loss of data.
+      list(APPEND warning_flags /wd4244 # 'argument': conversion from '_Ty' to 'const int', possible loss of data¬
+                                /wd4267 # conversion from 'size_t' to '_To', possible loss of data.
                                 /wd4702 # unreachable code
                                 /wd6326 # Potential comparison of a constant with another constant.
                                 )

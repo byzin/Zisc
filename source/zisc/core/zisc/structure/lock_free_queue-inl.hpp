@@ -194,7 +194,7 @@ auto LockFreeQueue<T, RingBufferClass>::dequeue() noexcept -> std::optional<Valu
     StorageRef storage = getStorage(index);
     result = std::move(storage.get());
     storage.destroy();
-    [[maybe_unused]] const uint64b result = freeElements().enqueue(index, true);
+    [[maybe_unused]] const uint64b r = freeElements().enqueue(index, true);
   }
   return result;
 }
@@ -223,7 +223,7 @@ auto LockFreeQueue<T, RingBufferClass>::enqueue(Args&&... args) -> std::optional
   if (is_success) {
     StorageRef storage = getStorage(index);
     storage.set(std::forward<Args>(args)...);
-    [[maybe_unused]] const uint64b result = allocatedElements().enqueue(index, false);
+    [[maybe_unused]] const uint64b r = allocatedElements().enqueue(index, false);
   }
   return is_success ? std::make_optional(index) : std::optional<size_type>{};
 }

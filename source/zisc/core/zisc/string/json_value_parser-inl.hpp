@@ -486,7 +486,7 @@ auto JsonValueParser::toCxxStringImpl(std::string_view json_value,
   json_value.remove_suffix(1);
 
   std::size_t size = 0;
-  for (const auto* i = json_value.begin(); i != json_value.end(); ++i) {
+  for (auto i = json_value.begin(); i != json_value.end(); ++i) {
     char c = *i;
     if (c == '\\') {
       ++i;

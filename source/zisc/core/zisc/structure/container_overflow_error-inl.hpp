@@ -19,6 +19,7 @@
 // Standard C++ library
 #include <concepts>
 #include <cstddef>
+#include <memory_resource>
 #include <string_view>
 #include <type_traits>
 #include <utility>
@@ -26,7 +27,6 @@
 #include "zisc/error.hpp"
 #include "zisc/utility.hpp"
 #include "zisc/zisc_config.hpp"
-#include "zisc/memory/std_memory_resource.hpp"
 
 namespace zisc {
 
@@ -39,11 +39,11 @@ namespace zisc {
   */
 template <std::movable T> inline
 ContainerOverflowError<T>::ContainerOverflowError(const std::string_view what_arg,
-                                                  pmr::memory_resource* mem_resource,
+                                                  std::pmr::memory_resource* mem_resource,
                                                   ConstReference value) :
     SystemError(ErrorCode::kBoundedQueueOverflow, what_arg),
     value_{std::allocate_shared<ValueT>(
-        pmr::polymorphic_allocator<ValueT>{mem_resource},
+        std::pmr::polymorphic_allocator<ValueT>{mem_resource},
         value)}
 {
 }
@@ -57,11 +57,11 @@ ContainerOverflowError<T>::ContainerOverflowError(const std::string_view what_ar
   */
 template <std::movable T> inline
 ContainerOverflowError<T>::ContainerOverflowError(const std::string_view what_arg,
-                                                  pmr::memory_resource* mem_resource,
+                                                  std::pmr::memory_resource* mem_resource,
                                                   RReference value) :
     SystemError(ErrorCode::kBoundedQueueOverflow, what_arg),
     value_{std::allocate_shared<ValueT>(
-        pmr::polymorphic_allocator<ValueT>{mem_resource},
+        std::pmr::polymorphic_allocator<ValueT>{mem_resource},
         std::move(value))}
 {
 }

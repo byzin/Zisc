@@ -21,13 +21,12 @@
 #include <bit>
 #include <cstddef>
 #include <cstdlib>
-#include <memory>
+#include <memory_resource>
 #include <tuple>
 #include <type_traits>
 #include <utility>
 // Zisc
 #include "memory.hpp"
-#include "std_memory_resource.hpp"
 #include "zisc/error.hpp"
 #include "zisc/utility.hpp"
 #include "zisc/zisc_config.hpp"
@@ -41,8 +40,8 @@ namespace zisc {
   */
 inline
 AllocFreeResource::AllocFreeResource(AllocFreeResource&& other) noexcept :
-    pmr::memory_resource(other),
-    memory_usage_{other.memory_usage_}
+    std::pmr::memory_resource(other),
+    memory_usage_{std::move(other).memory_usage_}
 {
 }
 
@@ -55,8 +54,8 @@ AllocFreeResource::AllocFreeResource(AllocFreeResource&& other) noexcept :
 inline
 auto AllocFreeResource::operator=(AllocFreeResource&& other) noexcept -> AllocFreeResource&
 {
-  pmr::memory_resource::operator=(other);
-  memory_usage_ = other.memory_usage_;
+  std::pmr::memory_resource::operator=(other);
+  memory_usage_ = std::move(other).memory_usage_;
   return *this;
 }
 
@@ -76,18 +75,19 @@ auto AllocFreeResource::allocateMemory(const std::size_t size,
   const std::size_t alloc_alignment = calcAllocAlignment(alignment);
   const auto [alloc_size, header_size] = calcAllocSize(size, alloc_alignment);
   void* ptr = aligned_alloc(alloc_alignment, alloc_size);
-  if (ptr == nullptr) {
+  if (ptr == nullptr) [[unlikely]] {
     const char* message = "Memory allocation failed.";
     throw BadAllocT{alloc_size, alloc_alignment, message};
   }
 
   // Get the pointer to the data
-  std::byte* data = static_cast<std::byte*>(ptr) + header_size;
+  auto* p = reinterp<std::byte*>(ptr);
+  std::byte* data = p + header_size;
   ZISC_ASSERT(Memory::isAligned(data, alignment), "The data isn't aligned.");
   // Initialize header
   {
     Header* header = getHeaderInner(data);
-    header->pointer_ = static_cast<std::byte*>(ptr);
+    header->pointer_ = p;
     header->size_ = alloc_size;
     header->alignment_ = alloc_alignment;
     memory_usage_.add(alloc_size);
@@ -108,7 +108,7 @@ void AllocFreeResource::deallocateMemory(
     [[maybe_unused]] const std::size_t size,
     [[maybe_unused]] const std::size_t alignment) noexcept
 {
-  Header* header = getHeaderInner(static_cast<std::byte*>(data));
+  Header* header = getHeaderInner(reinterp<std::byte*>(data));
   const std::size_t alloc_size = header->size_;
   zisc::free(header->pointer_);
   memory_usage_.release(alloc_size);
@@ -126,7 +126,7 @@ auto AllocFreeResource::getHeader(const void* data) noexcept -> const Header*
   constexpr std::size_t header_size = sizeof(Header);
   static_assert(std::has_single_bit(header_size), "The header size isn't power of 2.");
 
-  const auto* data_ptr = static_cast<const std::byte*>(data);
+  const auto* data_ptr = reinterp<const std::byte*>(data);
   const auto* header = reinterp<const Header*>(data_ptr - header_size);
   [[maybe_unused]] constexpr std::size_t header_alignment = std::alignment_of_v<Header>;
   ZISC_ASSERT(Memory::isAligned(header, header_alignment), "The header isn't aligned.");

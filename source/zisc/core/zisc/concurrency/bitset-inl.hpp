@@ -21,14 +21,13 @@
 #include <concepts>
 #include <cstddef>
 #include <limits>
-#include <memory>
+#include <memory_resource>
 #include <utility>
 #include <vector>
 // Zisc
 #include "zisc/algorithm.hpp"
 #include "zisc/error.hpp"
 #include "zisc/zisc_config.hpp"
-#include "zisc/memory/std_memory_resource.hpp"
 
 namespace zisc {
 
@@ -38,7 +37,7 @@ namespace zisc {
   \param [in,out] mem_resource No description.
   */
 inline
-Bitset::Bitset(pmr::memory_resource* mem_resource) noexcept :
+Bitset::Bitset(std::pmr::memory_resource* mem_resource) noexcept :
     Bitset(1, mem_resource)
 {
 }
@@ -50,7 +49,7 @@ Bitset::Bitset(pmr::memory_resource* mem_resource) noexcept :
   \param [in,out] mem_resource No description.
   */
 inline
-Bitset::Bitset(const std::size_t s, pmr::memory_resource* mem_resource) noexcept :
+Bitset::Bitset(const std::size_t s, std::pmr::memory_resource* mem_resource) noexcept :
     chunk_list_{decltype(chunk_list_)::allocator_type{mem_resource}},
     size_{0}
 {

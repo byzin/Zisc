@@ -35,7 +35,6 @@
 #include "zisc/non_copyable.hpp"
 #include "zisc/zisc_config.hpp"
 #include "zisc/memory/monotonic_buffer_resource.hpp"
-#include "zisc/memory/std_memory_resource.hpp"
 #include "zisc/structure/queue.hpp"
 #include "zisc/structure/lock_free_queue.hpp"
 
@@ -101,11 +100,11 @@ class ThreadManager : private NonCopyable<ThreadManager>
 
 
   //! Create threads as many as the number of supported concurrent CPU threads
-  explicit ThreadManager(pmr::memory_resource* mem_resource) noexcept;
+  explicit ThreadManager(std::pmr::memory_resource* mem_resource) noexcept;
 
   //! Create threads
   ThreadManager(const int64b num_of_threads,
-                pmr::memory_resource* mem_resource) noexcept;
+                std::pmr::memory_resource* mem_resource) noexcept;
 
   //! Terminate threads
   ~ThreadManager();
@@ -159,7 +158,7 @@ class ThreadManager : private NonCopyable<ThreadManager>
   auto numOfThreads() const noexcept -> int64b;
 
   //! Return a pointer to the underlying memory resource
-  auto resource() const noexcept -> pmr::memory_resource*;
+  auto resource() const noexcept -> std::pmr::memory_resource*;
 
   //! Change the maximum possible number of task items. The queued tasks are cleared
   void setCapacity(const std::size_t cap);
@@ -309,9 +308,9 @@ class ThreadManager : private NonCopyable<ThreadManager>
   [[maybe_unused]] Padding<kCacheLineSize - sizeof(num_of_active_workers_)> pad3_{};
   TaskQueueImpl task_queue_;
   Bitset task_status_list_;
-  pmr::vector<std::thread> worker_list_;
-  pmr::vector<std::thread::id> worker_id_list_;
-  pmr::vector<TaskResource> task_storage_list_;
+  std::pmr::vector<std::thread> worker_list_;
+  std::pmr::vector<std::thread::id> worker_id_list_;
+  std::pmr::vector<TaskResource> task_storage_list_;
   static constexpr std::size_t kManagerSize = sizeof(task_queue_) +
                                               sizeof(task_status_list_) +
                                               sizeof(decltype(worker_list_)) +

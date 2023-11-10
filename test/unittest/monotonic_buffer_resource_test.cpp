@@ -43,7 +43,7 @@ class ResourceCreator
 
   zisc::pmr::unique_ptr<MemResource> create()
   {
-    const zisc::pmr::polymorphic_allocator<MemResource> alloc{&resource_};
+    const std::pmr::polymorphic_allocator<MemResource> alloc{&resource_};
     return zisc::pmr::allocateUnique<MemResource>(alloc, &resource_);
   }
 

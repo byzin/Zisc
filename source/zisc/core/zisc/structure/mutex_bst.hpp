@@ -19,6 +19,7 @@
 #include <concepts>
 #include <cstddef>
 #include <functional>
+#include <memory_resource>
 #include <optional>
 #include <shared_mutex>
 #include <type_traits>
@@ -29,7 +30,6 @@
 #include "mutex_bst_iterator.hpp"
 #include "zisc/zisc_config.hpp"
 #include "zisc/memory/data_storage.hpp"
-#include "zisc/memory/std_memory_resource.hpp"
 
 namespace zisc {
 
@@ -80,10 +80,10 @@ class MutexBst : public Map<MutexBst<Key, T, Compare>, Key, T, Compare>
 
 
   //! Create a bst
-  explicit MutexBst(pmr::memory_resource* mem_resource) noexcept;
+  explicit MutexBst(std::pmr::memory_resource* mem_resource) noexcept;
 
   //! Create a bst
-  MutexBst(const size_type cap, pmr::memory_resource* mem_resource) noexcept;
+  MutexBst(const size_type cap, std::pmr::memory_resource* mem_resource) noexcept;
 
   //! Move a data
   MutexBst(MutexBst&& other) noexcept;
@@ -152,7 +152,7 @@ class MutexBst : public Map<MutexBst<Key, T, Compare>, Key, T, Compare>
   auto remove(ConstKeyT& key) -> std::optional<size_type>;
 
   //! Return a pointer to the underlying memory resource
-  auto resource() const noexcept -> pmr::memory_resource*;
+  auto resource() const noexcept -> std::pmr::memory_resource*;
 
   //! Change the maximum possible number of elements. The bst will be cleared
   void setCapacity(size_type cap) noexcept;
@@ -195,9 +195,9 @@ class MutexBst : public Map<MutexBst<Key, T, Compare>, Key, T, Compare>
 
 
   mutable std::shared_mutex mutex_;
-  pmr::vector<size_type> index_stack_;
-  pmr::vector<StorageT> node_pool_;
-  pmr::vector<StoragePtr> node_list_;
+  std::pmr::vector<size_type> index_stack_;
+  std::pmr::vector<StorageT> node_pool_;
+  std::pmr::vector<StoragePtr> node_list_;
 };
 
 } // namespace zisc

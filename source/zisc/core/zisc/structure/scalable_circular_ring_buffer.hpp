@@ -18,7 +18,7 @@
 // Standard C++ library
 #include <atomic>
 #include <cstddef>
-#include <memory>
+#include <memory_resource>
 #include <span>
 #include <type_traits>
 #include <vector>
@@ -26,7 +26,6 @@
 #include "ring_buffer.hpp"
 #include "zisc/error.hpp"
 #include "zisc/zisc_config.hpp"
-#include "zisc/memory/std_memory_resource.hpp"
 
 namespace zisc {
 
@@ -45,7 +44,7 @@ class ScalableCircularRingBuffer : public RingBuffer<ScalableCircularRingBuffer>
 
 
   //! Create a ring buffer
-  explicit ScalableCircularRingBuffer(pmr::memory_resource* mem_resource) noexcept;
+  explicit ScalableCircularRingBuffer(std::pmr::memory_resource* mem_resource) noexcept;
 
   //! Move a data
   ScalableCircularRingBuffer(ScalableCircularRingBuffer&& other) noexcept = default;
@@ -168,7 +167,7 @@ class ScalableCircularRingBuffer : public RingBuffer<ScalableCircularRingBuffer>
   using MemChunk = std::aligned_storage_t<kCacheLineSize, kCacheLineSize>;
 
 
-  pmr::vector<MemChunk> memory_;
+  std::pmr::vector<MemChunk> memory_;
   std::size_t size_ = 0;
 };
 

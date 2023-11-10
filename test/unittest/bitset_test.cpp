@@ -21,7 +21,6 @@
 #include "googletest.hpp"
 // Zisc
 #include "zisc/memory/alloc_free_resource.hpp"
-#include "zisc/memory/std_memory_resource.hpp"
 #include "zisc/concurrency/bitset.hpp"
 
 TEST(BitsetTest, ConstructionTest)

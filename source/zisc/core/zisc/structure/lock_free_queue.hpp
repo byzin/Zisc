@@ -19,7 +19,7 @@
 #include <atomic>
 #include <concepts>
 #include <cstddef>
-#include <memory>
+#include <memory_resource>
 #include <optional>
 #include <span>
 #include <string_view>
@@ -33,7 +33,6 @@
 #include "zisc/error.hpp"
 #include "zisc/zisc_config.hpp"
 #include "zisc/memory/data_storage.hpp"
-#include "zisc/memory/std_memory_resource.hpp"
 
 namespace zisc {
 
@@ -68,10 +67,10 @@ class LockFreeQueue : public Queue<LockFreeQueue<T, RingBufferClass>, T>
 
 
   //! Create a queue
-  explicit LockFreeQueue(pmr::memory_resource* mem_resource) noexcept;
+  explicit LockFreeQueue(std::pmr::memory_resource* mem_resource) noexcept;
 
   //! Create a queue
-  LockFreeQueue(const size_type cap, pmr::memory_resource* mem_resource) noexcept;
+  LockFreeQueue(const size_type cap, std::pmr::memory_resource* mem_resource) noexcept;
 
   //! Move a data
   LockFreeQueue(LockFreeQueue&& other) noexcept;
@@ -122,7 +121,7 @@ class LockFreeQueue : public Queue<LockFreeQueue<T, RingBufferClass>, T>
 
   //! Return a pointer to the underlying memory resource
   [[nodiscard]]
-  auto resource() const noexcept -> pmr::memory_resource*;
+  auto resource() const noexcept -> std::pmr::memory_resource*;
 
   //! Change the maximum possible number of elements. The queued data is cleared
   void setCapacity(size_type cap);
@@ -167,7 +166,7 @@ class LockFreeQueue : public Queue<LockFreeQueue<T, RingBufferClass>, T>
 
   RingBufferT free_elements_;
   RingBufferT allocated_elements_;
-  pmr::vector<StorageT> elements_;
+  std::pmr::vector<StorageT> elements_;
 };
 
 // Type aliases

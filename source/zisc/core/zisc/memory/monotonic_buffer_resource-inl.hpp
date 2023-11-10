@@ -20,7 +20,7 @@
 #include <atomic>
 #include <bit>
 #include <cstddef>
-#include <memory>
+#include <memory_resource>
 #include <type_traits>
 #include <utility>
 // Zisc
@@ -38,7 +38,7 @@ namespace zisc {
   \details No detailed description
   */
 template <std::size_t kSize, std::size_t kAlignment> inline
-MonotonicBufferResource<kSize, kAlignment>::MonotonicBufferResource(pmr::memory_resource* mem_resource) noexcept
+MonotonicBufferResource<kSize, kAlignment>::MonotonicBufferResource(std::pmr::memory_resource* mem_resource) noexcept
 {
   initialize(mem_resource);
 }
@@ -50,7 +50,7 @@ MonotonicBufferResource<kSize, kAlignment>::MonotonicBufferResource(pmr::memory_
   */
 template <std::size_t kSize, std::size_t kAlignment> inline
 MonotonicBufferResource<kSize, kAlignment>::MonotonicBufferResource(MonotonicBufferResource&& other) noexcept :
-    pmr::memory_resource(other),
+    std::pmr::memory_resource(other),
     storage_{std::move(other.storage_)},
     use_count_{other.use_count_.load(std::memory_order::acquire)},
     size_{other.size_.load(std::memory_order::acquire)}
@@ -78,7 +78,7 @@ constexpr auto MonotonicBufferResource<kSize, kAlignment>::alignment() noexcept 
 template <std::size_t kSize, std::size_t kAlignment> inline
 auto MonotonicBufferResource<kSize, kAlignment>::operator=(MonotonicBufferResource&& other) noexcept -> MonotonicBufferResource&
 {
-  pmr::memory_resource::operator=(other);
+  std::pmr::memory_resource::operator=(other);
   storage_ = std::move(other.storage_);
   use_count_ = other.use_count_.load(std::memory_order::acquire);
   size_ = other.size_.load(std::memory_order::acquire);
@@ -192,9 +192,9 @@ auto MonotonicBufferResource<kSize, kAlignment>::size() const noexcept -> std::s
   */
 template <std::size_t kSize, std::size_t kAlignment> inline
 void MonotonicBufferResource<kSize, kAlignment>::initialize(
-    pmr::memory_resource* mem_resource) noexcept
+    std::pmr::memory_resource* mem_resource) noexcept
 {
-  const pmr::polymorphic_allocator<StorageT> alloc{mem_resource};
+  const std::pmr::polymorphic_allocator<StorageT> alloc{mem_resource};
   storage_ = pmr::allocateUnique<StorageT>(alloc);
 }
 
@@ -237,7 +237,7 @@ void MonotonicBufferResource<kSize, kAlignment>::do_deallocate(
   */
 template <std::size_t kSize, std::size_t kAlignment> inline
 auto MonotonicBufferResource<kSize, kAlignment>::do_is_equal(
-    const pmr::memory_resource& other) const noexcept -> bool
+    const std::pmr::memory_resource& other) const noexcept -> bool
 {
   const auto* other_mem = dynamic_cast<const MonotonicBufferResource*>(&other);
   const bool result = (other_mem != nullptr) && (other_mem->storage() == storage());

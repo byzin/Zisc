@@ -18,12 +18,12 @@
 // Standard C++ library
 #include <concepts>
 #include <cstddef>
+#include <memory_resource>
 #include <string_view>
 #include <type_traits>
 // Zisc
 #include "zisc/error.hpp"
 #include "zisc/zisc_config.hpp"
-#include "zisc/memory/std_memory_resource.hpp"
 
 namespace zisc {
 
@@ -51,12 +51,12 @@ class ContainerOverflowError : public SystemError
 
   //! Construct the lock free queue error
   ContainerOverflowError(const std::string_view what_arg,
-                         pmr::memory_resource* mem_resource,
+                         std::pmr::memory_resource* mem_resource,
                          ConstReference value);
 
   //! Construct the lock free queue error
   ContainerOverflowError(const std::string_view what_arg,
-                         pmr::memory_resource* mem_resource,
+                         std::pmr::memory_resource* mem_resource,
                          RReference value);
 
   //! Move data

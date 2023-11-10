@@ -17,12 +17,10 @@
 
 // Standard C++ library
 #include <cstddef>
-#include <memory>
+#include <memory_resource>
 #include <tuple>
 // Zisc
 #include "memory.hpp"
-#include "std_memory_resource.hpp"
-#include "zisc/concepts.hpp"
 #include "zisc/non_copyable.hpp"
 #include "zisc/zisc_config.hpp"
 
@@ -33,7 +31,7 @@ namespace zisc {
 
   No detailed description.
   */
-class AllocFreeResource : public pmr::memory_resource,
+class AllocFreeResource : public std::pmr::memory_resource,
                           private NonCopyable<AllocFreeResource>
 {
  public:
@@ -114,7 +112,7 @@ class AllocFreeResource : public pmr::memory_resource,
 
   //! Compare for equality with another memory resource
   [[nodiscard]]
-  auto do_is_equal(const pmr::memory_resource& other) const noexcept -> bool override;
+  auto do_is_equal(const std::pmr::memory_resource& other) const noexcept -> bool override;
 
   //! Return the header info of the memory allocation
   static auto getHeaderInner(void* data) noexcept -> Header*;

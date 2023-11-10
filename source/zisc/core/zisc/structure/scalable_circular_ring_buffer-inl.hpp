@@ -23,7 +23,7 @@
 #include <cstddef>
 #include <functional>
 #include <limits>
-#include <memory>
+#include <memory_resource>
 #include <span>
 #include <type_traits>
 #include <utility>
@@ -33,7 +33,6 @@
 #include "zisc/error.hpp"
 #include "zisc/utility.hpp"
 #include "zisc/zisc_config.hpp"
-#include "zisc/memory/std_memory_resource.hpp"
 
 namespace zisc {
 
@@ -43,7 +42,7 @@ namespace zisc {
   \param [in,out] mem_resource No description.
   */
 inline
-ScalableCircularRingBuffer::ScalableCircularRingBuffer(pmr::memory_resource* mem_resource) noexcept :
+ScalableCircularRingBuffer::ScalableCircularRingBuffer(std::pmr::memory_resource* mem_resource) noexcept :
     memory_{typename decltype(memory_)::allocator_type{mem_resource}}
 {
   initialize();

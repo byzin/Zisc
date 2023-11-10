@@ -21,6 +21,7 @@
 #include <concepts>
 #include <cstddef>
 #include <limits>
+#include <memory_resource>
 #include <mutex>
 #include <optional>
 #include <shared_mutex>
@@ -34,7 +35,6 @@
 #include "zisc/utility.hpp"
 #include "zisc/zisc_config.hpp"
 #include "zisc/memory/data_storage.hpp"
-#include "zisc/memory/std_memory_resource.hpp"
 
 namespace zisc {
 
@@ -44,7 +44,7 @@ namespace zisc {
   \param [in,out] mem_resource No description.
   */
 template <std::movable T> inline
-MutexQueue<T>::MutexQueue(pmr::memory_resource* mem_resource) noexcept :
+MutexQueue<T>::MutexQueue(std::pmr::memory_resource* mem_resource) noexcept :
     MutexQueue(1, mem_resource)
 {
 }
@@ -57,7 +57,7 @@ MutexQueue<T>::MutexQueue(pmr::memory_resource* mem_resource) noexcept :
   */
 template <std::movable T> inline
 MutexQueue<T>::MutexQueue(const size_type cap,
-                          pmr::memory_resource* mem_resource) noexcept :
+                          std::pmr::memory_resource* mem_resource) noexcept :
     elements_{typename decltype(elements_)::allocator_type{mem_resource}},
     head_{0},
     tail_{0}
@@ -257,9 +257,9 @@ constexpr auto MutexQueue<T>::isConcurrent() noexcept -> bool
   \return No description
   */
 template <std::movable T> inline
-auto MutexQueue<T>::resource() const noexcept -> pmr::memory_resource*
+auto MutexQueue<T>::resource() const noexcept -> std::pmr::memory_resource*
 {
-  pmr::memory_resource* mem_resource = elements_.get_allocator().resource();
+  std::pmr::memory_resource* mem_resource = elements_.get_allocator().resource();
   return mem_resource;
 }
 

@@ -22,7 +22,7 @@
 #include <bit>
 #include <cstddef>
 #include <limits>
-#include <memory>
+#include <memory_resource>
 #include <span>
 #include <thread>
 #include <type_traits>
@@ -33,7 +33,6 @@
 #include "zisc/error.hpp"
 #include "zisc/utility.hpp"
 #include "zisc/zisc_config.hpp"
-#include "zisc/memory/std_memory_resource.hpp"
 
 namespace zisc {
 
@@ -43,7 +42,7 @@ namespace zisc {
   \param [in,out] mem_resource No description.
   */
 inline
-PortableRingBuffer::PortableRingBuffer(pmr::memory_resource* mem_resource) noexcept :
+PortableRingBuffer::PortableRingBuffer(std::pmr::memory_resource* mem_resource) noexcept :
     memory_{typename decltype(memory_)::allocator_type{mem_resource}}
 {
   initialize();

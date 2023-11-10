@@ -22,12 +22,11 @@
 #include <cstddef>
 #include <iterator>
 #include <limits>
-#include <memory>
+#include <memory_resource>
 #include <type_traits>
 #include <utility>
 #include <vector>
 // Zisc
-#include "std_memory_resource.hpp"
 #include "zisc/algorithm.hpp"
 #include "zisc/error.hpp"
 #include "zisc/non_copyable.hpp"
@@ -43,7 +42,7 @@ namespace zisc {
   \param [in,out] mem_resource No description.
   */
 template <typename Type> inline
-FixedArrayResource<Type>::FixedArrayResource(pmr::memory_resource* mem_resource) noexcept :
+FixedArrayResource<Type>::FixedArrayResource(std::pmr::memory_resource* mem_resource) noexcept :
     count_{0},
     storage_list_{typename decltype(storage_list_)::allocator_type{mem_resource}},
     used_list_{mem_resource}
@@ -281,7 +280,7 @@ void FixedArrayResource<Type>::do_deallocate(void* data,
   \return No description
   */
 template <typename Type> inline
-auto FixedArrayResource<Type>::do_is_equal(const pmr::memory_resource& other) const noexcept -> bool
+auto FixedArrayResource<Type>::do_is_equal(const std::pmr::memory_resource& other) const noexcept -> bool
 {
   const bool result = this == std::addressof(other);
   return result;

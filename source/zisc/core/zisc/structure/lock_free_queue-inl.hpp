@@ -23,7 +23,7 @@
 #include <concepts>
 #include <cstddef>
 #include <limits>
-#include <memory>
+#include <memory_resource>
 #include <optional>
 #include <span>
 #include <string_view>
@@ -37,7 +37,6 @@
 #include "zisc/utility.hpp"
 #include "zisc/zisc_config.hpp"
 #include "zisc/memory/data_storage.hpp"
-#include "zisc/memory/std_memory_resource.hpp"
 
 namespace zisc {
 
@@ -47,7 +46,7 @@ namespace zisc {
   \param [in,out] mem_resource No description.
   */
 template <std::movable T, typename RingBufferClass> inline
-LockFreeQueue<T, RingBufferClass>::LockFreeQueue(pmr::memory_resource* mem_resource) noexcept
+LockFreeQueue<T, RingBufferClass>::LockFreeQueue(std::pmr::memory_resource* mem_resource) noexcept
     : LockFreeQueue(1, mem_resource)
 {
 }
@@ -60,7 +59,7 @@ LockFreeQueue<T, RingBufferClass>::LockFreeQueue(pmr::memory_resource* mem_resou
   */
 template <std::movable T, typename RingBufferClass> inline
 LockFreeQueue<T, RingBufferClass>::LockFreeQueue(const size_type cap,
-                                                 pmr::memory_resource* mem_resource) noexcept
+                                                 std::pmr::memory_resource* mem_resource) noexcept
     : BaseQueueT(),
       free_elements_{mem_resource},
       allocated_elements_{mem_resource},
@@ -280,9 +279,9 @@ constexpr auto LockFreeQueue<T, RingBufferClass>::isConcurrent() noexcept -> boo
   \return No description
   */
 template <std::movable T, typename RingBufferClass> inline
-auto LockFreeQueue<T, RingBufferClass>::resource() const noexcept -> pmr::memory_resource* 
+auto LockFreeQueue<T, RingBufferClass>::resource() const noexcept -> std::pmr::memory_resource* 
 {
-  pmr::memory_resource* mem_resource = elements_.get_allocator().resource();
+  std::pmr::memory_resource* mem_resource = elements_.get_allocator().resource();
   return mem_resource;
 }
 

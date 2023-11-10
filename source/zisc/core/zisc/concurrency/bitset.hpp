@@ -20,13 +20,12 @@
 #include <atomic>
 #include <concepts>
 #include <cstddef>
-#include <memory>
+#include <memory_resource>
 #include <type_traits>
 #include <vector>
 // Zisc
 #include "zisc/non_copyable.hpp"
 #include "zisc/zisc_config.hpp"
-#include "zisc/memory/std_memory_resource.hpp"
 
 namespace zisc {
 
@@ -48,10 +47,10 @@ class Bitset : private NonCopyable<Bitset>
 
 
   //! Create a bitset
-  explicit Bitset(pmr::memory_resource* mem_resource) noexcept;
+  explicit Bitset(std::pmr::memory_resource* mem_resource) noexcept;
 
   //! Create a bitset
-  Bitset(const std::size_t s, pmr::memory_resource* mem_resource) noexcept;
+  Bitset(const std::size_t s, std::pmr::memory_resource* mem_resource) noexcept;
 
   //! Move a data
   Bitset(Bitset&& other) noexcept;
@@ -193,7 +192,7 @@ class Bitset : private NonCopyable<Bitset>
   static auto makeMask(const std::size_t begin, const std::size_t end) noexcept -> BitT;
 
 
-  pmr::vector<Chunk> chunk_list_;
+  std::pmr::vector<Chunk> chunk_list_;
   std::size_t size_;
 };
 

@@ -19,6 +19,7 @@
 #include <concepts>
 #include <cstddef>
 #include <istream>
+#include <memory_resource>
 #include <regex>
 #include <span>
 #include <string_view>
@@ -28,7 +29,6 @@
 #include "zisc/concepts.hpp"
 #include "zisc/non_copyable.hpp"
 #include "zisc/zisc_config.hpp"
-#include "zisc/memory/std_memory_resource.hpp"
 
 namespace zisc {
 
@@ -60,7 +60,7 @@ class Csv : private NonCopyable<Csv<Type, Types...>>
 
 
   //! Initialize CSV
-  explicit Csv(pmr::memory_resource* mem_resource) noexcept;
+  explicit Csv(std::pmr::memory_resource* mem_resource) noexcept;
 
   //! Move data
   Csv(Csv&& other) noexcept;
@@ -127,7 +127,7 @@ class Csv : private NonCopyable<Csv<Type, Types...>>
 
   //! Convert a CSV string to a C++ string
   template <String PType>
-  auto toCxxType(const std::string_view json_value) noexcept -> pmr::string;
+  auto toCxxType(const std::string_view json_value) noexcept -> std::pmr::string;
 
   //! Return the pattern string for regex
   template <typename PType, typename ...PTypes>
@@ -150,22 +150,22 @@ class Csv : private NonCopyable<Csv<Type, Types...>>
   static constexpr auto getTypePattern() noexcept;
 
   //! Return the underlying memory resource
-  auto memoryResource() noexcept -> pmr::memory_resource*;
+  auto memoryResource() noexcept -> std::pmr::memory_resource*;
 
   //! Parse csv line
   auto parseCsvLine(std::string_view line) noexcept -> RecordType;
 
   //! Convert a CSV line to C++ values
   template <std::size_t ...indices>
-  auto toCxxRecord(const pmr::cmatch& result,
+  auto toCxxRecord(const std::pmr::cmatch& result,
                    std::index_sequence<indices...> idx) noexcept -> RecordType;
 
   //! Convert a CSV value to a C++ value
   template <std::size_t index>
-  auto toCxxField(const pmr::cmatch& result) noexcept -> InnerFieldType<index>;
+  auto toCxxField(const std::pmr::cmatch& result) noexcept -> InnerFieldType<index>;
 
 
-  pmr::vector<RecordType> data_;
+  std::pmr::vector<RecordType> data_;
   std::regex csv_pattern_;
 };
 

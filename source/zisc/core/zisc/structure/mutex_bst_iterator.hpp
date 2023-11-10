@@ -23,7 +23,6 @@
 #include <utility>
 // Zisc
 #include "map.hpp"
-#include "zisc/memory/std_memory_resource.hpp"
 
 namespace zisc {
 

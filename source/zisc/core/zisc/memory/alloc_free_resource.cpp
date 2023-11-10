@@ -15,8 +15,7 @@
 #include "alloc_free_resource.hpp"
 // Standard C++ library
 #include <cstddef>
-#include <memory>
-#include <new>
+#include <memory_resource>
 // Zisc
 #include "zisc/zisc_config.hpp"
 
@@ -55,7 +54,7 @@ void AllocFreeResource::do_deallocate(void* data,
   \param [in] other No description.
   \return No description
   */
-auto AllocFreeResource::do_is_equal(const zisc::pmr::memory_resource& other) const noexcept -> bool
+auto AllocFreeResource::do_is_equal(const std::pmr::memory_resource& other) const noexcept -> bool
 {
   const bool result = this == std::addressof(other);
   return result;

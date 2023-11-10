@@ -21,7 +21,7 @@
 #include <concepts>
 #include <cstddef>
 #include <limits>
-#include <memory>
+#include <memory_resource>
 #include <mutex>
 #include <numeric>
 #include <optional>
@@ -36,7 +36,6 @@
 #include "zisc/utility.hpp"
 #include "zisc/zisc_config.hpp"
 #include "zisc/memory/data_storage.hpp"
-#include "zisc/memory/std_memory_resource.hpp"
 
 namespace zisc {
 
@@ -47,7 +46,7 @@ namespace zisc {
   */
 template <std::movable Key, MappedValue T, std::invocable<Key, Key> Compare>
 inline
-MutexBst<Key, T, Compare>::MutexBst(pmr::memory_resource* mem_resource) noexcept :
+MutexBst<Key, T, Compare>::MutexBst(std::pmr::memory_resource* mem_resource) noexcept :
     MutexBst(1, mem_resource)
 {
 }
@@ -61,7 +60,7 @@ MutexBst<Key, T, Compare>::MutexBst(pmr::memory_resource* mem_resource) noexcept
 template <std::movable Key, MappedValue T, std::invocable<Key, Key> Compare>
 inline
 MutexBst<Key, T, Compare>::MutexBst(const size_type cap,
-                                    pmr::memory_resource* mem_resource) noexcept :
+                                    std::pmr::memory_resource* mem_resource) noexcept :
     index_stack_{typename decltype(index_stack_)::allocator_type{mem_resource}},
     node_pool_{typename decltype(node_pool_)::allocator_type{mem_resource}},
     node_list_{typename decltype(node_list_)::allocator_type{mem_resource}}
@@ -179,7 +178,7 @@ auto MutexBst<Key, T, Compare>::add(Args&&... args) -> std::optional<size_type>
   size_type node_index = invalidId();
   {
     std::unique_lock lock{mutex_};
-    pmr::vector<StoragePtr>& list = node_list_;
+    std::pmr::vector<StoragePtr>& list = node_list_;
     auto pos = std::lower_bound(list.begin(), list.end(), key, MutexBst::compare);
     if ((pos == list.end()) || !MutexBst::equal(*pos, key)) {
       // 
@@ -259,7 +258,7 @@ auto MutexBst<Key, T, Compare>::contain(ConstKeyT& key) const noexcept
   size_type node_index = invalidId();
   {
     std::shared_lock lock{mutex_};
-    const pmr::vector<StoragePtr>& list = node_list_;
+    const std::pmr::vector<StoragePtr>& list = node_list_;
     auto pos = std::lower_bound(list.begin(), list.end(), key, MutexBst::compare);
     if ((pos != list.end()) && MutexBst::equal(*pos, key))
       node_index = getIndex(*pos);
@@ -278,7 +277,7 @@ template <std::movable Key, MappedValue T, std::invocable<Key, Key> Compare>
 inline
 auto MutexBst<Key, T, Compare>::findMinKey() noexcept -> std::optional<Pointer>
 {
-  const pmr::vector<StoragePtr>& list = node_list_;
+  const std::pmr::vector<StoragePtr>& list = node_list_;
   std::shared_lock lock{mutex_};
   ZISC_ASSERT(std::is_sorted(list.begin(), list.end(), MutexBst::compareNode),
               "The node list isn't sorted.");
@@ -296,7 +295,7 @@ template <std::movable Key, MappedValue T, std::invocable<Key, Key> Compare>
 inline
 auto MutexBst<Key, T, Compare>::findMinKey() const noexcept -> std::optional<ConstPointer>
 {
-  const pmr::vector<StoragePtr>& list = node_list_;
+  const std::pmr::vector<StoragePtr>& list = node_list_;
   std::shared_lock lock{mutex_};
   ZISC_ASSERT(std::is_sorted(list.begin(), list.end(), MutexBst::compareNode),
               "The node list isn't sorted.");
@@ -368,7 +367,7 @@ auto MutexBst<Key, T, Compare>::remove(ConstKeyT& key) -> std::optional<size_typ
   size_type node_index = invalidId();
   {
     std::unique_lock lock{mutex_};
-    pmr::vector<StoragePtr>& list = node_list_;
+    std::pmr::vector<StoragePtr>& list = node_list_;
     auto pos = std::lower_bound(list.begin(), list.end(), key, MutexBst::compare);
     if ((pos != list.end()) && MutexBst::equal(*pos, key)) {
       node_index = getIndex(*pos);
@@ -389,9 +388,9 @@ auto MutexBst<Key, T, Compare>::remove(ConstKeyT& key) -> std::optional<size_typ
   */
 template <std::movable Key, MappedValue T, std::invocable<Key, Key> Compare>
 inline
-auto MutexBst<Key, T, Compare>::resource() const noexcept -> pmr::memory_resource*
+auto MutexBst<Key, T, Compare>::resource() const noexcept -> std::pmr::memory_resource*
 {
-  pmr::memory_resource* mem_resource = node_pool_.get_allocator().resource();
+  std::pmr::memory_resource* mem_resource = node_pool_.get_allocator().resource();
   return mem_resource;
 }
 

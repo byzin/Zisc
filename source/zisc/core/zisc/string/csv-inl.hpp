@@ -21,6 +21,7 @@
 #include <concepts>
 #include <cstddef>
 #include <istream>
+#include <memory_resource>
 #include <regex>
 #include <span>
 #include <string>
@@ -36,7 +37,6 @@
 #include "zisc/error.hpp"
 #include "zisc/utility.hpp"
 #include "zisc/zisc_config.hpp"
-#include "zisc/memory/std_memory_resource.hpp"
 
 namespace zisc {
 
@@ -66,7 +66,7 @@ struct CsvRecordTypeImpl<0, Type, Types...>
 template <std::size_t kN, typename Type, typename ...Types>
 struct CsvRecordTypeImpl
 {
-  using T = std::conditional_t<String<Type>, pmr::string, Type>;
+  using T = std::conditional_t<String<Type>, std::pmr::string, Type>;
   using RecordT = typename CsvRecordTypeImpl<kN - 1, Types..., T>::RecordT;
 };
 
@@ -76,7 +76,7 @@ struct CsvRecordTypeImpl
   \param [in,out] mem_resource No description.
   */
 template <typename Type, typename ...Types> inline
-Csv<Type, Types...>::Csv(pmr::memory_resource* mem_resource) noexcept : 
+Csv<Type, Types...>::Csv(std::pmr::memory_resource* mem_resource) noexcept : 
     data_{typename decltype(data_)::allocator_type{mem_resource}},
     csv_pattern_{csvPattern().toCStr(),
                  std::regex_constants::optimize | std::regex_constants::ECMAScript}
@@ -308,10 +308,10 @@ auto Csv<Type, Types...>::toCxxType(const std::string_view json_value) const noe
   \return No description
   */
 template <typename Type, typename ...Types> template <String PType> inline
-auto Csv<Type, Types...>::toCxxType(const std::string_view json_value) noexcept -> pmr::string
+auto Csv<Type, Types...>::toCxxType(const std::string_view json_value) noexcept -> std::pmr::string
 {
-  pmr::string::allocator_type alloc{memoryResource()};
-  pmr::string result{alloc};
+  std::pmr::string::allocator_type alloc{memoryResource()};
+  std::pmr::string result{alloc};
 
   const std::size_t size = JsonValueParser::getCxxStringSize(json_value);
   result.resize(size);
@@ -396,7 +396,7 @@ constexpr auto Csv<Type, Types...>::getTypePattern() noexcept
   \return No description
   */
 template <typename Type, typename ...Types> inline
-auto Csv<Type, Types...>::memoryResource() noexcept -> pmr::memory_resource*
+auto Csv<Type, Types...>::memoryResource() noexcept -> std::pmr::memory_resource*
 {
   auto mem_resource = data_.get_allocator().resource();
   return mem_resource;
@@ -413,8 +413,8 @@ auto Csv<Type, Types...>::parseCsvLine(std::string_view line) noexcept
     -> RecordType
 {
   //! \todo Exception check
-  pmr::cmatch::allocator_type alloc{memoryResource()};
-  pmr::cmatch result{alloc};
+  std::pmr::cmatch::allocator_type alloc{memoryResource()};
+  std::pmr::cmatch result{alloc};
   [[maybe_unused]] const auto is_success = std::regex_match(line.data(),
                                                             result,
                                                             csvRegex());
@@ -434,7 +434,7 @@ auto Csv<Type, Types...>::parseCsvLine(std::string_view line) noexcept
   */
 template <typename Type, typename ...Types>
 template <std::size_t ...indices> inline
-auto Csv<Type, Types...>::toCxxRecord(const pmr::cmatch& result,
+auto Csv<Type, Types...>::toCxxRecord(const std::pmr::cmatch& result,
                                       [[maybe_unused]] std::index_sequence<indices...> idx) noexcept
     -> RecordType
 {
@@ -450,11 +450,11 @@ auto Csv<Type, Types...>::toCxxRecord(const pmr::cmatch& result,
   \return No description
   */
 template <typename Type, typename ...Types> template <std::size_t index> inline
-auto Csv<Type, Types...>::toCxxField(const pmr::cmatch& result) noexcept
+auto Csv<Type, Types...>::toCxxField(const std::pmr::cmatch& result) noexcept
     -> InnerFieldType<index>
 {
   using FieldT = InnerFieldType<index>;
-  pmr::cmatch::const_reference match = result[index + 1];
+  std::pmr::cmatch::const_reference match = result[index + 1];
   const auto fieldsize = cast<std::size_t>(std::distance(match.first, match.second));
   std::string_view field{match.first, fieldsize};
   auto cxx_field = toCxxType<FieldT>(field);

@@ -19,7 +19,7 @@
 #include <algorithm>
 #include <atomic>
 #include <cstddef>
-#include <memory>
+#include <memory_resource>
 #include <type_traits>
 // Zisc
 #include "memory.hpp"
@@ -39,7 +39,7 @@ namespace zisc {
   */
 template <std::size_t kSize, std::size_t kAlignment>
 class MonotonicBufferResource :
-    public pmr::memory_resource,
+    public std::pmr::memory_resource,
     private NonCopyable<MonotonicBufferResource<kSize, kAlignment>>
 {
  public:
@@ -48,7 +48,7 @@ class MonotonicBufferResource :
 
 
   //! Create a new resource
-  explicit MonotonicBufferResource(pmr::memory_resource* mem_resource) noexcept;
+  explicit MonotonicBufferResource(std::pmr::memory_resource* mem_resource) noexcept;
 
   //! Move a data
   MonotonicBufferResource(MonotonicBufferResource&& other) noexcept;
@@ -98,10 +98,10 @@ class MonotonicBufferResource :
                      std::size_t alignment) override;
 
   //! Compare for equality with another memory resource
-  auto do_is_equal(const pmr::memory_resource& other) const noexcept -> bool override;
+  auto do_is_equal(const std::pmr::memory_resource& other) const noexcept -> bool override;
 
   //! Initialize the storage
-  void initialize(pmr::memory_resource* mem_resource) noexcept;
+  void initialize(std::pmr::memory_resource* mem_resource) noexcept;
 
   //! Return the pointer to the underlying storage
   auto storage() noexcept -> std::byte*;

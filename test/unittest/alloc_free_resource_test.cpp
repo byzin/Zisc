@@ -30,7 +30,6 @@
 #include "zisc/concurrency/atomic_word.hpp"
 #include "zisc/memory/memory.hpp"
 #include "zisc/memory/alloc_free_resource.hpp"
-#include "zisc/memory/std_memory_resource.hpp"
 
 namespace {
 

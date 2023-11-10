@@ -18,6 +18,7 @@
 // Standard C++ library
 #include <concepts>
 #include <cstddef>
+#include <memory_resource>
 #include <mutex>
 #include <optional>
 #include <shared_mutex>
@@ -28,7 +29,6 @@
 #include "queue.hpp"
 #include "zisc/zisc_config.hpp"
 #include "zisc/memory/data_storage.hpp"
-#include "zisc/memory/std_memory_resource.hpp"
 
 namespace zisc {
 
@@ -61,10 +61,10 @@ class MutexQueue : public Queue<MutexQueue<T>, T>
 
 
   //! Create a queue
-  explicit MutexQueue(pmr::memory_resource* mem_resource) noexcept;
+  explicit MutexQueue(std::pmr::memory_resource* mem_resource) noexcept;
 
   //! Create a queue
-  MutexQueue(const size_type cap, pmr::memory_resource* mem_resource) noexcept;
+  MutexQueue(const size_type cap, std::pmr::memory_resource* mem_resource) noexcept;
 
   //! Move a data
   MutexQueue(MutexQueue&& other) noexcept;
@@ -111,7 +111,7 @@ class MutexQueue : public Queue<MutexQueue<T>, T>
   static constexpr auto isConcurrent() noexcept -> bool;
 
   //! Return the pointer to the underlying memory resource
-  auto resource() const noexcept -> pmr::memory_resource*;
+  auto resource() const noexcept -> std::pmr::memory_resource*;
 
   //! Change the maximum possible number of elements. The queued data is cleared
   void setCapacity(size_type cap) noexcept;
@@ -145,7 +145,7 @@ class MutexQueue : public Queue<MutexQueue<T>, T>
 
 
   mutable std::shared_mutex mutex_;
-  pmr::vector<StorageT> elements_;
+  std::pmr::vector<StorageT> elements_;
   size_type head_;
   size_type tail_;
 };

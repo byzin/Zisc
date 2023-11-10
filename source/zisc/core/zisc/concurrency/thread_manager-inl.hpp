@@ -42,7 +42,6 @@
 #include "zisc/memory/data_storage.hpp"
 #include "zisc/memory/memory.hpp"
 #include "zisc/memory/monotonic_buffer_resource.hpp"
-#include "zisc/memory/std_memory_resource.hpp"
 #include "zisc/structure/queue.hpp"
 
 namespace zisc {
@@ -118,7 +117,7 @@ auto ThreadManager::TaskExceptionData::task() const noexcept -> const PackagedTa
   \param [in,out] mem_resource No description.
   */
 inline
-ThreadManager::ThreadManager(pmr::memory_resource* mem_resource) noexcept :
+ThreadManager::ThreadManager(std::pmr::memory_resource* mem_resource) noexcept :
     ThreadManager(logicalCores(), mem_resource)
 {
 }
@@ -131,7 +130,7 @@ ThreadManager::ThreadManager(pmr::memory_resource* mem_resource) noexcept :
   */
 inline
 ThreadManager::ThreadManager(const int64b num_of_threads,
-                             pmr::memory_resource* mem_resource) noexcept :
+                             std::pmr::memory_resource* mem_resource) noexcept :
     task_id_count_{0},
     num_of_tasks_{0},
     num_of_active_workers_{0},
@@ -407,9 +406,9 @@ auto ThreadManager::numOfThreads() const noexcept -> int64b
   \return No description
   */
 inline
-auto ThreadManager::resource() const noexcept -> pmr::memory_resource*
+auto ThreadManager::resource() const noexcept -> std::pmr::memory_resource*
 {
-  pmr::memory_resource* mem_resource = worker_list_.get_allocator().resource();
+  std::pmr::memory_resource* mem_resource = worker_list_.get_allocator().resource();
   return mem_resource;
 }
 
@@ -674,17 +673,17 @@ auto ThreadManager::createSharedTask(Data&& data,
     // The max value is heuristic. 3 * sizeof(ReturnT) is needed for promise
     constexpr std::size_t alloc_max = 3 * sizeof(T) + sizeof(Task);
     const bool use_task_resource = alloc_max <= TaskResource::capacity();
-    pmr::memory_resource* mem_resource = use_task_resource 
+    std::pmr::memory_resource* mem_resource = use_task_resource 
         ? std::addressof(task_resource)
         : resource();
 
     // Allocate objects
     try {
       using PromiseT = typename Task::PromiseT;
-      pmr::polymorphic_allocator<PromiseT> promise_alloc{mem_resource};
+      std::pmr::polymorphic_allocator<PromiseT> promise_alloc{mem_resource};
       PromiseT promise{std::allocator_arg, promise_alloc};
 
-      pmr::polymorphic_allocator<Task> task_alloc{mem_resource};
+      std::pmr::polymorphic_allocator<Task> task_alloc{mem_resource};
       const int64b info = PackagedTask::encodeInfo(task_id, wait_for_precedence);
       task = std::allocate_shared<Task>(task_alloc, info, std::move(promise), this);
     }

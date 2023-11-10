@@ -19,12 +19,11 @@
 #include <atomic>
 #include <bit>
 #include <cstddef>
-#include <memory>
+#include <memory_resource>
 #include <type_traits>
 #include <vector>
 // Zisc
 #include "memory.hpp"
-#include "std_memory_resource.hpp"
 #include "zisc/non_copyable.hpp"
 #include "zisc/zisc_config.hpp"
 #include "zisc/concurrency/bitset.hpp"
@@ -39,7 +38,7 @@ namespace zisc {
   \tparam Type No description.
   */
 template <typename Type>
-class FixedArrayResource : public pmr::memory_resource,
+class FixedArrayResource : public std::pmr::memory_resource,
                            private NonCopyable<FixedArrayResource<Type>>
 {
  public:
@@ -52,7 +51,7 @@ class FixedArrayResource : public pmr::memory_resource,
 
 
   //! Create a resource
-  explicit FixedArrayResource(pmr::memory_resource* mem_resource) noexcept;
+  explicit FixedArrayResource(std::pmr::memory_resource* mem_resource) noexcept;
 
   //! Create a resource
   FixedArrayResource(FixedArrayResource&& other) noexcept;
@@ -119,7 +118,7 @@ class FixedArrayResource : public pmr::memory_resource,
                      std::size_t alignment) override;
 
   //! Compare for equality with another memory resource
-  auto do_is_equal(const pmr::memory_resource& other) const noexcept -> bool override;
+  auto do_is_equal(const std::pmr::memory_resource& other) const noexcept -> bool override;
 
   //! Find and get a ownership of a free storage
   auto findAndGetOwnership(const std::size_t start) noexcept -> std::size_t;
@@ -133,7 +132,7 @@ class FixedArrayResource : public pmr::memory_resource,
 
   alignas(kCacheLineSize) std::atomic_size_t count_;
   [[maybe_unused]] Padding<kCacheLineSize - sizeof(count_)> pad1_{};
-  pmr::vector<StorageT> storage_list_;
+  std::pmr::vector<StorageT> storage_list_;
   Bitset used_list_;
   [[maybe_unused]] Padding<kCacheLineSize - (sizeof(storage_list_) + sizeof(used_list_))> pad2_{};
 };

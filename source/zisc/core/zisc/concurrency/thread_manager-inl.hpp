@@ -665,7 +665,7 @@ class ThreadManager::TaskImpl<Return, Data, Ite1, Ite2, false> : public Packaged
 
   //
   template <typename D, typename I>
-  void setData(D&& data, [[maybe_unused]] I&& b) noexcept
+  void setData(D&& data, [[maybe_unused]] const I& b) noexcept
   {
     task_.set(std::forward<D>(data));
   }

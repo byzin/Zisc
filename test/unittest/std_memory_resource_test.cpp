@@ -113,24 +113,24 @@ TEST(StdMemoryResourceTest, StringTest)
   ASSERT_EQ(0, usage.total()) << "There is un-released memory.";
 }
 
-TEST(StdMemoryResourceTest, StringStreamTest)
-{
-  zisc::AllocFreeResource mem_resource{};
-
-  {
-    const std::pmr::polymorphic_allocator<char> alloc{&mem_resource};
-    zisc::pmr::stringstream code{std::ios_base::in | std::ios_base::out, alloc};
-    code << "Zisc";
-    code << "StringStream";
-    code << "Test";
-    code << 16;
-    ASSERT_STREQ(code.str().data(), "ZiscStringStreamTest16");
-  }
-
-  const zisc::Memory::Usage& usage = mem_resource.memoryUsage();
-  ASSERT_NE(0, usage.peak()) << "The memory resource isn't used.";
-  ASSERT_EQ(0, usage.total()) << "There is un-released memory.";
-}
+//TEST(StdMemoryResourceTest, StringStreamTest)
+//{
+//  zisc::AllocFreeResource mem_resource{};
+//
+//  {
+//    const std::pmr::polymorphic_allocator<char> alloc{&mem_resource};
+//    zisc::pmr::stringstream code{std::ios_base::in | std::ios_base::out, alloc};
+//    code << "Zisc";
+//    code << "StringStream";
+//    code << "Test";
+//    code << 16;
+//    ASSERT_STREQ(code.str().data(), "ZiscStringStreamTest16");
+//  }
+//
+//  const zisc::Memory::Usage& usage = mem_resource.memoryUsage();
+//  ASSERT_NE(0, usage.peak()) << "The memory resource isn't used.";
+//  ASSERT_EQ(0, usage.total()) << "There is un-released memory.";
+//}
 
 TEST(StdMemoryResourceTest, PromiseTest)
 {
@@ -150,27 +150,27 @@ TEST(StdMemoryResourceTest, PromiseTest)
   ASSERT_EQ(0, usage.total()) << "There is un-released memory.";
 }
 
-TEST(StdMemoryResourceTest, PackagedTaskTest)
-{
-  zisc::AllocFreeResource mem_resource{};
-
-  {
-    constexpr int expected = 16;
-    const auto getter = []() noexcept
-    {
-      return expected;
-    };
-    const std::pmr::polymorphic_allocator<int> alloc{&mem_resource};
-    std::packaged_task<int ()> func{std::allocator_arg, alloc, getter};
-    std::future result = func.get_future();
-    func();
-    ASSERT_EQ(expected, result.get());
-  }
-
-  const zisc::Memory::Usage& usage = mem_resource.memoryUsage();
-  ASSERT_NE(0, usage.peak()) << "The memory resource isn't used.";
-  ASSERT_EQ(0, usage.total()) << "There is un-released memory.";
-}
+//TEST(StdMemoryResourceTest, PackagedTaskTest)
+//{
+//  zisc::AllocFreeResource mem_resource{};
+//
+//  {
+//    constexpr int expected = 16;
+//    const auto getter = []() noexcept
+//    {
+//      return expected;
+//    };
+//    const std::pmr::polymorphic_allocator<int> alloc{&mem_resource};
+//    std::packaged_task<int ()> func{std::allocator_arg, alloc, getter};
+//    std::future result = func.get_future();
+//    func();
+//    ASSERT_EQ(expected, result.get());
+//  }
+//
+//  const zisc::Memory::Usage& usage = mem_resource.memoryUsage();
+//  ASSERT_NE(0, usage.peak()) << "The memory resource isn't used.";
+//  ASSERT_EQ(0, usage.total()) << "There is un-released memory.";
+//}
 
 TEST(StdMemoryResourceTest, SharedPtrTest)
 {

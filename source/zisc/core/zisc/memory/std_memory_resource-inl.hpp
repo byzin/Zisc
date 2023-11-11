@@ -101,12 +101,12 @@ constexpr auto UniquePtrDeleter<Type>::resource() noexcept -> std::pmr::memory_r
 
   \param [in,out] memory No description.
   */
-template <typename Type> template <std::derived_from<Type> Derived> inline
-constexpr void UniquePtrDeleter<Type>::deleteMemory(std::add_pointer_t<Derived> memory) noexcept
+template <typename Type> template <typename T> inline
+constexpr void UniquePtrDeleter<Type>::deleteMemory(std::add_pointer_t<T> memory) noexcept
 {
   if (memory != nullptr) {
     std::destroy_at(memory);
-    std::pmr::polymorphic_allocator<Derived> alloc{resource()};
+    std::pmr::polymorphic_allocator<T> alloc{resource()};
     constexpr std::size_t n = 1;
     alloc.deallocate(memory, n);
   }

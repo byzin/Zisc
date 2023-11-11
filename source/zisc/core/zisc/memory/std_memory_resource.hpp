@@ -107,8 +107,9 @@ class UniquePtrDeleter
   constexpr auto resource() noexcept -> std::pmr::memory_resource*;
 
  private:
-  template <std::derived_from<Type> Derived>
-  constexpr void deleteMemory(std::add_pointer_t<Derived> memory) noexcept;
+  //! Delete the given pointer memory
+  template <typename T>
+  constexpr void deleteMemory(std::add_pointer_t<T> memory) noexcept;
 
 
   std::pmr::memory_resource* resource_ = nullptr;

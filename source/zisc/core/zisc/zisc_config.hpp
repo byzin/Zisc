@@ -60,6 +60,8 @@ class Config
   };
 
 
+  // Platform config
+
   //! Return the target architecture of the build
   static constexpr auto architecture() noexcept -> Architecture;
 
@@ -68,6 +70,12 @@ class Config
 
   //! Return the target architecture name of the build
   static constexpr auto architectureName() noexcept -> std::string_view;
+
+  //! Check if the build is in degbu mode
+  static constexpr auto isDebugMode() noexcept -> bool;
+
+  //! Check if the build is in release mode
+  static constexpr auto isReleaseMode() noexcept -> bool;
 
   //! Return the value of the major component of the Zisc version number
   static constexpr auto versionMajor() noexcept -> int;

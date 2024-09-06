@@ -104,6 +104,36 @@ constexpr auto Config::architectureName() noexcept -> std::string_view
   \return No description
   */
 inline
+constexpr auto Config::isDebugMode() noexcept -> bool
+{
+#if defined(Z_DEBUG_MODE)
+  return true;
+#else // Z_DEBUG_MODE
+  return false;
+#endif // Z_DEBUG_MODE
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+inline
+constexpr auto Config::isReleaseMode() noexcept -> bool
+{
+#if defined(Z_RELEASE_MODE)
+  return true;
+#else // Z_RELEASE_MODE
+  return false;
+#endif // Z_RELEASE_MODE
+}
+
+/*!
+  \details No detailed description
+
+  \return No description
+  */
+inline
 constexpr auto Config::versionMajor() noexcept -> int
 {
   return @PROJECT_VERSION_MAJOR@;

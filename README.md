@@ -2,18 +2,18 @@
 
 Zisc provides C++ utility classes and functions which can be commonly used.
 
-Zisc is a library separated from [Zisc][zisc] for easy maintenance.
+Zisc is a library separated from [Zivc][zivc] for easy maintenance.
 
-**Z**ivc m**isc**ellaneous C++ library
+**Z**in's m**isc**ellaneous C++ library
 
-Version: 0.0.75
+Version: 0.0.76
 
 ## Import instructions ##
 
 ### Prerequisites ###
 
-* C++20 support compiler
-* [CMake][cmake] (version 3.22 or later)
+* C++23 support compiler
+* [CMake][cmake] (version 3.30 or later)
 
 ### Importing ###
 
@@ -27,7 +27,7 @@ Clone the Zisc repository and include the cmake config files of Zisc,
   endif()
 
   # Add the Zisc subdirectory
-  add_subdirectory({"path-to-zisc-root"}/source/zisc ${PROJECT_BINARY_DIR}/Zisc)
+  add_subdirectory({"path-to-zisc-root"} ${PROJECT_BINARY_DIR}/Zisc)
 
   # Create an executable of your project
   add_executable({"target-name"} {"source-files"})
@@ -47,5 +47,5 @@ Please see the [document/acknowledgement.md](document/acknowledgement.md).
 This software is released under the MIT License,
 see [LICENSE.md](LICENSE.md).
 
-[zisc]: https://github.com/byzin/Zisc
+[zivc]: https://github.com/byzin/Zivc
 [cmake]: https://cmake.org/

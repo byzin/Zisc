@@ -42,12 +42,16 @@ function(addExample target save_dependency_list)
   source_group(${PROJECT_NAME}/${target} FILES ${example_source_files})
 
   include("${__zisc_dir__}/cmake/compiler.cmake")
-  Zisc_getCxxWarningFlags(cxx_compile_warning_flags)
-  Zisc_getSanitizerFlags(compile_sanitizer_flags linker_sanitizer_flags)
+  #Zisc_getCxxWarningFlags(cxx_compile_warning_flags)
+  #Zisc_getSanitizerFlags(compile_sanitizer_flags linker_sanitizer_flags)
   getExampleWarningFlags(example_warning_flags)
 
   #
   add_executable(${target} ${example_source_files})
+
+  Zisc_setSanitizerFlags(${target} PRIVATE)
+  Zisc_setCxxWarningFlags(${target} PRIVATE)
+
   set_target_properties(${target} PROPERTIES CXX_STANDARD 20
                                              CXX_STANDARD_REQUIRED ON)
   target_compile_options(${target} PRIVATE ${cxx_compile_warning_flags}
@@ -109,8 +113,8 @@ macro(setExampleProject)
   # Initialize platform info
   include("${__zisc_dir__}/cmake/general.cmake")
   include("${__zisc_dir__}/cmake/platform.cmake")
-  Zisc_getPlatformFlags(platform_definitions)
-  Zisc_setVariablesOnCMake(${platform_definitions})
+  #Zisc_getPlatformFlags(platform_definitions)
+  #Zisc_setVariablesOnCMake(${platform_definitions})
 
   # Build examples
   addExample(AlgorithmExample ON

@@ -20,323 +20,323 @@ endfunction(Zisc_getClangOptionSuffix)
 
 
 #
-function(Zisc_getSanitizerFlagsImpl compile_sanitizer_flags linker_sanitizer_flags)
-  set(compile_flags "")
-  set(linker_flags "")
-  set(check_list "")
-
-  # Collect sanitizer checks
-  if(Z_ENABLE_SANITIZER_ADDRESS)
-    list(APPEND check_list address)
-  endif()
-  if(Z_ENABLE_SANITIZER_THREAD)
-    list(APPEND check_list thread)
-  endif()
-  if(Z_ENABLE_SANITIZER_MEMORY)
-    list(APPEND check_list memory)
-  endif()
-  if(Z_ENABLE_SANITIZER_UNDEF_BEHAVIOR OR Z_ENABLE_SANITIZER_UNDEF_BEHAVIOR_FULL)
-    list(APPEND check_list alignment
-                           bool
-                           builtin
-                           bounds
-                           enum
-                           float-cast-overflow
-                           float-divide-by-zero
-                           integer-divide-by-zero
-                           nonnull-attribute
-                           null
-                           pointer-overflow
-                           return
-                           returns-nonnull-attribute
-                           unreachable
-                           vla-bound
-                           vptr
-                           )
-    if(NOT Z_GCC)
-      list(APPEND check_list function
-                             nullability-arg
-                             nullability-assign
-                             nullability-return
-                             )
-    endif()
-    if(NOT Z_DEBUG_MODE)
-      list(APPEND check_list object-size
-                             )
-    endif()
-  endif()
-  if(Z_ENABLE_SANITIZER_UNDEF_BEHAVIOR_FULL)
-    list(APPEND check_list shift
-                           signed-integer-overflow
-                           )
-    if(NOT Z_GCC)
-      list(APPEND check_list implicit-unsigned-integer-truncation
-                             implicit-signed-integer-truncation
-                             unsigned-shift-base
-                             unsigned-integer-overflow
-                             )
-      if(NOT Z_APPLE_CLANG)
-        list(APPEND check_list implicit-integer-sign-change
-                               )
-      endif()
-    endif()
-  endif()
-  if(Z_ENABLE_SANITIZER_LEAK)
-    list(APPEND check_list leak)
-  endif()
-  if(Z_ENABLE_SANITIZER_CFI)
-    list(APPEND check_list cfi)
-    list(APPEND compile_flags -fno-sanitize-trap)
-  endif()
-  if(Z_ENABLE_SANITIZER_SAFE_STACK)
-    list(APPEND check_list safe-stack)
-  endif()
-
-  # Make a sanitizer option string from check list 
-  if(check_list)
-    string(REPLACE ";" "," check_flag "${check_list}")
-    if(Z_VISUAL_STUDIO)
-      list(APPEND compile_flags "/fsanitize=${check_flag}")
-    else()
-      list(APPEND compile_flags "-fsanitize=${check_flag}"
-                                -fno-omit-frame-pointer
-                                )
-      list(APPEND linker_flags "-fsanitize=${check_flag}")
-    endif()
-
-    # Output
-    set(${compile_sanitizer_flags} ${compile_flags} PARENT_SCOPE)
-    set(${linker_sanitizer_flags} ${linker_flags} PARENT_SCOPE)
-  endif()
-endfunction(Zisc_getSanitizerFlagsImpl)
-
-
-function(Zisc_getMsvcCompilerFlags architecture cxx_compile_flags cxx_linker_flags cxx_definitions)
-  set(compile_flags "")
-  set(linker_flags "")
-  set(definitions "")
-
-  # Architecture optimization
-  if(architecture MATCHES "Amd64")
-    list(APPEND compile_flags /favor:AMD64)
-    if(architecture MATCHES "Amd64-v3")
-      list(APPEND compile_flags /arch:AVX2)
-    elseif(architecture MATCHES "Amd64-v4")
-      list(APPEND compile_flags /arch:AVX512)
-    endif()
-  endif()
-
-  # Diagnostic
-  list(APPEND compile_flags /diagnostics:caret
-                            /nologo
-                            /fastfail
-                            /options:strict
-                            )
-
-  # Output variables
-  set(${cxx_compile_flags} ${compile_flags} PARENT_SCOPE)
-  set(${cxx_linker_flags} ${linker_flags} PARENT_SCOPE)
-  set(${cxx_definitions} ${definitions} PARENT_SCOPE)
-endfunction(Zisc_getMsvcCompilerFlags)
+#function(Zisc_getSanitizerFlagsImpl compile_sanitizer_flags linker_sanitizer_flags)
+#  set(compile_flags "")
+#  set(linker_flags "")
+#  set(check_list "")
+#
+#  # Collect sanitizer checks
+#  if(Z_ENABLE_SANITIZER_ADDRESS)
+#    list(APPEND check_list address)
+#  endif()
+#  if(Z_ENABLE_SANITIZER_THREAD)
+#    list(APPEND check_list thread)
+#  endif()
+#  if(Z_ENABLE_SANITIZER_MEMORY)
+#    list(APPEND check_list memory)
+#  endif()
+#  if(Z_ENABLE_SANITIZER_UNDEF_BEHAVIOR OR Z_ENABLE_SANITIZER_UNDEF_BEHAVIOR_FULL)
+#    list(APPEND check_list alignment
+#                           bool
+#                           builtin
+#                           bounds
+#                           enum
+#                           float-cast-overflow
+#                           float-divide-by-zero
+#                           integer-divide-by-zero
+#                           nonnull-attribute
+#                           null
+#                           pointer-overflow
+#                           return
+#                           returns-nonnull-attribute
+#                           unreachable
+#                           vla-bound
+#                           vptr
+#                           )
+#    if(NOT Z_GCC)
+#      list(APPEND check_list function
+#                             nullability-arg
+#                             nullability-assign
+#                             nullability-return
+#                             )
+#    endif()
+#    if(NOT Z_DEBUG_MODE)
+#      list(APPEND check_list object-size
+#                             )
+#    endif()
+#  endif()
+#  if(Z_ENABLE_SANITIZER_UNDEF_BEHAVIOR_FULL)
+#    list(APPEND check_list shift
+#                           signed-integer-overflow
+#                           )
+#    if(NOT Z_GCC)
+#      list(APPEND check_list implicit-unsigned-integer-truncation
+#                             implicit-signed-integer-truncation
+#                             unsigned-shift-base
+#                             unsigned-integer-overflow
+#                             )
+#      if(NOT Z_APPLE_CLANG)
+#        list(APPEND check_list implicit-integer-sign-change
+#                               )
+#      endif()
+#    endif()
+#  endif()
+#  if(Z_ENABLE_SANITIZER_LEAK)
+#    list(APPEND check_list leak)
+#  endif()
+#  if(Z_ENABLE_SANITIZER_CFI)
+#    list(APPEND check_list cfi)
+#    list(APPEND compile_flags -fno-sanitize-trap)
+#  endif()
+#  if(Z_ENABLE_SANITIZER_SAFE_STACK)
+#    list(APPEND check_list safe-stack)
+#  endif()
+#
+#  # Make a sanitizer option string from check list 
+#  if(check_list)
+#    string(REPLACE ";" "," check_flag "${check_list}")
+#    if(Z_VISUAL_STUDIO)
+#      list(APPEND compile_flags "/fsanitize=${check_flag}")
+#    else()
+#      list(APPEND compile_flags "-fsanitize=${check_flag}"
+#                                -fno-omit-frame-pointer
+#                                )
+#      list(APPEND linker_flags "-fsanitize=${check_flag}")
+#    endif()
+#
+#    # Output
+#    set(${compile_sanitizer_flags} ${compile_flags} PARENT_SCOPE)
+#    set(${linker_sanitizer_flags} ${linker_flags} PARENT_SCOPE)
+#  endif()
+#endfunction(Zisc_getSanitizerFlagsImpl)
 
 
-function(Zisc_getClangClCompilerFlags architecture cxx_compile_flags cxx_linker_flags cxx_definitions)
-  set(compile_flags "")
-  set(linker_flags "")
-  set(definitions "")
-
-  # Architecture optimization
-  if(architecture MATCHES "Amd64-v1")
-    list(APPEND compile_flags /clang:-march=x86-64)
-  elseif(architecture MATCHES "Amd64-v2")
-    list(APPEND compile_flags /clang:-fno-math-errno
-                              /clang:-march=x86-64-v2)
-  elseif(architecture MATCHES "Amd64-v3")
-    list(APPEND compile_flags /clang:-fno-math-errno
-                              /clang:-march=x86-64-v3)
-  elseif(architecture MATCHES "Amd64-v4")
-    list(APPEND compile_flags /clang:-fno-math-errno
-                              /clang:-march=x86-64-v4)
-  endif()
-  list(APPEND compile_flags /Qvec # Auto loop-vectorization
-                            )
-
-  # Diagnostic
-  list(APPEND compile_flags /diagnostics:caret
-                            -fcolor-diagnostics
-                            )
-
-  # Output variables
-  set(${cxx_compile_flags} ${compile_flags} PARENT_SCOPE)
-  set(${cxx_linker_flags} ${linker_flags} PARENT_SCOPE)
-  set(${cxx_definitions} ${definitions} PARENT_SCOPE)
-endfunction(Zisc_getClangClCompilerFlags)
-
-
-function(Zisc_getClangCompilerFlags architecture cxx_compile_flags cxx_linker_flags cxx_definitions)
-  set(compile_flags "")
-  set(linker_flags "")
-  set(definitions "")
-
-  # Architecture optimization
-  if(architecture MATCHES "Amd64-v1")
-    list(APPEND compile_flags -march=x86-64)
-  elseif(architecture MATCHES "Amd64-v2")
-    list(APPEND compile_flags -fno-math-errno
-                              -march=x86-64-v2)
-  elseif(architecture MATCHES "Amd64-v3")
-    list(APPEND compile_flags -fno-math-errno
-                              -march=x86-64-v3)
-  elseif(architecture MATCHES "Amd64-v4")
-    list(APPEND compile_flags -fno-math-errno
-                              -march=x86-64-v4)
-  endif()
-
-  if(Z_CLANG_USES_LLVM_TOOLS)
-    list(APPEND compile_flags -stdlib=libc++)
-    list(APPEND linker_flags -stdlib=libc++ -rtlib=compiler-rt)
-    if(NOT Z_APPLE_CLANG)
-      list(APPEND linker_flags -fuse-ld=lld)
-    endif()
-    list(APPEND definitions Z_CLANG_USES_LLVM_TOOLS=1)
-  endif()
-
-  # Diagnostic
-  list(APPEND compile_flags -fcolor-diagnostics
-                            )
-
-  # Output variables
-  set(${cxx_compile_flags} ${compile_flags} PARENT_SCOPE)
-  set(${cxx_linker_flags} ${linker_flags} PARENT_SCOPE)
-  set(${cxx_definitions} ${definitions} PARENT_SCOPE)
-endfunction(Zisc_getClangCompilerFlags)
-
-
-function(Zisc_getGccCompilerFlags architecture cxx_compile_flags cxx_linker_flags cxx_definitions)
-  set(compile_flags "")
-  set(linker_flags "")
-  set(definitions "")
-
-  # Architecture optimization
-  if(architecture MATCHES "Amd64-v1")
-    list(APPEND compile_flags -march=x86-64)
-  elseif(architecture MATCHES "Amd64-v2")
-    list(APPEND compile_flags -fno-math-errno
-                              -march=x86-64-v2)
-  elseif(architecture MATCHES "Amd64-v3")
-    list(APPEND compile_flags -fno-math-errno
-                              -march=x86-64-v3)
-  elseif(architecture MATCHES "Amd64-v4")
-    list(APPEND compile_flags -fno-math-errno
-                              -march=x86-64-v4)
-  endif()
-
-  # Output variables
-  set(${cxx_compile_flags} ${compile_flags} PARENT_SCOPE)
-  set(${cxx_linker_flags} ${linker_flags} PARENT_SCOPE)
-  set(${cxx_definitions} ${definitions} PARENT_SCOPE)
-endfunction(Zisc_getGccCompilerFlags)
-
-
-function(Zisc_getMsvcWarningFlags compile_warning_flags)
-  set(warning_flags "")
-  if(Z_ENABLE_COMPILER_WARNING_EXTRA)
-    list(APPEND warning_flags /Wall
-                              )
-  else()
-    list(APPEND warning_flags /W4
-                              )
-  endif()
-  if(Z_MAKE_WARNING_INTO_ERROR)
-    list(APPEND warning_flags /WX)
-  endif()
-
-  # Output variables
-  set(${compile_warning_flags} ${warning_flags} PARENT_SCOPE)
-endfunction(Zisc_getMsvcWarningFlags)
-
-
-function(Zisc_getClangClWarningFlags compile_warning_flags)
-  set(warning_flags "")
-  if(Z_ENABLE_COMPILER_WARNING_EXTRA)
-    list(APPEND warning_flags /Wall
-                              -Wno-c++-compat
-                              -Wno-c++98-compat
-                              -Wno-c++98-compat-pedantic
-                              )
-  else()
-    list(APPEND warning_flags /W4
-                              )
-  endif()
-  if(Z_MAKE_WARNING_INTO_ERROR)
-    list(APPEND warning_flags /WX)
-  endif()
-
-  # Output variables
-  set(${compile_warning_flags} ${warning_flags} PARENT_SCOPE)
-endfunction(Zisc_getClangClWarningFlags)
+#function(Zisc_getMsvcCompilerFlags architecture cxx_compile_flags cxx_linker_flags cxx_definitions)
+#  set(compile_flags "")
+#  set(linker_flags "")
+#  set(definitions "")
+#
+#  # Architecture optimization
+#  if(architecture MATCHES "Amd64")
+#    list(APPEND compile_flags /favor:AMD64)
+#    if(architecture MATCHES "Amd64-v3")
+#      list(APPEND compile_flags /arch:AVX2)
+#    elseif(architecture MATCHES "Amd64-v4")
+#      list(APPEND compile_flags /arch:AVX512)
+#    endif()
+#  endif()
+#
+#  # Diagnostic
+#  list(APPEND compile_flags /diagnostics:caret
+#                            /nologo
+#                            /fastfail
+#                            /options:strict
+#                            )
+#
+#  # Output variables
+#  set(${cxx_compile_flags} ${compile_flags} PARENT_SCOPE)
+#  set(${cxx_linker_flags} ${linker_flags} PARENT_SCOPE)
+#  set(${cxx_definitions} ${definitions} PARENT_SCOPE)
+#endfunction(Zisc_getMsvcCompilerFlags)
+#
+#
+#function(Zisc_getClangClCompilerFlags architecture cxx_compile_flags cxx_linker_flags cxx_definitions)
+#  set(compile_flags "")
+#  set(linker_flags "")
+#  set(definitions "")
+#
+#  # Architecture optimization
+#  if(architecture MATCHES "Amd64-v1")
+#    list(APPEND compile_flags /clang:-march=x86-64)
+#  elseif(architecture MATCHES "Amd64-v2")
+#    list(APPEND compile_flags /clang:-fno-math-errno
+#                              /clang:-march=x86-64-v2)
+#  elseif(architecture MATCHES "Amd64-v3")
+#    list(APPEND compile_flags /clang:-fno-math-errno
+#                              /clang:-march=x86-64-v3)
+#  elseif(architecture MATCHES "Amd64-v4")
+#    list(APPEND compile_flags /clang:-fno-math-errno
+#                              /clang:-march=x86-64-v4)
+#  endif()
+#  list(APPEND compile_flags /Qvec # Auto loop-vectorization
+#                            )
+#
+#  # Diagnostic
+#  list(APPEND compile_flags /diagnostics:caret
+#                            -fcolor-diagnostics
+#                            )
+#
+#  # Output variables
+#  set(${cxx_compile_flags} ${compile_flags} PARENT_SCOPE)
+#  set(${cxx_linker_flags} ${linker_flags} PARENT_SCOPE)
+#  set(${cxx_definitions} ${definitions} PARENT_SCOPE)
+#endfunction(Zisc_getClangClCompilerFlags)
+#
+#
+#function(Zisc_getClangCompilerFlags architecture cxx_compile_flags cxx_linker_flags cxx_definitions)
+#  set(compile_flags "")
+#  set(linker_flags "")
+#  set(definitions "")
+#
+#  # Architecture optimization
+#  if(architecture MATCHES "Amd64-v1")
+#    list(APPEND compile_flags -march=x86-64)
+#  elseif(architecture MATCHES "Amd64-v2")
+#    list(APPEND compile_flags -fno-math-errno
+#                              -march=x86-64-v2)
+#  elseif(architecture MATCHES "Amd64-v3")
+#    list(APPEND compile_flags -fno-math-errno
+#                              -march=x86-64-v3)
+#  elseif(architecture MATCHES "Amd64-v4")
+#    list(APPEND compile_flags -fno-math-errno
+#                              -march=x86-64-v4)
+#  endif()
+#
+#  if(Z_CLANG_USES_LLVM_TOOLS)
+#    list(APPEND compile_flags -stdlib=libc++)
+#    list(APPEND linker_flags -stdlib=libc++ -rtlib=compiler-rt)
+#    if(NOT Z_APPLE_CLANG)
+#      list(APPEND linker_flags -fuse-ld=lld)
+#    endif()
+#    list(APPEND definitions Z_CLANG_USES_LLVM_TOOLS=1)
+#  endif()
+#
+#  # Diagnostic
+#  list(APPEND compile_flags -fcolor-diagnostics
+#                            )
+#
+#  # Output variables
+#  set(${cxx_compile_flags} ${compile_flags} PARENT_SCOPE)
+#  set(${cxx_linker_flags} ${linker_flags} PARENT_SCOPE)
+#  set(${cxx_definitions} ${definitions} PARENT_SCOPE)
+#endfunction(Zisc_getClangCompilerFlags)
+#
+#
+#function(Zisc_getGccCompilerFlags architecture cxx_compile_flags cxx_linker_flags cxx_definitions)
+#  set(compile_flags "")
+#  set(linker_flags "")
+#  set(definitions "")
+#
+#  # Architecture optimization
+#  if(architecture MATCHES "Amd64-v1")
+#    list(APPEND compile_flags -march=x86-64)
+#  elseif(architecture MATCHES "Amd64-v2")
+#    list(APPEND compile_flags -fno-math-errno
+#                              -march=x86-64-v2)
+#  elseif(architecture MATCHES "Amd64-v3")
+#    list(APPEND compile_flags -fno-math-errno
+#                              -march=x86-64-v3)
+#  elseif(architecture MATCHES "Amd64-v4")
+#    list(APPEND compile_flags -fno-math-errno
+#                              -march=x86-64-v4)
+#  endif()
+#
+#  # Output variables
+#  set(${cxx_compile_flags} ${compile_flags} PARENT_SCOPE)
+#  set(${cxx_linker_flags} ${linker_flags} PARENT_SCOPE)
+#  set(${cxx_definitions} ${definitions} PARENT_SCOPE)
+#endfunction(Zisc_getGccCompilerFlags)
 
 
-function(Zisc_getClangWarningFlags compile_warning_flags)
-  set(warning_flags "")
-  if(Z_ENABLE_COMPILER_WARNING_EXTRA)
-    list(APPEND warning_flags -Weverything
-                              -Wno-c++-compat
-                              -Wno-c++98-compat
-                              -Wno-c++98-compat-pedantic
-                              )
-  else()
-    list(APPEND warning_flags -Wall
-                              -Wextra
-                              -pedantic
-                              )
-  endif()
-  if(Z_MAKE_WARNING_INTO_ERROR)
-    list(APPEND warning_flags -Werror)
-  endif()
-
-  # Output variables
-  set(${compile_warning_flags} ${warning_flags} PARENT_SCOPE)
-endfunction(Zisc_getClangWarningFlags)
-
-
-function(Zisc_getGccWarningFlags compile_warning_flags)
-  set(warning_flags "")
-  list(APPEND warning_flags -Wall
-                            -Wextra
-                            -pedantic
-                            -Wno-attributes # GCC warns [[maybe_unused]] on member variable
-                            )
-  if(Z_ENABLE_COMPILER_WARNING_EXTRA)
-    list(APPEND warning_flags -Wcast-align
-                              -Wcast-qual
-                              -Wctor-dtor-privacy
-                              -Wdisabled-optimization
-                              -Wformat=2
-                              -Winit-self
-                              -Wlogical-op
-                              -Wmissing-declarations
-                              -Wmissing-include-dirs
-                              -Wnoexcept
-                              -Wold-style-cast
-                              -Woverloaded-virtual
-                              -Wredundant-decls
-                              -Wshadow
-                              -Wsign-conversion
-                              -Wsign-promo
-                              -Wstrict-null-sentinel
-                              -Wstrict-overflow=5
-                              -Wswitch-default
-                              -Wundef
-                              )
-  endif()
-  if(Z_MAKE_WARNING_INTO_ERROR)
-    list(APPEND warning_flags -Werror)
-  endif()
-
-  # Output variables
-  set(${compile_warning_flags} ${warning_flags} PARENT_SCOPE)
-endfunction(Zisc_getGccWarningFlags)
+#function(Zisc_getMsvcWarningFlags compile_warning_flags)
+#  set(warning_flags "")
+#  if(Z_ENABLE_COMPILER_WARNING_EXTRA)
+#    list(APPEND warning_flags /Wall
+#                              )
+#  else()
+#    list(APPEND warning_flags /W4
+#                              )
+#  endif()
+#  if(Z_MAKE_WARNING_INTO_ERROR)
+#    list(APPEND warning_flags /WX)
+#  endif()
+#
+#  # Output variables
+#  set(${compile_warning_flags} ${warning_flags} PARENT_SCOPE)
+#endfunction(Zisc_getMsvcWarningFlags)
+#
+#
+#function(Zisc_getClangClWarningFlags compile_warning_flags)
+#  set(warning_flags "")
+#  if(Z_ENABLE_COMPILER_WARNING_EXTRA)
+#    list(APPEND warning_flags /Wall
+#                              -Wno-c++-compat
+#                              -Wno-c++98-compat
+#                              -Wno-c++98-compat-pedantic
+#                              )
+#  else()
+#    list(APPEND warning_flags /W4
+#                              )
+#  endif()
+#  if(Z_MAKE_WARNING_INTO_ERROR)
+#    list(APPEND warning_flags /WX)
+#  endif()
+#
+#  # Output variables
+#  set(${compile_warning_flags} ${warning_flags} PARENT_SCOPE)
+#endfunction(Zisc_getClangClWarningFlags)
+#
+#
+#function(Zisc_getClangWarningFlags compile_warning_flags)
+#  set(warning_flags "")
+#  if(Z_ENABLE_COMPILER_WARNING_EXTRA)
+#    list(APPEND warning_flags -Weverything
+#                              -Wno-c++-compat
+#                              -Wno-c++98-compat
+#                              -Wno-c++98-compat-pedantic
+#                              )
+#  else()
+#    list(APPEND warning_flags -Wall
+#                              -Wextra
+#                              -pedantic
+#                              )
+#  endif()
+#  if(Z_MAKE_WARNING_INTO_ERROR)
+#    list(APPEND warning_flags -Werror)
+#  endif()
+#
+#  # Output variables
+#  set(${compile_warning_flags} ${warning_flags} PARENT_SCOPE)
+#endfunction(Zisc_getClangWarningFlags)
+#
+#
+#function(Zisc_getGccWarningFlags compile_warning_flags)
+#  set(warning_flags "")
+#  list(APPEND warning_flags -Wall
+#                            -Wextra
+#                            -pedantic
+#                            -Wno-attributes # GCC warns [[maybe_unused]] on member variable
+#                            )
+#  if(Z_ENABLE_COMPILER_WARNING_EXTRA)
+#    list(APPEND warning_flags -Wcast-align
+#                              -Wcast-qual
+#                              -Wctor-dtor-privacy
+#                              -Wdisabled-optimization
+#                              -Wformat=2
+#                              -Winit-self
+#                              -Wlogical-op
+#                              -Wmissing-declarations
+#                              -Wmissing-include-dirs
+#                              -Wnoexcept
+#                              -Wold-style-cast
+#                              -Woverloaded-virtual
+#                              -Wredundant-decls
+#                              -Wshadow
+#                              -Wsign-conversion
+#                              -Wsign-promo
+#                              -Wstrict-null-sentinel
+#                              -Wstrict-overflow=5
+#                              -Wswitch-default
+#                              -Wundef
+#                              )
+#  endif()
+#  if(Z_MAKE_WARNING_INTO_ERROR)
+#    list(APPEND warning_flags -Werror)
+#  endif()
+#
+#  # Output variables
+#  set(${compile_warning_flags} ${warning_flags} PARENT_SCOPE)
+#endfunction(Zisc_getGccWarningFlags)
 
 
 function(Zisc_getArchitectureNameAmd64 only_representative arch_name_list)

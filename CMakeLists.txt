@@ -6,10 +6,10 @@
 # http://opensource.org/licenses/mit-license.php
 #
 
-cmake_minimum_required(VERSION 3.22)
+cmake_minimum_required(VERSION 3.30)
 
 
-project(ZiscProject VERSION 0.0.75 LANGUAGES CXX)
+project(ZiscProject VERSION 0.0.76 LANGUAGES CXX)
 
 cmake_path(SET zisc_path "${PROJECT_SOURCE_DIR}/source/zisc")
 if(PROJECT_IS_TOP_LEVEL)

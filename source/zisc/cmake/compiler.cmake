@@ -6,6 +6,9 @@
 # http://opensource.org/licenses/mit-license.php
 #
 
+
+include_guard()
+
 include("${CMAKE_CURRENT_LIST_DIR}/compiler_internal.cmake")
 
 
@@ -65,51 +68,230 @@ endfunction(Zisc_initCompilerOptions)
 
 
 # Get compile options
-function(Zisc_getCxxCompilerFlags architecture cxx_compile_flags cxx_linker_flags cxx_definitions)
-  if(Z_GCC)
-    Zisc_getGccCompilerFlags(${architecture} compile_flags linker_flags definitions)
-  elseif(Z_CLANG AND Z_VISUAL_STUDIO)
-    Zisc_getClangClCompilerFlags(${architecture} compile_flags linker_flags definitions)
-  elseif(Z_CLANG)
-    Zisc_getClangCompilerFlags(${architecture} compile_flags linker_flags definitions)
-  elseif(Z_MSVC)
-    Zisc_getMsvcCompilerFlags(${architecture} compile_flags linker_flags definitions)
+#function(Zisc_getCxxCompilerFlags architecture cxx_compile_flags cxx_linker_flags cxx_definitions)
+#  if(Z_GCC)
+#    Zisc_getGccCompilerFlags(${architecture} compile_flags linker_flags definitions)
+#  elseif(Z_CLANG AND Z_VISUAL_STUDIO)
+#    Zisc_getClangClCompilerFlags(${architecture} compile_flags linker_flags definitions)
+#  elseif(Z_CLANG)
+#    Zisc_getClangCompilerFlags(${architecture} compile_flags linker_flags definitions)
+#  elseif(Z_MSVC)
+#    Zisc_getMsvcCompilerFlags(${architecture} compile_flags linker_flags definitions)
+#  endif()
+#
+#  if(Z_ENABLE_HARDWARE_FEATURES)
+#    list(APPEND definitions Z_ENABLE_HARDWARE_FEATURES=1)
+#  endif()
+#
+#  # Output variables
+#  set(${cxx_compile_flags} ${compile_flags} PARENT_SCOPE)
+#  set(${cxx_linker_flags} ${linker_flags} PARENT_SCOPE)
+#  set(${cxx_definitions} ${definitions} PARENT_SCOPE)
+#endfunction(Zisc_getCxxCompilerFlags)
+
+
+# Set compile options for C++ to the given target
+function(Zisc_setCxxCompileFlags target feature_level scope)
+  # Include dependencies
+  include(${CMAKE_CURRENT_FUNCTION_LIST_DIR}/platform.cmake)
+
+  Zisc_checkIFFeatureLevelIsSupported(${feature_level})
+
+  # Used options
+  set(has_hardware_feature $<BOOL:${Z_ENABLE_HARDWARE_FEATURES}>)
+  set(has_clang_tools $<BOOL:${Z_CLANG_USES_LLVM_TOOLS}>)
+
+  # Set properties
+  set(has_gcc $<OR:$<C_COMPILER_ID:GNU>,$<CXX_COMPILER_ID:GNU>>)
+  set(has_msvc $<OR:$<C_COMPILER_ID:MSVC>,$<CXX_COMPILER_ID:MSVC>>)
+  set(has_clang $<OR:$<C_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:Clang>,$<C_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:AppleClang>>)
+  set(has_apple_clang $<OR:$<C_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:AppleClang>>)
+  if(CMAKE_GENERATOR MATCHES "Visual Studio.*")
+    set(has_visual_studio 1)
+  else()
+    set(has_visual_studio 0)
   endif()
 
-  if(Z_ENABLE_HARDWARE_FEATURES)
-    list(APPEND definitions Z_ENABLE_HARDWARE_FEATURES=1)
+  # Set GCC compile options
+  set(gcc_flags)
+  set(gcc_linker_flags)
+  set(gcc_definitions)
+
+  # Set MSVC compile options
+  set(msvc_flags # Diagnostic
+                 /diagnostics:caret
+                 /nologo
+                 /fastfail
+                 /options:strict
+                 )
+  set(msvc_linker_flags)
+  set(msvc_definitions)
+
+  # Set Clang compiler options
+  set(clang_flags $<${has_clang_tools}:-stdlib=libc++>)
+  set(clang_linker_flags $<${has_clang_tools}:-stdlib=libc++;-rtlib=compiler-rt>
+                         $<$<AND:${has_clang_tools},$<NOT:${has_apple_clang}>>:-fuse-ld=lld>
+                         )
+  set(clang_definitions $<${has_clang_tools}:Z_CLANG_USES_LLVM_TOOLS>)
+
+  # Set ClangCL compile options
+  set(clang_cl_flags /Qvec # Auto loop-vectorization
+                     # Diagnostic
+                     /diagnostics:caret
+                     -fcolor-diagnostics
+                     )
+  set(clang_cl_linker_flags)
+  set(clang_cl_definitions)
+
+  # Set feature flags
+  if(feature_level MATCHES "Amd64-v1")
+    list(APPEND gcc_flags -march=x86-64)
+    list(APPEND msvc_flags /favor:AMD64)
+    list(APPEND clang_flags -march=x86-64)
+    list(APPEND clang_cl_flags /clang:-march=x86-64)
+  elseif(feature_level MATCHES "Amd64-v2")
+    list(APPEND gcc_flags -fno-math-errno
+                          -march=x86-64-v2)
+    list(APPEND msvc_flags /favor:AMD64)
+    list(APPEND clang_flags -fno-math-errno
+                            -march=x86-64-v2)
+    list(APPEND clang_cl_flags /clang:-fno-math-errno
+                               /clang:-march=x86-64-v2)
+  elseif(feature_level MATCHES "Amd64-v3")
+    list(APPEND gcc_flags -fno-math-errno
+                          -march=x86-64-v3)
+    list(APPEND msvc_flags /favor:AMD64
+                           /arch:AVX2)
+    list(APPEND clang_flags -fno-math-errno
+                            -march=x86-64-v3)
+    list(APPEND clang_cl_flags /clang:-fno-math-errno
+                               /clang:-march=x86-64-v3)
+  elseif(feature_level MATCHES "Amd64-v4")
+    list(APPEND gcc_flags -fno-math-errno
+                          -march=x86-64-v4)
+    list(APPEND msvc_flags /favor:AMD64
+                           /arch:AVX512)
+    list(APPEND clang_flags -fno-math-errno
+                            -march=x86-64-v4)
+    list(APPEND clang_cl_flags /clang:-fno-math-errno
+                               /clang:-march=x86-64-v4)
   endif()
 
-  # Output variables
-  set(${cxx_compile_flags} ${compile_flags} PARENT_SCOPE)
-  set(${cxx_linker_flags} ${linker_flags} PARENT_SCOPE)
-  set(${cxx_definitions} ${definitions} PARENT_SCOPE)
-endfunction(Zisc_getCxxCompilerFlags)
+  # Actually set the options to the target
+  target_compile_options(${target} ${scope}
+    $<${has_gcc}:${gcc_flags}>
+    $<${has_msvc}:${msvc_flags}>
+    $<${has_clang}:$<IF:${has_visual_studio},${clang_cl_flags},${clang_flags}>>
+  )
+  target_link_options(${target} ${scope}
+    $<${has_gcc}:${gcc_linker_flags}>
+    $<${has_msvc}:${msvc_linker_flags}>
+    $<${has_clang}:$<IF:${has_visual_studio},${clang_cl_linker_flags},${clang_linker_flags}>>
+  )
+  target_compile_definitions(${target} ${scope}
+    $<${has_gcc}:${gcc_definitions}>
+    $<${has_msvc}:${msvc_definitions}>
+    $<${has_clang}:$<IF:${has_visual_studio},${clang_cl_definitions},${clang_definitions}>>
+    Z_ENABLE_HARDWARE_FEATURES=${has_hardware_feature}
+  )
+endfunction(Zisc_setCxxCompileFlags)
 
 
 #
-function(Zisc_getCxxWarningFlags compile_warning_flags)
-  set(compiler_version ${CMAKE_CXX_COMPILER_VERSION})
-  set(environment "${CMAKE_SYSTEM_NAME} ${CMAKE_CXX_COMPILER_ID} ${compiler_version}")
+#function(Zisc_getCxxWarningFlags compile_warning_flags)
+#  set(compiler_version ${CMAKE_CXX_COMPILER_VERSION})
+#  set(environment "${CMAKE_SYSTEM_NAME} ${CMAKE_CXX_COMPILER_ID} ${compiler_version}")
+#
+#  set(warning_flags "")
+#  if(Z_ENABLE_COMPILER_WARNING)
+#    if(Z_GCC)
+#      Zisc_getGccWarningFlags(warning_flags)
+#    elseif(Z_CLANG AND Z_VISUAL_STUDIO)
+#      Zisc_getClangClWarningFlags(warning_flags)
+#    elseif(Z_CLANG)
+#      Zisc_getClangWarningFlags(warning_flags)
+#    elseif(Z_MSVC)
+#      Zisc_getMsvcWarningFlags(warning_flags)
+#    else()
+#      message(WARNING "${environment}: Warning option isn't supported.")
+#    endif()
+#  endif()
+#
+#  # Output variables
+#  set(${compile_warning_flags} ${warning_flags} PARENT_SCOPE)
+#endfunction(Zisc_getCxxWarningFlags)
 
-  set(warning_flags "")
-  if(Z_ENABLE_COMPILER_WARNING)
-    if(Z_GCC)
-      Zisc_getGccWarningFlags(warning_flags)
-    elseif(Z_CLANG AND Z_VISUAL_STUDIO)
-      Zisc_getClangClWarningFlags(warning_flags)
-    elseif(Z_CLANG)
-      Zisc_getClangWarningFlags(warning_flags)
-    elseif(Z_MSVC)
-      Zisc_getMsvcWarningFlags(warning_flags)
-    else()
-      message(WARNING "${environment}: Warning option isn't supported.")
-    endif()
+
+# Set compiler warning options for C++ to the given target
+function(Zisc_setCxxWarningFlags target scope)
+  # Used options
+  set(has_warning $<BOOL:${Z_ENABLE_COMPILER_WARNING}>)
+  set(has_extra $<BOOL:${Z_ENABLE_COMPILER_WARNING_EXTRA}>)
+  set(has_error $<BOOL:${Z_MAKE_WARNING_INTO_ERROR}>)
+
+  #
+  if(NOT has_warning)
+    return()
   endif()
 
-  # Output variables
-  set(${compile_warning_flags} ${warning_flags} PARENT_SCOPE)
-endfunction(Zisc_getCxxWarningFlags)
+  # Set properties
+  set(has_gcc $<OR:$<C_COMPILER_ID:GNU>,$<CXX_COMPILER_ID:GNU>>)
+  set(has_msvc $<OR:$<C_COMPILER_ID:MSVC>,$<CXX_COMPILER_ID:MSVC>>)
+  set(has_clang $<OR:$<C_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:Clang>,$<C_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:AppleClang>>)
+
+  # Set gcc warning options
+  set(gcc_options -Wall
+                  -Wextra
+                  -pedantic
+                  -Wno-attributes # GCC warns [[maybe_unused]] on member variable
+                  )
+  set(gcc_options_extra ${gcc_options}
+                        -Wcast-align
+                        -Wcast-qual
+                        -Wctor-dtor-privacy
+                        -Wdisabled-optimization
+                        -Wformat=2
+                        -Winit-self
+                        -Wlogical-op
+                        -Wmissing-declarations
+                        -Wmissing-include-dirs
+                        -Wnoexcept
+                        -Wold-style-cast
+                        -Woverloaded-virtual
+                        -Wredundant-decls
+                        -Wshadow
+                        -Wsign-conversion
+                        -Wsign-promo
+                        -Wstrict-null-sentinel
+                        -Wstrict-overflow=5
+                        -Wswitch-default
+                        -Wundef
+                        )
+  set(gcc_options_error -Werror)
+
+  # Set MSVC warning options
+  set(msvc_options /W4)
+  set(msvc_options_extra /Wall)
+  set(msvc_options_error /WX)
+
+  # Set clang warning options
+  if(CMAKE_GENERATOR MATCHES "Visual Studio.*")
+    set(clang_options /W4)
+    set(clang_options_extra /Wall -Wno-c++-compat -Wno-c++98-compat -Wno-c++98-compat-pedantic)
+    set(clang_options_error /WX)
+  else()
+    set(clang_options -Wall -Wextra -pedantic)
+    set(clang_options_extra -Weverything -Wno-c++-compat -Wno-c++98-compat -Wno-c++98-compat-pedantic)
+    set(clang_options_error -Werror)
+  endif()
+
+  # Actually set the options to the target
+  target_compile_options(${target} ${scope}
+    $<${has_gcc}:$<IF:${has_extra},${gcc_options_extra},${gcc_options}>;$<${has_error}:${gcc_options_error}>>
+    $<${has_msvc}:$<IF:${has_extra},${msvc_options_extra},${msvc_options}>;$<${has_error}:${msvc_options_error}>>
+    $<${has_clang}:$<IF:${has_extra},${clang_options_extra},${clang_options}>;$<${has_error}:${clang_options_error}>>
+  )
+endfunction(Zisc_setCxxWarningFlags)
 
 
 function(Zisc_getArchitectureName only_representative arch_name_list)
@@ -167,12 +349,44 @@ function(Zisc_setStaticAnalyzer target)
 endfunction(Zisc_setStaticAnalyzer)
 
 
-function(Zisc_getSanitizerFlags compile_sanitizer_flags linker_sanitizer_flags)
-  Zisc_getSanitizerFlagsImpl(compile_flags linker_flags)
-  # Output
-  set(${compile_sanitizer_flags} ${compile_flags} PARENT_SCOPE)
-  set(${linker_sanitizer_flags} ${linker_flags} PARENT_SCOPE)
-endfunction(Zisc_getSanitizerFlags)
+#function(Zisc_getSanitizerFlags compile_sanitizer_flags linker_sanitizer_flags)
+#  Zisc_getSanitizerFlagsImpl(compile_flags linker_flags)
+#  # Output
+#  set(${compile_sanitizer_flags} ${compile_flags} PARENT_SCOPE)
+#  set(${linker_sanitizer_flags} ${linker_flags} PARENT_SCOPE)
+#endfunction(Zisc_getSanitizerFlags)
+
+
+function(Zisc_setSanitizerFlags target scope)
+  # Used options
+  set(has_address $<BOOL:${Z_ENABLE_SANITIZER_ADDRESS}>)
+  set(has_thread $<BOOL:${Z_ENABLE_SANITIZER_THREAD}>)
+  set(has_memory $<BOOL:${Z_ENABLE_SANITIZER_MEMORY}>)
+  set(has_undef $<BOOL:${Z_ENABLE_SANITIZER_UNDEF_BEHAVIOR}>)
+  set(has_leak $<BOOL:${Z_ENABLE_SANITIZER_LEAK}>)
+  set(has_cfi $<BOOL:${Z_ENABLE_SANITIZER_CFI}>)
+  set(has_safe_stack $<BOOL:${Z_ENABLE_SANITIZER_SAFE_STACK}>)
+
+  # Actually set the sanitizer options
+  target_compile_options(${target} ${scope}
+    $<${has_address}:-fsanitize=address;-fno-omit-frame-pointer>
+    $<${has_thread}:-fsanitize=thread>
+    $<${has_memory}:-fsanitize=memory;-fno-omit-frame-pointer>
+    $<${has_undef}:-fsanitize=undefined,float-divide-by-zero,unsigned-integer-overflow,implicit-conversion,local-bounds,nullability>
+    $<${has_leak}:-fsanitize=leak>
+    $<${has_cfi}:-fsanitize=cfi>
+    $<${has_safe_stack}:-fsanitize=safe-stack>
+  )
+  target_link_options(${target} ${scope}
+    $<${has_address}:-fsanitize=address>
+    $<${has_thread}:-fsanitize=thread>
+    $<${has_memory}:-fsanitize=memory>
+    $<${has_undef}:-fsanitize=undefined,float-divide-by-zero,unsigned-integer-overflow,implicit-conversion,local-bounds,nullability>
+    $<${has_leak}:-fsanitize=leak>
+    $<${has_cfi}:-fsanitize=cfi>
+    $<${has_safe_stack}:-fsanitize=safe-stack>
+  )
+endfunction(Zisc_setSanitizerFlags)
 
 
 function(Zisc_createSanitizerIgnoreList source_files output_dir list_name cxx_compile_flags)

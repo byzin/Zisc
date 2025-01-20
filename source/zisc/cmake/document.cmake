@@ -7,13 +7,16 @@
 #
 
 
+include_guard()
+
+
 #
 function(Zisc_addDoxygenDoc target destination)
   set(options "")
   set(one_value_args "")
   set(multi_value_args SOURCE_FILES_OR_DIRS)
-  cmake_parse_arguments(PARSE_ARGV 2 ZDOXYGEN "${options}" "${one_value_args}" "${multi_value_args}")
-  if(NOT ZDOXYGEN_SOURCE_FILES_OR_DIRS)
+  cmake_parse_arguments(PARSE_ARGV 2 ZISC_DOXYGEN "${options}" "${one_value_args}" "${multi_value_args}")
+  if(NOT ZISC_DOXYGEN_SOURCE_FILES_OR_DIRS)
     message(FATAL_ERROR "Source files or directories not found.")
   endif()
 
@@ -31,14 +34,13 @@ function(Zisc_addDoxygenDoc target destination)
   set(DOXYGEN_WARN_IF_UNDOCUMENTED NO)
   set(DOXYGEN_RECURSIVE YES)
   set(DOXYGEN_EXCLUDE_SYMLINKS YES)
-
-  foreach(source IN LISTS ZDOXYGEN_SOURCE_FILES_OR_DIRS)
+  foreach(source IN LISTS ZISC_DOXYGEN_SOURCE_FILES_OR_DIRS)
     if("${source}" MATCHES ".*\.md")
       set(DOXYGEN_USE_MDFILE_AS_MAINPAGE ${source})
     endif()
   endforeach(source)
   doxygen_add_docs(${target}
-    ${ZDOXYGEN_SOURCE_FILES_OR_DIRS}
+    ${ZISC_DOXYGEN_SOURCE_FILES_OR_DIRS}
     WORKING_DIRECTORY "${dest_dir}"
     COMMENT "Building document '${target}'")
 
@@ -56,7 +58,7 @@ function(Zisc_addDoxygenDoc target destination)
   set(DOXYGEN_SOURCE_BROWSER YES)
   set(DOXYGEN_GENERATE_TODOLIST YES)
   doxygen_add_docs(${target_debug}
-    ${ZDOXYGEN_SOURCE_FILES_OR_DIRS}
+    ${ZISC_DOXYGEN_SOURCE_FILES_OR_DIRS}
     WORKING_DIRECTORY "${dest_dir}"
     COMMENT "Building document '${target_debug}'")
 endfunction(Zisc_addDoxygenDoc)

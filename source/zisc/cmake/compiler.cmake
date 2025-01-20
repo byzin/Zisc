@@ -9,11 +9,10 @@
 
 include_guard()
 
-include("${CMAKE_CURRENT_LIST_DIR}/compiler_internal.cmake")
-
 
 #
 function(Zisc_initCompilerOptions)
+  # Include dependencies
   include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/general.cmake")
 
   set(description "Enable compiler recommended warnings.")
@@ -112,6 +111,9 @@ function(Zisc_setCxxCompileFlags target feature_level scope)
     set(has_visual_studio 0)
   endif()
 
+  # Shared options
+  set(definitions)
+
   # Set GCC compile options
   set(gcc_flags)
   set(gcc_linker_flags)
@@ -144,12 +146,12 @@ function(Zisc_setCxxCompileFlags target feature_level scope)
   set(clang_cl_definitions)
 
   # Set feature flags
-  if(feature_level MATCHES "Amd64-v1")
+  if(feature_level MATCHES "Amd64V1")
     list(APPEND gcc_flags -march=x86-64)
     list(APPEND msvc_flags /favor:AMD64)
     list(APPEND clang_flags -march=x86-64)
     list(APPEND clang_cl_flags /clang:-march=x86-64)
-  elseif(feature_level MATCHES "Amd64-v2")
+  elseif(feature_level MATCHES "Amd64V2")
     list(APPEND gcc_flags -fno-math-errno
                           -march=x86-64-v2)
     list(APPEND msvc_flags /favor:AMD64)
@@ -157,7 +159,7 @@ function(Zisc_setCxxCompileFlags target feature_level scope)
                             -march=x86-64-v2)
     list(APPEND clang_cl_flags /clang:-fno-math-errno
                                /clang:-march=x86-64-v2)
-  elseif(feature_level MATCHES "Amd64-v3")
+  elseif(feature_level MATCHES "Amd64V3")
     list(APPEND gcc_flags -fno-math-errno
                           -march=x86-64-v3)
     list(APPEND msvc_flags /favor:AMD64
@@ -166,7 +168,7 @@ function(Zisc_setCxxCompileFlags target feature_level scope)
                             -march=x86-64-v3)
     list(APPEND clang_cl_flags /clang:-fno-math-errno
                                /clang:-march=x86-64-v3)
-  elseif(feature_level MATCHES "Amd64-v4")
+  elseif(feature_level MATCHES "Amd64V4")
     list(APPEND gcc_flags -fno-math-errno
                           -march=x86-64-v4)
     list(APPEND msvc_flags /favor:AMD64
@@ -176,8 +178,11 @@ function(Zisc_setCxxCompileFlags target feature_level scope)
     list(APPEND clang_cl_flags /clang:-fno-math-errno
                                /clang:-march=x86-64-v4)
   endif()
+  list(APPEND definitions Z_ARCH_FEATURE_LEVEL_NAME=\"${feature_level}\")
 
   # Actually set the options to the target
+  set_target_properties(${target} PROPERTIES CXX_STANDARD 23
+                                  CXX_STANDARD_REQUIRED ON)
   target_compile_options(${target} ${scope}
     $<${has_gcc}:${gcc_flags}>
     $<${has_msvc}:${msvc_flags}>
@@ -189,6 +194,7 @@ function(Zisc_setCxxCompileFlags target feature_level scope)
     $<${has_clang}:$<IF:${has_visual_studio},${clang_cl_linker_flags},${clang_linker_flags}>>
   )
   target_compile_definitions(${target} ${scope}
+    ${definitions}
     $<${has_gcc}:${gcc_definitions}>
     $<${has_msvc}:${msvc_definitions}>
     $<${has_clang}:$<IF:${has_visual_studio},${clang_cl_definitions},${clang_definitions}>>
@@ -294,25 +300,48 @@ function(Zisc_setCxxWarningFlags target scope)
 endfunction(Zisc_setCxxWarningFlags)
 
 
-function(Zisc_getArchitectureName only_representative arch_name_list)
-  set(name_list "")
-  if(Z_AMD64)
-    Zisc_getArchitectureNameAmd64(${only_representative} name_list)
-  endif()
+#function(Zisc_getArchitectureName only_representative arch_name_list)
+#  set(name_list "")
+#  if(Z_AMD64)
+#    Zisc_getArchitectureNameAmd64(${only_representative} name_list)
+#  endif()
+#
+#
+#  # Output variables
+#  set(${arch_name_list} ${name_list} PARENT_SCOPE)
+#endfunction(Zisc_getArchitectureName)
+#
+#
+#function(Zisc_getArchitectureTargetName project_name arch_name target_name)
+#  set(${target_name} "${project_name}-${arch_name}" PARENT_SCOPE)
+#endfunction(Zisc_getArchitectureTargetName)
 
 
-  # Output variables
-  set(${arch_name_list} ${name_list} PARENT_SCOPE)
-endfunction(Zisc_getArchitectureName)
+# Return the name suffixed with the given feature level
+function(Zisc_suffixFeatureLevelName name feature_level output)
+  # Include dependencies
+  include(${CMAKE_CURRENT_FUNCTION_LIST_DIR}/platform.cmake)
 
+  Zisc_checkIFFeatureLevelIsSupported(${feature_level})
 
-function(Zisc_getArchitectureTargetName project_name arch_name target_name)
-  set(${target_name} "${project_name}-${arch_name}" PARENT_SCOPE)
-endfunction(Zisc_getArchitectureTargetName)
+  string(TOLOWER "${feature_level}" level)
+  set(${output} "${name}-${level}" PARENT_SCOPE) 
+endfunction(Zisc_suffixFeatureLevelName)
 
 
 #
 function(Zisc_setStaticAnalyzer target)
+  # Include dependencies
+  include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/general.cmake")
+  include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/compiler_internal.cmake")
+
+  Zisc_checkTarget(${target})
+
+  # Used options
+  set(enable_clang_tidy ${Z_ENABLE_STATIC_ANALYZER_CLANG_TIDY})
+  set(enable_lwyu ${Z_ENABLE_STATIC_ANALYZER_LWYU})
+  set(enable_optimization ${Z_ENABLE_STATIC_ANALYZER_OPTIMIZATION})
+
   set(static_analyzer_list "")
 
   # Parse arguments
@@ -325,27 +354,26 @@ function(Zisc_setStaticAnalyzer target)
   get_target_property(binary_dir ${target} BINARY_DIR)
   cmake_path(SET analyzation_dir "${binary_dir}/Analyzation/${target}")
 
-  # Set compiler's static analyzer
-  Zisc_setCompilerStaticAnalyzer(${target} "${analyzation_dir}")
-  list(APPEND static_analyzer_list "compiler")
-
   # clang-tidy
-  if(Z_ENABLE_STATIC_ANALYZER_CLANG_TIDY AND Z_CLANG)
+  if(enable_clang_tidy)
     Zisc_setClangTidyAnalyzer(${target} "${ZISC_CLANG_TIDY_HEADER_PATHS}" "${ZISC_CLANG_TIDY_EXCLUSION_CHECKS}")
     list(APPEND static_analyzer_list "clang-tidy")
   endif()
 
-  if(Z_ENABLE_STATIC_ANALYZER_LWYU)
+  # LWYU
+  if(enable_lwyu)
     set_target_properties(${target} PROPERTIES LINK_WHAT_YOU_USE TRUE)
     list(APPEND static_analyzer_list "link-what-you-use")
   endif()
 
-  if(Z_ENABLE_STATIC_ANALYZER_OPTIMIZATION)
+  #
+  if(enable_optimization)
     Zisc_setOptimizationStaticAnalyzer(${target} "${analyzation_dir}")
+    Zisc_setDisassemblyAnalyzer(${target} "${analyzation_dir}")
     list(APPEND static_analyzer_list "optimization")
   endif()
 
-  message(STATUS "[${target}] Static analyzer: ${static_analyzer_list}")
+  message(STATUS "[${target}] Set static analyzers: ${static_analyzer_list}")
 endfunction(Zisc_setStaticAnalyzer)
 
 
@@ -357,6 +385,7 @@ endfunction(Zisc_setStaticAnalyzer)
 #endfunction(Zisc_getSanitizerFlags)
 
 
+#
 function(Zisc_setSanitizerFlags target scope)
   # Used options
   set(has_address $<BOOL:${Z_ENABLE_SANITIZER_ADDRESS}>)
@@ -389,111 +418,131 @@ function(Zisc_setSanitizerFlags target scope)
 endfunction(Zisc_setSanitizerFlags)
 
 
-function(Zisc_createSanitizerIgnoreList source_files output_dir list_name cxx_compile_flags)
-  # Create an ignore list
-  set(ignore_list "")
-  foreach(file IN LISTS source_files)
-    string(APPEND ignore_list "src:${file}\n")
-  endforeach(file)
-  set(list_path ${output_dir})
-  cmake_path(APPEND list_path "${list_name}")
-  file(WRITE ${list_path} ${ignore_list})
-
-  # Make a compile flag for the ignore list
-  set(compile_flags "")
-  if(Z_VISUAL_STUDIO)
-    # not supported yet
-  else()
-    list(APPEND compile_flags "-fsanitize-ignorelist=${list_path}")
-  endif()
-  set(${cxx_compile_flags} ${compile_flags} PARENT_SCOPE)
-endfunction(Zisc_createSanitizerIgnoreList)
-
-
-function(Zisc_createLinkToTarget target output_dir)
-  get_target_property(binary_dir ${target} BINARY_DIR)
-  set(link_target ${target}_link)
-
-  set(script
-      "include(\"${CMAKE_CURRENT_FUNCTION_LIST_DIR}/compiler_internal.cmake\")\n"
-      "Zisc_createLinkToFiles(\"${output_dir}\" \"\${target_path}\")\n")
-  cmake_path(SET script_dir "${binary_dir}/Script")
-  file(MAKE_DIRECTORY "${script_dir}")
-  cmake_path(SET script_file "${script_dir}/${link_target}.cmake")
-  file(WRITE "${script_file}" ${script})
-
-  add_custom_target(
-      ${link_target} ALL
-      ${CMAKE_COMMAND} -D target_path=$<TARGET_FILE:${target}> -P "${script_file}"
-      DEPENDS ${target}
-      WORKING_DIRECTORY "${binary_dir}"
-      COMMENT "Create a link to the target '${target}' into '${output_dir}'"
-      SOURCE "${script_file}")
-endfunction(Zisc_createLinkToTarget)
+#function(Zisc_createSanitizerIgnoreList source_files output_dir list_name cxx_compile_flags)
+#  # Create an ignore list
+#  set(ignore_list "")
+#  foreach(file IN LISTS source_files)
+#    string(APPEND ignore_list "src:${file}\n")
+#  endforeach(file)
+#  set(list_path ${output_dir})
+#  cmake_path(APPEND list_path "${list_name}")
+#  file(WRITE ${list_path} ${ignore_list})
+#
+#  # Make a compile flag for the ignore list
+#  set(compile_flags "")
+#  if(Z_VISUAL_STUDIO)
+#    # not supported yet
+#  else()
+#    list(APPEND compile_flags "-fsanitize-ignorelist=${list_path}")
+#  endif()
+#  set(${cxx_compile_flags} ${compile_flags} PARENT_SCOPE)
+#endfunction(Zisc_createSanitizerIgnoreList)
 
 
-function(Zisc_populateTargetOptions source_target dest_target)
+#function(Zisc_createLinkToTarget target output_dir)
+#  get_target_property(binary_dir ${target} BINARY_DIR)
+#  set(link_target ${target}_link)
+#
+#  set(script
+#      "include(\"${CMAKE_CURRENT_FUNCTION_LIST_DIR}/compiler_internal.cmake\")\n"
+#      "Zisc_createLinkToFiles(\"${output_dir}\" \"\${target_path}\")\n")
+#  cmake_path(SET script_dir "${binary_dir}/Script")
+#  file(MAKE_DIRECTORY "${script_dir}")
+#  cmake_path(SET script_file "${script_dir}/${link_target}.cmake")
+#  file(WRITE "${script_file}" ${script})
+#
+#  add_custom_target(
+#      ${link_target} ALL
+#      ${CMAKE_COMMAND} -D target_path=$<TARGET_FILE:${target}> -P "${script_file}"
+#      DEPENDS ${target}
+#      WORKING_DIRECTORY "${binary_dir}"
+#      COMMENT "Create a link to the target '${target}' into '${output_dir}'"
+#      SOURCE "${script_file}")
+#endfunction(Zisc_createLinkToTarget)
+
+
+#function(Zisc_populateTargetOptions source_target dest_target)
+#  include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/general.cmake")
+#
+#  Zisc_checkTarget(${source_target})
+#  Zisc_checkTarget(${dest_target})
+#
+#  # TODO. Why it's needed?
+#  set(THREADS_PREFER_PTHREAD_FLAG ON)
+#  find_package(Threads REQUIRED)
+#
+#  get_target_property(zisc_cxx_standard ${source_target} CXX_STANDARD)
+#  if(zisc_cxx_standard)
+#    set_target_properties(${dest_target} PROPERTIES CXX_STANDARD ${zisc_cxx_standard}
+#                                                    CXX_STANDARD_REQUIRED ON)
+#  endif()
+#  get_target_property(zisc_compile_flags ${source_target} INTERFACE_COMPILE_OPTIONS)
+#  if(zisc_compile_flags)
+#    target_compile_options(${dest_target} PRIVATE ${zisc_compile_flags})
+#  endif()
+#  get_target_property(zisc_libraries ${source_target} INTERFACE_LINK_LIBRARIES)
+#  if(zisc_libraries)
+#    target_link_libraries(${dest_target} PRIVATE ${zisc_libraries})
+#  endif()
+#  get_target_property(zisc_linker_flags ${source_target} INTERFACE_LINK_OPTIONS)
+#  if(zisc_linker_flags)
+#    target_link_options(${dest_target} PRIVATE ${zisc_linker_flags})
+#  endif()
+#  get_target_property(zisc_definitions ${source_target} INTERFACE_COMPILE_DEFINITIONS)
+#  if(zisc_definitions)
+#    target_compile_definitions(${dest_target} PRIVATE ${zisc_definitions})
+#  endif()
+#  get_target_property(zisc_features ${source_target} INTERFACE_COMPILE_FEATURES)
+#  if(zisc_features)
+#    target_compile_features(${dest_target} PRIVATE ${zisc_features})
+#  endif()
+#  get_target_property(zisc_includes ${source_target} INTERFACE_INCLUDE_DIRECTORIES)
+#  if(zisc_includes)
+#    target_include_directories(${dest_target} PRIVATE ${zisc_includes})
+#  endif()
+#endfunction(Zisc_populateTargetOptions)
+
+
+# Populate the compilation properties of the source target to the destination properties
+function(Zisc_populateTargetCompilationProperties source_target dest_target)
+  # Include dependencies
   include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/general.cmake")
 
   Zisc_checkTarget(${source_target})
   Zisc_checkTarget(${dest_target})
 
-  # TODO. Why it's needed?
-  set(THREADS_PREFER_PTHREAD_FLAG ON)
-  find_package(Threads REQUIRED)
+  block()
+    get_target_property(source_cxx_standard ${source_target} CXX_STANDARD)
+    set_target_properties(${dest_target} PROPERTIES CXX_STANDARD ${source_cxx_standard})
+  endblock()
 
-  get_target_property(zisc_cxx_standard ${source_target} CXX_STANDARD)
-  if(zisc_cxx_standard)
-    set_target_properties(${dest_target} PROPERTIES CXX_STANDARD ${zisc_cxx_standard}
-                                                    CXX_STANDARD_REQUIRED ON)
-  endif()
-  get_target_property(zisc_compile_flags ${source_target} INTERFACE_COMPILE_OPTIONS)
-  if(zisc_compile_flags)
-    target_compile_options(${dest_target} PRIVATE ${zisc_compile_flags})
-  endif()
-  get_target_property(zisc_libraries ${source_target} INTERFACE_LINK_LIBRARIES)
-  if(zisc_libraries)
-    target_link_libraries(${dest_target} PRIVATE ${zisc_libraries})
-  endif()
-  get_target_property(zisc_linker_flags ${source_target} INTERFACE_LINK_OPTIONS)
-  if(zisc_linker_flags)
-    target_link_options(${dest_target} PRIVATE ${zisc_linker_flags})
-  endif()
-  get_target_property(zisc_definitions ${source_target} INTERFACE_COMPILE_DEFINITIONS)
-  if(zisc_definitions)
-    target_compile_definitions(${dest_target} PRIVATE ${zisc_definitions})
-  endif()
-  get_target_property(zisc_features ${source_target} INTERFACE_COMPILE_FEATURES)
-  if(zisc_features)
-    target_compile_features(${dest_target} PRIVATE ${zisc_features})
-  endif()
-  get_target_property(zisc_includes ${source_target} INTERFACE_INCLUDE_DIRECTORIES)
-  if(zisc_includes)
-    target_include_directories(${dest_target} PRIVATE ${zisc_includes})
-  endif()
-endfunction(Zisc_populateTargetOptions)
+  block()
+    get_target_property(source_cxx_standard ${source_target} CXX_STANDARD_REQUIRED)
+    set_target_properties(${dest_target} PROPERTIES CXX_STANDARD_REQUIRED ${source_cxx_standard})
+  endblock()
+endfunction(Zisc_populateTargetCompilationProperties)
 
 
+#
 function(Zisc_enableIpo target)
-  if(Z_VISUAL_STUDIO AND Z_CLANG)
-    target_compile_options(${target} PRIVATE -flto=thin)
+  # Include dependencies
+  include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/general.cmake")
+  include(CheckIPOSupported)
+
+  Zisc_checkTarget(${target})
+
+  # TODO. Fix me. 'check_ipo_supported()' won't work with clang
+  if(CMAKE_CXX_COMPILER_ID STREQUAL Clang)
     message(STATUS "[${target}] Enable IPO/LTO.")
+    target_compile_options(${target} PRIVATE -flto=$<IF:$<CONFIG:Release>,auto,thin>)
     return()
   endif()
 
-  set(result OFF)
-  if(Z_LINUX AND Z_CLANG AND Z_CLANG_USES_LLVM_TOOLS)
-    set(result ON)
-  else()
-    include(CheckIPOSupported)
-    check_ipo_supported(RESULT result OUTPUT output LANGUAGES CXX)
-  endif()
-
+  check_ipo_supported(RESULT result OUTPUT output LANGUAGES CXX)
   if(result)
     message(STATUS "[${target}] Enable IPO/LTO.")
     set_target_properties(${target} PROPERTIES INTERPROCEDURAL_OPTIMIZATION TRUE)
   else()
-    # message(STATUS "[${target}] IPO is not supported: ${output}")
-    message(STATUS "[${target}] IPO/LTO isn't supported.")
+    message(WARNING "[${target}] IPO/LTO isn't supported.")
   endif()
 endfunction(Zisc_enableIpo)

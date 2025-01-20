@@ -178,9 +178,9 @@ function(Zisc_getFeatureLevelList level_list)
   # Get the list
   set(feature_level_list)
   if((CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64") OR (CMAKE_SYSTEM_PROCESSOR STREQUAL "AMD64"))
-    list(APPEND feature_level_list "Amd64-v1")
+    list(APPEND feature_level_list "Amd64V1")
     if(has_hardware_feature)
-      list(APPEND feature_level_list "Amd64-v2" "Amd64-v3" "Amd64-v4")
+      list(APPEND feature_level_list "Amd64V2" "Amd64V3" "Amd64V4")
     endif()
   endif()
 

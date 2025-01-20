@@ -54,6 +54,42 @@ function(Zisc_checkTarget target)
 endfunction(Zisc_checkTarget)
 
 
+# Create a link of the given target into the output directory
+function(Zisc_createLinkToTarget target output_dir)
+  #
+  Zisc_checkTarget(${target})
+  get_target_property(binary_dir ${target} BINARY_DIR)
+  set(link_target ${target}_link)
+
+  # Create a linking script
+  set(script [[
+    cmake_path(GET z_target_path FILENAME file_name)
+    cmake_path(APPEND link_path "${z_output_dir}" "${file_name}")
+    cmake_path(COMPARE "${link_path}" NOT_EQUAL "${z_target_path}" result)
+    if(result)
+      message(STATUS "Create a link of '${file_name}'.")
+      file(CREATE_LINK "${z_target_path}" "${link_path}" RESULT result COPY_ON_ERROR)
+      if(result)
+        message(FATAL_ERROR "${result}")
+      endif()
+    endif()
+  ]])
+  cmake_path(SET script_dir "${binary_dir}/Script")
+  file(MAKE_DIRECTORY "${script_dir}")
+  cmake_path(SET script_file "${script_dir}/${link_target}.cmake")
+  file(WRITE "${script_file}" ${script})
+
+  # Register the linking script to the given target
+  add_custom_target(
+      ${link_target} ALL
+      ${CMAKE_COMMAND} -D z_target_path=$<TARGET_FILE:${target}> -D z_output_dir=${output_dir} -P "${script_file}"
+      DEPENDS ${target}
+      WORKING_DIRECTORY "${binary_dir}"
+      COMMENT "Create a link to the target '${target}' into '${output_dir}'"
+      SOURCE "${script_file}")
+endfunction(Zisc_createLinkToTarget)
+
+
 # Build GoogleTest libraries
 function(Zisc_addGoogleTest source_dir binary_dir)
   Zisc_checkSubmodule("${source_dir}")
@@ -91,6 +127,9 @@ endfunction(Zisc_addGoogleTest)
 
 #
 function(Zisc_printSystemInfo message_prefix)
+  # Include dependencies
+  include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/platform.cmake")
+
   set(info_key_list
       "OS_NAME" "OS name"
       "OS_VERSION" "OS version"
@@ -122,6 +161,8 @@ function(Zisc_printSystemInfo message_prefix)
   message(STATUS "${message_prefix}C++ Compiler ID     : ${CMAKE_CXX_COMPILER_ID}")
   message(STATUS "${message_prefix}C++ Compiler version: ${CMAKE_CXX_COMPILER_VERSION}")
   message(STATUS "${message_prefix}Target architecture : ${CMAKE_SYSTEM_PROCESSOR}")
+  Zisc_getFeatureLevelList(feature_level_list)
+  message(STATUS "${message_prefix}Arch feature levels : ${feature_level_list}")
 endfunction(Zisc_printSystemInfo)
 
 

@@ -7,16 +7,19 @@
 #
 
 
-#
-function(Zisc_getClangOptionSuffix suffix)
-  set(option_suffix "")
-  if(Z_VISUAL_STUDIO)
-    set(option_suffix "/clang:")
-  endif()
+include_guard()
 
-  # Output variable
-  set(${suffix} "${option_suffix}" PARENT_SCOPE)
-endfunction(Zisc_getClangOptionSuffix)
+
+#
+#function(Zisc_getClangOptionSuffix suffix)
+#  set(option_suffix "")
+#  if(Z_VISUAL_STUDIO)
+#    set(option_suffix "/clang:")
+#  endif()
+#
+#  # Output variable
+#  set(${suffix} "${option_suffix}" PARENT_SCOPE)
+#endfunction(Zisc_getClangOptionSuffix)
 
 
 #
@@ -339,186 +342,136 @@ endfunction(Zisc_getClangOptionSuffix)
 #endfunction(Zisc_getGccWarningFlags)
 
 
-function(Zisc_getArchitectureNameAmd64 only_representative arch_name_list)
-  set(name_list "Amd64-v1")
-  if(Z_ENABLE_HARDWARE_FEATURES)
-    list(APPEND name_list "Amd64-v2" "Amd64-v3" "Amd64-v4")
-    if(only_representative)
-      list(GET name_list 2 representative) # v3
-      set(name_list ${representative})
-    endif()
-  endif()
-
-  # Output variables
-  set(${arch_name_list} ${name_list} PARENT_SCOPE)
-endfunction(Zisc_getArchitectureNameAmd64)
+#function(Zisc_getArchitectureNameAmd64 only_representative arch_name_list)
+#  set(name_list "Amd64-v1")
+#  if(Z_ENABLE_HARDWARE_FEATURES)
+#    list(APPEND name_list "Amd64-v2" "Amd64-v3" "Amd64-v4")
+#    if(only_representative)
+#      list(GET name_list 2 representative) # v3
+#      set(name_list ${representative})
+#    endif()
+#  endif()
+#
+#  # Output variables
+#  set(${arch_name_list} ${name_list} PARENT_SCOPE)
+#endfunction(Zisc_getArchitectureNameAmd64)
 
 
 #
 function(Zisc_setClangTidyAnalyzer target header_paths exclusion_checks)
-  find_program(clang_tidy "clang-tidy")
-  if(clang_tidy)
-    set(tidy_command "${clang_tidy}")
-
-    # Add header paths
-    if(header_paths)
-      list(APPEND tidy_command "--header-filter=${header_paths}")
-    endif()
-
-    # Add a check list
-    set(check_list "")
-    list(APPEND check_list bugprone-*
-                           clang-analyzer-*
-                           concurrency-*
-                           cppcoreguidelines-*
-                           google-*
-                           hicpp-*
-                           misc-*
-                           modernize-*
-                           performance-*
-                           portability-*
-                           readability-*)
-    set(checks "")
-    foreach(check IN LISTS check_list)
-      set(checks "${checks},${check}")
-    endforeach(check)
-    set(exclusion_list "")
-    list(APPEND exclusion_list ${exclusion_checks})
-    set(exclusion_checks "")
-    foreach(exclusion_check IN LISTS exclusion_list)
-      set(exclusion_checks "${exclusion_checks},-${exclusion_check}")
-    endforeach(exclusion_check)
-    list(APPEND tidy_command "--checks=-*${checks}${exclusion_checks}")
-
-    set_target_properties(${target} PROPERTIES
-        C_CLANG_TIDY "${tidy_command}"
-        CXX_CLANG_TIDY "${tidy_command}")
-  else()
+  set(description "clang-based C++ 'linter' tool.")
+  find_program(clang_tidy "clang-tidy" DOC ${description})
+  if(NOT clang_tidy)
     message(WARNING "[${target}] Could not find 'clang-tidy'.")
+    return()
   endif()
+
+  set(tidy_command "${clang_tidy}")
+
+  # Add header paths
+  if(header_paths)
+    list(APPEND tidy_command "--header-filter=${header_paths}")
+  endif()
+
+  # Add a check list
+  set(check_list "")
+  list(APPEND check_list bugprone-*
+                         clang-analyzer-*
+                         concurrency-*
+                         cppcoreguidelines-*
+                         google-*
+                         hicpp-*
+                         misc-*
+                         modernize-*
+                         performance-*
+                         portability-*
+                         readability-*)
+  set(checks "")
+  foreach(check IN LISTS check_list)
+    set(checks "${checks},${check}")
+  endforeach(check)
+  set(exclusion_list "")
+  list(APPEND exclusion_list ${exclusion_checks})
+  set(exclusion_checks "")
+  foreach(exclusion_check IN LISTS exclusion_list)
+    set(exclusion_checks "${exclusion_checks},-${exclusion_check}")
+  endforeach(exclusion_check)
+  list(APPEND tidy_command "--checks=-*${checks}${exclusion_checks}")
+
+  # Actually set the clang-tidy options
+  set_target_properties(${target} PROPERTIES
+      C_CLANG_TIDY "${tidy_command}"
+      CXX_CLANG_TIDY "${tidy_command}")
 endfunction(Zisc_setClangTidyAnalyzer)
 
 
-function(Zisc_setCompilerStaticAnalyzer target analyzation_dir)
-  cmake_path(APPEND compiler_dir "${analyzation_dir}" "compiler")
-  file(MAKE_DIRECTORY "${compiler_dir}")
-  set(compiler_flags "")
-  if(Z_CLANG) # TODO. The analyzer doesn't work
-    # Zisc_getClangOptionSuffix(suffix)
-    # list(APPEND compiler_flags ${suffix}--analyze
-    #                            ${suffix}--analyzer-output html
-    #                            )
-  elseif(Z_MSVC)
-    cmake_path(NATIVE_PATH compiler_dir NORMALIZE vscompiler_dir)
-    list(APPEND compiler_flags /analyze
-                               # "/analyze:log \"${vscompiler_dir}\\\""
-                               )
-  endif()
-  target_compile_options(${target} PRIVATE ${compiler_flags})
-endfunction(Zisc_setCompilerStaticAnalyzer)
-
-
+#
 function(Zisc_setOptimizationStaticAnalyzer target analyzation_dir)
+  # Create the output directory
   get_target_property(binary_dir ${target} BINARY_DIR)
   cmake_path(APPEND optimization_dir "${analyzation_dir}" "optimization")
-
-  set(compile_flags "")
-
-  # Save assembly files
-  cmake_path(APPEND assembly_dir "${optimization_dir}" "assembly")
-  file(MAKE_DIRECTORY "${assembly_dir}")
-
-  if(Z_LINUX OR Z_MAC)
-    # Assume clang or gcc
-    list(APPEND compile_flags -save-temps=obj
-                              -fverbose-asm
-                              )
-
-    ## Generate a script
-    set(script "include(\"${CMAKE_CURRENT_FUNCTION_LIST_FILE}\")\n")
-    # Search assembly files
-    string(APPEND script
-        "Zisc_createLinkToTargetTempFiles(\"${target}\" \"${binary_dir}\" \"${assembly_dir}\" s)\n")
-    if(Z_CLANG)
-      # Search bitcode files
-      string(APPEND script
-          "Zisc_createLinkToTargetTempFiles(\"${target}\" \"${binary_dir}\" \"${assembly_dir}\" bc)\n")
-    endif()
-    ## Save the script
-    set(assembly_target ${target}_assembly)
-    cmake_path(SET script_dir "${optimization_dir}/script")
-    file(MAKE_DIRECTORY "${script_dir}")
-    cmake_path(SET script_file "${script_dir}/${assembly_target}.cmake")
-    file(WRITE "${script_file}" ${script})
-
-    add_custom_target(
-        ${assembly_target} ALL
-        ${CMAKE_COMMAND} -P "${script_file}"
-        DEPENDS ${target}
-        WORKING_DIRECTORY "${binary_dir}"
-        COMMENT "Create links to the assembly of '${target}' into '${assembly_dir}'."
-        SOURCES "${script_file}")
-  endif()
-
-  if(Z_VISUAL_STUDIO)
-    set(fa_options "")
-    if(Z_MSVC)
-      set(fa_options "s")
-    endif()
-    cmake_path(NATIVE_PATH assembly_dir NORMALIZE asm_dir)
-    list(APPEND compile_flags "/FA${fa_options}"
-                              "/Fa${asm_dir}\\"
-                              )
-  endif()
-
-  # Save optimization report
-  if(Z_CLANG)
-    cmake_path(SET opt_file_path "${optimization_dir}/optimization_report.yaml")
-    cmake_path(NATIVE_PATH opt_file_path NORMALIZE file_path)
-    Zisc_getClangOptionSuffix(suffix)
-    list(APPEND compile_flags ${suffix}-fsave-optimization-record
-                              ${suffix}-foptimization-record-file=${file_path}
-                              )
-  endif()
-  if(Z_MSVC)
-    # TODO. This report overflows console log
-    # list(APPEND compile_flags /Qpar-report:2 /Qvec-report:2)
-  endif()
+  file(MAKE_DIRECTORY "${optimization_dir}")
 
   #
+  set(has_clang $<OR:$<C_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:Clang>,$<C_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:AppleClang>)
+
+  # List of compile flags will be created
+  set(compile_flags "")
+
+  # Save optimization report
+  cmake_path(APPEND report_dir "${optimization_dir}" "report")
+  file(MAKE_DIRECTORY "${report_dir}")
+  cmake_path(APPEND report_file_path "${report_dir}" "<OBJECT>.yaml")
+  cmake_path(NATIVE_PATH report_file_path NORMALIZE report_file_path)
+  list(APPEND compile_flags $<${has_clang}:-fsave-optimization-record;-foptimization-record-file=${report_file_path}>)
+  # TODO. Adding custom command using 'llvm-opt-report'?
+
+
+  # Actually set the flags
   target_compile_options(${target} PRIVATE ${compile_flags})
 endfunction(Zisc_setOptimizationStaticAnalyzer)
 
 
-function(Zisc_createLinkToFiles output_dir)
-  foreach(file_path IN LISTS ARGN)
-    cmake_path(GET file_path FILENAME file_name)
-    cmake_path(APPEND link_path "${output_dir}" "${file_name}")
-    cmake_path(COMPARE "${link_path}" NOT_EQUAL "${file_path}" result)
-    if(result)
-      message(STATUS "Create a link '${file_name}'.")
-      file(CREATE_LINK "${file_path}" "${link_path}" RESULT result COPY_ON_ERROR)
-      if(result)
-        message(FATAL_ERROR "${result}")
-      endif()
-    endif()
-  endforeach(file_path)
-endfunction(Zisc_createLinkToFiles)
+#
+function(Zisc_setDisassemblyAnalyzer target analyzation_dir)
+  # Create the output directory
+  get_target_property(binary_dir ${target} BINARY_DIR)
+  cmake_path(APPEND disassembly_dir "${analyzation_dir}" "disassembly")
+  file(MAKE_DIRECTORY "${disassembly_dir}")
+
+  # TODO. Implement me
+endfunction(Zisc_setDisassemblyAnalyzer)
 
 
-function(Zisc_createLinkToTargetTempFiles target binary_dir output_dir)
-  find_file(tmp_dir
-      "${target}.dir"
-      PATHS "${binary_dir}"
-      PATH_SUFFIXES CMakeFiles
-      DOC "Target '${target}' temporal directory"
-      NO_DEFAULT_PATH)
-  if(tmp_dir)
-    foreach(type IN LISTS ARGN)
-      file(GLOB_RECURSE files LIST_DIRECTORIES false "${tmp_dir}/*.${type}")
-      Zisc_createLinkToFiles("${output_dir}" ${files})
-    endforeach(type)
-  else()
-    message(WARNING "'${target}.dir' not found.")
-  endif()
-endfunction(Zisc_createLinkToTargetTempFiles)
+#function(Zisc_createLinkToFiles output_dir)
+#  foreach(file_path IN LISTS ARGN)
+#    cmake_path(GET file_path FILENAME file_name)
+#    cmake_path(APPEND link_path "${output_dir}" "${file_name}")
+#    cmake_path(COMPARE "${link_path}" NOT_EQUAL "${file_path}" result)
+#    if(result)
+#      message(STATUS "Create a link '${file_name}'.")
+#      file(CREATE_LINK "${file_path}" "${link_path}" RESULT result COPY_ON_ERROR)
+#      if(result)
+#        message(FATAL_ERROR "${result}")
+#      endif()
+#    endif()
+#  endforeach(file_path)
+#endfunction(Zisc_createLinkToFiles)
+
+
+#function(Zisc_createLinkToTargetTempFiles target binary_dir output_dir)
+#  find_file(tmp_dir
+#      "${target}.dir"
+#      PATHS "${binary_dir}"
+#      PATH_SUFFIXES CMakeFiles
+#      DOC "Target '${target}' temporal directory"
+#      NO_DEFAULT_PATH)
+#  if(tmp_dir)
+#    foreach(type IN LISTS ARGN)
+#      file(GLOB_RECURSE files LIST_DIRECTORIES false "${tmp_dir}/*.${type}")
+#      Zisc_createLinkToFiles("${output_dir}" ${files})
+#    endforeach(type)
+#  else()
+#    message(WARNING "'${target}.dir' not found.")
+#  endif()
+#endfunction(Zisc_createLinkToTargetTempFiles)

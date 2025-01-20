@@ -6,62 +6,55 @@
 # http://opensource.org/licenses/mit-license.php
 # 
 
-cmake_minimum_required(VERSION 3.22)
+cmake_minimum_required(VERSION 3.30)
 
 
 cmake_path(SET __zisc_dir__ NORMALIZE "${CMAKE_CURRENT_LIST_DIR}/../source/zisc")
 
 
-function(getExampleWarningFlags example_warning_flags)
-  set(warning_flags "")
-
-  # Suppress warnings
-  if(ZISC_SUPPRESS_EXCESSIVE_WARNING)
-    if(Z_CLANG)
-      # list(APPEND warning_flags 
-      #                           )
-    elseif(Z_GCC)
-      # list(APPEND warning_flags 
-      #                           )
-    elseif(Z_MSVC)
-      list(APPEND warning_flags /wd4244 # 'argument': conversion from '_Ty' to 'const int', possible loss of data¬
-                                /wd4267 # conversion from 'size_t' to '_To', possible loss of data.
-                                /wd4702 # unreachable code
-                                /wd6326 # Potential comparison of a constant with another constant.
-                                )
-    endif()
-  endif()
-
-  set(${example_warning_flags} ${warning_flags} PARENT_SCOPE)
-endfunction(getExampleWarningFlags)
+#function(getExampleWarningFlags example_warning_flags)
+#  set(warning_flags "")
+#
+#  # Suppress warnings
+#  if(ZISC_SUPPRESS_EXCESSIVE_WARNING)
+#    if(Z_CLANG)
+#      # list(APPEND warning_flags 
+#      #                           )
+#    elseif(Z_GCC)
+#      # list(APPEND warning_flags 
+#      #                           )
+#    elseif(Z_MSVC)
+#      list(APPEND warning_flags /wd4244 # 'argument': conversion from '_Ty' to 'const int', possible loss of data¬
+#                                /wd4267 # conversion from 'size_t' to '_To', possible loss of data.
+#                                /wd4702 # unreachable code
+#                                /wd6326 # Potential comparison of a constant with another constant.
+#                                )
+#    endif()
+#  endif()
+#
+#  set(${example_warning_flags} ${warning_flags} PARENT_SCOPE)
+#endfunction(getExampleWarningFlags)
 
 
 # Add an example
 function(addExample target save_dependency_list)
+  # Include dependencies
+  include("${__zisc_dir__}/cmake/compiler.cmake")
+
+  # Check source files
   set(example_source_files ${ARGN})
   source_group(${PROJECT_NAME}/${target} FILES ${example_source_files})
 
-  include("${__zisc_dir__}/cmake/compiler.cmake")
-  #Zisc_getCxxWarningFlags(cxx_compile_warning_flags)
-  #Zisc_getSanitizerFlags(compile_sanitizer_flags linker_sanitizer_flags)
-  getExampleWarningFlags(example_warning_flags)
-
-  #
+  # Create the binary
   add_executable(${target} ${example_source_files})
-
+  target_link_libraries(${target} PRIVATE Zisc::Zisc)
+  Zisc_populateTargetCompilationProperties(Zisc::Zisc ${target})
   Zisc_setSanitizerFlags(${target} PRIVATE)
   Zisc_setCxxWarningFlags(${target} PRIVATE)
-
-  set_target_properties(${target} PROPERTIES CXX_STANDARD 20
-                                             CXX_STANDARD_REQUIRED ON)
-  target_compile_options(${target} PRIVATE ${cxx_compile_warning_flags}
-                                           ${compile_sanitizer_flags}
-                                           ${example_warning_flags})
-  target_link_libraries(${target} PRIVATE Zisc::Zisc)
-  target_link_options(${target} PRIVATE ${linker_sanitizer_flags})
   Zisc_enableIpo(${target})
+  Zisc_createLinkToTarget(${target} "${PROJECT_BINARY_DIR}")
 
-  #
+  # Set static analyzer
   set(clang_tidy_exclusion_checks 
                                   bugprone-exception-escape
                                   bugprone-implicit-widening-of-multiplication-result
@@ -89,19 +82,30 @@ function(addExample target save_dependency_list)
                                   )
   Zisc_setStaticAnalyzer(${target}
                          CLANG_TIDY_EXCLUSION_CHECKS ${clang_tidy_exclusion_checks})
-  Zisc_createLinkToTarget(${target} "${PROJECT_BINARY_DIR}")
 
-  # Installation settings
-  include("${__zisc_dir__}/cmake/packaging.cmake")
-  ## Save the dependency list
-  if(save_dependency_list)
-    Zisc_getSaveDependencyCode(${target} "${PROJECT_BINARY_DIR}" "" "" "" dependency_code)
-    install(CODE ${dependency_code}
-            COMPONENT example)
-  endif()
-  install(TARGETS ${target}
-          DESTINATION "${CMAKE_INSTALL_BIDIR}"
-          COMPONENT example)
+#  # Installation settings
+#  include("${__zisc_dir__}/cmake/packaging.cmake")
+#  ## Save the dependency list
+#  if(save_dependency_list)
+#    Zisc_getSaveDependencyCode(${target} "${PROJECT_BINARY_DIR}" "" "" "" dependency_code)
+#    install(CODE ${dependency_code}
+#            COMPONENT example)
+#  endif()
+#  install(TARGETS ${target}
+#          DESTINATION "${CMAKE_INSTALL_BIDIR}"
+#          COMPONENT example)
+#
+#  install(CODE [[
+#    message("## Installl!!!")
+#    message("## target path: $<TARGET_FILE:UnitExample>")
+#    file(GET_RUNTIME_DEPENDENCIES
+#      RESOLVED_DEPENDENCIES_VAR resolved_dependencies
+#      UNRESOLVED_DEPENDENCIES_VAR unresolved_dependencies
+#      EXECUTABLES $<TARGET_FILE:UnitExample>)
+#    message("## resolved dependencies: ${resolved_dependencies}")
+#    message("## unresolved dependencies: ${unresolved_dependencies}")
+#  ]]
+#  COMPONENT example)
 endfunction(addExample)
 
 

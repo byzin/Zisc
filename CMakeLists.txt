@@ -52,6 +52,10 @@ if(ZISC_BUILD_TESTS)
 endif()
 
 if(PROJECT_IS_TOP_LEVEL)
+  if(Z_ENABLE_STATIC_ANALYZER_CLANG_TIDY)
+    add_subdirectory("${PROJECT_SOURCE_DIR}/source/clang-tidy" "${PROJECT_BINARY_DIR}/ClangTidy")
+  endif()
+
   # Build documents
   add_subdirectory("${PROJECT_SOURCE_DIR}/document" "${PROJECT_BINARY_DIR}/Document")
 

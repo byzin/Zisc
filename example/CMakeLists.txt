@@ -9,6 +9,7 @@
 cmake_minimum_required(VERSION 3.30)
 
 
+# Constant values
 cmake_path(SET __zisc_dir__ NORMALIZE "${CMAKE_CURRENT_LIST_DIR}/../source/zisc")
 
 
@@ -49,7 +50,11 @@ endfunction(setExampleWarningFlags)
 # Add an example
 function(addExample target save_dependency_list)
   # Include dependencies
+  include("${__zisc_dir__}/cmake/general.cmake")
   include("${__zisc_dir__}/cmake/compiler.cmake")
+
+  # Check dependencies
+  Zisc_checkTarget(Zisc::Zisc)
 
   # Check source files
   set(example_source_files ${ARGN})
@@ -67,29 +72,29 @@ function(addExample target save_dependency_list)
 
   # Set static analyzer
   set(clang_tidy_exclusion_checks 
-                                  bugprone-exception-escape
-                                  bugprone-implicit-widening-of-multiplication-result
-    #bugprone-narrowing-conversions
-                                  cppcoreguidelines-avoid-magic-numbers
-                                  cppcoreguidelines-pro-bounds-pointer-arithmetic
-                                  google-readability-braces-around-statements
-                                  hicpp-braces-around-statements
-                                  hicpp-uppercase-literal-suffix
-    #misc-non-private-member-variables-in-classes
-    #misc-redundant-expression
-                                  misc-include-cleaner
-    #modernize-avoid-c-arrays
-    #modernize-use-auto
-                                  modernize-use-trailing-return-type
-                                  performance-avoid-endl
-                                  readability-avoid-const-params-in-decls
-                                  readability-braces-around-statements
-                                  readability-function-cognitive-complexity
-                                  readability-identifier-length
-                                  readability-isolate-declaration
-                                  readability-magic-numbers
-                                  #readability-static-accessed-through-instance
-                                  readability-uppercase-literal-suffix
+    #                                  bugprone-exception-escape
+    #                                  bugprone-implicit-widening-of-multiplication-result
+    #    #bugprone-narrowing-conversions
+    #                                  cppcoreguidelines-avoid-magic-numbers
+    #                                  cppcoreguidelines-pro-bounds-pointer-arithmetic
+    #                                  google-readability-braces-around-statements
+    #                                  hicpp-braces-around-statements
+    #                                  hicpp-uppercase-literal-suffix
+    #    #misc-non-private-member-variables-in-classes
+    #    #misc-redundant-expression
+    #                                  misc-include-cleaner
+    #    #modernize-avoid-c-arrays
+    #    #modernize-use-auto
+    #                                  modernize-use-trailing-return-type
+    #                                  performance-avoid-endl
+    #                                  readability-avoid-const-params-in-decls
+    #                                  readability-braces-around-statements
+    #                                  readability-function-cognitive-complexity
+    #                                  readability-identifier-length
+    #                                  readability-isolate-declaration
+    #                                  readability-magic-numbers
+    #                                  #readability-static-accessed-through-instance
+    #                                  readability-uppercase-literal-suffix
                                   )
   Zisc_setStaticAnalyzer(${target}
                          CLANG_TIDY_EXCLUSION_CHECKS ${clang_tidy_exclusion_checks})
@@ -125,6 +130,9 @@ macro(setExampleProject)
   set(project_description "Examples of Zisc")
   project(Examples VERSION 0.0.1 DESCRIPTION "${project_description}" LANGUAGES  CXX)
 
+  # TODO. Use lower case name for binary name: e.g. example-algorithm
+  # TODO. Also rename source code using lower case name: e.g. example_algorithm.cpp
+  # TODO. Can we number the examples? e.g. example_0001_algorithm.cpp
   # Build examples
   addExample(AlgorithmExample ON
              ${PROJECT_SOURCE_DIR}/algorithm_example.cpp)

@@ -60,8 +60,6 @@
 !/source/zisc/core/zisc/structure/
 !/source/zisc/core/zisc/structure/*.hpp
 !/source/zisc/core/zisc/structure/*.cpp
-!/source/zisc/clang-tidy/
-!/source/zisc/clang-tidy/*.cpp
 # Zisc cmake file
 !source/zisc/cmake/
 !source/zisc/cmake/*.cmake
@@ -69,6 +67,10 @@
 !source/zisc/cmake/script/
 !source/zisc/cmake/script/*.cmd.in
 !source/zisc/cmake/script/*.sh.in
+# Clang-Tidy
+!/source/clang-tidy/
+!/source/clang-tidy/CMakeLists.txt
+!/source/clang-tidy/*.cpp.in
 
 # Test
 !/test/

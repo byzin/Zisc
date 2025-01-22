@@ -66,29 +66,6 @@ function(Zisc_initCompilerOptions)
 endfunction(Zisc_initCompilerOptions)
 
 
-# Get compile options
-#function(Zisc_getCxxCompilerFlags architecture cxx_compile_flags cxx_linker_flags cxx_definitions)
-#  if(Z_GCC)
-#    Zisc_getGccCompilerFlags(${architecture} compile_flags linker_flags definitions)
-#  elseif(Z_CLANG AND Z_VISUAL_STUDIO)
-#    Zisc_getClangClCompilerFlags(${architecture} compile_flags linker_flags definitions)
-#  elseif(Z_CLANG)
-#    Zisc_getClangCompilerFlags(${architecture} compile_flags linker_flags definitions)
-#  elseif(Z_MSVC)
-#    Zisc_getMsvcCompilerFlags(${architecture} compile_flags linker_flags definitions)
-#  endif()
-#
-#  if(Z_ENABLE_HARDWARE_FEATURES)
-#    list(APPEND definitions Z_ENABLE_HARDWARE_FEATURES=1)
-#  endif()
-#
-#  # Output variables
-#  set(${cxx_compile_flags} ${compile_flags} PARENT_SCOPE)
-#  set(${cxx_linker_flags} ${linker_flags} PARENT_SCOPE)
-#  set(${cxx_definitions} ${definitions} PARENT_SCOPE)
-#endfunction(Zisc_getCxxCompilerFlags)
-
-
 # Set compile options for C++ to the given target
 function(Zisc_setCxxCompileFlags target feature_level scope)
   # Include dependencies
@@ -101,8 +78,8 @@ function(Zisc_setCxxCompileFlags target feature_level scope)
   set(has_clang_tools $<BOOL:${Z_CLANG_USES_LLVM_TOOLS}>)
 
   # Set properties
-  set(has_gcc $<OR:$<C_COMPILER_ID:GNU>,$<CXX_COMPILER_ID:GNU>>)
   set(has_msvc $<OR:$<C_COMPILER_ID:MSVC>,$<CXX_COMPILER_ID:MSVC>>)
+  set(has_gcc $<OR:$<C_COMPILER_ID:GNU>,$<CXX_COMPILER_ID:GNU>>)
   set(has_clang $<OR:$<C_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:Clang>,$<C_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:AppleClang>>)
   set(has_apple_clang $<OR:$<C_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:AppleClang>>)
   if(CMAKE_GENERATOR MATCHES "Visual Studio.*")
@@ -114,11 +91,6 @@ function(Zisc_setCxxCompileFlags target feature_level scope)
   # Shared options
   set(definitions)
 
-  # Set GCC compile options
-  set(gcc_flags)
-  set(gcc_linker_flags)
-  set(gcc_definitions)
-
   # Set MSVC compile options
   set(msvc_flags # Diagnostic
                  /diagnostics:caret
@@ -128,6 +100,11 @@ function(Zisc_setCxxCompileFlags target feature_level scope)
                  )
   set(msvc_linker_flags)
   set(msvc_definitions)
+
+  # Set GCC compile options
+  set(gcc_flags)
+  set(gcc_linker_flags)
+  set(gcc_definitions)
 
   # Set Clang compiler options
   set(clang_flags $<${has_clang_tools}:-stdlib=libc++>)
@@ -147,32 +124,32 @@ function(Zisc_setCxxCompileFlags target feature_level scope)
 
   # Set feature flags
   if(feature_level MATCHES "Amd64V1")
-    list(APPEND gcc_flags -march=x86-64)
     list(APPEND msvc_flags /favor:AMD64)
+    list(APPEND gcc_flags -march=x86-64)
     list(APPEND clang_flags -march=x86-64)
     list(APPEND clang_cl_flags /clang:-march=x86-64)
   elseif(feature_level MATCHES "Amd64V2")
+    list(APPEND msvc_flags /favor:AMD64)
     list(APPEND gcc_flags -fno-math-errno
                           -march=x86-64-v2)
-    list(APPEND msvc_flags /favor:AMD64)
     list(APPEND clang_flags -fno-math-errno
                             -march=x86-64-v2)
     list(APPEND clang_cl_flags /clang:-fno-math-errno
                                /clang:-march=x86-64-v2)
   elseif(feature_level MATCHES "Amd64V3")
-    list(APPEND gcc_flags -fno-math-errno
-                          -march=x86-64-v3)
     list(APPEND msvc_flags /favor:AMD64
                            /arch:AVX2)
+    list(APPEND gcc_flags -fno-math-errno
+                          -march=x86-64-v3)
     list(APPEND clang_flags -fno-math-errno
                             -march=x86-64-v3)
     list(APPEND clang_cl_flags /clang:-fno-math-errno
                                /clang:-march=x86-64-v3)
   elseif(feature_level MATCHES "Amd64V4")
-    list(APPEND gcc_flags -fno-math-errno
-                          -march=x86-64-v4)
     list(APPEND msvc_flags /favor:AMD64
                            /arch:AVX512)
+    list(APPEND gcc_flags -fno-math-errno
+                          -march=x86-64-v4)
     list(APPEND clang_flags -fno-math-errno
                             -march=x86-64-v4)
     list(APPEND clang_cl_flags /clang:-fno-math-errno
@@ -184,48 +161,23 @@ function(Zisc_setCxxCompileFlags target feature_level scope)
   set_target_properties(${target} PROPERTIES CXX_STANDARD 23
                                   CXX_STANDARD_REQUIRED ON)
   target_compile_options(${target} ${scope}
-    $<${has_gcc}:${gcc_flags}>
     $<${has_msvc}:${msvc_flags}>
+    $<${has_gcc}:${gcc_flags}>
     $<${has_clang}:$<IF:${has_visual_studio},${clang_cl_flags},${clang_flags}>>
   )
   target_link_options(${target} ${scope}
-    $<${has_gcc}:${gcc_linker_flags}>
     $<${has_msvc}:${msvc_linker_flags}>
+    $<${has_gcc}:${gcc_linker_flags}>
     $<${has_clang}:$<IF:${has_visual_studio},${clang_cl_linker_flags},${clang_linker_flags}>>
   )
   target_compile_definitions(${target} ${scope}
     ${definitions}
-    $<${has_gcc}:${gcc_definitions}>
     $<${has_msvc}:${msvc_definitions}>
+    $<${has_gcc}:${gcc_definitions}>
     $<${has_clang}:$<IF:${has_visual_studio},${clang_cl_definitions},${clang_definitions}>>
     Z_ENABLE_HARDWARE_FEATURES=${has_hardware_feature}
   )
 endfunction(Zisc_setCxxCompileFlags)
-
-
-#
-#function(Zisc_getCxxWarningFlags compile_warning_flags)
-#  set(compiler_version ${CMAKE_CXX_COMPILER_VERSION})
-#  set(environment "${CMAKE_SYSTEM_NAME} ${CMAKE_CXX_COMPILER_ID} ${compiler_version}")
-#
-#  set(warning_flags "")
-#  if(Z_ENABLE_COMPILER_WARNING)
-#    if(Z_GCC)
-#      Zisc_getGccWarningFlags(warning_flags)
-#    elseif(Z_CLANG AND Z_VISUAL_STUDIO)
-#      Zisc_getClangClWarningFlags(warning_flags)
-#    elseif(Z_CLANG)
-#      Zisc_getClangWarningFlags(warning_flags)
-#    elseif(Z_MSVC)
-#      Zisc_getMsvcWarningFlags(warning_flags)
-#    else()
-#      message(WARNING "${environment}: Warning option isn't supported.")
-#    endif()
-#  endif()
-#
-#  # Output variables
-#  set(${compile_warning_flags} ${warning_flags} PARENT_SCOPE)
-#endfunction(Zisc_getCxxWarningFlags)
 
 
 # Set compiler warning options for C++ to the given target
@@ -241,9 +193,14 @@ function(Zisc_setCxxWarningFlags target scope)
   endif()
 
   # Set properties
-  set(has_gcc $<OR:$<C_COMPILER_ID:GNU>,$<CXX_COMPILER_ID:GNU>>)
   set(has_msvc $<OR:$<C_COMPILER_ID:MSVC>,$<CXX_COMPILER_ID:MSVC>>)
+  set(has_gcc $<OR:$<C_COMPILER_ID:GNU>,$<CXX_COMPILER_ID:GNU>>)
   set(has_clang $<OR:$<C_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:Clang>,$<C_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:AppleClang>>)
+
+  # Set MSVC warning options
+  set(msvc_options /W4)
+  set(msvc_options_extra /Wall)
+  set(msvc_options_error /WX)
 
   # Set gcc warning options
   set(gcc_options -Wall
@@ -275,11 +232,6 @@ function(Zisc_setCxxWarningFlags target scope)
                         )
   set(gcc_options_error -Werror)
 
-  # Set MSVC warning options
-  set(msvc_options /W4)
-  set(msvc_options_extra /Wall)
-  set(msvc_options_error /WX)
-
   # Set clang warning options
   if(CMAKE_GENERATOR MATCHES "Visual Studio.*")
     set(clang_options /W4)
@@ -293,28 +245,11 @@ function(Zisc_setCxxWarningFlags target scope)
 
   # Actually set the options to the target
   target_compile_options(${target} ${scope}
-    $<${has_gcc}:$<IF:${has_extra},${gcc_options_extra},${gcc_options}>;$<${has_error}:${gcc_options_error}>>
     $<${has_msvc}:$<IF:${has_extra},${msvc_options_extra},${msvc_options}>;$<${has_error}:${msvc_options_error}>>
+    $<${has_gcc}:$<IF:${has_extra},${gcc_options_extra},${gcc_options}>;$<${has_error}:${gcc_options_error}>>
     $<${has_clang}:$<IF:${has_extra},${clang_options_extra},${clang_options}>;$<${has_error}:${clang_options_error}>>
   )
 endfunction(Zisc_setCxxWarningFlags)
-
-
-#function(Zisc_getArchitectureName only_representative arch_name_list)
-#  set(name_list "")
-#  if(Z_AMD64)
-#    Zisc_getArchitectureNameAmd64(${only_representative} name_list)
-#  endif()
-#
-#
-#  # Output variables
-#  set(${arch_name_list} ${name_list} PARENT_SCOPE)
-#endfunction(Zisc_getArchitectureName)
-#
-#
-#function(Zisc_getArchitectureTargetName project_name arch_name target_name)
-#  set(${target_name} "${project_name}-${arch_name}" PARENT_SCOPE)
-#endfunction(Zisc_getArchitectureTargetName)
 
 
 # Return the name suffixed with the given feature level
@@ -377,14 +312,6 @@ function(Zisc_setStaticAnalyzer target)
 endfunction(Zisc_setStaticAnalyzer)
 
 
-#function(Zisc_getSanitizerFlags compile_sanitizer_flags linker_sanitizer_flags)
-#  Zisc_getSanitizerFlagsImpl(compile_flags linker_flags)
-#  # Output
-#  set(${compile_sanitizer_flags} ${compile_flags} PARENT_SCOPE)
-#  set(${linker_sanitizer_flags} ${linker_flags} PARENT_SCOPE)
-#endfunction(Zisc_getSanitizerFlags)
-
-
 #
 function(Zisc_setSanitizerFlags target scope)
   # Used options
@@ -416,91 +343,6 @@ function(Zisc_setSanitizerFlags target scope)
     $<${has_safe_stack}:-fsanitize=safe-stack>
   )
 endfunction(Zisc_setSanitizerFlags)
-
-
-#function(Zisc_createSanitizerIgnoreList source_files output_dir list_name cxx_compile_flags)
-#  # Create an ignore list
-#  set(ignore_list "")
-#  foreach(file IN LISTS source_files)
-#    string(APPEND ignore_list "src:${file}\n")
-#  endforeach(file)
-#  set(list_path ${output_dir})
-#  cmake_path(APPEND list_path "${list_name}")
-#  file(WRITE ${list_path} ${ignore_list})
-#
-#  # Make a compile flag for the ignore list
-#  set(compile_flags "")
-#  if(Z_VISUAL_STUDIO)
-#    # not supported yet
-#  else()
-#    list(APPEND compile_flags "-fsanitize-ignorelist=${list_path}")
-#  endif()
-#  set(${cxx_compile_flags} ${compile_flags} PARENT_SCOPE)
-#endfunction(Zisc_createSanitizerIgnoreList)
-
-
-#function(Zisc_createLinkToTarget target output_dir)
-#  get_target_property(binary_dir ${target} BINARY_DIR)
-#  set(link_target ${target}_link)
-#
-#  set(script
-#      "include(\"${CMAKE_CURRENT_FUNCTION_LIST_DIR}/compiler_internal.cmake\")\n"
-#      "Zisc_createLinkToFiles(\"${output_dir}\" \"\${target_path}\")\n")
-#  cmake_path(SET script_dir "${binary_dir}/Script")
-#  file(MAKE_DIRECTORY "${script_dir}")
-#  cmake_path(SET script_file "${script_dir}/${link_target}.cmake")
-#  file(WRITE "${script_file}" ${script})
-#
-#  add_custom_target(
-#      ${link_target} ALL
-#      ${CMAKE_COMMAND} -D target_path=$<TARGET_FILE:${target}> -P "${script_file}"
-#      DEPENDS ${target}
-#      WORKING_DIRECTORY "${binary_dir}"
-#      COMMENT "Create a link to the target '${target}' into '${output_dir}'"
-#      SOURCE "${script_file}")
-#endfunction(Zisc_createLinkToTarget)
-
-
-#function(Zisc_populateTargetOptions source_target dest_target)
-#  include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/general.cmake")
-#
-#  Zisc_checkTarget(${source_target})
-#  Zisc_checkTarget(${dest_target})
-#
-#  # TODO. Why it's needed?
-#  set(THREADS_PREFER_PTHREAD_FLAG ON)
-#  find_package(Threads REQUIRED)
-#
-#  get_target_property(zisc_cxx_standard ${source_target} CXX_STANDARD)
-#  if(zisc_cxx_standard)
-#    set_target_properties(${dest_target} PROPERTIES CXX_STANDARD ${zisc_cxx_standard}
-#                                                    CXX_STANDARD_REQUIRED ON)
-#  endif()
-#  get_target_property(zisc_compile_flags ${source_target} INTERFACE_COMPILE_OPTIONS)
-#  if(zisc_compile_flags)
-#    target_compile_options(${dest_target} PRIVATE ${zisc_compile_flags})
-#  endif()
-#  get_target_property(zisc_libraries ${source_target} INTERFACE_LINK_LIBRARIES)
-#  if(zisc_libraries)
-#    target_link_libraries(${dest_target} PRIVATE ${zisc_libraries})
-#  endif()
-#  get_target_property(zisc_linker_flags ${source_target} INTERFACE_LINK_OPTIONS)
-#  if(zisc_linker_flags)
-#    target_link_options(${dest_target} PRIVATE ${zisc_linker_flags})
-#  endif()
-#  get_target_property(zisc_definitions ${source_target} INTERFACE_COMPILE_DEFINITIONS)
-#  if(zisc_definitions)
-#    target_compile_definitions(${dest_target} PRIVATE ${zisc_definitions})
-#  endif()
-#  get_target_property(zisc_features ${source_target} INTERFACE_COMPILE_FEATURES)
-#  if(zisc_features)
-#    target_compile_features(${dest_target} PRIVATE ${zisc_features})
-#  endif()
-#  get_target_property(zisc_includes ${source_target} INTERFACE_INCLUDE_DIRECTORIES)
-#  if(zisc_includes)
-#    target_include_directories(${dest_target} PRIVATE ${zisc_includes})
-#  endif()
-#endfunction(Zisc_populateTargetOptions)
 
 
 # Populate the compilation properties of the source target to the destination properties

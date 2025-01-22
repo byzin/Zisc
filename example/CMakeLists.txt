@@ -12,28 +12,38 @@ cmake_minimum_required(VERSION 3.30)
 cmake_path(SET __zisc_dir__ NORMALIZE "${CMAKE_CURRENT_LIST_DIR}/../source/zisc")
 
 
-#function(getExampleWarningFlags example_warning_flags)
-#  set(warning_flags "")
 #
-#  # Suppress warnings
-#  if(ZISC_SUPPRESS_EXCESSIVE_WARNING)
-#    if(Z_CLANG)
-#      # list(APPEND warning_flags 
-#      #                           )
-#    elseif(Z_GCC)
-#      # list(APPEND warning_flags 
-#      #                           )
-#    elseif(Z_MSVC)
-#      list(APPEND warning_flags /wd4244 # 'argument': conversion from '_Ty' to 'const int', possible loss of data¬
-#                                /wd4267 # conversion from 'size_t' to '_To', possible loss of data.
-#                                /wd4702 # unreachable code
-#                                /wd6326 # Potential comparison of a constant with another constant.
-#                                )
-#    endif()
-#  endif()
-#
-#  set(${example_warning_flags} ${warning_flags} PARENT_SCOPE)
-#endfunction(getExampleWarningFlags)
+function(setExampleWarningFlags target scope)
+  # Include dependencies
+  include("${__zisc_dir__}/cmake/general.cmake")
+
+  Zisc_checkTarget(${target})
+
+  # Set properties
+  set(has_msvc $<OR:$<C_COMPILER_ID:MSVC>,$<CXX_COMPILER_ID:MSVC>>)
+  set(has_gcc $<OR:$<C_COMPILER_ID:GNU>,$<CXX_COMPILER_ID:GNU>>)
+  set(has_clang $<OR:$<C_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:Clang>,$<C_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:AppleClang>>)
+
+  # Set MSVC warnings
+  set(msvc_flags #/wd4244 # 'argument': conversion from '_Ty' to 'const int', possible loss of data¬
+                 # /wd4267 # conversion from 'size_t' to '_To', possible loss of data.
+                 # /wd4702 # unreachable code
+                 # /wd6326 # Potential comparison of a constant with another constant.
+                 )
+
+  # Set GCC warnings
+  set(gcc_flags)
+
+  # Set Clang warnings
+  set(clang_flags)
+
+  # Actually set the warnings
+  target_compile_options(${target} ${scope}
+    $<${has_msvc}:${msvc_flags}>
+    $<${has_gcc}:${msvc_gcc}>
+    $<${has_clang}:${msvc_clang}>
+  )
+endfunction(setExampleWarningFlags)
 
 
 # Add an example
@@ -51,6 +61,7 @@ function(addExample target save_dependency_list)
   Zisc_populateTargetCompilationProperties(Zisc::Zisc ${target})
   Zisc_setSanitizerFlags(${target} PRIVATE)
   Zisc_setCxxWarningFlags(${target} PRIVATE)
+  setExampleWarningFlags(${target} PRIVATE)
   Zisc_enableIpo(${target})
   Zisc_createLinkToTarget(${target} "${PROJECT_BINARY_DIR}")
 
@@ -113,12 +124,6 @@ endfunction(addExample)
 macro(setExampleProject)
   set(project_description "Examples of Zisc")
   project(Examples VERSION 0.0.1 DESCRIPTION "${project_description}" LANGUAGES  CXX)
-
-  # Initialize platform info
-  include("${__zisc_dir__}/cmake/general.cmake")
-  include("${__zisc_dir__}/cmake/platform.cmake")
-  #Zisc_getPlatformFlags(platform_definitions)
-  #Zisc_setVariablesOnCMake(${platform_definitions})
 
   # Build examples
   addExample(AlgorithmExample ON

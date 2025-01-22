@@ -27,25 +27,6 @@ function(Zisc_initZiscOptions)
 endfunction(Zisc_initZiscOptions)
 
 
-#function(Zisc_getZiscFlags zisc_compile_flags zisc_linker_flags zisc_definitions)
-#  # Options
-#  if(${ZISC_ATOMIC_OS_SPECIFIED_WAIT})
-#    list(APPEND definitions ZISC_ATOMIC_OS_SPECIFIED_WAIT=1)
-#  endif()
-#
-#  if(${ZISC_ENABLE_ASSERTION})
-#    list(APPEND definitions ZISC_ASSERTION=1)
-#  endif()
-#
-#  if(Z_WINDOWS)
-#    list(APPEND definitions _ENABLE_EXTENDED_ALIGNED_STORAGE=1)
-#  endif()
-#
-#  # Output variables
-#  set(${zisc_definitions} ${definitions} PARENT_SCOPE)
-#endfunction(Zisc_getZiscFlags)
-
-
 # Set Zisc specific compile flags to the given target
 function(Zisc_setZiscFlags target scope)
   # Include dependencies
@@ -55,32 +36,44 @@ function(Zisc_setZiscFlags target scope)
 
   # Actually set the definitions
   target_compile_definitions(${target} ${scope}
-                             ZISC_ATOMIC_OS_SPECIFIED_WAIT=$<BOOL:${ZISC_ATOMIC_OS_SPECIFIED_WAIT}>
-                             ZISC_ASSERTION=$<BOOL:${ZISC_ENABLE_ASSERTION}>
-                             $<$<PLATFORM_ID:Windows>:_ENABLE_EXTENDED_ALIGNED_STORAGE=1>
-                            )
+    ZISC_ATOMIC_OS_SPECIFIED_WAIT=$<BOOL:${ZISC_ATOMIC_OS_SPECIFIED_WAIT}>
+    ZISC_ASSERTION=$<BOOL:${ZISC_ENABLE_ASSERTION}>
+    $<$<PLATFORM_ID:Windows>:_ENABLE_EXTENDED_ALIGNED_STORAGE=1>
+  )
 endfunction(Zisc_setZiscFlags)
 
 
-#function(Zisc_getZiscWarningFlags zisc_warning_flags)
-#  set(warning_flags "")
 #
-#  if(Z_CLANG)
-#    # list(APPEND warning_flags
-#    #                          )
-#  elseif(Z_GCC)
-#    # list(APPEND warning_flags
-#    #                          )
-#  elseif(Z_MSVC)
-#    list(APPEND warning_flags /wd4244 # 'argument': conversion from '_Ty' to 'const int', possible loss of data¬
-#                              /wd4267 # conversion from 'size_t' to '_To', possible loss of data.
-#                              /wd4324 # structure was padded due to alignment specifier
-#                              )
-#  endif()
-#
-#  # Output variables
-#  set(${zisc_warning_flags} ${warning_flags} PARENT_SCOPE)
-#endfunction(Zisc_getZiscWarningFlags)
+function(Zisc_setZiscWarningFlags target scope)
+  # Include dependencies
+  include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/cmake/general.cmake")
+
+  Zisc_checkTarget(${target})
+
+  # Set properties
+  set(has_msvc $<OR:$<C_COMPILER_ID:MSVC>,$<CXX_COMPILER_ID:MSVC>>)
+  set(has_gcc $<OR:$<C_COMPILER_ID:GNU>,$<CXX_COMPILER_ID:GNU>>)
+  set(has_clang $<OR:$<C_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:Clang>,$<C_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:AppleClang>>)
+
+  # Set MSVC warnings
+  set(msvc_flags # /wd4244 # 'argument': conversion from '_Ty' to 'const int', possible loss of data¬
+                 # /wd4267 # conversion from 'size_t' to '_To', possible loss of data.
+                 # /wd4324 # structure was padded due to alignment specifier
+               )
+
+  # Set GCC warnings
+  set(gcc_flags)
+
+  # Set Clang warnings
+  set(clang_flags)
+
+  # Actually set the warnings
+  target_compile_options(${target} ${scope}
+    $<${has_msvc}:${msvc_flags}>
+    $<${has_gcc}:${gcc_flags}>
+    $<${has_clang}:${msvc_clang}>
+  )
+endfunction(Zisc_setZiscWarningFlags)
 
 
 # Set Zisc library project
@@ -154,6 +147,7 @@ macro(Zisc_setZiscProject)
     set_target_properties(${target} PROPERTIES POSITION_INDEPENDENT_CODE ON)
     Zisc_setSanitizerFlags(${target} PRIVATE)
     Zisc_setCxxWarningFlags(${target} PRIVATE)
+    Zisc_setZiscWarningFlags(${target} PRIVATE)
     Zisc_enableIpo(${target})
     target_include_directories(${target} PUBLIC "${zisc_core_dir}"
                                                 "${PROJECT_BINARY_DIR}/include")

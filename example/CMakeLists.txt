@@ -127,7 +127,7 @@ endfunction(addExample)
 
 #
 macro(setExampleProject)
-  set(project_description "Examples of Zisc")
+  set(project_description "Examples of Zisc.")
   project(Examples VERSION 0.0.1 DESCRIPTION "${project_description}" LANGUAGES  CXX)
 
   # TODO. Use lower case name for binary name: e.g. example-algorithm

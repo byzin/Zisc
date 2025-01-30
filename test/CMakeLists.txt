@@ -6,76 +6,78 @@
 # http://opensource.org/licenses/mit-license.php
 #
 
-cmake_minimum_required(VERSION 3.22)
+cmake_minimum_required(VERSION 3.30)
 
 
 cmake_path(SET __zisc_dir__ NORMALIZE "${CMAKE_CURRENT_LIST_DIR}/../source/zisc")
 
 
-function(getTestCompileFlags test_compile_flags test_linker_flags test_definitions)
-  set(compile_flags "")
-  set(linker_flags "")
-  set(definitions "")
+#
+function(setTestCompileFlags target scope)
+  # Include dependencies
+  include("${__zisc_dir__}/cmake/general.cmake")
 
-  # Output variable
-  set(${test_compile_flags} ${compile_flags} PARENT_SCOPE)
-  set(${test_linker_flags} ${linker_flags} PARENT_SCOPE)
-  set(${test_definitions} ${definitions} PARENT_SCOPE)
-endfunction(getTestCompileFlags)
+  Zisc_checkTarget(${target})
+endfunction(setTestCompileFlags)
 
 
-function(getMakeTestRunScriptCode target bin_dir lib_dir script_name output_dir code)
-  # Set environment variables
-  set(env_vars "")
-  cmake_path(NATIVE_PATH lib_dir native_lib_dir)
-  if(Z_LINUX)
-    list(APPEND env_vars "LD_LIBRARY_PATH=\\\"\\\${Z_SCRIPT_DIR}/${native_lib_dir}\\\${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}\\\"")
-  elseif(Z_MAC)
-    list(APPEND env_vars "DYLD_LIBRARY_PATH=\\\"\\\${Z_SCRIPT_DIR}/${native_lib_dir}:\\\${DYLD_LIBRARY_PATH:-}\\\"")
-  elseif(Z_WINDOWS)
-  endif()
+#
+function(setTestWarningFlags target scope)
+  # Include dependencies
+  include("${__zisc_dir__}/cmake/general.cmake")
 
-  #
-  cmake_path(SET source_dir NORMALIZE "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../source")
-  include("${source_dir}/zisc/cmake/packaging.cmake")
-  Zisc_getMakeSimpleRunScriptCode(${target} "${bin_dir}" "${lib_dir}" "${env_vars}" "${script_name}" "${output_dir}" install_code)
+  Zisc_checkTarget(${target})
+
+  # Set properties
+  set(has_msvc $<OR:$<C_COMPILER_ID:MSVC>,$<CXX_COMPILER_ID:MSVC>>)
+  set(has_gcc $<OR:$<C_COMPILER_ID:GNU>,$<CXX_COMPILER_ID:GNU>>)
+  set(has_clang $<OR:$<C_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:Clang>,$<C_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:AppleClang>>)
+
+  # Set MSVC warnings
+  set(msvc_flags #/wd4244 # 'argument': conversion from '_Ty' to 'const int', possible loss of data
+                 #/wd4267 # conversion from 'size_t' to '_To', possible loss of data.
+                 #/wd4324 # structure was padded due to alignment specifier¬
+                 #/wd4334 # '<<': result of 32-bit shift implicitly converted to 64 bits
+                 #/wd6031 # Return value ignored
+                 #/wd6297 # Arithmetic overflow.  Results might not be an expected value.
+                 #/wd6326 # Potential comparison of a constant with another constant.
+                 )
+
+  # Set GCC warnings
+  set(gcc_flags)
+
+  # Set Clang warnings
+  set(clang_flags)
+
+  # Actually set the warnings
+  target_compile_options(${target} ${scope}
+    $<${has_msvc}:${msvc_flags}>
+    $<${has_gcc}:${msvc_gcc}>
+    $<${has_clang}:${msvc_clang}>
+  )
+endfunction(setTestWarningFlags)
 
 
-  # Output variables
-  set(${code} ${install_code} PARENT_SCOPE)
-endfunction(getMakeTestRunScriptCode)
-
-
-function(getTestWarningFlags test_warning_flags)
-  set(warning_flags "")
-
-  # Suppress warnings
-  if(ZISC_SUPPRESS_EXCESSIVE_WARNING)
-    if(Z_CLANG)
-      # list(APPEND warning_flags
-      #                          )
-      if(Z_VISUAL_STUDIO)
-        # list(APPEND warning_flags
-        #                          )
-      endif()
-    elseif(Z_GCC)
-      # list(APPEND warning_flags
-      #                          )
-    elseif(Z_MSVC)
-      list(APPEND warning_flags /wd4244 # 'argument': conversion from '_Ty' to 'const int', possible loss of data
-                                /wd4267 # conversion from 'size_t' to '_To', possible loss of data.
-                                /wd4324 # structure was padded due to alignment specifier¬
-                                /wd4334 # '<<': result of 32-bit shift implicitly converted to 64 bits
-                                /wd6031 # Return value ignored
-                                /wd6297 # Arithmetic overflow.  Results might not be an expected value.
-                                /wd6326 # Potential comparison of a constant with another constant.
-                                )
-    endif()
-  endif()
-
-  # Output variable
-  set(${test_warning_flags} ${warning_flags} PARENT_SCOPE)
-endfunction(getTestWarningFlags)
+#function(getMakeTestRunScriptCode target bin_dir lib_dir script_name output_dir code)
+#  # Set environment variables
+#  set(env_vars "")
+#  cmake_path(NATIVE_PATH lib_dir native_lib_dir)
+#  if(Z_LINUX)
+#    list(APPEND env_vars "LD_LIBRARY_PATH=\\\"\\\${Z_SCRIPT_DIR}/${native_lib_dir}\\\${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}\\\"")
+#  elseif(Z_MAC)
+#    list(APPEND env_vars "DYLD_LIBRARY_PATH=\\\"\\\${Z_SCRIPT_DIR}/${native_lib_dir}:\\\${DYLD_LIBRARY_PATH:-}\\\"")
+#  elseif(Z_WINDOWS)
+#  endif()
+#
+#  #
+#  cmake_path(SET source_dir NORMALIZE "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../source")
+#  include("${source_dir}/zisc/cmake/packaging.cmake")
+#  Zisc_getMakeSimpleRunScriptCode(${target} "${bin_dir}" "${lib_dir}" "${env_vars}" "${script_name}" "${output_dir}" install_code)
+#
+#
+#  # Output variables
+#  set(${code} ${install_code} PARENT_SCOPE)
+#endfunction(getMakeTestRunScriptCode)
 
 
 #
@@ -84,11 +86,12 @@ macro(setTestProject)
   project(UnitTest VERSION 0.0.1 DESCRIPTION ${project_description} LANGUAGES CXX)
 
 
-  # Initialize platform info
+  # Include dependencies
   include("${__zisc_dir__}/cmake/general.cmake")
-  include("${__zisc_dir__}/cmake/platform.cmake")
-  Zisc_getPlatformFlags(platform_definitions)
-  Zisc_setVariablesOnCMake(${platform_definitions})
+  include("${__zisc_dir__}/cmake/compiler.cmake")
+
+  # Check dependencies
+  Zisc_checkTarget(Zisc::Zisc)
 
   # Create a symlink to the test resources
   cmake_path(SET dst_resource_dir "${PROJECT_BINARY_DIR}/resources")
@@ -105,96 +108,88 @@ macro(setTestProject)
     endif()
   endforeach(reference_path)
 
-  # Create a unit test
+  # Check source files
   file(GLOB unittest_source_files ${PROJECT_SOURCE_DIR}/unittest/*[.hpp|.cpp])
-  source_group(${PROJECT_NAME} FILES ${unittest_source_files})
+  source_group(TREE "${PROJECT_SOURCE_DIR}/unittest" PREFIX ${PROJECT_NAME} FILES ${unittest_source_files})
 
 
-  include("${__zisc_dir__}/cmake/compiler.cmake")
-  Zisc_getCxxWarningFlags(cxx_compile_warning_flags)
-  Zisc_getSanitizerFlags(compile_sanitizer_flags linker_sanitizer_flags)
-  getTestCompileFlags(test_compile_flags test_linker_flags test_definitions)
-  getTestWarningFlags(test_warning_flags)
-  add_executable(${PROJECT_NAME} ${unittest_source_files})
-  set_target_properties(${PROJECT_NAME} PROPERTIES CXX_STANDARD 20 
-                                                   CXX_STANDARD_REQUIRED ON)
-  target_compile_options(${PROJECT_NAME} PRIVATE ${test_compile_flags}
-                                                 ${cxx_compile_warning_flags}
-                                                 ${compile_sanitizer_flags}
-                                                 ${test_warning_flags})
-  target_link_libraries(${PROJECT_NAME} PRIVATE Zisc::Zisc
-                                                GTest::gtest
-                                                ${test_linker_flags})
-  target_link_options(${PROJECT_NAME} PRIVATE ${linker_sanitizer_flags})
-  target_compile_definitions(${PROJECT_NAME} PRIVATE ${test_definitions})
-  target_include_directories(${PROJECT_NAME} PRIVATE "${PROJECT_SOURCE_DIR}/math_reference")
-  Zisc_enableIpo(${PROJECT_NAME})
+  # Create the binary
+  set(target unittest)
+  add_executable(${target} ${unittest_source_files})
+  target_link_libraries(${target} PRIVATE Zisc::Zisc
+                                          GTest::gtest)
+  Zisc_populateTargetCompilationProperties(Zisc::Zisc ${target})
+  Zisc_setSanitizerFlags(${target} PRIVATE)
+  Zisc_setCxxWarningFlags(${target} PRIVATE)
+  setTestCompileFlags(${target} PRIVATE)
+  setTestWarningFlags(${target} PRIVATE)
+  target_include_directories(${target} PRIVATE "${PROJECT_SOURCE_DIR}/math_reference")
+  Zisc_enableIpo(${target})
+  Zisc_createLinkToTarget(${target} "${PROJECT_BINARY_DIR}")
 
-  #
+  # Set static analyzer
   set(clang_tidy_exclusion_checks
-                                  bugprone-easily-swappable-parameters
-                                  bugprone-implicit-widening-of-multiplication-result
-                                  bugprone-narrowing-conversions
-                                  cppcoreguidelines-avoid-c-arrays,hicpp-avoid-c-arrays
-                                  cppcoreguidelines-avoid-magic-numbers
-                                  cppcoreguidelines-avoid-non-const-global-variables
-                                  cppcoreguidelines-macro-usage
-                                  cppcoreguidelines-narrowing-conversions
-                                  cppcoreguidelines-owning-memory
-                                  cppcoreguidelines-rvalue-reference-param-not-moved
-                                  cppcoreguidelines-pro-bounds-array-to-pointer-decay
-                                  cppcoreguidelines-pro-bounds-constant-array-index
-                                  cppcoreguidelines-special-member-functions
-                                  google-readability-braces-around-statements
-                                  google-runtime-int
-                                  hicpp-avoid-c-arrays
-                                  hicpp-braces-around-statements
-                                  hicpp-no-array-decay
-                                  hicpp-signed-bitwise
-                                  hicpp-special-member-functions
-                                  hicpp-uppercase-literal-suffix
-                                  misc-const-correctness
-                                  misc-include-cleaner
-                                  misc-non-private-member-variables-in-classes
-                                  misc-redundant-expression
-                                  modernize-avoid-c-arrays
-                                  modernize-use-trailing-return-type
-                                  performance-avoid-endl
-                                  readability-avoid-const-params-in-decls
-                                  readability-braces-around-statements
-                                  readability-function-cognitive-complexity
-                                  readability-identifier-length
-                                  readability-isolate-declaration
-                                  readability-magic-numbers
-                                  readability-uppercase-literal-suffix
+    #                                  bugprone-easily-swappable-parameters
+    #                                  bugprone-implicit-widening-of-multiplication-result
+    #                                  bugprone-narrowing-conversions
+    #                                  cppcoreguidelines-avoid-c-arrays,hicpp-avoid-c-arrays
+    #                                  cppcoreguidelines-avoid-magic-numbers
+    #                                  cppcoreguidelines-avoid-non-const-global-variables
+    #                                  cppcoreguidelines-macro-usage
+    #                                  cppcoreguidelines-narrowing-conversions
+    #                                  cppcoreguidelines-owning-memory
+    #                                  cppcoreguidelines-rvalue-reference-param-not-moved
+    #                                  cppcoreguidelines-pro-bounds-array-to-pointer-decay
+    #                                  cppcoreguidelines-pro-bounds-constant-array-index
+    #                                  cppcoreguidelines-special-member-functions
+    #                                  google-readability-braces-around-statements
+    #                                  google-runtime-int
+    #                                  hicpp-avoid-c-arrays
+    #                                  hicpp-braces-around-statements
+    #                                  hicpp-no-array-decay
+    #                                  hicpp-signed-bitwise
+    #                                  hicpp-special-member-functions
+    #                                  hicpp-uppercase-literal-suffix
+    #                                  misc-const-correctness
+    #                                  misc-include-cleaner
+    #                                  misc-non-private-member-variables-in-classes
+    #                                  misc-redundant-expression
+    #                                  modernize-avoid-c-arrays
+    #                                  modernize-use-trailing-return-type
+    #                                  performance-avoid-endl
+    #                                  readability-avoid-const-params-in-decls
+    #                                  readability-braces-around-statements
+    #                                  readability-function-cognitive-complexity
+    #                                  readability-identifier-length
+    #                                  readability-isolate-declaration
+    #                                  readability-magic-numbers
+    #                                  readability-uppercase-literal-suffix
                                   )
-
-  Zisc_setStaticAnalyzer(${PROJECT_NAME}
+  Zisc_setStaticAnalyzer(${target}
                          CLANG_TIDY_HEADER_PATHS ${PROJECT_SOURCE_DIR}/unittest/
                          CLANG_TIDY_EXCLUSION_CHECKS ${clang_tidy_exclusion_checks})
-  Zisc_createLinkToTarget(${PROJECT_NAME} ${PROJECT_BINARY_DIR})
 
-  # Installation settings
-  include("${__zisc_dir__}/cmake/packaging.cmake")
-  ## Save the dependency list
-  Zisc_getSaveDependencyCode(${PROJECT_NAME} "${PROJECT_BINARY_DIR}" "" "" "" dependency_code)
-  install(CODE ${dependency_code} COMPONENT test)
-  ## Install actual binary
-  install(TARGETS ${PROJECT_NAME}
-          DESTINATION "${CMAKE_INSTALL_BINDIR}"
-          COMPONENT test)
-  ## Dependencies
-  Zisc_getDeployingNonSystemDependencyCode(${PROJECT_NAME} "${CMAKE_INSTALL_LIBDIR}" "" "" "" deploy_code)
-  install(CODE ${deploy_code}
-          COMPONENT test)
-  ## Runner script
-  getMakeTestRunScriptCode(${PROJECT_NAME} "../${CMAKE_INSTALL_BINDIR}" "../${CMAKE_INSTALL_LIBDIR}" "runUnitTest" "${PROJECT_NAME}" run_script_code)
-  install(CODE ${run_script_code}
-          COMPONENT test)
-  ## Resources
-  install(DIRECTORY "${dst_resource_dir}"
-          DESTINATION "${PROJECT_NAME}"
-          COMPONENT test)
+                       #  # Installation settings
+                       #  include("${__zisc_dir__}/cmake/packaging.cmake")
+                       #  ## Save the dependency list
+                       #  Zisc_getSaveDependencyCode(${PROJECT_NAME} "${PROJECT_BINARY_DIR}" "" "" "" dependency_code)
+                       #  install(CODE ${dependency_code} COMPONENT test)
+                       #  ## Install actual binary
+                       #  install(TARGETS ${PROJECT_NAME}
+                       #          DESTINATION "${CMAKE_INSTALL_BINDIR}"
+                       #          COMPONENT test)
+                       #  ## Dependencies
+                       #  Zisc_getDeployingNonSystemDependencyCode(${PROJECT_NAME} "${CMAKE_INSTALL_LIBDIR}" "" "" "" deploy_code)
+                       #  install(CODE ${deploy_code}
+                       #          COMPONENT test)
+                       #  ## Runner script
+                       #  getMakeTestRunScriptCode(${PROJECT_NAME} "../${CMAKE_INSTALL_BINDIR}" "../${CMAKE_INSTALL_LIBDIR}" "runUnitTest" "${PROJECT_NAME}" run_script_code)
+                       #  install(CODE ${run_script_code}
+                       #          COMPONENT test)
+                       #  ## Resources
+                       #  install(DIRECTORY "${dst_resource_dir}"
+                       #          DESTINATION "${PROJECT_NAME}"
+                       #          COMPONENT test)
 
   # Add tests for CMake
   add_test(NAME ${PROJECT_NAME} COMMAND ${PROJECT_NAME}
@@ -202,6 +197,8 @@ macro(setTestProject)
   set(test_env_list "")
   list(APPEND test_env_list GTEST_COLOR=1)
   set_tests_properties(${PROJECT_NAME} PROPERTIES ENVIRONMENT "${test_env_list}")
+
+  Zisc_printTargetCompileProperties(${target} "  + ")
 endmacro(setTestProject)
 
 

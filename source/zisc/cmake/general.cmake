@@ -39,7 +39,7 @@ endfunction(Zisc_restrictBuildDirectory)
 
 #
 function(Zisc_checkSubmodule submodule_path)
-  if(NOT EXISTS "${submodule_path}")
+  if(NOT EXISTS "${submodule_path}/.git")
     cmake_path(GET submodule_path FILENAME name)
     message(FATAL_ERROR "Submodule '${name}' not found. Please initialize the submodule.")
   endif()
@@ -102,7 +102,8 @@ function(Zisc_addGoogleTest source_dir binary_dir)
   Zisc_setInternalValue(gtest_disable_pthreads ON)
   Zisc_setInternalValue(gtest_hide_internal_symbols ON)
   add_subdirectory("${source_dir}" "${binary_dir}" EXCLUDE_FROM_ALL)
-  include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/platform.cmake")
+  Zisc_checkTarget(gtest)
+  Zisc_checkTarget(gtest_main)
   set_target_properties(gtest
       PROPERTIES
       RUNTIME_OUTPUT_DIRECTORY "${binary_dir}/bin"
@@ -115,13 +116,12 @@ function(Zisc_addGoogleTest source_dir binary_dir)
       LIBRARY_OUTPUT_DIRECTORY "${binary_dir}/lib"
       ARCHIVE_OUTPUT_DIRECTORY "${binary_dir}/lib"
       PDB_OUTPUT_DIRECTORY "${binary_dir}/bin")
-  # Set warning
-  Zisc_getPlatformFlags(platform_definitions)
-  Zisc_setVariablesOnCMake(${platform_definitions})
-  if(Z_CLANG)
-    target_compile_options(gtest PRIVATE -Wno-implicit-int-float-conversion)
-    target_compile_options(gtest_main PRIVATE -Wno-implicit-int-float-conversion)
-  endif()
+  # Set workaround of warnings
+  block()
+    set(has_clang $<OR:$<C_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:Clang>,$<C_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:AppleClang>>)
+    target_compile_options(gtest PRIVATE $<${has_clang}:-Wno-implicit-int-float-conversion>)
+    target_compile_options(gtest_main PRIVATE $<${has_clang}:-Wno-implicit-int-float-conversion>)
+  endblock()
 endfunction(Zisc_addGoogleTest)
 
 

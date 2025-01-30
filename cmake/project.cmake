@@ -71,40 +71,21 @@ function(addGoogleTest binary_dir)
     message(STATUS "Add GoogleTest subdirectory.")
   endif()
 
+  # Include dependencies
+  cmake_path(SET zisc_path "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../source/zisc")
+  include("${zisc_path}/cmake/general.cmake")
+  include("${zisc_path}/cmake/compiler.cmake")
+
+  # Check dependencies
+  Zisc_checkTarget(Zisc::ZiscBuildProperties)
 
   # Add googletest
   cmake_path(SET dependencies_dir "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../test/dependencies")
   cmake_path(SET googletest_path "${dependencies_dir}/googletest")
-  cmake_path(SET zisc_path "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../source/zisc")
-  include("${zisc_path}/cmake/general.cmake")
-  Zisc_checkSubmodule(${googletest_path})
   Zisc_addGoogleTest(${googletest_path} ${binary_dir})
-  Zisc_checkTarget(gtest)
-  #
-  include("${zisc_path}/cmake/compiler.cmake")
-  Zisc_populateTargetOptions(Zisc::Zisc gtest)
   Zisc_checkTarget(GTest::gtest)
+  # Set the compiler flags required for Zisc to GoogleTest
+  get_target_property(gtest_target GTest::gtest ALIASED_TARGET)
+  target_link_libraries(${gtest_target} PRIVATE Zisc::ZiscBuildProperties)
+  Zisc_populateTargetCompilationProperties(Zisc::ZiscBuildProperties ${gtest_target})
 endfunction(addGoogleTest)
-
-
-# GoogleTest
-function(addSanitizerFlags)
-  #
-  include("${zisc_path}/cmake/general.cmake")
-  include("${zisc_path}/cmake/platform.cmake")
-  include("${zisc_path}/cmake/compiler.cmake")
-  Zisc_getPlatformFlags(platform_definitions)
-  Zisc_setVariablesOnCMake(${platform_definitions})
-  #
-  if(NOT Z_WINDOWS)
-    return()
-  endif()
-  #
-  Zisc_getSanitizerFlags(sa_compile_flags sa_linker_flags sa_definitions)
-  foreach(target IN LISTS ARGN)
-    Zisc_checkTarget(${target})
-    target_compile_options(${target} PRIVATE ${sa_compile_flags})
-    target_link_options(${target} PRIVATE ${sa_linker_flags})
-    target_compile_definitions(${target} PRIVATE ${sa_definitions})
-  endforeach(target)
-endfunction(addSanitizerFlags)

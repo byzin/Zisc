@@ -373,10 +373,13 @@ function(Zisc_enableIpo target)
 
   Zisc_checkTarget(${target})
 
+  set(has_clang_tools ${Z_CLANG_USES_LLVM_TOOLS})
+
   # TODO. Fix me. 'check_ipo_supported()' won't work with clang
-  if(CMAKE_CXX_COMPILER_ID STREQUAL Clang)
+  if((CMAKE_CXX_COMPILER_ID STREQUAL Clang) AND has_clang_tools)
     message(STATUS "[${target}] Enable IPO/LTO.")
-    target_compile_options(${target} PRIVATE -flto=$<IF:$<CONFIG:Release>,auto,thin>)
+    target_compile_options(${target} PRIVATE -flto=$<IF:$<CONFIG:Release>,auto,thin>
+                                             -fno-fat-lto-objects)
     return()
   endif()
 

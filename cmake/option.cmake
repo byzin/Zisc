@@ -7,6 +7,9 @@
 # 
 
 
+include_guard()
+
+
 function(initProjectOptions)
   # Include dependencies
   include("${PROJECT_SOURCE_DIR}/source/zisc/cmake/general.cmake")

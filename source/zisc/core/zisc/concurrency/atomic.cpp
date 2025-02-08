@@ -24,9 +24,9 @@
 #include "zisc/bit.hpp"
 #include "zisc/utility.hpp"
 // Platform
-#if defined(Z_WINDOWS)
+#if defined(Z_SYSTEM_WINDOWS)
 #include <Windows.h>
-#elif defined(Z_LINUX)
+#elif defined(Z_SYSTEM_LINUX)
 #include <unistd.h>
 #include <linux/futex.h>
 #include <sys/syscall.h>
@@ -67,7 +67,7 @@ void notifyAllFallback(zisc::AtomicWord<kOsSpecified>* word) noexcept
   condition.notify_all();
 }
 
-#if defined(Z_LINUX)
+#if defined(Z_SYSTEM_LINUX)
 inline
 auto futex(zisc::Atomic::WordValueType* addr,
            const zisc::Atomic::WordValueType futex_op,
@@ -78,7 +78,7 @@ auto futex(zisc::Atomic::WordValueType* addr,
   const long result = syscall(SYS_futex, addr, futex_op, val, nullptr, nullptr, 0);
   return result;
 }
-#endif // Z_LINUX
+#endif // Z_SYSTEM_LINUX
 
 } // namespace
 
@@ -98,13 +98,13 @@ void Atomic::wait<true>(AtomicWord<true>* word,
 {
   if constexpr (AtomicWord<true>::isSpecialized()) {
     do {
-#if defined(Z_WINDOWS)
+#if defined(Z_SYSTEM_WINDOWS)
       static_assert(sizeof(Atomic::WordValueType*) == sizeof(PVOID));
       static_assert(alignof(Atomic::WordValueType*) == alignof(PVOID));
       PVOID addr = std::addressof(word->get());
       PVOID comp = bit_cast<PVOID>(std::addressof(old));
       [[maybe_unused]] auto result = WaitOnAddress(addr, comp, sizeof(old), INFINITE);
-#elif defined(Z_LINUX)
+#elif defined(Z_SYSTEM_LINUX)
       Atomic::WordValueType* addr = std::addressof(word->get());
       [[maybe_unused]] const long result = ::futex(addr, FUTEX_WAIT_PRIVATE, old);
 #endif
@@ -138,10 +138,10 @@ void Atomic::wait<false>(AtomicWord<false>* word,
 template <>
 void Atomic::notifyOne<true>(AtomicWord<true>* word) noexcept
 {
-#if defined(Z_WINDOWS)
+#if defined(Z_SYSTEM_WINDOWS)
   PVOID addr = std::addressof(word->get());
   WakeByAddressSingle(addr);
-#elif defined(Z_LINUX)
+#elif defined(Z_SYSTEM_LINUX)
   Atomic::WordValueType* addr = std::addressof(word->get());
   constexpr Atomic::WordValueType n = 1;
   [[maybe_unused]] const long result = ::futex(addr, FUTEX_WAKE_PRIVATE, n);
@@ -169,10 +169,10 @@ void Atomic::notifyOne<false>(AtomicWord<false>* word) noexcept
 template <>
 void Atomic::notifyAll<true>(AtomicWord<true>* word) noexcept
 {
-#if defined(Z_WINDOWS)
+#if defined(Z_SYSTEM_WINDOWS)
   PVOID addr = std::addressof(word->get());
   WakeByAddressAll(addr);
-#elif defined(Z_LINUX)
+#elif defined(Z_SYSTEM_LINUX)
   Atomic::WordValueType* addr = std::addressof(word->get());
   constexpr Atomic::WordValueType n = (std::numeric_limits<Atomic::WordValueType>::max)();
   [[maybe_unused]] const long result = ::futex(addr, FUTEX_WAKE_PRIVATE, n);
@@ -193,8 +193,8 @@ void Atomic::notifyAll<false>(AtomicWord<false>* word) noexcept
 }
 
 // Size check
-#if defined(Z_WINDOWS) || defined(Z_LINUX)
+#if defined(Z_SYSTEM_WINDOWS) || defined(Z_SYSTEM_LINUX)
 static_assert(sizeof(AtomicWord<true>) == sizeof(Atomic::WordValueType));
-#endif // Z_WINDOWS || Z_LINUX
+#endif // Z_SYSTEM_WINDOWS || Z_SYSTEM_LINUX
 
 } // namespace zisc

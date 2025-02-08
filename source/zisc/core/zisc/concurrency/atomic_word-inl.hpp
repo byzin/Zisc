@@ -30,7 +30,7 @@
 
 namespace zisc {
 
-#if defined(Z_WINDOWS) || defined(Z_LINUX)
+#if defined(Z_SYSTEM_WINDOWS) || defined(Z_SYSTEM_LINUX)
 
 /*!
   \brief No brief description
@@ -42,7 +42,7 @@ class AtomicWordBase<true> : private NonCopyable<AtomicWordBase<true>>
 {
 };
 
-#endif // Z_WINDOWS || Z_LINUX
+#endif // Z_SYSTEM_WINDOWS || Z_SYSTEM_LINUX
 
 /*!
   \brief No brief description
@@ -141,7 +141,7 @@ template <bool kOsSpecified> inline
 constexpr auto AtomicWord<kOsSpecified>::isSpecialized() noexcept -> bool
 {
   const bool flag =
-#if defined(Z_WINDOWS) || defined(Z_LINUX)
+#if defined(Z_SYSTEM_WINDOWS) || defined(Z_SYSTEM_LINUX)
       kOsSpecified;
 #else
       false;

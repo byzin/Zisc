@@ -200,11 +200,11 @@ inline
 auto Memory::allocate(const std::size_t alignment, const std::size_t size) noexcept -> void*
 {
   void* ptr =
-#if defined(Z_WINDOWS)
+#if defined(Z_SYSTEM_WINDOWS)
       alignedAllocWin(alignment, size);
-#else // Z_WINDOWS
+#else // Z_SYSTEM_WINDOWS
       std::aligned_alloc(alignment, size);
-#endif // Z_WINDOWS
+#endif // Z_SYSTEM_WINDOWS
   return ptr;
 }
 
@@ -220,11 +220,11 @@ template <std::size_t kN, typename Type> inline
 constexpr auto Memory::assumeAligned(Type* ptr) noexcept -> Type*
 {
   Type* result =
-#if defined(Z_CLANG)
+#if defined(Z_COMPILER_CLANG)
       static_cast<Type*>(__builtin_assume_aligned(ptr, kN));
-#else // Z_CLANG
+#else // Z_COMPILER_CLANG
       std::assume_aligned<kN>(ptr);
-#endif // Z_CLANG
+#endif // Z_COMPILER_CLANG
   return result;
 }
 
@@ -236,11 +236,11 @@ constexpr auto Memory::assumeAligned(Type* ptr) noexcept -> Type*
 inline
 void Memory::free(void* ptr) noexcept
 {
-#if defined(Z_WINDOWS)
+#if defined(Z_SYSTEM_WINDOWS)
   freeWin(ptr);
-#else // Z_WINDOWS
+#else // Z_SYSTEM_WINDOWS
   std::free(ptr);
-#endif // Z_WINDOWS
+#endif // Z_SYSTEM_WINDOWS
 }
 
 /*!

@@ -37,7 +37,7 @@ namespace zisc {
 template <Ieee754BinaryFormat kFormat>
 class Ieee754BinaryHardwareImpl
 {
-#if defined(Z_CLANG) || defined(Z_GCC)
+#if defined(Z_COMPILER_CLANG) || defined(Z_COMPILER_GNU)
 #define ZISC_HAS_HARDWARE_HALF_IMPL 1
   using HalfT = _Float16;
 #else

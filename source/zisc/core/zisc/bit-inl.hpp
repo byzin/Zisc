@@ -36,7 +36,7 @@ template <TriviallyCopyable To, TriviallyCopyable From> inline
 constexpr auto Bit::castBit(const From& from) noexcept -> To
 {
   const To to =
-#if defined(Z_CLANG)
+#if defined(Z_COMPILER_CLANG)
       __builtin_bit_cast(To, from);
 #else
       std::bit_cast<To, From>(from);

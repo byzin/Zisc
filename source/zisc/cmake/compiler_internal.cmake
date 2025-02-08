@@ -61,24 +61,36 @@ endfunction(Zisc_setClangTidyAnalyzer)
 #
 function(Zisc_setOptimizationStaticAnalyzer target analyzation_dir)
   # Create the output directory
-  get_target_property(binary_dir ${target} BINARY_DIR)
   cmake_path(APPEND optimization_dir "${analyzation_dir}" "optimization")
   file(MAKE_DIRECTORY "${optimization_dir}")
 
   #
-  set(has_clang $<OR:$<C_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:Clang>,$<C_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:AppleClang>)
+  set(has_clang $<OR:$<C_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:Clang>,$<C_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:AppleClang>>)
 
   # List of compile flags will be created
   set(compile_flags "")
 
-  # Save optimization report
-  cmake_path(APPEND report_dir "${optimization_dir}" "report")
-  file(MAKE_DIRECTORY "${report_dir}")
-  cmake_path(APPEND report_file_path "${report_dir}" "<OBJECT>.yaml")
-  cmake_path(NATIVE_PATH report_file_path NORMALIZE report_file_path)
-  list(APPEND compile_flags $<${has_clang}:-fsave-optimization-record;-foptimization-record-file=${report_file_path}>)
-  # TODO. Adding custom command using 'llvm-opt-report'?
-
+  # Clang optimization record
+  if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    # Set the output location of the records
+    cmake_path(APPEND report_dir "${optimization_dir}" "report")
+    file(MAKE_DIRECTORY "${report_dir}")
+    #
+    list(APPEND compile_flags -fsave-optimization-record)
+    # Copy the records to the output directory
+    set(object_file_list $<TARGET_OBJECTS:${target}>)
+    set(object_file_location $<PATH:GET_PARENT_PATH,$<LIST:GET,${object_file_list},0>>)
+    set(record_file_list $<LIST:TRANSFORM,${object_file_list},REPLACE,\.o$,.opt.yaml>)
+    file(RELATIVE_PATH report_relative_dir ${CMAKE_SOURCE_DIR} ${report_dir})
+    add_custom_command(TARGET ${target}
+                       POST_BUILD
+                       COMMENT "Collect the optimization records into '${report_relative_dir}'."
+                       COMMAND ${CMAKE_COMMAND} -E copy_if_different ${record_file_list} ${report_dir}
+                       VERBATIM
+                       COMMAND_EXPAND_LISTS
+                      )
+    # TODO. Adding custom command using 'llvm-opt-report'?
+  endif()
 
   # Actually set the flags
   target_compile_options(${target} PRIVATE ${compile_flags})

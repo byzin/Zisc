@@ -108,7 +108,7 @@ using KibiUnit = UnitMultiple<1024, 1>;
 using MebiUnit = UnitMultiple<1024, 2>;
 using GibiUnit = UnitMultiple<1024, 3>;
 
-#if !defined(Z_MSVC)
+#if !defined(Z_COMPILER_MSVC)
 
 //! Perform addition operation on two values in the smaller exponent of the unit
 template <int64b kBase, int64b kExponent1, int64b kExponent2>
@@ -176,7 +176,7 @@ constexpr auto operator>=(
     const UnitMultiple<kBase, kExponent1>& lhs,
     const UnitMultiple<kBase, kExponent2>& rhs) noexcept -> bool;
 
-#endif // Z_MSVC
+#endif // Z_COMPILER_MSVC
 
 } // namespace zisc
 

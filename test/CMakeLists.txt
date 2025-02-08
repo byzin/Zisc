@@ -62,11 +62,11 @@ endfunction(setTestWarningFlags)
 #  # Set environment variables
 #  set(env_vars "")
 #  cmake_path(NATIVE_PATH lib_dir native_lib_dir)
-#  if(Z_LINUX)
+#  if(Z_SYSTEM_LINUX)
 #    list(APPEND env_vars "LD_LIBRARY_PATH=\\\"\\\${Z_SCRIPT_DIR}/${native_lib_dir}\\\${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}\\\"")
-#  elseif(Z_MAC)
+#  elseif(Z_SYSTEM_DARWIN)
 #    list(APPEND env_vars "DYLD_LIBRARY_PATH=\\\"\\\${Z_SCRIPT_DIR}/${native_lib_dir}:\\\${DYLD_LIBRARY_PATH:-}\\\"")
-#  elseif(Z_WINDOWS)
+#  elseif(Z_SYSTEM_WINDOWS)
 #  endif()
 #
 #  #

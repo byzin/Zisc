@@ -183,8 +183,8 @@ function(Zisc_printTargetCompileProperties target message_prefix)
                      COMMAND ${echo} "${prefix}Compile options: $<${prop},COMPILE_OPTIONS>"
                      COMMAND ${echo} "${prefix}Compile defs   : $<${prop},COMPILE_DEFINITIONS>"
                      COMMAND ${echo} "${prefix}Link options   : $<${prop},LINK_OPTIONS>"
-                     COMMAND_EXPAND_LISTS
                      VERBATIM
+                     COMMAND_EXPAND_LISTS
                      )
 endfunction(Zisc_printTargetCompileProperties)
 

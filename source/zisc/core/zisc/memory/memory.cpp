@@ -25,13 +25,13 @@
 #include "zisc/utility.hpp"
 #include "zisc/zisc_config.hpp"
 // Platform
-#if defined(Z_WINDOWS)
+#if defined(Z_SYSTEM_WINDOWS)
 #define NOMINMAX
 #include <malloc.h>
 #include <Windows.h>
-#elif defined(Z_LINUX)
+#elif defined(Z_SYSTEM_LINUX)
 #include <sys/sysinfo.h>
-#elif defined(Z_MAC)
+#elif defined(Z_SYSTEM_DARWIN)
 #include <mach/mach.h>
 #include <sys/sysctl.h>
 #include <sys/types.h>
@@ -117,9 +117,9 @@ auto Memory::alignedAllocWin([[maybe_unused]] const std::size_t alignment,
                              [[maybe_unused]] const std::size_t size) noexcept -> void*
 {
   void* ptr = nullptr;
-#if defined(Z_WINDOWS)
+#if defined(Z_SYSTEM_WINDOWS)
   ptr = _aligned_malloc(size, alignment);
-#endif // Z_WINDOWS
+#endif // Z_SYSTEM_WINDOWS
   return ptr;
 }
 
@@ -130,9 +130,9 @@ auto Memory::alignedAllocWin([[maybe_unused]] const std::size_t alignment,
   */
 void Memory::freeWin([[maybe_unused]] void* ptr) noexcept
 {
-#if defined(Z_WINDOWS)
+#if defined(Z_SYSTEM_WINDOWS)
   _aligned_free(ptr);
-#endif // Z_WINDOWS
+#endif // Z_SYSTEM_WINDOWS
 }
 
 /*!
@@ -144,7 +144,7 @@ auto Memory::retrieveSystemStatsImpl() noexcept -> Memory::SystemMemoryStats
 {
   SystemMemoryStats stats{};
   bool success = false;
-#if defined(Z_WINDOWS)
+#if defined(Z_SYSTEM_WINDOWS)
   {
     MEMORYSTATUSEX info{};
     info.dwLength = sizeof(info);
@@ -155,7 +155,7 @@ auto Memory::retrieveSystemStatsImpl() noexcept -> Memory::SystemMemoryStats
     stats.setAvailableVirtualMemory(info.ullAvailVirtual);
     ZISC_ASSERT(success, "Retrieving memory info failed.");
   }
-#elif defined(Z_LINUX)
+#elif defined(Z_SYSTEM_LINUX)
   {
     struct sysinfo info{};
     success = sysinfo(&info) == 0;
@@ -170,7 +170,7 @@ auto Memory::retrieveSystemStatsImpl() noexcept -> Memory::SystemMemoryStats
     const std::size_t available_virtual_mem = info.freeswap * info.mem_unit;
     stats.setAvailableVirtualMemory(available_virtual_mem);
   }
-#elif defined(Z_MAC)
+#elif defined(Z_SYSTEM_DARWIN)
   {
     // Total size of physical memory
     {

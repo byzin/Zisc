@@ -40,7 +40,7 @@ namespace zisc {
 inline
 constexpr auto Atomic::castMemOrder(const std::memory_order order) noexcept
 {
-#if defined(Z_CLANG)
+#if defined(Z_COMPILER_CLANG)
   using OrderT = decltype(__ATOMIC_SEQ_CST);
 
   // memory order value check
@@ -52,9 +52,9 @@ constexpr auto Atomic::castMemOrder(const std::memory_order order) noexcept
   static_assert(__ATOMIC_SEQ_CST == static_cast<OrderT>(std::memory_order::seq_cst));
 
   return static_cast<OrderT>(order);
-#else // Z_CLANG
+#else // Z_COMPILER_CLANG
   return order;
-#endif // Z_CLANG
+#endif // Z_COMPILER_CLANG
 }
 
 /*!
@@ -86,11 +86,11 @@ void Atomic::store(Type* ptr,
                    Type value,
                    const std::memory_order order) noexcept
 {
-#if defined(Z_CLANG)
+#if defined(Z_COMPILER_CLANG)
   __atomic_store(ptr, &value, castMemOrder(order));
-#else // Z_CLANG
+#else // Z_COMPILER_CLANG
   std::atomic_ref<Type>{*ptr}.store(value, order);
-#endif // Z_CLANG
+#endif // Z_COMPILER_CLANG
 }
 
 /*!
@@ -107,11 +107,11 @@ auto Atomic::load(const Type* ptr, const std::memory_order order) noexcept -> Ty
   using T = std::remove_cvref_t<Type>;
   T* p = const_cast<T*>(ptr);
   Type result = cast<Type>(0);
-#if defined(Z_CLANG)
+#if defined(Z_COMPILER_CLANG)
   __atomic_load(p, &result, castMemOrder(order));
-#else // Z_CLANG
+#else // Z_COMPILER_CLANG
   result = std::atomic_ref<T>{*p}.load(order);
-#endif // Z_CLANG
+#endif // Z_COMPILER_CLANG
   return result;
 }
 
@@ -130,11 +130,11 @@ auto Atomic::exchange(Type* ptr,
                       const std::memory_order order) noexcept -> Type
 {
   Type old = cast<Type>(0);
-#if defined(Z_CLANG)
+#if defined(Z_COMPILER_CLANG)
   __atomic_exchange(ptr, &value, &old, castMemOrder(order));
-#else // Z_CLANG
+#else // Z_COMPILER_CLANG
   old = std::atomic_ref<Type>{*ptr}.exchange(value, order);
-#endif // Z_CLANG
+#endif // Z_COMPILER_CLANG
   return old;
 }
 
@@ -158,11 +158,11 @@ auto Atomic::compareAndExchange(Type* ptr,
 {
   const auto s = castMemOrder(success_order);
   const auto f = castMemOrder(failure_order);
-#if defined(Z_CLANG)
+#if defined(Z_COMPILER_CLANG)
   __atomic_compare_exchange(ptr, &cmp, &value, false, s, f);
-#else // Z_CLANG
+#else // Z_COMPILER_CLANG
   std::atomic_ref<Type>{*ptr}.compare_exchange_strong(cmp, value, s, f);
-#endif // Z_CLANG
+#endif // Z_COMPILER_CLANG
   return cmp;
 }
 
@@ -181,11 +181,11 @@ auto Atomic::add(Type* ptr,
                  const std::memory_order order) noexcept -> Type
 {
   const Type old =
-#if defined(Z_CLANG)
+#if defined(Z_COMPILER_CLANG)
       __atomic_fetch_add(ptr, value, castMemOrder(order));
-#else // Z_CLANG
+#else // Z_COMPILER_CLANG
       std::atomic_ref<Type>{*ptr}.fetch_add(value, order);
-#endif // Z_CLANG
+#endif // Z_COMPILER_CLANG
   return old;
 }
 
@@ -204,11 +204,11 @@ auto Atomic::sub(Type* ptr,
                  const std::memory_order order) noexcept -> Type
 {
   const Type old =
-#if defined(Z_CLANG)
+#if defined(Z_COMPILER_CLANG)
       __atomic_fetch_sub(ptr, value, castMemOrder(order));
-#else // Z_CLANG
+#else // Z_COMPILER_CLANG
       std::atomic_ref<Type>{*ptr}.fetch_sub(value, order);
-#endif // Z_CLANG
+#endif // Z_COMPILER_CLANG
   return old;
 }
 
@@ -261,11 +261,11 @@ auto Atomic::min(Type* ptr, const Type value, const std::memory_order order) noe
     return (lhs < rhs) ? lhs : rhs;
   };
   Type old = cast<Type>(0);
-#if defined(Z_CLANG)
+#if defined(Z_COMPILER_CLANG)
   if constexpr (Integer<Type>)
     old = __atomic_fetch_min(ptr, value, castMemOrder(order));
   else
-#endif // Z_CLANG
+#endif // Z_COMPILER_CLANG
     old = perform(ptr, order, func, value);
   return old;
 }
@@ -287,11 +287,11 @@ auto Atomic::max(Type* ptr, const Type value, const std::memory_order order) noe
     return (lhs < rhs) ? rhs : lhs;
   };
   Type old = cast<Type>(0);
-#if defined(Z_CLANG)
+#if defined(Z_COMPILER_CLANG)
   if constexpr (Integer<Type>)
     old = __atomic_fetch_max(ptr, value, castMemOrder(order));
   else
-#endif // Z_CLANG
+#endif // Z_COMPILER_CLANG
     old = perform(ptr, order, func, value);
   return old;
 }
@@ -309,11 +309,11 @@ template <Integer Int> inline
 auto Atomic::bitAnd(Int* ptr, const Int value, const std::memory_order order) noexcept -> Int
 {
   const Int old =
-#if defined(Z_CLANG)
+#if defined(Z_COMPILER_CLANG)
       __atomic_fetch_and(ptr, value, castMemOrder(order));
-#else // Z_CLANG
+#else // Z_COMPILER_CLANG
       std::atomic_ref<Int>{*ptr}.fetch_and(value, order);
-#endif // Z_CLANG
+#endif // Z_COMPILER_CLANG
   return old;
 }
 
@@ -330,11 +330,11 @@ template <Integer Int> inline
 auto Atomic::bitOr(Int* ptr, const Int value, const std::memory_order order) noexcept -> Int
 {
   const Int old =
-#if defined(Z_CLANG)
+#if defined(Z_COMPILER_CLANG)
       __atomic_fetch_or(ptr, value, castMemOrder(order));
-#else // Z_CLANG
+#else // Z_COMPILER_CLANG
       std::atomic_ref<Int>{*ptr}.fetch_or(value, order);
-#endif // Z_CLANG
+#endif // Z_COMPILER_CLANG
   return old;
 }
 
@@ -351,11 +351,11 @@ template <Integer Int> inline
 auto Atomic::bitXor(Int* ptr, const Int value, const std::memory_order order) noexcept -> Int
 {
   const Int old =
-#if defined(Z_CLANG)
+#if defined(Z_COMPILER_CLANG)
       __atomic_fetch_xor(ptr, value, castMemOrder(order));
-#else // Z_CLANG
+#else // Z_COMPILER_CLANG
       std::atomic_ref<Int>{*ptr}.fetch_xor(value, order);
-#endif // Z_CLANG
+#endif // Z_COMPILER_CLANG
   return old;
 }
 
@@ -370,11 +370,11 @@ constexpr auto Atomic::isAlwaysLockFree() noexcept -> bool
 {
   [[maybe_unused]] constexpr std::size_t size = sizeof(Type);
   const bool result =
-#if defined(Z_CLANG)
+#if defined(Z_COMPILER_CLANG)
       __atomic_always_lock_free(size, nullptr);
-#else // Z_CLANG
+#else // Z_COMPILER_CLANG
       std::atomic_ref<Type>::is_always_lock_free;
-#endif // Z_CLANG
+#endif // Z_COMPILER_CLANG
   return result;
 }
 
@@ -390,11 +390,11 @@ auto Atomic::isLockFree() noexcept -> bool
   [[maybe_unused]] constexpr std::size_t size = sizeof(Type);
   [[maybe_unused]] Type value = cast<Type>(0);
   const bool result =
-#if defined(Z_CLANG)
+#if defined(Z_COMPILER_CLANG)
       __atomic_is_lock_free(size, nullptr);
-#else // Z_CLANG
+#else // Z_COMPILER_CLANG
       std::atomic_ref<Type>{value}.is_lock_free();
-#endif // Z_CLANG
+#endif // Z_COMPILER_CLANG
   return result;
 }
 

@@ -17,7 +17,7 @@
 
 #include "export.hpp"
 
-#if defined(Z_WINDOWS)
+#if defined(Z_SYSTEM_WINDOWS)
 
 /*!
   \def ZISC_EXPORT_C_FUNCTION
@@ -35,7 +35,7 @@
   */
 #define ZISC_EXPORT_CXX_FUNCTION __declspec(dllexport)
 
-#else // Z_WINDOWS
+#else // Z_SYSTEM_WINDOWS
 
 /*!
   \def ZISC_EXPORT_C_FUNCTION
@@ -53,6 +53,6 @@
   */
 #define ZISC_EXPORT_CXX_FUNCTION
 
-#endif // Z_WINDOWS
+#endif // Z_SYSTEM_WINDOWS
 
 #endif /* ZISC_EXPORT_INL_HPP */

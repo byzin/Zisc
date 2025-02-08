@@ -61,3 +61,11 @@
 #include "zisc/structure/queue.hpp"
 #include "zisc/structure/ring_buffer.hpp"
 #include "zisc/structure/scalable_circular_ring_buffer.hpp"
+
+/*!
+  \details No detailed description
+  */
+int main([[maybe_unused]] const int argc, [[maybe_unused]] const char* const* argv)
+{
+  return EXIT_SUCCESS;
+}

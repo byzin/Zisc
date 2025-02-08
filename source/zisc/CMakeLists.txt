@@ -71,7 +71,7 @@ function(Zisc_setZiscWarningFlags target scope)
   target_compile_options(${target} ${scope}
     $<${has_msvc}:${msvc_flags}>
     $<${has_gcc}:${gcc_flags}>
-    $<${has_clang}:${msvc_clang}>
+    $<${has_clang}:${clang_flags}>
   )
 endfunction(Zisc_setZiscWarningFlags)
 

@@ -41,7 +41,7 @@ static_assert(false, "Zisc is built on unsupported OS.");
 
 // Compiler test
 #if defined(__clang__)
-  #if !defined(Z_COMPILER_CLANG)
+  #if !defined(Z_COMPILER_CLANG) && !defined(Z_COMPILER_APPLE_CLANG)
   static_assert(false, "The macro 'Z_COMPILER_CLANG' isn't defined.");
   #endif // Z_COMPILER_CLANG
 #elif defined(__GNUC__)

@@ -71,7 +71,7 @@ function(Zisc_setOptimizationStaticAnalyzer target analyzation_dir)
   set(compile_flags "")
 
   # Clang optimization record
-  if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+  if((CMAKE_CXX_COMPILER_ID STREQUAL "Clang") OR (CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang"))
     # Set the output location of the records
     cmake_path(APPEND report_dir "${optimization_dir}" "report")
     file(MAKE_DIRECTORY "${report_dir}")

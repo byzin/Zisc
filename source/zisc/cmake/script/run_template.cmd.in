@@ -7,6 +7,8 @@ rem Copyright (c) 2015-2025 Sho Ikeda
 rem This software is released under the MIT License.
 rem http://opensource.org/licenses/mit-license.php
 
+rem Localize environment variables
+setlocal
 
 rem Variables
 set Z_CURRENT_DIR=%cd%
@@ -15,6 +17,8 @@ set Z_SCRIPT_DIR=%~dp0
 @zisc_script_pre_commands@
 
 rem Run the execution
-call %Z_SCRIPT_DIR%\@zisc_script_exec@ %*
+call %Z_SCRIPT_DIR%\@zisc_exe_path@ %*
 
 @zisc_script_post_commands@
+
+endlocal

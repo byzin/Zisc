@@ -10,12 +10,12 @@
 
 
 # Variables
-Z_CURRENT_DIR=$(pwd)
+Z_CURRENT_DIR="$(pwd)"
 Z_SCRIPT_DIR="@zisc_script_path_cmd@" # The directory which contains this script
 
 @zisc_script_pre_commands@
 
 # Run the execution
-exec ${Z_SCRIPT_DIR}/@zisc_script_exec@ "$@"
+exec "${Z_SCRIPT_DIR}/@zisc_exe_path@" "$@"
 
 @zisc_script_post_commands@

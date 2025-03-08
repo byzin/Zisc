@@ -280,8 +280,8 @@ function(Zisc_setStaticAnalyzer target)
   set(static_analyzer_list "")
 
   # Parse arguments
-  set(options "")
-  set(one_value_args "")
+  set(options)
+  set(one_value_args)
   set(multi_value_args CLANG_TIDY_HEADER_PATHS CLANG_TIDY_EXCLUSION_CHECKS)
   cmake_parse_arguments(PARSE_ARGV 1 ZISC "${options}" "${one_value_args}" "${multi_value_args}")
 

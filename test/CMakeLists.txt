@@ -89,6 +89,7 @@ macro(setTestProject)
   # Include dependencies
   include("${__zisc_dir__}/cmake/general.cmake")
   include("${__zisc_dir__}/cmake/compiler.cmake")
+  include("${__zisc_dir__}/cmake/packaging.cmake")
 
   # Check dependencies
   Zisc_checkTarget(Zisc::Zisc)
@@ -169,27 +170,19 @@ macro(setTestProject)
                          CLANG_TIDY_HEADER_PATHS ${PROJECT_SOURCE_DIR}/unittest/
                          CLANG_TIDY_EXCLUSION_CHECKS ${clang_tidy_exclusion_checks})
 
-                       #  # Installation settings
-                       #  include("${__zisc_dir__}/cmake/packaging.cmake")
-                       #  ## Save the dependency list
-                       #  Zisc_getSaveDependencyCode(${PROJECT_NAME} "${PROJECT_BINARY_DIR}" "" "" "" dependency_code)
-                       #  install(CODE ${dependency_code} COMPONENT test)
-                       #  ## Install actual binary
-                       #  install(TARGETS ${PROJECT_NAME}
-                       #          DESTINATION "${CMAKE_INSTALL_BINDIR}"
-                       #          COMPONENT test)
-                       #  ## Dependencies
-                       #  Zisc_getDeployingNonSystemDependencyCode(${PROJECT_NAME} "${CMAKE_INSTALL_LIBDIR}" "" "" "" deploy_code)
-                       #  install(CODE ${deploy_code}
-                       #          COMPONENT test)
-                       #  ## Runner script
-                       #  getMakeTestRunScriptCode(${PROJECT_NAME} "../${CMAKE_INSTALL_BINDIR}" "../${CMAKE_INSTALL_LIBDIR}" "runUnitTest" "${PROJECT_NAME}" run_script_code)
-                       #  install(CODE ${run_script_code}
-                       #          COMPONENT test)
-                       #  ## Resources
-                       #  install(DIRECTORY "${dst_resource_dir}"
-                       #          DESTINATION "${PROJECT_NAME}"
-                       #          COMPONENT test)
+  # Installation settings
+  Zisc_saveDependencyListWhenInstallation(${target} "${PROJECT_BINARY_DIR}" COMPONENT development)
+  install(TARGETS ${target}
+          RUNTIME_DEPENDENCY_SET unittest-deps
+          COMPONENT development)
+  Zisc_installDependencySet(unittest-deps COMPONENT development)
+  Zisc_installRunningTargetScript(${target}
+                                  ${CMAKE_INSTALL_BINDIR}
+                                  run-unittest
+                                  COMPONENT development)
+  install(DIRECTORY "${dst_resource_dir}"
+          DESTINATION "test"
+          COMPONENT development)
 
   # Add tests for CMake
   add_test(NAME ${PROJECT_NAME} COMMAND ${PROJECT_NAME}

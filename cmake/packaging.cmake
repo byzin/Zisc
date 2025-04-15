@@ -23,5 +23,9 @@ function(packageProject)
   set(CPACK_RESOURCE_FILE_LICENSE "${PROJECT_SOURCE_DIR}/LICENSE.md")
   set(CPACK_THREADS 0)
 
+  # Install additional required libraries
+  set(CMAKE_INSTALL_SYSTEM_RUNTIME_DESTINATION "lib")
+  include(InstallRequiredSystemLibraries)
+
   include(CPack)
 endfunction(packageProject)

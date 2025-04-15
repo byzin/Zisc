@@ -175,7 +175,9 @@ macro(setTestProject)
   install(TARGETS ${target}
           RUNTIME_DEPENDENCY_SET unittest-deps
           COMPONENT development)
-  Zisc_installDependencySet(unittest-deps COMPONENT development)
+  Zisc_installDependencySet(unittest-deps
+                            DESTINATION "lib"
+                            COMPONENT development)
   Zisc_installRunningTargetScript(${target}
                                   ${CMAKE_INSTALL_BINDIR}
                                   run-unittest

@@ -15,6 +15,7 @@ function(Zisc_installRunningTargetScript target bin_dir script_name)
   # Parse arguments
   set(options)
   set(one_value_args COMPONENT INSTALL_SCRIPT_DIR)
+  # TODO. Support multiple PRE_COMMANDS and POST_COMMANDS
   set(multi_value_args ENV_VARIABLES PRE_COMMANDS POST_COMMANDS)
   cmake_parse_arguments(PARSE_ARGV 1 ZISC "${options}" "${one_value_args}" "${multi_value_args}")
 
@@ -31,6 +32,8 @@ function(Zisc_installRunningTargetScript target bin_dir script_name)
     set(script_type "sh")
     set(script_comment_out "#")
     set(script_path_cmd [=[ [[$(cd "$(dirname "${BASH_SOURCE:-$0}")"; pwd)]] ]=])
+  else()
+    message(WARNING "The installation of running script isn't supported on the architecture: '${CMAKE_SYSTEM_NAME}'.")
   endif()
 
   # Initialize the install code. It will be exended later and installed at the end of the function
@@ -152,17 +155,33 @@ endfunction(Zisc_getDependencySearchPathList)
 function(Zisc_installDependencySet dependency_set)
   # Parse arguments
   set(options)
-  set(one_value_args COMPONENT)
+  set(one_value_args COMPONENT DESTINATION)
   set(multi_value_args)
   cmake_parse_arguments(PARSE_ARGV 1 ZISC "${options}" "${one_value_args}" "${multi_value_args}")
 
   # Exclude system libraries
-  set(exclude_regexs)
-  if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    list(APPEND exclude_regexs "^/lib/*.")
+  set(pre_exclude_regexes)
+  set(post_exclude_regexes)
+  if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+    list(APPEND pre_exclude_regexes "api-ms-*."
+                                    "ext-ms-*."
+                                    "azure"
+                                    "wpaxholder.dll"
+                                    )
+    list(APPEND post_exclude_regexes "^C:/WINDOWS/system32*."
+                                     "^C:\\WINDOWS\\system32*."
+                                     )
+  elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    list(APPEND post_exclude_regexes "^/lib/*.")
   endif()
-  # TODO. Windows
   # TODO. macOS
+
+  # Set the output directory
+  set(destination)
+  if(ZISC_DESTINATION)
+    list(APPEND destination RUNTIME DESTINATION "${ZISC_DESTINATION}")
+    list(APPEND destination LIBRARY DESTINATION "${ZISC_DESTINATION}")
+  endif()
 
   # Set the component
   set(component)
@@ -174,7 +193,9 @@ function(Zisc_installDependencySet dependency_set)
   install(RUNTIME_DEPENDENCY_SET ${dependency_set}
           ${component}
           DIRECTORIES ${dep_search_path_list}
-          POST_EXCLUDE_REGEXES ${exclude_regexs}
+          PRE_EXCLUDE_REGEXES ${pre_exclude_regexes}
+          POST_EXCLUDE_REGEXES ${post_exclude_regexes}
+          ${destination}
          )
 endfunction(Zisc_installDependencySet)
 

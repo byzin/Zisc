@@ -19,7 +19,6 @@ if(PROJECT_IS_TOP_LEVEL)
     set(CMAKE_BUILD_TYPE "Debug")
   endif()
   set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-  include(InstallRequiredSystemLibraries)
   ## Print system environment information
   include("${zisc_path}/cmake/general.cmake")
   message(STATUS "System information:")

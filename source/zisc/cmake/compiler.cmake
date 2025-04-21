@@ -157,8 +157,7 @@ function(Zisc_setCxxCompileFlags target feature_level scope)
   list(APPEND definitions Z_ARCH_FEATURE_LEVEL_NAME=\"${feature_level}\")
 
   # Actually set the options to the target
-  set_target_properties(${target} PROPERTIES CXX_STANDARD 23
-                                  CXX_STANDARD_REQUIRED ON)
+  target_compile_features(${target} ${scope} cxx_std_23)
   target_compile_options(${target} ${scope}
     $<${has_msvc}:${msvc_flags}>
     $<${has_gcc}:${gcc_flags}>
@@ -342,26 +341,6 @@ function(Zisc_setSanitizerFlags target scope)
     $<${has_safe_stack}:-fsanitize=safe-stack>
   )
 endfunction(Zisc_setSanitizerFlags)
-
-
-# Populate the compilation properties of the source target to the destination properties
-function(Zisc_populateTargetCompilationProperties source_target dest_target)
-  # Include dependencies
-  include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/general.cmake")
-
-  Zisc_checkTarget(${source_target})
-  Zisc_checkTarget(${dest_target})
-
-  block()
-    get_target_property(source_cxx_standard ${source_target} CXX_STANDARD)
-    set_target_properties(${dest_target} PROPERTIES CXX_STANDARD ${source_cxx_standard})
-  endblock()
-
-  block()
-    get_target_property(source_cxx_standard ${source_target} CXX_STANDARD_REQUIRED)
-    set_target_properties(${dest_target} PROPERTIES CXX_STANDARD_REQUIRED ${source_cxx_standard})
-  endblock()
-endfunction(Zisc_populateTargetCompilationProperties)
 
 
 #

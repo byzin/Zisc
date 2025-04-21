@@ -180,7 +180,7 @@ function(Zisc_printTargetCompileProperties target message_prefix)
                      COMMAND ${echo} "${prefix}Build type     : $<CONFIG>"
                      COMMAND ${echo} "${prefix}Platform       : $<PLATFORM_ID>"
                      COMMAND ${echo} "${prefix}C   compiler   : $<$<BOOL:$<C_COMPILER_ID>>:$<C_COMPILER_ID>_$<C_COMPILER_VERSION>_(std=$<TARGET_PROPERTY:${target},C_STANDARD>)>"
-                     COMMAND ${echo} "${prefix}C++ compiler   : $<$<BOOL:$<CXX_COMPILER_ID>>:$<CXX_COMPILER_ID>;$<CXX_COMPILER_VERSION>;(std=$<TARGET_PROPERTY:${target},CXX_STANDARD>)>"
+                     COMMAND ${echo} "${prefix}C++ compiler   : $<$<BOOL:$<CXX_COMPILER_ID>>:$<CXX_COMPILER_ID>;$<CXX_COMPILER_VERSION>>"
                      COMMAND ${echo} "${prefix}Compile options: $<${prop},COMPILE_OPTIONS>"
                      COMMAND ${echo} "${prefix}Compile defs   : $<${prop},COMPILE_DEFINITIONS>"
                      COMMAND ${echo} "${prefix}Link options   : $<${prop},LINK_OPTIONS>"

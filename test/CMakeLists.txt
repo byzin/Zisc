@@ -119,7 +119,6 @@ macro(setTestProject)
   add_executable(${target} ${unittest_source_files})
   target_link_libraries(${target} PRIVATE Zisc::Zisc
                                           GTest::gtest)
-  Zisc_populateTargetCompilationProperties(Zisc::Zisc ${target})
   Zisc_setSanitizerFlags(${target} PRIVATE)
   Zisc_setCxxWarningFlags(${target} PRIVATE)
   setTestCompileFlags(${target} PRIVATE)

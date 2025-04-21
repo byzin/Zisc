@@ -63,7 +63,6 @@ function(addExample target save_dependency_list)
   # Create the binary
   add_executable(${target} ${example_source_files})
   target_link_libraries(${target} PRIVATE Zisc::Zisc)
-  Zisc_populateTargetCompilationProperties(Zisc::Zisc ${target})
   Zisc_setSanitizerFlags(${target} PRIVATE)
   Zisc_setCxxWarningFlags(${target} PRIVATE)
   setExampleWarningFlags(${target} PRIVATE)

@@ -87,5 +87,4 @@ function(addGoogleTest binary_dir)
   # Set the compiler flags required for Zisc to GoogleTest
   get_target_property(gtest_target GTest::gtest ALIASED_TARGET)
   target_link_libraries(${gtest_target} PRIVATE Zisc::ZiscBuildProperties)
-  Zisc_populateTargetCompilationProperties(Zisc::ZiscBuildProperties ${gtest_target})
 endfunction(addGoogleTest)

@@ -83,7 +83,7 @@ function(Zisc_setCxxCompileFlags target feature_level scope)
   set(has_clang $<OR:$<C_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:Clang>,$<C_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:AppleClang>>)
   set(has_apple_clang $<OR:$<C_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:AppleClang>>)
   set(has_msvc_frontend 0)
-  if(CMAKE_CXX_COMPILER_FRONTEND_VARIANT MATCHES "MSVC")
+  if(CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC")
     set(has_msvc_frontend 1)
   endif()
 
@@ -122,12 +122,12 @@ function(Zisc_setCxxCompileFlags target feature_level scope)
   set(clang_cl_definitions)
 
   # Set feature flags
-  if(feature_level MATCHES "Amd64V1")
+  if(feature_level STREQUAL "Amd64V1")
     list(APPEND msvc_flags /favor:AMD64)
     list(APPEND gcc_flags -march=x86-64)
     list(APPEND clang_flags -march=x86-64)
     list(APPEND clang_cl_flags /clang:-march=x86-64)
-  elseif(feature_level MATCHES "Amd64V2")
+  elseif(feature_level STREQUAL "Amd64V2")
     list(APPEND msvc_flags /favor:AMD64)
     list(APPEND gcc_flags -fno-math-errno
                           -march=x86-64-v2)
@@ -135,7 +135,7 @@ function(Zisc_setCxxCompileFlags target feature_level scope)
                             -march=x86-64-v2)
     list(APPEND clang_cl_flags /clang:-fno-math-errno
                                /clang:-march=x86-64-v2)
-  elseif(feature_level MATCHES "Amd64V3")
+  elseif(feature_level STREQUAL "Amd64V3")
     list(APPEND msvc_flags /favor:AMD64
                            /arch:AVX2)
     list(APPEND gcc_flags -fno-math-errno
@@ -144,7 +144,7 @@ function(Zisc_setCxxCompileFlags target feature_level scope)
                             -march=x86-64-v3)
     list(APPEND clang_cl_flags /clang:-fno-math-errno
                                /clang:-march=x86-64-v3)
-  elseif(feature_level MATCHES "Amd64V4")
+  elseif(feature_level STREQUAL "Amd64V4")
     list(APPEND msvc_flags /favor:AMD64
                            /arch:AVX512)
     list(APPEND gcc_flags -fno-math-errno
@@ -231,11 +231,11 @@ function(Zisc_setCxxWarningFlags target scope)
   set(gcc_options_error -Werror)
 
   # Set clang warning options
-  if(CMAKE_CXX_COMPILER_FRONTEND_VARIANT MATCHES "MSVC")
+  if(CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC")
     set(clang_options /W4)
     set(clang_options_extra /Wall -Wno-c++-compat -Wno-c++98-compat -Wno-c++98-compat-pedantic)
     set(clang_options_error /WX)
-  elseif(CMAKE_CXX_COMPILER_FRONTEND_VARIANT MATCHES "GNU")
+  elseif(CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "GNU")
     set(clang_options -Wall -Wextra -pedantic)
     set(clang_options_extra -Weverything -Wno-c++-compat -Wno-c++98-compat -Wno-c++98-compat-pedantic)
     set(clang_options_error -Werror)

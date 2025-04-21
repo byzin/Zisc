@@ -19,8 +19,7 @@ function(Zisc_setPlatformFlags target scope)
   Zisc_checkTarget(${target})
 
   # Set system definition
-  set(supported_system_list "Windows" "Linux" "Darwin")
-  if(NOT CMAKE_SYSTEM_NAME IN_LIST supported_system_list)
+  if(NOT CMAKE_SYSTEM_NAME MATCHES "Windows|Linux|Darwin")
     message(WARNING "Unsupported system: ${CMAKE_SYSTEM_NAME}")
   endif()
   target_compile_definitions(${target} ${scope}
@@ -90,8 +89,7 @@ function(Zisc_setPlatformFlags target scope)
   endif()
 
   # Set build type definitions
-  set(supported_build_type_list "Debug" "RelWithDebInfo" "Release")
-  if(NOT CMAKE_BUILD_TYPE IN_LIST supported_build_type_list)
+  if(NOT CMAKE_BUILD_TYPE MATCHES "Debug|RelWithDebInfo|Release")
     message(WARNING "Unsupported build type: ${CMAKE_BUILD_TYPE}")
   endif()
   target_compile_definitions(${target} ${scope} 

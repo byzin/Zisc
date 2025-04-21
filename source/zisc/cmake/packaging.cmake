@@ -16,7 +16,7 @@ function(Zisc_installRunningTargetScript target bin_dir script_name)
   set(options)
   set(one_value_args COMPONENT INSTALL_SCRIPT_DIR)
   # TODO. Support multiple PRE_COMMANDS and POST_COMMANDS
-  set(multi_value_args ENV_VARIABLES PRE_COMMANDS POST_COMMANDS)
+  set(multi_value_args LIB_SEARCH_PATH ENV_VARIABLES PRE_COMMANDS POST_COMMANDS)
   cmake_parse_arguments(PARSE_ARGV 1 ZISC "${options}" "${one_value_args}" "${multi_value_args}")
 
   # Check script type
@@ -61,6 +61,31 @@ function(Zisc_installRunningTargetScript target bin_dir script_name)
     set(zisc_script_pre_commands)
     set(zisc_script_post_commands)
   ]])
+
+  # Set the custom library serach path
+  if(ZISC_LIB_SEARCH_PATH)
+    cmake_path(NATIVE_PATH ZISC_LIB_SEARCH_PATH NORMALIZE lib_search_path)
+    string(APPEND code
+      "string(APPEND zisc_script_pre_commands \"${script_comment_out} Set the custom library search path\")\n"
+      "set(lib_search_path ${lib_search_path})\n"
+      [[
+      string(APPEND zisc_script_pre_commands "\n")
+      ]]
+    )
+    if(script_type STREQUAL "cmd")
+      string(APPEND code
+        [[
+        string(APPEND zisc_script_pre_commands "set PATH=\${Z_SCRIPT_DIR}\\${lib_search_path};%PATH%\n")
+        ]]
+      )
+    elseif(script_type STREQUAL "sh")
+      string(APPEND code
+        [[
+        string(APPEND zisc_script_pre_commands "LD_LIBRARY_PATH=\${Z_SCRIPT_DIR}/${lib_search_path}:\${LD_LIBRARY_PATH}\n")
+        ]]
+      )
+    endif()
+  endif()
 
   # Set the environment variables
   if(ZISC_ENV_VARIABLES)
@@ -140,8 +165,7 @@ function(Zisc_getDependencySearchPathList search_path_list)
   # TODO. Windows
 
   # Unix
-  set(ld_lib_os_list "Linux" "Darwin")
-  if(CMAKE_SYSTEM_NAME IN_LIST ld_lib_os_list)
+  if(CMAKE_SYSTEM_NAME MATCHES "Linux|Darwin")
     string(REPLACE ":" ";" lib_path_list $ENV{LD_LIBRARY_PATH})
     list(APPEND path_list ${lib_path_list})
   endif()

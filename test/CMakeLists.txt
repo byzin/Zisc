@@ -180,6 +180,7 @@ macro(setTestProject)
   Zisc_installRunningTargetScript(${target}
                                   ${CMAKE_INSTALL_BINDIR}
                                   run-unittest
+                                  LIB_SEARCH_PATH "lib"
                                   COMPONENT development)
   install(DIRECTORY "${dst_resource_dir}"
           DESTINATION "test"

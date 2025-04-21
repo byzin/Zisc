@@ -82,10 +82,9 @@ function(Zisc_setCxxCompileFlags target feature_level scope)
   set(has_gcc $<OR:$<C_COMPILER_ID:GNU>,$<CXX_COMPILER_ID:GNU>>)
   set(has_clang $<OR:$<C_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:Clang>,$<C_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:AppleClang>>)
   set(has_apple_clang $<OR:$<C_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:AppleClang>>)
-  if(CMAKE_GENERATOR MATCHES "Visual Studio.*")
-    set(has_visual_studio 1)
-  else()
-    set(has_visual_studio 0)
+  set(has_msvc_frontend 0)
+  if(CMAKE_CXX_COMPILER_FRONTEND_VARIANT MATCHES "MSVC")
+    set(has_msvc_frontend 1)
   endif()
 
   # Shared options
@@ -163,18 +162,18 @@ function(Zisc_setCxxCompileFlags target feature_level scope)
   target_compile_options(${target} ${scope}
     $<${has_msvc}:${msvc_flags}>
     $<${has_gcc}:${gcc_flags}>
-    $<${has_clang}:$<IF:${has_visual_studio},${clang_cl_flags},${clang_flags}>>
+    $<${has_clang}:$<IF:${has_msvc_frontend},${clang_cl_flags},${clang_flags}>>
   )
   target_link_options(${target} ${scope}
     $<${has_msvc}:${msvc_linker_flags}>
     $<${has_gcc}:${gcc_linker_flags}>
-    $<${has_clang}:$<IF:${has_visual_studio},${clang_cl_linker_flags},${clang_linker_flags}>>
+    $<${has_clang}:$<IF:${has_msvc_frontend},${clang_cl_linker_flags},${clang_linker_flags}>>
   )
   target_compile_definitions(${target} ${scope}
     ${definitions}
     $<${has_msvc}:${msvc_definitions}>
     $<${has_gcc}:${gcc_definitions}>
-    $<${has_clang}:$<IF:${has_visual_studio},${clang_cl_definitions},${clang_definitions}>>
+    $<${has_clang}:$<IF:${has_msvc_frontend},${clang_cl_definitions},${clang_definitions}>>
     Z_ENABLE_HARDWARE_FEATURES=${has_hardware_feature}
   )
 endfunction(Zisc_setCxxCompileFlags)
@@ -233,11 +232,11 @@ function(Zisc_setCxxWarningFlags target scope)
   set(gcc_options_error -Werror)
 
   # Set clang warning options
-  if(CMAKE_GENERATOR MATCHES "Visual Studio.*")
+  if(CMAKE_CXX_COMPILER_FRONTEND_VARIANT MATCHES "MSVC")
     set(clang_options /W4)
     set(clang_options_extra /Wall -Wno-c++-compat -Wno-c++98-compat -Wno-c++98-compat-pedantic)
     set(clang_options_error /WX)
-  else()
+  elseif(CMAKE_CXX_COMPILER_FRONTEND_VARIANT MATCHES "GNU")
     set(clang_options -Wall -Wextra -pedantic)
     set(clang_options_extra -Weverything -Wno-c++-compat -Wno-c++98-compat -Wno-c++98-compat-pedantic)
     set(clang_options_error -Werror)

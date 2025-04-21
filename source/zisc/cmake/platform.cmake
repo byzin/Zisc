@@ -58,6 +58,24 @@ function(Zisc_setPlatformFlags target scope)
                              $<${has_apple_clang}:Z_COMPILER_APPLE_CLANG>
                              )
 
+  # Set compiler frontend variant definitions
+  set(supported_frontend_variant "GNU" "MSVC")
+  if(("C" IN_LIST language_list) AND
+     (NOT CMAKE_C_COMPILER_FRONTEND_VARIANT IN_LIST supported_frontend_variant))
+    message(WARNING "Unsupported C   frontend variant: ${CMAKE_C_COMPILER_FRONTEND_VARIANT}")
+  endif()
+  if(("CXX" IN_LIST language_list) AND
+     (NOT CMAKE_CXX_COMPILER_FRONTEND_VARIANT IN_LIST supported_frontend_variant))
+    message(WARNING "Unsupported C++ frontend variant: ${CMAKE_CXX_COMPILER_FRONTEND_VARIANT}")
+  endif()
+  set(has_msvc $<OR:$<C_COMPILER_FRONTEND_VARIANT:MSVC>,$<CXX_COMPILER_FRONTEND_VARIANT:MSVC>>)
+  set(has_gnu $<OR:$<C_COMPILER_FRONTEND_VARIANT:GNU>,$<CXX_COMPILER_FRONTEND_VARIANT:GNU>>)
+  target_compile_definitions(${target} ${scope}
+                             $<${has_msvc}:Z_COMPILER_FRONTEND_VARIANT_MSVC>
+                             $<${has_gnu}:Z_COMPILER_FRONTEND_VARIANT_GNU>
+                             )
+
+
   # Set generator definition
   if(CMAKE_GENERATOR MATCHES ".*Makefiles")
     target_compile_definitions(${target} ${scope} Z_GENERATOR_MAKEFILE)
